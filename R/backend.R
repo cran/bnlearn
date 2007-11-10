@@ -1,6 +1,6 @@
 
 # second prinple of CI algorithms: infer arc orientation from graph structure.
-second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist, 
+second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist,
   test, alpha, data, strict, direction, debug) {
 
   # hope it's never called ...
@@ -8,15 +8,15 @@ second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist,
 
   # build a list of the undirected arcs in the graph, using the neighbourhoods
   # detected in markov.blanket().
-  arcs = mb2arcs(mb, nodes) 
+  arcs = mb2arcs(mb, nodes)
 
   # apply blacklist to the arc list.
   arcs = arcs[!apply(arcs, 1, function(x){ is.blacklisted(blacklist, x) }),]
 
   # 3. [Orient Edges]
   # 3.1 detect v-structures.
-  vs = do.call("rbind", 
-         vstruct.detect(nodes = nodes, arcs = arcs, mb = mb, data = x, 
+  vs = do.call("rbind",
+         vstruct.detect(nodes = nodes, arcs = arcs, mb = mb, data = x,
            alpha = alpha, test = test, debug = debug))
   rownames(vs) = NULL
 
@@ -31,7 +31,7 @@ second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist,
 
   # 4. [Remove Cycles] and 5. [Reverse Edges]
   # thou shalt not create loops in the graph, it's acyclic!
-  arcs = orient.edges(arcs = arcs, nodes = nodes, 
+  arcs = orient.edges(arcs = arcs, nodes = nodes,
            whitelist = whitelist, debug = debug)
 
   # arcs whitelisted in one direction (i.e. a -> b but not b -> a) are
@@ -44,20 +44,24 @@ second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist,
   # 6. [Propagate Directions]
   arcs = propagate.directions(arcs = arcs, nodes = nodes, debug = debug)
 
+  # save the status of the learning algorithm.
+  learning = list(nodes = mb, arcs = arcs, whitelist = whitelist,
+    blacklist = blacklist, test = test, alpha = alpha,
+    ntests = get("test.counter", envir = .GlobalEnv))
+
   # EXTRA [ESP]
   if (direction)
-    arcs = set.directions(arcs = arcs, data = x, test = test, 
+    arcs = set.directions(arcs = arcs, data = x, test = test,
              alpha = alpha, cluster = cluster, debug = debug)
 
-  list(nodes = mb, arcs = arcs, whitelist = whitelist, 
-    blacklist = blacklist, test = test, alpha = alpha, 
-    ntests = get("test.counter", envir = .GlobalEnv))
+  list(learning = learning, nodes = cache.structure(nodes, arcs), arcs = arcs)
 
 }#SECOND.PRINCIPLE
 
+# propagate directions to the undirected arcs.
 propagate.directions = function(arcs, nodes, debug) {
 
-  undirected.arcs = arcs[which.undirected(arcs),]
+  undirected.arcs = arcs[is.undirected(arcs),]
 
   if (debug) {
 
@@ -69,13 +73,13 @@ propagate.directions = function(arcs, nodes, debug) {
   if (nrow(undirected.arcs) == 0) {
 
     if (debug) cat("  > nothing to do.\n")
- 
+
   }#THEN
   else apply(undirected.arcs, 1, function(arc) {
 
     if (has.path(arcs, nodes, arc[1], arc[2])) {
 
-      assign("arcs", arcs[!is.row.equal(arcs, arc[c(2,1)]),],
+      assign("arcs", set.arc.direction(arc[1], arc[2], arcs),
         envir = sys.frame(-2))
 
       if (debug)
@@ -84,7 +88,7 @@ propagate.directions = function(arcs, nodes, debug) {
 
     }#THEN
 
-    if (debug) 
+    if (debug)
       cat("  > no path from", arc[1], "to", arc[2], ".\n")
 
   })
@@ -94,7 +98,7 @@ propagate.directions = function(arcs, nodes, debug) {
 }#PROPAGATE.DIRECTIONS
 
 # build the neighbourhood of a node from the markov blanket.
-neighbour = function(x, mb, data, alpha, whitelist, blacklist, 
+neighbour = function(x, mb, data, alpha, whitelist, blacklist,
   backtracking = NULL, test, debug) {
 
   # save a prisitine copy of the markov blanket.
@@ -115,16 +119,16 @@ neighbour = function(x, mb, data, alpha, whitelist, blacklist,
   }#THEN
 
   known.good = known.bad = c()
-  blacklisted = nbrhood[sapply(nbrhood, 
+  blacklisted = nbrhood[sapply(nbrhood,
           function(y) { is.blacklisted(blacklist, c(x,y), both = TRUE) })]
-  whitelisted = nbrhood[sapply(nbrhood, 
+  whitelisted = nbrhood[sapply(nbrhood,
           function(y) { is.whitelisted(whitelist, c(x,y), either = TRUE) })]
 
-  # whitelisted nodes are included (arc orientation is irrelevant), 
+  # whitelisted nodes are included (arc orientation is irrelevant),
   # and blacklisted nodes are removed if both directed arcs are banned
   # and both are not in the whitelist.
   nbrhood = nbrhood[!(nbrhood %in% blacklisted)]
-  nbrhood = unique(c(nbrhood, whitelisted)) 
+  nbrhood = unique(c(nbrhood, whitelisted))
 
   # use backtracking for a further screening of the nodes to be checked.
   if (!is.null(backtracking)) {
@@ -135,7 +139,7 @@ neighbour = function(x, mb, data, alpha, whitelist, blacklist,
     # and vice versa X \not\in N(Y) <=> Y \not\in N(X)
     known.bad = names(backtracking[!backtracking])
 
-    # known.bad nodes are not to be checked for inclusion and/or used in 
+    # known.bad nodes are not to be checked for inclusion and/or used in
     # the subsets.
     nbrhood = nbrhood[!(nbrhood %in% known.bad)]
 
@@ -172,7 +176,7 @@ neighbour = function(x, mb, data, alpha, whitelist, blacklist,
       dsep.set = smaller(mb[[x]][mb[[x]] != y], mb[[y]][mb[[y]] != x])
       if (debug)
         cat("    > dsep.set = '", dsep.set, "'\n")
-    
+
       repeat {
 
         # create all the possible subsets of the markov blanket (excluding
@@ -181,15 +185,14 @@ neighbour = function(x, mb, data, alpha, whitelist, blacklist,
 
         for (s in 1:nrow(dsep.subsets)) {
 
+          if (debug)
+            cat("    > trying conditioning subset '", dsep.subsets[s,], "'.\n")
+
           a = conditional.test(x, y, dsep.subsets[s,], data = data, test = test)
           if (a > alpha) {
 
-            if (debug) {
-
+            if (debug)
               cat("    > node", y, "is not a neighbour of", x, ". ( p-value:", a, ")\n")
-              cat("    > conditioning subset: '", dsep.subsets[s,], "'\n")
-
-            }#THEN
 
             # update the neighbourhood.
             assign("nbrhood", nbrhood[nbrhood != y], envir = sys.frame(-3) )
@@ -199,10 +202,9 @@ neighbour = function(x, mb, data, alpha, whitelist, blacklist,
           }#THEN
           else if (debug) {
 
-            cat("    > trying conditioning subset '", dsep.subsets[s,], 
-                "' ( p-value:", a, ")\n")
+              cat("    > node", y, "is still a neighbour of", x, ". ( p-value:", a, ")\n")
 
-          }#ELSE
+          }#THEN
 
         }#FOR
 
@@ -225,7 +227,7 @@ neighbour = function(x, mb, data, alpha, whitelist, blacklist,
     }#NBR
 
     # do not even try to remove whitelisted and backtracked (good) nodes.
-    sapply(nbrhood[!(nbrhood %in% unique(c(whitelisted, known.good)))], 
+    sapply(nbrhood[!(nbrhood %in% unique(c(whitelisted, known.good)))],
              nbr, x = x, mb =mb, test = test)
 
   }#THEN
@@ -240,9 +242,9 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, test, debug) {
   vstruct.centered.on = function(x, mb, data) {
 
     if (debug) {
-  
+
       cat("----------------------------------------------------------------\n")
-      cat("* v-structures centered on", x, ".\n") 
+      cat("* v-structures centered on", x, ".\n")
 
     }#THEN
 
@@ -264,8 +266,8 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, test, debug) {
         cat("  * checking", y, "->", x, "<-", z, "\n")
 
       # check there's no arc from y to z and vice versa.
-      if(!is.listed(arcs, c(y, z)) && 
-         !is.listed(arcs, c(z, y))) { 
+      if(!is.listed(arcs, c(y, z)) &&
+         !is.listed(arcs, c(z, y))) {
 
         mby = mb[[y]][['mb']]
         mbz = mb[[z]][['mb']]
@@ -352,12 +354,12 @@ vstruct.apply = function(arcs, vs, strict, debug) {
        is.listed(arcs, v[c("z", "x")])) {
 
       if (debug)
-        cat("* applying v-structure", v["y"], "->", v["x"], "<-", v["z"], 
+        cat("* applying v-structure", v["y"], "->", v["x"], "<-", v["z"],
               "(", v["max_a"], ")\n")
 
-      assign("arcs", arcs[!is.row.equal(arcs, v[c("x", "y")]), ],
+      assign("arcs", set.arc.direction(v["y"], v["x"], arcs),
         envir = sys.frame(-2))
-      assign("arcs", arcs[!is.row.equal(arcs, v[c("x", "z")]), ],
+      assign("arcs", set.arc.direction(v["z"], v["x"], arcs),
         envir = sys.frame(-2))
 
     }#THEN
@@ -365,7 +367,7 @@ vstruct.apply = function(arcs, vs, strict, debug) {
 
       if (debug) {
 
-        cat("* not applying v-structure", v["y"], "->", v["x"], "<-", v["z"], 
+        cat("* not applying v-structure", v["y"], "->", v["x"], "<-", v["z"],
               "(", v["max_a"], ")\n")
         cat("  > adding arc", v["y"], "->", v["z"], "\n")
         cat("  > adding arc", v["z"], "->", v["y"], "\n")
@@ -373,11 +375,11 @@ vstruct.apply = function(arcs, vs, strict, debug) {
       }#THEN
 
       if (strict)
-        stop(paste("vstructure", v["y"], "->", v["x"], "<-", v["z"], 
+        stop(paste("vstructure", v["y"], "->", v["x"], "<-", v["z"],
           "is not applicable, because one or both arcs are oriented",
           "in the opposite direction."))
       else
-        warning(paste("vstructure", v["y"], "->", v["x"], "<-", v["z"], 
+        warning(paste("vstructure", v["y"], "->", v["x"], "<-", v["z"],
           "is not applicable, because one or both arcs are oriented",
           "in the opposite direction."))
 
@@ -392,7 +394,7 @@ vstruct.apply = function(arcs, vs, strict, debug) {
 # remove arcs from the graph to make it acyclic.
 orient.edges = function(arcs, nodes, whitelist, debug) {
 
-  to.be.reversed = matrix(rep(0, 2), ncol = 2, 
+  to.be.reversed = matrix(rep(0, 2), ncol = 2,
                      dimnames = list(c(), c("from", "to")))[0,]
   narcs = nrow(arcs)
   n = 0
@@ -400,9 +402,9 @@ orient.edges = function(arcs, nodes, whitelist, debug) {
   # remove undirected arcs from the whitelist; their direction is
   # left to the algorithm to choose.
   if (!is.null(whitelist) && (nrow(whitelist) > 0))
-    whitelist = whitelist[!which.undirected(whitelist), ]
+    whitelist = whitelist[!is.undirected(whitelist), ]
 
-  # be really sure that the whitelist is still a amtrix.
+  # be really sure that the whitelist is still a matrix.
   if (is.character(whitelist))
     whitelist = matrix(whitelist, ncol = 2, dimnames = list(c(), c("from", "to")))
 
@@ -413,7 +415,7 @@ orient.edges = function(arcs, nodes, whitelist, debug) {
       stop("too many iterations, probably would have gone on forever.")
 
     if (debug) {
-      
+
       cat("----------------------------------------------------------------\n")
       cat("* detecting loops ...\n")
 
@@ -428,15 +430,15 @@ orient.edges = function(arcs, nodes, whitelist, debug) {
 
     if (all(loops[,3] == 0)) break
 
-    arcs = arcs[!is.row.equal(arcs, loops[1, c("from", "to")]),]
+    arcs = set.arc.direction(loops[1, "to"], loops[1, "from"], arcs)
 
     # if the arc was already directed, store it for future reversal.
     if (is.listed(arcs, loops[1, c("from", "to")], both = TRUE))
-      to.be.reversed = rbind(to.be.reversed, loops[1, c("from", "to")])          
+      to.be.reversed = rbind(to.be.reversed, loops[1, c("from", "to")])
 
     if (debug) {
 
-      cat("  > arc", loops[1, "from"], "->", loops[1, "to"], 
+      cat("  > arc", loops[1, "from"], "->", loops[1, "to"],
         "will be removed (", loops[1, "loops"], " cycles ).\n")
 
       cat("  > arcs scheduled for reversal are:\n")
@@ -490,9 +492,9 @@ loop.counter = function(arcs, nodes) {
           if (length(next.one) == 0) next.one = NA
 
           # rebuild the buffer.
-          if (is.null(next.buffer)) 
+          if (is.null(next.buffer))
             next.buffer = t(sapply(next.one, function(x) { c(buf, x) } ))
-          else 
+          else
             next.buffer = rbind(sapply(next.one, function(x) { c(buf, x) } ), next.buffer)
 
           next.buffer
@@ -530,14 +532,14 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
   }#THEN
 
   # get the undirected arcs.
-  undirected.arcs = arcs[which.undirected(arcs), ]
+  undirected.arcs = arcs[is.undirected(arcs), ]
 
   if (is.null(cluster)) {
 
     a = apply(undirected.arcs, 1, function(arc) {
 
       # you can't help but notice nodes connecetd by undirected arcs are
-      # included, too? wondwer why?
+      # included, too? wonder why?
       # because if they, too, are parents of the node to be tested
       # they _do_ belong there; if they are not, the node distribution
       # does not depend on them so they are largely irrelevant.
@@ -554,7 +556,7 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
      a = parApply(cluster, undirected.arcs, 1, function(arc, data, test) {
 
       # you can't help but notice nodes connecetd by undirected arcs are
-      # included, too? wondwer why?
+      # included, too? wonder why?
       # because if they, too, are parents of the node to be tested
       # they _do_ belong there; if they are not, the node distribution
       # does not depend on them so they are largely irrelevant.
@@ -569,7 +571,7 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
 
   # build the lookup table.
   lookup.table = cbind(undirected.arcs, a)
-  
+
   # sort arcs by increasing p-value.
   lookup.table = lookup.table[order(as.numeric(a)), ]
 
@@ -586,13 +588,13 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
       cat("  > the results of the conditional independence tests are:\n")
       print(lookup.table)
 
-    }#THEN 
+    }#THEN
 
     # if both arcs have the same p-value, do not remove them from the arc list.
     if (da.best[3] != lookup.table[is.row.equal(lookup.table[, 1:2], da.best[c(2, 1)]), 3]) {
 
       # remove its reverse from the arc list.
-      arcs = arcs[!is.row.equal(arcs, da.best[c(2:1)]), ]
+      arcs = set.arc.direction(da.best[1], da.best[2], arcs)
 
       if (debug) {
 
@@ -609,7 +611,7 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
     }#ELSE
 
     # remove both of them from the lookup table
-    lookup.table = lookup.table[!is.row.equal(lookup.table[, 1:2], da.best[1:2]) & 
+    lookup.table = lookup.table[!is.row.equal(lookup.table[, 1:2], da.best[1:2]) &
                                 !is.row.equal(lookup.table[, 1:2], da.best[c(2, 1)]), ]
 
   }#REPEAT
@@ -618,59 +620,59 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
 
 }#SET.DIRECTIONS
 
-mb.recovery = function(mb, nodes, strict, debug) { 
+mb.recovery = function(mb, nodes, strict, debug) {
 
   if (is.symmetric(mb2amat(mb, redux = TRUE)))
     return(mb)
- 
-  # if the learning correctness is relaxed, do not raise an error 
-  # if the markov blanket are not symmetric but the neighbourhoods 
-  # are. 
-  # NOTE: backtracking guarantees symmetry. 
-  if (strict) { 
+
+  # if the learning correctness is relaxed, do not raise an error
+  # if the markov blanket are not symmetric but the neighbourhoods
+  # are.
+  # NOTE: backtracking guarantees symmetry.
+  if (strict) {
 
     if (debug) {
 
       m = mb2amat(mb, redux = TRUE)
       rownames(m) = colnames(m)
 
-      cat("----------------------------------------------------------------\n") 
+      cat("----------------------------------------------------------------\n")
       cat("> markov blankets as an adjacency matrix:\n")
       print(m)
-      cat("----------------------------------------------------------------\n") 
+      cat("----------------------------------------------------------------\n")
       cat("> markov blankets as a list:\n")
-      print(mb) 
+      print(mb)
 
     }#THEN
- 
-    stop("markov blankets are not symmetric.") 
- 
-  }#THEN 
-  else { 
- 
-    # fix the markov blankets: 
-    # if X \not\in MB(Y) => Y \not\in MB(X) 
-    mb = apply(mb2amat(mb, redux = TRUE) *  t(mb2amat(mb, redux = TRUE)), 1, 
-            function(x) { nodes[as.logical(x)] }) 
-    names(mb) = nodes 
- 
-    if (debug) { 
-  
-      cat("----------------------------------------------------------------\n") 
-      cat("* fixing symmetry in the markov blankets.\n") 
-      print(mb) 
- 
-    }#THEN 
- 
-    warning("markov blankets are not symmetric.") 
- 
-  }#ELSE 
- 
-  mb 
- 
-}#MB.RECOVERY 
 
-nbr.recovery = function(mb, nodes, strict, debug) { 
+    stop("markov blankets are not symmetric.")
+
+  }#THEN
+  else {
+
+    # fix the markov blankets:
+    # if X \not\in MB(Y) => Y \not\in MB(X)
+    mb = apply(mb2amat(mb, redux = TRUE) *  t(mb2amat(mb, redux = TRUE)), 1,
+            function(x) { nodes[as.logical(x)] })
+    names(mb) = nodes
+
+    if (debug) {
+
+      cat("----------------------------------------------------------------\n")
+      cat("* fixing symmetry in the markov blankets.\n")
+      print(mb)
+
+    }#THEN
+
+    warning("markov blankets are not symmetric.")
+
+  }#ELSE
+
+  mb
+
+}#MB.RECOVERY
+
+nbr.recovery = function(mb, nodes, strict, debug) {
 
   # you should not be here! no, really!
   if (is.symmetric(nbr2amat(mb)))
@@ -697,7 +699,7 @@ nbr.recovery = function(mb, nodes, strict, debug) {
   }#THEN
   else {
 
-    # if X \not\in NBR(Y) => Y \not\in NBR(X) 
+    # if X \not\in NBR(Y) => Y \not\in NBR(X)
     nbrhood = apply(nbr2amat(mb) *  t(nbr2amat(mb)), 1,
                 function(x) { nodes[as.logical(x)] })
     names(nbrhood) = nodes
@@ -711,7 +713,7 @@ nbr.recovery = function(mb, nodes, strict, debug) {
       cat("* fixing symmetry in the neighbourhoods.\n")
       print(mb)
 
-    }#THEN 
+    }#THEN
 
     warning("neighbourhoods are not symmetric.")
 
@@ -720,3 +722,64 @@ nbr.recovery = function(mb, nodes, strict, debug) {
   mb
 
 }#NBR.RECOVERY
+
+# explore the structure of the network parsing the arc list.
+cache.structure = function(nodes, arcs, debug = FALSE) {
+
+# create the structure object
+struct = list()
+
+  if (debug)
+    cat("* (re)building cached information about network structure.\n")
+
+  # detect neighbourhoods, parents and children.
+  struct = lapply(nodes, function(node) {
+
+    if (debug)
+      cat("  > detecting neighbourhood, parents and children of node", node, ".\n")
+
+    list(mb = c(),
+         nbr = nbr.backend(arcs, node),
+         parents = parents.backend(arcs, node),
+         children = children.backend(arcs, node))
+
+  })
+
+  # set the names of the nodes for easy reference.
+  names(struct) = nodes
+
+  # detect the markov blankets using precomputed parents, children and
+  # neighbourhoods.
+  for (node in nodes) {
+
+    if (debug) {
+
+      cat("* detecting markov blanket for node", node, ".\n")
+      cat("  > neighbourhood is '", struct[[node]]$nbr,"'.\n")
+
+    }#THEN
+
+    struct[[node]]$mb = c(struct[[node]]$nbr,
+      unlist(sapply(struct[[node]]$children, 
+        function(child) { 
+
+          if (debug)
+            cat("  > for child", child, "getting '", struct[[child]]$parents, "'.\n") 
+          struct[[child]]$parents 
+
+        }), use.names = FALSE))
+
+    if (debug)
+      cat("  > raw markov blanket then is '", struct[[node]]$mb, "'.\n")
+
+    struct[[node]]$mb = unique(struct[[node]]$mb[struct[[node]]$mb != node])
+
+    if (debug)
+      cat("  > clean markov blanket then is '", struct[[node]]$mb, "'.\n")
+
+  }#FOR
+
+struct
+
+}#CACHE.STRUCTURE
+

@@ -14,11 +14,12 @@
 }
 \arguments{
   \item{x}{an object of class "bn".}
-  \item{arc}{ a character string array of length 2, the labels of 
+  \item{arc}{ a character string array of length 2, the labels of
        two nodes of the graph.}
-  \item{data}{a data frame, containing the variables in the model.}
-  \item{debug}{a boolean value. If TRUE a lot of debugging output is
-       printed; otherwise the function is completely silent.}
+  \item{data}{a data frame, containing the data the Bayesian network
+       was learned from.}
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output 
+       is printed; otherwise the function is completely silent.}
 }
 \value{
 
@@ -34,11 +35,11 @@ res = gs(learning.test)
 plot(res)
 res = choose.direction(res, c("E", "F"), learning.test, debug = TRUE)
 # * testing E - F for direction.
-# > testing E -> F with conditioning set '  '.
-#   > p-value is 2.041687e-44 .
-# > testing F -> E with conditioning set '  '.
-#   > p-value is 4.598853e-08 .
-# @ removing F -> E .
+#   > testing E -> F with conditioning set '  '.
+#     > p-value is 2.174867e-197 .
+#   > testing F -> E with conditioning set ' B '.
+#     > p-value is 3.935648e-245 .
+#   @ removing E -> F .
 plot(res, highlight = c("E", "F"))
 
 }

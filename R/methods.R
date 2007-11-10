@@ -1,241 +1,203 @@
-# compare two graphs
-compare = function (r1, r2, debug = FALSE) {
 
-  result = TRUE
+# AIC method for class 'bn'.
+# an alias of score(..., type = "aic")
+AIC.bn = function(object, data, ..., k = 1) { 
 
-  # check both objects' class.
-  if (!is(r1, "bn") || !is(r2, "bn"))
-    stop("both r1 and r2 must be objects of class 'bn'.")
+  # other parameters are checked by the score() function.
+  if (!is.numeric(k))
+    stop("k must be numeric.")
 
-  # check the two graphs have the same nodes.
-  r1.nodes = names(r1$nodes)
-  r2.nodes = names(r2$nodes)
+  score(object, data = data, type = "loglik") - 
+    k * sum(nparams.backend(object, data, real = TRUE)) 
 
-  if (!identical(sort(r1.nodes), sort(r2.nodes))) {
+}#AIC.bn
 
-    if (debug) {
+# logLik method ofr class 'bn'.
+# an alias of score(..., type = "loglik")
+logLik.bn = function(object, data, ...) { 
 
-      cat("* nodes in r1 not present in r2:\n")
-      print(r1.nodes[!(r1.nodes %in% r2.nodes)])
-      cat("* nodes in r2 not present in r1:\n")
-      print(r2.nodes[!(r2.nodes %in% r1.nodes)])
+  # parameter sanitization done in the score() function.
 
-    }#THEN
+  score(x = object, data = data, type = "loglik") 
 
-    return(FALSE)
+}#LOGLIK.BN
+
+# plot method for class 'bn'.
+plot.bn = function(x, ylim = c(0,600), xlim = ylim, radius = 250, arrow = 35,
+  highlight = NULL, color = "red", ...) {
+
+  meaningless.arguments = c("xlab", "ylab", "axes")
+
+  if (any(names(alist(...))) %in% meaningless.arguments)
+    warning("arguments ", paste(meaningless.arguments, collapse = ", "),
+      "will be silently ignored.")
+
+  # check object's class.
+  if (!is(x, "bn"))
+    stop("x must be an object of class 'bn'.")
+
+  if (!is.null(highlight)) {
+
+    if (!all(highlight %in% names(x$nodes)))
+      stop("invalid node label.")
+
+    if (!(color %in% colors()) && !is.numeric(color))
+      stop("invalid highlight color.")
 
   }#THEN
+  else {
 
-  # for each node check ...
-  check = sapply(names(r1$nodes),
-
-    function(node) {
-
-      r1.node = r1$nodes[[node]]
-      r2.node = r2$nodes[[node]]
-
-      # ... the markov blanket ...
-      if (!identical(sort(r1.node$mb), sort(r2.node$mb))) {
-
-        if (debug) {
-
-          cat("* nodes in the markov blanket of", node, "in r1 not present in r2:\n")
-          print(r1.node$mb[!(r1.node$mb %in% r2.node$mb)])
-          cat("* nodes in the markov blanket of", node, "in r2 not present in r1:\n")
-          print(r2.node$mb[!(r2.node$mb %in% r1.node$mb)])
-
-        }#THEN
-
-        return(FALSE)
-
-      }#THEN
-
-      # ... and the neighbourhood.
-      if (!identical(sort(r1.node$nbr), sort(r2.node$nbr))) {
-
-        if (debug) {
-
-          cat("* nodes in the neighbourhood of", node, "in r1 not present in r2:\n")
-          print(r1.node$nbr[!(r1.node$nbr %in% r2.node$nbr)])
-          cat("* nodes in the neighbourhood of", node, "in r2 not present in r1:\n")
-          print(r2.node$nbr[!(r2.node$nbr %in% r1.node$nbr)])
-
-        }#THEN
-
-        return(FALSE)
-
-      }#THEN
-
-      return(TRUE)
-
-    }
-
-  )
-
-  if (!all(check)) result = FALSE
-
-  # check the arcs.
-  # build two arrays of labels for easy processing.
-  r1.arcs = apply(r1$arcs, 1, paste, collapse = " -> ")
-  r2.arcs = apply(r2$arcs, 1, paste, collapse = " -> ")
-
-  if (!identical(sort(r1.arcs), sort(r2.arcs))) {
-
-    if (debug) {
-
-      cat("* arcs in r1 not present in r2:\n")
-      print(r1.arcs[!(r1.arcs %in% r2.arcs)])
-      cat("* arcs in r2 not present in r1:\n")
-      print(r2.arcs[!(r2.arcs %in% r1.arcs)])
-
-    }#THEN
-
-    result = FALSE
-
-  }#THEN
-
-  result
-
-}#COMPARE
-
-# return the markov blanket of a node
-mb = function(x, node) {
-
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
-  if (!(node %in% names(x$nodes)))
-    stop("node not present in the graph.")
-
-  x$nodes[[node]]$mb
-
-}#MB
-
-# return the neighbourhood of a node
-nbr = function(x, node) {
-
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
-  if (!(node %in% names(x$nodes)))
-    stop("node not present in the graph.")
-
-  x$nodes[[node]]$nbr
-
-}#NBR
-
-# return the arcs in the graph
-arcs = function(x) {
-
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
-
-  x$arcs
-
-}#ARCS
-
-# return the nodes in the graph
-nodes = function(x) {
-
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
-
-  names(x$nodes)
-
-}#NODES
-
-# build an adjacency matrix from a graph.
-amat = function(x) {
-
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
-
-  arcs2amat(x$arcs, names(x$nodes))
-
-}#AMAT
-
-# get the parents of a node
-parents = function(x, node) {
-
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
-  if (!(node %in% names(x$nodes)))
-    stop("node not present in the graph.")
-
-   parents.backend(x$arcs, node)
-
-}#PARENTS
-
-choose.direction = function(x, arc, data, debug = FALSE) {
-
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
-  if (!all(arc %in% names(x$nodes)))
-    stop("node not present in the graph.")
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
-
-  if (debug)
-    cat("* testing", arc[1], "-", arc[2], "for direction.\n" )
-
-  # you can't help but notice nodes connected by undirected arcs are
-  # included, too? wondwer why?
-  # because if they, too, are parents of the node to be tested
-  # they _do_ belong there; if they are not, the node distribution
-  # does not depend on them so they are largely irrelevant.
-
-  parents1 = parents.backend(x$arcs, arc[2], TRUE)
-  a1 = conditional.test(arc[1], arc[2], 
-        parents1[parents1 != arc[1]], 
-        data = data, test = x$test)
-
-  parents2 = parents.backend(x$arcs, arc[1], TRUE)
-  a2 = conditional.test(arc[2], arc[1], 
-        parents2[parents2 != arc[2]], 
-        data = data, test = x$test)
-
-  if (debug) {
-
-    cat("  > testing", arc[1], "->", arc[2], "with conditioning set '", 
-      parents1[parents1 != arc[1]], "'.\n")
-    cat("    > p-value is", a1, ".\n")
-
-    cat("  > testing", arc[2], "->", arc[1], "with conditioning set '", 
-      parents2[parents2 != arc[2]], "'.\n")
-    cat("    > p-value is", a2, ".\n")
-
-  }#THEN
-
-  if (a2 < a1) {
-
-    if(debug) cat("  @ removing", arc[1], "->", arc[2], ".\n")
-
-    x$arcs = x$arcs[!is.row.equal(x$arcs,arc), ]
-
-  }#THEN
-  else if (a1 < a2) {
-
-    if(debug) cat("  @ removing", arc[2], "->", arc[1], ".\n")
-
-    x$arcs = x$arcs[!is.row.equal(x$arcs, arc[c(2,1)]), ]
+    # if there is nothing to highlight, everything is black.
+    col = "black"
 
   }#ELSE
 
+  # match the arguments and drop meaningless ones
+  dots = eval(list(...))
+
+  useless.ones = c('xlab', 'ylab', 'axes', 'type')
+  sapply(names(dots),
+    function (name){
+
+      if (name %in% useless.ones)
+        warning("overriding the ", name, " parameter.",
+          call. = FALSE)
+
+    })
+
+  dots[['xlab']] = dots[['ylab']] = ""
+  dots[['axes']] = FALSE
+  dots[['type']] = "n"
+
+  # create an empty plot.
+  # par(oma = rep(0, 4), mar = rep(0, 4), mai = rep(0, 4),
+  #   plt = c(0.06, 0.94, 0.12, 0.88))
+
+  do.call(plot, c(list(x = 0, y = 0, xlim = xlim, ylim = ylim), dots))
+
+  # set the stepping (in radiants) and the center of the plot.
+  unit = 2 * pi / length(x$nodes)
+  xc <- mean(xlim)
+  yc <- mean(ylim)
+
+  # compute the coordinates of the nodes
+  coords = matrix(c(xc + radius * cos(1:length(x$nodes) * unit + pi/2),
+                  yc + radius * sin(1:length(x$nodes) * unit + pi/2)),
+                  dimnames = list(names(x$nodes), c("x" , "y")),
+                  ncol = 2, byrow = FALSE)
+
+  # draw arcs.
+
+  if (nrow(x$arcs) > 0) apply (x$arcs, 1,
+    function(a) {
+
+      y = (coords[a[2],] - coords[a[1],]) *
+            (1 - arrow / sqrt(sum((coords[a[2],] - coords[a[1],])^2))) +
+            coords[a[1],]
+
+      # if there's something to highlight, set the color according to
+      # the nature of the "highlight" paramter.
+      if (!is.null(highlight)) {
+
+        if ((any(a %in% highlight) && (length(highlight) == 1)) ||
+             (all(a %in% highlight) && (length(highlight) > 1)))
+          col = color
+        else
+          col = "black"
+
+      }#THEN
+
+      if (is.listed(x$arcs, a[c(2,1)]))
+        length = 0
+      else
+        length = 0.20
+
+      arrows(signif(coords[a[1], "x"]), signif(coords[a[1], "y"]),
+             signif(y[1]), signif(y[2]), angle = 15, length = length,
+             col = col)
+
+    })
+
+  # draw the nodes of the graph.
+  points(coords, pch = 21, cex = 8, bg = "white")
+
+  # add the names of the nodes
+  for (i in 1:length(x$nodes)) {
+
+    # if there's something to highlight, set the color according to
+    # the nature of the "highlight" paramter.
+    if (!is.null(highlight)) {
+
+      if (names(x$nodes)[i] %in% highlight)
+        underlined(coords[i,1], coords[i,2], names(x$nodes)[i], col = color)
+      else
+        text(coords[i,1], coords[i,2], names(x$nodes)[i], col = "black")
+
+    }#THEN
+    else {
+
+      text(coords[i,1], coords[i,2], names(x$nodes)[i], col = "black")
+
+    }#ELSE
+
+  }#FOR
+
+}#PLOT.BN
+
+# the generic as method for class bn.
+as.bn = function(x, debug = FALSE) { 
+
+  UseMethod("as.bn") 
+
+}#AS.BN
+
+# model-string-to-bn conversion function.
+as.bn.character = function(x, debug = FALSE) { 
+
+  model2network(x, debug = debug) 
+
+}#AS.BN.CHARACTER
+
+# bn-to-character (i.e. the model string) conversion function.
+# an alias of modelstring().
+as.character.bn = function(x, ...) {
+
+  modelstring(x)
+
+}#AS.CHARACTER.BN
+
+print.bn = function(x, ...) {
+
+  undirected.arcs = length(which(is.undirected(x$arcs)))/2
+  directed.arcs = length(which(!is.undirected(x$arcs)))
+  arcs = undirected.arcs + directed.arcs
+  avg.mb = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$mb) }))
+  avg.nbr = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$nbr) }))
+  avg.ch = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$children) }))
+
+  cat("\n  Bayesian network learned via Conditional Independence methods\n\n")
+
+  cat("  model:\n   ", ifelse(!any(is.undirected(x$arcs)), modelstring(x), 
+      "[partially directed graph]"), "\n")
+
+  cat("  nodes:                                ", length(x$nodes), "\n")
+  cat("  arcs:                                 ", arcs, "\n")
+  cat("    undirected arcs:                    ", undirected.arcs, "\n")
+  cat("    directed arcs:                      ", directed.arcs, "\n")
+  cat("  average markov blanket size:          ", format(avg.mb, digits = 2, nsmall = 2), "\n")
+  cat("  average neighbourhood size:           ", format(avg.nbr, digits = 2, nsmall = 2), "\n")
+  cat("  average branching factor:             ", format(avg.ch, digits = 2, nsmall = 2), "\n")
+
+  cat("\n")
+
+  cat("  learning algorithm:                   ", method.labels[x$learning$algo], "\n")
+  cat("  conditional independence test:        ", test.labels[x$learning$test], "\n")
+  cat("  alpha threshold:                      ", x$learning$alpha, "\n")
+  cat("  tests used in the learning procedure: ", x$learning$ntests, "\n")
+
+  cat("\n")
+
   invisible(x)
 
-}#CHOOSE.DIRECTION
-
-loglik = function(x, data, debug = FALSE) {
-
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
-  if (!x$discrete)
-    stop("continuous networks are not supported at present.")
-
-  if (any(which.undirected(x$arcs)))
-    stop("the graph is only partially directed.")
-
-  sum(sapply(names(x$nodes), loglik.node, x = x, data = data, debug = debug))
-
-}#LOGLIK
+}#PRINT.BN
 

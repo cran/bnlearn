@@ -3,63 +3,42 @@
 #include <Rmath.h>
 #include <R_ext/Applic.h>
 
-static double _mi(int *nr, int *nc, int *nrowt, int *ncolt, 
-        int n[][*nc], int *num) {
+void mi (int *x, int *y, int *lx, int *ly, int *length, double *result) {
 
-int i = 0, j = 0;
-double mi = 0;
+  int i = 0, j = 0, k = 0;
+  int n[*lx][*ly], ni[*lx], nj[*ly];
 
-  for (i = 0; i < *nr; i++) 
-    for (j = 0; j < *nc; j++) { 
+  /* initialize result to zero. */
+  *result = 0;
 
-      if (n[i][j] != 0)
-        mi += ((double)n[i][j]) * 
-                log((double)n[i][j]*(*num)/(nrowt[i]*ncolt[j]));
+  /* initialize the contignecy table. */
+  memset(n, '\0', sizeof(int)*(*lx)*(*ly));
 
-    }/*FOR*/
+  /* initialize the marginal frequencies. */
+  memset(ni, '\0', sizeof(int)*(*lx));
+  memset(nj, '\0', sizeof(int)*(*ly));
 
-    mi = mi / (*num);
+  /* compute the joint frequency of x and y. */
+  for (k = 0; k < *length; k++) {
 
-return mi;
-
-}/*_MI*/
-
-void mi(int *n, int *nr, int *nc, double *result) {
-
-int nrowt[*nr], ncolt[*nc];
-int num = 0;
-
-union rc2 {
-
-  int n[*nr][*nc];
-  int m[(*nr)*(*nc)];
-
-} urc;
-
-  /* copy the original contingecy table to the buffer. */
-  for (int k = 0; k < (*nr)*(*nc); k++)
-    urc.m[k] = n[k];
-
-  /* initialize row and column totals to zero. */
-  memset(nrowt, '\0', sizeof(int)*(*nr));
-  memset(ncolt, '\0', sizeof(int)*(*nc));
-
-  /* compute row, column and global totals. */
-  for (int i = 0; i < *nr; i++) {
-
-    for (int j = 0; j < *nc; j++) {
-
-      nrowt[i] += urc.n[i][j];
-      ncolt[j] += urc.n[i][j];
-      num += urc.n[i][j];
-
-     }/*FOR*/
+    n[x[k] - 1][y[k] - 1]++;
+    ni[x[k] - 1]++;
+    nj[y[k] - 1]++;
 
   }/*FOR*/
 
-  *result = _mi(nr, nc, nrowt, ncolt, urc.n, &num);
+  for (i = 0; i < *lx; i++)
+    for (j = 0; j < *ly; j++) {
 
-}/*MI*/
+      if (n[i][j] != 0)
+        *result += ((double)n[i][j]) *
+                log((double)n[i][j]*(*length)/(double)(ni[i]*nj[j]));
+
+    }/*FOR*/
+
+    *result = *result/(*length);
+
+}/*MI2*/
 
 void cmi (int *x, int *y, int *z, int *lx, int *ly, int *lz, int *length, double *result) {
 

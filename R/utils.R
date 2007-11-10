@@ -1,5 +1,5 @@
 
-# get all the subsets of a given size, even if either the initial set 
+# get all the subsets of a given size, even if either the initial set
 # or the subset are empty (i.e. of size zero).
 subsets = function (n, r, v = 1:n, set = TRUE, repeats.allowed = FALSE) {
 
@@ -21,7 +21,7 @@ subsets = function (n, r, v = 1:n, set = TRUE, repeats.allowed = FALSE) {
   if (set) {
 
     v <- unique(sort(v))
-    if (length(v) < n) 
+    if (length(v) < n)
       stop("too few different elements")
 
   }#THEN
@@ -31,7 +31,7 @@ subsets = function (n, r, v = 1:n, set = TRUE, repeats.allowed = FALSE) {
 
     sub <- function(n, r, v) {
 
-        if (r == 0) 
+        if (r == 0)
             v0
         else if (r == 1)
             matrix(v, n, 1)
@@ -82,7 +82,7 @@ is.row.equal = function(data, array) {
 # return the array whose size is smaller.
 smaller = function(a, b) {
 
-  if (length(a) < length(b)) 
+  if (length(a) < length(b))
     a
   else
     b
@@ -104,7 +104,7 @@ is.listed = function(list, arc, either = FALSE, both = FALSE) {
   else if (either)
     any(is.row.equal(list, arc)) || any(is.row.equal(list, arc[c(2,1)]))
   else
-    any(is.row.equal(list, arc)) 
+    any(is.row.equal(list, arc))
 
 }#IS.LISTED
 
@@ -112,11 +112,96 @@ is.whitelisted = is.listed
 is.blacklisted = is.listed
 
 # which arcs are undirected?
-which.undirected = function(arcs) {
+is.undirected = function(arcs) {
 
   apply(arcs, 1, function(arc) { is.listed(arcs, arc, both = TRUE) })
 
-}#IS.UNDIRECTED
+}#WHICH.UNDIRECTED
+
+# set a direction for an (undirected) arc
+set.arc.direction = function(from, to, arcs, debug = FALSE) {
+
+  # the arc is there, undirected
+  if (is.listed(arcs, c(to, from), both = TRUE)) {
+
+    if (debug)
+      cat("  > the arc", from, "-", to, "is undirected,",
+            "changing to", from, "->", to, ".\n")
+
+    arcs[!is.row.equal(arcs, c(to, from)),]
+
+  }#THEN
+  # the arc is there, but the direction is wrong.
+  else if (is.listed(arcs, c(to, from))) {
+
+    if (debug)
+      cat("  > the arc", to, "->", from, "is present, reversing.\n")
+
+    rbind(arcs[!is.row.equal(arcs, c(to, from)),], c(from, to))
+
+  }#THEN
+  # the arc is already there.
+  else if (is.listed(arcs, c(from, to))) {
+
+    if (debug)
+      cat("  > the arc", from, "->", to, "is already present, nothing to do.\n")
+
+    arcs
+
+  }#THEN
+  # the arc is not present.
+  else {
+
+    if (debug)
+      cat("  > the arc", from, "->", to, "is not present, adding.\n")
+
+    rbind(arcs, c(from, to))
+
+  }#ELSE
+
+}#SET.ARC.DIRECTION
+
+# drop an arc.
+drop.arc.backend = function(arcs, dropped, debug = FALSE) {
+
+  if (debug)
+    cat("  > dropping any arc between", dropped[1], "and", dropped[2], ".\n")
+
+  # drop the arc.
+  arcs[!(is.row.equal(arcs, dropped) | 
+         is.row.equal(arcs, dropped[c(2,1)])),]
+
+}#DROP.ARC.BACKEND
+
+# reverse the direction of an arc.
+reverse.arc.backend = function(from, to, arcs, debug = FALSE) {
+
+  # the arc is there, undirected
+  if (is.listed(arcs, c(to, from), both = TRUE))
+    stop("an undirected arc cannot be reversed.")
+  # the arc is there, but reversed.
+  else if (is.listed(arcs, c(to, from))) {
+
+    if (debug)
+      cat("  > the arc", to, "->", from, "is present, reversing.\n")
+
+    rbind(arcs[!is.row.equal(arcs, c(to, from)),], c(from, to))
+
+  }#THEN
+  # the arc is already there.
+  else if (is.listed(arcs, c(from, to))) {
+
+    if (debug)
+      cat("  > the arc", from, "->", to, "is present, reversing.\n")
+
+    rbind(arcs[!is.row.equal(arcs, c(from, to)),], c(to, from))
+
+  }#THEN
+  # the arc is not present.
+  else
+    stop("no arc to be reversed between ", from, " and ", to, ".\n")
+
+}#REVERSE.ARC.BACKEND
 
 # which arcs are {white,black}listed?
 which.listed = function(arcs, list) {
@@ -158,9 +243,9 @@ mb2arcs = function(mb, nodes) {
                function(x) { cbind(from = x, to = mb[[x]][['nbr']]) }))
 
   # return an empty matrix all markov blankets are empty.
-  if (is.null(result)) 
+  if (is.null(result))
     matrix(1:2, ncol = 2, dimnames = list(c(""), c("from", "to")))[0,]
-  else 
+  else
     result
 
 }#MB2ARCS
@@ -245,49 +330,103 @@ arcs2amat = function(arcs, nodes, stochastic = FALSE) {
 
 }#ARCS2AMAT
 
-# get the parents of a node
+# convert an adjacency matrix back to a set of arcs.
+amat2arcs = function(a, nodes, debug = FALSE) {
+
+  if (is.null(colnames(a)))
+    colnames(a) = nodes
+  if (is.null(rownames(a)))
+    rownames(a) = nodes
+
+  arcs = do.call(rbind,
+    sapply(rownames(a), function(node) {
+
+      tos = colnames(a)[as.logical(a[node, ])]
+
+      if (debug) {
+
+        cat("* preocessing node", node, "\n")
+        cat("  > adding arcs from", node, "to its parents: '", tos, "'.\n")
+
+      }#THEN
+
+      if (length(tos) > 0)
+        cbind(rep(node, length(tos)), tos)
+
+    })
+  )
+
+  colnames(arcs) = c("from", "to")
+
+  arcs
+
+}
+
+# get the parents of a node.
 parents.backend = function(arcs, node, undirected = FALSE) {
 
   if (!undirected)
-    arcs[(arcs[, "to"] == node) & !which.undirected(arcs), "from"]
+    arcs[(arcs[, "to"] == node) & !is.undirected(arcs), "from"]
   else
     arcs[(arcs[, "to"] == node), "from"]
 
 }#PARENTS.BACKEND
 
-loglik.node = function(node, x, data, debug) {
+# get the children of a node.
+children.backend = function(arcs, node, undirected = FALSE) {
 
-  if (debug) cat("* processing node", node, ".\n")
+  if (!undirected)
+    arcs[(arcs[, "from"] == node) & !is.undirected(arcs), "to"]
+  else
+    arcs[(arcs[, "from"] == node), "to"]
 
-  # this node is a root node.
-  if (length(parents(x, node)) == 0) {
+}#CHILDREN.BACKEND
 
-    ndata = nrow(data)
-    tab = table(data[, node])
-    node.loglik = log(dmultinom(tab, ndata, tab / ndata))
+# get the markov blanket of a node.
+mb.backend = function(arcs, node) {
 
-  }#THEN
-  # this node has at least one parent.
-  else {
+  mb = c(nbr.backend(arcs, node),
+      unlist(sapply(children.backend(arcs, node),
+        function(child) {
 
-    config = factor(apply(as.data.frame(data[, parents(x, node)]), 
-      1, paste, sep = "", collapse = ":"))
+          parents.backend(arcs, node)
 
-    tab = table(data.frame(node = data[, node], config))
-    node.loglik = log(sum(apply(tab, 2, 
-      function(t){ dmultinom(t, sum(t), t / sum(t)) })))
+        }), use.names = FALSE))
 
-  }#ELSE
+  unique(mb[mb != node])
 
-  if (debug) { 
+}#MB.BACKEND
 
-    cat("  > node contribution is", node.loglik, ".\n")
+# backend of nparams, the "get the number of parameters of a 
+# discrete bayesian network" function. If real = TRUE this
+# function returns the number of _independent_ parameters
+# (on parameter of each set is set by the constraint by
+# the condition \sum \pi_{i} = 1).
+nparams.backend = function(x, data, real = FALSE) {
 
-  }#THEN
+  sapply(nodes(x),
+    function(node) {
 
-  node.loglik
+      (nlevels(data[, node]) - (1 * real)) *
+        prod(unlist(sapply(x$nodes[[node]]$parents,
+          function(p) {
 
-}#LOGLIK.NODE
+            nlevels(data[, p])
+
+          })
+        ))
+
+    })
+
+}#NPARAMS.BACKEND
+
+# backend for neighbourhood detection.
+nbr.backend = function(arcs, node) {
+
+  # this includes neighbours with undirected arcs.
+  unique(c(arcs[arcs[, "from"] == node, "to"], arcs[arcs[, "to"] == node, "from"]))
+
+}#NBR.BACKEND
 
 # check the cluster is running.
 isClusterRunning = function(cl) {
@@ -296,3 +435,35 @@ isClusterRunning = function(cl) {
     error = function(err) { FALSE })
 
 }#ISCLUSTERRUNNING
+
+# print an underlined label in the plot.
+underlined <- function(x, y, label, col){
+
+  text(x, y, label, col = col, font = 2)
+  sw <- strwidth(label)
+  sh <- strheight(label)
+  lines(x + c(-sw/2, sw/2), rep(y - 1.5*sh/2, 2), col = col)
+
+}#UNDERLINED
+
+# will the bayesian network be a discrete one?
+is.data.discrete = function(data) {
+
+  all(sapply(data, class) == "factor")
+
+}#IS.DATA.DISCRETE
+
+# will the bayesian network be a continuous one?
+is.data.continuous = function(data) {
+
+  all(sapply(data, class) == "numeric")
+
+}#IS.DATA.CONTINUOUS
+
+# there are missing data?
+missing.data = function(data) {
+
+  any(mapply(function(x) {is.na(x) || is.nan(x) || is.null(x)}, data))
+
+}#MISSING.DATA
+

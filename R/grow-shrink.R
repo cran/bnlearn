@@ -1,5 +1,5 @@
 
-grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha, 
+grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
   strict, direction, debug) {
 
   nodes = names(x)
@@ -26,7 +26,7 @@ grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
 
     # save results in a copy of mb;
     mb2[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
-         whitelist = whitelist, blacklist = blacklist, 
+         whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, debug = debug)
 
   }#FOR
@@ -35,23 +35,23 @@ grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
   mb = mb2
 
   # recover some of the arc directions.
-  result = second.principle(x = x, mb = mb, nodes = nodes, 
-      whitelist = whitelist, blacklist = blacklist, test = test, 
-      alpha = alpha, strict = strict, direction = direction, 
+  result = second.principle(x = x, mb = mb, nodes = nodes,
+      whitelist = whitelist, blacklist = blacklist, test = test,
+      alpha = alpha, strict = strict, direction = direction,
       debug = debug)
 
   invisible(result)
 
 }#GROW.SHRINK.OPTIMIZED
 
-grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test, 
+grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test,
   alpha, strict, direction, debug) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
-  mb = parLapply(cluster, as.list(nodes), gs.markov.blanket, data = x, 
-         nodes = nodes, alpha = alpha, whitelist = whitelist, 
+  mb = parLapply(cluster, as.list(nodes), gs.markov.blanket, data = x,
+         nodes = nodes, alpha = alpha, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
 
@@ -59,28 +59,28 @@ grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test,
   mb = mb.recovery(mb, nodes = nodes, strict = strict, debug = debug)
 
   # 2. [Compute Graph Structure]
-  mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x, 
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist, 
+  mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
   names(mb) = nodes
 
   # recover some of the arc directions.
-  result = second.principle(x = x, cluster = cluster, mb = mb, nodes = nodes, 
-      whitelist = whitelist, blacklist = blacklist, test = test, 
-      alpha = alpha, strict = strict, direction = direction, 
+  result = second.principle(x = x, cluster = cluster, mb = mb, nodes = nodes,
+      whitelist = whitelist, blacklist = blacklist, test = test,
+      alpha = alpha, strict = strict, direction = direction,
       debug = debug)
 
   invisible(result)
 
 }#GROW.SHRINK.CLUSTER
 
-grow.shrink = function(x, whitelist, blacklist, test, alpha, 
+grow.shrink = function(x, whitelist, blacklist, test, alpha,
   strict, direction, debug) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
-  mb = lapply(as.list(nodes), gs.markov.blanket, data = x, nodes = nodes, 
+  mb = lapply(as.list(nodes), gs.markov.blanket, data = x, nodes = nodes,
          alpha = alpha, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
   names(mb) = nodes
@@ -90,26 +90,26 @@ grow.shrink = function(x, whitelist, blacklist, test, alpha,
 
   # 2. [Compute Graph Structure]
   mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
-         whitelist = whitelist, blacklist = blacklist, test = test, 
+         whitelist = whitelist, blacklist = blacklist, test = test,
          debug = debug)
   names(mb) = nodes
 
   # recover some of the arc directions.
-  result = second.principle(x = x, mb = mb, nodes = nodes, 
-      whitelist = whitelist, blacklist = blacklist, test = test, 
-      alpha = alpha, strict = strict, direction = direction, 
+  result = second.principle(x = x, mb = mb, nodes = nodes,
+      whitelist = whitelist, blacklist = blacklist, test = test,
+      alpha = alpha, strict = strict, direction = direction,
       debug = debug)
 
   invisible(result)
 
 }#GROW.SHRINK
 
-gs.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist, 
+gs.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
   backtracking = NULL, test, debug) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
-  whitelisted = nodes[sapply(nodes, 
+  whitelisted = nodes[sapply(nodes,
           function(y) { is.whitelisted(whitelist, c(x,y), either = TRUE) })]
   mb = c()
 
@@ -121,7 +121,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
 
   }#THEN
 
-  # whitelisted nodes are included by default (if there's a direct arc 
+  # whitelisted nodes are included by default (if there's a direct arc
   # between them of course they are in each other's markov blanket).
   # arc direction is irrelevant here.
   mb = whitelisted
@@ -216,18 +216,18 @@ gs.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
 
     }#THEN
     else if (debug) {
-    
+
       cat("    > node", y, "remains in the markov blanket. ( p-value:", a, ")\n")
 
     }#THEN
 
   }#DEL.NODE
 
-  # whitelisted nodes are neighbours, they cannot be removed from the 
+  # whitelisted nodes are neighbours, they cannot be removed from the
   # markov blanket; the last node added in phase I will never be removed,
   # because the tests for inclusion and removal are identical.
   # known.good nodes from backtracking are not to be removed, either.
-  if (length(mb) > 1) 
+  if (length(mb) > 1)
     sapply(mb[!(mb %in% c(known.good, last.added, whitelisted))], del.node, x = x, test = test)
 
   mb

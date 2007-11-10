@@ -1,5 +1,5 @@
 
-fast.incremental.association.optimized = function(x, whitelist, blacklist, 
+fast.incremental.association.optimized = function(x, whitelist, blacklist,
   test, alpha, strict, direction, debug) {
 
   nodes = names(x)
@@ -26,7 +26,7 @@ fast.incremental.association.optimized = function(x, whitelist, blacklist,
 
     # save results in a copy of mb;
     mb2[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
-         whitelist = whitelist, blacklist = blacklist, 
+         whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, debug = debug)
 
   }#FOR
@@ -35,23 +35,23 @@ fast.incremental.association.optimized = function(x, whitelist, blacklist,
   mb = mb2
 
   # recover some of the arc directions.
-  result = second.principle(x = x, mb = mb, nodes = nodes, 
-      whitelist = whitelist, blacklist = blacklist, test = test, 
-      alpha = alpha, strict = strict, direction = direction, 
+  result = second.principle(x = x, mb = mb, nodes = nodes,
+      whitelist = whitelist, blacklist = blacklist, test = test,
+      alpha = alpha, strict = strict, direction = direction,
       debug = debug)
 
   invisible(result)
 
 }#FAST.INCREMENTAL.ASSOCIATION.OPTIMIZED
 
-fast.incremental.association.cluster = function(x, cluster, whitelist, 
+fast.incremental.association.cluster = function(x, cluster, whitelist,
   blacklist, test, alpha, strict, direction, debug) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
-  mb = parLapply(cluster, as.list(nodes), fast.ia.markov.blanket, 
-         data = x, nodes = nodes, alpha = alpha, whitelist = whitelist, 
+  mb = parLapply(cluster, as.list(nodes), fast.ia.markov.blanket,
+         data = x, nodes = nodes, alpha = alpha, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
 
@@ -59,29 +59,29 @@ fast.incremental.association.cluster = function(x, cluster, whitelist,
   mb = mb.recovery(mb, nodes = nodes, strict = strict, debug = debug)
 
   # 2. [Compute Graph Structure]
-  mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x, 
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist, 
+  mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
   names(mb) = nodes
 
   # recover some of the arc directions.
-  result = second.principle(x = x, cluster = cluster, mb = mb, 
-      nodes = nodes, whitelist = whitelist, blacklist = blacklist, 
-      test = test, alpha = alpha, strict = strict, direction = direction, 
+  result = second.principle(x = x, cluster = cluster, mb = mb,
+      nodes = nodes, whitelist = whitelist, blacklist = blacklist,
+      test = test, alpha = alpha, strict = strict, direction = direction,
       debug = debug)
 
   invisible(result)
 
 }#FAST.INCREMENTAL.ASSOCIATION.CLUSTER
 
-fast.incremental.association = function(x, whitelist, blacklist, test, 
+fast.incremental.association = function(x, whitelist, blacklist, test,
   alpha, strict, direction, debug) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
-  mb = lapply(as.list(nodes), fast.ia.markov.blanket, data = x, 
-         nodes = nodes, alpha = alpha, whitelist = whitelist, 
+  mb = lapply(as.list(nodes), fast.ia.markov.blanket, data = x,
+         nodes = nodes, alpha = alpha, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
 
@@ -90,26 +90,26 @@ fast.incremental.association = function(x, whitelist, blacklist, test,
 
   # 2. [Compute Graph Structure]
   mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
-         whitelist = whitelist, blacklist = blacklist, test = test, 
+         whitelist = whitelist, blacklist = blacklist, test = test,
          debug = debug)
   names(mb) = nodes
 
   # recover some of the arc directions.
-  result = second.principle(x = x, mb = mb, nodes = nodes, 
-      whitelist = whitelist, blacklist = blacklist, test = test, 
-      alpha = alpha, strict = strict, direction = direction, 
+  result = second.principle(x = x, mb = mb, nodes = nodes,
+      whitelist = whitelist, blacklist = blacklist, test = test,
+      alpha = alpha, strict = strict, direction = direction,
       debug = debug)
 
   invisible(result)
 
 }#FAST.INCREMENTAL.ASSOCIATION
 
-fast.ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist, 
+fast.ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
   backtracking = NULL, test, debug) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
-  whitelisted = nodes[sapply(nodes, 
+  whitelisted = nodes[sapply(nodes,
           function(y) { is.whitelisted(whitelist, c(x,y), either = TRUE) })]
   mb = c()
   insufficient.data = FALSE
@@ -152,7 +152,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
 
   }#THEN
 
-  # whitelisted nodes are included by default (if there's a direct arc 
+  # whitelisted nodes are included by default (if there's a direct arc
   # between them of course they are in each other's markov blanket).
   # arc direction is irrelevant here.
   mb = whitelisted
@@ -216,13 +216,13 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
 
           if (test %in% available.continuous.tests) {
 
-            cat("    @", node, "included in the markov blanket (p-value:", 
+            cat("    @", node, "included in the markov blanket (p-value:",
               association[node], ").\n")
 
           }#THEN
           else {
 
-            cat("    @", node, "included in the markov blanket (p-value:", 
+            cat("    @", node, "included in the markov blanket (p-value:",
               association[node], ", obs/cell:", obs.per.cell(x, node, mb, data), ").\n")
 
           }#ELSE
@@ -230,7 +230,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
 
         }#THEN
 
-        # speculatively add the node if the asymptotic behaviour of the 
+        # speculatively add the node if the asymptotic behaviour of the
         # statistical tests is still good.
         mb = c(mb, node)
 
@@ -243,14 +243,14 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
         break
 
       }#ELSE
-      
+
     }#FOR
 
     # shrinking phase.
     mb.old.length = length(mb)
 
-    # whitelisted nodes are neighbours, they cannot be removed from the 
-    # markov blanket; speculatively adding nodes prevents further 
+    # whitelisted nodes are neighbours, they cannot be removed from the
+    # markov blanket; speculatively adding nodes prevents further
     # optimizations.
     # known.good nodes from backtracking are not to be removed, either.
     if (length(mb) > 1)

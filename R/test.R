@@ -1,7 +1,7 @@
 
 conditional.test = function(x, y, sx, data, test) {
 
-  assign("test.counter", get("test.counter", envir = .GlobalEnv) + 1, 
+  assign("test.counter", get("test.counter", envir = .GlobalEnv) + 1,
     envir = .GlobalEnv)
 
   sx = sx[sx != ""]
@@ -18,7 +18,7 @@ conditional.test = function(x, y, sx, data, test) {
     # Mutual Infomation (chi-square asymptotic distribution)
     else if (test == "mi") {
 
-      pchisq(mi.test(table(data[,x], data[,y]), gsquare = TRUE), 
+      pchisq(mi.test(data[,x], data[,y], ndata, gsquare = TRUE),
         (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1), lower.tail = FALSE)
 
     }#THEN
@@ -27,7 +27,7 @@ conditional.test = function(x, y, sx, data, test) {
 
       if (obs.per.cell(x, y, data = data) >= 5) {
 
-        pchisq(mi.test(table(data[,x], data[,y]), gsquare = TRUE), 
+        pchisq(mi.test(data[,x], data[,y], ndata, gsquare = TRUE),
           (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1), lower.tail = FALSE)
 
       }#THEN
@@ -48,7 +48,7 @@ conditional.test = function(x, y, sx, data, test) {
     # Fisher's Z (asymptotic normal distribution)
     else if (test == "zf") {
 
-      rxy = cor(data[,x], data[,y]) 
+      rxy = cor(data[,x], data[,y])
       pnorm(abs(log((1 + rxy)/(1 - rxy))/2 * sqrt(ndata -3)), lower.tail = FALSE) * 2
 
     }#THEN
@@ -56,8 +56,23 @@ conditional.test = function(x, y, sx, data, test) {
   }#THEN
   else {
 
-    config = factor(apply(as.data.frame(data[,sx]), 1, paste, 
-      sep = "", collapse = ":"))
+    # build the contingency table for discrete data only.
+    if (test %in% available.discrete.tests) {
+
+      # if there is only one parent, get it easy.
+      if (length(sx) == 1) {
+
+        config = data[, sx]
+
+      }#THEN
+      else {
+
+        config = factor(apply(as.data.frame(data[,sx]), 1, paste,
+          sep = "", collapse = ":"))
+
+      }#ELSE
+
+    }#THEN
 
     # Cochran-Mantel-Haenszel (chi-square asymptotic distribution)
     if (test == "mh") {
@@ -68,7 +83,7 @@ conditional.test = function(x, y, sx, data, test) {
     # Conditional Mutual Infomation (chi-square asymptotic distribution)
     else if (test == "mi") {
 
-      pchisq(cmi.test(data[,x], data[,y], config, gsquare = TRUE), 
+      pchisq(cmi.test(data[,x], data[,y], config, ndata, gsquare = TRUE),
         (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config), lower.tail = FALSE)
 
     }#THEN
@@ -77,7 +92,7 @@ conditional.test = function(x, y, sx, data, test) {
 
       if (obs.per.cell(x, y, config, data = data) >= 5) {
 
-        pchisq(cmi.test(data[,x], data[,y], config, gsquare = TRUE), 
+        pchisq(cmi.test(data[,x], data[,y], config, ndata, gsquare = TRUE),
           (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config), lower.tail = FALSE)
 
       }#THEN
@@ -91,7 +106,7 @@ conditional.test = function(x, y, sx, data, test) {
     # Canonical Partial Correlation (Student's t distribution)
     else if (test == "cor") {
 
-      rxy.z = pcor(c(x, y, sx), data) 
+      rxy.z = pcor(c(x, y, sx), data)
       df = ndata - 2 - length(sx)
       pt(abs(rxy.z * sqrt(df) / sqrt(1 - rxy.z^2)), df, lower.tail = FALSE) * 2
 
@@ -99,7 +114,7 @@ conditional.test = function(x, y, sx, data, test) {
     # Fisher's Z (asymptotic normal distribution)
     else if (test == "zf") {
 
-      rxy.z = pcor(c(x, y, sx), data) 
+      rxy.z = pcor(c(x, y, sx), data)
       df = ndata - 3 - length(sx)
       pnorm(abs(log((1 + rxy.z)/(1 - rxy.z))/2 * sqrt(df)), lower.tail = FALSE) * 2
 
@@ -109,25 +124,26 @@ conditional.test = function(x, y, sx, data, test) {
 
 }#CONDITIONAL.TEST
 
-mi.test = function(table, gsquare = TRUE) {
+mi.test = function(x, y, ndata, gsquare = TRUE) {
 
   result = 0
-
   s = .C("mi",
-    n = table,
-    nc = as.integer(dim(table)[1]),
-    nr = as.integer(dim(table)[2]),
-    result = as.double(result),
-    PACKAGE = "bnlearn")
+      x = x,
+      y = y,
+      lx = as.integer(nlevels(x)),
+      ly = as.integer(nlevels(y)),
+      length = as.integer(ndata),
+      result = as.double(result),
+      PACKAGE = "bnlearn")
 
-  if (gsquare) 
-    2 * sum(table) * s$result
-  else 
+  if (gsquare)
+    2 * ndata * s$result
+  else
     s$result
 
 }#MI.TEST
 
-cmi.test = function(x, y, z, gsquare = TRUE) {
+cmi.test = function(x, y, z, ndata, gsquare = TRUE) {
 
   result = 0
   s = .C("cmi",
@@ -137,13 +153,13 @@ cmi.test = function(x, y, z, gsquare = TRUE) {
       lx = as.integer(nlevels(x)),
       ly = as.integer(nlevels(y)),
       lz = as.integer(nlevels(z)),
-      length = as.integer(length(x)),
+      length = as.integer(ndata),
       result = as.double(result),
       PACKAGE = "bnlearn")
 
-  if (gsquare) 
-    2 * length(x) * s$result
-  else 
+  if (gsquare)
+    2 * ndata * s$result
+  else
     s$result
 
 }#CMI.TEST

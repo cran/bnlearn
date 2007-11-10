@@ -13,19 +13,25 @@
   learning.test
 
 }
-\examples{
+\details{
 
-data(learning.test)
-str(learning.test)
-# 'data.frame':   5000 obs. of  6 variables:
-#  $ A: Factor w/ 3 levels "a","b","c": 2 2 1 1 1 3 3 2 2 2 ...
-#  $ B: Factor w/ 3 levels "a","b","c": 3 1 1 1 1 3 3 2 2 1 ...
-#  $ C: Factor w/ 3 levels "a","b","c": 2 3 1 1 2 1 2 1 2 2 ...
-#  $ D: Factor w/ 3 levels "a","b","c": 1 1 1 1 3 3 3 2 1 1 ...
-#  $ E: Factor w/ 3 levels "a","b","c": 2 2 1 2 1 3 3 2 3 1 ...
-#  $ F: Factor w/ 2 levels "a","b": 2 2 1 2 1 1 1 2 1 1 ...
+  The \code{learning.test} dataset containts the following variables:
+  \itemize{
 
-gs(learning.test)
+    \item \code{A}, a three-level factor with levels \code{a},
+            \code{b} and \code{c}.
+    \item \code{B}, a three-level factor with levels \code{a},
+            \code{b} and \code{c}.
+    \item \code{C}, a three-level factor with levels \code{a},
+            \code{b} and \code{c}.
+    \item \code{D}, a three-level factor with levels \code{a},
+            \code{b} and \code{c}.
+    \item \code{E}, a three-level factor with levels \code{a},
+            \code{b} and \code{c}.
+    \item \code{F}, a two-level factor with levels \code{a} 
+            and \code{b}.
+
+  }
 
 }
 \keyword{datasets}

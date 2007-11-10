@@ -7,10 +7,29 @@ export(
   "mb",
   "nbr",
   "arcs",
+  "arcs<-",
   "parents",
+  "parents<-",
+  "children",
+  "children<-",
   "nodes",
   "amat",
-  "choose.direction"
+  "amat<-",
+  "nparams",
+  "modelstring",
+  "model2network",
+  "set.arc",
+  "drop.arc",
+  "reverse.arc",
+  "choose.direction",
+  "rbn",
+  "score",
+  "as.bn"
 )
 
+S3method(print, bn)
 S3method(plot, bn)
+S3method(AIC, bn)
+S3method(logLik, bn)
+S3method(as.bn, character)
+S3method(as.character, bn)
