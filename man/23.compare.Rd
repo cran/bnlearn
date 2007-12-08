@@ -7,9 +7,7 @@
 
 }
 \usage{
-
   compare(r1, r2, debug = FALSE)
-
 }
 \arguments{
   \item{r1}{an object of class "bn".}
@@ -32,9 +30,21 @@ res = gs(learning.test)
 plot(res, highlight = c("A", "B"))
 res2 = set.arc(res, "A", "B")
 compare(res, res2, debug = TRUE)
-# * arcs in r1 not present in r2:
-# [1] "B -> A"
-# * arcs in r2 not present in r1:
+# * children of A in r1 not present in r2:
+# character(0)
+# * children of A in r2 not present in r1:
+# [1] "B"
+# * parents of B in r1 not present in r2:
+# character(0)
+# * parents of B in r2 not present in r1:
+# [1] "A"
+# * directed arcs in r1 not present in r2:
+# character(0)
+# * directed arcs in r2 not present in r1:
+# [1] "A -> B"
+# * undirected arcs in r1 not present in r2:
+# [1] "A - B" "B - A"
+# * undirected arcs in r2 not present in r1:
 # character(0)
 # [1] FALSE
 

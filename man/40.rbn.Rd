@@ -7,9 +7,7 @@
 
 }
 \usage{
-
   rbn(x, n, data, debug = FALSE)
-
 }
 \arguments{
   \item{x}{an object of class "bn".}
@@ -61,3 +59,4 @@ plot(gs(sim))
 }
 \author{ Marco Scutari }
 \keyword{utilities}
+\keyword{multivariate}

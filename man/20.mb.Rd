@@ -10,7 +10,12 @@
 \alias{parents<-}
 \alias{children}
 \alias{children<-}
+\alias{rootnodes}
+\alias{leafnodes}
 \alias{nparams}
+\alias{acyclic}
+\alias{path}
+\alias{node.ordering}
 \title{ Utilities to manipulate graphs }
 \description{
 
@@ -18,25 +23,37 @@
 
 }
 \usage{
-
+  ## nodes
+  nodes(x)
   mb(x, node, rebuild = FALSE)
   nbr(x, node, rebuild = FALSE)
-  arcs(x)
-  arcs(x, debug = FALSE) <- value
-  nodes(x)
-  amat(x)
-  amat(x, debug = FALSE) <- value
   parents(x, node, rebuild = FALSE)
   parents(x, node, debug = FALSE) <- value
   children(x, node, rebuild = FALSE)
   children(x, node, debug = FALSE) <- value
-  nparams(x, data, debug = FALSE)
+  rootnodes(x)
+  leafnodes(x) 
 
+  ## arcs
+  arcs(x)
+  arcs(x, debug = FALSE) <- value
+
+  ## adjacency matrix
+  amat(x)
+  amat(x, debug = FALSE) <- value
+
+  ## graphs
+  nparams(x, data, debug = FALSE)
+  acyclic(x)
+  path(x, from, to, direct = TRUE)
+  node.ordering(x, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class "bn".}
   \item{node}{a character string, the label of a node.}
-  \item{value}{either an array of character strings (for \code{parents} and 
+  \item{from}{a character string, the label of a node.}
+  \item{to}{a character string, the label of a node (different from \code{from}).}
+  \item{value}{either a vector of character strings (for \code{parents} and 
        \code{children}), an adjacency matrix (for \code{amat}) or a data 
        frame with two columns (optionally labeled "from" and "to", for 
        \code{arcs})}.
@@ -44,6 +61,8 @@
        was learned from.}
   \item{rebuild}{a boolean value. If \code{TRUE} the return value is rebuilt
        from scratch using the arc list; otherwise the cached value are returned.}
+  \item{direct}{a boolean value. If \code{TRUE} ignore any arc between \code{from}
+       and \code{to} when looking for a path.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
        printed; otherwise the function is completely silent.}
 }
@@ -56,16 +75,19 @@
 }
 \value{
 
-  \code{mb}, \code{nbr}, \code{nodes} and \code{parents} return an array of 
+  \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{rootnodes},
+  \code{leafnodes} and \code{partial.node.ordering} return a vector of 
     character strings.
   \code{arcs} returns a matrix of two columns of character strings.
   \code{amat} returns a matrix of 0/1 numeric values.
   \code{nparams} returns an integer.
+  \code{acyclic} and \code{path} return a boolean value.
 
 }
 \note{
 
-  \code{nparams} supports only completely directed discrete Bayesian networks.
+  \code{nparams} and \code{node.ordering} supports only completely 
+    directed discrete Bayesian networks.
 
 }
 \references{
@@ -112,11 +134,18 @@ parents(res, "D")
 # [1] "A" "C"
 children(res, "A")
 # [1] "D"
+rootnodes(res)
+# [1] "C" "F"
+leafnodes(res)
+# [1] "D" "E"
 # number of parameters of the baysesian network.
 res = set.arc(res, "A", "B")
 nparams(res, learning.test)
 # [1] 41
+node.ordering(res)
+# [1] "F" "C" "A" "B" "D" "E"
 
 }
 \author{ Marco Scutari }
 \keyword{utilities}
+\keyword{graphs}

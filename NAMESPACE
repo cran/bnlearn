@@ -13,6 +13,8 @@ export(
   "children",
   "children<-",
   "nodes",
+  "rootnodes",
+  "leafnodes",
   "amat",
   "amat<-",
   "nparams",
@@ -24,7 +26,12 @@ export(
   "choose.direction",
   "rbn",
   "score",
-  "as.bn"
+  "as.bn",
+  "acyclic",
+  "path",
+  "node.ordering",
+  "empty.graph",
+  "random.graph"
 )
 
 S3method(print, bn)

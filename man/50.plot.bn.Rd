@@ -7,10 +7,8 @@
 
 }
 \usage{
-
  \method{plot}{bn}(x, ylim = c(0,600), xlim = ylim, radius = 250,
    arrow = 35, highlight = NULL, color = "red", ...)
-
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
@@ -20,7 +18,7 @@
           on x-axis.}
   \item{radius}{a numeric value containing the radius of the nodes.}
   \item{arrow}{a numeric value containing the length of the arrow heads.}
-  \item{highlight}{an array of character strings, representing the
+  \item{highlight}{a vector of character strings, representing the
     labels of the nodes (and corresponding arcs) to be highlighted.}
   \item{color}{an integer or character string (the highlight colour).}
   \item{...}{other parameters to be passed through to plotting

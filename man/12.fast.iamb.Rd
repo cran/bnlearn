@@ -1,16 +1,16 @@
-\name{inter.iamb}
-\alias{inter.iamb}
-\title{ Interleaved Incremental Association (Inter-IAMB) learning algorithm }
+\name{fast.iamb}
+\alias{fast.iamb}
+\title{ Fast Incremental Association (Fast-IAMB) learning algorithm }
 \description{
 
   Estimate the equivalence class of a directed acyclic graph (DAG)
-  from data using the Interleaved Incremental Association (Inter-IAMB)
+  from data using the Fast Incremental Association (FAST-IAMB)
   Constraint-based algorithm.
 
 }
 \usage{
 
-  inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+  fast.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = "mi", alpha = 0.05, debug = FALSE, optimized = TRUE,
     strict = TRUE, direction = FALSE)
 
@@ -38,8 +38,8 @@
   \item{optimized}{a boolean value. See \code{\link{bnlearn-package}}
        for details.}
   \item{strict}{a boolean value. If \code{TRUE} conflicting results in 
-      the learning process generate an error; otherwise they result in
-      a warning.}
+      the learning process generate an error; otherwise they result 
+      in a warning.}
   \item{direction}{a boolean value. If \code{TRUE} each possible direction
       of each undirected arc is tested, and the one with the lowest
       p-value is accepted as the true direction for that arc.}
@@ -47,7 +47,7 @@
 \value{
 
   An object of class \code{bn}.
-  See \code{\link{bnlearn-package}} for details.
+  See \code{\link{bn-class}} for details.
 
 }
 \references{

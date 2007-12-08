@@ -9,12 +9,10 @@
 
 }
 \usage{
-
-  score(x, data, type = "dir", debug = FALSE)
+  score(x, data, type = "bde", debug = FALSE)
 
   \method{logLik}{bn}(object, data, ...)
   \method{AIC}{bn}(object, data, ..., k = 1)
-
 }
 \arguments{
   \item{x}{an object of class "bn".}
@@ -24,8 +22,8 @@
   \item{type}{a character string, the label of the score. Valid values 
        are \code{lik} (likelihood), \code{loglik} (log-likelihood), 
        \code{aic} (Akaike Information Criterion aka AIC), \code{bic} 
-       (Bayesian Information Criterion aka BIC) and \code{dir} 
-       (Bayesian Dirichlet aka BDe).}
+       (Bayesian Information Criterion aka BIC) and \code{bde} 
+       (the logarithm of the Bayesian Dirichlet aka BDe metric).}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output 
        is printed; otherwise the function is completely silent.}
   \item{...}{extra arguments from the generic method (currently ignored).}

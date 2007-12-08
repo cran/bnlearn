@@ -1,19 +1,17 @@
-\name{iamb}
-\alias{iamb}
-\title{ Incremental Association (IAMB) learning algorithm }
+\name{inter.iamb}
+\alias{inter.iamb}
+\title{ Interleaved Incremental Association (Inter-IAMB) learning algorithm }
 \description{
 
   Estimate the equivalence class of a directed acyclic graph (DAG)
-  from data using the Incremental Association (IAMB)
+  from data using the Interleaved Incremental Association (Inter-IAMB)
   Constraint-based algorithm.
 
 }
 \usage{
-
-  iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+  inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = "mi", alpha = 0.05, debug = FALSE, optimized = TRUE,
     strict = TRUE, direction = FALSE)
-
 }
 \arguments{
   \item{x}{a data frame, containing the variables in the model.}
@@ -47,19 +45,18 @@
 \value{
 
   An object of class \code{bn}.
-  See \code{\link{bnlearn-package}} for details.
+  See \code{\link{bn-class}} for details.
 
 }
 \references{
 
-  I. Tsamardinos, C. F. Aliferis, and A. Statnikov. Algorithms for large scale Markov
-     blanket discovery. In Proceedings of the Sixteenth International Florida
-     Artificial Intelligence Research Society Conference, pages 376-381. AAAI Press,
-     2003.
+  S. Yaramakala, D. Margaritis. Speculative Markov Blanket Discovery for
+     Optimal Feature Selection. In Proceedings of the Fifth IEEE International
+     Conference on Data Mining, pages 809-812. IEEE Computer Society, 2005.
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{gs}}, \code{\link{fast.iamb}}, \code{\link{inter.iamb}}. }
+\seealso{\code{\link{gs}}, \code{\link{fast.iamb}}, \code{\link{iamb}}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

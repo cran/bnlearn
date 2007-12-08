@@ -1,4 +1,18 @@
 
+# compute the logliklihood score with an optional penalty.
+loglik.score = function(x, data, penalized = 0, debug) {
+
+  logscore = sum(sapply(names(x$nodes),
+    loglik.node, x = x, data = data, debug = debug))
+
+  if (penalized == 0)
+    logscore
+  else
+    logscore - penalized * 
+      sum(nparams.backend(x, data, real = TRUE))
+
+}#LOGLIK.SCORE
+
 # compute the loglikelihood of single node of a discrete
 # bayesian network.
 loglik.node = function(node, x, data, debug) {
@@ -26,17 +40,10 @@ loglik.node = function(node, x, data, debug) {
   else {
 
     # if there is only one parent, get it easy.
-    if (length(node.parents) == 1) {
-
+    if (length(node.parents) == 1)
       config = data[, node.parents]
-
-    }#THEN
-    else {
-
-      config = factor(apply(as.data.frame(data[,node.parents]), 
-        1, paste, sep = "", collapse = ":"))
-
-    }#ELSE
+    else
+      config = configurations(data[,node.parents]) 
 
     tab = table(data[, node], config)
     joint = dmultinom(tab, prob = tab/ndata)
@@ -62,13 +69,17 @@ loglik.node = function(node, x, data, debug) {
 
 }#LOGLIK.NODE
 
-# set an imaginary sample size to populate the a priori distribution.
-imaginary.sample.size = function(x, data) {
+# compute the BDe Dirichlet score.
+bde.score = function(x, data, debug) {
 
-  2 * prod(sapply(names(x$nodes),
-        function(node) { nlevels(data[, node]) }))
+  # set an imaginary sample size to populate the a priori distribution.
+  iss = 2 * prod(sapply(names(x$nodes),
+    function(node) { nlevels(data[, node]) }))
 
-}#IMAGINARY.SAMPLE.SIZE
+  sum(sapply(names(x$nodes), dirichlet.node, x = x, data = data, 
+    imaginary.sample.size = iss, debug = debug))
+
+}#BDE.SCORE
 
 # compute the dirichlet posterior density of a node.
 dirichlet.node = function(node, x, data, imaginary.sample.size, debug) {
@@ -79,7 +90,7 @@ dirichlet.node = function(node, x, data, imaginary.sample.size, debug) {
     parents.levels = node.params / node.levels
 
     # use an uniform a priori distribution.
-    cprior = rep(imaginary.sample.size / node.params , node.params)
+    cprior = rep(imaginary.sample.size / node.params, node.params)
     # update the a priori distribution to the a posteriori one.
     alpha = cprior + as.vector(table(data[, c(node, node.parents)]))
 
@@ -104,20 +115,13 @@ dirichlet.node = function(node, x, data, imaginary.sample.size, debug) {
 
     # if the node is not a root one, the a posteriori distribution depends
     # on the configuration of the parents of the node.
-    if (length(node.parents) >0) {
+    if (length(node.parents) > 0) {
 
       # if there is only one parent, get it easy.
-      if (length(node.parents) == 1) {
-
+      if (length(node.parents) == 1)
         config = data[, node.parents]
-
-      }#THEN
-      else {
-
-        config = factor(apply(as.data.frame(data[,node.parents]), 1, paste,
-          sep = "", collapse = ":"))
-
-      }#ELSE
+      else
+        config = configurations(data[,node.parents]) 
 
       tab = colSums(table(data[, node], config))
       alphaj = rep(imaginary.sample.size / length(tab), length(tab))

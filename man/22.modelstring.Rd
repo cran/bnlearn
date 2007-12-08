@@ -11,13 +11,11 @@
 
 }
 \usage{
-
   modelstring(x)
   model2network(string, debug = FALSE)
 
   \method{as.character}{bn}(x, ...)
   \method{as.bn}{character}(x, debug = FALSE)
-
 }
 \arguments{
   \item{x}{an object of class "bn".}
@@ -45,13 +43,50 @@
 
 data(learning.test)
 res = set.arc(gs(learning.test), "A", "B")
-
+res
+# 
+#   Bayesian network learned via Conditional Independence methods
+# 
+#   model:
+#     [F][C][A][B|A][D|A:C][E|B:F]
+#   nodes:                                 6
+#   arcs:                                  5
+#     undirected arcs:                     0
+#     directed arcs:                       5
+#   average markov blanket size:           2.33
+#   average neighbourhood size:            1.67
+#   average branching factor:              0.83
+# 
+#   learning algorithm:                    grow-shrink
+#   conditional independence test:         mutual information
+#   alpha threshold:                       0.05
+#   tests used in the learning procedure:  43
+# 
 modelstring(res)
 # [1] "[F][C][A][B|A][D|A:C][E|B:F]"
 res2 = model2network(modelstring(res))
+res2
+# 
+#   Bayesian network learned via Conditional Independence methods
+# 
+#   model:
+#     [F][C][A][B|A][D|A:C][E|B:F]
+#   nodes:                                 6
+#   arcs:                                  5
+#     undirected arcs:                     0
+#     directed arcs:                       5
+#   average markov blanket size:           2.33
+#   average neighbourhood size:            1.67
+#   average branching factor:              0.83
+# 
+#   learning algorithm:                    random/generated
+#   conditional independence test:         mutual information
+#   alpha threshold:                       0.05
+#   tests used in the learning procedure:  0
 compare(res, res2)
 # [1] TRUE
 
 }
 \author{ Marco Scutari }
 \keyword{utilities}
+\keyword{graphs}

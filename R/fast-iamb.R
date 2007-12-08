@@ -184,6 +184,10 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
 
   }#THEN
 
+  # do not use the the fast mutual information; this algorithm takes care
+  # of insufficient data itself, use mutual information instead. 
+  if (test == "fmi") test = "mi"
+
   repeat {
 
     # growing phase.

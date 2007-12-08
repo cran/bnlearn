@@ -49,22 +49,12 @@ model2network.backend = function(modelstring, debug = FALSE) {
 
     })
 
-    arcs = do.call(rbind, arcs)
-
-    res = list(learning = list(nodes = NULL, arcs = arcs, whitelist = NULL, 
-            blacklist = NULL, test = "mi", alpha = 0.05, ntests = 0, 
-            algo = "gs"), nodes = cache.structure(sort(nodes), arcs, 
-            debug = debug), arcs = arcs)
-
-    # fill res$learning$nodes using the relevant fields from res$nodes.
-    for (node in sort(nodes)) {
-
-      res$learning$nodes[[node]]$mb = res$nodes[[node]]$mb
-      res$learning$nodes[[node]]$nbr = res$nodes[[node]]$nbr
-
-    }#THEN
-
-    class(res) = "bn"
+    # create an empty network structure.
+    res = empty.graph.backend(nodes)
+    # update the arcs of the network.
+    res$arcs = do.call(rbind, arcs)
+    # update the network structure.
+    res$nodes = cache.structure(sort(nodes), res$arcs, debug = debug)
 
     res
 

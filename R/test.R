@@ -1,7 +1,7 @@
 
 conditional.test = function(x, y, sx, data, test) {
 
-  assign("test.counter", get("test.counter", envir = .GlobalEnv) + 1,
+  assign(".test.counter", get(".test.counter", envir = .GlobalEnv) + 1,
     envir = .GlobalEnv)
 
   sx = sx[sx != ""]
@@ -60,17 +60,10 @@ conditional.test = function(x, y, sx, data, test) {
     if (test %in% available.discrete.tests) {
 
       # if there is only one parent, get it easy.
-      if (length(sx) == 1) {
-
+      if (length(sx) == 1)
         config = data[, sx]
-
-      }#THEN
-      else {
-
-        config = factor(apply(as.data.frame(data[,sx]), 1, paste,
-          sep = "", collapse = ":"))
-
-      }#ELSE
+      else
+        config = configurations(data[, sx])
 
     }#THEN
 
@@ -166,6 +159,8 @@ cmi.test = function(x, y, z, ndata, gsquare = TRUE) {
 
 # Partial Canonical (Linear) Correlation.
 # Internal copy of the pcor() function from package ggm.
+# Copyright Giovanni M. Marchetti, 2006.
+# Released under "GPL version 2 or newer".
 pcor = function (u, S) {
 
   k = solve(cov(S[, u]))

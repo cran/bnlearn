@@ -8,15 +8,16 @@ method.labels = c(
   'gs' = "grow-shrink", 
   'iamb' = "incremental association", 
   'fast-iamb' = "fast incremental association",
-  'inter-iamb' = "interleaved incremental association"
+  'inter-iamb' = "interleaved incremental association",
+  'rnd' = "random/generated"
 )
 
 test.labels = c(
-  mh = "Mantel-Haenszel chi-squared test",
-  mi = "mutual information",
-  fmi = "fast mutual information",
-  cor = "linear correlation",
-  zf = "Fisher's Z test"
+  'mh' = "Mantel-Haenszel chi-squared test",
+  'mi' = "mutual information",
+  'fmi' = "fast mutual information",
+  'cor' = "linear correlation",
+  'zf' = "Fisher's Z test"
 )
 
 # Grow-Shrink frontend.
@@ -72,14 +73,17 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = "mh", alpha = 0.05, method = "gs", debug = FALSE, optimized = TRUE,
     strict = TRUE, direction = FALSE) {
 
-  assign("test.counter", 0, envir = .GlobalEnv)
+  assign(".test.counter", 0, envir = .GlobalEnv)
 
   res = NULL
   available.methods = c("gs", "iamb", "fast-iamb", "inter-iamb")
   supported.clusters = c("MPIcluster", "PVMcluster","SOCKcluster")
   cluster.aware = FALSE
 
-  # check the data.
+  # check the data are there.
+  if (missing(x))
+    stop("the data are missing.")
+  # x must be a data frame.
   if(!is.data.frame(x))
     stop("x must be a data frame.")
   # check the data for NULL/NaN/NA.
@@ -131,7 +135,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       # enter in cluster-aware mode.
       cluster.aware = TRUE
       # set the test counter in all the cluster nodes.
-      clusterEvalQ(cluster, assign("test.counter", 0, envir = .GlobalEnv))
+      clusterEvalQ(cluster, assign(".test.counter", 0, envir = .GlobalEnv))
       # disable debugging, the slaves do not cat() here.
       if (debug) {
 
@@ -180,7 +184,13 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     # check all the names in the whitelist against the column names of x.
     if (any(!(unique(as.vector(whitelist)) %in% names(x))))
-      stop("unknown node label present in the whitelist.")
+     stop("unknown node label present in the whitelist.")
+
+    # if the whitelist itself contains cycles, no acyclic graph
+    # can be learned.
+    if (!is.acyclic(whitelist, colnames(x)))
+      stop("this whitelist does not allow an acyclic graph.")
+
 
   }#THEN
 
@@ -354,7 +364,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   # add tests performed by the slaves to the test counter.
   if (cluster.aware)
     res$ntests = res$ntests +
-      sum(unlist(clusterEvalQ(cluster, get("test.counter", envir = .GlobalEnv))))
+      sum(unlist(clusterEvalQ(cluster, get(".test.counter", envir = .GlobalEnv))))
   # save the learning method used.
   res$learning$algo = method
   # set the class of the return value.
@@ -373,6 +383,12 @@ mb = function(x, node, rebuild = FALSE) {
   # a node is needed. 
   if (missing(node))
     stop("no node specified.")
+  # a node label must be a character string.
+  if (!is(node, "character"))
+    stop("node must be a character string, the label of a node.")
+  # only one node is needed.
+  if (length(node) > 1)
+    stop("only a single node may be specified.")
   # node must be a valid node label.
   if (!(node %in% names(x$nodes)))
     stop("node not present in the graph.")
@@ -396,6 +412,12 @@ nbr = function(x, node, rebuild = FALSE) {
   # a node is needed. 
   if (missing(node))
     stop("no node specified.")
+  # a node label must be a character string.
+  if (!is(node, "character"))
+    stop("node must be a character string, the label of a node.")
+  # only one node is needed.
+  if (length(node) > 1)
+    stop("only a single node may be specified.")
   # node must be a valid node label.
   if (!(node %in% names(x$nodes)))
     stop("node not present in the graph.")
@@ -526,6 +548,12 @@ parents = function(x, node, rebuild = FALSE) {
   # a node is needed. 
   if (missing(node))
     stop("no node specified.")
+  # a node label must be a character string.
+  if (!is(node, "character"))
+    stop("node must be a character string, the label of a node.")
+  # only one node is needed.
+  if (length(node) > 1)
+    stop("only a single node may be specified.")
   # node must be a valid node label.
   if (!(node %in% names(x$nodes)))
     stop("node not present in the graph.")
@@ -549,6 +577,12 @@ parents = function(x, node, rebuild = FALSE) {
   # a node is needed. 
   if (missing(node))
     stop("no node specified.")
+  # a node label must be a character string.
+  if (!is(node, "character"))
+    stop("node must be a character string, the label of a node.")
+  # only one node is needed.
+  if (length(node) > 1)
+    stop("only a single node may be specified.")
   # node must be a valid node label.
   if (!(node %in% names(x$nodes)))
     stop("node not present in the graph.")
@@ -608,6 +642,12 @@ children = function(x, node, rebuild = FALSE) {
   # a node is needed. 
   if (missing(node))
     stop("no node specified.")
+  # a node label must be a character string.
+  if (!is(node, "character"))
+    stop("node must be a character string, the label of a node.")
+  # only one node is needed.
+  if (length(node) > 1)
+    stop("only a single node may be specified.")
   # node must be a valid node label.
   if (!(node %in% names(x$nodes)))
     stop("node not present in the graph.")
@@ -631,6 +671,12 @@ children = function(x, node, rebuild = FALSE) {
   # a node is needed. 
   if (missing(node))
     stop("no node specified.")
+  # a node label must be a character string.
+  if (!is(node, "character"))
+    stop("node must be a character string, the label of a node.")
+  # only one node is needed.
+  if (length(node) > 1)
+    stop("only a single node may be specified.")
   # node must be a valid node label.
   if (!(node %in% names(x$nodes)))
     stop("node not present in the graph.")
@@ -681,6 +727,28 @@ children = function(x, node, rebuild = FALSE) {
 
 }#CHILDREN<-
 
+# get the root nodes of a bayesian network.
+rootnodes = function(x) {
+
+  # check x's class.
+  if (!is(x, "bn"))
+    stop("x must be an object of class 'bn'.")
+
+  rootnodes.backend(x$arcs, names(x$nodes))
+
+}#ROOTNODES
+
+# get the leaf nodes of a bayesian network.
+leafnodes = function(x) {
+
+  # check x's class.
+  if (!is(x, "bn"))
+    stop("x must be an object of class 'bn'.")
+
+  leafnodes.backend(x$arcs, names(x$nodes))
+
+}#LEAFNODES
+
 # get the number of paraters of the bayesian network.
 nparams = function(x, data, debug = FALSE) {
 
@@ -710,6 +778,52 @@ nparams = function(x, data, debug = FALSE) {
 
 }#NPARAMS
 
+acyclic = function(x) {
+
+  # check x's class.
+  if (!is(x, "bn"))
+    stop("x must be an object of class 'bn'.")
+
+  is.acyclic(x$arcs, names(x$nodes))
+
+}#ACYCLIC
+
+path = function(x, from, to, direct = TRUE) {
+
+  # check x's class.
+  if (!is(x, "bn"))
+    stop("x must be an object of class 'bn'.")
+  # both 'from' and 'to' are needed.
+  if (missing(from) || missing(to))
+    stop("'from' and/or 'to' are missing.")
+  # 'from' must be a character string.
+  if (!is(from, "character"))
+    stop("'from' must be a character string, the label of a node.")
+  # only one 'from' node is needed.
+  if (length(from) > 1)
+    stop("only a single 'from' node may be specified.")
+  # 'to' must be a character string.
+  if (!is(to, "character"))
+    stop("'to' must be a character string, the label of a node.")
+  # only one 'to' node is needed.
+  if (length(to) > 1)
+    stop("only a single 'to' node may be specified.")
+  # 'from' must be a valid node label.
+  if (!(from %in% names(x$nodes)))
+    stop("'from' not present in the graph.")
+  # 'to' must be a valid node label.
+  if (!(to %in% names(x$nodes)))
+    stop("'to' not present in the graph.")
+  # 'from' must be different from 'to'.
+  if (identical(from, to))
+    stop("'from' and 'to' must be different from each other.")
+
+  has.path(from, to, names(x$nodes), 
+    arcs2amat(x$arcs, names(x$nodes)), 
+    exclude.direct = FALSE)
+
+}#PATH
+
 # describe the network with a "model string".
 modelstring = function(x) {
 
@@ -724,6 +838,24 @@ modelstring = function(x) {
 
 }#MODELSTRING
 
+# return the partial node ordering implied by the graph structure.
+node.ordering = function(x, debug = FALSE) {
+
+  # check x's class.
+  if (!is(x, "bn"))
+    stop("x must be an object of class 'bn'.")
+  # check debug.
+  if (!is.logical(debug) || is.na(debug))
+    stop("debug must be a logical value (TRUE/FALSE).")
+  # no model string if the graph is partially directed.
+  if (any(is.undirected(x$arcs)))
+    stop("the graph is only partially directed.")
+
+  schedule(x, debug = debug)
+
+}#NODE.ORDERING
+
+# generate an object of class bn from a model string.
 model2network = function(string, debug = FALSE) {
 
   # check string's class.
@@ -743,7 +875,10 @@ rbn = function(x, n, data, debug = FALSE) {
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
-  # check the data for NULL/NaN/NA
+  # the original data set is needed.
+  if (missing(data))
+    stop("the data are missing.")
+  # check the data for NULL/NaN/NA.
   if (missing.data(data))
     stop("the data set contains NULL/NaN/NA values.")
   # check debug.
@@ -752,9 +887,6 @@ rbn = function(x, n, data, debug = FALSE) {
   # no simulation if the graph is partially directed.
   if (any(is.undirected(x$arcs)))
     stop("the graph is only partially directed.")
-  # the original data set is needed.
-  if (missing(data))
-    stop("the data are missing.")
   # only discrete networks are supported.
   if (!is.data.discrete(data))
     stop("simulation for continuous networks not implemented.")
@@ -803,6 +935,18 @@ available.ops = c("set", "drop", "reverse")
   # both 'from' and 'to' are needed.
   if (missing(from) || missing(to))
     stop("'from' and/or 'to' are missing.")
+  # 'from' must be a character string.
+  if (!is(from, "character"))
+    stop("'from' must be a character string, the label of a node.")
+  # only one 'from' node is needed.
+  if (length(from) > 1)
+    stop("only a single 'from' node may be specified.")
+  # 'to' must be a character string.
+  if (!is(to, "character"))
+    stop("'to' must be a character string, the label of a node.")
+  # only one 'to' node is needed.
+  if (length(to) > 1)
+    stop("only a single 'to' node may be specified.")
   # 'from' must be a valid node label.
   if (!(from %in% names(x$nodes)))
     stop("'from' not present in the graph.")
@@ -817,7 +961,7 @@ available.ops = c("set", "drop", "reverse")
     stop("check.cycles must be a logical value (TRUE/FALSE).")
   # check check.cycles.
   if (!is.logical(update) || is.na(update))
-    stop("check.cycles must be a logical value (TRUE/FALSE).")
+    stop("update must be a logical value (TRUE/FALSE).")
 
   # add/reverse/orient the arc.
   if (op == "set") {
@@ -841,7 +985,7 @@ available.ops = c("set", "drop", "reverse")
 
   # check whether the graph is still acyclic; not needed if an arc is dropped.
   if (check.cycles && (op != "drop"))
-    if (!is.acyclic(x))
+    if (!is.acyclic(x$arcs, names(x$nodes)))
       stop("the resulting graph contains cycles.")
 
   # update the network structure.
@@ -853,13 +997,16 @@ available.ops = c("set", "drop", "reverse")
 }#ARC.OPERATIONS
 
 # compute the score of a network.
-score = function(x, data, type = "dir", debug = FALSE) {
+score = function(x, data, type = "bde", debug = FALSE) {
 
-  available.types = c("lik", "loglik", "aic", "bic", "dir")
+  available.types = c("lik", "loglik", "aic", "bic", "dir", "bde")
 
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
+  # the original data set is needed.
+  if (missing(data))
+    stop("the data are missing.")
   # check the data for NULL/NaN/NA
   if (missing.data(data))
     stop("the data set contains NULL/NaN/NA values.")
@@ -869,39 +1016,68 @@ score = function(x, data, type = "dir", debug = FALSE) {
   # no score if the graph is partially directed.
   if (any(is.undirected(x$arcs)))
     stop("the graph is only partially directed.")
-  # check the score label against available.types
+  # check the score label against available.types.
   if (!(type %in% available.types))
     stop("unknown score type.")
-  # the original data set is needed.
-  if (missing(data))
-    stop("the data are missing.")
   # only discrete bayesian networks are supported.
   if (!is.data.discrete(data))
     stop("scores for continuous networks not implemented.")
 
-  if (type == "dir") {
-
-    # set the imaginary sample size.
-    iss = imaginary.sample.size(x, data)
-
-    return(sum(sapply(names(x$nodes), dirichlet.node, 
-      x = x, data = data, imaginary.sample.size = iss, debug = debug)))
-
-  }#THEN
-
-  logscore = sum(sapply(names(x$nodes),
-    loglik.node, x = x, data = data, debug = debug))
-
-  if (type == "loglik")
-   return(logscore)
+  if (type %in% c("dir", "bde")) 
+    return(bde.score(x = x, data = data, debug = debug))
+  else if (type == "loglik")
+   return(loglik.score(x = x, data = data, debug = debug))
   else if (type == "lik")
-    return(exp(logscore))
+    return(exp(loglik.score(x = x, data = data, debug = debug)))
   else if (type == "aic")
-    return(logscore - sum(nparams.backend(x, data, real = TRUE)))
+    return(loglik.score(x = x, data = data, penalized = 1, debug = debug))
   else if (type == "bic")
-    return(logscore - sum(nparams.backend(x, data, real = TRUE)) * log(nrow(data))/2)
+    return(loglik.score(x = x, data = data, penalized = log(nrow(data))/2, 
+      debug = debug))
 
 }#SCORE
+
+# create an empty graph from a given set of nodes.
+empty.graph = function(nodes) {
+
+  # nodes must be a vector of character strings.
+  if (!is(nodes, "character"))
+    stop("nodes must be a vector of character strings, the labels of the nodes.")
+  # at least one node is needed.
+  if (length(nodes) < 1)
+    stop("at leat one node label is needed.")
+  # no duplicates allowed.
+  if(any(duplicated(nodes)))
+     stop("node labels must be unique.")
+
+  empty.graph.backend(nodes)
+
+}#EMPTY.GRAPH
+
+random.graph = function(nodes, prob = 0.5) {
+
+  # nodes must be a vector of character strings.
+  if (!is(nodes, "character"))
+    stop("nodes must be a vector of character strings, the labels of the nodes.")
+  # at least one node is needed.
+  if (length(nodes) < 1)
+    stop("at leat one node label is needed.")
+  # no duplicates allowed.
+  if (any(duplicated(nodes)))
+    stop("node labels must be unique.")
+  # prob must be numeric.
+  if (!is(prob, "numeric"))
+    stop("the branching probability must be a numeric value.")
+  # prob must be scalar.
+  if (length(prob) > 1)
+    stop("the branching probability must be a scalar.")
+  # prob must be a value in [0,1].
+  if ((prob < 0) || (prob > 1))
+    stop("the branching probability must be a numeric value in [0,1].")
+
+  random.graph.backend(nodes = nodes, prob = prob)
+
+}#RANDOM.GRAPH
 
 # compare two bayesian network structures.
 compare = function (r1, r2, debug = FALSE) {
@@ -1016,8 +1192,8 @@ compare = function (r1, r2, debug = FALSE) {
   if (!all(check)) result = FALSE
 
   # check directed arcs.
-  r1.arcs = apply(r1$arcs[!is.undirected(r1$arcs), ], 1, paste, collapse = " -> ")
-  r2.arcs = apply(r2$arcs[!is.undirected(r2$arcs), ], 1, paste, collapse = " -> ")
+  r1.arcs = apply(r1$arcs[!is.undirected(r1$arcs), , drop = FALSE], 1, paste, collapse = " -> ")
+  r2.arcs = apply(r2$arcs[!is.undirected(r2$arcs), , drop = FALSE], 1, paste, collapse = " -> ")
 
   if (!identical(sort(r1.arcs), sort(r2.arcs))) {
 
@@ -1035,8 +1211,8 @@ compare = function (r1, r2, debug = FALSE) {
   }#THEN
 
   # check undirected arcs.
-  r1.arcs = apply(r1$arcs[is.undirected(r1$arcs), ], 1, paste, collapse = " - ")
-  r2.arcs = apply(r2$arcs[is.undirected(r2$arcs), ], 1, paste, collapse = " - ")
+  r1.arcs = apply(r1$arcs[is.undirected(r1$arcs), , drop = FALSE], 1, paste, collapse = " - ")
+  r2.arcs = apply(r2$arcs[is.undirected(r2$arcs), , drop = FALSE], 1, paste, collapse = " - ")
 
   if (!identical(sort(r1.arcs), sort(r2.arcs))) {
 
@@ -1059,16 +1235,33 @@ compare = function (r1, r2, debug = FALSE) {
 
 choose.direction = function(x, arc, data, debug = FALSE) {
 
+  # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
-  if (missing.data(data))
-    stop("the data set contains NULL/NaN/NA values.")
-  if (!all(arc %in% names(x$nodes)))
-    stop("node not present in the graph.")
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
+  # check the data are there.
   if (missing(data))
     stop("the data are missing.")
+  # check the data for NULL/NaN/NA.
+  if (missing.data(data))
+    stop("the data set contains NULL/NaN/NA values.")
+  # check the arc is there.
+  if (missing(arc))
+    stop("the arc is missing.")
+ # nodes must be a vector of character strings.
+  if (!is(arc, "character"))
+    stop("arc must be a vector of character strings, the labels of the nodes.")
+  # exactly two nodes are needed.
+  if (length(arc) != 2)
+    stop("an arc if formed by exactly 2 nodes.")
+  # no duplicates allowed.
+  if(any(duplicated(arc)))
+     stop("node labels in the arc must be unique.")
+  # both elements of the arc must be valid node labels.
+  if (!all(arc %in% names(x$nodes)))
+    stop("node not present in the graph.")
+  # check debug.
+  if (!is.logical(debug) || is.na(debug))
+    stop("debug must be a logical value (TRUE/FALSE).")
 
   if (debug)
     cat("* testing", arc[1], "-", arc[2], "for direction.\n" )

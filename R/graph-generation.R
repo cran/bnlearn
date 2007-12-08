@@ -1,0 +1,70 @@
+
+# generate a random directed acyclic graph.
+# Original code from the pcalg package, released
+# under "GPLv2 or later" with copyright "Markus Kalisch, 2006".
+random.graph.backend = function (nodes, prob) {
+
+    n = length(nodes)
+
+    # sample outgoing arcs for the first n - 2 nodes.
+    # and, yes, this preseves node ordering.
+    edL = lapply(seq(length = n - 2), function(i) {
+
+      outgoing = sample(nodes[seq(i + 1, n)], size = rbinom(1, n - i, prob))
+
+      if (length(outgoing) > 1)
+        list(nbr = outgoing)
+      else
+        list(nbr = character(0))
+
+    })
+
+    # add outgoing arcs for the "n - 1"th node.
+    if (rbinom(1, 1, prob) == 1)
+        edL[[n - 1]] = list(nbr = nodes[n])
+    else
+        edL[[n - 1]] = list(nbr = character(0))
+
+    # the last node must no have outgoing arcs.
+    edL[[n]] = list(nbr = character(0))
+
+    # set the names of the list elements.
+    names(edL) = nodes
+
+    res = empty.graph.backend(nodes)
+    res$arcs = mb2arcs(edL, nodes)
+    res$nodes = cache.structure(nodes, res$arcs)
+
+return(res)
+
+}#RANDOM.GRAPH.BACKEND
+
+# generate an empty 'bn' object given a set of nodes.
+empty.graph.backend = function(nodes) {
+
+  arcs = matrix(1:2, ncol = 2, dimnames = 
+      list(c(""), c("from", "to")))[0, ]
+  res = list(
+    learning = list(
+      nodes = lapply(nodes, function(n) { list(mb = c(), nbr = c()) }), 
+      arcs = arcs,
+      whitelist = NULL, 
+      blacklist = NULL, 
+      test = "mi", 
+      alpha = 0.05,
+      ntests = 0, 
+      algo = "rnd"
+    ), 
+    nodes = lapply(nodes, function(n) { 
+      list(mb = c(), nbr = c(), parents = c(), children = c()) }), 
+    arcs = arcs
+  )
+
+  # set the names of the nodes in the right places.
+  names(res$nodes) = names(res$learning$nodes) = nodes
+  # set the class to 'bn'.
+  class(res) = "bn";
+
+  res
+
+}#EMPTY.GRAPH.BACKEND

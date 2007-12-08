@@ -77,12 +77,12 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
 
       # build a table of the original data to compute the conditional
       # probabilities for each configuration of the parents.
-      # if there is only a single parents, use it as is.
+      # if there is only a single parent, use it as it is.
       if (length(node.parents) == 1)
         config = data[, node.parents]
       else
-        config = factor(apply(data[, node.parents], 1, paste,
-                      sep = "", collapse = ":"))
+        config = configurations(data[,node.parents]) 
+      
       tab = table(data = data[, node], cfg = config)
 
       # build an array with the configurations of the simulated data.

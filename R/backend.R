@@ -34,20 +34,20 @@ second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist,
   arcs = orient.edges(arcs = arcs, nodes = nodes,
            whitelist = whitelist, debug = debug)
 
+  # 6. [Propagate Directions]
+  arcs = propagate.directions(arcs = arcs, nodes = nodes, debug = debug)
+
   # arcs whitelisted in one direction (i.e. a -> b but not b -> a) are
   # never checked for loops, because they are definitely not
   # undirected.
   # do the check now.
-  if (!is.acyclic(list(nodes = mb, arcs = arcs)))
-    stop("the graph contains cycles because of whitelisted nodes.")
-
-  # 6. [Propagate Directions]
-  arcs = propagate.directions(arcs = arcs, nodes = nodes, debug = debug)
+  if (!is.acyclic(arcs, nodes))
+    stop("the graph contains cycles, possibly because of whitelisted nodes.")
 
   # save the status of the learning algorithm.
   learning = list(nodes = mb, arcs = arcs, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha,
-    ntests = get("test.counter", envir = .GlobalEnv))
+    ntests = get(".test.counter", envir = .GlobalEnv))
 
   # EXTRA [ESP]
   if (direction)
@@ -61,6 +61,9 @@ second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist,
 # propagate directions to the undirected arcs.
 propagate.directions = function(arcs, nodes, debug) {
 
+  # build the adjacency matrix.
+  amat = arcs2amat(arcs, nodes)
+  # ignore directed arcs.
   undirected.arcs = arcs[is.undirected(arcs),]
 
   if (debug) {
@@ -77,19 +80,27 @@ propagate.directions = function(arcs, nodes, debug) {
   }#THEN
   else apply(undirected.arcs, 1, function(arc) {
 
-    if (has.path(arcs, nodes, arc[1], arc[2])) {
+    # if there is a path from arc[1] to arc[2] besides arc[1] -> arc[2] ...
+    if (has.path(arc[1], arc[2], nodes, amat, exclude.direct = TRUE)) {
 
+      # ... set the direction to arc[1] -> arc[2].
       assign("arcs", set.arc.direction(arc[1], arc[2], arcs),
         envir = sys.frame(-2))
 
-      if (debug)
+      if (debug) {
+
         cat("  > there's a path from", arc[1], "to", arc[2], ".\n")
         cat("    > removing", arc[2], "->", arc[1], ".\n")
 
-    }#THEN
+      }#THEN
 
-    if (debug)
-      cat("  > no path from", arc[1], "to", arc[2], ".\n")
+    }#THEN
+    else {
+
+      if (debug)
+        cat("  > no path from", arc[1], "to", arc[2], ".\n")
+
+    }#ELSE
 
   })
 
@@ -414,14 +425,32 @@ orient.edges = function(arcs, nodes, whitelist, debug) {
     if (n > narcs)
       stop("too many iterations, probably would have gone on forever.")
 
+    # ignore arcs coming from root nodes or going into leaf nodes;
+    # they cannot be part of a cycle beacuse of the lack of an incoming
+    # or outgoing arc (respectively).
+    roots = rootnodes.backend(arcs, nodes)
+    leafs = leafnodes.backend(arcs, nodes)
+    to.be.ignored = (arcs[, "from"] %in% roots) | (arcs[, "to"] %in% leafs)
+
     if (debug) {
 
       cat("----------------------------------------------------------------\n")
       cat("* detecting loops ...\n")
+      cat("  > total number of arcs:", nrow(arcs), "\n")
+      cat("  > ignored because of root nodes:", 
+        length(which(arcs[, "from"] %in% roots)), "\n")
+      cat("    > root nodes: '", roots, "'\n")
+      cat("  > ignored because of leaf nodes:", 
+        length(which(arcs[, "to"] %in% leafs)), "\n")
+      cat("    > leaf nodes: '", leafs, "'\n")
+      cat("  > ignored arcs:", length(which(to.be.ignored)), "\n")
+      print(arcs[to.be.ignored, , drop = FALSE])
+      cat("  > loops:\n")
 
     }#THEN
 
-    loops = loop.counter(arcs, nodes)
+    # compute the loop counter of each (relevant) arc.
+    loops = loop.counter(arcs[!to.be.ignored, , drop = FALSE], nodes)
 
     # do not check arcs whitelisted directed arcs.
     loops = loops[!which.listed(loops[, 1:2], whitelist), ]
@@ -469,6 +498,11 @@ loop.counter = function(arcs, nodes) {
 
     function(arc) {
 
+      # if there is no path from arc[2] to arc[1], arc can not be
+      # part of a loop.
+      if (!has.path(arc[2], arc[1], nodes, amat, exclude.direct = TRUE)) 
+        return(FALSE)
+
       buffer = arc
       dim(buffer) = c(1,2)
 
@@ -512,13 +546,13 @@ loop.counter = function(arcs, nodes) {
       loops = apply(buffer, 1, function(path) {length(which(path == arc["from"]))})
 
       # set the loop counter.
-      counter[is.row.equal(counter[, 1:2], arc), "loops"] = length(which(loops > 1))
+      counter[is.row.equal(counter[, 1:2, drop = FALSE], arc), "loops"] = length(which(loops > 1))
       assign("counter", counter, envir=sys.frame(-2))
 
     })
 
     # return the sorted loop counter.
-    counter[order(as.numeric(counter[,"loops"]), decreasing = TRUE),]
+    counter[order(as.numeric(counter[,"loops"]), decreasing = TRUE),, drop = FALSE]
 
 }#LOOP.COUNTER
 
@@ -728,6 +762,9 @@ cache.structure = function(nodes, arcs, debug = FALSE) {
 
 # create the structure object
 struct = list()
+# build the adjacency matrix; using arcs directly does not scale at all
+# (o(arc^2) scans of the arc list are needed for each arc).
+a = arcs2amat(arcs, nodes)
 
   if (debug)
     cat("* (re)building cached information about network structure.\n")
@@ -739,9 +776,9 @@ struct = list()
       cat("  > detecting neighbourhood, parents and children of node", node, ".\n")
 
     list(mb = c(),
-         nbr = nbr.backend(arcs, node),
-         parents = parents.backend(arcs, node),
-         children = children.backend(arcs, node))
+         nbr = nodes[(a[, node] + a[node, ]) > 0],
+         parents = nodes[(a[, node] - a[node, ]) > 0],
+         children = nodes[(a[node, ] - a[, node]) > 0])
 
   })
 

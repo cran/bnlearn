@@ -1,19 +1,16 @@
-\name{fast.iamb}
-\alias{fast.iamb}
-\title{ Fast Incremental Association (Fast-IAMB) learning algorithm }
+\name{gs}
+\alias{gs}
+\title{ Grow-Shrink (GS) learning algorithm }
 \description{
 
   Estimate the equivalence class of a directed acyclic graph (DAG)
-  from data using the Fast Incremental Association (FAST-IAMB)
-  Constraint-based algorithm.
+  from data using the Grow-Shrink (GS) Constraint-based algorithm.
 
 }
 \usage{
-
-  fast.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+  gs(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = "mi", alpha = 0.05, debug = FALSE, optimized = TRUE,
     strict = TRUE, direction = FALSE)
-
 }
 \arguments{
   \item{x}{a data frame, containing the variables in the model.}
@@ -47,18 +44,18 @@
 \value{
 
   An object of class \code{bn}.
-  See \code{\link{bnlearn-package}} for details.
+  See \code{\link{bn-class}} for details.
 
 }
 \references{
 
-  S. Yaramakala, D. Margaritis. Speculative Markov Blanket Discovery for
-     Optimal Feature Selection. In Proceedings of the Fifth IEEE International
-     Conference on Data Mining, pages 809-812. IEEE Computer Society, 2005.
+  D. Margaritis. Learning Bayesian Network Model Structure from Data. PhD
+    thesis, School of Computer Science, Carnegie-Mellon University, Pittsburgh,
+    PA, May 2003. Available as Technical Report CMU-CS-03-153.
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{gs}}, \code{\link{fast.iamb}}, \code{\link{iamb}}. }
+\seealso{\code{\link{iamb}}, \code{\link{fast.iamb}}, \code{\link{inter.iamb}}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

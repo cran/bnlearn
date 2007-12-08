@@ -1,4 +1,4 @@
-\name{set.arc}
+\name{arc operations}
 \alias{set.arc}
 \alias{drop.arc}
 \alias{reverse.arc}
@@ -9,11 +9,9 @@
 
 }
 \usage{
-
   set.arc(x, from, to, check.cycles = TRUE, debug = FALSE)
   drop.arc(x, from, to, debug = FALSE)
   reverse.arc(x, from, to, check.cycles = TRUE, debug = FALSE)
-
 }
 \arguments{
   \item{x}{an object of class "bn".}
@@ -155,4 +153,5 @@ reverse.arc(res, "A", "D", debug = TRUE)
 
 }
 \author{ Marco Scutari }
-\keyword{htest}
+\keyword{utilities}
+\keyword{graphs}

@@ -18,8 +18,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 0.4\cr
-    Date: \tab 2007-11-10\cr
+    Version: \tab 0.5\cr
+    Date: \tab 2007-12-08\cr
     License: \tab GPLv2 or later
 
   }
@@ -179,82 +179,6 @@
   }
 
 }
-\section{The bn S3 class}{
-
-  An object of class \code{bn} is a list containing at least the
-  following components:
-
-  \itemize{
-
-    \item \code{learning}: a list containing some information about 
-       the results of the learning algorithm. It's never changed 
-       afterward.
-
-    \itemize{
-
-      \item \code{nodes}: a list. Each element is named after a node
-        and contains the following elements:
-
-      \itemize{
-
-        \item \code{mb}: the Markov blanket of the node (an array of 
-          character strings).
-
-        \item \code{nbr}: the neighbourhood of the node (an array of
-          character strings).
-
-      }
-
-      \item \code{arcs}: the arcs of the Bayesian network (a two-column
-        matrix, whose column are labeled \code{from} and \code{to}).
-
-      \item \code{whitelist}: a sanitized copy of the \code{whitelist}
-        parameter (a two-column matrix, whose column are labeled
-        \code{from} and \code{to}).
-
-      \item \code{blacklist}: a sanitized copy of the \code{blacklist}
-        parameter (a two-column matrix, whose column are labeled
-        \code{from} and \code{to}).
-
-      \item \code{test}: the label of the conditional independence test
-        used by the learning algorithm (a character string).
-
-      \item \code{alpha}: the target nominal type I error rate (a
-        numerical value).
-
-      \item \code{ntests}: the number of conditional independence tests
-        used in the learning (an integer value).
-
-      \item \code{algo}: the label of the learning algorithm used
-        (a character string).
-
-    }
-
-    \item \code{nodes}: a list. Each element is named after a node
-        and contains the following elements:
-
-    \itemize{
-
-      \item \code{mb}: the Markov blanket of the node (an array of 
-        character strings).
-
-      \item \code{nbr}: the neighbourhood of the node (an array of
-        character strings).
-
-      \item \code{parents}: the parents of the node (an array of
-        character strings).
-
-      \item \code{children}: the children of the node (an array of
-        character strings).
-
-    }
-
-    \item \code{arcs}: the arcs of the Bayesian network (a two-column
-      matrix, whose column are labeled \code{from} and \code{to}).
-
-  }
-
-}
 \references{
 
   A. Agresti. Categorical Data Analysis. John Wiley & Sons, Inc., 2002.
@@ -334,9 +258,13 @@ res = gs(learning.test, debug = TRUE)
 sink()
 # if something seems wrong, try the unoptimized version
 # in strict mode (inconsistencies trigger errors):
-\dontrun{res = gs(learning.test, optimized = FALSE, strict = TRUE, debug = TRUE)}
+\dontrun{
+res = gs(learning.test, optimized = FALSE, strict = TRUE, debug = TRUE)
+}
 # or disable strict mode to try to fix errors on the fly:
-\dontrun{res = gs(learning.test, optimized = FALSE, strict = FALSE, debug = TRUE)}
+\dontrun{
+res = gs(learning.test, optimized = FALSE, strict = FALSE, debug = TRUE)
+}
 
 }
 \keyword{ package }

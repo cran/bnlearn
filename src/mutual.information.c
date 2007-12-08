@@ -6,7 +6,7 @@
 void mi (int *x, int *y, int *lx, int *ly, int *length, double *result) {
 
   int i = 0, j = 0, k = 0;
-  int n[*lx][*ly], ni[*lx], nj[*ly];
+  unsigned int n[*lx][*ly], ni[*lx], nj[*ly];
 
   /* initialize result to zero. */
   *result = 0;
@@ -38,12 +38,12 @@ void mi (int *x, int *y, int *lx, int *ly, int *length, double *result) {
 
     *result = *result/(*length);
 
-}/*MI2*/
+}/*MI*/
 
 void cmi (int *x, int *y, int *z, int *lx, int *ly, int *lz, int *length, double *result) {
 
   int i = 0, j = 0, k = 0;
-  int n[*lx][*ly][*lz], ni[*lx][*lz], nj[*ly][*lz], nk[*lz];
+  unsigned int n[*lx][*ly][*lz], ni[*lx][*lz], nj[*ly][*lz], nk[*lz];
 
   /* initialize result to zero. */
   *result = 0;

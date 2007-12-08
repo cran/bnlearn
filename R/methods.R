@@ -55,7 +55,7 @@ plot.bn = function(x, ylim = c(0,600), xlim = ylim, radius = 250, arrow = 35,
   # match the arguments and drop meaningless ones
   dots = eval(list(...))
 
-  useless.ones = c('xlab', 'ylab', 'axes', 'type')
+  useless.ones = c('xlab', 'ylab', 'axes', 'type', 'col')
   sapply(names(dots),
     function (name){
 
@@ -68,6 +68,7 @@ plot.bn = function(x, ylim = c(0,600), xlim = ylim, radius = 250, arrow = 35,
   dots[['xlab']] = dots[['ylab']] = ""
   dots[['axes']] = FALSE
   dots[['type']] = "n"
+  dots[['col']] = "black"
 
   # create an empty plot.
   # par(oma = rep(0, 4), mar = rep(0, 4), mai = rep(0, 4),
