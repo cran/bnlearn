@@ -1,28 +1,45 @@
 
 # Global variables.
-available.discrete.tests = c("mh", "mi", "fmi")
+available.discrete.tests = c("mh", "mi", "fmi", "aict")
 available.continuous.tests = c("cor", "zf")
 available.tests = c(available.discrete.tests, available.continuous.tests)
 
+available.discrete.scores = c("lik", "loglik", "aic", "bic", "dir", "bde", "k2")
+available.continuous.scores = c("bge")
+available.scores = c(available.discrete.scores, available.continuous.scores)
+
 method.labels = c(
-  'gs' = "grow-shrink", 
-  'iamb' = "incremental association", 
+  'gs' = "grow-shrink",
+  'iamb' = "incremental association",
   'fast-iamb' = "fast incremental association",
   'inter-iamb' = "interleaved incremental association",
-  'rnd' = "random/generated"
+  'rnd' = "random/generated",
+  'hc' = 'hill-climbing'
 )
 
 test.labels = c(
   'mh' = "Mantel-Haenszel chi-squared test",
   'mi' = "mutual information",
   'fmi' = "fast mutual information",
+  'aict'= "AIC-like test",
   'cor' = "linear correlation",
-  'zf' = "Fisher's Z test"
+  'zf' = "Fisher's Z test",
+  'none' = "none"
+)
+
+score.labels =c(
+  'k2' = "Cooper & Herskovits' K2",
+  'bde' = "bayesian-dirichlet (score equivalent)",
+  'aic' = "Akaike information criterion",
+  'bic' = "bayesian information criterion",
+  'lik' = "likelihood",
+  'loglik' = "log-likelihood",
+  'bge' = "bayesian-gaussian (score equivalent)"
 )
 
 # Grow-Shrink frontend.
 gs = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = "mi", alpha = 0.05, debug = FALSE, optimized = TRUE,
+    test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
     strict = TRUE, direction = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
@@ -33,7 +50,7 @@ gs = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 # Incremental Association frontend.
 iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = "mi", alpha = 0.05, debug = FALSE, optimized = TRUE,
+    test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
     strict = TRUE, direction = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
@@ -45,7 +62,7 @@ iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 # Fast-IAMB frontend.
 fast.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = "mi", alpha = 0.05, debug = FALSE, optimized = TRUE,
+    test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
     strict = TRUE, direction = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
@@ -57,7 +74,7 @@ fast.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 # Inter-IAMB frontend.
 inter.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = "mi", alpha = 0.05, debug = FALSE, optimized = TRUE,
+    test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
     strict = TRUE, direction = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
@@ -67,10 +84,10 @@ inter.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 }#INTER.IAMB
 
-# Parameter sanitization for the learning algorithms' frontends.
+# Parameter sanitization for the constraint-based learning algorithms.
 # ok, it's not really a frontend (i.e. it's not exported) but it belongs here.
 bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = "mh", alpha = 0.05, method = "gs", debug = FALSE, optimized = TRUE,
+    test = "mi", alpha = 0.05, method = "gs", debug = FALSE, optimized = TRUE,
     strict = TRUE, direction = FALSE) {
 
   assign(".test.counter", 0, envir = .GlobalEnv)
@@ -81,30 +98,13 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   cluster.aware = FALSE
 
   # check the data are there.
-  if (missing(x))
-    stop("the data are missing.")
-  # x must be a data frame.
-  if(!is.data.frame(x))
-    stop("x must be a data frame.")
-  # check the data for NULL/NaN/NA.
-  if (missing.data(x))
-    stop("the data set contains NULL/NaN/NA values.")
-  # check the test.
-  if (!(test %in% available.tests))
-    stop(paste("valid values for test are:",
-           paste(available.tests, collapse = " ")))
+  check.data(x)
   # check the algorithm.
   if (!(method %in% available.methods))
     stop(paste("valid values for method are:",
            paste(available.methods, collapse = " ")))
-  # check if it's the right test for the data (discrete, continuous).
-  if (!is.data.discrete(x) && (test %in% available.discrete.tests))
-    stop(paste("test '", test, "' may be used with discrete data only.", sep = ""))
-  if (!is.data.continuous(x) && (test %in% available.continuous.tests))
-    stop(paste("test '", test, "' may be used with continuous data only.", sep = ""))
-  # check the variables are either all continuous or all discrete.
-  if (!is.data.discrete(x) && !is.data.continuous(x))
-    stop("variables must be either all numeric or all factors.")
+  # check test labels.
+  test = check.test(test, x)
   # check debug.
   if (!is.logical(debug) || is.na(debug))
     stop("debug must be a logical value (TRUE/FALSE).")
@@ -148,112 +148,9 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
   }#THEN
 
-  # NOTE: whitelist and blacklist relationship is the same as hosts.allow
-  # and hosts.deny.
-
-  if (!is.null(whitelist)) {
-
-    if (class(whitelist) %in% c("matrix", "data.frame")) {
-
-       if (dim(whitelist)[2] != 2)
-         stop("whitelist must have two columns.")
-
-       if (is.data.frame(whitelist))
-         whitelist = as.matrix(cbind(as.character(whitelist[,1]),
-           as.character(whitelist[,2])))
-
-    }#THEN
-    else if (is.character(whitelist)) {
-
-      if (length(whitelist) != 2)
-        stop("whitelist must have two columns.")
-
-      whitelist = matrix(whitelist, ncol = 2, byrow = TRUE)
-
-    }#THEN
-    else {
-
-      stop("whitelist must be a matrix or data.frame with two columns.")
-
-    }#ELSE
-
-    # add column names for easy reference.
-    colnames(whitelist) = c("from", "to")
-    # drop duplicate rows.
-    whitelist = unique(whitelist)
-
-    # check all the names in the whitelist against the column names of x.
-    if (any(!(unique(as.vector(whitelist)) %in% names(x))))
-     stop("unknown node label present in the whitelist.")
-
-    # if the whitelist itself contains cycles, no acyclic graph
-    # can be learned.
-    if (!is.acyclic(whitelist, colnames(x)))
-      stop("this whitelist does not allow an acyclic graph.")
-
-
-  }#THEN
-
-  if (!is.null(blacklist)) {
-
-    if (class(blacklist) %in% c("matrix", "data.frame")) {
-
-       if (dim(blacklist)[2] != 2)
-         stop("blacklist must have two columns.")
-
-       if (is.data.frame(blacklist))
-         blacklist = as.matrix(cbind(as.character(blacklist[,1]),
-           as.character(blacklist[,2])))
-
-    }#THEN
-    else if (is.character(blacklist)) {
-
-      if (length(blacklist) != 2)
-        stop("blacklist must have two columns.")
-
-      blacklist = matrix(blacklist, ncol = 2, byrow = TRUE)
-
-    }#THEN
-    else {
-
-      stop("blacklist must be a matrix or data.frame with two columns.")
-
-    }#ELSE
-
-    # add column names for easy reference.
-    colnames(blacklist) = c("from", "to")
-    # drop duplicate rows.
-    blacklist = unique(blacklist)
-
-    # check all the names in the blacklist against the column names of x.
-    if (any(!(unique(as.vector(blacklist)) %in% names(x))))
-      stop("unknown node label present in the blacklist.")
-
-  }#THEN
-
-  # if x -> y is whitelisted but y -> x is not, it is to be blacklisted.
-  if (!is.null(whitelist)) {
-
-    apply(whitelist, 1,
-      function(x) {
-        if (!is.whitelisted(whitelist, x[c(2,1)]))
-          assign("blacklist", rbind(blacklist, x[c(2,1)]),
-            envir = sys.frame(-2))
-      }#FUNCTION
-    )
-
-  }#THEN
-
-  # if x -> y is whitelisted, it is to be removed from the blacklist.
-  if (!is.null(blacklist) && !is.null(whitelist)) {
-
-    blacklist = blacklist[!apply(blacklist, 1,
-      function(x){ is.whitelisted(whitelist, x) }),]
-
-    blacklist = matrix(blacklist, ncol = 2, byrow = FALSE,
-      dimnames = list(NULL, c("from", "to")))
-
-  }#THEN
+  # sanitize whitelist and blacklist, if any.
+  whitelist = build.whitelist(whitelist, colnames(x))
+  blacklist = build.blacklist(blacklist, whitelist, colnames(x))
 
   # call the right backend.
   if (method == "gs") {
@@ -380,18 +277,8 @@ mb = function(x, node, rebuild = FALSE) {
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
-  # a node is needed. 
-  if (missing(node))
-    stop("no node specified.")
-  # a node label must be a character string.
-  if (!is(node, "character"))
-    stop("node must be a character string, the label of a node.")
-  # only one node is needed.
-  if (length(node) > 1)
-    stop("only a single node may be specified.")
-  # node must be a valid node label.
-  if (!(node %in% names(x$nodes)))
-    stop("node not present in the graph.")
+  # a valid node is needed.
+  check.node(node = node, graph = x)
   # check rebuild.
   if (!is.logical(rebuild) || is.na(rebuild))
     stop("rebuild must be a logical value (TRUE/FALSE).")
@@ -409,18 +296,8 @@ nbr = function(x, node, rebuild = FALSE) {
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
-  # a node is needed. 
-  if (missing(node))
-    stop("no node specified.")
-  # a node label must be a character string.
-  if (!is(node, "character"))
-    stop("node must be a character string, the label of a node.")
-  # only one node is needed.
-  if (length(node) > 1)
-    stop("only a single node may be specified.")
-  # node must be a valid node label.
-  if (!(node %in% names(x$nodes)))
-    stop("node not present in the graph.")
+  # a valid node is needed.
+  check.node(node = node, graph = x)
   # check rebuild.
   if (!is.logical(rebuild) || is.na(rebuild))
     stop("rebuild must be a logical value (TRUE/FALSE).")
@@ -444,12 +321,12 @@ arcs = function(x) {
 }#ARCS
 
 # rebuild the network structure using a new set fo arcs.
-"arcs<-" <- function(x, debug = FALSE, value) { 
+"arcs<-" <- function(x, debug = FALSE, value) {
 
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
-  # a set of arcs is needed. 
+  # a set of arcs is needed.
   if (missing(value))
     stop("no arc specified.")
   # sanitize the set of arcs.
@@ -479,7 +356,7 @@ arcs = function(x) {
   }#ELSE
 
   # update the arcs of the network.
-  x$arcs = value 
+  x$arcs = value
   # update the network structure.
   x$nodes = cache.structure(names(x$nodes), x$arcs, debug = debug)
 
@@ -510,12 +387,12 @@ amat = function(x) {
 }#AMAT
 
 # rebuild the network structure using a new adjacency matrix.
-"amat<-" <- function(x, debug = FALSE, value) { 
+"amat<-" <- function(x, debug = FALSE, value) {
 
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
-  # a node is needed. 
+  # a node is needed.
   if (missing(value))
     stop("no adjacency matrix specified.")
   # the adjacency matrix must, well, be a matrix.
@@ -545,18 +422,8 @@ parents = function(x, node, rebuild = FALSE) {
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
-  # a node is needed. 
-  if (missing(node))
-    stop("no node specified.")
-  # a node label must be a character string.
-  if (!is(node, "character"))
-    stop("node must be a character string, the label of a node.")
-  # only one node is needed.
-  if (length(node) > 1)
-    stop("only a single node may be specified.")
-  # node must be a valid node label.
-  if (!(node %in% names(x$nodes)))
-    stop("node not present in the graph.")
+  # a valid node is needed.
+  check.node(node = node, graph = x)
   # check rebuild.
   if (!is.logical(rebuild) || is.na(rebuild))
     stop("rebuild must be a logical value (TRUE/FALSE).")
@@ -569,24 +436,14 @@ parents = function(x, node, rebuild = FALSE) {
 }#PARENTS
 
 # add one or more parents to a node.
-"parents<-" <- function(x, node, debug = FALSE, value) { 
+"parents<-" <- function(x, node, debug = FALSE, value) {
 
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
-  # a node is needed. 
-  if (missing(node))
-    stop("no node specified.")
-  # a node label must be a character string.
-  if (!is(node, "character"))
-    stop("node must be a character string, the label of a node.")
-  # only one node is needed.
-  if (length(node) > 1)
-    stop("only a single node may be specified.")
-  # node must be a valid node label.
-  if (!(node %in% names(x$nodes)))
-    stop("node not present in the graph.")
-  # a node is needed. 
+  # a valid node is needed.
+  check.node(node = node, graph = x)
+  # at least one parent node is needed.
   if (missing(value))
     stop("no parent specified.")
   # node must be a valid node label.
@@ -639,18 +496,8 @@ children = function(x, node, rebuild = FALSE) {
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
-  # a node is needed. 
-  if (missing(node))
-    stop("no node specified.")
-  # a node label must be a character string.
-  if (!is(node, "character"))
-    stop("node must be a character string, the label of a node.")
-  # only one node is needed.
-  if (length(node) > 1)
-    stop("only a single node may be specified.")
-  # node must be a valid node label.
-  if (!(node %in% names(x$nodes)))
-    stop("node not present in the graph.")
+  # a valid node is needed.
+  check.node(node = node, graph = x)
   # check rebuild.
   if (!is.logical(rebuild) || is.na(rebuild))
     stop("rebuild must be a logical value (TRUE/FALSE).")
@@ -663,24 +510,14 @@ children = function(x, node, rebuild = FALSE) {
 }#CHILDREN
 
 # add one or more children to a node.
-"children<-" <- function(x, node, debug = FALSE, value) { 
+"children<-" <- function(x, node, debug = FALSE, value) {
 
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
-  # a node is needed. 
-  if (missing(node))
-    stop("no node specified.")
-  # a node label must be a character string.
-  if (!is(node, "character"))
-    stop("node must be a character string, the label of a node.")
-  # only one node is needed.
-  if (length(node) > 1)
-    stop("only a single node may be specified.")
-  # node must be a valid node label.
-  if (!(node %in% names(x$nodes)))
-    stop("node not present in the graph.")
-  # a node is needed. 
+  # a valid node is needed.
+  check.node(node = node, graph = x)
+  # a node is needed.
   if (missing(value))
     stop("no children specified.")
   # node must be a valid node label.
@@ -755,6 +592,8 @@ nparams = function(x, data, debug = FALSE) {
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
+  # check the data are there.
+  check.data(data)
   # only discrete bayesian networks are supported.
   if (!is.data.discrete(data))
     stop("parameter enumeration for continuous networks not implemented.")
@@ -793,33 +632,16 @@ path = function(x, from, to, direct = TRUE) {
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
-  # both 'from' and 'to' are needed.
-  if (missing(from) || missing(to))
-    stop("'from' and/or 'to' are missing.")
-  # 'from' must be a character string.
-  if (!is(from, "character"))
-    stop("'from' must be a character string, the label of a node.")
-  # only one 'from' node is needed.
-  if (length(from) > 1)
-    stop("only a single 'from' node may be specified.")
-  # 'to' must be a character string.
-  if (!is(to, "character"))
-    stop("'to' must be a character string, the label of a node.")
-  # only one 'to' node is needed.
-  if (length(to) > 1)
-    stop("only a single 'to' node may be specified.")
-  # 'from' must be a valid node label.
-  if (!(from %in% names(x$nodes)))
-    stop("'from' not present in the graph.")
-  # 'to' must be a valid node label.
-  if (!(to %in% names(x$nodes)))
-    stop("'to' not present in the graph.")
+  # a valid node is needed.
+  check.node(node = from, graph = x)
+  # another valid node is needed.
+  check.node(node = to, graph = x)
   # 'from' must be different from 'to'.
   if (identical(from, to))
     stop("'from' and 'to' must be different from each other.")
 
-  has.path(from, to, names(x$nodes), 
-    arcs2amat(x$arcs, names(x$nodes)), 
+  has.path(from, to, names(x$nodes),
+    arcs2amat(x$arcs, names(x$nodes)),
     exclude.direct = FALSE)
 
 }#PATH
@@ -869,6 +691,31 @@ model2network = function(string, debug = FALSE) {
 
 }#MODEL2NETWORK
 
+# generate a valid blacklist from a partial node ordering.
+ordering2blacklist = function(nodes) {
+
+  # nodes must be a vector of character strings.
+  if (!is(nodes, "character"))
+    stop("nodes must be a vector of character strings, the labels of the nodes.")
+  # at least one node is needed.
+  if (length(nodes) < 1)
+    stop("at leat one node label is needed.")
+  # no duplicates allowed.
+  if(any(duplicated(nodes)))
+     stop("node labels must be unique.")
+
+  do.call(rbind,
+
+    sapply(seq(from = 1, to = length(nodes)),
+      function(i) {
+
+        cbind(from = rep(nodes[i], i - 1), to = nodes[(1:i) - 1])
+
+    })
+  )
+
+}#ORDERING2BLACKLIST
+
 # generate random data from a network.
 rbn = function(x, n, data, debug = FALSE) {
 
@@ -876,11 +723,7 @@ rbn = function(x, n, data, debug = FALSE) {
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
   # the original data set is needed.
-  if (missing(data))
-    stop("the data are missing.")
-  # check the data for NULL/NaN/NA.
-  if (missing.data(data))
-    stop("the data set contains NULL/NaN/NA values.")
+  check.data(data)
   # check debug.
   if (!is.logical(debug) || is.na(debug))
     stop("debug must be a logical value (TRUE/FALSE).")
@@ -932,27 +775,10 @@ available.ops = c("set", "drop", "reverse")
   # check the op code.
   if (!(op %in% available.ops))
     stop("valid op codes are 'set', 'drop' and 'reverse'.")
-  # both 'from' and 'to' are needed.
-  if (missing(from) || missing(to))
-    stop("'from' and/or 'to' are missing.")
-  # 'from' must be a character string.
-  if (!is(from, "character"))
-    stop("'from' must be a character string, the label of a node.")
-  # only one 'from' node is needed.
-  if (length(from) > 1)
-    stop("only a single 'from' node may be specified.")
-  # 'to' must be a character string.
-  if (!is(to, "character"))
-    stop("'to' must be a character string, the label of a node.")
-  # only one 'to' node is needed.
-  if (length(to) > 1)
-    stop("only a single 'to' node may be specified.")
-  # 'from' must be a valid node label.
-  if (!(from %in% names(x$nodes)))
-    stop("'from' not present in the graph.")
-  # 'to' must be a valid node label.
-  if (!(to %in% names(x$nodes)))
-    stop("'to' not present in the graph.")
+  # a valid node is needed.
+  check.node(node = from, graph = x)
+  # another valid node is needed.
+  check.node(node = to, graph = x)
   # 'from' must be different from 'to'.
   if (identical(from, to))
     stop("'from' and 'to' must be different from each other.")
@@ -997,43 +823,74 @@ available.ops = c("set", "drop", "reverse")
 }#ARC.OPERATIONS
 
 # compute the score of a network.
-score = function(x, data, type = "bde", debug = FALSE) {
-
-  available.types = c("lik", "loglik", "aic", "bic", "dir", "bde")
+score = function(x, data, type = NULL, ..., debug = FALSE) {
 
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
   # the original data set is needed.
-  if (missing(data))
-    stop("the data are missing.")
-  # check the data for NULL/NaN/NA
-  if (missing.data(data))
-    stop("the data set contains NULL/NaN/NA values.")
+  check.data(data)
   # check debug.
   if (!is.logical(debug) || is.na(debug))
     stop("debug must be a logical value (TRUE/FALSE).")
   # no score if the graph is partially directed.
   if (any(is.undirected(x$arcs)))
     stop("the graph is only partially directed.")
-  # check the score label against available.types.
-  if (!(type %in% available.types))
-    stop("unknown score type.")
-  # only discrete bayesian networks are supported.
-  if (!is.data.discrete(data))
-    stop("scores for continuous networks not implemented.")
+  # check the score label.
+  score = check.score(type, data)
 
-  if (type %in% c("dir", "bde")) 
-    return(bde.score(x = x, data = data, debug = debug))
+  # expand and sanitize score-specific arguments.
+  extra.args = list(...)
+
+  if (type %in% c("dir", "bde")) {
+
+    # check the imaginary sample size.
+    extra.args$iss = check.iss(extra.args$iss, x, data)
+
+    return(bde.score(x = x, data = data, debug = debug,
+             iss = extra.args$iss))
+
+  }#THEN
+  else if (type == "k2")
+    return(k2.score(x = x, data = data, debug = debug))
   else if (type == "loglik")
    return(loglik.score(x = x, data = data, debug = debug))
   else if (type == "lik")
     return(exp(loglik.score(x = x, data = data, debug = debug)))
-  else if (type == "aic")
-    return(loglik.score(x = x, data = data, penalized = 1, debug = debug))
-  else if (type == "bic")
-    return(loglik.score(x = x, data = data, penalized = log(nrow(data))/2, 
+  else if (type %in% c("aic", "bic")) {
+
+    if (!is.null(extra.args$k)) {
+
+      # validate the penalty weight.
+      if (!is.positive(extra.args$k))
+        stop("the penalty weight must be a positive numeric value.")
+
+    }#THEN
+    else {
+
+      # set the penalty according to the chosen score.
+      if (type == "aic") extra.args$k = 1
+      else extra.args$k = log(nrow(data))/2
+
+    }#ELSE
+
+    return(loglik.score(x = x, data = data, penalized = extra.args$k,
       debug = debug))
+
+  }#THEN
+  else if (type == "bge") {
+
+    # check the imaginary sample size.
+    extra.args$iss = check.iss(extra.args$iss, x, data)
+
+    # check phi estimator.
+    extra.args$phi = check.phi(extra.args$phi, x, data)
+
+    return(bge.score(x = x, data = data, debug = debug,
+             iss = as.integer(extra.args$iss), 
+             phi = extra.args$phi))
+
+  }#THEN
 
 }#SCORE
 
@@ -1233,90 +1090,220 @@ compare = function (r1, r2, debug = FALSE) {
 
 }#COMPARE
 
-choose.direction = function(x, arc, data, debug = FALSE) {
+choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) {
 
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
   # check the data are there.
-  if (missing(data))
-    stop("the data are missing.")
-  # check the data for NULL/NaN/NA.
-  if (missing.data(data))
-    stop("the data set contains NULL/NaN/NA values.")
+  check.data(data)
   # check the arc is there.
-  if (missing(arc))
-    stop("the arc is missing.")
- # nodes must be a vector of character strings.
-  if (!is(arc, "character"))
-    stop("arc must be a vector of character strings, the labels of the nodes.")
-  # exactly two nodes are needed.
-  if (length(arc) != 2)
-    stop("an arc if formed by exactly 2 nodes.")
-  # no duplicates allowed.
-  if(any(duplicated(arc)))
-     stop("node labels in the arc must be unique.")
-  # both elements of the arc must be valid node labels.
-  if (!all(arc %in% names(x$nodes)))
-    stop("node not present in the graph.")
+  check.arc(arc, x)
   # check debug.
   if (!is.logical(debug) || is.na(debug))
     stop("debug must be a logical value (TRUE/FALSE).")
+  # check criterion.
+  if (is.null(criterion)) {
 
-  if (debug)
-    cat("* testing", arc[1], "-", arc[2], "for direction.\n" )
-
-  # you can't help but notice nodes connected by undirected arcs are
-  # included, too? wonder why?
-  # because if they, too, are parents of the node to be tested
-  # they _do_ belong there; if they are not, the node distribution
-  # does not depend on them so they are largely irrelevant.
-
-  parents1 = parents.backend(x$arcs, arc[2], TRUE)
-  a1 = conditional.test(arc[1], arc[2],
-        parents1[parents1 != arc[1]],
-        data = data, test = x$learning$test)
-
-  parents2 = parents.backend(x$arcs, arc[1], TRUE)
-  a2 = conditional.test(arc[2], arc[1],
-        parents2[parents2 != arc[2]],
-        data = data, test = x$learning$test)
-
-  if (debug) {
-
-    cat("  > testing", arc[1], "->", arc[2], "with conditioning set '",
-      parents1[parents1 != arc[1]], "'.\n")
-    cat("    > p-value is", a1, ".\n")
-
-    cat("  > testing", arc[2], "->", arc[1], "with conditioning set '",
-      parents2[parents2 != arc[2]], "'.\n")
-    cat("    > p-value is", a2, ".\n")
-
-  }#THEN
-
-  if ((a2 < a1) && (a2 < x$learning$alpha)) {
-
-    if (debug) cat("  @ removing", arc[1], "->", arc[2], ".\n")
-
-    x$arcs = set.arc.direction(arc[2], arc[1], x$arcs)
-    x$nodes = cache.structure(names(x$nodes), x$arcs, debug = debug)
-
-  }#THEN
-  else if ((a1 < a2) && (a1 < x$learning$alpha)) {
-
-    if (debug) cat("  @ removing", arc[2], "->", arc[1], ".\n")
-
-    x$arcs = set.arc.direction(arc[1], arc[2], arcs)
-    x$nodes = cache.structure(names(x$nodes), x$arcs, debug = debug)
+    # if no criterion is specified use either the default one or the
+    # one used by the learning algorithm.
+    if (x$learning$test == "none")
+      criterion = check.test(criterion, data)
+    else
+      criterion = x$learning$test
 
   }#THEN
   else {
 
-    if (debug) cat("  @ nothing to be done.\n")
+    if (criterion %in% available.tests)
+      criterion = check.test(criterion, data)
+    else if (criterion %in% available.scores)
+      criterion = check.score(criterion, data)
+    else stop(paste("valid criteria are:",
+           paste(available.tests, available.scores, collapse = " ")))
+
+  }#ELSE
+
+  # expand and sanitize score-specific arguments.
+  extra.args = list(...)
+
+  if (criterion %in% c("dir", "bde", "bge")) {
+
+    # check the imaginary sample size.
+    extra.args$iss = check.iss(extra.args$iss, x, data)
+
+    # check phi estimator for the bge score.
+    if (criterion == "bge") 
+      extra.args$phi = check.phi(extra.args$phi, x, data)
+
+  }#THEN
+  else if (criterion %in% c("aic", "bic")) {
+
+    if (!is.null(extra.args$k)) {
+
+      # validate the penalty weight.
+      if (!is.positive(extra.args$k))
+        stop("the penalty weight must be a positive numeric value.")
+
+    }#THEN
+    else {
+
+      # set the penalty according to the chosen score.
+      if (criterion == "aic") extra.args$k = 1
+      else extra.args$k = log(nrow(data))/2
+
+    }#ELSE
+
+  }#THEN
+  else if (criterion %in% available.tests) {
+
+    # check the the target nominal type I error rate
+    if (!is.null(extra.args$alpha)) {
+
+      # validate alpha.
+      if (!is.numeric(extra.args$alpha) || (extra.args$alpha > 1) || (extra.args$alpha < 0))
+        stop("alpha must be a numerical value in [0,1].")
+
+    }#THEN
+    else {
+
+      extra.args$alpha = 0.05
+
+    }#ELSE 
+
+  }#THEN
+
+  if (debug)
+    cat("* testing", arc[1], "-", arc[2], "for direction.\n" )
+
+  if (criterion %in% available.tests) {
+
+    x = choose.direction.test(x, data = data, arc = arc, test = criterion, 
+          alpha = extra.args$alpha, debug = debug)
+
+  }#THEN
+  else if (criterion %in% available.scores) {
+
+    x = choose.direction.score(x, data = data, arc = arc, score = criterion,
+          extra.args = extra.args, debug = debug)
 
   }#ELSE
 
   invisible(x)
 
 }#CHOOSE.DIRECTION
+
+# Hill Climbing greedy search frontend.
+hc = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
+    score = NULL, ..., debug = FALSE) {
+
+  greedy.search(x = x, start = start, whitelist = whitelist,
+    blacklist = blacklist, score = score, heuristic = "hc",
+    ..., debug = debug)
+
+}#HC
+
+# Parameter sanitization for the score-based learning algorithms.
+# ok, it's not really a frontend (i.e. it's not exported) but it belongs here.
+greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
+    score = "k2", heuristic = "hc", ..., debug = FALSE) {
+
+  # check the data are there.
+  check.data(x)
+  # check the score label.
+  score = check.score(score, x)
+  # check debug.
+  if (!is.logical(debug) || is.na(debug))
+    stop("debug must be a logical value (TRUE/FALSE).")
+  # sanitize whitelist and blacklist, if any.
+  whitelist = build.whitelist(whitelist, colnames(x))
+  blacklist = build.blacklist(blacklist, whitelist, colnames(x))
+  # if there is no preseeded network, use an empty one.
+  if (is.null(start))
+    start = empty.graph(nodes = colnames(x))
+  else {
+
+    # check start's class.
+    if (!is(start, "bn"))
+      stop("x must be an object of class 'bn'.")
+
+  }#ELSE
+
+  # apply the whitelist to the preseeded network.
+  if (!is.null(whitelist)) {
+
+    for (i in 1:nrow(whitelist))
+      start$arcs = set.arc.direction(whitelist[i, "from"],
+                       whitelist[i, "to"], start$arcs)
+
+  }#THEN
+
+  # apply the blacklist to the preseeded network.
+  if (!is.null(blacklist)) {
+
+    blacklisted = apply(start$arcs, 1, function(x){ is.blacklisted(blacklist, x) })
+    start$arcs = start$arcs[!blacklisted, , drop = FALSE]
+
+  }#THEN
+
+  # be sure the graph structure is up to date.
+  start$nodes = cache.structure(names(start$nodes), start$arcs)
+  # check whether the graph is acyclic.
+  if (!is.acyclic(start$arcs, names(start$nodes)))
+    stop("the preseeded graph contains cycles.")
+  # no party if the graph is partially directed.
+  if (any(is.undirected(start$arcs)))
+    stop("the graph is only partially directed.")
+
+  # expand and sanitize score-specific arguments.
+  extra.args = list(...)
+
+  if (score %in% c("dir", "bde", "bge")) {
+
+    # check the imaginary sample size.
+    extra.args$iss = check.iss(extra.args$iss, start, x)
+
+    # check phi estimator for the bge score.
+    if (score == "bge") 
+      extra.args$phi = check.phi(extra.args$phi, x, data)
+
+  }#THEN
+  else if (score %in% c("aic", "bic")) {
+
+    if (!is.null(extra.args$k)) {
+
+      # validate the penalty weight.
+      if (!is.positive(extra.args$k))
+        stop("the penalty weight must be a positive numeric value.")
+
+    }#THEN
+    else {
+
+      # set the penalty according to the chosen score.
+      if (score == "aic") extra.args$k = 1
+      else extra.args$k = log(nrow(x))/2
+
+    }#ELSE
+
+  }#THEN
+
+  # create the test counter in .GlobalEnv.
+  assign(".test.counter", 0, envir = .GlobalEnv)
+
+  if (heuristic == "hc") {
+
+    res = hill.climbing(x = x, start = start, whitelist = whitelist,
+      blacklist = blacklist, score = score, extra.args = extra.args,
+      debug = debug)
+
+  }#THEN
+
+  # set the metadata of the network.
+  res$learning$algo = heuristic
+  res$learning$ntests = get(".test.counter", envir = .GlobalEnv)
+  res$learning$test = score
+
+  invisible(res)
+
+}#GREEDY.SEARCH
 

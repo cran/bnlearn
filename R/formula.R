@@ -1,13 +1,16 @@
 
+# original code from the deal package, released under "GPLv2 or later"
+# with copyright "2002  Susanne Gammelgaard Bottcher, Claus Dethlefsen".
+
 # write the model formula of an object of class 'bn'.
 # (ported from the deal package)
 formula.backend = function(x) {
 
-  paste(sapply(schedule(x), 
-    function(node) { 
+  paste(sapply(schedule(x),
+    function(node) {
 
-      paste("[", node, ifelse(length(x$nodes[[node]]$parents) > 0, "|", ""), 
-        paste(x$nodes[[node]]$parents, sep="", collapse=":"), "]", sep = "")  
+      paste("[", node, ifelse(length(x$nodes[[node]]$parents) > 0, "|", ""),
+        paste(x$nodes[[node]]$parents, sep="", collapse=":"), "]", sep = "")
 
     } ), collapse = "")
 

@@ -40,7 +40,6 @@
 
 }
 \examples{
-
 data(learning.test)
 res = set.arc(gs(learning.test), "A", "B")
 res
@@ -85,7 +84,6 @@ res2
 #   tests used in the learning procedure:  0
 compare(res, res2)
 # [1] TRUE
-
 }
 \author{ Marco Scutari }
 \keyword{utilities}

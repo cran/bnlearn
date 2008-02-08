@@ -11,7 +11,7 @@
 \usage{
 
   fast.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = "mi", alpha = 0.05, debug = FALSE, optimized = TRUE,
+    test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
     strict = TRUE, direction = FALSE)
 
 }
@@ -29,9 +29,11 @@
       independence test to be used in the algorithm. Possible
       values are \code{mi} (\emph{mutual information}), \code{mh}
       (\emph{Cochran-Mantel-Haenszel}), \code{fmi} (\emph{fast
-      mutual information}), \code{cor} (\emph{linear correlation}),
-      \code{zf} (\emph{Fisher's Z}). See \code{\link{bnlearn-package}} 
-      for details.}
+      mutual information}), \code{aict} (\emph{AIC}), \code{cor} 
+      (\emph{linear correlation}),\code{zf} (\emph{Fisher's Z}). 
+      If none is specified, the default one is \emph{mutual 
+      information} for dicrete data sets and \emph{linear correlation} 
+      for continuous ones. See \code{\link{bnlearn-package}} for details.}
   \item{alpha}{a numerical value, the target nominal type I error rate.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output 
        is printed; otherwise the function is completely silent.}
@@ -58,7 +60,8 @@
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{gs}}, \code{\link{fast.iamb}}, \code{\link{iamb}}. }
+\seealso{\code{\link{gs}}, \code{\link{fast.iamb}}, \code{\link{iamb}}, 
+  \code{\link{hc}}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

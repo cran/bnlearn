@@ -1,7 +1,7 @@
 \name{graph generation tools}
 \alias{empty.graph}
 \alias{random.graph}
-\title{ Generate an empty graph }
+\title{ Generate an empty or random graph }
 \description{
   Generate an empty or random graph from a given set of nodes.
 }

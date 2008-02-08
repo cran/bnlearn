@@ -405,8 +405,8 @@ vstruct.apply = function(arcs, vs, strict, debug) {
 # remove arcs from the graph to make it acyclic.
 orient.edges = function(arcs, nodes, whitelist, debug) {
 
-  to.be.reversed = matrix(rep(0, 2), ncol = 2,
-                     dimnames = list(c(), c("from", "to")))[0,]
+  to.be.reversed = matrix(character(0), ncol = 2,
+                     dimnames = list(c(), c("from", "to")))
   narcs = nrow(arcs)
   n = 0
 
@@ -437,10 +437,10 @@ orient.edges = function(arcs, nodes, whitelist, debug) {
       cat("----------------------------------------------------------------\n")
       cat("* detecting loops ...\n")
       cat("  > total number of arcs:", nrow(arcs), "\n")
-      cat("  > ignored because of root nodes:", 
+      cat("  > ignored because of root nodes:",
         length(which(arcs[, "from"] %in% roots)), "\n")
       cat("    > root nodes: '", roots, "'\n")
-      cat("  > ignored because of leaf nodes:", 
+      cat("  > ignored because of leaf nodes:",
         length(which(arcs[, "to"] %in% leafs)), "\n")
       cat("    > leaf nodes: '", leafs, "'\n")
       cat("  > ignored arcs:", length(which(to.be.ignored)), "\n")
@@ -459,10 +459,10 @@ orient.edges = function(arcs, nodes, whitelist, debug) {
 
     if (all(loops[,3] == 0)) break
 
-    arcs = set.arc.direction(loops[1, "to"], loops[1, "from"], arcs)
+    arcs = arcs[!is.row.equal(arcs, loops[1, c("from", "to")]),]
 
     # if the arc was already directed, store it for future reversal.
-    if (is.listed(arcs, loops[1, c("from", "to")], both = TRUE))
+    if (!is.listed(arcs, loops[1, c("from", "to")], both = TRUE))
       to.be.reversed = rbind(to.be.reversed, loops[1, c("from", "to")])
 
     if (debug) {
@@ -494,13 +494,17 @@ loop.counter = function(arcs, nodes) {
   # loop counter
   counter = cbind(arcs, loops = rep(0, nrow(arcs)))
 
+  # if there are no arcs, there is nothing to do here.
+  if (nrow(arcs) == 0)
+    return(counter)
+
   apply(arcs, 1,
 
     function(arc) {
 
       # if there is no path from arc[2] to arc[1], arc can not be
       # part of a loop.
-      if (!has.path(arc[2], arc[1], nodes, amat, exclude.direct = TRUE)) 
+      if (!has.path(arc[2], arc[1], nodes, amat, exclude.direct = TRUE))
         return(FALSE)
 
       buffer = arc
@@ -556,6 +560,7 @@ loop.counter = function(arcs, nodes) {
 
 }#LOOP.COUNTER
 
+# test undirected arcs in both direction to infer their orientation.
 set.directions = function(arcs, data, test, alpha, cluster, debug) {
 
   if (debug) {
@@ -654,6 +659,7 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
 
 }#SET.DIRECTIONS
 
+# emergency measures for markov blanket recovery.
 mb.recovery = function(mb, nodes, strict, debug) {
 
   if (is.symmetric(mb2amat(mb, redux = TRUE)))
@@ -706,6 +712,7 @@ mb.recovery = function(mb, nodes, strict, debug) {
 
 }#MB.RECOVERY
 
+# emergency measures for neighbourhood recovery.
 nbr.recovery = function(mb, nodes, strict, debug) {
 
   # you should not be here! no, really!
@@ -797,12 +804,12 @@ a = arcs2amat(arcs, nodes)
     }#THEN
 
     struct[[node]]$mb = c(struct[[node]]$nbr,
-      unlist(sapply(struct[[node]]$children, 
-        function(child) { 
+      unlist(sapply(struct[[node]]$children,
+        function(child) {
 
           if (debug)
-            cat("  > for child", child, "getting '", struct[[child]]$parents, "'.\n") 
-          struct[[child]]$parents 
+            cat("  > for child", child, "getting '", struct[[child]]$parents, "'.\n")
+          struct[[child]]$parents
 
         }), use.names = FALSE))
 

@@ -44,7 +44,6 @@
 
 }
 \examples{
-
 \dontrun{
 library(bnlearn)
 data(learning.test)
@@ -55,7 +54,6 @@ plot(res)
 sim = rbn(res, 500, learning.test)
 plot(gs(sim))
 }
-
 }
 \author{ Marco Scutari }
 \keyword{utilities}

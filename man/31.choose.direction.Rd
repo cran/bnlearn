@@ -8,7 +8,7 @@
 
 }
 \usage{
-  choose.direction(x, arc, data, debug = FALSE)
+  choose.direction(x, arc, data, criterion = NULL, ..., debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class "bn".}
@@ -16,6 +16,10 @@
        two nodes of the graph.}
   \item{data}{a data frame, containing the data the Bayesian network
        was learned from.}
+  \item{criterion}{the label of either a score or an independence test.
+       See \code{\link{bnlearn-package}} for details.}
+  \item{...}{additional tuning parameters for the network score.
+      See \code{\link{score}} for details.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output 
        is printed; otherwise the function is completely silent.}
 }
@@ -25,56 +29,39 @@
 
 }
 \examples{
-
 data(learning.test)
-
 res = gs(learning.test)
-# the arc between E and F has no direction
-plot(res)
-res = choose.direction(res, c("E", "F"), learning.test, debug = TRUE)
-# * testing E - F for direction.
-#   > testing E -> F with conditioning set '  '.
-#     > p-value is 2.174867e-197 .
-#   > testing F -> E with conditioning set ' B '.
-#     > p-value is 3.935648e-245 .
-#   @ removing E -> F .
-# * (re)building cached information about network structure.
-#   > detecting neighbourhood, parents and children of node A .
-#   > detecting neighbourhood, parents and children of node B .
-#   > detecting neighbourhood, parents and children of node C .
-#   > detecting neighbourhood, parents and children of node D .
-#   > detecting neighbourhood, parents and children of node E .
-#   > detecting neighbourhood, parents and children of node F .
-# * detecting markov blanket for node A .
-#   > neighbourhood is ' B D '.
-#   > for child D getting ' A C '.
-#   > raw markov blanket then is ' B D A C '.
-#   > clean markov blanket then is ' B D C '.
-# * detecting markov blanket for node B .
-#   > neighbourhood is ' A E '.
-#   > for child E getting ' B F '.
-#   > raw markov blanket then is ' A E B F '.
-#   > clean markov blanket then is ' A E F '.
-# * detecting markov blanket for node C .
-#   > neighbourhood is ' D '.
-#   > for child D getting ' A C '.
-#   > raw markov blanket then is ' D A C '.
-#   > clean markov blanket then is ' D A '.
-# * detecting markov blanket for node D .
-#   > neighbourhood is ' A C '.
-#   > raw markov blanket then is ' A C '.
-#   > clean markov blanket then is ' A C '.
-# * detecting markov blanket for node E .
-#   > neighbourhood is ' B F '.
-#   > raw markov blanket then is ' B F '.
-#   > clean markov blanket then is ' B F '.
-# * detecting markov blanket for node F .
-#   > neighbourhood is ' E '.
-#   > for child E getting ' B F '.
-#   > raw markov blanket then is ' E B F '.
-#   > clean markov blanket then is ' E B '.
-plot(res, highlight = c("E", "F"))
 
+## the arc A - B has no direction.
+choose.direction(res, data = learning.test, arc = c("A", "B"), debug = TRUE)
+# * testing A - B for direction.
+#   > testing A -> B with conditioning set '  '.
+#     > p-value is 0 .
+#   > testing B -> A with conditioning set '  '.
+#     > p-value is 0 .
+#   @ nothing to do, same p-value.
+
+## let's see score equivalence in action.
+choose.direction(res, data = learning.test, criterion = "aic", 
+  arc = c("A", "B"), debug = TRUE)
+# * testing A - B for direction.
+#     > delta between scores for nodes A B is 1166.914 .
+#     > delta between scores for nodes B A is 1166.914 .
+#   > initial score for node A is -5495.051 .
+#   > initial score for node B is -4834.284 .
+#   > score delta for arc A -> B is 1166.914 .
+#   > score delta for arc B -> A is 1166.914 .
+#   @ nothing to do, same score delta.
+
+## arcs which introduce cycles are handled correctly.
+choose.direction(res, data = learning.test, arc = c("A", "E"), debug = TRUE)
+# * testing A - E for direction.
+#   > testing A -> E with conditioning set ' B F '.
+#     > p-value is 0.9818423 .
+#   > testing E -> A with conditioning set '  '.
+#    > p-value is 1.426725e-99 .
+#   > adding E -> A creates cycles!.
+#   > arc A -> E isn't good, either.
 }
 \author{ Marco Scutari }
 \keyword{htest}

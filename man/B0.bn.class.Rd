@@ -48,7 +48,8 @@
         \code{from} and \code{to}).
 
       \item \code{test}: the label of the conditional independence test
-        used by the learning algorithm (a character string).
+        or used by the learning algorithm (a character string). The
+        label of the network score is used for score-based algorithms.
 
       \item \code{alpha}: the target nominal type I error rate (a
         numerical value).
@@ -56,8 +57,9 @@
       \item \code{ntests}: the number of conditional independence tests
         used in the learning (an integer value).
 
-      \item \code{algo}: the label of the learning algorithm used
-        (a character string).
+      \item \code{algo}: the label of the algorithm used in the learning
+        process (a character string), or "random/generated" for randomly
+        generated or empty networks.
 
     }
 

@@ -18,7 +18,7 @@ has.path = function(from, to, nodes, amat, exclude.direct = FALSE) {
     # if all lambda2 == 0, no more jumps are possible.
     if (all(lambda2 == 0)) return(FALSE)
 
-    # do not allow looping because of a backward jump over 
+    # do not allow looping because of a backward jump over
     # an undirected arc: use lambda0 to clean up lambda2.
     lambda2 = ((lambda2 - lambda0) > 0) + 0
 
@@ -44,7 +44,7 @@ mb2arcs = function(mb, nodes) {
 
   # return an empty matrix all markov blankets are empty.
   if (is.null(result))
-    matrix(1:2, ncol = 2, dimnames = list(c(""), c("from", "to")))[0,]
+    matrix(character(0), ncol = 2, dimnames = list(c(), c("from", "to")))
   else
     result
 
@@ -99,28 +99,27 @@ mb.backend = function(arcs, node) {
 
 }#MB.BACKEND
 
-# backend of nparams, the "get the number of parameters of a 
+# backend of nparams, the "get the number of parameters of a
 # discrete bayesian network" function. If real = TRUE this
 # function returns the number of _independent_ parameters
 # (on parameter of each set is set by the constraint by
 # the condition \sum \pi_{i} = 1).
 nparams.backend = function(x, data, real = FALSE) {
 
-  sapply(nodes(x),
-    function(node) {
-
-      (nlevels(data[, node]) - (1 * real)) *
-        prod(unlist(sapply(x$nodes[[node]]$parents,
-          function(p) {
-
-            nlevels(data[, p])
-
-          })
-        ))
-
-    })
+  sapply(nodes(x), nparams.node, x = x, data = data, real = real)
 
 }#NPARAMS.BACKEND
+
+nparams.node = function(node, x, data, real) {
+
+  .Call("nparams",
+        graph = x,
+        node = node,
+        data = data,
+        real = as.integer(real),
+        PACKAGE = "bnlearn")
+
+}#NPARAMS.NODE
 
 # backend for neighbourhood detection.
 nbr.backend = function(arcs, node) {
@@ -129,5 +128,4 @@ nbr.backend = function(arcs, node) {
   unique(c(arcs[arcs[, "from"] == node, "to"], arcs[arcs[, "to"] == node, "from"]))
 
 }#NBR.BACKEND
-
 

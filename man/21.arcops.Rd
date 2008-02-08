@@ -66,7 +66,6 @@
 
 }
 \examples{
-
 data(learning.test)
 
 res = gs(learning.test)
@@ -144,13 +143,12 @@ compare(res, res2, debug = TRUE)
 # [1] "D -> A"
 # [1] FALSE
 
-# use debug = TRUE for more information
+## use debug = TRUE for more information
 \dontrun{
 set.arc(res, "A", "B", debug = TRUE)
 drop.arc(res, "A", "B", debug = TRUE)
 reverse.arc(res, "A", "D", debug = TRUE)
 }
-
 }
 \author{ Marco Scutari }
 \keyword{utilities}

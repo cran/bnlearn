@@ -11,36 +11,18 @@ is.symmetric = function(m) {
 # check whether a graph is acyclic.
 is.acyclic = function(arcs, nodes) {
 
+  # no arcs, no cycles.
+  if (nrow(arcs) == 0) return(TRUE)
+
   amat = arcs2amat(arcs, nodes)
 
   all(apply(arcs, 1, function(arc) {
 
     !has.path(arc[2], arc[1], nodes, amat, exclude.direct = TRUE)
- 
+
   }))
 
 }#IS.ACYCLIC
-
-# will the bayesian network be a discrete one?
-is.data.discrete = function(data) {
-
-  all(sapply(data, class) == "factor")
-
-}#IS.DATA.DISCRETE
-
-# will the bayesian network be a continuous one?
-is.data.continuous = function(data) {
-
-  all(sapply(data, class) == "numeric")
-
-}#IS.DATA.CONTINUOUS
-
-# there are missing data?
-missing.data = function(data) {
-
-  any(mapply(function(x) {is.na(x) || is.nan(x) || is.null(x)}, data))
-
-}#MISSING.DATA
 
 # compute the data / cells ratio.
 obs.per.cell = function(x, y, z = NULL, data) {

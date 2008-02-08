@@ -11,7 +11,7 @@ void mi (int *x, int *y, int *lx, int *ly, int *length, double *result) {
   /* initialize result to zero. */
   *result = 0;
 
-  /* initialize the contignecy table. */
+  /* initialize the contingency table. */
   memset(n, '\0', sizeof(int)*(*lx)*(*ly));
 
   /* initialize the marginal frequencies. */

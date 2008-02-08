@@ -5,7 +5,7 @@
 \description{
 
   This a synthetic dataset used as a test case in the
-  bnlearn package.
+  \pkg{bnlearn} package.
 
 }
 \usage{

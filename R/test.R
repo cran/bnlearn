@@ -1,6 +1,7 @@
 
 conditional.test = function(x, y, sx, data, test) {
 
+  # update the test counter.
   assign(".test.counter", get(".test.counter", envir = .GlobalEnv) + 1,
     envir = .GlobalEnv)
 
@@ -20,6 +21,13 @@ conditional.test = function(x, y, sx, data, test) {
 
       pchisq(mi.test(data[,x], data[,y], ndata, gsquare = TRUE),
         (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1), lower.tail = FALSE)
+
+    }#THEN
+    # Akaike Information Criterion-like test (binary, no p-value!)
+    else if (test == "aict") {
+
+      as.integer(mi.test(data[,x], data[,y], ndata, gsquare = FALSE) <
+        (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) / ndata)
 
     }#THEN
     # Mutual Infomation a la FastIAMB (chi-square asymptotic distribution)
@@ -78,6 +86,13 @@ conditional.test = function(x, y, sx, data, test) {
 
       pchisq(cmi.test(data[,x], data[,y], config, ndata, gsquare = TRUE),
         (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config), lower.tail = FALSE)
+
+    }#THEN
+    # Conditional Akaike Information Criterion-like test (binary, no p-value!)
+    else if (test == "aict") {
+
+      as.integer(cmi.test(data[,x], data[,y], config, ndata, gsquare = FALSE) <
+        (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config) / ndata)
 
     }#THEN
     # Conditional Mutual Infomation a la FastIAMB (chi-square asymptotic distribution)

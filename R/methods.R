@@ -1,24 +1,19 @@
 
 # AIC method for class 'bn'.
 # an alias of score(..., type = "aic")
-AIC.bn = function(object, data, ..., k = 1) { 
+AIC.bn = function(object, data, ..., k = 1) {
 
-  # other parameters are checked by the score() function.
-  if (!is.numeric(k))
-    stop("k must be numeric.")
-
-  score(object, data = data, type = "loglik") - 
-    k * sum(nparams.backend(object, data, real = TRUE)) 
+  score(object, data = data, type = "aic", k = k)
 
 }#AIC.bn
 
 # logLik method ofr class 'bn'.
 # an alias of score(..., type = "loglik")
-logLik.bn = function(object, data, ...) { 
+logLik.bn = function(object, data, ...) {
 
   # parameter sanitization done in the score() function.
 
-  score(x = object, data = data, type = "loglik") 
+  score(x = object, data = data, type = "loglik")
 
 }#LOGLIK.BN
 
@@ -146,16 +141,16 @@ plot.bn = function(x, ylim = c(0,600), xlim = ylim, radius = 250, arrow = 35,
 }#PLOT.BN
 
 # the generic as method for class bn.
-as.bn = function(x, debug = FALSE) { 
+as.bn = function(x, debug = FALSE) {
 
-  UseMethod("as.bn") 
+  UseMethod("as.bn")
 
 }#AS.BN
 
 # model-string-to-bn conversion function.
-as.bn.character = function(x, debug = FALSE) { 
+as.bn.character = function(x, debug = FALSE) {
 
-  model2network(x, debug = debug) 
+  model2network(x, debug = debug)
 
 }#AS.BN.CHARACTER
 
@@ -178,7 +173,7 @@ print.bn = function(x, ...) {
 
   cat("\n  Bayesian network learned via Conditional Independence methods\n\n")
 
-  cat("  model:\n   ", ifelse(!any(is.undirected(x$arcs)), modelstring(x), 
+  cat("  model:\n   ", ifelse(!any(is.undirected(x$arcs)), modelstring(x),
       "[partially directed graph]"), "\n")
 
   cat("  nodes:                                ", length(x$nodes), "\n")
@@ -192,8 +187,14 @@ print.bn = function(x, ...) {
   cat("\n")
 
   cat("  learning algorithm:                   ", method.labels[x$learning$algo], "\n")
-  cat("  conditional independence test:        ", test.labels[x$learning$test], "\n")
-  cat("  alpha threshold:                      ", x$learning$alpha, "\n")
+  if (x$learning$test %in% names(test.labels)) {
+
+    cat("  conditional independence test:        ", test.labels[x$learning$test], "\n")
+    cat("  alpha threshold:                      ", x$learning$alpha, "\n")
+
+  }#THEN
+  else
+    cat("  score:                                ", score.labels[x$learning$test], "\n")
   cat("  tests used in the learning procedure: ", x$learning$ntests, "\n")
 
   cat("\n")

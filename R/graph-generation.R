@@ -42,21 +42,20 @@ return(res)
 # generate an empty 'bn' object given a set of nodes.
 empty.graph.backend = function(nodes) {
 
-  arcs = matrix(1:2, ncol = 2, dimnames = 
-      list(c(""), c("from", "to")))[0, ]
+  arcs = matrix(character(0), ncol = 2, dimnames = list(c(), c("from", "to")))
   res = list(
     learning = list(
-      nodes = lapply(nodes, function(n) { list(mb = c(), nbr = c()) }), 
+      nodes = lapply(nodes, function(n) { list(mb = c(), nbr = c()) }),
       arcs = arcs,
-      whitelist = NULL, 
-      blacklist = NULL, 
-      test = "mi", 
+      whitelist = NULL,
+      blacklist = NULL,
+      test = "none",
       alpha = 0.05,
-      ntests = 0, 
+      ntests = 0,
       algo = "rnd"
-    ), 
-    nodes = lapply(nodes, function(n) { 
-      list(mb = c(), nbr = c(), parents = c(), children = c()) }), 
+    ),
+    nodes = lapply(nodes, function(n) {
+      list(mb = c(), nbr = c(), parents = c(), children = c()) }),
     arcs = arcs
   )
 

@@ -3,6 +3,7 @@ export(
   "iamb",
   "inter.iamb",
   "fast.iamb",
+  "hc",
   "compare",
   "mb",
   "nbr",
@@ -30,6 +31,7 @@ export(
   "acyclic",
   "path",
   "node.ordering",
+  "ordering2blacklist",
   "empty.graph",
   "random.graph"
 )

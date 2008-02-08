@@ -81,8 +81,8 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
       if (length(node.parents) == 1)
         config = data[, node.parents]
       else
-        config = configurations(data[,node.parents]) 
-      
+        config = configurations(data[,node.parents])
+
       tab = table(data = data[, node], cfg = config)
 
       # build an array with the configurations of the simulated data.

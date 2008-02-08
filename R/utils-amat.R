@@ -48,6 +48,15 @@ arcs2amat = function(arcs, nodes, stochastic = FALSE) {
 # convert an adjacency matrix back to a set of arcs.
 amat2arcs = function(a, nodes, debug = FALSE) {
 
+  # do not panic if there are no arcs.
+  if (sum(a) == 0) {
+
+    if (debug) cat("* no arcs in the graph.\n")
+
+    return(matrix(character(0), ncol = 2, dimnames = list(c(), c("from", "to"))))
+
+  }#THEN
+
   if (is.null(colnames(a)))
     colnames(a) = nodes
   if (is.null(rownames(a)))
@@ -56,7 +65,7 @@ amat2arcs = function(a, nodes, debug = FALSE) {
   arcs = do.call(rbind,
     sapply(rownames(a), function(node) {
 
-      tos = colnames(a)[as.logical(a[node, ])]
+      tos = colnames(a)[a[node, ] > 0]
 
       if (debug) {
 
@@ -65,12 +74,17 @@ amat2arcs = function(a, nodes, debug = FALSE) {
 
       }#THEN
 
+      # something with two colums should be returned anyway, even when
+      # there are no actual arcs for that node.
       if (length(tos) > 0)
         cbind(rep(node, length(tos)), tos)
+      else
+        matrix(character(0), ncol = 2, dimnames = list(c(), c("from", "to")))
 
-    })
+    }, simplify = FALSE)
   )
 
+  # add the column names.
   colnames(arcs) = c("from", "to")
 
   arcs

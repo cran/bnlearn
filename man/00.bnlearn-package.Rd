@@ -18,8 +18,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 0.5\cr
-    Date: \tab 2007-12-08\cr
+    Version: \tab 0.6\cr
+    Date: \tab 2008-02-08\cr
     License: \tab GPLv2 or later
 
   }
@@ -34,6 +34,9 @@
   Bayesian network. Proofs of correctness are present in the respective
   papers.
 
+  A score-based learning algorithm (greedy search via hill-climbing) is 
+  implemented as well for comparison purposes.
+
 }
 \author{
 
@@ -42,7 +45,7 @@
   Maintainer: Marco Scutari \email{marco.scutari@gmail.com}
 
 }
-\section{Available learning algorithms}{
+\section{Available constraint-based learning algorithms}{
 
   \itemize{
 
@@ -104,6 +107,9 @@
         \item \emph{fast mutual information} (\code{fmi}): a variant of the
           mutual information which is set to zero when there aren't at least
           five data per parameter.
+        \item \emph{Akaike Information Criterion} (\code{aict}): an AIC-based
+          indepence test, computed comparing the mutual information
+          and the expected information gain.
         \item \emph{Cochran-Mantel-Haenszel} (\code{mh}): a stratified
           independence test, included for testing purposes only. See
           \code{\link{mantelhaen.test}} in package \code{\link{stats}}.
@@ -118,6 +124,37 @@
            by commercial software (such as TETRAD II) for the PC algorithm
            (an R implementation is present in the \code{pcalg} package 
            on CRAN).
+
+      }
+
+  }
+
+}
+\section{Available network scores}{
+
+  Available scores (and the respective labels) are:
+
+  \itemize{
+
+    \item \emph{categorical data} (multinomial distribution)
+      \itemize {
+
+        \item the multinomial \emph{likelihood} (\code{lik}) score.
+        \item the multinomial \emph{loglikelihood} (\code{loglik}) score.
+        \item the \emph{Akaike Information Criterion} score (\code{aic}).
+        \item the \emph{Bayesian Information Criterion} score (\code{bic}).
+        \item the logarithm of the \emph{Bayesian Dirichlet equivalent} 
+          score (\code{bde} o \code{dir}), a score-equivalent dirichlet 
+          posterior density.
+        \item the logarithm of the \emph{K2} score (\code{k2}), a dirichlet
+          posterior density (not score-equivalent).
+
+      }
+
+    \item \emph{numerical data} (multivariate normal distribution)
+      \itemize{
+
+        \item a score-equivalent {gaussian posterior density} (\code{bge}).
 
       }
 
@@ -201,7 +238,6 @@
 
 }
 \examples{
-
 library(bnlearn)
 data(learning.test)
 

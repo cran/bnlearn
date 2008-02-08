@@ -22,11 +22,10 @@
 
 }
 \examples{
-
 data(learning.test)
 
 res = gs(learning.test)
-# the arc between A and B has no direction
+## the arc between A and B has no direction
 plot(res, highlight = c("A", "B"))
 res2 = set.arc(res, "A", "B")
 compare(res, res2, debug = TRUE)
@@ -47,7 +46,6 @@ compare(res, res2, debug = TRUE)
 # * undirected arcs in r2 not present in r1:
 # character(0)
 # [1] FALSE
-
 }
 \author{ Marco Scutari }
 \keyword{utilities}

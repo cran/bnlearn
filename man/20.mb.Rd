@@ -15,7 +15,6 @@
 \alias{nparams}
 \alias{acyclic}
 \alias{path}
-\alias{node.ordering}
 \title{ Utilities to manipulate graphs }
 \description{
 
@@ -46,7 +45,6 @@
   nparams(x, data, debug = FALSE)
   acyclic(x)
   path(x, from, to, direct = TRUE)
-  node.ordering(x, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class "bn".}
@@ -75,9 +73,8 @@
 }
 \value{
 
-  \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{rootnodes},
-  \code{leafnodes} and \code{partial.node.ordering} return a vector of 
-    character strings.
+  \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{rootnodes}
+  and \code{leafnodes} return a vector of character strings.
   \code{arcs} returns a matrix of two columns of character strings.
   \code{amat} returns a matrix of 0/1 numeric values.
   \code{nparams} returns an integer.
@@ -86,8 +83,7 @@
 }
 \note{
 
-  \code{nparams} and \code{node.ordering} supports only completely 
-    directed discrete Bayesian networks.
+  \code{nparams} supports only completely directed discrete Bayesian networks.
 
 }
 \references{
@@ -98,17 +94,16 @@
 
 }
 \examples{
-
 data(learning.test)
 res = gs(learning.test)
 
-# the Markov blanket of A.
+##  the Markov blanket of A.
 mb(res, "A")
 # [1] "B" "D" "C"
-# the neighbourhood of F.
+## the neighbourhood of F.
 nbr(res, "F")
 # [1] "E"
-# the arcs in the graph.
+## the arcs in the graph.
 arcs(res)
 #      from to
 # [1,] "A"  "B"
@@ -117,10 +112,10 @@ arcs(res)
 # [4,] "B"  "E"
 # [5,] "C"  "D"
 # [6,] "F"  "E"
-# the nodes of the graph.
+## the nodes of the graph.
 nodes(res)
 # [1] "A" "B" "C" "D" "E" "F"
-# the adjacency matrix for the nodes of the graph.
+## the adjacency matrix for the nodes of the graph.
 amat(res)
 #   A B C D E F
 # A 0 1 0 1 0 0
@@ -129,22 +124,22 @@ amat(res)
 # D 0 0 0 0 0 0
 # E 0 0 0 0 0 0
 # F 0 0 0 0 1 0
-# the parents of D.
+## the parents of D.
 parents(res, "D")
 # [1] "A" "C"
+## the children of A.
 children(res, "A")
 # [1] "D"
+## the root nodes of the graph.
 rootnodes(res)
 # [1] "C" "F"
+## the leaf nodes of the graph.
 leafnodes(res)
 # [1] "D" "E"
-# number of parameters of the baysesian network.
+## number of parameters of the Bayesian network.
 res = set.arc(res, "A", "B")
 nparams(res, learning.test)
 # [1] 41
-node.ordering(res)
-# [1] "F" "C" "A" "B" "D" "E"
-
 }
 \author{ Marco Scutari }
 \keyword{utilities}

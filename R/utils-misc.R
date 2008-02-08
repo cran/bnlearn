@@ -5,7 +5,7 @@
 ## From email by Brian D Ripley <ripley@stats.ox.ac.uk> to r-help
 ## dated Tue, 14 Dec 1999 11:14:04 +0000 (GMT) in response to
 ## Alex Ahgarin <datamanagement@email.com>.  Original version was
-## named "subsets" and was Written by Bill Venables.  
+## named "subsets" and was Written by Bill Venables.
 # It's released under "LGPL 2.1".
 
 subsets = function (n, r, v = 1:n, set = TRUE, repeats.allowed = FALSE) {
@@ -95,9 +95,9 @@ configurations = function(data) {
   else {
 
     warning("eeek! you have more than 65535 configurations!")
-    factor(apply(data, 1, function(x) { 
+    factor(apply(data, 1, function(x) {
 
-      .Internal(paste(list(as.character(x)), sep = "", collapse = ":")) 
+      .Internal(paste(list(as.character(x)), sep = "", collapse = ":"))
 
     }))
 
