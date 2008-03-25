@@ -4,7 +4,7 @@
 \title{ Partial node ordering utilities }
 \description{
 
-  Detect the partial node ordering implied by a network or 
+  Detect the partial node ordering implied by a network or
   generate a valid blacklist from a partial node ordering.
 
 }
@@ -26,13 +26,13 @@
   \code{node.ordering} return a vector of character strings, an ordered
   set of node labels.
 
-  \code{ordering2blacklist} returns a sanitized \code{blacklist} (a 
+  \code{ordering2blacklist} returns a sanitized \code{blacklist} (a
   two-column matrix, whose columns are labeled \code{from} and \code{to}).
 
 }
 \note{
 
-  \code{node.ordering} and \code{ordering2blacklist} support only 
+  \code{node.ordering} and \code{ordering2blacklist} support only
   completely directed Bayesian networks.
 
 }

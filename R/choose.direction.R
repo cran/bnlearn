@@ -48,14 +48,14 @@ choose.direction.test = function(x, arc, data, test, alpha, debug) {
 
         if (cycles) {
 
-          if (debug) { 
+          if (debug) {
 
             cat("  > adding", arc[1], "->", arc[2], "creates cycles!.\n")
 
           }#THEN
 
           # if one arc creates cycles, try the other one.
-          if (b < alpha) 
+          if (b < alpha)
             choose(a = b, b = a, x = x, arc = arc[c(2, 1)])
           else {
 
@@ -145,7 +145,7 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug) {
   }#THEN
   else if (score == "bge") {
 
-    reference.score = sapply(arc, bge.node, x = x, data = data, 
+    reference.score = sapply(arc, bge.node, x = x, data = data,
                         imaginary.sample.size = extra.args$iss,
                         phi = extra.args$phi)
 
@@ -187,14 +187,14 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug) {
 
         if (cycles) {
 
-          if (debug) { 
+          if (debug) {
 
             cat("  > adding", arc[1], "->", arc[2], "creates cycles!.\n")
 
           }#THEN
 
           # if one arc creates cycles, try the other one.
-          if (b$bool) 
+          if (b$bool)
             choose(a = b, b = a, x = x, arc = arc[c(2, 1)])
           else {
 

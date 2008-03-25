@@ -15,20 +15,20 @@
        to generate.}
   \item{data}{a data frame, containing the data the Bayesian network
        was learned from.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output 
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
 }
 \note{
 
-  Only discrete Bayesian networks are supported; the simulation 
+  Only discrete Bayesian networks are supported; the simulation
   uses an implementation of the Logic Sampling (LS) algorithm
   (Korb and Nicholson, 2004).
 
   The execution time scales linearly with the number of generated data.
 
-  Node ordering uses a recursive approach; if there are lots of nodes 
-  in the network, you will need to increase R's recursion limit.  See 
-  the \code{expression} argument to the \code{options} command for 
+  Node ordering uses a recursive approach; if there are lots of nodes
+  in the network, you will need to increase R's recursion limit.  See
+  the \code{expression} argument to the \code{options} command for
   details on how to do this.
 
 }
@@ -39,7 +39,7 @@
 }
 \references{
 
-  K. Korb and A. Nicholson. Bayesian artificial intelligence. Chapman and 
+  K. Korb and A. Nicholson. Bayesian artificial intelligence. Chapman and
    Hall, 2004.
 
 }

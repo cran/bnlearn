@@ -79,7 +79,7 @@ double** matmult(double **a, double **b, int nra, int nca, int ncb) {
 		for (j=1; j<=ncb; j++)
 			c[i][j] = 0.0;
 
-	for (i=1; i<=nra; i++) 
+	for (i=1; i<=nra; i++)
 		for (k=1; k<=ncb; k++)
 			for (j=1; j<=nca; j++)
 				c[i][k] += a[i][j]*b[j][k];
@@ -191,7 +191,7 @@ void postc0(double *mu, double *tau, double *rho, double *phi, double
 	double oldtau,oldmu;
 
 	for(i = 0; i < *n; i++) {
-		
+
 		logscale = log(*phi)+log1p(1.0/(*tau));
 		logk = lgammafn( 0.5*(1.0+*rho) ) - lgammafn(*rho*0.5);
 		logk -= 0.5*(logscale + log(M_PI));
@@ -227,7 +227,7 @@ void postc(double *mu, double *tau, double *rho, double *phi, double
 	/* copy arguments into the matrices */
 	asmatrix(mu,mmu,*d,1);
 	asmatrix(tau,mtau,*d,*d);
-	
+
 	for(i = 1; i <= *n; i++) {
 
 		tauinv = matcopy(mtau,*d,*d);
@@ -236,7 +236,7 @@ void postc(double *mu, double *tau, double *rho, double *phi, double
 		for (j=1; j<=*d; j++) {
 			zi[j][1] = z[j-1+(i-1)*(*d)];
 		}
-		
+
 		logscale = log(*phi) +
 			log1p(
 				matmult(
@@ -245,10 +245,10 @@ void postc(double *mu, double *tau, double *rho, double *phi, double
 					1,*d,1
 					)[1][1]
 				);
-		
+
 		logk = lgammafn( 0.5*(1.0+*rho) ) - lgammafn(*rho*0.5);
 		logk -= 0.5*(logscale + log(M_PI));
-		
+
 		mscore =  logk - 0.5*(*rho+1)*
 			log1p(
 				(y[i-1] - matmult(
@@ -263,12 +263,12 @@ void postc(double *mu, double *tau, double *rho, double *phi, double
 					)[1][1])
 				/exp(logscale)
 				);
-		
+
 		*loglik += mscore;
 		oldtau = matcopy(mtau,*d,*d);
 		oldmu  = matcopy(mmu,*d,1);
-		
-		mtau = matsum(mtau, 
+
+		mtau = matsum(mtau,
 			      matmult(zi,transp(zi,*d,1),*d,1,*d)
 			      , *d, *d
 			);
@@ -303,13 +303,13 @@ void postc(double *mu, double *tau, double *rho, double *phi, double
 					),
 				1,*d,1
 				)[1][1];
-	} 
-	
+	}
+
 	for (i=1; i<=*d;i++)
 		mu[i-1] = mmu[i][1];
 	for (i=1; i<=*d; i++)
 		for (j=1; j<=*d; j++)
 			tau[(*d)*(j-1)+i-1] = mtau[i][j];
-	
-} 
+
+}
 

@@ -1,7 +1,10 @@
 # check which rows of a data frame or matrix are identical to an array.
 is.row.equal = function(data, array) {
 
-  apply(data, 1, function(x){ all(x == array) })
+  .Call("is_row_equal",
+        data = as.character(data),
+        array = as.character(array),
+        PACKAGE = "bnlearn")
 
 }#IS.ROW.EQUAL
 

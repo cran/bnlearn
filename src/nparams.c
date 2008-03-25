@@ -1,5 +1,4 @@
 #include <R.h>
-#include <Rmath.h>
 #include <Rinternals.h>
 
 #define BNLEARN_NAMES(x) \
@@ -16,7 +15,7 @@ SEXP nparams(SEXP graph, SEXP node, SEXP data, SEXP real) {
 
   int i = 0, j = 0;
   int nlevels = 1;
-  
+
   SEXP temp;
 
   /* loop over the list names. */
@@ -55,7 +54,7 @@ SEXP nparams(SEXP graph, SEXP node, SEXP data, SEXP real) {
     /* the element I need is called "parents".. */
     if (!strcmp(BNLEARN_NAME(temp, i), "parents")) {
 
-      /* the parents are stored in a character vector, set a SEXP 
+      /* the parents are stored in a character vector, set a SEXP
          for later use. */
       temp = VECTOR_ELT(temp, i);
 

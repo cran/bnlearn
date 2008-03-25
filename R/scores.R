@@ -28,18 +28,15 @@ loglik.node = function(node, x, data, debug = FALSE) {
   node.parents = x$nodes[[node]]$parents
   # cache the sample size.
   ndata = nrow(data)
-  # initializze the loglikelihood score.
-  node.loglik = 0
 
   # this node is a root node.
   if (length(node.parents) == 0) {
 
-    node.loglik = .C("dlik",
+    node.loglik = .Call("dlik",
        x = data[, node],
        lx = nlevels(data[, node]),
        length = nrow(data),
-       result = node.loglik,
-       PACKAGE = "bnlearn")$result
+       PACKAGE = "bnlearn")
 
   }#THEN
   # this node has at least one parent.
@@ -51,14 +48,13 @@ loglik.node = function(node, x, data, debug = FALSE) {
     else
       config = configurations(data[,node.parents])
 
-    node.loglik = .C("cdlik",
+    node.loglik = .Call("cdlik",
        x = data[, node],
        y = config,
        lx = nlevels(data[, node]),
        ly = nlevels(config),
        length = nrow(data),
-       result = node.loglik,
-       PACKAGE = "bnlearn")$result
+       PACKAGE = "bnlearn")
 
   }#ELSE
 
@@ -211,7 +207,7 @@ bge.score = function(x, data, iss = NULL, phi = "heckerman", debug = FALSE) {
 # Reverse-engineered from the deal package, with copyright:
 # Copyright (C) 2002  Susanne Gammelgaard Bøttcher, Claus Dethlefsen
 # Original code licenced under GPLv2 or later version.
-bge.node = function(node, x, data, imaginary.sample.size, phi = "heckerman", 
+bge.node = function(node, x, data, imaginary.sample.size, phi = "heckerman",
     debug = FALSE) {
 
   # cache the sample size.
@@ -263,7 +259,7 @@ bge.node = function(node, x, data, imaginary.sample.size, phi = "heckerman",
 
     tau.build = function(A, mu, nu, rho, phi) {
 
-      B = A 
+      B = A
 
       A = setdiff(1:ncol(phi),B)
       if (length(A) < 1) A = TRUE
@@ -284,7 +280,7 @@ bge.node = function(node, x, data, imaginary.sample.size, phi = "heckerman",
 
     }#TAU.BUILD
 
-    tau = tau.build(A = which(node.parents %in% names(x$nodes)), 
+    tau = tau.build(A = which(node.parents %in% names(x$nodes)),
             mu = mean(data[, node.parents]),
             nu = imaginary.sample.size,
             rho = imaginary.sample.size,
@@ -311,7 +307,7 @@ bge.node = function(node, x, data, imaginary.sample.size, phi = "heckerman",
         n = as.integer(n),
         d = as.integer(n.parents + 1),
         PACKAGE = "bnlearn")$loglik
- 
+
   }#THEN
 
   if (debug) {

@@ -19,24 +19,24 @@
   \item{object}{an object of class "bn".}
   \item{data}{a data frame, containing the data the Bayesian network
        was learned from.}
-  \item{type}{a character string, the label of a score. 
-      Possible values are \code{lik} 
+  \item{type}{a character string, the label of a score.
+      Possible values are \code{lik}
       (\emph{multinomial likelihood}), \code{loglik} (\emph{multinomial
       loglikelihood}), \code{aic} (\emph{Akaike Information Criterion}),
       \code{bic} (\emph{Bayesian Information Criterion}), \code{k2}
       (\emph{K2 score}), \code{bde} or \code{dir} (\emph{Bayesian
       dirichlet posterior density}), \code{bge} (\emph{Bayesian
-      gaussian posterior density}). If none is specified, the default 
+      gaussian posterior density}). If none is specified, the default
       score is the \emph{Akaike Information Criterion} for discrete
       data sets and the \emph{Bayesian gaussian posterior density}
-      for discrete ones. See \code{\link{bnlearn-package}} 
+      for discrete ones. See \code{\link{bnlearn-package}}
       for details.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output 
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
-  \item{...}{extra arguments from the generic method (for the \code{AIC} 
+  \item{...}{extra arguments from the generic method (for the \code{AIC}
        and \code{logLik} functions, currently ignored) or additional
        tuning parameters (for the \code{score} function).}
-  \item{k}{a numeric value, the penalty per parameter to be used; the 
+  \item{k}{a numeric value, the penalty per parameter to be used; the
        default \code{k = 1} gives the expression used to compute the
        AIC in the context of scoring Bayesian networks.}
 }
@@ -46,13 +46,15 @@
 
   \itemize{
 
-    \item \code{iss}: the imaginary sample size, used by the Bayesian 
-        Dirichlet equivalent score. The default value is twice the number
-        of cells of the joint contingency table (for compatibility with
-        the \pkg{deal} package).
+    \item \code{iss}: the imaginary sample size, used by the Bayesian
+        Dirichlet equivalent score and the Bayesian gaussian posterior
+        density. The default value is twice the number of cells of the
+        joint contingency table (for compatibility with the \pkg{deal}
+        package) for the \code{bde} score, and twice the number of
+        independent parameters for the \code{bge} score.
 
     \item \code{k}: the penalty per parameter to be used by the AIC and
-        BIC scores. Thr default value is \code{1} for AIC and 
+        BIC scores. Thr default value is \code{1} for AIC and
         \code{log(nrow(data))/2} for BIC.
 
     \item \code{phi}: the prior phi matrix formula to use in the

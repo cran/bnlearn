@@ -1,5 +1,4 @@
 #include <R.h>
-#include <Rmath.h>
 #include <Rinternals.h>
 
 /* .Call("cfg", data = alarm) */
@@ -17,7 +16,7 @@ SEXP cfg(SEXP parents) {
   int nrows = LENGTH(VECTOR_ELT(parents, 0));
   int cfgmap = 0;
   int cumlevels[nrows];
-  
+
   SEXP ret;
 
   /* create the cumulative products of the number of levels. */
@@ -27,10 +26,10 @@ SEXP cfg(SEXP parents) {
   cumlevels[0] = 1;
 
   /* ... then compute the following ones. */
-  for (j = 1; j < ncols; j++) 
+  for (j = 1; j < ncols; j++)
     cumlevels[j] = cumlevels[j - 1] * BNLEARN_NLEVELS(j - 1);
 
-  /* allocate an array of size nrow for the configuration. */ 
+  /* allocate an array of size nrow for the configuration. */
   PROTECT(ret = allocVector(INTSXP, nrows));
 
   for (i = 0; i < nrows; i++) {

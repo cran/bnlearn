@@ -8,6 +8,8 @@ available.discrete.scores = c("lik", "loglik", "aic", "bic", "dir", "bde", "k2")
 available.continuous.scores = c("bge")
 available.scores = c(available.discrete.scores, available.continuous.scores)
 
+score.equivalent.scores = c("lik", "loglik", "aic", "bic", "dir", "bde", "bge")
+
 method.labels = c(
   'gs' = "grow-shrink",
   'iamb' = "incremental association",
@@ -601,7 +603,7 @@ nparams = function(x, data, debug = FALSE) {
   if (!is.logical(debug) || is.na(debug))
     stop("debug must be a logical value (TRUE/FALSE).")
   # nparams is unknown for partially directed graphs.
-  if (any(is.undirected(x$arcs)))
+  if (is.pdag(x$arcs))
     stop("the graph is only partially directed.")
 
   params = nparams.backend(x, data, real = TRUE)
@@ -617,13 +619,32 @@ nparams = function(x, data, debug = FALSE) {
 
 }#NPARAMS
 
-acyclic = function(x) {
+acyclic = function(x, directed, debug = FALSE) {
 
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
+  # check debug.
+  if (!is.logical(debug) || is.na(debug))
+    stop("debug must be a logical value (TRUE/FALSE).")
 
-  is.acyclic(x$arcs, names(x$nodes))
+  if (missing(directed)) {
+
+    is.acyclic(x$arcs, names(x$nodes), debug = debug)
+
+  }#THEN
+  else {
+
+    # check directed.
+    if (!is.logical(directed) || is.na(directed))
+      stop("directed must be a logical value (TRUE/FALSE).")
+
+    if (directed)
+      is.dag.acyclic(arcs = x$arcs, nodes = names(x$nodes), debug = debug)
+    else
+      is.pdag.acyclic(arcs = x$arcs, nodes = names(x$nodes), debug = debug)
+
+  }#ELSE
 
 }#ACYCLIC
 
@@ -640,9 +661,14 @@ path = function(x, from, to, direct = TRUE) {
   if (identical(from, to))
     stop("'from' and 'to' must be different from each other.")
 
-  has.path(from, to, names(x$nodes),
-    arcs2amat(x$arcs, names(x$nodes)),
-    exclude.direct = FALSE)
+  if (is.pdag(x$arcs))
+    has.pdag.path(from, to, names(x$nodes),
+      arcs2amat(x$arcs, names(x$nodes)),
+      exclude.direct = !direct)
+  else
+    has.path(from, to, names(x$nodes),
+      arcs2amat(x$arcs, names(x$nodes)),
+      exclude.direct = !direct)
 
 }#PATH
 
@@ -653,7 +679,7 @@ modelstring = function(x) {
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
   # no model string if the graph is partially directed.
-  if (any(is.undirected(x$arcs)))
+  if (is.pdag(x$arcs))
     stop("the graph is only partially directed.")
 
   formula.backend(x)
@@ -670,7 +696,7 @@ node.ordering = function(x, debug = FALSE) {
   if (!is.logical(debug) || is.na(debug))
     stop("debug must be a logical value (TRUE/FALSE).")
   # no model string if the graph is partially directed.
-  if (any(is.undirected(x$arcs)))
+  if (is.pdag(x$arcs))
     stop("the graph is only partially directed.")
 
   schedule(x, debug = debug)
@@ -728,7 +754,7 @@ rbn = function(x, n, data, debug = FALSE) {
   if (!is.logical(debug) || is.na(debug))
     stop("debug must be a logical value (TRUE/FALSE).")
   # no simulation if the graph is partially directed.
-  if (any(is.undirected(x$arcs)))
+  if (is.pdag(x$arcs))
     stop("the graph is only partially directed.")
   # only discrete networks are supported.
   if (!is.data.discrete(data))
@@ -834,10 +860,10 @@ score = function(x, data, type = NULL, ..., debug = FALSE) {
   if (!is.logical(debug) || is.na(debug))
     stop("debug must be a logical value (TRUE/FALSE).")
   # no score if the graph is partially directed.
-  if (any(is.undirected(x$arcs)))
+  if (is.pdag(x$arcs))
     stop("the graph is only partially directed.")
   # check the score label.
-  score = check.score(type, data)
+  type = check.score(type, data)
 
   # expand and sanitize score-specific arguments.
   extra.args = list(...)
@@ -887,7 +913,7 @@ score = function(x, data, type = NULL, ..., debug = FALSE) {
     extra.args$phi = check.phi(extra.args$phi, x, data)
 
     return(bge.score(x = x, data = data, debug = debug,
-             iss = as.integer(extra.args$iss), 
+             iss = as.integer(extra.args$iss),
              phi = extra.args$phi))
 
   }#THEN
@@ -1133,7 +1159,7 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
     extra.args$iss = check.iss(extra.args$iss, x, data)
 
     # check phi estimator for the bge score.
-    if (criterion == "bge") 
+    if (criterion == "bge")
       extra.args$phi = check.phi(extra.args$phi, x, data)
 
   }#THEN
@@ -1169,7 +1195,7 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
 
       extra.args$alpha = 0.05
 
-    }#ELSE 
+    }#ELSE
 
   }#THEN
 
@@ -1178,7 +1204,7 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
 
   if (criterion %in% available.tests) {
 
-    x = choose.direction.test(x, data = data, arc = arc, test = criterion, 
+    x = choose.direction.test(x, data = data, arc = arc, test = criterion,
           alpha = extra.args$alpha, debug = debug)
 
   }#THEN
@@ -1195,18 +1221,18 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
 
 # Hill Climbing greedy search frontend.
 hc = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
-    score = NULL, ..., debug = FALSE) {
+    score = NULL, ..., debug = FALSE, optimized = TRUE) {
 
   greedy.search(x = x, start = start, whitelist = whitelist,
     blacklist = blacklist, score = score, heuristic = "hc",
-    ..., debug = debug)
+    ..., debug = debug, optimized = optimized)
 
 }#HC
 
 # Parameter sanitization for the score-based learning algorithms.
 # ok, it's not really a frontend (i.e. it's not exported) but it belongs here.
 greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
-    score = "k2", heuristic = "hc", ..., debug = FALSE) {
+    score = "k2", heuristic = "hc", ..., debug = FALSE, optimized = FALSE) {
 
   # check the data are there.
   check.data(x)
@@ -1248,12 +1274,12 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
   # be sure the graph structure is up to date.
   start$nodes = cache.structure(names(start$nodes), start$arcs)
-  # check whether the graph is acyclic.
-  if (!is.acyclic(start$arcs, names(start$nodes)))
-    stop("the preseeded graph contains cycles.")
   # no party if the graph is partially directed.
-  if (any(is.undirected(start$arcs)))
+  if (is.pdag(start$arcs))
     stop("the graph is only partially directed.")
+  # check whether the graph is acyclic.
+  if (!is.dag.acyclic(start$arcs, names(start$nodes)))
+    stop("the preseeded graph contains cycles.")
 
   # expand and sanitize score-specific arguments.
   extra.args = list(...)
@@ -1264,7 +1290,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     extra.args$iss = check.iss(extra.args$iss, start, x)
 
     # check phi estimator for the bge score.
-    if (score == "bge") 
+    if (score == "bge")
       extra.args$phi = check.phi(extra.args$phi, x, data)
 
   }#THEN
@@ -1292,9 +1318,20 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
   if (heuristic == "hc") {
 
-    res = hill.climbing(x = x, start = start, whitelist = whitelist,
-      blacklist = blacklist, score = score, extra.args = extra.args,
-      debug = debug)
+    if (optimized) {
+
+      res = hill.climbing.optimized(x = x, start = start, whitelist = whitelist,
+        blacklist = blacklist, score = score, extra.args = extra.args,
+        debug = debug)
+
+    }#THEN
+    else {
+
+      res = hill.climbing(x = x, start = start, whitelist = whitelist,
+        blacklist = blacklist, score = score, extra.args = extra.args,
+        debug = debug)
+
+    }#ELSE
 
   }#THEN
 

@@ -20,7 +20,7 @@
        See \code{\link{bnlearn-package}} for details.}
   \item{...}{additional tuning parameters for the network score.
       See \code{\link{score}} for details.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output 
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
 }
 \value{
@@ -42,7 +42,7 @@ choose.direction(res, data = learning.test, arc = c("A", "B"), debug = TRUE)
 #   @ nothing to do, same p-value.
 
 ## let's see score equivalence in action.
-choose.direction(res, data = learning.test, criterion = "aic", 
+choose.direction(res, data = learning.test, criterion = "aic",
   arc = c("A", "B"), debug = TRUE)
 # * testing A - B for direction.
 #     > delta between scores for nodes A B is 1166.914 .
@@ -54,12 +54,14 @@ choose.direction(res, data = learning.test, criterion = "aic",
 #   @ nothing to do, same score delta.
 
 ## arcs which introduce cycles are handled correctly.
-choose.direction(res, data = learning.test, arc = c("A", "E"), debug = TRUE)
-# * testing A - E for direction.
+res = set.arc(res, "A", "B")
+# now A -> B -> E -> A is a cycle.
+choose.direction(res, data = learning.test, arc = c("E", "A"), debug = TRUE)
+# * testing E - A for direction.
+#   > testing E -> A with conditioning set '  '.
+#     > p-value is 1.426725e-99 .
 #   > testing A -> E with conditioning set ' B F '.
 #     > p-value is 0.9818423 .
-#   > testing E -> A with conditioning set '  '.
-#    > p-value is 1.426725e-99 .
 #   > adding E -> A creates cycles!.
 #   > arc A -> E isn't good, either.
 }

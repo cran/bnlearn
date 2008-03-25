@@ -92,7 +92,7 @@ plot.bn = function(x, ylim = c(0,600), xlim = ylim, radius = 250, arrow = 35,
             coords[a[1],]
 
       # if there's something to highlight, set the color according to
-      # the nature of the "highlight" paramter.
+      # the nature of the "highlight" parameter.
       if (!is.null(highlight)) {
 
         if ((any(a %in% highlight) && (length(highlight) == 1)) ||
@@ -173,7 +173,7 @@ print.bn = function(x, ...) {
 
   cat("\n  Bayesian network learned via Conditional Independence methods\n\n")
 
-  cat("  model:\n   ", ifelse(!any(is.undirected(x$arcs)), modelstring(x),
+  cat("  model:\n   ", ifelse(is.dag(x$arcs), modelstring(x),
       "[partially directed graph]"), "\n")
 
   cat("  nodes:                                ", length(x$nodes), "\n")
@@ -187,14 +187,21 @@ print.bn = function(x, ...) {
   cat("\n")
 
   cat("  learning algorithm:                   ", method.labels[x$learning$algo], "\n")
-  if (x$learning$test %in% names(test.labels)) {
+  if (x$learning$algo != "rnd") {
 
-    cat("  conditional independence test:        ", test.labels[x$learning$test], "\n")
-    cat("  alpha threshold:                      ", x$learning$alpha, "\n")
+    if (x$learning$test %in% names(test.labels)) {
+
+      cat("  conditional independence test:        ", test.labels[x$learning$test], "\n")
+      cat("  alpha threshold:                      ", x$learning$alpha, "\n")
+
+    }#THEN
+    else {
+
+      cat("  score:                                ", score.labels[x$learning$test], "\n")
+
+    }#ELSE
 
   }#THEN
-  else
-    cat("  score:                                ", score.labels[x$learning$test], "\n")
   cat("  tests used in the learning procedure: ", x$learning$ntests, "\n")
 
   cat("\n")

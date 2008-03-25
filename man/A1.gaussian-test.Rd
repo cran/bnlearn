@@ -1,7 +1,7 @@
 \name{gaussian.test}
 \docType{data}
 \alias{gaussian.test}
-\title{ Synthetic dataset to test learning algorithms }
+\title{ Synthetic (continuous) dataset to test learning algorithms }
 \description{
 
   This a synthetic dataset used as a test case in the
@@ -13,7 +13,7 @@
 }
 \details{
 
-  The \code{gaussian.test} dataset containts the seven normal 
+  The \code{gaussian.test} dataset containts the seven normal
   (gaussian) variables.
 
 }
@@ -21,7 +21,7 @@
 
 # these are the R commands used to generate this dataset.
 \dontrun{
-a = data.frame(A = rnorm(5000, 1, 1),               
+a = data.frame(A = rnorm(5000, 1, 1),
                B = rnorm(5000, 2, 3),
                C = rep(0, 5000),
                D = rep(0, 5000),

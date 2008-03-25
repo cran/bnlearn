@@ -17,8 +17,8 @@
 
   \itemize{
 
-    \item \code{learning}: a list containing some information about 
-       the results of the learning algorithm. It's never changed 
+    \item \code{learning}: a list containing some information about
+       the results of the learning algorithm. It's never changed
        afterward.
 
     \itemize{
@@ -28,7 +28,7 @@
 
       \itemize{
 
-        \item \code{mb}: the Markov blanket of the node (a vector of 
+        \item \code{mb}: the Markov blanket of the node (a vector of
           character strings).
 
         \item \code{nbr}: the neighbourhood of the node (a vector of
@@ -68,7 +68,7 @@
 
     \itemize{
 
-      \item \code{mb}: the Markov blanket of the node (a vector of 
+      \item \code{mb}: the Markov blanket of the node (a vector of
         character strings).
 
       \item \code{nbr}: the neighbourhood of the node (a vector of

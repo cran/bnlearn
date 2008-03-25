@@ -17,9 +17,9 @@
   \item{x}{an object of class "bn".}
   \item{from}{a character string, the label of a node.}
   \item{to}{a character string, the label of another node.}
-  \item{check.cycles}{a boolean value. If \code{TRUE} the graph is 
+  \item{check.cycles}{a boolean value. If \code{TRUE} the graph is
     tested for acyclicity; otherwise the graph is returned anyway.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output 
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
 }
 \details{
@@ -61,7 +61,7 @@
 }
 \value{
 
-  \code{set.arc} and \code{drop.arc} return invisibly an updated 
+  \code{set.arc} and \code{drop.arc} return invisibly an updated
   copy of \code{x}.
 
 }

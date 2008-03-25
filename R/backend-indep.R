@@ -41,7 +41,7 @@ second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist,
   # never checked for loops, because they are definitely not
   # undirected.
   # do the check now.
-  if (!is.acyclic(arcs, nodes))
+  if (!is.pdag.acyclic(arcs = arcs, nodes = nodes))
     stop("the graph contains cycles, possibly because of whitelisted nodes.")
 
   # save the status of the learning algorithm.
@@ -463,7 +463,8 @@ orient.edges = function(arcs, nodes, whitelist, debug) {
 
     # if the arc was already directed, store it for future reversal.
     if (!is.listed(arcs, loops[1, c("from", "to")], both = TRUE))
-      to.be.reversed = rbind(to.be.reversed, loops[1, c("from", "to")])
+      to.be.reversed = rbind(to.be.reversed,
+                         as.matrix(loops[1, c("from", "to")]))
 
     if (debug) {
 
@@ -479,84 +480,29 @@ orient.edges = function(arcs, nodes, whitelist, debug) {
 
   }#REPEAT
 
-  # add removed arcs, reversed.
-  arcs = rbind(arcs, to.be.reversed[, c(2,1)])
-
-  arcs
+  # add removed arcs, reversed and return.
+  rbind(arcs, to.be.reversed[, c(2,1)])
 
 }#ORIENT.EDGES
 
 # count how many loops each arc is part of.
-loop.counter = function(arcs, nodes) {
+loop.counter = function(arcs, nodes, debug = FALSE) {
 
   # build the adjacency matrix.
   amat = arcs2amat(arcs, nodes)
   # loop counter
-  counter = cbind(arcs, loops = rep(0, nrow(arcs)))
+  counter = data.frame(arcs, loops = rep(0, nrow(arcs)),
+    stringsAsFactors = FALSE)
 
   # if there are no arcs, there is nothing to do here.
   if (nrow(arcs) == 0)
     return(counter)
 
-  apply(arcs, 1,
+  counter[, "loops"] = apply(arcs, 1, how.many.loops, nodes = nodes,
+    amat = amat, debug = debug)
 
-    function(arc) {
-
-      # if there is no path from arc[2] to arc[1], arc can not be
-      # part of a loop.
-      if (!has.path(arc[2], arc[1], nodes, amat, exclude.direct = TRUE))
-        return(FALSE)
-
-      buffer = arc
-      dim(buffer) = c(1,2)
-
-      for (i in 1:(length(nodes) - 1)) {
-
-        buffer = apply(buffer, 1, function(buf) {
-
-          next.buffer = NULL
-
-          # get the next nodes in this path. NA means no more nodes, i.e no
-          # outgoing arc from the last node of the path.
-          if (!is.na(buf[length(buf)]))
-            next.one = names(which(amat[buf[length(buf)],] == 1))
-          else
-            next.one = NA
-
-          # discard backward steps due to unoriented arcs, i.e. a -> b -> a
-          next.one = next.one[next.one != buf[length(buf) - 1]]
-
-          # if there's noone left, set next.one to NA.
-          if (length(next.one) == 0) next.one = NA
-
-          # rebuild the buffer.
-          if (is.null(next.buffer))
-            next.buffer = t(sapply(next.one, function(x) { c(buf, x) } ))
-          else
-            next.buffer = rbind(sapply(next.one, function(x) { c(buf, x) } ), next.buffer)
-
-          next.buffer
-
-        })
-
-        # sanity check: sometimes something goes wrong and the buffer is a list.
-        if (is.list(buffer)) buffer = t(do.call("rbind", unique(buffer)))
-        # hey, it's a matrix!
-        buffer = matrix(t(buffer), ncol = 2 + i)
-
-      }#FOR
-
-      # find out how many times arc["from"] is present in any path
-      loops = apply(buffer, 1, function(path) {length(which(path == arc["from"]))})
-
-      # set the loop counter.
-      counter[is.row.equal(counter[, 1:2, drop = FALSE], arc), "loops"] = length(which(loops > 1))
-      assign("counter", counter, envir=sys.frame(-2))
-
-    })
-
-    # return the sorted loop counter.
-    counter[order(as.numeric(counter[,"loops"]), decreasing = TRUE),, drop = FALSE]
+  # return the sorted loop counter.
+  counter[order(counter[,"loops"], decreasing = TRUE),, drop = FALSE]
 
 }#LOOP.COUNTER
 

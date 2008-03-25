@@ -11,12 +11,12 @@
 }
 \arguments{
   \item{nodes}{a vector of character strings, the labels of the nodes.}
-  \item{prob}{a numeric value, the probability of connecting a node to 
+  \item{prob}{a numeric value, the probability of connecting a node to
     another node with higher ordering.}
 }
 \value{
 
-  Both \code{empty.graph} and \code{random.graph} return an 
+  Both \code{empty.graph} and \code{random.graph} return an
   object of class \code{bn}.
 
 }
@@ -34,19 +34,17 @@ empty.graph(LETTERS[1:8])
 #  Bayesian network learned via Conditional Independence methods
 #
 #  model:
-#    [H][G][F][E][D][C][B][A] 
-#  nodes:                                 8 
-#  arcs:                                  0 
-#    undirected arcs:                     0 
-#    directed arcs:                       0 
-#  average markov blanket size:           0.00 
-#  average neighbourhood size:            0.00 
-#  average branching factor:              0.00 
+#    [H][G][F][E][D][C][B][A]
+#  nodes:                                 8
+#  arcs:                                  0
+#    undirected arcs:                     0
+#    directed arcs:                       0
+#  average markov blanket size:           0.00
+#  average neighbourhood size:            0.00
+#  average branching factor:              0.00
 #
 #  learning algorithm:                    random/generated
-#  conditional independence test:         mutual information 
-#  alpha threshold:                       0.05 
-#  tests used in the learning procedure:  0 
+#  tests used in the learning procedure:  0
 #
 random.graph(LETTERS[1:8])
 # <insert the description of a random graph here>

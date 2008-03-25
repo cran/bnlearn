@@ -31,7 +31,7 @@
   children(x, node, rebuild = FALSE)
   children(x, node, debug = FALSE) <- value
   rootnodes(x)
-  leafnodes(x) 
+  leafnodes(x)
 
   ## arcs
   arcs(x)
@@ -43,7 +43,7 @@
 
   ## graphs
   nparams(x, data, debug = FALSE)
-  acyclic(x)
+  acyclic(x, directed, debug = FALSE)
   path(x, from, to, direct = TRUE)
 }
 \arguments{
@@ -51,24 +51,27 @@
   \item{node}{a character string, the label of a node.}
   \item{from}{a character string, the label of a node.}
   \item{to}{a character string, the label of a node (different from \code{from}).}
-  \item{value}{either a vector of character strings (for \code{parents} and 
-       \code{children}), an adjacency matrix (for \code{amat}) or a data 
-       frame with two columns (optionally labeled "from" and "to", for 
+  \item{value}{either a vector of character strings (for \code{parents} and
+       \code{children}), an adjacency matrix (for \code{amat}) or a data
+       frame with two columns (optionally labeled "from" and "to", for
        \code{arcs})}.
   \item{data}{a data frame, containing the data the Bayesian network
        was learned from.}
   \item{rebuild}{a boolean value. If \code{TRUE} the return value is rebuilt
        from scratch using the arc list; otherwise the cached value are returned.}
-  \item{direct}{a boolean value. If \code{TRUE} ignore any arc between \code{from}
+  \item{direct}{a boolean value. If \code{FALSE} ignore any arc between \code{from}
        and \code{to} when looking for a path.}
+  \item{directed}{a boolean value. If \code{TRUE} the graph is assumed to be
+       completely directed (no undirected arcs), and a faster cycle detection
+       algorithm is used.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
        printed; otherwise the function is completely silent.}
 }
 \details{
 
-  The number of parameters of a discrete Bayesian network is computed as the 
+  The number of parameters of a discrete Bayesian network is computed as the
   sum of the number of logically independent parameters of each node given its
-  parents (Chickering, 1995). 
+  parents (Chickering, 1995).
 
 }
 \value{

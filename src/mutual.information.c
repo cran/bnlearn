@@ -1,85 +1,106 @@
 
 #include <R.h>
-#include <Rmath.h>
-#include <R_ext/Applic.h>
+#include <Rinternals.h>
 
-void mi (int *x, int *y, int *lx, int *ly, int *length, double *result) {
+#define INT(x) INTEGER(x)[0]
+#define NUM(x) REAL(x)[0]
+
+SEXP mi (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
 
   int i = 0, j = 0, k = 0;
-  unsigned int n[*lx][*ly], ni[*lx], nj[*ly];
+  unsigned int n[INT(lx)][INT(ly)], ni[INT(lx)], nj[INT(ly)];
+  SEXP result;
+
+  PROTECT(result = allocVector(REALSXP, 1));
 
   /* initialize result to zero. */
-  *result = 0;
+  NUM(result) = 0;
 
   /* initialize the contingency table. */
-  memset(n, '\0', sizeof(int)*(*lx)*(*ly));
+  memset(n, '\0', sizeof(int) * INT(lx) * INT(ly));
 
   /* initialize the marginal frequencies. */
-  memset(ni, '\0', sizeof(int)*(*lx));
-  memset(nj, '\0', sizeof(int)*(*ly));
+  memset(ni, '\0', sizeof(int) * INT(lx));
+  memset(nj, '\0', sizeof(int) * INT(ly));
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < *length; k++) {
+  for (k = 0; k < INT(length); k++) {
 
-    n[x[k] - 1][y[k] - 1]++;
-    ni[x[k] - 1]++;
-    nj[y[k] - 1]++;
+    n[INTEGER(x)[k] - 1][INTEGER(y)[k] - 1]++;
+    ni[INTEGER(x)[k] - 1]++;
+    nj[INTEGER(y)[k] - 1]++;
 
   }/*FOR*/
 
-  for (i = 0; i < *lx; i++)
-    for (j = 0; j < *ly; j++) {
+  /* compute the mutual information from the joint and marginal frequencies. */
+  for (i = 0; i < INT(lx); i++)
+    for (j = 0; j < INT(ly); j++) {
 
       if (n[i][j] != 0)
-        *result += ((double)n[i][j]) *
-                log((double)n[i][j]*(*length)/(double)(ni[i]*nj[j]));
+        NUM(result) += ((double)n[i][j]) *
+                log((double)n[i][j]*(INT(length))/(double)(ni[i]*nj[j]));
 
     }/*FOR*/
 
-    *result = *result/(*length);
+  NUM(result) = NUM(result)/INT(length);
+
+  UNPROTECT(1);
+
+  return result;
 
 }/*MI*/
 
-void cmi (int *x, int *y, int *z, int *lx, int *ly, int *lz, int *length, double *result) {
+SEXP cmi (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
 
   int i = 0, j = 0, k = 0;
-  unsigned int n[*lx][*ly][*lz], ni[*lx][*lz], nj[*ly][*lz], nk[*lz];
+  unsigned int n[INT(lx)][INT(ly)][INT(lz)], ni[INT(lx)][INT(lz)],
+               nj[INT(ly)][INT(lz)], nk[INT(lz)];
+  SEXP result;
+
+  PROTECT(result = allocVector(REALSXP, 1));
 
   /* initialize result to zero. */
-  *result = 0;
+  NUM(result) = 0;
 
   /* initialize the contignecy table. */
-  memset(n, '\0', sizeof(int)*(*lx)*(*ly)*(*lz));
+  memset(n, '\0', sizeof(int) * INT(lx) * INT(ly) * INT(lz));
 
   /* initialize the marginal frequencies. */
-  memset(ni, '\0', sizeof(int)*(*lx)*(*lz));
-  memset(nj, '\0', sizeof(int)*(*ly)*(*lz));
-  memset(nk, '\0', sizeof(int)*(*lz));
+  memset(ni, '\0', sizeof(int) * INT(lx) * INT(lz));
+  memset(nj, '\0', sizeof(int) * INT(ly) * INT(lz));
+  memset(nk, '\0', sizeof(int) * INT(lz));
 
   /* compute the joint frequency of x, y, and z. */
-  for (k = 0; k < *length; k++) {
+  for (k = 0; k < INT(length); k++) {
 
-    n[x[k] - 1][y[k] - 1][z[k] - 1]++;
-    ni[x[k] - 1][z[k] - 1]++;
-    nj[y[k] - 1][z[k] - 1]++;
-    nk[z[k] - 1]++;
+    n[INTEGER(x)[k] - 1][INTEGER(y)[k] - 1][INTEGER(z)[k] - 1]++;
+    ni[INTEGER(x)[k] - 1][INTEGER(z)[k] - 1]++;
+    nj[INTEGER(y)[k] - 1][INTEGER(z)[k] - 1]++;
+    nk[INTEGER(z)[k] - 1]++;
 
   }/*FOR*/
 
-  for (i = 0; i < *lx; i++)
-    for (j = 0; j < *ly; j++)
-      for (k = 0; k < *lz; k++) {
+  /* compute the conditional mutual information from the joint and
+     marginal frequencies. */
+  for (i = 0; i < INT(lx); i++)
+    for (j = 0; j < INT(ly); j++)
+      for (k = 0; k < INT(lz); k++) {
 
        if (n[i][j][k] != 0) {
 
-          *result += (double)n[i][j][k] *
+          NUM(result) += (double)n[i][j][k] *
             log( (double)(n[i][j][k]*nk[k]) / (double)(ni[i][k]*nj[j][k]) );
 
         }/*THEN*/
 
       }/*FOR*/
 
-   *result = *result/(*length);
+  NUM(result) = NUM(result)/INT(length);
+
+  UNPROTECT(1);
+
+  return result;
+
 
 }/*CMI*/
 

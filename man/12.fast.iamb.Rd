@@ -18,7 +18,8 @@
 \arguments{
   \item{x}{a data frame, containing the variables in the model.}
   \item{cluster}{an optional cluster object from package \pkg{snow}.
-      See \code{\link{bnlearn-package}} for details.}
+      See \code{\link{snow integration}} for details and a simple
+      example.}
   \item{whitelist}{a data frame with two columns (optionally labeled
      "from" and "to"), containing a set of arcs to be included in the
       graph. }
@@ -29,18 +30,18 @@
       independence test to be used in the algorithm. Possible
       values are \code{mi} (\emph{mutual information}), \code{mh}
       (\emph{Cochran-Mantel-Haenszel}), \code{fmi} (\emph{fast
-      mutual information}), \code{aict} (\emph{AIC}), \code{cor} 
-      (\emph{linear correlation}),\code{zf} (\emph{Fisher's Z}). 
-      If none is specified, the default one is \emph{mutual 
-      information} for dicrete data sets and \emph{linear correlation} 
+      mutual information}), \code{aict} (\emph{AIC}), \code{cor}
+      (\emph{linear correlation}), \code{zf} (\emph{Fisher's Z}).
+      If none is specified, the default one is \emph{mutual
+      information} for dicrete data sets and \emph{linear correlation}
       for continuous ones. See \code{\link{bnlearn-package}} for details.}
   \item{alpha}{a numerical value, the target nominal type I error rate.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output 
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
   \item{optimized}{a boolean value. See \code{\link{bnlearn-package}}
        for details.}
-  \item{strict}{a boolean value. If \code{TRUE} conflicting results in 
-      the learning process generate an error; otherwise they result 
+  \item{strict}{a boolean value. If \code{TRUE} conflicting results in
+      the learning process generate an error; otherwise they result
       in a warning.}
   \item{direction}{a boolean value. If \code{TRUE} each possible direction
       of each undirected arc is tested, and the one with the lowest
@@ -60,7 +61,7 @@
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{gs}}, \code{\link{fast.iamb}}, \code{\link{iamb}}, 
+\seealso{\code{\link{gs}}, \code{\link{fast.iamb}}, \code{\link{iamb}},
   \code{\link{hc}}. }
 \keyword{multivariate}
 \keyword{models}

@@ -250,6 +250,12 @@ check.iss = function(iss, network, data) {
     # validate the imaginary sample size.
     if (!is.positive(iss))
       stop("the imaginary sample size must be a positive numeric value.")
+    # if iss = 1 the bge is NaN, if iss = 2 and phi = "heckerman" the
+    # computation stops with the following error:
+    # Error in solve.default(phi[A, A]) :
+    #   Lapack routine dgesv: system is exactly singular
+    if(is.data.continuous(data) && (iss < 3))
+      stop("the imaginary sample size must be at least 3.")
 
   }#THEN
   else {

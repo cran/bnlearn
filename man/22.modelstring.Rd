@@ -20,7 +20,7 @@
 \arguments{
   \item{x}{an object of class "bn".}
   \item{string}{a character string describing the Bayesian network.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output 
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
   \item{...}{extra arguments from the generic method (currently ignored).}
 }
@@ -29,12 +29,12 @@
   The strings returned by \code{modelstring} have the same format as
   the ones returned by the \code{modelstring} function in package
   \pkg{deal}; network structures may be easily exported to and imported
-  from that package (via the \code{model2network} function). 
+  from that package (via the \code{model2network} function).
 
 }
 \value{
 
-  \code{model2network} and \code{as.bn.character} return an object of 
+  \code{model2network} and \code{as.bn.character} return an object of
   class \code{bn}; \code{modelstring} and \code{as.character.bn} return
   a character string.
 
@@ -43,9 +43,9 @@
 data(learning.test)
 res = set.arc(gs(learning.test), "A", "B")
 res
-# 
+#
 #   Bayesian network learned via Conditional Independence methods
-# 
+#
 #   model:
 #     [F][C][A][B|A][D|A:C][E|B:F]
 #   nodes:                                 6
@@ -55,19 +55,19 @@ res
 #   average markov blanket size:           2.33
 #   average neighbourhood size:            1.67
 #   average branching factor:              0.83
-# 
+#
 #   learning algorithm:                    grow-shrink
 #   conditional independence test:         mutual information
 #   alpha threshold:                       0.05
 #   tests used in the learning procedure:  43
-# 
+#
 modelstring(res)
 # [1] "[F][C][A][B|A][D|A:C][E|B:F]"
 res2 = model2network(modelstring(res))
 res2
-# 
+#
 #   Bayesian network learned via Conditional Independence methods
-# 
+#
 #   model:
 #     [F][C][A][B|A][D|A:C][E|B:F]
 #   nodes:                                 6
@@ -77,10 +77,8 @@ res2
 #   average markov blanket size:           2.33
 #   average neighbourhood size:            1.67
 #   average branching factor:              0.83
-# 
+#
 #   learning algorithm:                    random/generated
-#   conditional independence test:         mutual information
-#   alpha threshold:                       0.05
 #   tests used in the learning procedure:  0
 compare(res, res2)
 # [1] TRUE

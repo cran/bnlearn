@@ -18,8 +18,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 0.6\cr
-    Date: \tab 2008-02-08\cr
+    Version: \tab 0.7\cr
+    Date: \tab 2008-03-25\cr
     License: \tab GPLv2 or later
 
   }
@@ -34,13 +34,15 @@
   Bayesian network. Proofs of correctness are present in the respective
   papers.
 
-  A score-based learning algorithm (greedy search via hill-climbing) is 
+  A \emph{score-based} learning algorithm (greedy search via hill-climbing) is
   implemented as well for comparison purposes.
 
 }
 \author{
 
-  Marco Scutari
+  Marco Scutari\cr
+  Department of Statistical Sciences\cr
+  University of Padua
 
   Maintainer: Marco Scutari \email{marco.scutari@gmail.com}
 
@@ -51,17 +53,17 @@
 
     \item \emph{Grow-Shrink} (\code{\link{gs}}): based on the \emph{Grow-Shrink
       Markov Blanket} algorithm, a forward-selection technique for Markov blanket
-      detection.
+      detection (Margaritis, 2003).
     \item \emph{Incremental Association} (\code{\link{iamb}}): based on the
       Markov blanket detection algorithm of the same name, which uses stepwise
-      selection.
+      selection (Tsamardinos et al., 2003).
     \item \emph{Fast Incremental Association} (\code{\link{fast.iamb}}): a
       variant of IAMB which uses speculative forward-selection to reduce the
-      number of conditional independence tests.
+      number of conditional independence tests (Yaramakala and Margaritis, 2005).
     \item \emph{Interleaved Incremental Association} (\code{\link{inter.iamb}}):
       another variant of IAMB which interleaves the backward selection with
       the forward one to avid false positives (i.e. nodes erroneously included
-      in the Markov blanket).
+      in the Markov blanket) (Yaramakala and Margaritis, 2005).
 
   }
 
@@ -69,24 +71,31 @@
 
   \itemize{
 
-    \item an optimized implementation, which uses backtracking to roughly halve
-      the number of independence tests. This is the one used by default, when
-      the \code{optimized} parameter is set to \code{TRUE}.
-    \item an unoptimized implementation which is better at uncovering
-      possible erratic behaviour of the statistical tests. To use this one
-      the \code{optimized} parameter must be set to \code{FALSE}.
+    \item an optimized implementation (used when the \code{optimized}
+      parameter is set to \code{TRUE}), which uses backtracking to roughly
+      halve the number of independence tests.
+    \item an unoptimized implementation (used when the \code{optimized}
+      parameter is set to \code{FALSE}) which is better at uncovering
+      possible erratic behaviour of the statistical tests.
     \item a cluster-aware implementation, which requires a running cluster
       set up with the \code{makeCluster} function from the \pkg{snow}
-      package. To use this on pass the cluster object to the various
-      functions via the \code{cluster} parameter; the \code{optimized}
-      parameter will be ignored.
+      package. See \link{snow integration} for a sample usage.
 
   }
 
-  Their computational complexity is polynomial in the number of tests,
-  usually \eqn{O(N^2)}{O(N^2)} (\eqn{O(N^4)}{O(N^4)} in the worst case
-  scenario). The execution time also scales linearly with the size of
-  the data set.
+  Their computational complexity of this class of algorithms is polynomial
+  in the number of tests, usually \eqn{O(N^2)}{O(N^2)} (\eqn{O(N^4)}{O(N^4)}
+  in the worst case scenario). The execution time also scales linearly with
+  the size of the data set.
+
+}
+\section{Other learning algorithms}{
+
+  \itemize{
+    \item \emph{Hill-Climbing} (\code{\link{hc}}): an \emph{hill climbing}
+      greedy search on the space of the directed graphs. The optimized
+      implementation uses score caching, score decomposability and score
+      equivalence to reduce the number of duplicated tests.}
 
 }
 \section{Available (conditional) independence tests}{
@@ -122,7 +131,7 @@
         \item \emph{Fisher's Z} (\code{zf}): a transformation of the
            linear correlation with asymptotic normal distribution. Used
            by commercial software (such as TETRAD II) for the PC algorithm
-           (an R implementation is present in the \code{pcalg} package 
+           (an R implementation is present in the \code{pcalg} package
            on CRAN).
 
       }
@@ -137,14 +146,14 @@
   \itemize{
 
     \item \emph{categorical data} (multinomial distribution)
-      \itemize {
+      \itemize{
 
         \item the multinomial \emph{likelihood} (\code{lik}) score.
         \item the multinomial \emph{loglikelihood} (\code{loglik}) score.
         \item the \emph{Akaike Information Criterion} score (\code{aic}).
         \item the \emph{Bayesian Information Criterion} score (\code{bic}).
-        \item the logarithm of the \emph{Bayesian Dirichlet equivalent} 
-          score (\code{bde} o \code{dir}), a score-equivalent dirichlet 
+        \item the logarithm of the \emph{Bayesian Dirichlet equivalent}
+          score (\code{bde} o \code{dir}), a score-equivalent dirichlet
           posterior density.
         \item the logarithm of the \emph{K2} score (\code{k2}), a dirichlet
           posterior density (not score-equivalent).
@@ -163,7 +172,7 @@
 }
 \section{Whitelist and blacklist support}{
 
-  All algorithms support arc whitelisting and blacklisting:
+  All learning algorithms support arc whitelisting and blacklisting:
 
   \itemize{
 
@@ -185,15 +194,19 @@
 }
 \section{Error detection and correction: the strict mode}{
 
-  Optimized implementations of learning algorithms often
-  hide learning errors, usually in the Markov blanket detection
-  step, due to the use of backtracking.
+  Optimized implementations of the constraint-based algorithms rely
+  heavily on backtracking to reduce the number of tests needed by
+  the learning procedure. This approach may hide errors either
+  in the Markov blanket or the neighbourhood detection phase in
+  some particular cases, such as when hidden variables are present
+  or there are external (logical) constraints on the interactions
+  between the variables.
 
   On the other hand in the unoptimized implementations the Markov
   blanket and neighbour detection of each node is completely
   independent from the rest of the learning process. Thus it may
   happen that the Markov blanket or the neighbourhoods are not
-  symmetric (i.e. A is in the Markov blanket but not vice versa),
+  symmetric (i.e. A is in the Markov blanket of B but not vice versa),
   or that some arc directions conflict with each other.
 
   The \code{strict} parameter enables some measure of error
@@ -264,6 +277,16 @@ res2$learning$ntests
 \dontrun{iamb(learning.test, optimized = FALSE)$ntests}
 # [1] 116
 
+## Greedy search
+res = hc(learning.test)
+plot(res)
+
+## Another simple example (gaussian data)
+data(gaussian.test)
+# first try the Grow-Shrink algorithm
+res = gs(gaussian.test)
+plot(res)
+
 ## Blacklist and whitelist use
 # the arc B - F should not be there?
 blacklist = data.frame(from = c("B", "F"), to = c("F", "B"))
@@ -285,13 +308,16 @@ res5 = gs(learning.test, whitelist = whitelist, blacklist = blacklist)
 plot(res5)
 
 ## Debugging
-# use the debugging mode to see the learning algorithm
+# use the debugging mode to see the learning algorithms
 # in action.
 res = gs(learning.test, debug = TRUE)
+res = hc(learning.test, debug = TRUE)
 # log the learning process for future reference.
+\dontrun{
 sink(file = "learning-log.txt")
 res = gs(learning.test, debug = TRUE)
 sink()
+}
 # if something seems wrong, try the unoptimized version
 # in strict mode (inconsistencies trigger errors):
 \dontrun{

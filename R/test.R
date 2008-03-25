@@ -134,41 +134,31 @@ conditional.test = function(x, y, sx, data, test) {
 
 mi.test = function(x, y, ndata, gsquare = TRUE) {
 
-  result = 0
-  s = .C("mi",
+  s = .Call("mi",
       x = x,
       y = y,
-      lx = as.integer(nlevels(x)),
-      ly = as.integer(nlevels(y)),
-      length = as.integer(ndata),
-      result = as.double(result),
+      lx = nlevels(x),
+      ly = nlevels(y),
+      length = ndata,
       PACKAGE = "bnlearn")
 
-  if (gsquare)
-    2 * ndata * s$result
-  else
-    s$result
+  ifelse(gsquare, 2 * ndata * s, s)
 
 }#MI.TEST
 
 cmi.test = function(x, y, z, ndata, gsquare = TRUE) {
 
-  result = 0
-  s = .C("cmi",
+  s = .Call("cmi",
       x = x,
       y = y,
       z = z,
-      lx = as.integer(nlevels(x)),
-      ly = as.integer(nlevels(y)),
-      lz = as.integer(nlevels(z)),
-      length = as.integer(ndata),
-      result = as.double(result),
+      lx = nlevels(x),
+      ly = nlevels(y),
+      lz = nlevels(z),
+      length = ndata,
       PACKAGE = "bnlearn")
 
-  if (gsquare)
-    2 * ndata * s$result
-  else
-    s$result
+  ifelse(gsquare, 2 * ndata * s, s)
 
 }#CMI.TEST
 
