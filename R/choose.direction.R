@@ -121,46 +121,19 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug) {
   amat = arcs2amat(x$arcs, nodes)
 
   # compute the initial score of the nodes involved.
-  if (score == "k2") {
-
-    reference.score = sapply(arc, dirichlet.node, x = x, data = data)
-
-  }#THEN
-  else if (score %in% c("bde", "dir")) {
-
-    reference.score = sapply(arc, dirichlet.node, x = x, data = data,
-                        imaginary.sample.size = extra.args$iss)
-
-  }#THEN
-  else if (score %in% c("lik", "loglik")) {
-
-    reference.score = sapply(arc, loglik.node, x = x, data = data)
-    if (score == "lik") reference.score = exp(reference.score)
-
-  }#THEN
-  else if (score %in% c("aic", "bic")) {
-
-    reference.score = sapply(arc, aic.node, x = x, data = data, k = extra.args$k)
-
-  }#THEN
-  else if (score == "bge") {
-
-    reference.score = sapply(arc, bge.node, x = x, data = data,
-                        imaginary.sample.size = extra.args$iss,
-                        phi = extra.args$phi)
-
-  }#THEN
+  reference.score = per.node.score(network = x, score = score,
+                      nodes = arc, extra.args = extra.args, data = data)
 
   # compare the scores of the two networks.
   better1 = score.delta(arc = arc, network = x, data = data,
               score = score, score.delta = 0,
               reference.score = reference.score, op = "set",
-              extra = extra.args, debug = debug)
+              extra = extra.args)
 
   better2 = score.delta(arc = arc[c(2,1)], network = x, data = data,
               score = score, score.delta = 0,
               reference.score = reference.score, op = "set",
-              extra = extra.args, debug = debug)
+              extra = extra.args)
 
   if (debug) {
 

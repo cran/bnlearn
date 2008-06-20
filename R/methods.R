@@ -164,16 +164,20 @@ as.character.bn = function(x, ...) {
 
 print.bn = function(x, ...) {
 
-  undirected.arcs = length(which(is.undirected(x$arcs)))/2
+  params = names(x$learning$args)
   directed.arcs = length(which(!is.undirected(x$arcs)))
+  undirected.arcs = (nrow(x$arcs) - directed.arcs)/2
   arcs = undirected.arcs + directed.arcs
   avg.mb = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$mb) }))
   avg.nbr = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$nbr) }))
   avg.ch = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$children) }))
 
-  cat("\n  Bayesian network learned via Conditional Independence methods\n\n")
+  if (x$learning$test %in% names(test.labels))
+    cat("\n  Bayesian network learned via Conditional Independence methods\n\n")
+  else
+    cat("\n  Bayesian network learned via Scoring methods\n\n")
 
-  cat("  model:\n   ", ifelse(is.dag(x$arcs), modelstring(x),
+  cat("  model:\n   ", ifelse(is.dag(x$arcs, names(x$nodes)), modelstring(x),
       "[partially directed graph]"), "\n")
 
   cat("  nodes:                                ", length(x$nodes), "\n")
@@ -189,20 +193,23 @@ print.bn = function(x, ...) {
   cat("  learning algorithm:                   ", method.labels[x$learning$algo], "\n")
   if (x$learning$algo != "rnd") {
 
-    if (x$learning$test %in% names(test.labels)) {
-
+    if (x$learning$test %in% names(test.labels))
       cat("  conditional independence test:        ", test.labels[x$learning$test], "\n")
-      cat("  alpha threshold:                      ", x$learning$alpha, "\n")
-
-    }#THEN
-    else {
-
+    else
       cat("  score:                                ", score.labels[x$learning$test], "\n")
 
-    }#ELSE
+    if ("alpha" %in% params)
+      cat("  alpha threshold:                      ", x$learning$args$alpha, "\n")
+    if ("iss" %in% params)
+      cat("  imaginary sample size:                ", x$learning$args$iss, "\n")
+    if ("phi" %in% params)
+      cat("  phi matrix structure:                 ", x$learning$args$phi, "\n")
+    if ("k" %in% params)
+      cat("  penalization coefficient:             ", x$learning$args$k, "\n")
+
+    cat("  tests used in the learning procedure: ", x$learning$ntests, "\n")
 
   }#THEN
-  cat("  tests used in the learning procedure: ", x$learning$ntests, "\n")
 
   cat("\n")
 

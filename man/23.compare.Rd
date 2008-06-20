@@ -10,8 +10,8 @@
   compare(r1, r2, debug = FALSE)
 }
 \arguments{
-  \item{r1}{an object of class "bn".}
-  \item{r2}{another object of class "bn".}
+  \item{r1}{an object of class \code{bn}.}
+  \item{r2}{another object of class \code{bn}.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
 }

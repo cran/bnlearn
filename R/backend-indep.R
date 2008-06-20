@@ -46,7 +46,7 @@ second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist,
 
   # save the status of the learning algorithm.
   learning = list(nodes = mb, arcs = arcs, whitelist = whitelist,
-    blacklist = blacklist, test = test, alpha = alpha,
+    blacklist = blacklist, test = test, args = list(alpha = alpha),
     ntests = get(".test.counter", envir = .GlobalEnv))
 
   # EXTRA [ESP]
@@ -676,7 +676,7 @@ nbr.recovery = function(mb, nodes, strict, debug) {
       cat("> neighbourhoods as an adjacency matrix:\n")
       print(m)
       cat("----------------------------------------------------------------\n")
-      cat("> neighbourhoodss as a list:\n")
+      cat("> neighbourhoods as a list:\n")
       print(mb)
 
      }#THEN

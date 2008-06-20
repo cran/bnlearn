@@ -47,7 +47,7 @@
   path(x, from, to, direct = TRUE)
 }
 \arguments{
-  \item{x}{an object of class "bn".}
+  \item{x}{an object of class \code{bn}.}
   \item{node}{a character string, the label of a node.}
   \item{from}{a character string, the label of a node.}
   \item{to}{a character string, the label of a node (different from \code{from}).}
@@ -69,7 +69,7 @@
 }
 \details{
 
-  The number of parameters of a discrete Bayesian network is computed as the
+  The number of parameters of a discrete Bayesian network is defined as the
   sum of the number of logically independent parameters of each node given its
   parents (Chickering, 1995).
 
@@ -77,10 +77,10 @@
 \value{
 
   \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{rootnodes}
-  and \code{leafnodes} return a vector of character strings.
-  \code{arcs} returns a matrix of two columns of character strings.
-  \code{amat} returns a matrix of 0/1 numeric values.
-  \code{nparams} returns an integer.
+  and \code{leafnodes} return a vector of character strings. \cr
+  \code{arcs} returns a matrix of two columns of character strings. \cr
+  \code{amat} returns a matrix of 0/1 numeric values. \cr
+  \code{nparams} returns an integer. \cr
   \code{acyclic} and \code{path} return a boolean value.
 
 }
@@ -92,7 +92,7 @@
 \references{
 
   D. M. Chickering. A Transformational Characterization of Equivalent Bayesian
-    Network Structures. In Proceedins of 11th Conference on Uncertainty in
+    Network Structures. In Proceedings of 11th Conference on Uncertainty in
     Artificial Intelligence, pages 87-98. Morgan Kaufmann Publishers Inc., 1995.
 
 }

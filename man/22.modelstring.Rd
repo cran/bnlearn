@@ -18,11 +18,11 @@
   \method{as.bn}{character}(x, debug = FALSE)
 }
 \arguments{
-  \item{x}{an object of class "bn".}
+  \item{x}{an object of class \code{bn}.}
   \item{string}{a character string describing the Bayesian network.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
-  \item{...}{extra arguments from the generic method (currently ignored).}
+  \item{\dots}{extra arguments from the generic method (currently ignored).}
 }
 \details{
 
@@ -47,7 +47,7 @@ res
 #   Bayesian network learned via Conditional Independence methods
 #
 #   model:
-#     [F][C][A][B|A][D|A:C][E|B:F]
+#     [A][C][F][B|A][D|A:C][E|B:F]
 #   nodes:                                 6
 #   arcs:                                  5
 #     undirected arcs:                     0
@@ -62,14 +62,14 @@ res
 #   tests used in the learning procedure:  43
 #
 modelstring(res)
-# [1] "[F][C][A][B|A][D|A:C][E|B:F]"
+# [1] "[A][C][F][B|A][D|A:C][E|B:F]"
 res2 = model2network(modelstring(res))
 res2
 #
 #   Bayesian network learned via Conditional Independence methods
 #
 #   model:
-#     [F][C][A][B|A][D|A:C][E|B:F]
+#     [A][C][F][B|A][D|A:C][E|B:F]
 #   nodes:                                 6
 #   arcs:                                  5
 #     undirected arcs:                     0

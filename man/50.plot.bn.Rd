@@ -21,7 +21,7 @@
   \item{highlight}{a vector of character strings, representing the
     labels of the nodes (and corresponding arcs) to be highlighted.}
   \item{color}{an integer or character string (the highlight colour).}
-  \item{...}{other parameters to be passed through to plotting
+  \item{\dots}{other parameters to be passed through to plotting
     functions.}
 }
 \note{

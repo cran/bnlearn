@@ -1,19 +1,19 @@
 \name{learning.test}
 \docType{data}
 \alias{learning.test}
-\title{ Synthetic (discrete) dataset to test learning algorithms }
+\title{ Synthetic (discrete) data set to test learning algorithms }
 \description{
 
-  This a synthetic dataset used as a test case in the
+  This a synthetic data set used as a test case in the
   \pkg{bnlearn} package.
 
 }
 \usage{
-  learning.test
+  data(learning.test)
 }
-\details{
+\format{
 
-  The \code{learning.test} dataset containts the following variables:
+  The \code{learning.test} data set contains the following variables:
   \itemize{
 
     \item \code{A}, a three-level factor with levels \code{a},
@@ -34,7 +34,10 @@
 }
 \examples{
 
-# these are the R commands used to generate this dataset.
+## The modelstring() of this data set is:
+# [A][C][F][B|A][D|A:C][E|B:F]
+
+## these are the R commands used to generate this data set.
 \dontrun{
 a = sample(c("a", "b", "c"), 5000, prob = rep(1/3, 3), replace = TRUE)
 c = sample(c("a", "b", "c"), 5000, prob = c(0.75, 0.2, 0.05),

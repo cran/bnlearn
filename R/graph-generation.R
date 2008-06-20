@@ -45,17 +45,19 @@ empty.graph.backend = function(nodes) {
   arcs = matrix(character(0), ncol = 2, dimnames = list(c(), c("from", "to")))
   res = list(
     learning = list(
-      nodes = lapply(nodes, function(n) { list(mb = c(), nbr = c()) }),
+      nodes = lapply(nodes, function(n) { 
+        list(mb = character(0), nbr = character(0)) }),
       arcs = arcs,
       whitelist = NULL,
       blacklist = NULL,
       test = "none",
-      alpha = 0.05,
       ntests = 0,
-      algo = "rnd"
+      algo = "rnd",
+      args = list()
     ),
     nodes = lapply(nodes, function(n) {
-      list(mb = c(), nbr = c(), parents = c(), children = c()) }),
+      list(mb = character(0), nbr = character(0), 
+        parents = character(0), children = character(0)) }),
     arcs = arcs
   )
 

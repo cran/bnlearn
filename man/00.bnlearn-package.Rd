@@ -9,7 +9,7 @@
 }
 \description{
 
-  Bayesian network learning via constraint-based algorithms.
+  Bayesian network learning via constraint-based and score-based algorithms.
 
 }
 \details{
@@ -18,8 +18,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 0.7\cr
-    Date: \tab 2008-03-25\cr
+    Version: \tab 0.8\cr
+    Date: \tab 2008-06-20\cr
     License: \tab GPLv2 or later
 
   }
@@ -83,7 +83,7 @@
 
   }
 
-  Their computational complexity of this class of algorithms is polynomial
+  The computational complexity of these algorithms is polynomial
   in the number of tests, usually \eqn{O(N^2)}{O(N^2)} (\eqn{O(N^4)}{O(N^4)}
   in the worst case scenario). The execution time also scales linearly with
   the size of the data set.
@@ -95,7 +95,8 @@
     \item \emph{Hill-Climbing} (\code{\link{hc}}): an \emph{hill climbing}
       greedy search on the space of the directed graphs. The optimized
       implementation uses score caching, score decomposability and score
-      equivalence to reduce the number of duplicated tests.}
+      equivalence to reduce the number of duplicated tests. Random restart
+      with a configurable number of perturbing operations is implemented.}
 
 }
 \section{Available (conditional) independence tests}{
@@ -110,14 +111,14 @@
       \itemize{
 
         \item \emph{mutual information} (\code{mi}): an information-theoretic
-          distance measure. Is proportional to the log-likelihood ratio
+          distance measure. It's proportional to the log-likelihood ratio
           (they differ by a \eqn{2n}{2n} factor) and is related to the
           deviance of the tested models.
         \item \emph{fast mutual information} (\code{fmi}): a variant of the
           mutual information which is set to zero when there aren't at least
           five data per parameter.
-        \item \emph{Akaike Information Criterion} (\code{aict}): an AIC-based
-          indepence test, computed comparing the mutual information
+        \item \emph{Akaike Information Criterion} (\code{aict}): an experimental
+          AIC-based independence test, computed comparing the mutual information
           and the expected information gain.
         \item \emph{Cochran-Mantel-Haenszel} (\code{mh}): a stratified
           independence test, included for testing purposes only. See
@@ -153,17 +154,17 @@
         \item the \emph{Akaike Information Criterion} score (\code{aic}).
         \item the \emph{Bayesian Information Criterion} score (\code{bic}).
         \item the logarithm of the \emph{Bayesian Dirichlet equivalent}
-          score (\code{bde} o \code{dir}), a score-equivalent dirichlet
+          score (\code{bde} o \code{dir}), a score equivalent Dirichlet
           posterior density.
-        \item the logarithm of the \emph{K2} score (\code{k2}), a dirichlet
-          posterior density (not score-equivalent).
+        \item the logarithm of the \emph{K2} score (\code{k2}), a Dirichlet
+          posterior density (not score equivalent).
 
       }
 
     \item \emph{numerical data} (multivariate normal distribution)
       \itemize{
 
-        \item a score-equivalent {gaussian posterior density} (\code{bge}).
+        \item a score equivalent {Gaussian posterior density} (\code{bge}).
 
       }
 
@@ -232,6 +233,9 @@
 \references{
 
   A. Agresti. Categorical Data Analysis. John Wiley & Sons, Inc., 2002.
+
+  K. Korb and A. Nicholson. Bayesian artificial intelligence. Chapman and
+   Hall, 2004.
 
   D. Margaritis. Learning Bayesian Network Model Structure from Data. PhD
     thesis, School of Computer Science, Carnegie-Mellon University, Pittsburgh,

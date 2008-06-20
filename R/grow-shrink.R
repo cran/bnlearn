@@ -192,7 +192,6 @@ gs.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
   last.added = mb[length(mb)]
 
   # shrinking phase
-
   del.node = function(y, x, test) {
 
     if (debug)

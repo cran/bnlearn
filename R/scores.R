@@ -1,17 +1,62 @@
 
-# compute the logliklihood score with an optional penalty.
-loglik.score = function(x, data, penalized = 0, debug = FALSE) {
+# compute the score of a bayesian network.
+network.score = function(network, data, score, extra.args, debug = FALSE) {
 
-  logscore = sum(sapply(names(x$nodes),
-    loglik.node, x = x, data = data, debug = debug))
+  sum(per.node.score(network = network, data = data, score = score, 
+    nodes = names(network$nodes), extra.args = extra.args, 
+    debug = debug))
 
-  if (penalized == 0)
-    logscore
-  else
-    logscore - penalized *
-      sum(nparams.backend(x, data, real = TRUE))
+}#NETWORK.SCORE
 
-}#LOGLIK.SCORE
+# compute single nodes' contributions to the network score.
+per.node.score = function(network, data, score, nodes, extra.args, 
+    debug = FALSE) {
+
+  if (score == "k2") {
+
+   res = sapply(nodes, dirichlet.node, x = network, data = data, 
+           debug = debug)
+
+  }#THEN
+  else if (score %in% c("bde", "dir")) {
+
+   res = sapply(nodes, dirichlet.node, x = network, 
+           imaginary.sample.size = extra.args$iss, data = data, 
+           debug = debug)
+
+  }#THEN
+  else if (score == "loglik") {
+
+    res = sapply(nodes, loglik.node, x = network, data = data, 
+            debug = debug)
+
+  }#THEN
+  else if (score == "lik") {
+
+    res = exp(sapply(nodes, loglik.node, x = network, data = data, 
+            debug = debug))
+
+  }#THEN
+  else if (score %in% c("aic", "bic")) {
+
+    res = sapply(nodes, aic.node, x = network, data = data, 
+            k = extra.args$k, debug = debug)
+
+  }#THEN
+  else if (score == "bge") {
+
+    res = sapply(nodes, bge.node, x = network, phi = extra.args$phi, 
+            data = data, imaginary.sample.size = extra.args$iss, 
+            debug = debug)
+
+  }#THEN
+
+  # set the names on the resulting array for easy reference.
+  names(res) = nodes
+
+  return(res)
+
+}#PER.NODE.SCORE
 
 # compute the loglikelihood of single node of a discrete
 # bayesian network.
@@ -75,24 +120,6 @@ aic.node = function(node, x, data, k = 1, debug = FALSE) {
   k * nparams.node(node = node, x = x, data = data, real = TRUE)
 
 }#AIC.NODE
-
-# compute the BDe Dirichlet score.
-bde.score = function(x, data, iss = NULL, debug = FALSE) {
-
-  if (debug)
-    cat("* imaginary sample size set to", iss, ".\n")
-
-  sum(sapply(names(x$nodes), dirichlet.node, x = x, data = data,
-    imaginary.sample.size = iss, debug = debug))
-
-}#BDE.SCORE
-
-# compute the K2 score.
-k2.score = function(x, data, debug = FALSE) {
-
-  sum(sapply(names(x$nodes), dirichlet.node, x = x, data = data, debug = debug))
-
-}#K2.SCORE
 
 # compute the dirichlet posterior density of a node.
 # Reverse-engineered from the deal package, with copyright:
@@ -187,21 +214,6 @@ dirichlet.node = function(node, x, data, imaginary.sample.size = NULL, debug = F
 res
 
 }#DIRICHLET.NODE
-
-# compute the BGe Gaussian score.
-bge.score = function(x, data, iss = NULL, phi = "heckerman", debug = FALSE) {
-
-  if (debug) {
-
-    cat("* imaginary sample size set to", iss, ".\n")
-    cat("* using phi definition from", phi, ".\n")
-
-  }#THEN
-
-  sum(sapply(names(x$nodes), bge.node, x = x, data = data,
-    imaginary.sample.size = iss, phi = phi, debug = debug))
-
-}#BGE.SCORE
 
 # compute the posterior density of a gaussian node.
 # Reverse-engineered from the deal package, with copyright:

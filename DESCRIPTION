@@ -1,8 +1,8 @@
 Package: bnlearn
 Type: Package
 Title: Bayesian network structure learning
-Version: 0.7
-Date: 2008-03-25
+Version: 0.8
+Date: 2008-06-20
 Depends: R (>= 2.6.0)
 Suggests: snow
 Author: Marco Scutari
@@ -24,4 +24,4 @@ Description: Bayesian network structure learning
 License: GPL (>= 2)
 LazyLoad: yes
 LazyData: yes
-Packaged: Wed Mar 26 09:44:39 2008; fizban
+Packaged: Fri Jun 20 11:28:43 2008; fizban

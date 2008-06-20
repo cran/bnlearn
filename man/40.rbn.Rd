@@ -10,7 +10,7 @@
   rbn(x, n, data, debug = FALSE)
 }
 \arguments{
-  \item{x}{an object of class "bn".}
+  \item{x}{an object of class \code{bn}.}
   \item{n}{non-negative integer giving the number of observations
        to generate.}
   \item{data}{a data frame, containing the data the Bayesian network
@@ -34,7 +34,8 @@
 }
 \value{
 
-  A data frame with the same structure of the \code{data} parameter.
+  A data frame with the same structure (column names and data types)
+  of the \code{data} parameter.
 
 }
 \references{

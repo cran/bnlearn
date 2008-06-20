@@ -26,7 +26,7 @@ arcs2amat = function(arcs, nodes) {
 }#ARCS2AMAT
 
 # convert an adjacency matrix back to a set of arcs.
-amat2arcs = function(a, nodes, debug = FALSE) {
+amat2arcs = function(a, nodes) {
 
   .Call("amat2arcs",
         amat = as.integer(a),

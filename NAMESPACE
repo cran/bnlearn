@@ -25,6 +25,7 @@ export(
   "drop.arc",
   "reverse.arc",
   "choose.direction",
+  "arc.strength",
   "rbn",
   "score",
   "as.bn",

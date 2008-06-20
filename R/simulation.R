@@ -1,50 +1,37 @@
+# do a partial ordering of the nodes of a graph.
 schedule = function(x, debug = FALSE) {
 
-to.do = c()
+  nodes = rootnodes(x)
+  to.do = rep(0, length(x$nodes))
+  names(to.do) = names(x$nodes)
 
-  schedule.node = function(node, x, to.do) {
+  # this is a very simple implementation of a non-recursive breadth
+  # first search; infinite loops are impossible because the longest
+  # path in a graph is {#nodes}-long.
+  for (step in 1:length(x$nodes)) {
 
-    if (debug) cat("* checking node", node, "\n")
+    to.do[nodes] = step
 
-    node.parents = x$nodes[[node]]$parents
-    if (length(node.parents) >= 1) {
+    if (debug) {
 
-      # if a node has parents, schedule them before the node itself.
-      if (debug) cat("  > node has parents '", node.parents, "'\n")
-      for(parent in node.parents)
-        to.do = schedule.node(parent, x, to.do)
-
-      # then schdule the node if it's not already in queue.
-      if (!(node %in% to.do))
-        to.do = c(to.do, node)
-      if (debug) cat("  @ current node ordering is: ", to.do, "\n")
+      cat("* at depth", step, "the ordering of the nodes is:\n")
+      print(to.do)
 
     }#THEN
-    else {
 
-      if (!(node %in% to.do)) {
+    nodes = sapply(nodes, function(node) { children(x, node) }, 
+              simplify = FALSE)
 
-        # if a node has no parents, schedule it.
-        to.do = c(node, to.do)
-        if (debug) cat("  @ current node ordering is: ", to.do, "\n")
+    if (is.list(nodes)) 
+      nodes = do.call("c", nodes)
 
-      }#THEN
-      else if (debug) {
+    nodes = unique(nodes)
 
-        cat("  > node", node, "already scheduled.\n")
+    if (length(nodes) == 0) break
 
-      }#ELSE
+  }#FOR
 
-    }#ELSE
-
-    to.do
-
-  }#SCHEDULE.NODE
-
-  for (node in nodes(x))
-    to.do = schedule.node(node, x, to.do)
-
-  return(to.do)
+  return(names(sort(to.do)))
 
 }#SCHEDULE
 

@@ -79,10 +79,10 @@ build.whitelist = function(whitelist, nodes) {
 
   }#ELSE
 
-  # add column names for easy reference.
-  colnames(whitelist) = c("from", "to")
   # drop duplicate rows.
   whitelist = unique(whitelist)
+  # add column names for easy reference.
+  colnames(whitelist) = c("from", "to")
 
   # check all the names in the whitelist against the column names of x.
   if (any(!(unique(as.vector(whitelist)) %in% nodes)))
@@ -126,10 +126,10 @@ build.blacklist = function(blacklist, whitelist, nodes) {
 
     }#ELSE
 
-    # add column names for easy reference.
-    colnames(blacklist) = c("from", "to")
     # drop duplicate rows.
     blacklist = unique(blacklist)
+    # add column names for easy reference.
+    colnames(blacklist) = c("from", "to")
 
     # check all the names in the blacklist against the column names of x.
     if (any(!(unique(as.vector(blacklist)) %in% nodes)))
@@ -151,11 +151,15 @@ build.blacklist = function(blacklist, whitelist, nodes) {
       })
 
     # if x -> y is whitelisted, it is to be removed from the blacklist.
-    blacklist = blacklist[!apply(blacklist, 1,
-      function(x){ is.whitelisted(whitelist, x) }),]
+    if (!is.null(blacklist)) {
 
-    blacklist = matrix(blacklist, ncol = 2, byrow = FALSE,
-      dimnames = list(NULL, c("from", "to")))
+      blacklist = blacklist[!apply(blacklist, 1,
+        function(x){ is.whitelisted(whitelist, x) }),]
+
+      blacklist = matrix(blacklist, ncol = 2, byrow = FALSE,
+        dimnames = list(NULL, c("from", "to")))
+
+    }#THEN
 
   }#THEN
 
@@ -224,21 +228,29 @@ check.test = function(test, data) {
 # will the bayesian network be a discrete one?
 is.data.discrete = function(data) {
 
-  all(sapply(data, class) == "factor")
+  for (i in 1:ncol(data))
+    if (!is(data[, i], "factor"))
+      return(FALSE)
+
+  return(TRUE)
 
 }#IS.DATA.DISCRETE
 
 # will the bayesian network be a continuous one?
 is.data.continuous = function(data) {
 
-  all(sapply(data, class) == "numeric")
+  for (i in 1:ncol(data))
+    if (!is(data[, i], "numeric"))
+      return(FALSE)
+  
+  return(TRUE)
 
 }#IS.DATA.CONTINUOUS
 
 # there are missing data?
 missing.data = function(data) {
 
-  any(mapply(function(x) {is.na(x) || is.nan(x) || is.null(x)}, data))
+  !all(complete.cases(data))
 
 }#MISSING.DATA
 
@@ -260,22 +272,35 @@ check.iss = function(iss, network, data) {
   }#THEN
   else {
 
-    # set an imaginary sample size to populate the a priori distribution.
-    if (is.data.discrete(data)) {
+    # check if there is an imaginary sample size stored in the bn object;
+    # otherwise use a the lowest possible value (3) if the network is
+    # empty of the number of its parameters it is not.
+    if (!is.null(network$learning$args$iss)) {
 
-      iss = 2 * prod(sapply(names(network$nodes),
-        function(node) { nlevels(data[, node]) }))
+      iss = network$learning$args$iss
+
+    }#THEN
+    else if (nrow(network$arcs) == 0) {
+
+      # even if the network is empty, the score should scale with the
+      # number of nodes.
+      iss = ncol(data)
 
     }#THEN
     else {
 
-      iss = ncol(data) * (ncol(data) + 1)/2
+      # if the network is not empty, use a somewhat larger imaginary sample
+      # size to give it and adequate (but still small) weight.
+      if (is.data.discrete(data))
+        iss = sum(nparams.backend(network, data, real = FALSE))
+      else
+        iss = ncol(data) * (ncol(data) + 1)/2
 
-    }#ELSE
+    }#THEN
 
   }#ELSE
 
-as.integer(iss)
+return(iss)
 
 }#CHECK.ISS
 
@@ -290,7 +315,12 @@ check.phi = function(phi, network, data) {
   }#THEN
   else {
 
-    phi = "heckerman"
+    # check if there is an phi definition stored in the bn object;
+    # otherwise use the one by heckerman.
+    if (!is.null(network$learning$args$phi))
+      phi = network$learning$args$phi
+    else
+      phi = "heckerman"
 
   }#ELSE
 
@@ -317,3 +347,129 @@ check.arc = function(arc, network) {
     stop("node not present in the graph.")
 
 }#CHECK.ARC
+
+# sanitize the extra arguments passed to the network scores.
+check.score.args = function(score, network, data, extra.args) {
+
+  if (score %in% c("dir", "bde")) {
+
+    # check the imaginary sample size.
+    extra.args$iss = check.iss(iss = extra.args$iss, 
+      network = network, data = data)
+
+  }#THEN
+  else if (score %in% c("aic", "bic")) {
+
+    if (!is.null(extra.args$k)) {
+
+      # validate the penalty weight.
+      if (!is.positive(extra.args$k))
+        stop("the penalty weight must be a positive numeric value.")
+
+    }#THEN
+    else {
+
+      # set the penalty according to the chosen score.
+      if (score == "aic") extra.args$k = 1
+      else extra.args$k = log(nrow(data))/2
+
+    }#ELSE
+
+  }#THEN
+  else if (score == "bge") {
+
+    # check the imaginary sample size.
+    extra.args$iss = check.iss(iss = extra.args$iss, 
+      network = network, data = data)
+
+    # check phi estimator.
+    extra.args$phi = check.phi(phi = extra.args$phi, 
+      network = network, data = data)
+
+  }#THEN
+
+  return(extra.args)
+
+}#CHECK.SCORE.ARGS
+
+# check the the target nominal type I error rate
+check.alpha = function(alpha, network = NULL) {
+
+  # check the the target nominal type I error rate
+  if (!is.null(alpha)) {
+
+    # validate alpha.
+    if (!is.numeric(alpha) || (alpha > 1) || (alpha < 0))
+      stop("alpha must be a numerical value in [0,1].")
+
+  }#THEN
+  else {
+
+    # check if there is an alpha value stored in the bn object;
+    # otherwise use the usual 0.05 value.
+    if (!is.null(network$learning$args$alpha))
+      alpha = network$learning$args$alpha
+    else
+      alpha = 0.05
+
+  }#ELSE
+
+  return(alpha)
+
+}#CHECK.ALPHA
+
+check.amat = function(amat, nodes) {
+
+  # a node is needed.
+  if (missing(amat))
+    stop("no adjacency matrix specified.")
+  # the adjacency matrix must, well, be a matrix.
+  if (!is(amat, "matrix"))
+    stop("this is not a valid adjacency matrix.")
+  # column names must be valid node labels.
+  if (!is.null(colnames(amat)))
+    if (!all(colnames(amat) %in% nodes))
+      stop("node (column label) not present in the graph.")
+  # column names must be valid node labels.
+  if (!is.null(rownames(amat)))
+    if (!all(rownames(amat) %in% nodes))
+      stop("node (row label) not present in the graph.")
+  # check the elements of the matrix.
+  if (!all(amat %in% 0:1))
+    stop("all the elements of an adjacency matrix must be equal to either 0 or 1.")
+  # no arcs from a node to itself.
+  if(any(diag(amat) != 0))
+    stop("the elements on the diagonal must be zero.")
+
+  return(amat)
+
+}#CHECK.AMAT
+
+# check logical flags.
+check.logical = function(bool) {
+
+  if (!is.logical(bool) || is.na(bool)) {
+
+    stop(sprintf("%s must be a logical value (TRUE/FALSE).", 
+           as.character(sys.call()[[2]])))
+
+  }#THEN
+
+}#CHECK.LOGICAL
+
+# check parameters related to the random restart functions.
+check.restart = function(restart, perturb) {
+
+  if (!is.positive(restart)) {
+
+    if ((restart != 0) || (length(restart) != 1))
+      stop("the number of random restarts must be a non-negative numeric value.")
+
+  }#THEN
+  else if (!is.positive(perturb)) {
+
+    stop("the number of changes at each radom restart must be a non-negative numeric value.")
+
+  }#THEN
+
+}#CHECK.RESTART

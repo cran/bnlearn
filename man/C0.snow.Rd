@@ -11,10 +11,11 @@
   environment provided by the \pkg{snow} package.
 
 }
-\examples{
-\dontrun{
+\section{Parallel computing for constraint-based algorithms}{
+\preformatted{
 # load snow, bnlearn and rsprng (for parallel random number
-# generation, just in case it's needed).
+# generation, just in case it's needed); start LAM/MPI via
+# lamboot if using an MPI cluster.
 > library(snow)
 > library(bnlearn)
 > library(rsprng)

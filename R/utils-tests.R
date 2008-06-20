@@ -9,22 +9,28 @@ is.symmetric = function(m) {
 }#IS.SYMMETRIC
 
 # check whether a graph is completely directed (has no undirected arcs).
-is.dag = function(arcs) {
+is.dag = function(arcs, nodes) {
 
-  ifelse(nrow(arcs) > 0, !any(is.undirected(arcs)), TRUE)
+  if (nrow(arcs) == 0)
+    return(TRUE)
+
+  .Call("is_dag",
+        arcs = factor(arcs),
+        nnodes = length(nodes),
+        PACKAGE = "bnlearn")
 
 }#IS.DAG
 
 # alias of is.dag for readable code.
-is.pdag = function(arcs) !is.dag(arcs)
+is.pdag = function(arcs, nodes) !is.dag(arcs, nodes)
 
 # generic is.acyclic backend (calls the right one for the graph at hand).
 is.acyclic = function(arcs, nodes, debug = FALSE) {
 
-  if (any(is.undirected(arcs)))
-    is.pdag.acyclic(arcs = arcs, nodes = nodes, debug = debug)
-  else
+  if (is.dag(arcs, nodes))
     is.dag.acyclic(arcs = arcs, nodes = nodes, debug = debug)
+  else
+    is.pdag.acyclic(arcs = arcs, nodes = nodes, debug = debug)
 
 }#IS.ACYCLIC
 

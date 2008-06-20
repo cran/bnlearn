@@ -14,7 +14,7 @@
   reverse.arc(x, from, to, check.cycles = TRUE, debug = FALSE)
 }
 \arguments{
-  \item{x}{an object of class "bn".}
+  \item{x}{an object of class \code{bn}.}
   \item{from}{a character string, the label of a node.}
   \item{to}{a character string, the label of another node.}
   \item{check.cycles}{a boolean value. If \code{TRUE} the graph is

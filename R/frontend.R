@@ -29,7 +29,7 @@ test.labels = c(
   'none' = "none"
 )
 
-score.labels =c(
+score.labels = c(
   'k2' = "Cooper & Herskovits' K2",
   'bde' = "bayesian-dirichlet (score equivalent)",
   'aic' = "Akaike information criterion",
@@ -107,21 +107,13 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
            paste(available.methods, collapse = " ")))
   # check test labels.
   test = check.test(test, x)
-  # check debug.
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
-  # check strict.
-  if (!is.logical(strict) || is.na(strict))
-    stop("strict must be a logical value (TRUE/FALSE).")
-  # check optimized.
-  if (!is.logical(optimized) || is.na(optimized))
-    stop("optimized must be a logical value (TRUE/FALSE).")
-  # check direction.
-  if (!is.logical(direction) || is.na(direction))
-    stop("direction must be a logical value (TRUE/FALSE).")
+  # check the logical flags (debug, strict, optimized, direction).
+  check.logical(debug)
+  check.logical(strict)
+  check.logical(optimized)
+  check.logical(direction)
   # check alpha.
-  if (!is.numeric(alpha) || (alpha > 1) || (alpha < 0))
-    stop("alpha must be a numerical value in [0,1].")
+  alpha = check.alpha(alpha)
 
   # check cluster.
   if (!is.null(cluster)) {
@@ -151,8 +143,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   }#THEN
 
   # sanitize whitelist and blacklist, if any.
-  whitelist = build.whitelist(whitelist, colnames(x))
-  blacklist = build.blacklist(blacklist, whitelist, colnames(x))
+  whitelist = build.whitelist(whitelist, names(x))
+  blacklist = build.blacklist(blacklist, whitelist, names(x))
 
   # call the right backend.
   if (method == "gs") {
@@ -282,8 +274,7 @@ mb = function(x, node, rebuild = FALSE) {
   # a valid node is needed.
   check.node(node = node, graph = x)
   # check rebuild.
-  if (!is.logical(rebuild) || is.na(rebuild))
-    stop("rebuild must be a logical value (TRUE/FALSE).")
+  check.logical(rebuild)
 
   if (rebuild)
     mb.backend(x$arcs, node)
@@ -301,8 +292,7 @@ nbr = function(x, node, rebuild = FALSE) {
   # a valid node is needed.
   check.node(node = node, graph = x)
   # check rebuild.
-  if (!is.logical(rebuild) || is.na(rebuild))
-    stop("rebuild must be a logical value (TRUE/FALSE).")
+  check.logical(rebuild)
 
   if (rebuild)
     nbr.backend(x$arcs, node)
@@ -397,20 +387,11 @@ amat = function(x) {
   # a node is needed.
   if (missing(value))
     stop("no adjacency matrix specified.")
-  # the adjacency matrix must, well, be a matrix.
-  if (!is(value, "matrix"))
-    stop("this is not a valid adjacency matrix.")
-  # column names must be a valid node label.
-  if (!is.null(colnames(value)))
-    if (!all(colnames(value) %in% names(x$nodes)))
-      stop("node (column label) not present in the graph.")
-  # column names must be a valid node label.
-  if (!is.null(rownames(value)))
-    if (!all(rownames(value) %in% names(x$nodes)))
-      stop("node (row label) not present in the graph.")
+  # check the adjacency matrix.
+  check.amat(amat = value, nodes = names(x$names))
 
   # update the arcs of the network.
-  x$arcs = amat2arcs(value, names(x$nodes), debug = debug)
+  x$arcs = amat2arcs(value, names(x$nodes))
   # update the network structure.
   x$nodes = cache.structure(names(x$nodes), x$arcs, debug = debug)
 
@@ -427,8 +408,7 @@ parents = function(x, node, rebuild = FALSE) {
   # a valid node is needed.
   check.node(node = node, graph = x)
   # check rebuild.
-  if (!is.logical(rebuild) || is.na(rebuild))
-    stop("rebuild must be a logical value (TRUE/FALSE).")
+  check.logical(rebuild)
 
   if (rebuild)
     parents.backend(x$arcs, node)
@@ -501,8 +481,7 @@ children = function(x, node, rebuild = FALSE) {
   # a valid node is needed.
   check.node(node = node, graph = x)
   # check rebuild.
-  if (!is.logical(rebuild) || is.na(rebuild))
-    stop("rebuild must be a logical value (TRUE/FALSE).")
+  check.logical(rebuild)
 
   if (rebuild)
     children.backend(x$arcs, node)
@@ -600,10 +579,9 @@ nparams = function(x, data, debug = FALSE) {
   if (!is.data.discrete(data))
     stop("parameter enumeration for continuous networks not implemented.")
   # check debug.
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
+  check.logical(debug)
   # nparams is unknown for partially directed graphs.
-  if (is.pdag(x$arcs))
+  if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
 
   params = nparams.backend(x, data, real = TRUE)
@@ -619,14 +597,14 @@ nparams = function(x, data, debug = FALSE) {
 
 }#NPARAMS
 
+# check if a graph is acyclic.
 acyclic = function(x, directed, debug = FALSE) {
 
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
   # check debug.
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
+  check.logical(debug)
 
   if (missing(directed)) {
 
@@ -636,8 +614,7 @@ acyclic = function(x, directed, debug = FALSE) {
   else {
 
     # check directed.
-    if (!is.logical(directed) || is.na(directed))
-      stop("directed must be a logical value (TRUE/FALSE).")
+    check.logical(directed)
 
     if (directed)
       is.dag.acyclic(arcs = x$arcs, nodes = names(x$nodes), debug = debug)
@@ -648,6 +625,7 @@ acyclic = function(x, directed, debug = FALSE) {
 
 }#ACYCLIC
 
+# check if there's a path between two specific nodes.
 path = function(x, from, to, direct = TRUE) {
 
   # check x's class.
@@ -661,7 +639,7 @@ path = function(x, from, to, direct = TRUE) {
   if (identical(from, to))
     stop("'from' and 'to' must be different from each other.")
 
-  if (is.pdag(x$arcs))
+  if (is.pdag(x$arcs, names(x$nodes)))
     has.pdag.path(from, to, names(x$nodes),
       arcs2amat(x$arcs, names(x$nodes)),
       exclude.direct = !direct)
@@ -679,7 +657,7 @@ modelstring = function(x) {
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
   # no model string if the graph is partially directed.
-  if (is.pdag(x$arcs))
+  if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
 
   formula.backend(x)
@@ -693,10 +671,9 @@ node.ordering = function(x, debug = FALSE) {
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
   # check debug.
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
+  check.logical(debug)
   # no model string if the graph is partially directed.
-  if (is.pdag(x$arcs))
+  if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
 
   schedule(x, debug = debug)
@@ -710,8 +687,7 @@ model2network = function(string, debug = FALSE) {
   if (!is(string, "character"))
     stop("string must be a character string.")
   # check debug.
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
+  check.logical(debug)
 
   model2network.backend(string, debug = debug)
 
@@ -751,10 +727,9 @@ rbn = function(x, n, data, debug = FALSE) {
   # the original data set is needed.
   check.data(data)
   # check debug.
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
+  check.logical(debug)
   # no simulation if the graph is partially directed.
-  if (is.pdag(x$arcs))
+  if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
   # only discrete networks are supported.
   if (!is.data.discrete(data))
@@ -780,7 +755,7 @@ drop.arc = function(x, from, to, debug = FALSE) {
 
 }#DROP.ARC
 
-# remove an arc from the graph.
+# reverse an arc in the graph.
 reverse.arc = function(x, from, to, check.cycles = TRUE, debug = FALSE) {
 
   arc.operations(x = x, from = from, to = to, op = "reverse",
@@ -788,6 +763,8 @@ reverse.arc = function(x, from, to, check.cycles = TRUE, debug = FALSE) {
 
 }#REVERSE.ARC
 
+# Parameter sanitization for arc operations.
+# ok, it's not really a frontend (i.e. it's not exported) but it belongs here.
 arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE, debug = FALSE) {
 
 available.ops = c("set", "drop", "reverse")
@@ -795,9 +772,6 @@ available.ops = c("set", "drop", "reverse")
   # check x's class.
   if (!is(x, "bn"))
     stop("x must be an object of class 'bn'.")
-  # check debug.
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
   # check the op code.
   if (!(op %in% available.ops))
     stop("valid op codes are 'set', 'drop' and 'reverse'.")
@@ -808,12 +782,10 @@ available.ops = c("set", "drop", "reverse")
   # 'from' must be different from 'to'.
   if (identical(from, to))
     stop("'from' and 'to' must be different from each other.")
-  # check check.cycles.
-  if (!is.logical(check.cycles) || is.na(check.cycles))
-    stop("check.cycles must be a logical value (TRUE/FALSE).")
-  # check check.cycles.
-  if (!is.logical(update) || is.na(update))
-    stop("update must be a logical value (TRUE/FALSE).")
+  # check logical flags (debug, check.cycles, update).
+  check.logical(debug)
+  check.logical(check.cycles)
+  check.logical(update)
 
   # add/reverse/orient the arc.
   if (op == "set") {
@@ -857,66 +829,20 @@ score = function(x, data, type = NULL, ..., debug = FALSE) {
   # the original data set is needed.
   check.data(data)
   # check debug.
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
+  check.logical(debug)
   # no score if the graph is partially directed.
-  if (is.pdag(x$arcs))
+  if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
   # check the score label.
   type = check.score(type, data)
 
   # expand and sanitize score-specific arguments.
-  extra.args = list(...)
+  extra.args = check.score.args(score = type, network = x, 
+                 data = data, extra.args = list(...))
 
-  if (type %in% c("dir", "bde")) {
-
-    # check the imaginary sample size.
-    extra.args$iss = check.iss(extra.args$iss, x, data)
-
-    return(bde.score(x = x, data = data, debug = debug,
-             iss = extra.args$iss))
-
-  }#THEN
-  else if (type == "k2")
-    return(k2.score(x = x, data = data, debug = debug))
-  else if (type == "loglik")
-   return(loglik.score(x = x, data = data, debug = debug))
-  else if (type == "lik")
-    return(exp(loglik.score(x = x, data = data, debug = debug)))
-  else if (type %in% c("aic", "bic")) {
-
-    if (!is.null(extra.args$k)) {
-
-      # validate the penalty weight.
-      if (!is.positive(extra.args$k))
-        stop("the penalty weight must be a positive numeric value.")
-
-    }#THEN
-    else {
-
-      # set the penalty according to the chosen score.
-      if (type == "aic") extra.args$k = 1
-      else extra.args$k = log(nrow(data))/2
-
-    }#ELSE
-
-    return(loglik.score(x = x, data = data, penalized = extra.args$k,
-      debug = debug))
-
-  }#THEN
-  else if (type == "bge") {
-
-    # check the imaginary sample size.
-    extra.args$iss = check.iss(extra.args$iss, x, data)
-
-    # check phi estimator.
-    extra.args$phi = check.phi(extra.args$phi, x, data)
-
-    return(bge.score(x = x, data = data, debug = debug,
-             iss = as.integer(extra.args$iss),
-             phi = extra.args$phi))
-
-  }#THEN
+  # compute the network score.
+  network.score(network = x, data = data, score = type,
+    extra.args = extra.args, debug = debug)
 
 }#SCORE
 
@@ -937,6 +863,7 @@ empty.graph = function(nodes) {
 
 }#EMPTY.GRAPH
 
+# generate a random graph.
 random.graph = function(nodes, prob = 0.5) {
 
   # nodes must be a vector of character strings.
@@ -971,8 +898,7 @@ compare = function (r1, r2, debug = FALSE) {
   if (!is(r1, "bn") || !is(r2, "bn"))
     stop("both r1 and r2 must be objects of class 'bn'.")
   # check debug.
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
+  check.logical(debug)
 
   # check the two graphs have the same nodes.
   r1.nodes = names(r1$nodes)
@@ -1116,6 +1042,7 @@ compare = function (r1, r2, debug = FALSE) {
 
 }#COMPARE
 
+# infer the direction of an ipothetic arc between two specified nodes.
 choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) {
 
   # check x's class.
@@ -1126,8 +1053,7 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
   # check the arc is there.
   check.arc(arc, x)
   # check debug.
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
+  check.logical(debug)
   # check criterion.
   if (is.null(criterion)) {
 
@@ -1150,65 +1076,22 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
 
   }#ELSE
 
-  # expand and sanitize score-specific arguments.
-  extra.args = list(...)
-
-  if (criterion %in% c("dir", "bde", "bge")) {
-
-    # check the imaginary sample size.
-    extra.args$iss = check.iss(extra.args$iss, x, data)
-
-    # check phi estimator for the bge score.
-    if (criterion == "bge")
-      extra.args$phi = check.phi(extra.args$phi, x, data)
-
-  }#THEN
-  else if (criterion %in% c("aic", "bic")) {
-
-    if (!is.null(extra.args$k)) {
-
-      # validate the penalty weight.
-      if (!is.positive(extra.args$k))
-        stop("the penalty weight must be a positive numeric value.")
-
-    }#THEN
-    else {
-
-      # set the penalty according to the chosen score.
-      if (criterion == "aic") extra.args$k = 1
-      else extra.args$k = log(nrow(data))/2
-
-    }#ELSE
-
-  }#THEN
-  else if (criterion %in% available.tests) {
-
-    # check the the target nominal type I error rate
-    if (!is.null(extra.args$alpha)) {
-
-      # validate alpha.
-      if (!is.numeric(extra.args$alpha) || (extra.args$alpha > 1) || (extra.args$alpha < 0))
-        stop("alpha must be a numerical value in [0,1].")
-
-    }#THEN
-    else {
-
-      extra.args$alpha = 0.05
-
-    }#ELSE
-
-  }#THEN
-
   if (debug)
     cat("* testing", arc[1], "-", arc[2], "for direction.\n" )
 
   if (criterion %in% available.tests) {
 
+    alpha = check.alpha(list(...)$alpha, network = x)
+
     x = choose.direction.test(x, data = data, arc = arc, test = criterion,
-          alpha = extra.args$alpha, debug = debug)
+          alpha = alpha, debug = debug)
 
   }#THEN
   else if (criterion %in% available.scores) {
+
+    # expand and sanitize score-specific arguments.
+    extra.args = check.score.args(score = criterion, network = x, 
+                   data = data, extra.args = list(...))
 
     x = choose.direction.score(x, data = data, arc = arc, score = criterion,
           extra.args = extra.args, debug = debug)
@@ -1221,37 +1104,46 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
 
 # Hill Climbing greedy search frontend.
 hc = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
-    score = NULL, ..., debug = FALSE, optimized = TRUE) {
+    score = NULL, ..., debug = FALSE, restart = 0, perturb = 1,
+    optimized = TRUE) {
 
   greedy.search(x = x, start = start, whitelist = whitelist,
     blacklist = blacklist, score = score, heuristic = "hc",
-    ..., debug = debug, optimized = optimized)
+    ..., debug = debug, restart = restart, perturb = perturb,
+   optimized = optimized)
 
 }#HC
 
 # Parameter sanitization for the score-based learning algorithms.
 # ok, it's not really a frontend (i.e. it's not exported) but it belongs here.
 greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
-    score = "k2", heuristic = "hc", ..., debug = FALSE, optimized = FALSE) {
+    score = "k2", heuristic = "hc", ..., debug = FALSE, restart = 0,
+    perturb = 1, optimized = FALSE) {
 
   # check the data are there.
   check.data(x)
   # check the score label.
   score = check.score(score, x)
   # check debug.
-  if (!is.logical(debug) || is.na(debug))
-    stop("debug must be a logical value (TRUE/FALSE).")
+  check.logical(debug)
+  # check restart and perturb.
+  check.restart(restart, perturb)
   # sanitize whitelist and blacklist, if any.
-  whitelist = build.whitelist(whitelist, colnames(x))
-  blacklist = build.blacklist(blacklist, whitelist, colnames(x))
+  whitelist = build.whitelist(whitelist, names(x))
+  blacklist = build.blacklist(blacklist, whitelist, names(x))
   # if there is no preseeded network, use an empty one.
   if (is.null(start))
-    start = empty.graph(nodes = colnames(x))
+    start = empty.graph(nodes = names(x))
   else {
 
     # check start's class.
     if (!is(start, "bn"))
       stop("x must be an object of class 'bn'.")
+    # set all nodes as updated if the preseed network is not empty, 
+    # so that all cache lookups are skipped.
+    if (nrow(start$arcs) > 0)
+      start$updates = array(rep(0, length(start$nodes)), 
+                        dimnames = list(names(start$nodes)))
 
   }#ELSE
 
@@ -1275,43 +1167,15 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   # be sure the graph structure is up to date.
   start$nodes = cache.structure(names(start$nodes), start$arcs)
   # no party if the graph is partially directed.
-  if (is.pdag(start$arcs))
+  if (is.pdag(start$arcs, names(start$nodes)))
     stop("the graph is only partially directed.")
   # check whether the graph is acyclic.
   if (!is.dag.acyclic(start$arcs, names(start$nodes)))
     stop("the preseeded graph contains cycles.")
 
   # expand and sanitize score-specific arguments.
-  extra.args = list(...)
-
-  if (score %in% c("dir", "bde", "bge")) {
-
-    # check the imaginary sample size.
-    extra.args$iss = check.iss(extra.args$iss, start, x)
-
-    # check phi estimator for the bge score.
-    if (score == "bge")
-      extra.args$phi = check.phi(extra.args$phi, x, data)
-
-  }#THEN
-  else if (score %in% c("aic", "bic")) {
-
-    if (!is.null(extra.args$k)) {
-
-      # validate the penalty weight.
-      if (!is.positive(extra.args$k))
-        stop("the penalty weight must be a positive numeric value.")
-
-    }#THEN
-    else {
-
-      # set the penalty according to the chosen score.
-      if (score == "aic") extra.args$k = 1
-      else extra.args$k = log(nrow(x))/2
-
-    }#ELSE
-
-  }#THEN
+  extra.args = check.score.args(score = score, network = start, 
+                 data = x, extra.args = list(...))
 
   # create the test counter in .GlobalEnv.
   assign(".test.counter", 0, envir = .GlobalEnv)
@@ -1322,14 +1186,14 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
       res = hill.climbing.optimized(x = x, start = start, whitelist = whitelist,
         blacklist = blacklist, score = score, extra.args = extra.args,
-        debug = debug)
+        restart = restart, perturb = perturb, debug = debug)
 
     }#THEN
     else {
 
       res = hill.climbing(x = x, start = start, whitelist = whitelist,
         blacklist = blacklist, score = score, extra.args = extra.args,
-        debug = debug)
+        restart = restart, perturb = perturb, debug = debug)
 
     }#ELSE
 
@@ -1339,8 +1203,67 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   res$learning$algo = heuristic
   res$learning$ntests = get(".test.counter", envir = .GlobalEnv)
   res$learning$test = score
+  res$learning$args = extra.args
 
   invisible(res)
 
 }#GREEDY.SEARCH
+
+# measure the strength of the arcs in a directed graph.
+arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
+
+  # check x's class.
+  if (!is(x, "bn"))
+    stop("x must be an object of class 'bn'.")
+  # arc strength is undefined in partially directed graphs.
+  if (is.pdag(x$arcs, names(x$nodes)))
+    stop("the graph is only partially directed.")
+  # check the data are there.
+  check.data(data)
+  # check debug.
+  check.logical(debug)
+  # check criterion.
+  if (is.null(criterion)) {
+
+    # if no criterion is specified use either the default one or the
+    # one used by the learning algorithm.
+    if (x$learning$test == "none")
+      criterion = check.test(criterion, data)
+    else
+      criterion = x$learning$test
+
+  }#THEN
+  else {
+
+    if (criterion %in% available.tests)
+      criterion = check.test(criterion, data)
+    else if (criterion %in% available.scores)
+      criterion = check.score(criterion, data)
+    else stop(paste("valid criteria are:",
+           paste(available.tests, available.scores, collapse = " ")))
+
+  }#ELSE
+
+  # expand and sanitize score-specific arguments and the alpha threshold.
+  if (criterion %in% available.tests) {
+
+    alpha = check.alpha(list(...)$alpha, network = x)
+
+    # sanitize the alpha threshold.
+    arc.strength.test(network = x, data = data, alpha = alpha, 
+      test = criterion, debug = debug)
+
+  }#THEN
+  else {
+
+    # expand and sanitize score-specific arguments.
+    extra.args = check.score.args(score = criterion, network = x, 
+                 data = data, extra.args = list(...))
+
+    arc.strength.score(network = x, data = data, score = criterion, 
+      extra = extra.args, debug = debug)
+
+  }#ELSE
+
+}#ARC.STRENGTH
 

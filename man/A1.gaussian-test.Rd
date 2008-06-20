@@ -4,22 +4,25 @@
 \title{ Synthetic (continuous) dataset to test learning algorithms }
 \description{
 
-  This a synthetic dataset used as a test case in the
+  This a synthetic data set used as a test case in the
   \pkg{bnlearn} package.
 
 }
 \usage{
-  gaussian.test
+  data(gaussian.test)
 }
-\details{
+\format{
 
-  The \code{gaussian.test} dataset containts the seven normal
-  (gaussian) variables.
+  The \code{gaussian.test} data set contains the seven normal
+  (Gaussian) variables.
 
 }
 \examples{
 
-# these are the R commands used to generate this dataset.
+## The modelstring() of this data set is:
+# [A][B][E][G][C|A:B:E][D|B][F|A:D:E:G]
+
+# these are the R commands used to generate this data set.
 \dontrun{
 a = data.frame(A = rnorm(5000, 1, 1),
                B = rnorm(5000, 2, 3),

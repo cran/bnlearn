@@ -343,3 +343,90 @@ nbr.backend = function(arcs, node) {
 
 }#NBR.BACKEND
 
+# apply random arc operators to the graph.
+perturb.backend = function(network, iter, nodes, amat, whitelist, 
+    blacklist, debug = FALSE) {
+
+  # use a safety copy of the graph.
+  new = network
+  # remember the nodes whose score has to be recomputed.
+  updates = character(0)
+  # rebuild the blacklist as an adjacency matrix.
+  if (!is.null(blacklist))
+    blmat = arcs2amat(blacklist, nodes)
+  else
+    blmat = NULL 
+
+  # use a 'for' loop instead of a 'repeat' to avoid the threat of 
+  # infinite loops (due to the lack of legal operations).
+  for (i in seq_len(3 * iter)) {
+
+    to.be.added = arcs.to.be.added(amat, nodes, length(nodes), blmat)
+    to.be.dropped = arcs.to.be.dropped(new$arcs, whitelist) 
+    to.be.reversed = arcs.to.be.reversed(new$arcs, blacklist) 
+
+    # no more operation to do.
+    if (iter == 0) break;
+
+    # choose which arc operator to use.
+    op = sample(c("set", "drop", "reverse"), 1, replace = TRUE)
+    # choose the arc we apply the operator to.
+    if ((op == "set") && (nrow(to.be.added) > 0)) {
+
+      a = sample(seq_len(nrow(to.be.added)), 1, replace = TRUE)
+      arc = to.be.added[a, ]
+
+      # if the arc creates cycles, choose another one.
+      if (!has.path(arc[2], arc[1], nodes, amat)) {
+
+        new$arcs = set.arc.direction(from = arc[1], to = arc[2], 
+                     arcs = new$arcs, debug = debug)
+
+        updates = c(updates, arc[2])
+
+      }#THEN
+
+    }#THEN
+    else if ((op == "drop") && (nrow(to.be.dropped) > 0)) {
+
+      a = sample(seq_len(nrow(to.be.dropped)), 1, replace = TRUE)
+      arc = to.be.dropped[a, ]
+
+      new$arcs = drop.arc.backend(arcs = new$arcs, dropped = arc, 
+                   debug = debug)
+
+      updates = c(updates, arc[2])
+
+    }#THEN
+    else if ((op == "reverse") && (nrow(to.be.reversed) > 0)) {
+
+      a = sample(seq_len(nrow(to.be.reversed)), 1, replace = TRUE)
+      arc = to.be.reversed[a, ]
+
+      if (!has.path(arc[1], arc[2], nodes, amat, exclude.direct = TRUE)) {
+
+        new$arcs = reverse.arc.backend(from = arc[1], to = arc[2], 
+                     arcs = new$arcs, debug = debug)
+
+        updates = c(updates, arc)
+
+      }#THEN
+
+    }#ELSE
+
+    # update the adjacency matrix, so that has.path() works on the next iteration.
+    amat = arcs2amat(arcs = new$arcs, nodes = nodes)
+
+    # decrease the iteration counter.
+    if (!identical(new$arcs, network$arcs)) 
+      iter = iter - 1
+
+  }#FOR
+
+  # save the names of the nodes whose score is to be updated.
+  updates = unique(updates)
+  new$updates = array(rep(0, length(updates)), dimnames = list(updates))
+
+  return(new)
+
+}#PERTURB.BACKEND

@@ -14,7 +14,7 @@
   ordering2blacklist(nodes)
 }
 \arguments{
-  \item{x}{an object of class "bn".}
+  \item{x}{an object of class \code{bn}.}
   \item{nodes}{a vector of character strings, the labels of the nodes.
     The ordering of the labels must reflect the partial node ordering
     of the nodes in the graph.}

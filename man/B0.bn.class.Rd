@@ -51,15 +51,33 @@
         or used by the learning algorithm (a character string). The
         label of the network score is used for score-based algorithms.
 
-      \item \code{alpha}: the target nominal type I error rate (a
-        numerical value).
-
       \item \code{ntests}: the number of conditional independence tests
         used in the learning (an integer value).
 
       \item \code{algo}: the label of the algorithm used in the learning
         process (a character string), or "random/generated" for randomly
         generated or empty networks.
+
+      \item \code{args}: a list. The values of the parameters of
+        either the conditional tests or the scores used in the learning
+        process. Only the relevant ones are stored, so this may be
+        an empty list.
+
+        \itemize{
+
+          \item \code{alpha}: the target nominal type I error rate (a
+            numerical value) of the conditional independence tests.
+
+          \item \code{iss}: a positive numerical value, the imaginary
+            sample size used by the \code{bge} and \code{bde} scores.
+
+          \item \code{phi}: a character string, either \code{heckerman}
+            or \code{bottcher}; used by the \code{bge} score.
+
+          \item \code{k}: a positive numerical value, the penalty per
+            parameter used by the \code{aic} and \code{bic} scores.
+
+        }
 
     }
 

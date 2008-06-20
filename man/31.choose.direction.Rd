@@ -11,14 +11,14 @@
   choose.direction(x, arc, data, criterion = NULL, ..., debug = FALSE)
 }
 \arguments{
-  \item{x}{an object of class "bn".}
+  \item{x}{an object of class \code{bn}.}
   \item{arc}{ a character string vector of length 2, the labels of
        two nodes of the graph.}
   \item{data}{a data frame, containing the data the Bayesian network
        was learned from.}
   \item{criterion}{the label of either a score or an independence test.
        See \code{\link{bnlearn-package}} for details.}
-  \item{...}{additional tuning parameters for the network score.
+  \item{\dots}{additional tuning parameters for the network score.
       See \code{\link{score}} for details.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
@@ -65,5 +65,6 @@ choose.direction(res, data = learning.test, arc = c("E", "A"), debug = TRUE)
 #   > adding E -> A creates cycles!.
 #   > arc A -> E isn't good, either.
 }
+\seealso{\code{\link{score}}, \code{\link{arc.strength}}. }
 \author{ Marco Scutari }
 \keyword{htest}

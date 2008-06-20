@@ -34,7 +34,7 @@ empty.graph(LETTERS[1:8])
 #  Bayesian network learned via Conditional Independence methods
 #
 #  model:
-#    [H][G][F][E][D][C][B][A]
+#    [A][B][C][D][E][F][G][H]
 #  nodes:                                 8
 #  arcs:                                  0
 #    undirected arcs:                     0
