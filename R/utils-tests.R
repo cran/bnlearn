@@ -27,95 +27,103 @@ is.pdag = function(arcs, nodes) !is.dag(arcs, nodes)
 # generic is.acyclic backend (calls the right one for the graph at hand).
 is.acyclic = function(arcs, nodes, debug = FALSE) {
 
-  if (is.dag(arcs, nodes))
-    is.dag.acyclic(arcs = arcs, nodes = nodes, debug = debug)
-  else
-    is.pdag.acyclic(arcs = arcs, nodes = nodes, debug = debug)
+  is.acyclic.backend(arcs = arcs, nodes = nodes,
+    directed = is.dag(arcs, nodes), debug = debug)
 
 }#IS.ACYCLIC
 
-# check whether a (directed) graph is acyclic.
-is.dag.acyclic = function(arcs, nodes, debug = FALSE) {
+# check whether a (partially directed) graph is acyclic.
+# Extension to mixed graphs of the proof for proposition 1.4.3
+# in "Digraphs Theory, Algorithms and Applications" by
+# Bang-Jensen and Gutin, page 13.
+is.acyclic.backend = function(arcs, nodes, directed = FALSE, return.nodes = FALSE,
+  debug = FALSE) {
 
   # no arcs, no cycles.
-  if (nrow(arcs) == 0) return(TRUE)
+  if (nrow(arcs) == 0)
+    if (return.nodes)
+      return(character(0))
+    else
+      return(TRUE)
+
+  if (debug)
+    cat("* building the adjacency matrix.\n")
 
   amat = arcs2amat(arcs, nodes)
 
   if (debug)
     cat("* checking whether the (directed) graph is acyclic.\n")
 
-  good = nodes
+  in.loop = nodes
 
   # to be part of a loop, a node needs to have both a parent
   # and a children; remove (iteratively) all the nodes which
   # do not fit this description.
   for (i in seq(1, length(nodes))) {
 
-    if (debug)
-      cat("  > nodes which may be part of a cycle: '", good, "'\n")
+    # save a copy of the names of the 'good' nodes at the beginning of each
+    # iteration; it will be used to check if any node is removed and avoid
+    # useless iterations for cyclic graphs.
+    last.known.in.loop = in.loop
 
-    rs = rowSums(amat[good, good, drop = FALSE])
-    cs = colSums(amat[good, good, drop = FALSE])
+    if (debug)
+      cat("  > nodes which may be part of a cycle: '", in.loop, "'\n")
+
+    row.sums = rowSums(amat[in.loop, in.loop, drop = FALSE])
+    col.sums = colSums(amat[in.loop, in.loop, drop = FALSE])
 
     # iteratively remove nodes which have either no parents
     # or no children.
-    good = intersect(names(rs[rs > 0]),
-                     names(cs[cs > 0]))
+    in.loop = intersect(names(row.sums[row.sums > 0]),
+                     names(col.sums[col.sums > 0]))
+
+    if (debug)
+      cat("  > nodes which may be part of a cycle: '", in.loop, "'\n")
+
+    # the following code is useless for directed graphs; skip.
+    if (!directed) {
+
+      # a single undirected arc cannot cause a node to be part of a loop;
+      # thic condition can be identified as follows:
+      # 1) row total equal to 1 (only one outward arc).
+      row.sums = rowSums(amat[in.loop, in.loop, drop = FALSE])
+      # 2) column totla equal to 1 (only one inward arc).
+      col.sums = colSums(amat[in.loop, in.loop, drop = FALSE])
+      # 3) row %*% col = 1 which means that the inward and outward arcs are
+      #      one and the same.
+      single.undirected = rowSums(amat[in.loop, in.loop] * t(amat[in.loop, in.loop]))
+
+      in.loop = in.loop[!((single.undirected == 1) & (row.sums == 1) & (col.sums == 1))]
+
+    }#THEN
 
     # a loop requires at least three distinct nodes.
-    if (length(good) < 3) {
+    if (length(in.loop) < 3) {
 
       if (debug) cat("  @ no cycle found.\n")
 
-      return(TRUE)
+      if (return.nodes)
+        return(character(0))
+      else
+        return(TRUE)
 
     }#THEN
 
-  }#THEN
+    # if the 'good' nodes are the same as in the last iteration, the graph is
+    # cyclic; break the loop and return accordingly.
+    if (length(in.loop) == length(last.known.in.loop)) break
+
+  }#FOR
 
   if (debug)
-    cat("  @ these nodes are part of one or more cycles: '", good, "'\n")
+    cat("  @ these nodes are part of one or more cycles: '", in.loop, "'\n")
 
-  return(FALSE)
+  if (return.nodes)
+    return(in.loop)
+  else
+    return(FALSE)
 
-}#IS.DIRECTED.ACYCLIC
-
-# check whether a (partially directed) graph is acyclic.
-is.pdag.acyclic = function(arcs, nodes, debug = FALSE) {
-
-  # no arcs, no cycles.
-  if (nrow(arcs) == 0) return(TRUE)
-
-  # ignore arcs coming from root nodes or going into leaf nodes;
-  # they cannot be part of a cycle beacuse of the lack of an incoming
-  # or outgoing arc (respectively).
-  roots = rootnodes.backend(arcs, nodes)
-  leafs = leafnodes.backend(arcs, nodes)
-  to.be.ignored = (arcs[, "from"] %in% roots) | (arcs[, "to"] %in% leafs)
-
-  # compute the loop counter of each (relevant) arc.
-  loops = loop.counter(arcs[!to.be.ignored, , drop = FALSE], nodes)
-
-  if (debug) {
-
-    cat("* checking whether the (partially directed) graph is acyclic.\n")
-
-    if (any(to.be.ignored)) {
-
-      cat("  > ignored arcs:", length(which(to.be.ignored)), "\n")
-      print(arcs[to.be.ignored, , drop = FALSE])
-
-    }#THEN
-
-    cat("  > loops:\n")
-    print(loops)
-
-  }#THEN
-
-  return(sum(loops[, "loops"]) == 0)
-
-}#IS.PARTIALLY.ACYCLIC
+}#IS.ACYCLIC.BACKEND
 
 # compute the data / cells ratio.
 obs.per.cell = function(x, y, z = NULL, data) {

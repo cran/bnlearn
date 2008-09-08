@@ -17,7 +17,7 @@ arc.strength.test = function(network, data, test, alpha, debug) {
 
     if (debug) {
 
-      cat("  > testing", arc[1], "->", arc[2], 
+      cat("  > testing", arc[1], "->", arc[2],
         "with conditioning set '", parents, "'.\n")
       cat("    > p-value is", a, ".\n")
 
@@ -35,7 +35,7 @@ arc.strength.test = function(network, data, test, alpha, debug) {
   }#THEN
 
   # populate the strength data frame.
-  strength = data.frame(network$arcs, strength = apply(network$arcs, 1, drop), 
+  strength = data.frame(network$arcs, strength = apply(network$arcs, 1, drop),
                stringsAsFactors = FALSE)
 
   return(strength)
@@ -88,7 +88,7 @@ arc.strength.score = function(network, data, score, extra, debug) {
   }#THEN
 
   # populate the strength data frame.
-  strength = data.frame(network$arcs, strength = apply(network$arcs, 1, drop), 
+  strength = data.frame(network$arcs, strength = apply(network$arcs, 1, drop),
                stringsAsFactors = FALSE)
 
   return(strength)

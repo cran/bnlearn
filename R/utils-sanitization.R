@@ -24,10 +24,16 @@ check.data = function(x) {
   # check the variables are either all continuous or all discrete.
   if (!is.data.discrete(x) && !is.data.continuous(x))
     stop("variables must be either all numeric or all factors.")
+  # check the number of levels of discrete variables, to guarantee that
+  # the degrees of freedom of the tests are positive.
+  if (is.data.discrete(x))
+    for (col in names(x))
+      if (nlevels(x[, col]) < 2)
+        stop("all factors must have at leat two levels.")
 
 }#CHECK.DATA
 
-# check a single node label.
+# check a single node label of a graph.
 check.node = function(node, graph) {
 
   # a node is needed.
@@ -44,6 +50,28 @@ check.node = function(node, graph) {
     stop("node not present in the graph.")
 
 }#CHECK.NODE
+
+# check nodes (not from a bn object).
+check.nodes = function(nodes, min.nodes = NULL) {
+
+  # nodes must be a vector of character strings.
+  if (!is(nodes, "character"))
+    stop("nodes must be a vector of character strings, the labels of the nodes.")
+  # at least one node is needed.
+  if (length(nodes) < 1)
+    stop("at leat one node label is needed.")
+  # no duplicates allowed.
+  if (any(duplicated(nodes)))
+     stop("node labels must be unique.")
+  # no empty strings
+  if (any(nodes == ""))
+    stop("an empty string is not a valid node label.")
+  # minimum number of nodes requirement.
+  if (!is.null(min.nodes))
+    if (length(nodes) < min.nodes)
+      stop(paste("at least", min.nodes, "nodes needed."))
+
+}#CHECK.NODES
 
 # build a valid whitelist.
 build.whitelist = function(whitelist, nodes) {
@@ -242,7 +270,7 @@ is.data.continuous = function(data) {
   for (i in 1:ncol(data))
     if (!is(data[, i], "numeric"))
       return(FALSE)
-  
+
   return(TRUE)
 
 }#IS.DATA.CONTINUOUS
@@ -354,7 +382,7 @@ check.score.args = function(score, network, data, extra.args) {
   if (score %in% c("dir", "bde")) {
 
     # check the imaginary sample size.
-    extra.args$iss = check.iss(iss = extra.args$iss, 
+    extra.args$iss = check.iss(iss = extra.args$iss,
       network = network, data = data)
 
   }#THEN
@@ -379,18 +407,30 @@ check.score.args = function(score, network, data, extra.args) {
   else if (score == "bge") {
 
     # check the imaginary sample size.
-    extra.args$iss = check.iss(iss = extra.args$iss, 
+    extra.args$iss = check.iss(iss = extra.args$iss,
       network = network, data = data)
 
     # check phi estimator.
-    extra.args$phi = check.phi(phi = extra.args$phi, 
+    extra.args$phi = check.phi(phi = extra.args$phi,
       network = network, data = data)
 
   }#THEN
 
+  check.unused.args(extra.args, score.extra.args[[score]])
+
   return(extra.args)
 
 }#CHECK.SCORE.ARGS
+
+# warn about unused arguments.
+check.unused.args = function(dots, used.args) {
+
+  unused.args = !(names(dots) %in% used.args)
+  if (any(unused.args))
+    warning(paste("unused argument(s):", paste(names(dots)[unused.args],
+              sep = "", collapse = " ")))
+
+}#CHECK.UNUSED.ARGS
 
 # check the the target nominal type I error rate
 check.alpha = function(alpha, network = NULL) {
@@ -399,7 +439,7 @@ check.alpha = function(alpha, network = NULL) {
   if (!is.null(alpha)) {
 
     # validate alpha.
-    if (!is.numeric(alpha) || (alpha > 1) || (alpha < 0))
+    if (!is.positive(alpha) || (alpha > 1))
       stop("alpha must be a numerical value in [0,1].")
 
   }#THEN
@@ -450,12 +490,24 @@ check.logical = function(bool) {
 
   if (!is.logical(bool) || is.na(bool)) {
 
-    stop(sprintf("%s must be a logical value (TRUE/FALSE).", 
-           as.character(sys.call()[[2]])))
+    stop(sprintf("%s must be a logical value (TRUE/FALSE).",
+           deparse(substitute(bool))))
 
   }#THEN
 
 }#CHECK.LOGICAL
+
+# check logical flags.
+check.bn = function(bn) {
+
+  if (!is(bn, "bn")) {
+
+    stop(sprintf("%s must be an object of class 'bn'.",
+           deparse(substitute(bn))))
+
+  }#THEN
+
+}#CHECK.BN
 
 # check parameters related to the random restart functions.
 check.restart = function(restart, perturb) {
@@ -473,3 +525,21 @@ check.restart = function(restart, perturb) {
   }#THEN
 
 }#CHECK.RESTART
+
+check.bn.vs.data = function(bn, data) {
+
+  # the number of variables must be the same
+  if (length(names(bn$nodes)) != ncol(data))
+    stop("the network and the data have different numbers of variables.")
+  # the variables must be the same.
+  if (length(setdiff(names(bn$nodes) , names(data))) != 0)
+    stop("the variables in the data and in the network do not match.")
+  # data type versus network type
+  if (bn$learning$test %in% c(available.discrete.tests, available.discrete.scores) &&
+      is.data.continuous(data))
+    stop("continuous data and discrete network.")
+  if (bn$learning$test %in% c(available.continuous.tests, available.continuous.scores) &&
+      is.data.discrete(data))
+    stop("discrete data and continuous network.")
+
+}#CHECK.BN.VS.DATA

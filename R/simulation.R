@@ -1,7 +1,7 @@
 # do a partial ordering of the nodes of a graph.
 schedule = function(x, debug = FALSE) {
 
-  nodes = rootnodes(x)
+  nodes = rootnodes.backend(x$arcs, names(x$nodes))
   to.do = rep(0, length(x$nodes))
   names(to.do) = names(x$nodes)
 
@@ -19,11 +19,10 @@ schedule = function(x, debug = FALSE) {
 
     }#THEN
 
-    nodes = sapply(nodes, function(node) { children(x, node) }, 
-              simplify = FALSE)
-
-    if (is.list(nodes)) 
-      nodes = do.call("c", nodes)
+    nodes = .Call("schedule_children",
+            graph  = x,
+            nodes = nodes,
+            PACKAGE = "bnlearn")
 
     nodes = unique(nodes)
 

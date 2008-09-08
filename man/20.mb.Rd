@@ -3,6 +3,8 @@
 \alias{nbr}
 \alias{arcs}
 \alias{arcs<-}
+\alias{directed.arcs}
+\alias{undirected.arcs}
 \alias{nodes}
 \alias{amat}
 \alias{amat<-}
@@ -10,10 +12,11 @@
 \alias{parents<-}
 \alias{children}
 \alias{children<-}
-\alias{rootnodes}
-\alias{leafnodes}
+\alias{root.nodes}
+\alias{leaf.nodes}
 \alias{nparams}
 \alias{acyclic}
+\alias{directed}
 \alias{path}
 \title{ Utilities to manipulate graphs }
 \description{
@@ -30,12 +33,14 @@
   parents(x, node, debug = FALSE) <- value
   children(x, node, rebuild = FALSE)
   children(x, node, debug = FALSE) <- value
-  rootnodes(x)
-  leafnodes(x)
+  root.nodes(x)
+  leaf.nodes(x)
 
   ## arcs
   arcs(x)
   arcs(x, debug = FALSE) <- value
+  directed.arcs(x)
+  undirected.arcs(x)
 
   ## adjacency matrix
   amat(x)
@@ -44,7 +49,8 @@
   ## graphs
   nparams(x, data, debug = FALSE)
   acyclic(x, directed, debug = FALSE)
-  path(x, from, to, direct = TRUE)
+  directed(x)
+  path(x, from, to, direct = TRUE, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
@@ -81,7 +87,7 @@
   \code{arcs} returns a matrix of two columns of character strings. \cr
   \code{amat} returns a matrix of 0/1 numeric values. \cr
   \code{nparams} returns an integer. \cr
-  \code{acyclic} and \code{path} return a boolean value.
+  \code{acyclic}, \code{path} and \code{directed} return a boolean value.
 
 }
 \note{
@@ -134,10 +140,10 @@ parents(res, "D")
 children(res, "A")
 # [1] "D"
 ## the root nodes of the graph.
-rootnodes(res)
+root.nodes(res)
 # [1] "C" "F"
 ## the leaf nodes of the graph.
-leafnodes(res)
+leaf.nodes(res)
 # [1] "D" "E"
 ## number of parameters of the Bayesian network.
 res = set.arc(res, "A", "B")

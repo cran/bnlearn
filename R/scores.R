@@ -2,51 +2,51 @@
 # compute the score of a bayesian network.
 network.score = function(network, data, score, extra.args, debug = FALSE) {
 
-  sum(per.node.score(network = network, data = data, score = score, 
-    nodes = names(network$nodes), extra.args = extra.args, 
+  sum(per.node.score(network = network, data = data, score = score,
+    nodes = names(network$nodes), extra.args = extra.args,
     debug = debug))
 
 }#NETWORK.SCORE
 
 # compute single nodes' contributions to the network score.
-per.node.score = function(network, data, score, nodes, extra.args, 
+per.node.score = function(network, data, score, nodes, extra.args,
     debug = FALSE) {
 
   if (score == "k2") {
 
-   res = sapply(nodes, dirichlet.node, x = network, data = data, 
+   res = sapply(nodes, dirichlet.node, x = network, data = data,
            debug = debug)
 
   }#THEN
   else if (score %in% c("bde", "dir")) {
 
-   res = sapply(nodes, dirichlet.node, x = network, 
-           imaginary.sample.size = extra.args$iss, data = data, 
+   res = sapply(nodes, dirichlet.node, x = network,
+           imaginary.sample.size = extra.args$iss, data = data,
            debug = debug)
 
   }#THEN
   else if (score == "loglik") {
 
-    res = sapply(nodes, loglik.node, x = network, data = data, 
+    res = sapply(nodes, loglik.node, x = network, data = data,
             debug = debug)
 
   }#THEN
   else if (score == "lik") {
 
-    res = exp(sapply(nodes, loglik.node, x = network, data = data, 
+    res = exp(sapply(nodes, loglik.node, x = network, data = data,
             debug = debug))
 
   }#THEN
   else if (score %in% c("aic", "bic")) {
 
-    res = sapply(nodes, aic.node, x = network, data = data, 
+    res = sapply(nodes, aic.node, x = network, data = data,
             k = extra.args$k, debug = debug)
 
   }#THEN
   else if (score == "bge") {
 
-    res = sapply(nodes, bge.node, x = network, phi = extra.args$phi, 
-            data = data, imaginary.sample.size = extra.args$iss, 
+    res = sapply(nodes, bge.node, x = network, phi = extra.args$phi,
+            data = data, imaginary.sample.size = extra.args$iss,
             debug = debug)
 
   }#THEN

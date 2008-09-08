@@ -3,7 +3,7 @@
 # an alias of score(..., type = "aic")
 AIC.bn = function(object, data, ..., k = 1) {
 
-  score(object, data = data, type = "aic", k = k)
+  score(object, data = data, type = "aic", k = k, ...)
 
 }#AIC.bn
 
@@ -13,7 +13,7 @@ logLik.bn = function(object, data, ...) {
 
   # parameter sanitization done in the score() function.
 
-  score(x = object, data = data, type = "loglik")
+  score(x = object, data = data, type = "loglik", ...)
 
 }#LOGLIK.BN
 
@@ -158,6 +158,9 @@ as.bn.character = function(x, debug = FALSE) {
 # an alias of modelstring().
 as.character.bn = function(x, ...) {
 
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
   modelstring(x)
 
 }#AS.CHARACTER.BN
@@ -165,19 +168,22 @@ as.character.bn = function(x, ...) {
 print.bn = function(x, ...) {
 
   params = names(x$learning$args)
-  directed.arcs = length(which(!is.undirected(x$arcs)))
+  directed.arcs = length(which(!which.undirected(x$arcs)))
   undirected.arcs = (nrow(x$arcs) - directed.arcs)/2
   arcs = undirected.arcs + directed.arcs
   avg.mb = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$mb) }))
   avg.nbr = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$nbr) }))
   avg.ch = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$children) }))
 
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
   if (x$learning$test %in% names(test.labels))
     cat("\n  Bayesian network learned via Conditional Independence methods\n\n")
   else
     cat("\n  Bayesian network learned via Scoring methods\n\n")
 
-  cat("  model:\n   ", ifelse(is.dag(x$arcs, names(x$nodes)), modelstring(x),
+  cat("  model:\n   ", ifelse(is.dag(x$arcs, names(x$nodes)), formula.backend(x),
       "[partially directed graph]"), "\n")
 
   cat("  nodes:                                ", length(x$nodes), "\n")

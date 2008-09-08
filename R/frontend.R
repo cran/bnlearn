@@ -1,44 +1,4 @@
 
-# Global variables.
-available.discrete.tests = c("mh", "mi", "fmi", "aict")
-available.continuous.tests = c("cor", "zf")
-available.tests = c(available.discrete.tests, available.continuous.tests)
-
-available.discrete.scores = c("lik", "loglik", "aic", "bic", "dir", "bde", "k2")
-available.continuous.scores = c("bge")
-available.scores = c(available.discrete.scores, available.continuous.scores)
-
-score.equivalent.scores = c("lik", "loglik", "aic", "bic", "dir", "bde", "bge")
-
-method.labels = c(
-  'gs' = "grow-shrink",
-  'iamb' = "incremental association",
-  'fast-iamb' = "fast incremental association",
-  'inter-iamb' = "interleaved incremental association",
-  'rnd' = "random/generated",
-  'hc' = 'hill-climbing'
-)
-
-test.labels = c(
-  'mh' = "Mantel-Haenszel chi-squared test",
-  'mi' = "mutual information",
-  'fmi' = "fast mutual information",
-  'aict'= "AIC-like test",
-  'cor' = "linear correlation",
-  'zf' = "Fisher's Z test",
-  'none' = "none"
-)
-
-score.labels = c(
-  'k2' = "Cooper & Herskovits' K2",
-  'bde' = "bayesian-dirichlet (score equivalent)",
-  'aic' = "Akaike information criterion",
-  'bic' = "bayesian information criterion",
-  'lik' = "likelihood",
-  'loglik' = "log-likelihood",
-  'bge' = "bayesian-gaussian (score equivalent)"
-)
-
 # Grow-Shrink frontend.
 gs = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
@@ -258,10 +218,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       sum(unlist(clusterEvalQ(cluster, get(".test.counter", envir = .GlobalEnv))))
   # save the learning method used.
   res$learning$algo = method
-  # set the class of the return value.
-  class(res) = "bn"
 
-  invisible(res)
+  invisible(structure(res, class = "bn"))
 
 }#BNLEARN
 
@@ -269,8 +227,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 mb = function(x, node, rebuild = FALSE) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # a valid node is needed.
   check.node(node = node, graph = x)
   # check rebuild.
@@ -287,8 +244,7 @@ mb = function(x, node, rebuild = FALSE) {
 nbr = function(x, node, rebuild = FALSE) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # a valid node is needed.
   check.node(node = node, graph = x)
   # check rebuild.
@@ -305,8 +261,7 @@ nbr = function(x, node, rebuild = FALSE) {
 arcs = function(x) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
 
   x$arcs
 
@@ -316,8 +271,7 @@ arcs = function(x) {
 "arcs<-" <- function(x, debug = FALSE, value) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # a set of arcs is needed.
   if (missing(value))
     stop("no arc specified.")
@@ -330,6 +284,9 @@ arcs = function(x) {
      if (is.data.frame(value))
        value = as.matrix(cbind(as.character(value[,1]),
          as.character(value[,2])))
+
+     # be sure to set the column names.
+     dimnames(value) = list(c(), c("from", "to"))
 
   }#THEN
   else if (is.character(value)) {
@@ -356,12 +313,31 @@ arcs = function(x) {
 
 }#ARCS<-
 
+# return the directed arcs in the graph.
+directed.arcs = function(x) {
+
+  # check x's class.
+  check.bn(x)
+
+  x$arcs[!which.undirected(x$arcs), , drop = FALSE]
+
+}#DIRECTED.ARCS
+
+# return the undirected arcs in the graph.
+undirected.arcs = function(x) {
+
+  # check x's class.
+  check.bn(x)
+
+  x$arcs[which.undirected(x$arcs), , drop = FALSE]
+
+}#UNDIRECTED.ARCS
+
 # return the nodes in the graph.
 nodes = function(x) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
 
   names(x$nodes)
 
@@ -371,8 +347,7 @@ nodes = function(x) {
 amat = function(x) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
 
   arcs2amat(x$arcs, names(x$nodes))
 
@@ -382,8 +357,7 @@ amat = function(x) {
 "amat<-" <- function(x, debug = FALSE, value) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # a node is needed.
   if (missing(value))
     stop("no adjacency matrix specified.")
@@ -403,8 +377,7 @@ amat = function(x) {
 parents = function(x, node, rebuild = FALSE) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # a valid node is needed.
   check.node(node = node, graph = x)
   # check rebuild.
@@ -421,8 +394,7 @@ parents = function(x, node, rebuild = FALSE) {
 "parents<-" <- function(x, node, debug = FALSE, value) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # a valid node is needed.
   check.node(node = node, graph = x)
   # at least one parent node is needed.
@@ -476,8 +448,7 @@ parents = function(x, node, rebuild = FALSE) {
 children = function(x, node, rebuild = FALSE) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # a valid node is needed.
   check.node(node = node, graph = x)
   # check rebuild.
@@ -494,8 +465,7 @@ children = function(x, node, rebuild = FALSE) {
 "children<-" <- function(x, node, debug = FALSE, value) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # a valid node is needed.
   check.node(node = node, graph = x)
   # a node is needed.
@@ -546,22 +516,20 @@ children = function(x, node, rebuild = FALSE) {
 }#CHILDREN<-
 
 # get the root nodes of a bayesian network.
-rootnodes = function(x) {
+root.nodes = function(x) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
 
   rootnodes.backend(x$arcs, names(x$nodes))
 
 }#ROOTNODES
 
 # get the leaf nodes of a bayesian network.
-leafnodes = function(x) {
+leaf.nodes = function(x) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
 
   leafnodes.backend(x$arcs, names(x$nodes))
 
@@ -571,10 +539,11 @@ leafnodes = function(x) {
 nparams = function(x, data, debug = FALSE) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # check the data are there.
   check.data(data)
+  # check the network against the data
+  check.bn.vs.data(x, data)
   # only discrete bayesian networks are supported.
   if (!is.data.discrete(data))
     stop("parameter enumeration for continuous networks not implemented.")
@@ -601,8 +570,7 @@ nparams = function(x, data, debug = FALSE) {
 acyclic = function(x, directed, debug = FALSE) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # check debug.
   check.logical(debug)
 
@@ -616,21 +584,28 @@ acyclic = function(x, directed, debug = FALSE) {
     # check directed.
     check.logical(directed)
 
-    if (directed)
-      is.dag.acyclic(arcs = x$arcs, nodes = names(x$nodes), debug = debug)
-    else
-      is.pdag.acyclic(arcs = x$arcs, nodes = names(x$nodes), debug = debug)
+    is.acyclic.backend(arcs = x$arcs, nodes = names(x$nodes),
+      directed = directed, debug = debug)
 
   }#ELSE
 
 }#ACYCLIC
 
-# check if there's a path between two specific nodes.
-path = function(x, from, to, direct = TRUE) {
+# check if a graph is directed.
+directed = function(x) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
+
+  is.dag(x$arcs, names(x$nodes))
+
+}#DIRECTED
+
+# check if there's a path between two specific nodes.
+path = function(x, from, to, direct = TRUE, debug = FALSE) {
+
+  # check x's class.
+  check.bn(x)
   # a valid node is needed.
   check.node(node = from, graph = x)
   # another valid node is needed.
@@ -639,14 +614,10 @@ path = function(x, from, to, direct = TRUE) {
   if (identical(from, to))
     stop("'from' and 'to' must be different from each other.")
 
-  if (is.pdag(x$arcs, names(x$nodes)))
-    has.pdag.path(from, to, names(x$nodes),
-      arcs2amat(x$arcs, names(x$nodes)),
-      exclude.direct = !direct)
-  else
-    has.path(from, to, names(x$nodes),
-      arcs2amat(x$arcs, names(x$nodes)),
-      exclude.direct = !direct)
+  has.path(from, to, names(x$nodes),
+    arcs2amat(x$arcs, names(x$nodes)),
+    exclude.direct = !direct,
+    debug = debug)
 
 }#PATH
 
@@ -654,8 +625,7 @@ path = function(x, from, to, direct = TRUE) {
 modelstring = function(x) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # no model string if the graph is partially directed.
   if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
@@ -668,8 +638,7 @@ modelstring = function(x) {
 node.ordering = function(x, debug = FALSE) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # check debug.
   check.logical(debug)
   # no model string if the graph is partially directed.
@@ -696,15 +665,8 @@ model2network = function(string, debug = FALSE) {
 # generate a valid blacklist from a partial node ordering.
 ordering2blacklist = function(nodes) {
 
-  # nodes must be a vector of character strings.
-  if (!is(nodes, "character"))
-    stop("nodes must be a vector of character strings, the labels of the nodes.")
-  # at least one node is needed.
-  if (length(nodes) < 1)
-    stop("at leat one node label is needed.")
-  # no duplicates allowed.
-  if(any(duplicated(nodes)))
-     stop("node labels must be unique.")
+  # check the node labels.
+  check.nodes(nodes, min.nodes = 3)
 
   do.call(rbind,
 
@@ -722,10 +684,11 @@ ordering2blacklist = function(nodes) {
 rbn = function(x, n, data, debug = FALSE) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # the original data set is needed.
   check.data(data)
+  # check the network against the data
+  check.bn.vs.data(x, data)
   # check debug.
   check.logical(debug)
   # no simulation if the graph is partially directed.
@@ -770,8 +733,7 @@ arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE, d
 available.ops = c("set", "drop", "reverse")
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # check the op code.
   if (!(op %in% available.ops))
     stop("valid op codes are 'set', 'drop' and 'reverse'.")
@@ -824,10 +786,11 @@ available.ops = c("set", "drop", "reverse")
 score = function(x, data, type = NULL, ..., debug = FALSE) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # the original data set is needed.
   check.data(data)
+  # check the network against the data
+  check.bn.vs.data(x, data)
   # check debug.
   check.logical(debug)
   # no score if the graph is partially directed.
@@ -837,7 +800,7 @@ score = function(x, data, type = NULL, ..., debug = FALSE) {
   type = check.score(type, data)
 
   # expand and sanitize score-specific arguments.
-  extra.args = check.score.args(score = type, network = x, 
+  extra.args = check.score.args(score = type, network = x,
                  data = data, extra.args = list(...))
 
   # compute the network score.
@@ -846,18 +809,199 @@ score = function(x, data, type = NULL, ..., debug = FALSE) {
 
 }#SCORE
 
+# do a single conditional independence test.
+ci.test = function(x, ...) {
+
+  UseMethod("ci.test", x)
+
+}#CI.TEST
+
+# do a single conditional independence test (nodes as character strings).
+ci.test.character = function(x, y = NULL, z = NULL, data, test = NULL,
+    debug = FALSE, ...) {
+
+  # the original data set is needed.
+  check.data(data)
+  # check debug.
+  check.logical(debug)
+  # check the variables involved in the test.
+  if (length(x) != 1 || x == "" || !(x %in% names(data)))
+    stop("'x' must be a character string, the name of one of the columns of 'data'.")
+  if (length(y) != 1 || !is.character(y) || y == "" || !(y %in% names(data)))
+    stop("'y' must be a character string, the name of one of the columns of 'data'.")
+  if (x == y)
+    stop("'x' must be different from 'y'.")
+  if (!is.null(z)) {
+
+    if (!is.character(z) || !all(z %in% names(data)))
+      stop("'z' must be a vector of character strings, the names of one or more of the columns of 'data'.")
+    if (any(z %in% c(x, y)))
+      stop("'z' must be different from both 'x' and 'y'.")
+
+  }#THEN
+  # check the test label.
+  test = check.test(test, data)
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  # compute the network score.
+  conditional.test(x = x, y = y, sx = z, data = data, test = test,
+    learning = FALSE)
+
+}#CI.TEST.CHARACTER
+
+# do a single conditional independence test (nodes in a data frame).
+ci.test.data.frame = function(x, test = NULL, debug = FALSE, ...) {
+
+  nodes = names(x)
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  ci.test.character(x = nodes[1], y = nodes[2], z = nodes[-(1:2)],
+    data = x, test = test, debug = debug)
+
+}#CI.TEST.DATA.FRAME
+
+# do a single conditional independence test (numerical vectors).
+ci.test.numeric = function(x, y = NULL, z = NULL, test = NULL, debug = FALSE, ...) {
+
+  # check debug.
+  check.logical(debug)
+  # check the variables involved in the test.
+  if (!is.numeric(y) && !(is.matrix(y) && ncol(y) == 1))
+    stop("'y' must be a numeric vector.")
+  if (length(y) != length(x))
+    stop("'x' and 'y' must have the same length.")
+  if (!is.null(z)) {
+
+    if (is.matrix(z) || is.data.frame(z)) {
+
+      if (nrow(z) != length(x))
+        stop("'x', 'y', and 'z' must have the same length.")
+      if (!is.data.continuous(z))
+        stop("'z' must be a numeric matrix or data frame.")
+
+      sx = 3:(2 + ncol(z))
+
+    }#THEN
+    else if (is.numeric(z)) {
+
+      if (length(z) != length(x))
+        stop("'x', 'y', and 'z' must have the same length.")
+
+      sx = 3
+
+    }#THEN
+    else
+      stop("'z' must be a numeric vector, matrix or data frame.")
+
+    # build the data frame.
+    data = data.frame(x = x, y = y, z = z)
+
+  }#THEN
+  else {
+
+    # build the data frame.
+    data = data.frame(x = x, y = y)
+
+    sx = character(0)
+
+  }#ELSE
+  # check the data are there.
+  check.data(data)
+  # check the test label.
+  test = check.test(test, data)
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  res = conditional.test(x = 1, y = 2, sx = sx, data = data,
+    test = test, learning = FALSE)
+
+  # rewrite the test formula.
+  res$data.name = paste(deparse(substitute(x)), "~", deparse(substitute(y)),
+        ifelse(!is.null(z), paste("|", deparse(substitute(z))), ""),
+        collapse = " + ")
+
+  return(res)
+
+}#CI.TEST.NUMERIC
+
+# do a single conditional independence test (factor objects).
+ci.test.factor = function(x, y = NULL, z = NULL, test = NULL, debug = FALSE, ...) {
+
+  # check debug.
+  check.logical(debug)
+  # check the variables involved in the test.
+  if (!is.factor(y) && !(is.matrix(y) && ncol(y) == 1))
+    stop("'y' must be a factor vector.")
+  if (length(y) != length(x))
+    stop("'x' and 'y' must have the same length.")
+  if (!is.null(z)) {
+
+    if (is.matrix(z) || is.data.frame(z)) {
+
+      if (nrow(z) != length(x))
+        stop("'x', 'y', and 'z' must have the same length.")
+      if (!is.data.discrete(z))
+        stop("'z' must be a factor matrix or data frame.")
+
+      sx = 3:(2 + ncol(z))
+
+    }#THEN
+    else if (is.factor(z)) {
+
+      if (length(z) != length(x))
+        stop("'x', 'y', and 'z' must have the same length.")
+
+      sx = 3
+
+    }#THEN
+    else
+      stop("'z' must be a factor vector, matrix or data frame.")
+
+    # build the data frame.
+    data = data.frame(x = x, y = y, z = z)
+
+  }#THEN
+  else {
+
+    # build the data frame.
+    data = data.frame(x = x, y = y)
+
+    sx = character(0)
+
+  }#ELSE
+  # check the data are there.
+  check.data(data)
+  # check the test label.
+  test = check.test(test, data)
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  res = conditional.test(x = 1, y = 2, sx = sx, data = data,
+    test = test, learning = FALSE)
+
+  # rewrite the test formula.
+  res$data.name = paste(deparse(substitute(x)), "~", deparse(substitute(y)),
+        ifelse(!is.null(z), paste("|", deparse(substitute(z))), ""),
+        collapse = " + ")
+
+  return(res)
+
+}#CI.TEST.FACTOR
+
+ci.test.default = function(x, ...) {
+
+  stop("x must be either a factor object, a numeric vector, a character string or a data frame.")
+
+}#CI.TEST.DEFAULT
+
 # create an empty graph from a given set of nodes.
 empty.graph = function(nodes) {
 
-  # nodes must be a vector of character strings.
-  if (!is(nodes, "character"))
-    stop("nodes must be a vector of character strings, the labels of the nodes.")
-  # at least one node is needed.
-  if (length(nodes) < 1)
-    stop("at leat one node label is needed.")
-  # no duplicates allowed.
-  if(any(duplicated(nodes)))
-     stop("node labels must be unique.")
+  # check the node labels.
+  check.nodes(nodes)
 
   empty.graph.backend(nodes)
 
@@ -866,23 +1010,10 @@ empty.graph = function(nodes) {
 # generate a random graph.
 random.graph = function(nodes, prob = 0.5) {
 
-  # nodes must be a vector of character strings.
-  if (!is(nodes, "character"))
-    stop("nodes must be a vector of character strings, the labels of the nodes.")
-  # at least one node is needed.
-  if (length(nodes) < 1)
-    stop("at leat one node label is needed.")
-  # no duplicates allowed.
-  if (any(duplicated(nodes)))
-    stop("node labels must be unique.")
+  # check the node labels.
+  check.nodes(nodes, min.nodes = 3)
   # prob must be numeric.
-  if (!is(prob, "numeric"))
-    stop("the branching probability must be a numeric value.")
-  # prob must be scalar.
-  if (length(prob) > 1)
-    stop("the branching probability must be a scalar.")
-  # prob must be a value in [0,1].
-  if ((prob < 0) || (prob > 1))
+  if (!is.positive(prob) || (prob > 1))
     stop("the branching probability must be a numeric value in [0,1].")
 
   random.graph.backend(nodes = nodes, prob = prob)
@@ -895,8 +1026,8 @@ compare = function (r1, r2, debug = FALSE) {
   result = TRUE
 
   # check both objects' class.
-  if (!is(r1, "bn") || !is(r2, "bn"))
-    stop("both r1 and r2 must be objects of class 'bn'.")
+  check.bn(r1)
+  check.bn(r2)
   # check debug.
   check.logical(debug)
 
@@ -1001,8 +1132,8 @@ compare = function (r1, r2, debug = FALSE) {
   if (!all(check)) result = FALSE
 
   # check directed arcs.
-  r1.arcs = apply(r1$arcs[!is.undirected(r1$arcs), , drop = FALSE], 1, paste, collapse = " -> ")
-  r2.arcs = apply(r2$arcs[!is.undirected(r2$arcs), , drop = FALSE], 1, paste, collapse = " -> ")
+  r1.arcs = apply(r1$arcs[!which.undirected(r1$arcs), , drop = FALSE], 1, paste, collapse = " -> ")
+  r2.arcs = apply(r2$arcs[!which.undirected(r2$arcs), , drop = FALSE], 1, paste, collapse = " -> ")
 
   if (!identical(sort(r1.arcs), sort(r2.arcs))) {
 
@@ -1020,8 +1151,8 @@ compare = function (r1, r2, debug = FALSE) {
   }#THEN
 
   # check undirected arcs.
-  r1.arcs = apply(r1$arcs[is.undirected(r1$arcs), , drop = FALSE], 1, paste, collapse = " - ")
-  r2.arcs = apply(r2$arcs[is.undirected(r2$arcs), , drop = FALSE], 1, paste, collapse = " - ")
+  r1.arcs = apply(r1$arcs[which.undirected(r1$arcs), , drop = FALSE], 1, paste, collapse = " - ")
+  r2.arcs = apply(r2$arcs[which.undirected(r2$arcs), , drop = FALSE], 1, paste, collapse = " - ")
 
   if (!identical(sort(r1.arcs), sort(r2.arcs))) {
 
@@ -1046,8 +1177,7 @@ compare = function (r1, r2, debug = FALSE) {
 choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # check the data are there.
   check.data(data)
   # check the arc is there.
@@ -1083,6 +1213,9 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
 
     alpha = check.alpha(list(...)$alpha, network = x)
 
+    # warn about unused arguments.
+    check.unused.args(list(...), "alpha")
+
     x = choose.direction.test(x, data = data, arc = arc, test = criterion,
           alpha = alpha, debug = debug)
 
@@ -1090,7 +1223,7 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
   else if (criterion %in% available.scores) {
 
     # expand and sanitize score-specific arguments.
-    extra.args = check.score.args(score = criterion, network = x, 
+    extra.args = check.score.args(score = criterion, network = x,
                    data = data, extra.args = list(...))
 
     x = choose.direction.score(x, data = data, arc = arc, score = criterion,
@@ -1139,10 +1272,10 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     # check start's class.
     if (!is(start, "bn"))
       stop("x must be an object of class 'bn'.")
-    # set all nodes as updated if the preseed network is not empty, 
+    # set all nodes as updated if the preseed network is not empty,
     # so that all cache lookups are skipped.
     if (nrow(start$arcs) > 0)
-      start$updates = array(rep(0, length(start$nodes)), 
+      start$updates = array(rep(0, length(start$nodes)),
                         dimnames = list(names(start$nodes)))
 
   }#ELSE
@@ -1170,11 +1303,11 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   if (is.pdag(start$arcs, names(start$nodes)))
     stop("the graph is only partially directed.")
   # check whether the graph is acyclic.
-  if (!is.dag.acyclic(start$arcs, names(start$nodes)))
+  if (!is.acyclic.backend(start$arcs, names(start$nodes), directed = TRUE))
     stop("the preseeded graph contains cycles.")
 
   # expand and sanitize score-specific arguments.
-  extra.args = check.score.args(score = score, network = start, 
+  extra.args = check.score.args(score = score, network = start,
                  data = x, extra.args = list(...))
 
   # create the test counter in .GlobalEnv.
@@ -1213,13 +1346,14 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
   # check x's class.
-  if (!is(x, "bn"))
-    stop("x must be an object of class 'bn'.")
+  check.bn(x)
   # arc strength is undefined in partially directed graphs.
   if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
   # check the data are there.
   check.data(data)
+  # check the network against the data
+  check.bn.vs.data(x, data)
   # check debug.
   check.logical(debug)
   # check criterion.
@@ -1249,18 +1383,21 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
     alpha = check.alpha(list(...)$alpha, network = x)
 
+    # warn about unused arguments.
+    check.unused.args(list(...), "alpha")
+
     # sanitize the alpha threshold.
-    arc.strength.test(network = x, data = data, alpha = alpha, 
+    arc.strength.test(network = x, data = data, alpha = alpha,
       test = criterion, debug = debug)
 
   }#THEN
   else {
 
     # expand and sanitize score-specific arguments.
-    extra.args = check.score.args(score = criterion, network = x, 
+    extra.args = check.score.args(score = criterion, network = x,
                  data = data, extra.args = list(...))
 
-    arc.strength.score(network = x, data = data, score = criterion, 
+    arc.strength.score(network = x, data = data, score = criterion,
       extra = extra.args, debug = debug)
 
   }#ELSE

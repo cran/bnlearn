@@ -1,6 +1,6 @@
 
 # compare two network scores in an efficient way.
-score.delta = function(arc, network, data, score, score.delta, 
+score.delta = function(arc, network, data, score, score.delta,
     reference.score, op, extra, debug = FALSE) {
 
   if (op == "reverse") {
@@ -96,16 +96,16 @@ arcs.to.be.reversed = function(arcs, blacklist) {
 }#ARCS.TO.BE.REVERSED
 
 # generic step of the standard hill-climbing algorithm.
-hc.step = function(arc, op, nodes, amat, start, data, score, reference.score, 
+hc.step = function(arc, op, nodes, amat, start, data, score, reference.score,
             score.delta, extra.args, debug) {
 
   # if the arc creates cycles, do not add/reverse it.
-  if (hc.step.cycles(arc = arc, amat = amat, nodes = nodes, 
+  if (hc.step.cycles(arc = arc, amat = amat, nodes = nodes,
         op = op, debug = debug))
           return(NA)
 
   if (debug) {
- 
+
     if (op == "set")
       cat("  > trying to add", arc[1], "->", arc[2], ".\n")
     else if (op == "drop")
@@ -123,7 +123,7 @@ hc.step = function(arc, op, nodes, amat, start, data, score, reference.score,
 
   if (better$bool) {
 
-    # store the operator and the arc for later use. 
+    # store the operator and the arc for later use.
     start$lastop = c(arc[1], arc[2], op = op)
 
     if (debug) {
@@ -202,15 +202,15 @@ hc.opt.step = function(arc, op, nodes, amat, start, data, score, reference.score
   cache.hit = TRUE
 
   # the cache is empty if the network has not yet been updated (and no
-  # preseed network is used); look for a score equivalent arc whose score 
+  # preseed network is used); look for a score equivalent arc whose score
   # delta is already cached.
   if (is.null(start$updates) && (op == "set")) {
 
     if (score.equivalence) {
 
-      w = .Call("cache_lookup", 
-                arc = arc, 
-                cache = score.equivalent.cache, 
+      w = .Call("cache_lookup",
+                arc = arc,
+                cache = score.equivalent.cache,
                 PACKAGE = "bnlearn")
 
     }#THEN
@@ -221,13 +221,13 @@ hc.opt.step = function(arc, op, nodes, amat, start, data, score, reference.score
   # preseed network is used); no need to do a lookup in this case.
   if (!is.null(start$updates)) {
 
-    # the node(s) with the incoming arrow(s) must not have been updated 
+    # the node(s) with the incoming arrow(s) must not have been updated
     # in the last iteration to have a valid cached score delta.
     if ((op == "reverse") && !any(arc %in% names(start$updates)) ||
         (op != "reverse") && !(arc[2] %in% names(start$updates))) {
 
-      w =  .Call("cache_lookup", 
-                  arc = arc, 
+      w =  .Call("cache_lookup",
+                  arc = arc,
                   cache = cache,
                   PACKAGE = "bnlearn")
 
@@ -243,7 +243,7 @@ hc.opt.step = function(arc, op, nodes, amat, start, data, score, reference.score
   # if no cached value has been found, compute the score delta.
   if (is.na(w)) {
 
-    if (hc.step.cycles(arc = arc, amat = amat, nodes = nodes, 
+    if (hc.step.cycles(arc = arc, amat = amat, nodes = nodes,
           op = op, debug = debug))
             return(list(score.delta = NA))
 
@@ -263,12 +263,12 @@ hc.opt.step = function(arc, op, nodes, amat, start, data, score, reference.score
 
   # if the arc creates cycles, do not add/reverse it.
   if (w > 0)
-    if (hc.step.cycles(arc = arc, amat = amat, nodes = nodes, 
+    if (hc.step.cycles(arc = arc, amat = amat, nodes = nodes,
           op = op, debug = debug))
             return(list(score.delta = w))
 
   if (debug) {
- 
+
     if (op == "set")
       cat("  > trying to add", arc[1], "->", arc[2])
     else if (op == "drop")
@@ -284,7 +284,7 @@ hc.opt.step = function(arc, op, nodes, amat, start, data, score, reference.score
   # if the score delta is positive add/drop/remove the arc.
   if (w > score.delta) {
 
-    # store the operator and the arc for later use. 
+    # store the operator and the arc for later use.
     start$lastop = c(arc[1], arc[2], op = op)
 
     if (op == "set") {
@@ -328,7 +328,7 @@ hc.opt.step = function(arc, op, nodes, amat, start, data, score, reference.score
 
     start$score.delta = w
 
-    return(start) 
+    return(start)
 
   }#ELSE
   else {
@@ -341,7 +341,7 @@ hc.opt.step = function(arc, op, nodes, amat, start, data, score, reference.score
 }#HC.OPT.STEP
 
 # random restart: perturb the graph and update the counter.
-random.restart = function(start, x, perturb, restart, nodes, amat, score, 
+random.restart = function(start, x, perturb, restart, nodes, amat, score,
     extra.args, whitelist, blacklist, rebuild = FALSE, debug) {
 
   if (debug) {
@@ -352,8 +352,8 @@ random.restart = function(start, x, perturb, restart, nodes, amat, score,
   }#THEN
 
   # perturb the network.
-  end = perturb.backend(network = start, iter = perturb, nodes = nodes, 
-          amat = amat, whitelist = whitelist, blacklist = blacklist, 
+  end = perturb.backend(network = start, iter = perturb, nodes = nodes,
+          amat = amat, whitelist = whitelist, blacklist = blacklist,
           debug = debug)
 
   # decrement the number of random restart we still have to do.

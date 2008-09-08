@@ -14,9 +14,9 @@
  */
 
 /*
- * Beware: this function is based on the assumption that
- * each arc is unique in the arc list; otherwise the
- * counter may be wrong, leading to false negatives.
+ * Beware: these functions are based on the assumption
+ * that each arc is unique in the arc list; otherwise
+ * the counter may be wrong, leading to false negatives.
  */
 
 #define COORDS(x,y) (x - 1) * n + y - x * (x - 1) / 2
@@ -39,7 +39,7 @@ SEXP res;
 
   for (i = 0; i < nrows; i++) {
 
-    /*  
+    /*
      *  if row > column, reverse the order of the coordinates
      *  to fall into the upper half of the virtual adjacency matrix.
      */
@@ -55,7 +55,7 @@ SEXP res;
 
         /*  this arc or its opposite already present in the
          *  checklist; the graph has at least an undirected
-         *  arc, so return FALSE.  
+         *  arc, so return FALSE.
          */
         LOGICAL(res)[0] = FALSE;
         UNPROTECT(1);
@@ -76,7 +76,7 @@ SEXP res;
 
         /*  this arc or its opposite already present in the
          *  checklist; the graph has at least an undirected
-         *  arc, so return FALSE.  
+         *  arc, so return FALSE.
          */
         LOGICAL(res)[0] = FALSE;
         UNPROTECT(1);
@@ -93,3 +93,79 @@ SEXP res;
   return res;
 
 }/*IS_DAG*/
+
+SEXP which_undirected(SEXP arcs) {
+
+int i = 0;
+int nrows = LENGTH(arcs)/2;
+int n = LENGTH(getAttrib(arcs, R_LevelsSymbol));
+short int checklist[COORDS(n, n)];
+SEXP res;
+
+  /* initialize the checklist. */
+  memset(checklist, '\0', sizeof(short int) * (COORDS(n, n)));
+
+  /* allocate the result. */
+  PROTECT(res = allocVector(LGLSXP, nrows));
+
+  for (i = 0; i < nrows; i++) {
+
+    /*
+     *  if row > column, reverse the order of the coordinates
+     *  to fall into the upper half of the virtual adjacency matrix.
+     */
+    if (ARC(i, 0) > ARC(i, 1)) {
+
+      checklist[COORDS(ARC(i, 1), ARC(i, 0)) - 1]++;
+
+    }/*THEN*/
+    else {
+
+      checklist[COORDS(ARC(i, 0), ARC(i, 1)) - 1]++;
+
+    }/*ELSE*/
+
+  }/*FOR*/
+
+  for (i = 0; i < nrows; i++) {
+
+    /*
+     *  if row > column, reverse the order of the coordinates
+     *  to fall into the upper half of the virtual adjacency matrix.
+     */
+    if (ARC(i, 0) > ARC(i, 1)) {
+
+      if (checklist[COORDS(ARC(i, 1), ARC(i, 0)) - 1] == 1) {
+
+        LOGICAL(res)[i] = FALSE;
+
+      }/*THEN*/
+      else {
+
+        LOGICAL(res)[i] = TRUE;
+
+      }/*ELSE*/
+
+    }/*THEN*/
+    else {
+
+      if (checklist[COORDS(ARC(i, 0), ARC(i, 1)) - 1] == 1) {
+
+        LOGICAL(res)[i] = FALSE;
+
+      }/*THEN*/
+      else {
+
+        LOGICAL(res)[i] = TRUE;
+
+      }/*ELSE*/
+
+    }/*ELSE*/
+
+  }/*FOR*/
+
+  UNPROTECT(1);
+
+  return res;
+
+}/*WHICH_UNDIRECTED*/

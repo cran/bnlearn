@@ -37,6 +37,13 @@
   }
 
 }
+\note{
+
+  Standard learning algorithms are not able to recover the true
+  structure of the network because of the presence of a node (\code{E})
+  with conditional probabilities equal to both 0 and 1.
+
+}
 \source{
 
   S. Lauritzen and D. Spiegelhalter (1988). Local computation with

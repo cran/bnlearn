@@ -17,7 +17,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
   step = function(arc, op) {
 
     start = hc.step(arc = arc, nodes = nodes, amat = amat,
-              start = start, data = x, score = score, 
+              start = start, data = x, score = score,
               reference.score = reference.score, op = op,
               score.delta = end$score.delta,
               extra.args = extra.args, debug = debug)
@@ -28,7 +28,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
   }#STEP
 
   # set the reference score.
-  reference.score = per.node.score(network = start, score = score, 
+  reference.score = per.node.score(network = start, score = score,
                       nodes = nodes, extra.args = extra.args, data = x)
 
   if (debug) {
@@ -42,7 +42,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
     cat("* blacklisted arcs are:\n")
     if (!is.null(blacklist)) print(blacklist)
 
-    # set the metadata of the network; othewise the debugging output is 
+    # set the metadata of the network; othewise the debugging output is
     # confusing and not nearly as informative.
     start$learning$algo = "hc"
     start$learning$ntests = 0
@@ -60,7 +60,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 
     amat = arcs2amat(start$arcs, nodes)
 
-    to.be.added = arcs.to.be.added(amat = amat, nodes = nodes, n.nodes = n.nodes, 
+    to.be.added = arcs.to.be.added(amat = amat, nodes = nodes, n.nodes = n.nodes,
                     blmat = blmat)
 
     if (nrow(to.be.added) > 0) {
@@ -152,7 +152,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
       }#THEN
       else if ((start$restart >= 0) && (restart > 0)) {
 
-        start = random.restart.network(start = start, restart = restart, 
+        start = random.restart.network(start = start, restart = restart,
                   reference.score = reference.score, debug = debug)
 
         # this is the end; if the network found by the algorithm is the best one
@@ -160,8 +160,8 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
         if (start$restart == 0) break
 
         # do the random restart.
-        end = random.restart(start = start, x = x, restart = restart, 
-                perturb = perturb, nodes = nodes, amat = amat, score = score, 
+        end = random.restart(start = start, x = x, restart = restart,
+                perturb = perturb, nodes = nodes, amat = amat, score = score,
                 extra.args = extra.args, debug = debug,
                 whitelist = whitelist, blacklist = blacklist,
                 rebuild = (start$learning$score > sum(reference.score)))
@@ -221,10 +221,10 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
   # check whether the score is score-equivalent.
   score.equivalence = score %in% score.equivalent.scores
   # set up the score caches.
-  score.cache.add = score.cache.drop = score.cache.reverse = 
+  score.cache.add = score.cache.drop = score.cache.reverse =
     data.frame(from = character(0), to = character(0),
       delta = numeric(0), stringsAsFactors = FALSE)
-  
+
   if (score.equivalence) {
 
     # set up the score-equivalence 'shadow' cache.
@@ -237,10 +237,10 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
   step = function(arc, op, cache) {
 
     start = hc.opt.step(arc = arc, nodes = nodes, amat = amat,
-              start = start, data = x, score = score, 
+              start = start, data = x, score = score,
               reference.score = reference.score, op = op,
               score.delta = end$score.delta, cache = cache,
-              score.equivalence = score.equivalence, 
+              score.equivalence = score.equivalence,
               score.equivalent.cache = shadow.cache.add,
               extra.args = extra.args, debug = debug)
 
@@ -261,7 +261,7 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
   }#STEP
 
   # set the reference score.
-  reference.score = per.node.score(network = start, score = score, 
+  reference.score = per.node.score(network = start, score = score,
                       nodes = nodes, extra.args = extra.args, data = x)
 
   if (debug) {
@@ -275,7 +275,7 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
     cat("* blacklisted arcs are:\n")
     if (!is.null(blacklist)) print(blacklist)
 
-    # set the metadata of the network; othewise the debugging output is 
+    # set the metadata of the network; othewise the debugging output is
     # confusing and not nearly as informative.
     start$learning$algo = "hc"
     start$learning$ntests = 0
@@ -293,7 +293,7 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
 
     amat = arcs2amat(start$arcs, nodes)
 
-    to.be.added = arcs.to.be.added(amat = amat, nodes = nodes, n.nodes = n.nodes, 
+    to.be.added = arcs.to.be.added(amat = amat, nodes = nodes, n.nodes = n.nodes,
                     blmat = blmat)
 
     if (nrow(to.be.added) > 0) {
@@ -307,7 +307,7 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
 
       # try to add any available arc.
       score.cache.add = data.frame(to.be.added,
-          delta = apply(to.be.added, 1, step, op = "set", 
+          delta = apply(to.be.added, 1, step, op = "set",
           cache = score.cache.add), stringsAsFactors = FALSE)
 
     }#THEN
@@ -394,7 +394,7 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
       }#THEN
       else if ((start$restart >= 0) && (restart > 0)) {
 
-        start = random.restart.network(start = start, restart = restart, 
+        start = random.restart.network(start = start, restart = restart,
                   reference.score = reference.score, debug = debug)
 
         # this is the end; if the network found by the algorithm is the best one
@@ -403,7 +403,7 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
 
         # do the random restart.
         end = random.restart(start = start, x = x, restart = restart,
-                perturb = perturb, nodes = nodes, amat = amat, score = score,  
+                perturb = perturb, nodes = nodes, amat = amat, score = score,
                 extra.args = extra.args, debug = debug,
                 whitelist = whitelist, blacklist = blacklist,
                 rebuild = (start$learning$score > sum(reference.score)))

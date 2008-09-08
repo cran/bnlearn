@@ -5,7 +5,7 @@
 \description{
 
   Detect the partial node ordering implied by a network or
-  generate a valid blacklist from a partial node ordering.
+  generate the blacklist implied by a complete node ordering.
 
 }
 \usage{
@@ -44,7 +44,7 @@ res$learning$ntests
 res = set.arc(res, "A", "B")
 ord = node.ordering(res)
 ord
-# [1] "F" "C" "A" "B" "D" "E"
+# [1] "A" "C" "F" "B" "D" "E"
 
 ## partial node ordering saves us two tests in the v-structure
 ## detection step of the algorithm.

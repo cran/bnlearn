@@ -57,7 +57,7 @@ res
 #   average branching factor:              0.83
 #
 #   learning algorithm:                    grow-shrink
-#   conditional independence test:         mutual information
+#   conditional independence test:         mutual information (discrete)
 #   alpha threshold:                       0.05
 #   tests used in the learning procedure:  43
 #
@@ -79,7 +79,6 @@ res2
 #   average branching factor:              0.83
 #
 #   learning algorithm:                    random/generated
-#   tests used in the learning procedure:  0
 compare(res, res2)
 # [1] TRUE
 }

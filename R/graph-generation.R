@@ -43,10 +43,12 @@ return(res)
 empty.graph.backend = function(nodes) {
 
   arcs = matrix(character(0), ncol = 2, dimnames = list(c(), c("from", "to")))
-  res = list(
+  nodes.structure = structure(lapply(nodes, function(n) {
+        list(mb = character(0), nbr = character(0), parents = character(0),
+          children = character(0)) }), names = nodes)
+  res = structure(list(
     learning = list(
-      nodes = lapply(nodes, function(n) { 
-        list(mb = character(0), nbr = character(0)) }),
+      nodes = nodes.structure,
       arcs = arcs,
       whitelist = NULL,
       blacklist = NULL,
@@ -55,16 +57,9 @@ empty.graph.backend = function(nodes) {
       algo = "rnd",
       args = list()
     ),
-    nodes = lapply(nodes, function(n) {
-      list(mb = character(0), nbr = character(0), 
-        parents = character(0), children = character(0)) }),
+    nodes = nodes.structure,
     arcs = arcs
-  )
-
-  # set the names of the nodes in the right places.
-  names(res$nodes) = names(res$learning$nodes) = nodes
-  # set the class to 'bn'.
-  class(res) = "bn";
+  ), class = "bn")
 
   res
 

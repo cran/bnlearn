@@ -31,11 +31,28 @@ is.whitelisted = is.listed
 is.blacklisted = is.listed
 
 # which arcs are undirected?
-is.undirected = function(arcs) {
+which.undirected = function(arcs) {
 
-  apply(arcs, 1, function(arc) { is.listed(arcs, arc, both = TRUE) })
+  .Call("which_undirected",
+        arcs = factor(arcs),
+        PACKAGE = "bnlearn")
+
+}#WHICH.UNDIRECTED
+
+# is this arc undirected?
+is.undirected = function(arc, arcs) {
+
+  # if it is there must be its reverse in the arc list.
+  is.listed(arcs, arc[c(2,1)])
 
 }#IS.UNDIRECTED
+
+#is this arc directed?
+is.directed = function(arc, arcs) {
+
+  !is.undirected(arc, arcs)
+
+}#IS.DIRECTED
 
 # set a direction for an (undirected) arc
 set.arc.direction = function(from, to, arcs, debug = FALSE) {

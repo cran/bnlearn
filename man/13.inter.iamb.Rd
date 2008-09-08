@@ -26,10 +26,11 @@
       the graph. }
   \item{test}{a character string, the label of the conditional
       independence test to be used in the algorithm. Possible
-      values are \code{mi} (\emph{mutual information}), \code{mh}
-      (\emph{Cochran-Mantel-Haenszel}), \code{fmi} (\emph{fast
-      mutual information}), \code{aict} (\emph{AIC}), \code{cor}
-      (\emph{linear correlation}), \code{zf} (\emph{Fisher's Z}).
+      values are \code{mi} (\emph{mutual information} for discrete
+      data), \code{fmi} (\emph{fast mutual information}), \code{aict}
+      (\emph{AIC}), \code{x2} (\emph{Pearson's \eqn{\chi^2}{chi-square}}),
+      \code{cor} (\emph{linear correlation}), \code{zf} (\emph{Fisher's Z})
+      and \code{mi-g} (\emph{mutual information} for gaussian data).
       If none is specified, the default one is \emph{mutual
       information} for discrete data sets and \emph{linear correlation}
       for continuous ones. See \code{\link{bnlearn-package}} for details.}

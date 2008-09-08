@@ -1,0 +1,258 @@
+#include <R.h>
+#include <Rinternals.h>
+
+#define AMAT(i,j) INTEGER(amat)[i + j * n]
+#define NODE(i) CHAR(STRING_ELT(nodes, i))
+
+SEXP has_dag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes, SEXP debug) {
+
+  int start = INTEGER(from)[0] - 1;
+  int stop = INTEGER(to)[0] - 1;
+  int n = INTEGER(nrows)[0];
+  int trace = INTEGER(debug)[0];
+  int counter[n];
+  int path[n];
+  int path_pos = 0;
+  int cur = start;
+  int i = 0;
+
+  SEXP res;
+
+  /* initialize the position counters for the rows of the adjacency matrix. */
+  memset(counter, '\0', sizeof(int) * n);
+  /* initialize the path array. */
+  memset(path, '\0', sizeof(int) * n);
+
+  /* allocate the result. */
+  PROTECT(res = allocVector(LGLSXP, 1));
+  LOGICAL(res)[0] = TRUE;
+
+  /* iterate until the other node is found. */
+  while (cur != stop) {
+
+    if (trace == 1) {
+
+      Rprintf("* currently at '%s'.\n", NODE(cur));
+      Rprintf("  > current path is:\n");
+      for (int i = 0; i < path_pos ; i ++)
+        Rprintf("'%s' ", NODE(path[i]));
+      Rprintf("'%s' \n", NODE(cur));
+
+    }/*THEN*/
+
+there:
+
+    /* find the next child of the 'cur' node. */
+    for (i = 0; (i < n) && (counter[cur] < n); i++) {
+
+      if (AMAT(cur, counter[cur]) != 0)
+        break;
+
+      counter[cur]++;
+
+    }/*FOR*/
+
+    /* the column indexes range from 0 to n - 1;  counter value of n means
+     * that all the children of that node has beeen visited.  */
+    if (counter[cur] == n) {
+
+      /* if this node is the first one in the path, there search is finished
+       * and the 'stop' node was not found; return FALSE.*/
+      if  (path_pos == 0) {
+
+        LOGICAL(res)[0] = FALSE;
+        UNPROTECT(1);
+        return res;
+
+      }/*THEN*/
+
+      if (trace == 1) {
+
+        Rprintf("  > node '%s' has no more children, going back to '%s'.\n",
+          NODE(cur), NODE(path[path_pos - 1]));
+
+      }/*THEN*/
+
+      /* this node has no more children, skip back to the previous one. */
+      cur = path[--path_pos];
+      path[path_pos + 1] = 0;
+
+      goto there;
+
+    }/*THEN*/
+    else {
+
+      /* inrement the counter to get to the next node to check, unless
+       * that one was the last. */
+      if (counter[cur] < n)
+        counter[cur]++;
+
+      /* do not visit an already visited node */
+      for (i = path_pos - 1; i >= 0; i--) {
+
+        if ((counter[cur] - 1) == path[i]) {
+
+          if (trace == 1) {
+
+            Rprintf("  @ node '%s' already visited, skipping.\n", NODE(path[i]));
+
+          }/*THEN*/
+
+          goto there;
+
+        }/*THEN*/
+
+      }/*FOR*/
+
+      /* update the path. */
+      path[path_pos++] = cur;
+      /* the current node is now the children we have just found. */
+      cur = counter[cur] - 1;
+
+      if (trace == 1) {
+
+        Rprintf("  > jumping to '%s'.\n", NODE(cur));
+
+      }/*THEN*/
+
+    }/*ELSE*/
+
+  }/*WHILE*/
+
+  /* node 'stop' has been found, return TRUE. */
+  UNPROTECT(1);
+  return res;
+
+}/*HAS_DAG_PATH*/
+
+SEXP how_many_cycles(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes, SEXP debug) {
+
+  int start = INTEGER(from)[0] - 1;
+  int stop = INTEGER(to)[0] - 1;
+  int n = INTEGER(nrows)[0];
+  int trace = INTEGER(debug)[0];
+  int counter[n];
+  int path[n];
+  int path_pos = 0;
+  int cur = start;
+  int loop_counter = 0;
+  int i = 0;
+
+  SEXP res;
+
+  /* initialize the position counters for the rows of the adjacency matrix. */
+  memset(counter, '\0', sizeof(int) * n);
+  /* initialize the path array. */
+  memset(path, '\0', sizeof(int) * n);
+
+  /* allocate the result. */
+  PROTECT(res = allocVector(INTSXP, 1));
+  INTEGER(res)[0] = 0;
+
+  while (1) {
+
+    if (trace == 1)
+      Rprintf("* currently at '%s'.\n", NODE(cur));
+
+there:
+
+    /* find the next child of the 'cur' node. */
+    for (i = 0; (i < n) && (counter[cur] < n); i++) {
+
+      if (AMAT(cur, counter[cur]) != 0)
+        break;
+
+      counter[cur]++;
+
+    }/*FOR*/
+
+    if (cur == stop) {
+
+      loop_counter++;
+
+      if (trace == 1) {
+
+        Rprintf("  @ found node '%s' ! loop counter is now %d.\n",
+          NODE(stop), loop_counter);
+        Rprintf("  @ the cycle is:\n'%s' ", NODE(stop));
+        for (int i = 0; i < path_pos ; i ++)
+          Rprintf("'%s' ", NODE(path[i]));
+        Rprintf("'%s' \n", NODE(cur));
+
+      }/*THEN*/
+
+      /* do not go on on this path. */
+      if (counter[cur] < n)
+        counter[cur]++;
+      cur = path[--path_pos];
+      path[path_pos + 1] = 0;
+
+    }/*THEN*/
+    else if (counter[cur] == n) {
+
+      /* the column indexes range from 0 to n - 1;  counter value of n means
+       * that all the children of that node has beeen visited.  */
+
+      /* if this node is the first one in the path, there search is finished
+       * and the 'stop' node was not found; return FALSE.*/
+      if  (path_pos == 0) {
+
+        INTEGER(res)[0] = loop_counter;
+        UNPROTECT(1);
+        return res;
+
+      }/*THEN*/
+
+      if (trace == 1) {
+
+        Rprintf("  > node '%s' has no more children, going back to '%s'.\n",
+          NODE(cur), NODE(path[path_pos - 1]));
+
+      }/*THEN*/
+
+      /* this node has no more children, skip back to the previous one. */
+      cur = path[--path_pos];
+      path[path_pos + 1] = 0;
+
+    }/*THEN*/
+    else {
+
+      /* inrement the counter to get to the next node to check, unless
+       * that one was the last. */
+      if (counter[cur] < n)
+        counter[cur]++;
+
+      /* do not visit an already visited node */
+      for (i = path_pos - 1; i >= 0; i--) {
+
+        if ((counter[cur] - 1) == path[i]) {
+
+          if (trace == 1) {
+
+            Rprintf("  @ node '%s' already visited, skipping.\n", NODE(path[i]));
+
+          }/*THEN*/
+
+          goto there;
+
+        }/*THEN*/
+
+      }/*FOR*/
+
+      /* update the path. */
+      path[path_pos++] = cur;
+      /* the current node is now the children we have just found. */
+      cur = counter[cur] - 1;
+
+      if (trace == 1) {
+
+        Rprintf("  > jumping to '%s'.\n", NODE(cur));
+
+      }/*THEN*/
+
+    }/*ELSE*/
+
+  }/*WHILE*/
+
+}/*HOW_MANY_CYCLES*/
+

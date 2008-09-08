@@ -4,7 +4,7 @@
 \docType{package}
 \title{
 
-  Bayesian network constraint-based structure learning.
+  Bayesian network structure learning.
 
 }
 \description{
@@ -18,8 +18,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 0.8\cr
-    Date: \tab 2008-06-20\cr
+    Version: \tab 0.9\cr
+    Date: \tab 2008-09-08\cr
     License: \tab GPLv2 or later
 
   }
@@ -117,12 +117,11 @@
         \item \emph{fast mutual information} (\code{fmi}): a variant of the
           mutual information which is set to zero when there aren't at least
           five data per parameter.
+        \item \emph{Pearson's \eqn{\chi^2}{chi-square}} (\code{x2}): the classical
+          Pearson's Chi-squared test for contingency tables.
         \item \emph{Akaike Information Criterion} (\code{aict}): an experimental
           AIC-based independence test, computed comparing the mutual information
           and the expected information gain.
-        \item \emph{Cochran-Mantel-Haenszel} (\code{mh}): a stratified
-          independence test, included for testing purposes only. See
-          \code{\link{mantelhaen.test}} in package \code{\link{stats}}.
 
       }
     \item \emph{numerical data} (multivariate normal distribution)
@@ -134,6 +133,9 @@
            by commercial software (such as TETRAD II) for the PC algorithm
            (an R implementation is present in the \code{pcalg} package
            on CRAN).
+        \item \emph{mutual information} (\code{mi-g}): an information-theoretic
+          distance measure. Again it's proportional to the log-likelihood ratio
+          (they differ by a \eqn{2n}{2n} factor).
 
       }
 

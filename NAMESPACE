@@ -9,13 +9,15 @@ export(
   "nbr",
   "arcs",
   "arcs<-",
+  "directed.arcs",
+  "undirected.arcs",
   "parents",
   "parents<-",
   "children",
   "children<-",
   "nodes",
-  "rootnodes",
-  "leafnodes",
+  "root.nodes",
+  "leaf.nodes",
   "amat",
   "amat<-",
   "nparams",
@@ -28,8 +30,10 @@ export(
   "arc.strength",
   "rbn",
   "score",
+  "ci.test",
   "as.bn",
   "acyclic",
+  "directed",
   "path",
   "node.ordering",
   "ordering2blacklist",
@@ -43,3 +47,8 @@ S3method(AIC, bn)
 S3method(logLik, bn)
 S3method(as.bn, character)
 S3method(as.character, bn)
+S3method(ci.test, character)
+S3method(ci.test, data.frame)
+S3method(ci.test, numeric)
+S3method(ci.test, factor)
+S3method(ci.test, default)

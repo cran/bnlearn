@@ -1,63 +1,87 @@
 
-conditional.test = function(x, y, sx, data, test) {
+conditional.test = function(x, y, sx, data, test, learning = TRUE) {
 
-  # update the test counter.
-  assign(".test.counter", get(".test.counter", envir = .GlobalEnv) + 1,
-    envir = .GlobalEnv)
+  if (learning) {
+
+    # update the test counter.
+    assign(".test.counter", get(".test.counter", envir = .GlobalEnv) + 1,
+      envir = .GlobalEnv)
+
+  }#THEN
 
   sx = sx[sx != ""]
   ndata = nrow(data)
+  df = NULL
 
   if (length(sx) == 0) {
 
-    # Cochran-Mantel-Haenszel with dummy stratification (chi-square asymptotic distribution)
-    if (test == "mh") {
-
-      mantelhaen.test(data[,x], data[,y], factor(rep(1, ndata)), exact=TRUE)$p.value
-
-    }#THEN
     # Mutual Infomation (chi-square asymptotic distribution)
-    else if (test == "mi") {
+    if (test == "mi") {
 
-      pchisq(mi.test(data[,x], data[,y], ndata, gsquare = TRUE),
-        (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1), lower.tail = FALSE)
+      statistic = mi.test(data[,x], data[,y], ndata, gsquare = TRUE)
+      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1)
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Akaike Information Criterion-like test (binary, no p-value!)
     else if (test == "aict") {
 
-      as.integer(mi.test(data[,x], data[,y], ndata, gsquare = FALSE) <
-        (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) / ndata)
+      statistic = mi.test(data[,x], data[,y], ndata, gsquare = FALSE) <
+               (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) / ndata
+      p.value = as.integer(statistic)
 
     }#THEN
     # Mutual Infomation a la FastIAMB (chi-square asymptotic distribution)
     else if (test == "fmi") {
 
+      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1)
+
       if (obs.per.cell(x, y, data = data) >= 5) {
 
-        pchisq(mi.test(data[,x], data[,y], ndata, gsquare = TRUE),
-          (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1), lower.tail = FALSE)
+        statistic = mi.test(data[,x], data[,y], ndata, gsquare = TRUE)
+        p.value = pchisq(statistic, df, lower.tail = FALSE)
 
       }#THEN
       else {
 
-        return(1);
+        statistic = 0
+        p.value = 1
 
       }#ELSE
+
+    }#THEN
+    # Pearson's X^2 test (chi-square asymptotic distribution)
+    else if (test == "x2") {
+
+      statistic = x2.test(data[,x], data[,y], ndata)
+      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1)
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Canonical (Linear) Correlation (Student's t distribution)
     else if (test == "cor") {
 
-      rxy = cor(data[,x], data[,y])
-      pt(abs((rxy * sqrt(ndata - 2) / sqrt(1 - rxy^2))), ndata - 2, lower.tail = FALSE) * 2
+      statistic = cor(data[,x], data[,y])
+      df = ndata - 2
+      p.value = pt(abs((statistic * sqrt(ndata - 2) / sqrt(1 - statistic^2))),
+                  df, lower.tail = FALSE) * 2
 
     }#THEN
     # Fisher's Z (asymptotic normal distribution)
     else if (test == "zf") {
 
-       rxy = cor(data[,x], data[,y])
-       pnorm(abs(log((1 + rxy)/(1 - rxy))/2 * sqrt(ndata -3)), lower.tail = FALSE) * 2
+       statistic = cor(data[,x], data[,y])
+       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(ndata -3)
+       p.value = pnorm(abs(statistic),
+                   lower.tail = FALSE) * 2
+
+    }#THEN
+    # Mutual Information for Gaussian Data (chi-square asymptotic distribution)
+    else if (test == "mi-g") {
+
+      statistic = mig.test(x, y, data, ndata, gsquare = TRUE)
+      df = 1
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
 
@@ -73,48 +97,49 @@ conditional.test = function(x, y, sx, data, test) {
       else
         config = configurations(data[, sx])
 
-      # define the degrees of freedom and check them.
-      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config)
-
-      if (df < 1)
-        stop("tryng to do a conditional independence test with zero degrees of freedom.")
-
     }#THEN
 
-    # Cochran-Mantel-Haenszel (chi-square asymptotic distribution)
-    if (test == "mh") {
-
-      mantelhaen.test(data[,x], data[,y], config, exact=TRUE)$p.value
-
-    }#THEN
     # Conditional Mutual Infomation (chi-square asymptotic distribution)
-    else if (test == "mi") {
+    if (test == "mi") {
 
-      pchisq(cmi.test(data[,x], data[,y], config, ndata, gsquare = TRUE),
-        df, lower.tail = FALSE)
+      statistic = cmi.test(data[,x], data[,y], config, ndata, gsquare = TRUE)
+      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config)
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Conditional Akaike Information Criterion-like test (binary, no p-value!)
     else if (test == "aict") {
 
-      as.integer(cmi.test(data[,x], data[,y], config, ndata, gsquare = FALSE) <
-        df / ndata)
+      statistic = cmi.test(data[,x], data[,y], config, ndata, gsquare = FALSE) <
+               (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config) / ndata
+      p.value = as.integer(statistic)
 
     }#THEN
     # Conditional Mutual Infomation a la FastIAMB (chi-square asymptotic distribution)
     else if (test == "fmi") {
 
+      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config)
+
       if (obs.per.cell(x, y, config, data = data) >= 5) {
 
-        pchisq(cmi.test(data[,x], data[,y], config, ndata, gsquare = TRUE),
-          df, lower.tail = FALSE)
+        statistic = cmi.test(data[,x], data[,y], config, ndata, gsquare = TRUE)
+        p.value = pchisq(statistic, df, lower.tail = FALSE)
 
       }#THEN
       else {
 
-        return(1);
+        statistic = 0
+        p.value = 1
 
       }#ELSE
+
+    }#THEN
+    # Pearson's X^2 test (chi-square asymptotic distribution)
+    else if (test == "x2") {
+
+      statistic = cx2.test(data[,x], data[,y], config, ndata)
+      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config)
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Canonical Partial Correlation (Student's t distribution)
@@ -125,8 +150,8 @@ conditional.test = function(x, y, sx, data, test) {
       if (df < 1)
         stop("tryng to do a conditional independence test with zero degrees of freedom.")
 
-      rxy.z = pcor(c(x, y, sx), data)
-      pt(abs(rxy.z * sqrt(df) / sqrt(1 - rxy.z^2)), df, lower.tail = FALSE) * 2
+      statistic = pcor(c(x, y, sx), data)
+      p.value = pt(abs(statistic * sqrt(df) / sqrt(1 - statistic^2)), df, lower.tail = FALSE) * 2
 
     }#THEN
     # Fisher's Z (asymptotic normal distribution)
@@ -137,15 +162,59 @@ conditional.test = function(x, y, sx, data, test) {
       if (df < 1)
         stop("tryng to do a conditional independence test with zero degrees of freedom.")
 
-      rxy.z = pcor(c(x, y, sx), data)
-      pnorm(abs(log((1 + rxy.z)/(1 - rxy.z))/2 * sqrt(df)), lower.tail = FALSE) * 2
+      statistic = pcor(c(x, y, sx), data)
+      statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(df)
+      p.value = pnorm(abs(statistic), lower.tail = FALSE) * 2
+
+    }#THEN
+    # Mutual Information for Gaussian Data (chi-square asymptotic distribution)
+    else if (test == "mi-g") {
+
+      statistic = cmig.test(x, y, sx, data, ndata, gsquare =TRUE)
+      df = 1
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
 
   }#ELSE
 
+  if (learning) {
+
+    return(p.value)
+
+  }#THEN
+  else {
+
+    if (test %in% c("aict")) {
+
+      statistic = as.logical(statistic)
+      p.value = NA
+
+    }#THEN
+
+    # build a valid object of class htest.
+    result = structure(
+        list(statistic = structure(statistic, names = test),
+             p.value = p.value,
+             method = test.labels[test],
+             null.value = c(value = 0),
+             alternative = ifelse(test %in% c("cor", "zf"),
+               "two.sided", "greater"),
+             data.name = paste(x, "~", y,
+               ifelse(length(sx) > 0, "|", ""),
+               paste(sx, collapse = " + "))
+        ), class = "htest")
+
+    if (!is.null(df))
+      result$parameter = structure(df, names = "df")
+
+    return(result)
+
+  }#ELSE
+
 }#CONDITIONAL.TEST
 
+# Mutual Information (discrete data)
 mi.test = function(x, y, ndata, gsquare = TRUE) {
 
   s = .Call("mi",
@@ -160,6 +229,7 @@ mi.test = function(x, y, ndata, gsquare = TRUE) {
 
 }#MI.TEST
 
+# Conditional Mutual Information (discrete data)
 cmi.test = function(x, y, z, ndata, gsquare = TRUE) {
 
   s = .Call("cmi",
@@ -176,9 +246,54 @@ cmi.test = function(x, y, z, ndata, gsquare = TRUE) {
 
 }#CMI.TEST
 
+mig.test = function(x, y, data, ndata, gsquare = TRUE) {
+
+  s = - 0.5 * log(1 - cor(data[,x], data[,y])^2)
+
+  ifelse(gsquare, 2 * ndata * s, s)
+
+}#MIG.TEST
+
+# Conditional Mutual Information (gaussian data)
+cmig.test = function(x, y, z, data, ndata, gsquare = TRUE) {
+
+  s = - 0.5 * log(1 - pcor(c(x, y, z), data)^2)
+
+  ifelse(gsquare, 2 * ndata * s, s)
+
+}#CMIG.TEST
+
+# Pearson's X^2 test (discrete data)
+x2.test = function(x, y, ndata) {
+
+  .Call("x2",
+      x = x,
+      y = y,
+      lx = nlevels(x),
+      ly = nlevels(y),
+      length = ndata,
+      PACKAGE = "bnlearn")
+
+}#X2.TEST
+
+# Pearson's Conditional X^2 test (discrete data)
+cx2.test = function(x, y, z, ndata) {
+
+  .Call("cx2",
+      x = x,
+      y = y,
+      z = z,
+      lx = nlevels(x),
+      ly = nlevels(y),
+      lz = nlevels(z),
+      length = ndata,
+      PACKAGE = "bnlearn")
+
+}#CX2.TEST
+
 # Partial Canonical (Linear) Correlation.
-# Original code was an internal copy of the pcor() function from 
-# package ggm; later adapted to use pseudoinverse() instead of 
+# Original code was an internal copy of the pcor() function from
+# package ggm; later adapted to use pseudoinverse() instead of
 # solve() for greater reliability. Original copyright notice
 # and licence were:
 # Copyright Giovanni M. Marchetti, 2006.

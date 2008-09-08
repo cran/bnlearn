@@ -45,8 +45,6 @@ choose.direction(res, data = learning.test, arc = c("A", "B"), debug = TRUE)
 choose.direction(res, data = learning.test, criterion = "aic",
   arc = c("A", "B"), debug = TRUE)
 # * testing A - B for direction.
-#     > delta between scores for nodes A B is 1166.914 .
-#     > delta between scores for nodes B A is 1166.914 .
 #   > initial score for node A is -5495.051 .
 #   > initial score for node B is -4834.284 .
 #   > score delta for arc A -> B is 1166.914 .

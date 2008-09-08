@@ -26,11 +26,6 @@
 
   The execution time scales linearly with the number of generated data.
 
-  Node ordering uses a recursive approach; if there are lots of nodes
-  in the network, you will need to increase R's recursion limit.  See
-  the \code{expression} argument to the \code{options} command for
-  details on how to do this.
-
 }
 \value{
 

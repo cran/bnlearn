@@ -1,0 +1,89 @@
+
+bnlearn (0.9)
+  * reimplemented all the functions that deal with cycles
+      and paths in C, which increased their speed manifold
+      and greatly improved their memory use.
+  * cycle detection and elimination snow parallelized in
+      gs(), iamb(), fast.iamb() and inter.iamb().
+  * renamed {root,leaf}nodes() to {root,leaf}.nodes().
+  * rewritten node ordering in C to improve performance
+      and avoid recursion.
+  * added ci.test(), which provides a fronted to all the
+      independence and conditional independence tests
+      implemented in the package.
+  * added mutual information (for Gaussian data) and
+      Pearson's X^2 tests (for discrete data).
+  * removed the Mantel-Haenszel test.
+
+bnlearn (0.8)
+
+  * added support for random restarts in hc().
+  * added arc.strength(), with support for both conditional
+      independence tests and network scores.
+  * added the asia data set.
+  * lots of documentation updates.
+  * reimplemented functions related to undirected arcs in C
+      for speed.
+  * added more parameter sanitization.
+
+bnlearn (0.7)
+
+  * optimized hc() via score caching, score equivalence,
+    and partial reimplementation in C.
+  * many utility functions' backends reimplemented in C
+      for speed.
+  * improved cycle and path detection.
+  * lots of documentation updates.
+  * added more parameter sanitization.
+
+bnlearn (0.6)
+
+  * implemented hc().
+  * added support for the K2 score for discrete networks.
+  * ported Gaussian posterior density from the deal package.
+  * added the gaussian.test data set.
+  * added an AIC-based test for discrete data.
+  * lots of documentation updates.
+  * added more parameter sanitization.
+
+bnlearn (0.5)
+
+  * added more utility functions, such as rootnodes(),
+      leafnodes(), acyclic(), empty.graph() and random.graph().
+  * reimplemented parents' configuration generation in C
+      for speed.
+  * lots of documentation updates.
+  * added lots of parameter sanitization in utils-sanitization.R.
+
+bnlearn (0.4)
+
+  * added rbn(), with support for discrete data.
+  * added a score function, with support for likelihood,
+      loglikelihood, AIC, BIC, and posterior Dirichlet
+      density of discrete networks.
+  * ported modelstring(), a string representation of a network,
+      from package deal.
+  * added many utility functions, such as parents() and children()
+     and their counterparts "parents<-"() and "children<-"().
+  * lots of documentation updates.
+
+bnlearn (0.3)
+
+  * added support for the snow package in gs(), iamb(), inter.iamb()
+      and fast.iamb().
+  * added the learning.test data set.
+  * reimplemented mutual information in C for speed.
+  * lots of documentation updates.
+
+bnlearn (0.2)
+
+  * implemented iamb(), inter.iamb() and fast.iamb().
+  * added partial correlation and Fisher's Z conditional
+      independence tests for Gaussian data.
+  * first completely documented release.
+
+bnlearn (0.1)
+
+  * initial release.
+  * preliminary implementation of gs() with mutual information
+      as conditional independence test.

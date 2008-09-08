@@ -44,7 +44,6 @@ empty.graph(LETTERS[1:8])
 #  average branching factor:              0.00
 #
 #  learning algorithm:                    random/generated
-#  tests used in the learning procedure:  0
 #
 random.graph(LETTERS[1:8])
 # <insert the description of a random graph here>
