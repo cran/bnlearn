@@ -8,7 +8,7 @@
 SEXP mi (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
 
   int i = 0, j = 0, k = 0;
-  unsigned int n[INT(lx)][INT(ly)], ni[INT(lx)], nj[INT(ly)];
+  unsigned int **n, *ni, *nj;
   SEXP result;
 
   PROTECT(result = allocVector(REALSXP, 1));
@@ -17,10 +17,18 @@ SEXP mi (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
   NUM(result) = 0;
 
   /* initialize the contingency table. */
-  memset(n, '\0', sizeof(int) * INT(lx) * INT(ly));
+  n = (unsigned int **) R_alloc(INT(lx), sizeof(int *));
+  for (i = 0; i < INT(lx); i++) {
+
+    n[i] = (unsigned int *) R_alloc(INT(ly), sizeof(int));
+    memset(n[i], '\0', sizeof(int) * INT(ly));
+
+  }/*FOR*/
 
   /* initialize the marginal frequencies. */
+  ni = (unsigned int *) R_alloc(INT(lx), sizeof(int));
   memset(ni, '\0', sizeof(int) * INT(lx));
+  nj = (unsigned int *) R_alloc(INT(ly), sizeof(int));
   memset(nj, '\0', sizeof(int) * INT(ly));
 
   /* compute the joint frequency of x and y. */
@@ -53,8 +61,7 @@ SEXP mi (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
 SEXP cmi (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
 
   int i = 0, j = 0, k = 0;
-  unsigned int n[INT(lx)][INT(ly)][INT(lz)], ni[INT(lx)][INT(lz)],
-               nj[INT(ly)][INT(lz)], nk[INT(lz)];
+  unsigned int ***n, **ni, **nj, *nk;
   SEXP result;
 
   PROTECT(result = allocVector(REALSXP, 1));
@@ -62,12 +69,39 @@ SEXP cmi (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
   /* initialize result to zero. */
   NUM(result) = 0;
 
-  /* initialize the contignecy table. */
-  memset(n, '\0', sizeof(int) * INT(lx) * INT(ly) * INT(lz));
+  /* initialize the contingency table. */
+  n = (unsigned int ***) R_alloc(INT(lx), sizeof(int *));
+  for (i = 0; i < INT(lx); i++) {
+
+    n[i] = (unsigned int **) R_alloc(INT(ly), sizeof(int *));
+
+    for (j = 0; j < INT(ly); j++) {
+
+      n[i][j] = (unsigned int*) R_alloc(INT(lz), sizeof(int));
+      memset(n[i][j], '\0', sizeof(int) * INT(lz));
+
+    }/*FOR*/
+
+  }/*FOR*/
 
   /* initialize the marginal frequencies. */
-  memset(ni, '\0', sizeof(int) * INT(lx) * INT(lz));
-  memset(nj, '\0', sizeof(int) * INT(ly) * INT(lz));
+  ni = (unsigned int **) R_alloc(INT(lx), sizeof(int *));
+  for (i = 0; i < INT(lx); i++) {
+
+    ni[i] = (unsigned int *) R_alloc(INT(lz), sizeof(int));
+    memset(ni[i], '\0', sizeof(int) * INT(lz));
+
+  }/*FOR*/
+
+  nj = (unsigned int **) R_alloc(INT(ly), sizeof(int *));
+  for (i = 0; i < INT(ly); i++) {
+
+    nj[i] = (unsigned int *) R_alloc(INT(lz), sizeof(int));
+    memset(nj[i], '\0', sizeof(int) * INT(lz));
+
+  }/*FOR*/
+
+  nk = (unsigned int *) R_alloc(INT(lz), sizeof(int));
   memset(nk, '\0', sizeof(int) * INT(lz));
 
   /* compute the joint frequency of x, y, and z. */
@@ -100,7 +134,6 @@ SEXP cmi (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
   UNPROTECT(1);
 
   return result;
-
 
 }/*CMI*/
 

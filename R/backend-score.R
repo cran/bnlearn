@@ -62,7 +62,7 @@ score.delta = function(arc, network, data, score, score.delta,
 #   1               all the possibile arcs.
 # - amat            exclude arcs already in the graph.
 # - t(amat)         exclude the reverse of those arcs.
-# - diag(n.nodes)   exclude self-loops.
+# - diag(n.nodes)   exclude loops.
 # - blmat		exclude blacklisted arcs.
 arcs.to.be.added = function(amat, nodes, n.nodes, blmat) {
 

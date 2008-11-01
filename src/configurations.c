@@ -15,11 +15,12 @@ SEXP cfg(SEXP parents) {
   int ncols = LENGTH(parents);
   int nrows = LENGTH(VECTOR_ELT(parents, 0));
   int cfgmap = 0;
-  int cumlevels[nrows];
+  int *cumlevels;
 
   SEXP ret;
 
   /* create the cumulative products of the number of levels. */
+  cumlevels = (int *) R_alloc(ncols, sizeof(int));
   memset(cumlevels, '\0', sizeof(int) * ncols);
 
   /* set the first one to 1 ... */

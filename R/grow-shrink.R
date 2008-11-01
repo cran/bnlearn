@@ -184,9 +184,10 @@ gs.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
   sapply(nodes, add.node, x = x, test = test)
   # second pass detects parents of the son
   remaining = nodes[!(nodes %in% mb)]
-  # no second pass is needed if the only node standing is the last one
-  if ((length(remaining) != 1) || !identical(remaining, nodes[length(nodes)]))
-    sapply(remaining, add.node, x = x, test = test)
+  # no second pass is needed if the only node standing is the last one,
+  # or if no node was added in the first pass.
+  if ((!identical(remaining, nodes)) && (!identical(remaining, nodes[length(nodes)])))
+      sapply(remaining, add.node, x = x, test = test)
   # remember the last node added to the markov blanket, which is not to be
   # tested for removal.
   last.added = mb[length(mb)]

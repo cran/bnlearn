@@ -18,8 +18,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 0.9\cr
-    Date: \tab 2008-09-08\cr
+    Version: \tab 1.0\cr
+    Date: \tab 2008-11-01\cr
     License: \tab GPLv2 or later
 
   }
@@ -274,13 +274,13 @@ compare(res, res2)
 # [1] TRUE
 # how many tests each of the two algorithms used?
 res$learning$ntests
-# [1] 43
+# [1] 41
 res2$learning$ntests
 # [1] 50
 # and the unoptimized implementation of these algorithms?
-\dontrun{gs(learning.test, optimized = FALSE)$ntests}
+\dontrun{gs(learning.test, optimized = FALSE)$learning$ntests}
 # [1] 90
-\dontrun{iamb(learning.test, optimized = FALSE)$ntests}
+\dontrun{iamb(learning.test, optimized = FALSE)$learning$ntests}
 # [1] 116
 
 ## Greedy search

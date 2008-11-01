@@ -15,7 +15,7 @@
 
 /*
  * Beware: these functions are based on the assumption
- * that each arc is unique in the arc list; otherwise
+ * that each arc is unique in the arc set; otherwise
  * the counter may be wrong, leading to false negatives.
  */
 
@@ -27,10 +27,11 @@ SEXP is_dag(SEXP arcs, SEXP nnodes) {
 int i = 0;
 int nrows = LENGTH(arcs)/2;
 int n = INTEGER(nnodes)[0];
-short int checklist[COORDS(n, n)];
+short int *checklist;
 SEXP res;
 
   /* initialize the checklist. */
+  checklist = (short int *) R_alloc(COORDS(n, n), sizeof(short int));
   memset(checklist, '\0', sizeof(short int) * (COORDS(n, n)));
 
   /* allocate the result. */
@@ -99,10 +100,11 @@ SEXP which_undirected(SEXP arcs) {
 int i = 0;
 int nrows = LENGTH(arcs)/2;
 int n = LENGTH(getAttrib(arcs, R_LevelsSymbol));
-short int checklist[COORDS(n, n)];
+short int *checklist;
 SEXP res;
 
   /* initialize the checklist. */
+  checklist = (short int *) R_alloc(COORDS(n, n), sizeof(short int));
   memset(checklist, '\0', sizeof(short int) * (COORDS(n, n)));
 
   /* allocate the result. */

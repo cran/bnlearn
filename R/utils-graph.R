@@ -1,8 +1,10 @@
 
 # a modified depth-first search, which is able to cope with cycles
 # and mixed/undirected graphs.
-has.path = function(from, to, nodes, amat, exclude.direct = FALSE, debug = FALSE) {
+has.path = function(from, to, nodes, amat, exclude.direct = FALSE, 
+    underlying.graph = FALSE, debug = FALSE) {
 
+  # remove any arc between "from" and "to".
   if (exclude.direct) amat[from, to] = amat[to, from] = 0L
 
   # do not even begin the search if the node are adjacent.
@@ -14,14 +16,16 @@ has.path = function(from, to, nodes, amat, exclude.direct = FALSE, debug = FALSE
         amat = amat,
         nrows = nrow(amat),
         nodes = nodes,
+        underlying = as.integer(underlying.graph),
         debug = as.integer(debug),
         PACKAGE = "bnlearn")
 
 }#HAS.PATH
 
-# count the loops the arc is part of (even in a partially directed graph).
-how.many.loops = function(arc, nodes, amat, debug = FALSE) {
+# count the cycles the arc is part of (even in a partially directed graph).
+how.many.cycles = function(arc, nodes, amat, debug = FALSE) {
 
+  # remove any arc the end-vertices of arc.
   amat[arc[1], arc[2]] = amat[arc[2], arc[1]] = 0L
 
   .Call("how_many_cycles",
@@ -33,9 +37,9 @@ how.many.loops = function(arc, nodes, amat, debug = FALSE) {
         debug = as.integer(debug),
         PACKAGE = "bnlearn")
 
-}#HOW.MANY.LOOPS
+}#HOW.MANY.CYCLES
 
-# convert a set of neighbourhoods in an arc list.
+# convert a set of neighbourhoods into the corresponding arc set.
 mb2arcs = function(mb, nodes) {
 
   empty.mb = sapply(mb, function(x) {(length(x$nbr) == 0) || is.null(x$nbr) || identical(x$nbr, "")})
@@ -216,3 +220,24 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
   return(new)
 
 }#PERTURB.BACKEND
+
+# compute the in-degree of the nodes.
+in.degree = function(amat) {
+
+  colSums(amat)
+
+}#IN.DEGREE
+
+# compute the out-degree of the nodes.
+out.degree = function(amat) {
+
+  rowSums(amat)
+
+}#OUT.DEGREE
+
+# compute the degree of the nodes.
+degree = function(amat) {
+
+  in.degree(amat) + out.degree(amat)
+
+}#DEGREE

@@ -9,6 +9,24 @@ is.positive = function(x) {
 
 }#IS.POSITIVE
 
+# is x a positive integer?
+is.positive.integer = function(x) {
+
+  is.positive(x) && ((x %/% 1) == x)
+
+}#IS.POSITIVE.INTEGER
+
+# is x a probability?
+is.probability = function(x) {
+
+  is.numeric(x) &&
+  (length(x) == 1) &&
+  is.finite(x) &&
+  (x >= 0) &&
+  (x <= 1)
+
+}#IS.PROBABILITY
+
 # check the data set.
 check.data = function(x) {
 
@@ -422,6 +440,112 @@ check.score.args = function(score, network, data, extra.args) {
 
 }#CHECK.SCORE.ARGS
 
+# sanitize the extra arguments passed to the random graph generation algorithms.
+check.graph.generation.args = function(method, nodes, extra.args) {
+
+  if (method == "ordered") {
+
+    if (!is.null(extra.args$prob)) {
+
+      # prob must be numeric.
+      if (!is.probability(extra.args$prob))
+        stop("the branching probability must be a numeric value in [0,1].")
+
+    }#THEN
+    else {
+
+      extra.args$prob = .5
+
+    }#ELSE
+
+  }#THEN
+  else if (method == "ic-dag") {
+
+    if (!is.null(extra.args$burn.in)) {
+
+      if (!is.positive(extra.args$burn.in))
+        stop("the burn in length must be a positive integer number.")
+
+    }#THEN
+    else {
+
+      extra.args$burn.in = 6 * length(nodes)^2
+
+    }#ELSE
+
+    if (!is.null(extra.args$max.in.degree)) {
+
+      if (!is.positive.integer(extra.args$max.in.degree))
+        stop("the maximum in-degree must be a positive integer number.")
+
+      if (extra.args$max.in.degree >= length(nodes)) {
+
+        warning("a node cannot have an in-degree greater or equal to the number of nodes in the graph.")
+        warning("the condition on the in-degree will be ignored.")
+
+      }#THEN
+
+    }#THEN
+    else {
+
+      extra.args$max.in.degree = Inf
+
+    }#ELSE
+
+    if (!is.null(extra.args$max.out.degree)) {
+
+      if (!is.positive.integer(extra.args$max.out.degree))
+        stop("the maximum out-degree must be a positive integer number.")
+
+      if (extra.args$max.out.degree >= length(nodes)) {
+
+        warning("a node cannot have an out-degree greater or equal to the number of nodes in the graph.")
+        warning("the condition on the out-degree will be ignored.")
+
+      }#THEN
+
+    }#THEN
+    else {
+
+      extra.args$max.out.degree = Inf
+
+    }#ELSE
+
+    if (!is.null(extra.args$max.degree)) {
+
+      if (!is.positive.integer(extra.args$max.degree))
+        stop("the maximum out-degree must be a positive integer number.")
+
+      if (is.finite(extra.args$max.in.degree) &&
+          extra.args$max.in.degree > extra.args$max.degree)
+        stop("the maximun in-degree must be lesser or equal to the maximum degree.")
+
+      if (is.finite(extra.args$max.out.degree) &&
+          extra.args$max.out.degree > extra.args$max.degree)
+        stop("the maximun out-degree must be lesser or equal to the maximum degree.")
+
+      if (extra.args$max.degree >= length(nodes)) {
+
+        warning("a node cannot have a degree greater or equal to the number of nodes in the graph.")
+        warning("the condition on the degree will be ignored.")
+
+      }#THEN
+
+    }#THEN
+    else {
+
+      extra.args$max.degree = Inf
+
+    }#ELSE
+
+  }#THEN 
+
+  check.unused.args(extra.args, graph.generation.extra.args[[method]])
+
+  return(extra.args)
+
+}#CHECK.GRAPH.GENERATION.ARGS
+
 # warn about unused arguments.
 check.unused.args = function(dots, used.args) {
 
@@ -439,7 +563,7 @@ check.alpha = function(alpha, network = NULL) {
   if (!is.null(alpha)) {
 
     # validate alpha.
-    if (!is.positive(alpha) || (alpha > 1))
+    if (!is.probability(alpha))
       stop("alpha must be a numerical value in [0,1].")
 
   }#THEN

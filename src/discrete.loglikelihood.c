@@ -8,7 +8,7 @@
 SEXP dlik (SEXP x, SEXP lx, SEXP length) {
 
   int i = 0, k = 0;
-  unsigned int n[INT(lx)];
+  unsigned int *n;
   SEXP result;
 
   PROTECT(result = allocVector(REALSXP, 1));
@@ -17,6 +17,7 @@ SEXP dlik (SEXP x, SEXP lx, SEXP length) {
   NUM(result) = 0;
 
   /* initialize the contingency table. */
+  n = (unsigned int *) R_alloc(INT(lx), sizeof(int));
   memset(n, '\0', sizeof(int) * INT(lx));
 
   /* compute the joint frequency of x and y. */
@@ -43,7 +44,7 @@ SEXP dlik (SEXP x, SEXP lx, SEXP length) {
 SEXP cdlik (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
 
   int i = 0, j = 0, k = 0;
-  unsigned int n[INT(lx)][INT(ly)], nj[INT(ly)];
+  unsigned int **n, *nj;
   SEXP result;
 
   PROTECT(result = allocVector(REALSXP, 1));
@@ -52,9 +53,16 @@ SEXP cdlik (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
   NUM(result) = 0;
 
   /* initialize the contingency table. */
-  memset(n, '\0', sizeof(int) * INT(lx) * INT(ly));
+  n = (unsigned int **) R_alloc(INT(lx), sizeof(int *));
+  for (i = 0; i < INT(lx); i++) {
+
+    n[i] = (unsigned int *) R_alloc(INT(ly), sizeof(int));
+    memset(n[i], '\0', sizeof(int) * INT(ly));
+
+  }/*FOR*/
 
   /* initialize the marginal frequencies. */
+  nj = (unsigned int *) R_alloc(INT(ly), sizeof(int));
   memset(nj, '\0', sizeof(int) * INT(ly));
 
   /* compute the joint frequency of x and y. */

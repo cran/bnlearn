@@ -1,4 +1,11 @@
 
+bnlearn (1.0)
+  * completely rewritten random.graph(); now it supports
+      different generation algorithms with custom tuning
+      parameters.
+  * moved to dynamic memory allocation in C routines.
+  * improved performance and error handling of rbn().
+
 bnlearn (0.9)
   * reimplemented all the functions that deal with cycles
       and paths in C, which increased their speed manifold

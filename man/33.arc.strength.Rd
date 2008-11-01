@@ -52,7 +52,7 @@ arc.strength(res, learning.test, criterion = "aic")
 res = set.arc(res, "B", "A")
 # A -> B and B -> A have the same strength because they
 # are score equivalent.
-arc.strength(res, learning.test, criterion="aic")
+arc.strength(res, learning.test, criterion = "aic")
 #   from to   strength
 # 1    A  D -1978.0531
 # 2    B  E  -746.8954

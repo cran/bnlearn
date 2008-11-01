@@ -50,7 +50,7 @@
   nparams(x, data, debug = FALSE)
   acyclic(x, directed, debug = FALSE)
   directed(x)
-  path(x, from, to, direct = TRUE, debug = FALSE)
+  path(x, from, to, direct = TRUE, underlying.graph = FALSE, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
@@ -64,12 +64,14 @@
   \item{data}{a data frame, containing the data the Bayesian network
        was learned from.}
   \item{rebuild}{a boolean value. If \code{TRUE} the return value is rebuilt
-       from scratch using the arc list; otherwise the cached value are returned.}
+       from scratch using the arc set; otherwise the cached value are returned.}
   \item{direct}{a boolean value. If \code{FALSE} ignore any arc between \code{from}
        and \code{to} when looking for a path.}
   \item{directed}{a boolean value. If \code{TRUE} the graph is assumed to be
        completely directed (no undirected arcs), and a faster cycle detection
        algorithm is used.}
+  \item{underlying.graph}{a boolean value. If \code{TRUE} the underlying undirected
+       graph is used instead of the (directed) one from the \code{x} parameter.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
        printed; otherwise the function is completely silent.}
 }

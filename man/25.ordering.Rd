@@ -40,7 +40,7 @@
 data(learning.test)
 res = gs(learning.test, optimized = TRUE)
 res$learning$ntests
-# [1] 43
+# [1] 41
 res = set.arc(res, "A", "B")
 ord = node.ordering(res)
 ord
@@ -49,7 +49,7 @@ ord
 ## partial node ordering saves us two tests in the v-structure
 ## detection step of the algorithm.
 gs(learning.test, blacklist = ordering2blacklist(ord))$learning$ntests
-# [1] 41
+# [1] 39
 }
 \author{ Marco Scutari }
 \keyword{utilities}

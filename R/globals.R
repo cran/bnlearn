@@ -26,8 +26,7 @@ test.labels = c(
   'aict'= "AIC-like test",
   'x2'= "Pearson's X^2",
   'cor' = "linear correlation",
-  'zf' = "Fisher's Z test",
-  'none' = "none"
+  'zf' = "Fisher's Z test"
 )
 
 score.labels = c(
@@ -50,4 +49,17 @@ score.extra.args = list(
   "bge" = c("iss", "phi"),
   "lik" = character(0),
   "loglik" = character(0)
+)
+
+graph.generation.algorithms = c("ordered", "ic-dag", "empty")
+
+graph.generation.labels = c(
+  "ordered" = "full ordering",
+  "ic-dag" = "multiconnected dags",
+  "empty" = "empty"
+)
+
+graph.generation.extra.args = list(
+  "ordered" = "prob",
+  "ic-dag" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree")
 )

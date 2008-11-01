@@ -10,8 +10,9 @@ second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist,
   # detected in markov.blanket().
   arcs = mb2arcs(mb, nodes)
 
-  # apply blacklist to the arc list.
-  arcs = arcs[!apply(arcs, 1, function(x){ is.blacklisted(blacklist, x) }),]
+  # apply blacklist to the arc set.
+  to.drop = !apply(arcs, 1, function(x){ is.blacklisted(blacklist, x) })
+  arcs = arcs[to.drop, , drop = FALSE]
 
   # 3. [Orient Edges]
   # 3.1 detect v-structures.
@@ -30,7 +31,7 @@ second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist,
   }#THEN
 
   # 4. [Remove Cycles] and 5. [Reverse Edges]
-  # thou shalt not create loops in the graph, it's acyclic!
+  # thou shalt not create cycles in the graph, it's acyclic!
   arcs = orient.edges(arcs = arcs, nodes = nodes,
            whitelist = whitelist, blacklist = blacklist,
            cluster = cluster, debug = debug)
@@ -39,9 +40,8 @@ second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist,
   arcs = propagate.directions(arcs = arcs, nodes = nodes, debug = debug)
 
   # arcs whitelisted in one direction (i.e. a -> b but not b -> a) are
-  # never checked for loops, because they are definitely not
-  # undirected.
-  # do the check now.
+  # never checked for cycles, because they are definitely not
+  # undirected. Do the check now.
   if (!is.acyclic(arcs = arcs, nodes = nodes))
     stop("the graph contains cycles, possibly because of whitelisted nodes.")
 
@@ -414,11 +414,7 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, cluster, debug) {
   # remove undirected arcs from the whitelist; their direction is
   # left to the algorithm to choose.
   if (!is.null(whitelist) && (nrow(whitelist) > 0))
-    whitelist = whitelist[!which.undirected(whitelist), ]
-
-  # be really sure that the whitelist is still a matrix.
-  if (is.character(whitelist))
-    whitelist = matrix(whitelist, ncol = 2, dimnames = list(c(), c("from", "to")))
+    whitelist = whitelist[!which.undirected(whitelist),, drop = FALSE]
 
   repeat {
 
@@ -426,50 +422,50 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, cluster, debug) {
     if (n > narcs)
       stop("too many iterations, probably would have gone on forever.")
 
-    # check arcs between nodes which are both part of at least one loop.
-    in.loops = is.acyclic.backend(arcs, nodes, directed = FALSE, return.nodes = TRUE)
-    to.be.checked = (arcs[, "from"] %in% in.loops) & (arcs[, "to"] %in% in.loops)
+    # check arcs between nodes which are both part of at least one cycle.
+    in.cycles = is.acyclic.backend(arcs, nodes, directed = FALSE, return.nodes = TRUE)
+    to.be.checked = (arcs[, "from"] %in% in.cycles) & (arcs[, "to"] %in% in.cycles)
 
     if (debug) {
 
       cat("----------------------------------------------------------------\n")
       cat("* detecting cycles ...\n")
-      cat("  > ignored nodes:", length(nodes) - length(in.loops), "/", length(nodes), "\n")
+      cat("  > ignored nodes:", length(nodes) - length(in.cycles), "/", length(nodes), "\n")
       cat("  > ignored arcs:", length(which(!to.be.checked)), "/", nrow(arcs), "\n")
       print(arcs[!to.be.checked, , drop = FALSE])
       cat("  > checked arcs:",length(which(to.be.checked)), "/", nrow(arcs), "\n")
 
     }#THEN
 
-    # compute the loop counter of each (relevant) arc.
-    loops = loop.counter(arcs = arcs[to.be.checked, , drop = FALSE],
-              nodes = in.loops, cluster = cluster)
+    # compute the cycle counter of each (relevant) arc.
+    cycles = cycle.counter(arcs = arcs[to.be.checked,, drop = FALSE],
+              nodes = in.cycles, cluster = cluster)
 
     # do not check arcs whitelisted directed arcs.
-    loops = loops[!which.listed(loops[, 1:2], whitelist), ]
+    cycles = cycles[!which.listed(cycles[, 1:2], whitelist),, drop = FALSE]
 
-    if (debug && (nrow(loops) > 0)) print(loops)
+    if (debug && (nrow(cycles) > 0)) print(cycles)
 
     # if there are no more arcs to check, break.
-    if (nrow(loops) == 0) break
+    if (nrow(cycles) == 0) break
 
-    # remove the arc belonging to the highest number of loops.
-    arcs = arcs[!is.row.equal(arcs, loops[1, c("from", "to")]),]
+    # remove the arc belonging to the highest number of cycles.
+    arcs = arcs[!is.row.equal(arcs, cycles[1, c("from", "to")]),, drop = FALSE]
 
     # if the arc was already directed and its reverse is not blacklisted,
     # store it for future reversal.
-    if (is.directed(loops[1, c("from", "to")], arcs) &&
-        !is.blacklisted(blacklist, loops[1, c("to", "from")])) {
+    if (is.directed(cycles[1, c("from", "to")], arcs) &&
+        !is.blacklisted(blacklist, cycles[1, c("to", "from")])) {
 
       to.be.reversed = rbind(to.be.reversed,
-                         as.matrix(loops[1, c("from", "to")]))
+                         as.matrix(cycles[1, c("from", "to")]))
 
     }#THEN
 
     if (debug) {
 
-      cat("  > arc", loops[1, "from"], "->", loops[1, "to"],
-        "will be removed (", loops[1, "loops"], " cycles ).\n")
+      cat("  > arc", cycles[1, "from"], "->", cycles[1, "to"],
+        "will be removed (", cycles[1, "cycles"], " cycles ).\n")
 
       cat("  > arcs scheduled for reversal are:\n")
       print(to.be.reversed)
@@ -485,13 +481,13 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, cluster, debug) {
 
 }#ORIENT.EDGES
 
-# count how many loops each arc is part of.
-loop.counter = function(arcs, nodes, cluster, debug = FALSE) {
+# count how many cycles each arc is part of.
+cycle.counter = function(arcs, nodes, cluster, debug = FALSE) {
 
   # build the adjacency matrix.
   amat = arcs2amat(arcs, nodes)
-  # loop counter
-  counter = data.frame(arcs, loops = rep(0, nrow(arcs)),
+  # cycle counter
+  counter = data.frame(arcs, cycles = rep(0, nrow(arcs)),
     stringsAsFactors = FALSE)
 
   # if there are no arcs, there is nothing to do here.
@@ -500,21 +496,21 @@ loop.counter = function(arcs, nodes, cluster, debug = FALSE) {
 
   if (!is.null(cluster)) {
 
-    counter[, "loops"] = parApply(cluster, arcs, 1, how.many.loops,
+    counter[, "cycles"] = parApply(cluster, arcs, 1, how.many.cycles,
       nodes = nodes, amat = amat, debug = FALSE)
 
   }#THEN
   else {
 
-    counter[, "loops"] = apply(arcs, 1, how.many.loops, nodes = nodes,
+    counter[, "cycles"] = apply(arcs, 1, how.many.cycles, nodes = nodes,
       amat = amat, debug = debug)
 
   }#ELSE
 
-  # return the sorted loop counter.
-  counter[order(counter[,"loops"], decreasing = TRUE),, drop = FALSE]
+  # return the sorted cycle counter.
+  counter[order(counter[,"cycles"], decreasing = TRUE),, drop = FALSE]
 
-}#LOOP.COUNTER
+}#CYCLE.COUNTER
 
 # test undirected arcs in both direction to infer their orientation.
 set.directions = function(arcs, data, test, alpha, cluster, debug) {
@@ -585,10 +581,10 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
 
     }#THEN
 
-    # if both arcs have the same p-value, do not remove them from the arc list.
+    # if both arcs have the same p-value, do not remove them from the arc set.
     if (da.best[3] != lookup.table[is.row.equal(lookup.table[, 1:2], da.best[c(2, 1)]), 3]) {
 
-      # remove its reverse from the arc list.
+      # remove its reverse from the arc set.
       arcs = set.arc.direction(da.best[1], da.best[2], arcs)
 
       if (debug) {
@@ -720,13 +716,13 @@ nbr.recovery = function(mb, nodes, strict, debug) {
 
 }#NBR.RECOVERY
 
-# explore the structure of the network parsing the arc list.
+# explore the structure of the network using its arc set.
 cache.structure = function(nodes, arcs, debug = FALSE) {
 
 # create the structure object
 struct = list()
 # build the adjacency matrix; using arcs directly does not scale at all
-# (o(arc^2) scans of the arc list are needed for each arc).
+# (o(arc^2) scans of the arc set are needed for each arc).
 a = arcs2amat(arcs, nodes)
 
   if (debug)

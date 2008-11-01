@@ -33,7 +33,7 @@ is.acyclic = function(arcs, nodes, debug = FALSE) {
 }#IS.ACYCLIC
 
 # check whether a (partially directed) graph is acyclic.
-# Extension to mixed graphs of the proof for proposition 1.4.3
+# Extension to mixed graphs of the proof for proposition 1.4.2
 # in "Digraphs Theory, Algorithms and Applications" by
 # Bang-Jensen and Gutin, page 13.
 is.acyclic.backend = function(arcs, nodes, directed = FALSE, return.nodes = FALSE,
@@ -54,9 +54,9 @@ is.acyclic.backend = function(arcs, nodes, directed = FALSE, return.nodes = FALS
   if (debug)
     cat("* checking whether the (directed) graph is acyclic.\n")
 
-  in.loop = nodes
+  in.cycle = nodes
 
-  # to be part of a loop, a node needs to have both a parent
+  # to be part of a cycle, a node needs to have both a parent
   # and a children; remove (iteratively) all the nodes which
   # do not fit this description.
   for (i in seq(1, length(nodes))) {
@@ -64,41 +64,41 @@ is.acyclic.backend = function(arcs, nodes, directed = FALSE, return.nodes = FALS
     # save a copy of the names of the 'good' nodes at the beginning of each
     # iteration; it will be used to check if any node is removed and avoid
     # useless iterations for cyclic graphs.
-    last.known.in.loop = in.loop
+    last.known.in.cycle = in.cycle
 
     if (debug)
-      cat("  > nodes which may be part of a cycle: '", in.loop, "'\n")
+      cat("  > nodes which may be part of a cycle: '", in.cycle, "'\n")
 
-    row.sums = rowSums(amat[in.loop, in.loop, drop = FALSE])
-    col.sums = colSums(amat[in.loop, in.loop, drop = FALSE])
+    row.sums = rowSums(amat[in.cycle, in.cycle, drop = FALSE])
+    col.sums = colSums(amat[in.cycle, in.cycle, drop = FALSE])
 
     # iteratively remove nodes which have either no parents
     # or no children.
-    in.loop = intersect(names(row.sums[row.sums > 0]),
+    in.cycle = intersect(names(row.sums[row.sums > 0]),
                      names(col.sums[col.sums > 0]))
 
     if (debug)
-      cat("  > nodes which may be part of a cycle: '", in.loop, "'\n")
+      cat("  > nodes which may be part of a cycle: '", in.cycle, "'\n")
 
     # the following code is useless for directed graphs; skip.
     if (!directed) {
 
-      # a single undirected arc cannot cause a node to be part of a loop;
+      # a single undirected arc cannot cause a node to be part of a cycle;
       # thic condition can be identified as follows:
       # 1) row total equal to 1 (only one outward arc).
-      row.sums = rowSums(amat[in.loop, in.loop, drop = FALSE])
+      row.sums = rowSums(amat[in.cycle, in.cycle, drop = FALSE])
       # 2) column totla equal to 1 (only one inward arc).
-      col.sums = colSums(amat[in.loop, in.loop, drop = FALSE])
+      col.sums = colSums(amat[in.cycle, in.cycle, drop = FALSE])
       # 3) row %*% col = 1 which means that the inward and outward arcs are
       #      one and the same.
-      single.undirected = rowSums(amat[in.loop, in.loop] * t(amat[in.loop, in.loop]))
+      single.undirected = rowSums(amat[in.cycle, in.cycle] * t(amat[in.cycle, in.cycle]))
 
-      in.loop = in.loop[!((single.undirected == 1) & (row.sums == 1) & (col.sums == 1))]
+      in.cycle = in.cycle[!((single.undirected == 1) & (row.sums == 1) & (col.sums == 1))]
 
     }#THEN
 
-    # a loop requires at least three distinct nodes.
-    if (length(in.loop) < 3) {
+    # a cycle requires at least three distinct nodes.
+    if (length(in.cycle) < 3) {
 
       if (debug) cat("  @ no cycle found.\n")
 
@@ -111,15 +111,15 @@ is.acyclic.backend = function(arcs, nodes, directed = FALSE, return.nodes = FALS
 
     # if the 'good' nodes are the same as in the last iteration, the graph is
     # cyclic; break the loop and return accordingly.
-    if (length(in.loop) == length(last.known.in.loop)) break
+    if (length(in.cycle) == length(last.known.in.cycle)) break
 
   }#FOR
 
   if (debug)
-    cat("  @ these nodes are part of one or more cycles: '", in.loop, "'\n")
+    cat("  @ these nodes are part of one or more cycles: '", in.cycle, "'\n")
 
   if (return.nodes)
-    return(in.loop)
+    return(in.cycle)
   else
     return(FALSE)
 

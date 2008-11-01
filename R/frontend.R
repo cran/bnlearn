@@ -362,7 +362,7 @@ amat = function(x) {
   if (missing(value))
     stop("no adjacency matrix specified.")
   # check the adjacency matrix.
-  check.amat(amat = value, nodes = names(x$names))
+  check.amat(amat = value, nodes = names(x$nodes))
 
   # update the arcs of the network.
   x$arcs = amat2arcs(value, names(x$nodes))
@@ -602,7 +602,8 @@ directed = function(x) {
 }#DIRECTED
 
 # check if there's a path between two specific nodes.
-path = function(x, from, to, direct = TRUE, debug = FALSE) {
+path = function(x, from, to, direct = TRUE, underlying.graph = FALSE, 
+    debug = FALSE) {
 
   # check x's class.
   check.bn(x)
@@ -613,10 +614,15 @@ path = function(x, from, to, direct = TRUE, debug = FALSE) {
   # 'from' must be different from 'to'.
   if (identical(from, to))
     stop("'from' and 'to' must be different from each other.")
+  # check underlying.path.
+  check.logical(underlying.graph)
+  # check debug.
+  check.logical(debug)
 
   has.path(from, to, names(x$nodes),
     arcs2amat(x$arcs, names(x$nodes)),
     exclude.direct = !direct,
+    underlying.graph = underlying.graph,
     debug = debug)
 
 }#PATH
@@ -998,25 +1004,31 @@ ci.test.default = function(x, ...) {
 }#CI.TEST.DEFAULT
 
 # create an empty graph from a given set of nodes.
-empty.graph = function(nodes) {
+empty.graph = function(nodes, num = 1) {
 
-  # check the node labels.
-  check.nodes(nodes)
-
-  empty.graph.backend(nodes)
+  random.graph(nodes = nodes, num = num, method = "empty", debug = debug)
 
 }#EMPTY.GRAPH
 
 # generate a random graph.
-random.graph = function(nodes, prob = 0.5) {
+random.graph = function(nodes, num = 1, method = "ordered", ..., debug = FALSE) {
 
+  # check the generation method.
+  if (!(method %in% graph.generation.algorithms))
+    stop(paste("valid generation methods are:",
+           paste(graph.generation.algorithms, collapse = " ")))
   # check the node labels.
   check.nodes(nodes, min.nodes = 3)
-  # prob must be numeric.
-  if (!is.positive(prob) || (prob > 1))
-    stop("the branching probability must be a numeric value in [0,1].")
+  # check the number of graph to generate.
+  if (!is.positive.integer(num))
+    stop(" the number of graphs to generate must be a positive integer number.")
 
-  random.graph.backend(nodes = nodes, prob = prob)
+  # expand and sanitize method-specific arguments.
+  extra.args = check.graph.generation.args(method = method, 
+                 nodes = nodes, extra.args = list(...))
+
+  random.graph.backend(num = num, nodes = nodes, method = method, 
+    extra.args = extra.args, debug = debug)
 
 }#RANDOM.GRAPH
 

@@ -88,10 +88,10 @@ SEXP amat2arcs(SEXP amat, SEXP nodes) {
   SET_STRING_ELT(colnames, 1, mkChar("to"));
   SET_VECTOR_ELT(dimnames, 1, colnames);
 
-  /* if there are no arcs, return an empty arc list. */
+  /* if there are no arcs, return an empty arc set. */
   if (narcs == 0) {
 
-    /* allocate an empty arc list. */
+    /* allocate an empty arc set. */
     PROTECT(arcs = allocMatrix(STRSXP, 0, 2));
     /* set the column names. */
     setAttrib(arcs, R_DimNamesSymbol, dimnames);
@@ -103,14 +103,14 @@ SEXP amat2arcs(SEXP amat, SEXP nodes) {
   }/*THEN*/
   else {
 
-    /* allocate the arc list. */
+    /* allocate the arc set. */
     PROTECT(arcs = allocMatrix(STRSXP, narcs, 2));
     /* set the column names. */
     setAttrib(arcs, R_DimNamesSymbol, dimnames);
 
   }/*ELSE*/
 
-  /* fill the arc list from the adjacency matrix. */
+  /* fill the arc set from the adjacency matrix. */
   for (i = 0; i < nrows; i++) {
 
     for (j = 0; j < nrows; j++) {

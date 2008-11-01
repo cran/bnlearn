@@ -42,7 +42,7 @@ which.undirected = function(arcs) {
 # is this arc undirected?
 is.undirected = function(arc, arcs) {
 
-  # if it is there must be its reverse in the arc list.
+  # if it is there must be its reverse in the arc set.
   is.listed(arcs, arc[c(2,1)])
 
 }#IS.UNDIRECTED
