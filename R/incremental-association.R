@@ -1,6 +1,6 @@
 
 incremental.association.optimized = function(x, whitelist, blacklist, test,
-  alpha, strict, direction, debug) {
+  alpha, strict, debug) {
 
   nodes = names(x)
   mb2 = mb = list()
@@ -34,18 +34,15 @@ incremental.association.optimized = function(x, whitelist, blacklist, test,
   # update mb with the results of neighbour().
   mb = mb2
 
-  # recover some of the arc directions.
-  result = second.principle(x = x, mb = mb, nodes = nodes,
-      whitelist = whitelist, blacklist = blacklist, test = test,
-      alpha = alpha, strict = strict, direction = direction,
-      debug = debug)
+  # hope it's never called ...
+  mb = nbr.recovery(mb, nodes = nodes, strict = strict, debug = debug)
 
-  invisible(result)
+  return(mb)
 
 }#INCREMENTAL.ASSOCIATION.OPTIMIZED
 
 incremental.association.cluster = function(x, cluster, whitelist, blacklist,
-  test, alpha, strict, direction, debug) {
+  test, alpha, strict, debug) {
 
   nodes = names(x)
 
@@ -64,18 +61,15 @@ incremental.association.cluster = function(x, cluster, whitelist, blacklist,
          test = test, debug = debug)
   names(mb) = nodes
 
-  # recover some of the arc directions.
-  result = second.principle(x = x, cluster = cluster, mb = mb,
-      nodes = nodes, whitelist = whitelist, blacklist = blacklist,
-      test = test, alpha = alpha, strict = strict, direction = direction,
-      debug = debug)
+  # hope it's never called ...
+  mb = nbr.recovery(mb, nodes = nodes, strict = strict, debug = debug)
 
-  invisible(result)
+  return(mb)
 
 }#INCREMENTAL.ASSOCIATION.CLUSTER
 
 incremental.association = function(x, whitelist, blacklist, test, alpha,
-  strict, direction, debug) {
+  strict, debug) {
 
   nodes = names(x)
 
@@ -94,13 +88,10 @@ incremental.association = function(x, whitelist, blacklist, test, alpha,
          debug = debug)
   names(mb) = nodes
 
-  # recover some of the arc directions.
-  result = second.principle(x = x, mb = mb, nodes = nodes,
-      whitelist = whitelist, blacklist = blacklist, test = test,
-      alpha = alpha, strict = strict, direction = direction,
-      debug = debug)
+  # hope it's never called ...
+  mb = nbr.recovery(mb, nodes = nodes, strict = strict, debug = debug)
 
-  invisible(result)
+  return(mb)
 
 }#INCREMENTAL.ASSOCIATION
 

@@ -11,7 +11,7 @@
 \usage{
   inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
-    strict = TRUE, direction = FALSE)
+    strict = FALSE, undirected = FALSE, direction = FALSE)
 }
 \arguments{
   \item{x}{a data frame, containing the variables in the model.}
@@ -30,7 +30,7 @@
       data), \code{fmi} (\emph{fast mutual information}), \code{aict}
       (\emph{AIC}), \code{x2} (\emph{Pearson's \eqn{\chi^2}{chi-square}}),
       \code{cor} (\emph{linear correlation}), \code{zf} (\emph{Fisher's Z})
-      and \code{mi-g} (\emph{mutual information} for gaussian data).
+      and \code{mi-g} (\emph{mutual information} for Gaussian data).
       If none is specified, the default one is \emph{mutual
       information} for discrete data sets and \emph{linear correlation}
       for continuous ones. See \code{\link{bnlearn-package}} for details.}
@@ -42,9 +42,13 @@
   \item{strict}{a boolean value. If \code{TRUE} conflicting results in
       the learning process generate an error; otherwise they result in
       a warning.}
-  \item{direction}{a boolean value. If \code{TRUE} each possible direction
-      of each undirected arc is tested, and the one with the lowest
-      p-value is accepted as the true direction for that arc.}
+  \item{undirected}{a boolean value. If \code{TRUE} no attempt will be made
+      to determine the orientation of the arcs; the returned (undirected)
+      graph will represent the underlying structure of the Bayesian network.}
+  \item{direction}{a boolean value. If \code{TRUE} (and \code{undirected} is
+      set to \code{FALSE}) each possible direction of each undirected arc is
+      tested, and the one with the lowest p-value is accepted as the true
+      direction for that arc.}
 }
 \value{
 
@@ -61,7 +65,7 @@
 }
 \author{ Marco Scutari }
 \seealso{\code{\link{gs}}, \code{\link{fast.iamb}}, \code{\link{iamb}},
-  \code{\link{hc}}. }
+  \code{\link{mmpc}}, \code{\link{hc}}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

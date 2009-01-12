@@ -1,4 +1,19 @@
 
+bnlearn (1.1)
+  * implemented mmpc().
+  * slightly changed gaussian.test to be more learning-friendly.
+  * fixed bugs in empty.graph() and "arcs<-"().
+  * changed the default probability of arc inclusion for
+      the "ordered" method in random.graph() to get sparser
+      graphs.
+  * added graphviz.plot().
+  * implemented the possibility of not learning arc directions
+      in constraint-based algorithms.
+  * changed the default value of the strict parameter
+      from TRUE to FALSE.
+  * reimplemented cache.structure() in C to increase
+      random.graph() performance and scalability.
+
 bnlearn (1.0)
   * completely rewritten random.graph(); now it supports
       different generation algorithms with custom tuning

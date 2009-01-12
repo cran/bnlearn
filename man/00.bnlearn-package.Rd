@@ -18,8 +18,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 1.0\cr
-    Date: \tab 2008-11-01\cr
+    Version: \tab 1.1\cr
+    Date: \tab 2009-01-12\cr
     License: \tab GPLv2 or later
 
   }
@@ -42,7 +42,7 @@
 
   Marco Scutari\cr
   Department of Statistical Sciences\cr
-  University of Padua
+  University of Padova
 
   Maintainer: Marco Scutari \email{marco.scutari@gmail.com}
 
@@ -62,8 +62,14 @@
       number of conditional independence tests (Yaramakala and Margaritis, 2005).
     \item \emph{Interleaved Incremental Association} (\code{\link{inter.iamb}}):
       another variant of IAMB which interleaves the backward selection with
-      the forward one to avid false positives (i.e. nodes erroneously included
+      the forward one to avoid false positives (i.e. nodes erroneously included
       in the Markov blanket) (Yaramakala and Margaritis, 2005).
+    \item \emph{Max-Min Parents and Children} (\code{\link{mmpc}}): a 
+      forward-selection technique for neighbourhood detection based on the 
+      maximization of the minimum association measure observed with any subset 
+      of the current conditioning variables (Tsamardinos, Brown and Aliferis, 2006). 
+      It learns the underlying structure of the Bayesian networks (all the arcs 
+      are undirected, no attempt is made to detect their orientation).
 
   }
 
@@ -89,7 +95,7 @@
   the size of the data set.
 
 }
-\section{Other learning algorithms}{
+\section{Available score-based learning algorithms}{
 
   \itemize{
     \item \emph{Hill-Climbing} (\code{\link{hc}}): an \emph{hill climbing}
@@ -152,9 +158,11 @@
       \itemize{
 
         \item the multinomial \emph{likelihood} (\code{lik}) score.
-        \item the multinomial \emph{loglikelihood} (\code{loglik}) score.
+        \item the multinomial \emph{loglikelihood} (\code{loglik}) score, 
+          which is equivalent to the \emph{entropy measure}.
         \item the \emph{Akaike Information Criterion} score (\code{aic}).
-        \item the \emph{Bayesian Information Criterion} score (\code{bic}).
+        \item the \emph{Bayesian Information Criterion} score (\code{bic}), 
+          which is equivalent to the \emph{Minimum Description Length} (MDL).
         \item the logarithm of the \emph{Bayesian Dirichlet equivalent}
           score (\code{bde} o \code{dir}), a score equivalent Dirichlet
           posterior density.
@@ -214,7 +222,7 @@
 
   The \code{strict} parameter enables some measure of error
   correction, which may help to retrieve a good model
-  even when the learning process would fail:
+  even when the learning process would otherwise fail:
 
   \itemize{
     \item if \code{strict} is set to \code{TRUE}, every error
@@ -224,10 +232,12 @@
       \item v-structures are applied to the network structure
         in lowest-p.value order; if any arc is already oriented
         in the opposite direction, the v-structure is discarded.
-      \item nodes which causes asymmetries in any Markov blanket
-        are removed from that Markov blanket.
-      \item nodes which causes asymmetries in any neighbourhood
-        are removed from that neighbourhood.
+      \item nodes which cause asymmetries in any Markov blanket
+        are removed from that Markov blanket; they are treated
+        as false positives.
+      \item nodes which cause asymmetries in any neighbourhood
+        are removed from that neighbourhood; again theyare treated
+        as false positives (see Tsamardinos, Brown and Aliferis, 2006).
     }
   }
 
@@ -237,11 +247,11 @@
   A. Agresti. Categorical Data Analysis. John Wiley & Sons, Inc., 2002.
 
   K. Korb and A. Nicholson. Bayesian artificial intelligence. Chapman and
-   Hall, 2004.
+     Hall, 2004.
 
   D. Margaritis. Learning Bayesian Network Model Structure from Data. PhD
-    thesis, School of Computer Science, Carnegie-Mellon University, Pittsburgh,
-    PA, May 2003. Available as Technical Report CMU-CS-03-153.
+     thesis, School of Computer Science, Carnegie-Mellon University, Pittsburgh,
+     PA, May 2003. Available as Technical Report CMU-CS-03-153.
 
   J. Pearl. Probabilistic Reasoning in Intelligent Systems: Networks of Plausible
      Inference. Morgan Kaufmann Publishers Inc., 1988.
@@ -250,6 +260,15 @@
      blanket discovery. In Proceedings of the Sixteenth International Florida
      Artificial Intelligence Research Society Conference, pages 376-381. AAAI Press,
      2003.
+
+  I. Tsamardinos, C. F. Aliferis, A. Statnikov. Time and sample 
+     efficient discovery of Markov blankets and direct causal 
+     relations. Proceedings of the Ninth International Conference 
+     on Knowledge Discovery and Data Mining KDD, pages 673-8, 2003. 
+
+  I. Tsamardinos, L. E. Brown, C. Aliferis. The max-min hill-climbing
+     Bayesian network learning algorithm. Machine Learning, 65(1),
+     pages 31-78. Kluwer Academic Publishers, 2006.
 
   S. Yaramakala, D. Margaritis. Speculative Markov Blanket Discovery for
      Optimal Feature Selection. In Proceedings of the Fifth IEEE International
@@ -287,7 +306,7 @@ res2$learning$ntests
 res = hc(learning.test)
 plot(res)
 
-## Another simple example (gaussian data)
+## Another simple example (Gaussian data)
 data(gaussian.test)
 # first try the Grow-Shrink algorithm
 res = gs(gaussian.test)

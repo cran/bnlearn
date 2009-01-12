@@ -149,3 +149,11 @@ which.listed = function(arcs, list) {
 which.whitelisted = which.listed
 which.blacklisted = which.listed
 
+# convert a set of neighbourhoods to an arc set.
+nbr2arcs = function(nbr) {
+
+  .Call("nbr2arcs",
+        nbr = nbr,
+        PACKAGE = "bnlearn")
+
+}#NBR2ARCS

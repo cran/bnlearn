@@ -3,6 +3,7 @@ export(
   "iamb",
   "inter.iamb",
   "fast.iamb",
+  "mmpc",
   "hc",
   "compare",
   "mb",
@@ -38,7 +39,8 @@ export(
   "node.ordering",
   "ordering2blacklist",
   "empty.graph",
-  "random.graph"
+  "random.graph",
+  "graphviz.plot"
 )
 
 S3method(print, bn)

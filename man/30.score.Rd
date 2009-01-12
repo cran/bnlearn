@@ -82,6 +82,9 @@
     Combination of Knowledge and Statistical Data. Microsoft Research Technical
     Report MSR-TR-94-09.
 
+  D.Geiger and D. Heckerman. Learning Gaussian Networks. Microsoft Research 
+    Technical Report MSR-TR-94-10.
+
 }
 \value{
 

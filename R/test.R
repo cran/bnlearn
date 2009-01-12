@@ -148,7 +148,7 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
       # define the degrees of freedom and check them.
       df = ndata - 2 - length(sx)
       if (df < 1)
-        stop("tryng to do a conditional independence test with zero degrees of freedom.")
+        stop("trying to do a conditional independence test with zero degrees of freedom.")
 
       statistic = pcor(c(x, y, sx), data)
       p.value = pt(abs(statistic * sqrt(df) / sqrt(1 - statistic^2)), df, lower.tail = FALSE) * 2
@@ -160,7 +160,7 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
       # define the degrees of freedom and check them.
       df = ndata - 3 - length(sx)
       if (df < 1)
-        stop("tryng to do a conditional independence test with zero degrees of freedom.")
+        stop("trying to do a conditional independence test with zero degrees of freedom.")
 
       statistic = pcor(c(x, y, sx), data)
       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(df)

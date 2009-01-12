@@ -1,30 +1,8 @@
-#include <R.h>
-#include <Rinternals.h>
+#include "common.h"
 
 /* macro for the number of levels of the j-th node. */
 #define BNLEARN_NLEVELS(j) \
   LENGTH(getAttrib(VECTOR_ELT(data, j), R_LevelsSymbol))
-
-/* get the list element named str, or return NULL. */
-SEXP getListElement(SEXP list, char *str) {
-
-  SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
-  int i = 0;
-
-  for (i = 0; i < length(list); i++) {
-
-    if (strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
-
-      elmt = VECTOR_ELT(list, i);
-      break;
-
-    }/*THEN*/
-
-  }/*FOR*/
-
-return elmt;
-
-}/*GETLISTELEMENT*/
 
 /* get the number of parameters of a single node. */
 SEXP nparams(SEXP graph, SEXP node, SEXP data, SEXP real) {
@@ -146,4 +124,81 @@ SEXP schedule_children(SEXP graph, SEXP nodes) {
  return result;
 
 }/*SCHEDULE_CHILDREN*/
+
+/* convert a set of neighbourhoods into an arc set. */
+SEXP nbr2arcs(SEXP nbr) {
+
+  int i = 0, j = 0, k = 0;
+  int narcs = 0;
+  int length_names = 0;
+
+  SEXP arcs, dimnames, colnames;
+  SEXP temp, names;
+
+  /* get the names of the nodes. */
+  names = getAttrib(nbr, R_NamesSymbol);
+  length_names = LENGTH(names);
+
+  /* scan the structure to determine the number of arcs.  */
+  for (i = 0; i < length_names; i++) {
+
+    /* get the entry for the neighbours of the node.*/
+    temp = getListElement(nbr, (char *)CHAR(STRING_ELT(names, i)));
+    temp = getListElement(temp, "nbr");
+
+    narcs += LENGTH(temp);
+
+  }/*FOR*/
+
+  /* allocate colnames. */
+  PROTECT(dimnames = allocVector(VECSXP, 2));
+  PROTECT(colnames = allocVector(STRSXP, 2));
+  SET_STRING_ELT(colnames, 0, mkChar("from"));
+  SET_STRING_ELT(colnames, 1, mkChar("to"));
+  SET_VECTOR_ELT(dimnames, 1, colnames);
+
+  /* if there are no arcs, return an empty arc set. */
+  if (narcs == 0) {
+
+    /* allocate an empty arc set. */
+    PROTECT(arcs = allocMatrix(STRSXP, 0, 2));
+    /* set the column names. */
+    setAttrib(arcs, R_DimNamesSymbol, dimnames);
+
+    UNPROTECT(3);
+
+    return arcs;
+
+  }/*THEN*/
+  else {
+
+    /* allocate the arc set. */
+    PROTECT(arcs = allocMatrix(STRSXP, narcs, 2));
+    /* set the column names. */
+    setAttrib(arcs, R_DimNamesSymbol, dimnames);
+
+  }/*ELSE*/
+
+  /* rescan the structure to build the arc set. */
+  for (i = 0; i < length_names; i++) {
+
+    /* get the entry for the neighbours of the node.*/
+    temp = getListElement(nbr, (char *)CHAR(STRING_ELT(names, i)));
+    temp = getListElement(temp, "nbr");
+
+    for (j = 0; j < LENGTH(temp); j++) {
+
+      SET_STRING_ELT(arcs, k, STRING_ELT(names, i));
+      SET_STRING_ELT(arcs, k + 1 * narcs , STRING_ELT(temp, j));
+      k++;
+
+    }/*FOR*/
+
+  }/*FOR*/
+
+  UNPROTECT(3);
+
+return arcs;
+
+}/*NBR2ARCS*/
 

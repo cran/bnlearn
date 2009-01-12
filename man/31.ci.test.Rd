@@ -36,7 +36,7 @@
       data), \code{fmi} (\emph{fast mutual information}), \code{aict}
       (\emph{AIC}), \code{x2} (\emph{Pearson's \eqn{\chi^2}{chi-square}}),
       \code{cor} (\emph{linear correlation}), \code{zf} (\emph{Fisher's Z})
-      and \code{mi-g} (\emph{mutual information} for gaussian data).
+      and \code{mi-g} (\emph{mutual information} for Gaussian data).
       If none is specified, the default one is \emph{mutual
       information} for discrete data sets and \emph{linear correlation}
       for continuous ones. See \code{\link{bnlearn-package}} for details.}
@@ -73,7 +73,7 @@ ci.test(x = "F" , y = "B", z = c("C", "D"), data = gaussian.test)
 #	 linear correlation
 #
 # data:  F ~ B | C + D
-# cor = -0.0423, df = 4996, p-value = 0.002797
+# cor = -0.1275, df = 4996, p-value < 2.2e-16
 # alternative hypothesis: true value is not equal to 0
 
 # using a data frame.
@@ -82,7 +82,7 @@ ci.test(gaussian.test)
 #	 linear correlation
 #
 # data:  A ~ B | C + D + E + F + G
-# cor = -0.1535, df = 4993, p-value < 2.2e-16
+# cor = -0.5654, df = 4993, p-value < 2.2e-16
 # alternative hypothesis: true value is not equal to 0
 
 # using factor objects.

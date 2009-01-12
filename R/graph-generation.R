@@ -199,12 +199,14 @@ ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
 empty.graph.backend = function(nodes) {
 
   arcs = matrix(character(0), ncol = 2, dimnames = list(c(), c("from", "to")))
+  learning.structure = structure(lapply(nodes, function(n) {
+        list(mb = character(0), nbr = character(0)) }), names = nodes)
   nodes.structure = structure(lapply(nodes, function(n) {
         list(mb = character(0), nbr = character(0), parents = character(0),
           children = character(0)) }), names = nodes)
   res = structure(list(
     learning = list(
-      nodes = nodes.structure,
+      nodes = learning.structure,
       arcs = arcs,
       whitelist = NULL,
       blacklist = NULL,

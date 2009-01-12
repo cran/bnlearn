@@ -51,45 +51,88 @@ check.data = function(x) {
 
 }#CHECK.DATA
 
-# check a single node label of a graph.
-check.node = function(node, graph) {
+# check nodes (not necessarily from a bn object).
+check.nodes = function(nodes, graph = NULL, min.nodes = 1, max.nodes = Inf) {
 
   # a node is needed.
-  if (missing(node))
+  if (missing(nodes))
     stop("no node specified.")
-  # a node label must be a character string.
-  if (!is(node, "character"))
-    stop("node must be a character string, the label of a node.")
-  # only one node is needed.
-  if (length(node) > 1)
-    stop("only a single node may be specified.")
-  # node must be a valid node label.
-  if (!(node %in% names(graph$nodes)))
-    stop("node not present in the graph.")
-
-}#CHECK.NODE
-
-# check nodes (not from a bn object).
-check.nodes = function(nodes, min.nodes = NULL) {
-
   # nodes must be a vector of character strings.
   if (!is(nodes, "character"))
     stop("nodes must be a vector of character strings, the labels of the nodes.")
-  # at least one node is needed.
-  if (length(nodes) < 1)
-    stop("at leat one node label is needed.")
   # no duplicates allowed.
   if (any(duplicated(nodes)))
      stop("node labels must be unique.")
-  # no empty strings
+  # no empty strings.
   if (any(nodes == ""))
     stop("an empty string is not a valid node label.")
-  # minimum number of nodes requirement.
-  if (!is.null(min.nodes))
-    if (length(nodes) < min.nodes)
-      stop(paste("at least", min.nodes, "nodes needed."))
+  # maximum number of nodes requirement.
+  if (length(nodes) > max.nodes)
+    stop(paste("at most", min.nodes, "node(s) needed."))
+  # minimum number of nodes requirement (usually 1).
+  if (length(nodes) < min.nodes)
+    stop(paste("at least", min.nodes, "node(s) needed."))
+  # node must be a valid node label.
+  if (!is.null(graph))
+    if (!all(nodes %in% names(graph$nodes)))
+      stop(paste(c("node(s)", nodes[!(nodes %in% names(graph$nodes))], 
+             "not present in the graph."), collapse = " "))
 
 }#CHECK.NODES
+
+# check an arc set.
+check.arcs = function(arcs, graph = NULL) {
+
+  # sanitize the set of arcs.
+  if (class(arcs) %in% c("matrix", "data.frame")) {
+
+     if (dim(arcs)[2] != 2)
+       stop("the arcs must have two columns.")
+
+     if (is.data.frame(arcs))
+       arcs = as.matrix(cbind(as.character(arcs[,1]),
+         as.character(arcs[,2])))
+
+     # be sure to set the column names.
+     dimnames(arcs) = list(c(), c("from", "to"))
+
+  }#THEN
+  else if (is.character(arcs)) {
+
+    if (length(arcs) != 2)
+      stop("the arcs must have two columns.")
+
+    arcs = matrix(arcs, ncol = 2, byrow = TRUE,
+              dimnames = list(c(), c("from", "to")))
+
+  }#THEN
+  else {
+
+     stop("the arcs must be a matrix or data.frame with two columns.")
+
+  }#ELSE
+
+  # nodes must be valid node labels.
+  if (!is.null(graph)) {
+
+    valid.nodes = arcs %in% names(graph$nodes)
+
+    if (!all(valid.nodes))
+      stop(paste(c("node(s)", unique(arcs[!valid.nodes]), 
+             "not present in the graph."), collapse = " "))
+
+  }#THEN
+
+  # check there are no loops among the arcs.
+  loop = (arcs[, "from"] == arcs[, "to"])
+ 
+  if (any(loop))
+    stop(paste(c("invalid arcs that are actually loops:\n", 
+      paste("  ", arcs[loop, 1], "->", arcs[loop, 2], "\n"))))
+
+  return(arcs)
+
+}#CHECK.ARCS
 
 # build a valid whitelist.
 build.whitelist = function(whitelist, nodes) {
@@ -374,26 +417,6 @@ phi
 
 }#CHECK.PHI
 
-check.arc = function(arc, network) {
-
-  # check the arc is there.
-  if (missing(arc))
-    stop("the arc is missing.")
- # nodes must be a vector of character strings.
-  if (!is(arc, "character"))
-    stop("arc must be a vector of character strings, the labels of the nodes.")
-  # exactly two nodes are needed.
-  if (length(arc) != 2)
-    stop("an arc if formed by exactly 2 nodes.")
-  # no duplicates allowed.
-  if(any(duplicated(arc)))
-     stop("node labels in the arc must be unique.")
-  # both elements of the arc must be valid node labels.
-  if (!all(arc %in% names(network$nodes)))
-    stop("node not present in the graph.")
-
-}#CHECK.ARC
-
 # sanitize the extra arguments passed to the network scores.
 check.score.args = function(score, network, data, extra.args) {
 
@@ -454,7 +477,9 @@ check.graph.generation.args = function(method, nodes, extra.args) {
     }#THEN
     else {
 
-      extra.args$prob = .5
+      # this default produces graphs with about the same number of
+      # arcs as there are nodes.
+      extra.args$prob = 2 / (length(nodes) - 1)
 
     }#ELSE
 
@@ -624,6 +649,8 @@ check.logical = function(bool) {
 # check logical flags.
 check.bn = function(bn) {
 
+  if (missing(bn))
+    stop("an object of class 'bn' is required.")
   if (!is(bn, "bn")) {
 
     stop(sprintf("%s must be an object of class 'bn'.",

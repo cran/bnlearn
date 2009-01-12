@@ -1,16 +1,17 @@
-\name{gs}
-\alias{gs}
-\title{ Grow-Shrink (GS) learning algorithm }
+\name{mmpc}
+\alias{mmpc}
+\title{ Max-Min Parents and Children (MMPC) learning algorithm }
 \description{
 
-  Estimate the equivalence class of a directed acyclic graph (DAG)
-  from data using the Grow-Shrink (GS) constraint-based algorithm.
+  Estimate the underlying structure of a directed acyclic graph (DAG)
+  from data using the Max-Min Parents and Children (MMPC)
+  constraint-based algorithm.
 
 }
 \usage{
-  gs(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+  mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
-    strict = FALSE, undirected = FALSE, direction = FALSE)
+    strict = FALSE, direction = FALSE)
 }
 \arguments{
   \item{x}{a data frame, containing the variables in the model.}
@@ -39,14 +40,11 @@
   \item{optimized}{a boolean value. See \code{\link{bnlearn-package}}
        for details.}
   \item{strict}{a boolean value. If \code{TRUE} conflicting results in
-      the learning process generate an error; otherwise they result
-      in a warning.}
-  \item{undirected}{a boolean value. If \code{TRUE} no attempt will be made
-      to determine the orientation of the arcs; the returned (undirected)
-      graph will represent the underlying structure of the Bayesian network.}
+      the learning process generate an error; otherwise they result in
+      a warning.}
   \item{direction}{a boolean value. If \code{TRUE} (and \code{undirected} is
-      set to \code{FALSE}) each possible direction of each undirected arc is 
-      tested, and the one with the lowest p-value is accepted as the true 
+      set to \code{FALSE}) each possible direction of each undirected arc is
+      tested, and the one with the lowest p-value is accepted as the true
       direction for that arc.}
 }
 \value{
@@ -57,14 +55,19 @@
 }
 \references{
 
-  D. Margaritis. Learning Bayesian Network Model Structure from Data. PhD
-    thesis, School of Computer Science, Carnegie-Mellon University, Pittsburgh,
-    PA, May 2003. Available as Technical Report CMU-CS-03-153.
+  I. Tsamardinos, C. F. Aliferis, A. Statnikov. Time and sample 
+     efficient discovery of Markov blankets and direct causal 
+     relations. Proceedings of the Ninth International Conference 
+     on Knowledge Discovery and Data Mining KDD, pages 673-8, 2003. 
+
+  I. Tsamardinos, L. E. Brown, C. Aliferis. The max-min hill-climbing
+     Bayesian network learning algorithm. Machine Learning, 65(1),
+     pages 31-78. Kluwer Academic Publishers, 2006.
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{iamb}}, \code{\link{fast.iamb}}, \code{\link{inter.iamb}},
-  \code{\link{mmpc}}, \code{\link{hc}}. }
+\seealso{\code{\link{gs}}, \code{\link{fast.iamb}}, \code{\link{iamb}},
+  \code{\link{inter.iamb}}, \code{\link{hc}}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

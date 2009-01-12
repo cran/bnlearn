@@ -67,7 +67,7 @@ hc(x, start = NULL, whitelist = NULL, blacklist = NULL,
 }
 \author{ Marco Scutari }
 \seealso{\code{\link{gs}}, \code{\link{iamb}}, \code{\link{fast.iamb}},
-  \code{\link{inter.iamb}}. }
+  \code{\link{inter.iamb}}, \code{\link{mmpc}}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

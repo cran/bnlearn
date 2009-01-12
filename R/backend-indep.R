@@ -1,10 +1,9 @@
 
 # second prinple of CI algorithms: infer arc orientation from graph structure.
-second.principle = function(x, cluster = NULL, mb, nodes, whitelist, blacklist,
+second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
   test, alpha, data, strict, direction, debug) {
 
-  # hope it's never called ...
-  mb = nbr.recovery(mb, nodes = nodes, strict = strict, debug = debug)
+  nodes = names(x)
 
   # build a list of the undirected arcs in the graph, using the neighbourhoods
   # detected in markov.blanket().
@@ -614,13 +613,11 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
 # emergency measures for markov blanket recovery.
 mb.recovery = function(mb, nodes, strict, debug) {
 
+  # NOTE: backtracking forces symmetry.
   if (is.symmetric(mb2amat(mb, redux = TRUE)))
     return(mb)
 
-  # if the learning correctness is relaxed, do not raise an error
-  # if the markov blanket are not symmetric but the neighbourhoods
-  # are.
-  # NOTE: backtracking guarantees symmetry.
+  # you should not be here! no, really!
   if (strict) {
 
     if (debug) {
@@ -667,10 +664,11 @@ mb.recovery = function(mb, nodes, strict, debug) {
 # emergency measures for neighbourhood recovery.
 nbr.recovery = function(mb, nodes, strict, debug) {
 
-  # you should not be here! no, really!
+  # NOTE: backtracking forces symmetry.
   if (is.symmetric(nbr2amat(mb)))
     return(mb)
 
+  # you should not be here! no, really!
   if (strict) {
 
     if (debug) {
@@ -719,63 +717,10 @@ nbr.recovery = function(mb, nodes, strict, debug) {
 # explore the structure of the network using its arc set.
 cache.structure = function(nodes, arcs, debug = FALSE) {
 
-# create the structure object
-struct = list()
-# build the adjacency matrix; using arcs directly does not scale at all
-# (o(arc^2) scans of the arc set are needed for each arc).
-a = arcs2amat(arcs, nodes)
-
-  if (debug)
-    cat("* (re)building cached information about network structure.\n")
-
-  # detect neighbourhoods, parents and children.
-  struct = lapply(nodes, function(node) {
-
-    if (debug)
-      cat("  > detecting neighbourhood, parents and children of node", node, ".\n")
-
-    list(mb = c(),
-         nbr = nodes[(a[, node] + a[node, ]) > 0],
-         parents = nodes[(a[, node] - a[node, ]) > 0],
-         children = nodes[(a[node, ] - a[, node]) > 0])
-
-  })
-
-  # set the names of the nodes for easy reference.
-  names(struct) = nodes
-
-  # detect the markov blankets using precomputed parents, children and
-  # neighbourhoods.
-  for (node in nodes) {
-
-    if (debug) {
-
-      cat("* detecting markov blanket for node", node, ".\n")
-      cat("  > neighbourhood is '", struct[[node]]$nbr,"'.\n")
-
-    }#THEN
-
-    struct[[node]]$mb = c(struct[[node]]$nbr,
-      unlist(sapply(struct[[node]]$children,
-        function(child) {
-
-          if (debug)
-            cat("  > for child", child, "getting '", struct[[child]]$parents, "'.\n")
-          struct[[child]]$parents
-
-        }), use.names = FALSE))
-
-    if (debug)
-      cat("  > raw markov blanket then is '", struct[[node]]$mb, "'.\n")
-
-    struct[[node]]$mb = unique(struct[[node]]$mb[struct[[node]]$mb != node])
-
-    if (debug)
-      cat("  > clean markov blanket then is '", struct[[node]]$mb, "'.\n")
-
-  }#FOR
-
-struct
+  .Call("cache_structure",
+        nodes = nodes,
+        amat = arcs2amat(arcs, nodes),
+        debug = debug,
+        PACKAGE = "bnlearn")
 
 }#CACHE.STRUCTURE
-

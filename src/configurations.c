@@ -1,8 +1,6 @@
 #include <R.h>
 #include <Rinternals.h>
 
-/* .Call("cfg", data = alarm) */
-
 /* macro for the [i,j] element of the data frame. */
 #define BNLEARN_DATAFRAME(i, j) INTEGER(VECTOR_ELT(parents, j))[i]
 /* macro for the number of levels of the [,j] column. */

@@ -2,226 +2,62 @@
 # Grow-Shrink frontend.
 gs = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
-    strict = TRUE, direction = FALSE) {
+    strict = FALSE, undirected = FALSE, direction = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, debug = debug,
-    optimized = optimized, strict = strict, direction = direction)
+    optimized = optimized, strict = strict, undirected = undirected,
+    direction = direction)
 
 }#GS
 
 # Incremental Association frontend.
 iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
-    strict = TRUE, direction = FALSE) {
+    strict = FALSE, undirected = FALSE, direction = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, method = "iamb",
     debug = debug, optimized = optimized, strict = strict,
-    direction = direction)
+    undirected = undirected, direction = direction)
 
 }#IAMB
 
 # Fast-IAMB frontend.
 fast.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
-    strict = TRUE, direction = FALSE) {
+    strict = FALSE, undirected = FALSE, direction = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha,
     method = "fast-iamb", debug = debug, optimized = optimized,
-    strict = strict, direction = direction)
+    strict = strict, undirected = undirected, direction = direction)
 
 }#FAST.IAMB
 
 # Inter-IAMB frontend.
 inter.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
-    strict = TRUE, direction = FALSE) {
+    strict = FALSE, undirected = FALSE, direction = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha,
     method = "inter-iamb", debug = debug, optimized = optimized,
-    strict = strict, direction = direction)
+    strict = strict, undirected =  undirected, direction = direction)
 
 }#INTER.IAMB
 
-# Parameter sanitization for the constraint-based learning algorithms.
-# ok, it's not really a frontend (i.e. it's not exported) but it belongs here.
-bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = "mi", alpha = 0.05, method = "gs", debug = FALSE, optimized = TRUE,
-    strict = TRUE, direction = FALSE) {
+# MMPC frontend.
+mmpc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+    test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
+    strict = FALSE, direction = FALSE) {
 
-  assign(".test.counter", 0, envir = .GlobalEnv)
+  bnlearn(x = x, cluster = cluster, whitelist = whitelist,
+    blacklist = blacklist, test = test, alpha = alpha,
+    method = "mmpc", debug = debug, optimized = optimized,
+    strict = strict, undirected = TRUE, direction = direction)
 
-  res = NULL
-  available.methods = c("gs", "iamb", "fast-iamb", "inter-iamb")
-  supported.clusters = c("MPIcluster", "PVMcluster","SOCKcluster")
-  cluster.aware = FALSE
-
-  # check the data are there.
-  check.data(x)
-  # check the algorithm.
-  if (!(method %in% available.methods))
-    stop(paste("valid values for method are:",
-           paste(available.methods, collapse = " ")))
-  # check test labels.
-  test = check.test(test, x)
-  # check the logical flags (debug, strict, optimized, direction).
-  check.logical(debug)
-  check.logical(strict)
-  check.logical(optimized)
-  check.logical(direction)
-  # check alpha.
-  alpha = check.alpha(alpha)
-
-  # check cluster.
-  if (!is.null(cluster)) {
-
-    if (!(any(class(cluster) %in% supported.clusters)))
-      stop("cluster is not a valid cluster object.")
-    else if (!(require(snow)))
-      stop("Can't find required packages: snow")
-    else if (!isClusterRunning(cluster))
-      stop("the cluster is stopped.")
-    else {
-
-      # enter in cluster-aware mode.
-      cluster.aware = TRUE
-      # set the test counter in all the cluster nodes.
-      clusterEvalQ(cluster, assign(".test.counter", 0, envir = .GlobalEnv))
-      # disable debugging, the slaves do not cat() here.
-      if (debug) {
-
-        warning("disabling debugging output in cluster-aware mode.")
-        debug = FALSE
-
-      }#THEN
-
-    }#ELSE
-
-  }#THEN
-
-  # sanitize whitelist and blacklist, if any.
-  whitelist = build.whitelist(whitelist, names(x))
-  blacklist = build.blacklist(blacklist, whitelist, names(x))
-
-  # call the right backend.
-  if (method == "gs") {
-
-    if (cluster.aware) {
-
-      res = grow.shrink.cluster(x = x, cluster = cluster,
-        whitelist = whitelist, blacklist = blacklist, test = test,
-        alpha = alpha, strict = strict, direction = direction,
-        debug = debug)
-
-    }#THEN
-    else if (optimized) {
-
-      res = grow.shrink.optimized(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha,
-        strict = strict, direction = direction, debug = debug)
-
-    }#THEN
-    else {
-
-      res = grow.shrink(x = x, whitelist = whitelist, blacklist = blacklist,
-        test = test, alpha = alpha, strict = strict, direction = direction,
-        debug = debug)
-
-    }#ELSE
-
-  }#THEN
-  else if (method == "iamb") {
-
-    if (cluster.aware) {
-
-      res = incremental.association.cluster(x = x, cluster = cluster,
-        whitelist = whitelist, blacklist = blacklist, test = test,
-        alpha = alpha, strict = strict, direction = direction,
-        debug = debug)
-
-    }#THEN
-    else if (optimized) {
-
-      res = incremental.association.optimized(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, strict = strict,
-        direction = direction, debug = debug)
-
-    }#THEN
-    else {
-
-      res = incremental.association(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, strict = strict,
-        direction = direction, debug = debug)
-
-    }#ELSE
-
-  }#THEN
-  else if (method == "fast-iamb") {
-
-    if (cluster.aware) {
-
-      res = fast.incremental.association.cluster(x = x, cluster = cluster,
-        whitelist = whitelist, blacklist = blacklist, test = test,
-        alpha = alpha, strict = strict, direction = direction,
-        debug = debug)
-
-    }#THEN
-    else if (optimized) {
-
-      res = fast.incremental.association.optimized(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, strict = strict,
-        direction = direction, debug = debug)
-
-    }#THEN
-    else {
-
-      res = fast.incremental.association(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, strict = strict,
-        direction = direction, debug = debug)
-
-    }#ELSE
-
-  }#THEN
-  else if (method == "inter-iamb") {
-
-    if (cluster.aware) {
-
-      res = inter.incremental.association.cluster(x = x, cluster = cluster,
-        whitelist = whitelist, blacklist = blacklist, test = test,
-        alpha = alpha, strict = strict, direction = direction,
-        debug = debug)
-
-    }#THEN
-    else if (optimized) {
-
-      res = inter.incremental.association.optimized(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, strict = strict,
-        direction = direction, debug = debug)
-
-    }#THEN
-    else {
-
-      res = inter.incremental.association(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, strict = strict,
-        direction = direction, debug = debug)
-
-    }#ELSE
-
-  }#THEN
-
-  # add tests performed by the slaves to the test counter.
-  if (cluster.aware)
-    res$ntests = res$ntests +
-      sum(unlist(clusterEvalQ(cluster, get(".test.counter", envir = .GlobalEnv))))
-  # save the learning method used.
-  res$learning$algo = method
-
-  invisible(structure(res, class = "bn"))
-
-}#BNLEARN
+}#MMPC
 
 # return the markov blanket of a node.
 mb = function(x, node, rebuild = FALSE) {
@@ -229,7 +65,7 @@ mb = function(x, node, rebuild = FALSE) {
   # check x's class.
   check.bn(x)
   # a valid node is needed.
-  check.node(node = node, graph = x)
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
   # check rebuild.
   check.logical(rebuild)
 
@@ -246,7 +82,7 @@ nbr = function(x, node, rebuild = FALSE) {
   # check x's class.
   check.bn(x)
   # a valid node is needed.
-  check.node(node = node, graph = x)
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
   # check rebuild.
   check.logical(rebuild)
 
@@ -276,33 +112,7 @@ arcs = function(x) {
   if (missing(value))
     stop("no arc specified.")
   # sanitize the set of arcs.
-  if (class(value) %in% c("matrix", "data.frame")) {
-
-     if (dim(value)[2] != 2)
-       stop("the arcs must have two columns.")
-
-     if (is.data.frame(value))
-       value = as.matrix(cbind(as.character(value[,1]),
-         as.character(value[,2])))
-
-     # be sure to set the column names.
-     dimnames(value) = list(c(), c("from", "to"))
-
-  }#THEN
-  else if (is.character(value)) {
-
-    if (length(value) != 2)
-      stop("the arcs must have two columns.")
-
-    value = matrix(value, ncol = 2, byrow = TRUE,
-              dimnames = list(c(), c("from", "to")))
-
-  }#THEN
-  else {
-
-     stop("the arcs must be a matrix or data.frame with two columns.")
-
-  }#ELSE
+  value = check.arcs(value, graph = x)
 
   # update the arcs of the network.
   x$arcs = value
@@ -336,8 +146,11 @@ undirected.arcs = function(x) {
 # return the nodes in the graph.
 nodes = function(x) {
 
-  # check x's class.
-  check.bn(x)
+  # check x's class (beware of graphviz).
+  if (class(x) %in% c("graphAM", "graphNEL"))
+    return(graph:::nodes(x))
+  else
+    check.bn(x)
 
   names(x$nodes)
 
@@ -379,7 +192,7 @@ parents = function(x, node, rebuild = FALSE) {
   # check x's class.
   check.bn(x)
   # a valid node is needed.
-  check.node(node = node, graph = x)
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
   # check rebuild.
   check.logical(rebuild)
 
@@ -396,7 +209,7 @@ parents = function(x, node, rebuild = FALSE) {
   # check x's class.
   check.bn(x)
   # a valid node is needed.
-  check.node(node = node, graph = x)
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
   # at least one parent node is needed.
   if (missing(value))
     stop("no parent specified.")
@@ -450,7 +263,7 @@ children = function(x, node, rebuild = FALSE) {
   # check x's class.
   check.bn(x)
   # a valid node is needed.
-  check.node(node = node, graph = x)
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
   # check rebuild.
   check.logical(rebuild)
 
@@ -467,7 +280,7 @@ children = function(x, node, rebuild = FALSE) {
   # check x's class.
   check.bn(x)
   # a valid node is needed.
-  check.node(node = node, graph = x)
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
   # a node is needed.
   if (missing(value))
     stop("no children specified.")
@@ -608,9 +421,9 @@ path = function(x, from, to, direct = TRUE, underlying.graph = FALSE,
   # check x's class.
   check.bn(x)
   # a valid node is needed.
-  check.node(node = from, graph = x)
+  check.nodes(nodes = from, graph = x, max.nodes = 1)
   # another valid node is needed.
-  check.node(node = to, graph = x)
+  check.nodes(nodes = to, graph = x, max.nodes = 1)
   # 'from' must be different from 'to'.
   if (identical(from, to))
     stop("'from' and 'to' must be different from each other.")
@@ -744,9 +557,9 @@ available.ops = c("set", "drop", "reverse")
   if (!(op %in% available.ops))
     stop("valid op codes are 'set', 'drop' and 'reverse'.")
   # a valid node is needed.
-  check.node(node = from, graph = x)
+  check.nodes(nodes = from, graph = x, max.nodes = 1)
   # another valid node is needed.
-  check.node(node = to, graph = x)
+  check.nodes(nodes = to, graph = x, max.nodes = 1)
   # 'from' must be different from 'to'.
   if (identical(from, to))
     stop("'from' and 'to' must be different from each other.")
@@ -814,194 +627,6 @@ score = function(x, data, type = NULL, ..., debug = FALSE) {
     extra.args = extra.args, debug = debug)
 
 }#SCORE
-
-# do a single conditional independence test.
-ci.test = function(x, ...) {
-
-  UseMethod("ci.test", x)
-
-}#CI.TEST
-
-# do a single conditional independence test (nodes as character strings).
-ci.test.character = function(x, y = NULL, z = NULL, data, test = NULL,
-    debug = FALSE, ...) {
-
-  # the original data set is needed.
-  check.data(data)
-  # check debug.
-  check.logical(debug)
-  # check the variables involved in the test.
-  if (length(x) != 1 || x == "" || !(x %in% names(data)))
-    stop("'x' must be a character string, the name of one of the columns of 'data'.")
-  if (length(y) != 1 || !is.character(y) || y == "" || !(y %in% names(data)))
-    stop("'y' must be a character string, the name of one of the columns of 'data'.")
-  if (x == y)
-    stop("'x' must be different from 'y'.")
-  if (!is.null(z)) {
-
-    if (!is.character(z) || !all(z %in% names(data)))
-      stop("'z' must be a vector of character strings, the names of one or more of the columns of 'data'.")
-    if (any(z %in% c(x, y)))
-      stop("'z' must be different from both 'x' and 'y'.")
-
-  }#THEN
-  # check the test label.
-  test = check.test(test, data)
-  # warn about unused arguments.
-  check.unused.args(list(...), character(0))
-
-  # compute the network score.
-  conditional.test(x = x, y = y, sx = z, data = data, test = test,
-    learning = FALSE)
-
-}#CI.TEST.CHARACTER
-
-# do a single conditional independence test (nodes in a data frame).
-ci.test.data.frame = function(x, test = NULL, debug = FALSE, ...) {
-
-  nodes = names(x)
-
-  # warn about unused arguments.
-  check.unused.args(list(...), character(0))
-
-  ci.test.character(x = nodes[1], y = nodes[2], z = nodes[-(1:2)],
-    data = x, test = test, debug = debug)
-
-}#CI.TEST.DATA.FRAME
-
-# do a single conditional independence test (numerical vectors).
-ci.test.numeric = function(x, y = NULL, z = NULL, test = NULL, debug = FALSE, ...) {
-
-  # check debug.
-  check.logical(debug)
-  # check the variables involved in the test.
-  if (!is.numeric(y) && !(is.matrix(y) && ncol(y) == 1))
-    stop("'y' must be a numeric vector.")
-  if (length(y) != length(x))
-    stop("'x' and 'y' must have the same length.")
-  if (!is.null(z)) {
-
-    if (is.matrix(z) || is.data.frame(z)) {
-
-      if (nrow(z) != length(x))
-        stop("'x', 'y', and 'z' must have the same length.")
-      if (!is.data.continuous(z))
-        stop("'z' must be a numeric matrix or data frame.")
-
-      sx = 3:(2 + ncol(z))
-
-    }#THEN
-    else if (is.numeric(z)) {
-
-      if (length(z) != length(x))
-        stop("'x', 'y', and 'z' must have the same length.")
-
-      sx = 3
-
-    }#THEN
-    else
-      stop("'z' must be a numeric vector, matrix or data frame.")
-
-    # build the data frame.
-    data = data.frame(x = x, y = y, z = z)
-
-  }#THEN
-  else {
-
-    # build the data frame.
-    data = data.frame(x = x, y = y)
-
-    sx = character(0)
-
-  }#ELSE
-  # check the data are there.
-  check.data(data)
-  # check the test label.
-  test = check.test(test, data)
-  # warn about unused arguments.
-  check.unused.args(list(...), character(0))
-
-  res = conditional.test(x = 1, y = 2, sx = sx, data = data,
-    test = test, learning = FALSE)
-
-  # rewrite the test formula.
-  res$data.name = paste(deparse(substitute(x)), "~", deparse(substitute(y)),
-        ifelse(!is.null(z), paste("|", deparse(substitute(z))), ""),
-        collapse = " + ")
-
-  return(res)
-
-}#CI.TEST.NUMERIC
-
-# do a single conditional independence test (factor objects).
-ci.test.factor = function(x, y = NULL, z = NULL, test = NULL, debug = FALSE, ...) {
-
-  # check debug.
-  check.logical(debug)
-  # check the variables involved in the test.
-  if (!is.factor(y) && !(is.matrix(y) && ncol(y) == 1))
-    stop("'y' must be a factor vector.")
-  if (length(y) != length(x))
-    stop("'x' and 'y' must have the same length.")
-  if (!is.null(z)) {
-
-    if (is.matrix(z) || is.data.frame(z)) {
-
-      if (nrow(z) != length(x))
-        stop("'x', 'y', and 'z' must have the same length.")
-      if (!is.data.discrete(z))
-        stop("'z' must be a factor matrix or data frame.")
-
-      sx = 3:(2 + ncol(z))
-
-    }#THEN
-    else if (is.factor(z)) {
-
-      if (length(z) != length(x))
-        stop("'x', 'y', and 'z' must have the same length.")
-
-      sx = 3
-
-    }#THEN
-    else
-      stop("'z' must be a factor vector, matrix or data frame.")
-
-    # build the data frame.
-    data = data.frame(x = x, y = y, z = z)
-
-  }#THEN
-  else {
-
-    # build the data frame.
-    data = data.frame(x = x, y = y)
-
-    sx = character(0)
-
-  }#ELSE
-  # check the data are there.
-  check.data(data)
-  # check the test label.
-  test = check.test(test, data)
-  # warn about unused arguments.
-  check.unused.args(list(...), character(0))
-
-  res = conditional.test(x = 1, y = 2, sx = sx, data = data,
-    test = test, learning = FALSE)
-
-  # rewrite the test formula.
-  res$data.name = paste(deparse(substitute(x)), "~", deparse(substitute(y)),
-        ifelse(!is.null(z), paste("|", deparse(substitute(z))), ""),
-        collapse = " + ")
-
-  return(res)
-
-}#CI.TEST.FACTOR
-
-ci.test.default = function(x, ...) {
-
-  stop("x must be either a factor object, a numeric vector, a character string or a data frame.")
-
-}#CI.TEST.DEFAULT
 
 # create an empty graph from a given set of nodes.
 empty.graph = function(nodes, num = 1) {
@@ -1193,7 +818,7 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
   # check the data are there.
   check.data(data)
   # check the arc is there.
-  check.arc(arc, x)
+  check.nodes(nodes = arc, graph = x, min.nodes = 2, max.nodes = 2)
   # check debug.
   check.logical(debug)
   # check criterion.
@@ -1258,101 +883,6 @@ hc = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
    optimized = optimized)
 
 }#HC
-
-# Parameter sanitization for the score-based learning algorithms.
-# ok, it's not really a frontend (i.e. it's not exported) but it belongs here.
-greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
-    score = "k2", heuristic = "hc", ..., debug = FALSE, restart = 0,
-    perturb = 1, optimized = FALSE) {
-
-  # check the data are there.
-  check.data(x)
-  # check the score label.
-  score = check.score(score, x)
-  # check debug.
-  check.logical(debug)
-  # check restart and perturb.
-  check.restart(restart, perturb)
-  # sanitize whitelist and blacklist, if any.
-  whitelist = build.whitelist(whitelist, names(x))
-  blacklist = build.blacklist(blacklist, whitelist, names(x))
-  # if there is no preseeded network, use an empty one.
-  if (is.null(start))
-    start = empty.graph(nodes = names(x))
-  else {
-
-    # check start's class.
-    if (!is(start, "bn"))
-      stop("x must be an object of class 'bn'.")
-    # set all nodes as updated if the preseed network is not empty,
-    # so that all cache lookups are skipped.
-    if (nrow(start$arcs) > 0)
-      start$updates = array(rep(0, length(start$nodes)),
-                        dimnames = list(names(start$nodes)))
-
-  }#ELSE
-
-  # apply the whitelist to the preseeded network.
-  if (!is.null(whitelist)) {
-
-    for (i in 1:nrow(whitelist))
-      start$arcs = set.arc.direction(whitelist[i, "from"],
-                       whitelist[i, "to"], start$arcs)
-
-  }#THEN
-
-  # apply the blacklist to the preseeded network.
-  if (!is.null(blacklist)) {
-
-    blacklisted = apply(start$arcs, 1, function(x){ is.blacklisted(blacklist, x) })
-    start$arcs = start$arcs[!blacklisted, , drop = FALSE]
-
-  }#THEN
-
-  # be sure the graph structure is up to date.
-  start$nodes = cache.structure(names(start$nodes), start$arcs)
-  # no party if the graph is partially directed.
-  if (is.pdag(start$arcs, names(start$nodes)))
-    stop("the graph is only partially directed.")
-  # check whether the graph is acyclic.
-  if (!is.acyclic.backend(start$arcs, names(start$nodes), directed = TRUE))
-    stop("the preseeded graph contains cycles.")
-
-  # expand and sanitize score-specific arguments.
-  extra.args = check.score.args(score = score, network = start,
-                 data = x, extra.args = list(...))
-
-  # create the test counter in .GlobalEnv.
-  assign(".test.counter", 0, envir = .GlobalEnv)
-
-  if (heuristic == "hc") {
-
-    if (optimized) {
-
-      res = hill.climbing.optimized(x = x, start = start, whitelist = whitelist,
-        blacklist = blacklist, score = score, extra.args = extra.args,
-        restart = restart, perturb = perturb, debug = debug)
-
-    }#THEN
-    else {
-
-      res = hill.climbing(x = x, start = start, whitelist = whitelist,
-        blacklist = blacklist, score = score, extra.args = extra.args,
-        restart = restart, perturb = perturb, debug = debug)
-
-    }#ELSE
-
-  }#THEN
-
-  # set the metadata of the network.
-  res$learning$algo = heuristic
-  res$learning$ntests = get(".test.counter", envir = .GlobalEnv)
-  res$learning$test = score
-  res$learning$args = extra.args
-
-  invisible(res)
-
-}#GREEDY.SEARCH
 
 # measure the strength of the arcs in a directed graph.
 arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {

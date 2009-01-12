@@ -16,7 +16,8 @@ method.labels = c(
   'fast-iamb' = "fast incremental association",
   'inter-iamb' = "interleaved incremental association",
   'rnd' = "random/generated",
-  'hc' = 'hill-climbing'
+  'hc' = 'hill-climbing',
+  'mmpc' = 'max-min parent children'
 )
 
 test.labels = c(
@@ -63,3 +64,5 @@ graph.generation.extra.args = list(
   "ordered" = "prob",
   "ic-dag" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree")
 )
+
+graphviz.enabled = FALSE
