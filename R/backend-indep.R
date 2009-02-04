@@ -39,8 +39,7 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
   arcs = propagate.directions(arcs = arcs, nodes = nodes, debug = debug)
 
   # arcs whitelisted in one direction (i.e. a -> b but not b -> a) are
-  # never checked for cycles, because they are definitely not
-  # undirected. Do the check now.
+  # never checked for cycles, do it now. 
   if (!is.acyclic(arcs = arcs, nodes = nodes))
     stop("the graph contains cycles, possibly because of whitelisted nodes.")
 
@@ -54,7 +53,8 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
     arcs = set.directions(arcs = arcs, data = x, test = test,
              alpha = alpha, cluster = cluster, debug = debug)
 
-  list(learning = learning, nodes = cache.structure(nodes, arcs), arcs = arcs)
+  list(learning = learning, nodes = cache.structure(nodes, arcs = arcs), 
+    arcs = arcs)
 
 }#SECOND.PRINCIPLE
 
@@ -715,12 +715,33 @@ nbr.recovery = function(mb, nodes, strict, debug) {
 }#NBR.RECOVERY
 
 # explore the structure of the network using its arc set.
-cache.structure = function(nodes, arcs, debug = FALSE) {
+cache.structure = function(nodes, arcs, amat = NULL, debug = FALSE) {
+
+  # rebuild the adjacency matrix only if it's not available
+  if (is.null(amat))
+    amat = arcs2amat(arcs, nodes)
 
   .Call("cache_structure",
         nodes = nodes,
-        amat = arcs2amat(arcs, nodes),
+        amat = amat,
         debug = debug,
         PACKAGE = "bnlearn")
 
 }#CACHE.STRUCTURE
+
+# explore the structure of the neighbourhood of a target node.
+cache.partial.structure = function(nodes, target, arcs, amat = NULL, 
+    debug = FALSE) {
+
+  # rebuild the adjacency matrix only if it's not available
+  if (is.null(amat))
+    amat = arcs2amat(arcs, nodes)
+
+  .Call("cache_partial_structure",
+        nodes = nodes,
+        target = target,
+        amat = amat,
+        debug = debug,
+        PACKAGE = "bnlearn")
+
+}#CACHE.PARTIAL.STRUCTURE

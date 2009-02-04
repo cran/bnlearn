@@ -1,5 +1,4 @@
-#include <R.h>
-#include <Rinternals.h>
+#include "common.h"
 
 #define AMAT(i,j) INTEGER(amat)[i + j * n]
 #define NODE(i) CHAR(STRING_ELT(nodes, i))
@@ -10,8 +9,6 @@ SEXP has_dag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes,
   int start = INTEGER(from)[0] - 1;
   int stop = INTEGER(to)[0] - 1;
   int n = INTEGER(nrows)[0];
-  int trace = INTEGER(debug)[0];
-  int ug = INTEGER(underlying)[0];
   int *counter;
   int *path;
   int path_pos = 0;
@@ -34,7 +31,7 @@ SEXP has_dag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes,
   /* iterate until the other node is found. */
   while (cur != stop) {
 
-    if (trace == 1) {
+    if (isTRUE(debug)) {
 
       Rprintf("* currently at '%s'.\n", NODE(cur));
       Rprintf("  > current path is:\n");
@@ -49,7 +46,7 @@ there:
     /* find the next child of the 'cur' node. */
     for (i = 0; (i < n) && (counter[cur] < n); i++) {
 
-      if (ug == 0) {
+      if (!isTRUE(underlying)) {
 
         if (AMAT(cur, counter[cur]) != 0)
           break;
@@ -82,7 +79,7 @@ there:
 
       }/*THEN*/
 
-      if (trace == 1) {
+      if (isTRUE(debug)) {
 
         Rprintf("  > node '%s' has no more children, going back to '%s'.\n",
           NODE(cur), NODE(path[path_pos - 1]));
@@ -108,7 +105,7 @@ there:
 
         if ((counter[cur] - 1) == path[i]) {
 
-          if (trace == 1) {
+          if (isTRUE(debug)) {
 
             Rprintf("  @ node '%s' already visited, skipping.\n", NODE(path[i]));
 
@@ -125,7 +122,7 @@ there:
       /* the current node is now the children we have just found. */
       cur = counter[cur] - 1;
 
-      if (trace == 1) {
+      if (isTRUE(debug)) {
 
         Rprintf("  > jumping to '%s'.\n", NODE(cur));
 
@@ -146,7 +143,6 @@ SEXP how_many_cycles(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes, SEXP
   int start = INTEGER(from)[0] - 1;
   int stop = INTEGER(to)[0] - 1;
   int n = INTEGER(nrows)[0];
-  int trace = INTEGER(debug)[0];
   int *counter;
   int *path;
   int path_pos = 0;
@@ -169,7 +165,7 @@ SEXP how_many_cycles(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes, SEXP
 
   while (1) {
 
-    if (trace == 1)
+    if (isTRUE(debug))
       Rprintf("* currently at '%s'.\n", NODE(cur));
 
 there:
@@ -188,7 +184,7 @@ there:
 
       cycle_counter++;
 
-      if (trace == 1) {
+      if (isTRUE(debug)) {
 
         Rprintf("  @ found node '%s' ! cycle counter is now %d.\n",
           NODE(stop), cycle_counter);
@@ -221,7 +217,7 @@ there:
 
       }/*THEN*/
 
-      if (trace == 1) {
+      if (isTRUE(debug)) {
 
         Rprintf("  > node '%s' has no more children, going back to '%s'.\n",
           NODE(cur), NODE(path[path_pos - 1]));
@@ -245,7 +241,7 @@ there:
 
         if ((counter[cur] - 1) == path[i]) {
 
-          if (trace == 1) {
+          if (isTRUE(debug)) {
 
             Rprintf("  @ node '%s' already visited, skipping.\n", NODE(path[i]));
 
@@ -262,7 +258,7 @@ there:
       /* the current node is now the children we have just found. */
       cur = counter[cur] - 1;
 
-      if (trace == 1) {
+      if (isTRUE(debug)) {
 
         Rprintf("  > jumping to '%s'.\n", NODE(cur));
 

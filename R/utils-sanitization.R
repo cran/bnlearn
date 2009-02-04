@@ -613,8 +613,11 @@ check.amat = function(amat, nodes) {
   if (missing(amat))
     stop("no adjacency matrix specified.")
   # the adjacency matrix must, well, be a matrix.
-  if (!is(amat, "matrix"))
-    stop("this is not a valid adjacency matrix.")
+  if (!is(amat, "matrix") || (ncol(amat) != nrow(amat)) || (length(dim(amat)) != 2))
+    stop("an adjacency matrix must be a 2-dimensional square matrix.")
+  # check the dimensions against the number of nodes in the graph.
+  if (any(dim(amat) != length(nodes)))
+    stop("the dimensions of the adjacency matrix do not agree with the number of nodes in the graph.")
   # column names must be valid node labels.
   if (!is.null(colnames(amat)))
     if (!all(colnames(amat) %in% nodes))
@@ -677,6 +680,7 @@ check.restart = function(restart, perturb) {
 
 }#CHECK.RESTART
 
+# check bn metadata against the data it's used with.
 check.bn.vs.data = function(bn, data) {
 
   # the number of variables must be the same
@@ -694,3 +698,12 @@ check.bn.vs.data = function(bn, data) {
     stop("discrete data and continuous network.")
 
 }#CHECK.BN.VS.DATA
+
+# check a colour identifier (not necessarily a string/integer).
+check.colour = function(col) {
+
+  if (identical(tryCatch(col2rgb(col), error = function(x) { FALSE }), FALSE))
+    stop(sprintf("%s is not a valid colour identifier.",
+           deparse(substitute(col))))
+
+}#CHECK.COLOUR

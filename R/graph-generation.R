@@ -51,7 +51,7 @@ ordered.graph = function (num, nodes, prob, debug) {
                      prob = c(1 - prob, prob), replace = TRUE)
       # build the corresponding object of class bn.
       dummy$arcs = amat2arcs(amat, nodes)
-      dummy$nodes = cache.structure(nodes, dummy$arcs)
+      dummy$nodes = cache.structure(nodes, amat = amat)
 
       if (debug)
         cat(formula.backend(dummy), "\n")
@@ -74,8 +74,11 @@ ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
 
   i = 1
   n = length(nodes)
+  to.be.updated = TRUE
 
+  # initialize the result list.
   res = list()
+  # initialize the dummy bn object with all the metadata.
   dummy = empty.graph.backend(nodes)
   dummy$learning$algo = "ic-dag"
   dummy$learning$args$burn.in = burn.in
@@ -106,7 +109,7 @@ ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
       # provided that the underlying graph remains connected.
 
       if (debug)
-        cat("  > arc", arc[1], "->", arc[2], "is present.\n")
+        cat("  > arc", nodes[arc[1]], "->", nodes[arc[2]], "is present.\n")
 
       # if there is a(n undirected) path in the underlying (undirected) graph
       # from arc[1] to arc[2], the graph is still connected.
@@ -114,15 +117,16 @@ ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
             exclude.direct = TRUE)) {
 
         if (debug)
-          cat("  @ removing arc", arc[1], "->", arc[2], ".\n")
+          cat("  @ removing arc", nodes[arc[1]], "->", nodes[arc[2]], ".\n")
 
         amat[arc[1], arc[2]] = 0L
+        to.be.updated = TRUE
 
       }#THEN
       else {
 
         if (debug)
-          cat("  > not removing arc", arc[1], "->", arc[2], " (graph not connected!).\n")
+          cat("  > not removing arc", nodes[arc[1]], "->", nodes[arc[2]], " (graph not connected!).\n")
 
       }#ELSE
 
@@ -132,7 +136,7 @@ ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
       # add the arc, provided that the underlying graph remains acyclic.
 
       if (debug)
-        cat("  > arc", arc[1], "->", arc[2], "is not present.\n")
+        cat("  > arc", nodes[arc[1]], "->", nodes[arc[2]], "is not present.\n")
 
       # if there is a (directed) path from arc[2] to arc[1], adding arc[1] -> arc[2]
       # would create a cycle, so do not do it.
@@ -144,15 +148,16 @@ ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
             (any(degree(amat) >= max.degree))) {
 
           if (debug)
-            cat("  > not adding arc", arc[1], "->", arc[2], " (degree!).\n")
+            cat("  > not adding arc", nodes[arc[1]], "->", nodes[arc[2]], " (degree!).\n")
 
         }#THEN
         else {
 
           if (debug)
-            cat("  @ adding arc", arc[1], "->", arc[2], ".\n")
+            cat("  @ adding arc", nodes[arc[1]], "->", nodes[arc[2]], ".\n")
 
           amat[arc[1], arc[2]] = 1L
+          to.be.updated = TRUE
 
         }#ELSE
 
@@ -160,7 +165,7 @@ ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
       else {
 
         if (debug)
-          cat("  > not adding arc", arc[1], "->", arc[2], " (cycles!).\n")
+          cat("  > not adding arc", nodes[arc[1]], "->", nodes[arc[2]], " (cycles!).\n")
 
       }#THEN
 
@@ -175,10 +180,28 @@ ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
     }#THEN
     else if (i >= burn.in && i < burn.in + num) {
 
-      # update the arcs of the network.
-      dummy$arcs = amat2arcs(amat, nodes)
       # update the network structure.
-      dummy$nodes = cache.structure(nodes, dummy$arcs)
+      if (to.be.updated) {
+
+        # save the new arc set.
+        dummy$arcs = amat2arcs(amat, nodes)
+
+        # check which nodes have to be updated.
+        if (i == burn.in)
+          changed.nodes = nodes
+        else
+          changed.nodes = unique(c(nodes[arc], dummy$nodes[[arc[1]]]$mb, dummy$nodes[[arc[2]]]$mb))
+
+        if (debug)
+          cat("  > updating nodes", changed.nodes, ".\n")
+
+        # update the chosen nodes.
+        for (updated in changed.nodes)
+          dummy$nodes[[updated]] = cache.partial.structure(nodes, target = updated, amat = amat)
+        # reset the to.be.updated flag.
+        to.be.updated = FALSE
+
+      }#THEN
 
       # the markov chain is now stationary, so this model is a good one;
       # add it to the list to be returned.

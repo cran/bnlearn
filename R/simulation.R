@@ -35,7 +35,7 @@ schedule = function(x, debug = FALSE) {
 }#SCHEDULE
 
 # use the Logic Sampling (LS) algorithm as described in "Bayesian Artificial
-# Intelligence", Korb & Nicholson, cap 3.6.1.
+# Intelligence", Korb & Nicholson, chap 3.6.1.
 rbn.discrete = function(x, n, data, debug = FALSE) {
 
   to.do = schedule(x, debug = debug)

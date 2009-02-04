@@ -68,8 +68,15 @@ choose.direction.test = function(x, arc, data, test, alpha, debug) {
         else {
 
           if (debug) cat("  @ arc", arc[1], "->", arc[2], "is better .\n")
+
+          # update the arc set.
           x$arcs = set.arc.direction(arc[1], arc[2], x$arcs)
-          x$nodes = cache.structure(names(x$nodes), x$arcs)
+          # check which nodes have to be updated.
+          updated.nodes = unique(c(arc, x$nodes[[arc[1]]]$mb, x$nodes[[arc[2]]]$mb))
+          # update the chosen nodes.
+          for (node in updated.nodes)
+            x$nodes[[node]] = cache.partial.structure(names(x$nodes),
+              target = node, arcs = x$arcs, debug = debug)
 
           return(x)
 
@@ -180,8 +187,15 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug) {
         else {
 
           if (debug) cat("  @ arc", arc[1], "->", arc[2], "is better .\n")
+
+          # update the arc set.
           x$arcs = set.arc.direction(arc[1], arc[2], x$arcs)
-          x$nodes = cache.structure(names(x$nodes), x$arcs)
+          # check which nodes have to be updated.
+          updated.nodes = unique(c(arc, x$nodes[[arc[1]]]$mb, x$nodes[[arc[2]]]$mb))
+          # update the chosen nodes.
+          for (node in updated.nodes)
+            x$nodes[[node]] = cache.partial.structure(names(x$nodes),
+              target = node, arcs = x$arcs, debug = debug)
 
           return(x)
 

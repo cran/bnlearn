@@ -10,7 +10,7 @@
 \usage{
 hc(x, start = NULL, whitelist = NULL, blacklist = NULL,
     score = NULL, ..., debug = FALSE, restart = 0,
-    perturb = 1, optimized = TRUE)
+    perturb = 1, max.iter = Inf, optimized = TRUE)
 }
 \arguments{
   \item{x}{a data frame, containing the variables in the model.}
@@ -42,6 +42,7 @@ hc(x, start = NULL, whitelist = NULL, blacklist = NULL,
   \item{restart}{an integer, the number of random restarts.}
   \item{perturb}{an integer, the number of attempts to randomly
        insert/remove/reverse an arc on every random restart.}
+  \item{max.iter}{an integer, the maximum number of iterations.}
   \item{optimized}{a boolean value. See \code{\link{bnlearn-package}}
        for details.}
 }

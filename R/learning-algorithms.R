@@ -190,8 +190,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     learning = list(nodes = mb, arcs = arcs, whitelist = whitelist, 
       blacklist = blacklist, test = test, args = list(alpha = alpha), 
       ntests = get(".test.counter", envir = .GlobalEnv))
-    res = list(learning = learning, nodes = cache.structure(names(mb), arcs), 
-      arcs = arcs)
+    res = list(learning = learning, 
+      nodes = cache.structure(names(mb), arcs = arcs), arcs = arcs)
 
     # store the real markov blankets in learning.
     for (n in names(res$nodes))
@@ -221,7 +221,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 # Parameter sanitization for the score-based learning algorithms.
 greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     score = "k2", heuristic = "hc", ..., debug = FALSE, restart = 0,
-    perturb = 1, optimized = FALSE) {
+    perturb = 1, max.iter = Inf, optimized = FALSE) {
 
   # check the data are there.
   check.data(x)
@@ -231,6 +231,10 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   check.logical(debug)
   # check restart and perturb.
   check.restart(restart, perturb)
+  # check the max.iter parameter
+  if ((max.iter != Inf) && !is.positive.integer(max.iter))
+    stop("the maximum number of iterations must be a positive integer number.")
+
   # sanitize whitelist and blacklist, if any.
   whitelist = build.whitelist(whitelist, names(x))
   blacklist = build.blacklist(blacklist, whitelist, names(x))
@@ -268,7 +272,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   }#THEN
 
   # be sure the graph structure is up to date.
-  start$nodes = cache.structure(names(start$nodes), start$arcs)
+  start$nodes = cache.structure(names(start$nodes), arcs = start$arcs)
   # no party if the graph is partially directed.
   if (is.pdag(start$arcs, names(start$nodes)))
     stop("the graph is only partially directed.")
@@ -287,16 +291,18 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
     if (optimized) {
 
-      res = hill.climbing.optimized(x = x, start = start, whitelist = whitelist,
-        blacklist = blacklist, score = score, extra.args = extra.args,
-        restart = restart, perturb = perturb, debug = debug)
+      res = hill.climbing.optimized(x = x, start = start, 
+        whitelist = whitelist, blacklist = blacklist, score = score, 
+        extra.args = extra.args, restart = restart, perturb = perturb, 
+        max.iter = max.iter, debug = debug)
 
     }#THEN
     else {
 
       res = hill.climbing(x = x, start = start, whitelist = whitelist,
         blacklist = blacklist, score = score, extra.args = extra.args,
-        restart = restart, perturb = perturb, debug = debug)
+        restart = restart, perturb = perturb, max.iter = max.iter,
+        debug = debug)
 
     }#ELSE
 

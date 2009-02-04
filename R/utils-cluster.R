@@ -1,7 +1,7 @@
 # check the cluster is running.
 isClusterRunning = function(cl) {
 
-  tryCatch(any(clusterEvalQ(cl, TRUE)),
+  tryCatch(any(unlist(clusterEvalQ(cl, TRUE))),
     error = function(err) { FALSE })
 
 }#ISCLUSTERRUNNING

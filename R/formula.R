@@ -57,7 +57,7 @@ model2network.backend = function(modelstring, debug = FALSE) {
     # update the arcs of the network.
     res$arcs = do.call(rbind, arcs)
     # update the network structure.
-    res$nodes = cache.structure(sort(nodes), res$arcs, debug = debug)
+    res$nodes = cache.structure(sort(nodes), arcs = res$arcs, debug = debug)
 
     res
 

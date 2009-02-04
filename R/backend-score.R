@@ -360,7 +360,7 @@ random.restart = function(start, x, perturb, restart, nodes, amat, score,
   end$restart = end$restart - 1;
 
   # update the cached values of the end network.
-  end$nodes = cache.structure(nodes, end$arcs)
+  end$nodes = cache.structure(nodes, arcs = end$arcs)
 
   # update the scores of the nodes as needed.
   if (rebuild) {

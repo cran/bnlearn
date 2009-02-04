@@ -1,6 +1,6 @@
 
 hill.climbing = function(x, start, whitelist, blacklist, score,
-    extra.args, restart, perturb, debug) {
+    extra.args, restart, perturb, max.iter, debug) {
 
   # cache nodes' labels.
   nodes = names(x)
@@ -12,6 +12,8 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
   end = start
   # set the score delta.
   end$score.delta = 0
+  # set the iteration counter.
+  iter = 1
 
   # wrapper function for the generic hill-climbing step.
   step = function(arc, op) {
@@ -159,6 +161,16 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
         # it's now the 'end' one once more.
         if (start$restart == 0) break
 
+        # don't try to do anything if there are no more iterations left.
+        if (iter == max.iter) {
+
+          if (debug)
+            cat("@ stopping at iteration", max.iter, "ignoring random restart.\n")
+
+          break
+
+        }#THEN
+
         # do the random restart.
         end = random.restart(start = start, x = x, restart = restart,
                 perturb = perturb, nodes = nodes, amat = amat, score = score,
@@ -173,7 +185,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
     }#THEN
 
     # update the cached values of the end network.
-    end$nodes = cache.structure(nodes, end$arcs)
+    end$nodes = cache.structure(nodes, arcs = end$arcs)
     # reset the score delta.
     end$score.delta = 0
     # update the starting network for the next iteration.
@@ -196,6 +208,17 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 
     }#THEN
 
+    # check the current iteration index against the max.iter parameter.
+    if (iter == max.iter) {
+
+      if (debug)
+        cat("@ stopping at iteration", max.iter, ".\n")
+
+      break
+
+    }#THEN
+    else iter = iter + 1
+
   }#REPEAT
 
   # remove all the extra elements from the return value.
@@ -206,7 +229,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 }#HILL.CLIMBING
 
 hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
-    extra.args, restart, perturb, debug) {
+    extra.args, restart, perturb, max.iter, debug) {
 
   # cache nodes' labels.
   nodes = names(x)
@@ -218,6 +241,8 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
   end = start
   # set the score delta.
   end$score.delta = 0
+  # set the iteration counter.
+  iter = 1
   # check whether the score is score-equivalent.
   score.equivalence = score %in% score.equivalent.scores
   # set up the score caches.
@@ -401,6 +426,16 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
         # it's now the 'end' one once more.
         if (start$restart == 0) break
 
+        # don't try to do anything if there are no more iterations left.
+        if (iter == max.iter) {
+
+          if (debug)
+            cat("@ stopping at iteration", max.iter, "ignoring random restart.\n")
+
+          break
+
+        }#THEN
+
         # do the random restart.
         end = random.restart(start = start, x = x, restart = restart,
                 perturb = perturb, nodes = nodes, amat = amat, score = score,
@@ -415,7 +450,7 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
     }#THEN
 
     # update the cached values of the end network.
-    end$nodes = cache.structure(nodes, end$arcs)
+    end$nodes = cache.structure(nodes, arcs = end$arcs)
     # reset the score delta.
     end$score.delta = 0
     # update the starting network for the next iteration.
@@ -437,6 +472,17 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
       cat("* current score:", sum(reference.score), "\n")
 
     }#THEN
+
+    # check the current iteration index against the max.iter parameter.
+    if (iter == max.iter) {
+
+      if (debug)
+        cat("@ stopping at iteration", max.iter, ".\n")
+
+      break
+
+    }#THEN
+    else iter = iter + 1
 
   }#REPEAT
 

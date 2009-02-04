@@ -8,15 +8,19 @@
 
 }
 \usage{
-  graphviz.plot(x, highlight = NULL, layout = "dot")
+  graphviz.plot(x, highlight = NULL, layout = "dot", main = NULL, 
+    sub = NULL)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
   \item{highlight}{a list, see below.}
-  \item{layout}{the layout parameter to be passed to
-    \pkg{Rgraphviz}. Possible values are \code{dots}, 
-    \code{neato}, \code{twopi}, \code{circo} and 
-    \code{fdp}.}
+  \item{layout}{a character string, the layout parameter to 
+    be passed to \pkg{Rgraphviz}. Possible values are \code{dots}, 
+    \code{neato}, \code{twopi}, \code{circo} and \code{fdp}.}
+  \item{main}{a character string, the main title of the graph.
+    It's plotted at the top of the graph.}
+  \item{sub}{a character string, a subtitle which is plotted
+    at the bottom of the graph.}
 }
 \details{
 

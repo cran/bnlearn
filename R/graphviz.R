@@ -1,5 +1,7 @@
 
-graphviz.plot = function(x, highlight = NULL, layout = "dot") {
+# unified backend for the graphviz calls.
+graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL, 
+    layout = "dot", main = NULL, sub = NULL) {
 
   graphviz.layouts = c("dot", "neato", "twopi", "circo", "fdp")
   highlight.params = c("nodes", "arcs", "col", "fill")
@@ -21,26 +23,35 @@ graphviz.plot = function(x, highlight = NULL, layout = "dot") {
       stop(paste(c("highlight must be a list with at least one of the",
              "following elements:", highlight.params), collapse = " "))
 
-    if ("nodes" %in% names(highlight))
-      check.nodes(highlight$nodes, graph = x)
+    fake.graph = list(nodes = structure(nodes, names = nodes))
 
-    if ("arcs" %in% names(highlight))
-      highlight$arcs = check.arcs(highlight$arcs, graph = x)
+    if ("nodes" %in% names(highlight))
+      check.nodes(highlight$nodes, graph = fake.graph)
+
+    if ("arcs" %in% names(highlight)) 
+      highlight$arcs = check.arcs(highlight$arcs, graph = fake.graph)
 
     if ("col" %in% names(highlight))
-      col2rgb(highlight$col)
+      check.colour(highlight$col)
     else
       highlight$col = "red"
 
     if ("fill" %in% names(highlight))
-      col2rgb(highlight$col)
+      check.colour(highlight$fill)
     else
       highlight$fill = "transparent"
 
   }#THEN
 
   # create the graphAM object from the bn object.
-  graph.obj = new("graphAM", adjMat = amat(x), edgemode = 'directed')
+  graph.obj = new("graphAM", adjMat = arcs2amat(arcs, nodes), 
+    edgemode = 'directed')
+
+  # dump the global graphical settings.
+  graph.par.dump = graph.par()
+
+  # set the title and the subtitle.
+  graph.par(list(graph = list(main = main, sub = sub)))
 
   # set graph layout and global parameters.
   graph.plot = layoutGraph(graph.obj, layoutType = layout)
@@ -71,11 +82,30 @@ graphviz.plot = function(x, highlight = NULL, layout = "dot") {
 
   }#THEN
 
+  # change arc line width according to arc weights.
+  if (!is.null(arc.weights)) {
+
+    for (i in 1:length(edgeNames(graph.plot))) {
+
+      # plot an arc as a dotted line if it has a negative weight
+      # (i.e. it's removal would improve the goodness of fit).
+      if (arc.weights[i] > 0) 
+        edgeRenderInfo(graph.plot)[["lwd"]][i] = arc.weights[i]
+      else 
+        edgeRenderInfo(graph.plot)[["lty"]][i] = "dotted"
+
+    }#FOR
+
+  }#THEN
+
   # do the actual plotting
   renderGraph(graph.plot)
+
+  # restore the original global graphical settings.
+  graph.par(graph.par.dump)
 
   # return the graph object, to allow further customizations.
   return(graph.plot)
 
-}#GRAPHVIZ.PLOT
+}#GRAPHVIZ.BACKEND
 

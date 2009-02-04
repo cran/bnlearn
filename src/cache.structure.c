@@ -1,7 +1,6 @@
 #include "common.h"
 
 #define NODE(i) CHAR(STRING_ELT(nodes, i))
-#define isTRUE(logical) LOGICAL(logical)[0] == TRUE
 #define AMAT(i,j) INTEGER(amat)[i + j * nrows]
 
 #define BLANKET		 1
@@ -9,17 +8,13 @@
 #define PARENT		 3
 #define CHILD		 4
 
-SEXP cache_node_structure(int cur, SEXP nodes, SEXP amat, int nrows, SEXP debug) {
+SEXP cache_node_structure(int cur, SEXP nodes, SEXP amat, int nrows, 
+    unsigned short int *status, SEXP debug) {
 
   int i = 0, j = 0;
   SEXP structure, names;
   SEXP mb, nbr, children, parents;
   int num_parents = 0, num_children = 0, num_neighbours = 0, num_blanket = 0;
-  unsigned short int *status;
-
-  /* allocate and initialize the status vector. */
-  status = (unsigned short int *) R_alloc(nrows, sizeof(short int));
-  memset(status, '\0', sizeof(short int) * nrows);
 
   if (isTRUE(debug))
     Rprintf("* node %s.\n", NODE(cur));
@@ -34,8 +29,6 @@ SEXP cache_node_structure(int cur, SEXP nodes, SEXP amat, int nrows, SEXP debug)
         if (isTRUE(debug))
           Rprintf("  > found child %s.\n", NODE(i));
 
-        num_children++;
-        num_neighbours++;
         status[i] = CHILD;
 
         /* check whether this child has any other parent. */
@@ -46,8 +39,9 @@ SEXP cache_node_structure(int cur, SEXP nodes, SEXP amat, int nrows, SEXP debug)
             if (isTRUE(debug))
               Rprintf("  > found node %s in markov blanket.\n", NODE(j));
 
-            num_blanket++;
-            status[j] = BLANKET;
+            /* don't mark a neighbour as in the markov blanket. */
+            if (status[i] <= 1)
+              status[j] = BLANKET;
 
           }/*THEN*/
 
@@ -60,7 +54,6 @@ SEXP cache_node_structure(int cur, SEXP nodes, SEXP amat, int nrows, SEXP debug)
         if (isTRUE(debug))
           Rprintf("  > found neighbour %s.\n", NODE(i));
 
-        num_neighbours++;
         status[i] = NEIGHBOUR;
 
       }/*ELSE*/
@@ -74,8 +67,6 @@ SEXP cache_node_structure(int cur, SEXP nodes, SEXP amat, int nrows, SEXP debug)
         if (isTRUE(debug))
           Rprintf("  > found parent %s.\n", NODE(i));
 
-        num_parents++;
-        num_neighbours++;
         status[i] = PARENT;
 
       }/*THEN*/
@@ -84,9 +75,42 @@ SEXP cache_node_structure(int cur, SEXP nodes, SEXP amat, int nrows, SEXP debug)
 
   }/*FOR*/
 
+  /* count how may nodes fall in each category. */
+  for (i = 0; i < nrows; i++) {
+
+    switch(status[i]) {
+
+      case CHILD:
+        /* a child is also a neighbour and belongs into the markov blanket. */
+        num_children++;
+        num_neighbours++;
+        num_blanket++;
+        break;
+      case PARENT:
+        /* the same goes for a parent. */
+        num_parents++;
+        num_neighbours++;
+        num_blanket++;
+        break;
+      case NEIGHBOUR:
+        /* it's not known if this is parent or a children, but it's certainly a neighbour. */
+        num_neighbours++;
+        num_blanket++;
+        break;
+      case BLANKET:
+        num_blanket++;
+        break;
+      default:
+        /* this node is not even in the markov blanket. */
+        break;
+
+    }/*SWITCH*/
+
+  }/*FOR*/
+
   if (isTRUE(debug))
     Rprintf("  > node %s has %d parent(s), %d child(ren), %d neighbour(s) and %d nodes in the markov blanket.\n", 
-      NODE(cur), num_parents, num_children, num_neighbours, num_blanket + num_neighbours);
+      NODE(cur), num_parents, num_children, num_neighbours, num_blanket);
 
   /* allocate and initialize the names of the elements. */
   PROTECT(names = allocVector(STRSXP, 4));
@@ -127,7 +151,7 @@ SEXP cache_node_structure(int cur, SEXP nodes, SEXP amat, int nrows, SEXP debug)
   }/*FOR*/
 
   /* allocate and fill the "mb" element of the list. */
-  PROTECT(mb = allocVector(STRSXP, num_blanket + num_neighbours));
+  PROTECT(mb = allocVector(STRSXP, num_blanket));
   for (i = 0, j = 0; (i < nrows) && (j < num_blanket + num_neighbours); i++) {
 
     if (status[i] >= BLANKET)
@@ -151,6 +175,7 @@ SEXP cache_structure(SEXP nodes, SEXP amat, SEXP debug) {
 
   int i = 0;
   int length_nodes = LENGTH(nodes);
+  unsigned short int *status;
 
   SEXP bn, temp;
 
@@ -158,13 +183,19 @@ SEXP cache_structure(SEXP nodes, SEXP amat, SEXP debug) {
   PROTECT(bn = allocVector(VECSXP, length_nodes));
   setAttrib(bn, R_NamesSymbol, nodes);
 
+  /* allocate the status vector. */
+  status = (unsigned short int *) R_alloc(length_nodes, sizeof(short int));
+
   if (isTRUE(debug))
     Rprintf("* (re)building cached information about network structure.\n");
 
   /* populate the list with nodes' data. */
   for (i = 0; i < length_nodes; i++) {
 
-    temp = cache_node_structure(i, nodes, amat, length_nodes, debug);
+    /* (re)initialize the status vector. */
+    memset(status, '\0', sizeof(short int) * length_nodes);
+
+    temp = cache_node_structure(i, nodes, amat, length_nodes, status, debug);
 
     /* save the returned list. */
     SET_VECTOR_ELT(bn, i, temp);
@@ -176,4 +207,28 @@ SEXP cache_structure(SEXP nodes, SEXP amat, SEXP debug) {
   return bn;
 
 }/*CACHE_STRUCTURE*/
+
+SEXP cache_partial_structure(SEXP nodes, SEXP target, SEXP amat, SEXP debug) {
+
+  int i = 0;
+  int length_nodes = LENGTH(nodes);
+  char *t = (char *)CHAR(STRING_ELT(target, 0)); 
+  unsigned short int *status;
+
+  if (isTRUE(debug))
+    Rprintf("* (re)building cached information about node %s.\n", t);
+
+  /* allocate and initialize the status vector. */
+  status = (unsigned short int *) R_alloc(length_nodes, sizeof(short int));
+  memset(status, '\0', sizeof(short int) * length_nodes);
+
+  /* iterate fo find the node position in the array.  */
+  for (i = 0; i < length_nodes; i++)
+    if (!strcmp(t, CHAR(STRING_ELT(nodes, i))))
+      break;
+
+  /* return the corresponding part of the bn structure. */
+  return cache_node_structure(i, nodes, amat, length_nodes, status, debug);
+
+}/*CACHE_PARTIAL_STRUCTURE*/
 

@@ -16,8 +16,8 @@ has.path = function(from, to, nodes, amat, exclude.direct = FALSE,
         amat = amat,
         nrows = nrow(amat),
         nodes = nodes,
-        underlying = as.integer(underlying.graph),
-        debug = as.integer(debug),
+        underlying = underlying.graph,
+        debug = debug,
         PACKAGE = "bnlearn")
 
 }#HAS.PATH
@@ -34,7 +34,7 @@ how.many.cycles = function(arc, nodes, amat, debug = FALSE) {
         amat = amat,
         nrows = nrow(amat),
         nodes = nodes,
-        debug = as.integer(debug),
+        debug = debug,
         PACKAGE = "bnlearn")
 
 }#HOW.MANY.CYCLES
@@ -241,3 +241,4 @@ degree = function(amat) {
   in.degree(amat) + out.degree(amat)
 
 }#DEGREE
+

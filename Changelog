@@ -1,4 +1,13 @@
 
+bnlearn (1.2)
+  * added cache.partial.structure() to selectively
+      update nodes' cached information stored in 
+      'bn' objects.
+  * fixed a bug in cache.structure().
+  * reimplemented is.acyclic() in C to fix a bug
+      causing false negatives.
+  * added the lizards data set.
+
 bnlearn (1.1)
   * implemented mmpc().
   * slightly changed gaussian.test to be more learning-friendly.
