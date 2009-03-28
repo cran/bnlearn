@@ -8,7 +8,7 @@ maxmin.pc.optimized = function(x, whitelist, blacklist, test,
   for (node in nodes) {
 
     backtracking = unlist(sapply(mb, function(x){ node %in% x$nbr }))
- 
+
     # 1. [Forward Phase (I)]
     mb[[node]] = maxmin.pc.forward.phase(node, data = x, nodes = nodes,
          alpha = alpha, whitelist = whitelist, blacklist = blacklist,
@@ -21,8 +21,8 @@ maxmin.pc.optimized = function(x, whitelist, blacklist, test,
 
   }#FOR
 
-  # hope it's never called ...
-  mb = nbr.recovery(mb, nodes = nodes, strict = strict, debug = debug)
+  # check neighbourhood sets for consistency.
+  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
 
   return(mb)
 
@@ -45,8 +45,8 @@ maxmin.pc.cluster = function(x, cluster, whitelist, blacklist,
          test = test, debug = debug)
   names(mb) = nodes
 
-  # hope it's never called ...
-  mb = nbr.recovery(mb, nodes = nodes, strict = strict, debug = debug)
+  # check neighbourhood sets for consistency.
+  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
 
   return(mb)
 
@@ -69,8 +69,8 @@ maxmin.pc = function(x, whitelist, blacklist, test, alpha,
          debug = debug)
   names(mb) = nodes
 
-  # hope it's never called ...
-  mb = nbr.recovery(mb, nodes = nodes, strict = strict, debug = debug)
+  # check neighbourhood sets for consistency.
+  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
 
   return(mb)
 
@@ -131,12 +131,12 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, whitelist, blacklist,
     if (optimized) {
 
       # do not check nodes which have a p-value above the alpha
-      # threshold, as it can only increase; do not check both 'known 
+      # threshold, as it can only increase; do not check both 'known
       # bad' and 'known good' ones.
       to.be.checked = setdiff(names(which(association < alpha)), c(cpc, known.bad))
 
-      association = sapply(to.be.checked, maxmin.pc.heuristic.optimized, y = x, 
-                      sx = cpc, data = data, test = test, alpha = alpha, 
+      association = sapply(to.be.checked, maxmin.pc.heuristic.optimized, y = x,
+                      sx = cpc, data = data, test = test, alpha = alpha,
                       association = association, debug = debug)
 
     }#THEN
@@ -184,7 +184,7 @@ maxmin.pc.heuristic = function(x, y, sx, data, test, alpha, debug) {
 
   repeat {
 
-    # create all the possible subsets of size k of the candidate 
+    # create all the possible subsets of size k of the candidate
     # parent-children set.
     dsep.subsets = subsets(length(sx), k, sx)
 
@@ -206,20 +206,20 @@ maxmin.pc.heuristic = function(x, y, sx, data, test, alpha, debug) {
 
     if (k < length(sx))
       k = k + 1
-    else 
+    else
       break
 
   }#REPEAT
 
   if (debug)
-    cat("    > node", x, "has a minimum association of", 
+    cat("    > node", x, "has a minimum association of",
               min.assoc, ".\n")
 
   return(min.assoc)
 
 }#MAXMIN.PC.HEURISTIC
 
-maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, 
+maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha,
     association, debug) {
 
   k = 0
@@ -240,7 +240,7 @@ maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha,
 
   repeat {
 
-    # create all the possible subsets of size k of the candidate 
+    # create all the possible subsets of size k of the candidate
     # parent-children set.
     dsep.subsets = subsets(length(sx), k, sx)
 
@@ -258,25 +258,25 @@ maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha,
       # minimum association means maximum p-value.
       min.assoc = max(min.assoc, a)
 
-      # if the p-value is already this high, it's useless to do further 
+      # if the p-value is already this high, it's useless to do further
       # testing (as it min.assoc can only increase in value).
       if (min.assoc > alpha) break
 
     }#FOR
 
-    # if the p-value is already this high, it's useless to do further 
+    # if the p-value is already this high, it's useless to do further
     # testing (as it min.assoc can only increase in value).
     if (min.assoc > alpha) break
 
     if (k < length(sx))
       k = k + 1
-    else 
+    else
       break
 
   }#REPEAT
 
   if (debug)
-    cat("    > node", x, "has a minimum association of", 
+    cat("    > node", x, "has a minimum association of",
               min.assoc, ".\n")
 
   return(min.assoc)

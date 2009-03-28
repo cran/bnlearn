@@ -41,14 +41,14 @@ SEXP nparams(SEXP graph, SEXP node, SEXP data, SEXP real) {
     /* this is the node. */
     if (!strcmp(CHAR(STRING_ELT(names, i)), CHAR(STRING_ELT(node, 0)))) {
 
-      nlevels *= BNLEARN_NLEVELS(i) - 1 * INTEGER(real)[0];
+      nlevels *= BNLEARN_NLEVELS(i) - 1 * INT(real);
 
     }/*THEN*/
 
   }/*FOR*/
 
   PROTECT(temp = allocVector(INTSXP, 1));
-  INTEGER(temp)[0] = nlevels;
+  INT(temp) = nlevels;
   UNPROTECT(1);
 
 return temp;

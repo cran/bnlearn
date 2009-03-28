@@ -19,17 +19,11 @@
   \item{object}{an object of class \code{bn}.}
   \item{data}{a data frame, containing the data the Bayesian network
        was learned from.}
-  \item{type}{a character string, the label of a score.
-      Possible values are \code{lik}
-      (\emph{multinomial likelihood}), \code{loglik} (\emph{multinomial
-      loglikelihood}), \code{aic} (\emph{Akaike Information Criterion}),
-      \code{bic} (\emph{Bayesian Information Criterion}), \code{k2}
-      (\emph{K2 score}), \code{bde} or \code{dir} (\emph{Bayesian
-      Dirichlet posterior density}), \code{bge} (\emph{Bayesian
-      Gaussian posterior density}). If none is specified, the default
-      score is the \emph{Akaike Information Criterion} for discrete
-      data sets and the \emph{Bayesian Gaussian posterior density}
-      for discrete ones. See \code{\link{bnlearn-package}}
+  \item{type}{a character string, the label of a network score. 
+      If none is specified, the default score is the 
+      \emph{Akaike Information Criterion} for discrete data sets 
+      and the \emph{Bayesian Gaussian posterior density} for 
+      continuous ones. See \code{\link{bnlearn-package}}
       for details.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
@@ -48,9 +42,9 @@
 
     \item \code{iss}: the imaginary sample size, used by the Bayesian
         Dirichlet equivalent score and the Bayesian Gaussian posterior
-        density. The default value is twice the number of cells of the
+        density. The default value is equal to the number of cells of the
         joint contingency table (for compatibility with the \pkg{deal}
-        package) for the \code{bde} score, and twice the number of
+        package) for the \code{bde} score, or to the number of
         independent parameters for the \code{bge} score.
 
     \item \code{k}: the penalty per parameter to be used by the AIC and
@@ -67,9 +61,7 @@
 }
 \note{
 
-  Only discrete Bayesian networks are supported.
-
-  The execution time scales linearly with the sample size.
+  Execution time scales linearly with the sample size.
 
 }
 \references{
@@ -82,7 +74,7 @@
     Combination of Knowledge and Statistical Data. Microsoft Research Technical
     Report MSR-TR-94-09.
 
-  D.Geiger and D. Heckerman. Learning Gaussian Networks. Microsoft Research 
+  D.Geiger and D. Heckerman. Learning Gaussian Networks. Microsoft Research
     Technical Report MSR-TR-94-10.
 
 }

@@ -5,7 +5,7 @@
 #define GOOD 1
 #define BAD 0
 
-static SEXP build_return_array(SEXP nodes, unsigned short int *status, 
+static SEXP build_return_array(SEXP nodes, short int *status,
     int nrows, int check_status, SEXP return_nodes);
 
 /*
@@ -21,8 +21,8 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
   int nrows = LENGTH(nodes);
   int check_status = nrows;
   int check_status_old = nrows;
-  unsigned int rowsums, colsums;
-  unsigned short int *status;
+  int rowsums, colsums;
+  short int *status;
 
   /* build the adjacency matrix from the arc set.  */
   if (isTRUE(debug))
@@ -30,9 +30,8 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
 
   PROTECT(amat = arcs2amat(arcs, nodes));
 
-  /* initialize the status array. */
-  status = (unsigned short int *) R_alloc(nrows, sizeof(short int));
-  memset(status, '\0', sizeof(short int) * nrows);
+  /* allocate and initialize the status array. */
+  status = allocstatus(nrows);
 
   if (isTRUE(debug))
     Rprintf("* checking whether the directed graph is acyclic.\n");
@@ -62,7 +61,7 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
       }/*FOR*/
 
       if (isTRUE(debug))
-        Rprintf("  > checking node %s (%d child(ren), %d parent(s)).\n", 
+        Rprintf("  > checking node %s (%d child(ren), %d parent(s)).\n",
           NODE(i), rowsums, colsums);
 
       /* if either total is zero, the node is either a root node or a
@@ -94,7 +93,7 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
 
     }/*THEN*/
 
-    /* if there are three or more bad nodes and there was no change in 
+    /* if there are three or more bad nodes and there was no change in
      * the last iteration, the algorithm is stuck on a cycle. */
     if (check_status_old == check_status) {
 
@@ -126,8 +125,8 @@ SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
   int nrows = LENGTH(nodes);
   int check_status = nrows;
   int check_status_old = nrows;
-  unsigned int *rowsums, *colsums, *crossprod;
-  unsigned short int *status;
+  int *rowsums, *colsums, *crossprod;
+  short int *status;
 
   /* build the adjacency matrix from the arc set.  */
   if (isTRUE(debug))
@@ -136,14 +135,10 @@ SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
   PROTECT(amat = arcs2amat(arcs, nodes));
 
   /* initialize the status, {row,col}sums and crossprod arrays. */
-  status = (unsigned short int *) R_alloc(nrows, sizeof(short int));
-  memset(status, '\0', sizeof(short int) * nrows);
-  rowsums = (unsigned int *) R_alloc(nrows, sizeof(int));
-  memset(rowsums, '\0', sizeof(int) * nrows);
-  colsums = (unsigned int *) R_alloc(nrows, sizeof(int));
-  memset(colsums, '\0', sizeof(int) * nrows);
-  crossprod = (unsigned int *) R_alloc(nrows, sizeof(int));
-  memset(crossprod, '\0', sizeof(int) * nrows);
+  status = allocstatus(nrows);
+  rowsums = alloc1dcont(nrows);
+  colsums = alloc1dcont(nrows);
+  crossprod = alloc1dcont(nrows);
 
   if (isTRUE(debug))
     Rprintf("* checking whether the partially directed graph is acyclic.\n");
@@ -176,7 +171,7 @@ SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
 there:
 
       if (isTRUE(debug))
-        Rprintf("  > checking node %s (%d child(ren), %d parent(s), %d neighbours).\n", 
+        Rprintf("  > checking node %s (%d child(ren), %d parent(s), %d neighbours).\n",
           NODE(i), rowsums[i], colsums[i], crossprod[i]);
 
       /* if either total is zero, the node is either a root node or a
@@ -222,8 +217,8 @@ there:
           rowsums[j]--;
           colsums[j]--;
 
-          /* jump back to the first check; if either the row or column total 
-           * was equal to 1 only because of the undirected arc, the node can 
+          /* jump back to the first check; if either the row or column total
+           * was equal to 1 only because of the undirected arc, the node can
            * now be marked as good. */
           if ((rowsums[i] == 0) || (colsums[i] == 0))
             goto there;
@@ -245,7 +240,7 @@ there:
 
     }/*THEN*/
 
-    /* if there are three or more bad nodes and there was no change in 
+    /* if there are three or more bad nodes and there was no change in
      * the last iteration, the algorithm is stuck on a cycle. */
     if (check_status_old == check_status) {
 
@@ -268,7 +263,7 @@ there:
 
 /* utility function to build the return value. */
 
-static SEXP build_return_array(SEXP nodes, unsigned short int *status, int nrows, 
+static SEXP build_return_array(SEXP nodes, short int *status, int nrows,
     int check_status, SEXP return_nodes) {
 
   int i = 0, j = 0;
@@ -297,7 +292,7 @@ static SEXP build_return_array(SEXP nodes, unsigned short int *status, int nrows
 
       for (i = 0; i < nrows; i++)
         if (status[i] == BAD)
-          SET_STRING_ELT(res, j++, STRING_ELT(nodes, i)); 
+          SET_STRING_ELT(res, j++, STRING_ELT(nodes, i));
 
     }/*THEN*/
     else {

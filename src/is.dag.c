@@ -1,17 +1,4 @@
-#include <R.h>
-#include <Rinternals.h>
-
-/*
- *  Coordinate system for an upper triangular matrix:
- *
- *  (row - 1) * ncols - row * (row - 1) / 2
- *
- *  the first element are the standard row major
- *  order coordinates; the second element is an
- *  adjustment to account for the missing lower
- *  half of the matrix.
- *
- */
+#include "common.h"
 
 /*
  * Beware: these functions are based on the assumption
@@ -19,20 +6,18 @@
  * the counter may be wrong, leading to false negatives.
  */
 
-#define COORDS(x,y) (x - 1) * n + y - x * (x - 1) / 2
 #define ARC(i,col) INTEGER(arcs)[i + col * nrows]
 
 SEXP is_dag(SEXP arcs, SEXP nnodes) {
 
 int i = 0;
 int nrows = LENGTH(arcs)/2;
-int n = INTEGER(nnodes)[0];
+int n = INT(nnodes);
 short int *checklist;
 SEXP res;
 
-  /* initialize the checklist. */
-  checklist = (short int *) R_alloc(COORDS(n, n), sizeof(short int));
-  memset(checklist, '\0', sizeof(short int) * (COORDS(n, n)));
+  /* allocate and initialize the checklist. */
+  checklist = allocstatus(UPTRI(n, n, n));
 
   /* allocate the result. */
   PROTECT(res = allocVector(LGLSXP, 1));
@@ -40,52 +25,23 @@ SEXP res;
 
   for (i = 0; i < nrows; i++) {
 
-    /*
-     *  if row > column, reverse the order of the coordinates
-     *  to fall into the upper half of the virtual adjacency matrix.
-     */
-    if (ARC(i, 0) > ARC(i, 1)) {
+    if (checklist[UPTRI(ARC(i, 0), ARC(i, 1), n) - 1] == 0) {
 
-      if (checklist[COORDS(ARC(i, 1), ARC(i, 0)) - 1] == 0) {
-
-        /* this arc is no present in checklist; update it. */
-        checklist[COORDS(ARC(i, 1), ARC(i, 0)) - 1] = 1;
-
-      }/*THEN*/
-      else {
-
-        /*  this arc or its opposite already present in the
-         *  checklist; the graph has at least an undirected
-         *  arc, so return FALSE.
-         */
-        LOGICAL(res)[0] = FALSE;
-        UNPROTECT(1);
-        return res;
-
-      }/*THEN*/
+      /* this arc is no present in checklist; update it. */
+      checklist[UPTRI(ARC(i, 0), ARC(i, 1), n) - 1] = 1;
 
     }/*THEN*/
     else {
 
-      if (checklist[COORDS(ARC(i, 0), ARC(i, 1)) - 1] == 0) {
+      /*  this arc or its opposite already present in the
+       *  checklist; the graph has at least an undirected
+       *  arc, so return FALSE.
+       */
+      LOGICAL(res)[0] = FALSE;
+      UNPROTECT(1);
+      return res;
 
-        /* this arc is no present in checklist; update it. */
-        checklist[COORDS(ARC(i, 0), ARC(i, 1)) - 1] = 1;
-
-      }/*THEN*/
-      else {
-
-        /*  this arc or its opposite already present in the
-         *  checklist; the graph has at least an undirected
-         *  arc, so return FALSE.
-         */
-        LOGICAL(res)[0] = FALSE;
-        UNPROTECT(1);
-        return res;
-
-      }/*THEN*/
-
-    }/*ELSE*/
+    }/*THEN*/
 
   }/*FOR*/
 
@@ -104,63 +60,27 @@ short int *checklist;
 SEXP res;
 
   /* initialize the checklist. */
-  checklist = (short int *) R_alloc(COORDS(n, n), sizeof(short int));
-  memset(checklist, '\0', sizeof(short int) * (COORDS(n, n)));
+  checklist = allocstatus(UPTRI(n, n, n));
 
   /* allocate the result. */
   PROTECT(res = allocVector(LGLSXP, nrows));
 
   for (i = 0; i < nrows; i++) {
 
-    /*
-     *  if row > column, reverse the order of the coordinates
-     *  to fall into the upper half of the virtual adjacency matrix.
-     */
-    if (ARC(i, 0) > ARC(i, 1)) {
-
-      checklist[COORDS(ARC(i, 1), ARC(i, 0)) - 1]++;
-
-    }/*THEN*/
-    else {
-
-      checklist[COORDS(ARC(i, 0), ARC(i, 1)) - 1]++;
-
-    }/*ELSE*/
+    checklist[UPTRI(ARC(i, 0), ARC(i, 1), n) - 1]++;
 
   }/*FOR*/
 
   for (i = 0; i < nrows; i++) {
 
-    /*
-     *  if row > column, reverse the order of the coordinates
-     *  to fall into the upper half of the virtual adjacency matrix.
-     */
-    if (ARC(i, 0) > ARC(i, 1)) {
+    if (checklist[UPTRI(ARC(i, 0), ARC(i, 1), n) - 1] == 1) {
 
-      if (checklist[COORDS(ARC(i, 1), ARC(i, 0)) - 1] == 1) {
-
-        LOGICAL(res)[i] = FALSE;
-
-      }/*THEN*/
-      else {
-
-        LOGICAL(res)[i] = TRUE;
-
-      }/*ELSE*/
+      LOGICAL(res)[i] = FALSE;
 
     }/*THEN*/
     else {
 
-      if (checklist[COORDS(ARC(i, 0), ARC(i, 1)) - 1] == 1) {
-
-        LOGICAL(res)[i] = FALSE;
-
-      }/*THEN*/
-      else {
-
-        LOGICAL(res)[i] = TRUE;
-
-      }/*ELSE*/
+      LOGICAL(res)[i] = TRUE;
 
     }/*ELSE*/
 

@@ -1,5 +1,4 @@
-#include <R.h>
-#include <Rinternals.h>
+#include "common.h"
 
 #define ARC(i, col) CHAR(STRING_ELT(VECTOR_ELT(cache, col), i))
 #define CACHE(i) REAL(VECTOR_ELT(cache, 2))[i]
@@ -14,7 +13,7 @@ SEXP cache_lookup(SEXP arc, SEXP cache) {
 
   /* allocate and initialize the result. */
   PROTECT(res = allocVector(REALSXP, 1));
-  REAL(res)[0] = R_NaN;
+  NUM(res) = R_NaN;
 
   for (i = 0; i < nrows; i++) {
 
@@ -25,7 +24,7 @@ SEXP cache_lookup(SEXP arc, SEXP cache) {
       if (!strcmp(to, ARC(i, 1)) ) {
 
         /* found cached value, storing it in the result. */
-        REAL(res)[0] = CACHE(i);
+        NUM(res) = CACHE(i);
 
         /* each arc has at most one entry in the cache, so we can break. */
         break;

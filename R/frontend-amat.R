@@ -23,7 +23,7 @@ amat = function(x) {
   # update the arcs of the network.
   x$arcs = amat2arcs(value, names(x$nodes))
   # update the network structure.
-  x$nodes = cache.structure(names(x$nodes), 
+  x$nodes = cache.structure(names(x$nodes),
               amat = as.integer(value), debug = debug)
 
   x

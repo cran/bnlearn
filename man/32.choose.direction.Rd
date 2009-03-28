@@ -4,7 +4,8 @@
 \description{
 
   Check both possible directed arcs for existence,
-  and choose the one with the lowest p-value.
+  and choose the one with the lowest p-value or the
+  highest score.
 
 }
 \usage{

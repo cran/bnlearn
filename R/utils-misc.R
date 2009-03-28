@@ -83,25 +83,7 @@ smaller = function(a, b) {
 # present in the 'data' argument.
 configurations = function(data) {
 
-  # this condition is there to avoid the remote possibility of an
-  # integer overflow, which could happen if there are more than
-  # MAXINT configurations. If you hit the 'else' branch, greetings,
-  # you should not be here!
-  if (prod(sapply(data, nlevels)) < 65536) {
-
-    factor(.Call("cfg", data = data, PACKAGE = "bnlearn"))
-
-  }#THEN
-  else {
-
-    warning("eeek! you have more than 65535 configurations!")
-    factor(apply(data, 1, function(x) {
-
-      .Internal(paste(list(as.character(x)), sep = "", collapse = ":"))
-
-    }))
-
-  }#ELSE
+  factor(.Call("cfg", data = data, PACKAGE = "bnlearn"))
 
 }#CONFIGURATIONS
 

@@ -1,6 +1,6 @@
 
 # unified backend for the graphviz calls.
-graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL, 
+graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
     layout = "dot", main = NULL, sub = NULL) {
 
   graphviz.layouts = c("dot", "neato", "twopi", "circo", "fdp")
@@ -28,7 +28,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
     if ("nodes" %in% names(highlight))
       check.nodes(highlight$nodes, graph = fake.graph)
 
-    if ("arcs" %in% names(highlight)) 
+    if ("arcs" %in% names(highlight))
       highlight$arcs = check.arcs(highlight$arcs, graph = fake.graph)
 
     if ("col" %in% names(highlight))
@@ -44,7 +44,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
   }#THEN
 
   # create the graphAM object from the bn object.
-  graph.obj = new("graphAM", adjMat = arcs2amat(arcs, nodes), 
+  graph.obj = new("graphAM", adjMat = arcs2amat(arcs, nodes),
     edgemode = 'directed')
 
   # dump the global graphical settings.
@@ -74,9 +74,9 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
 
     if ("arcs" %in% names(highlight)) {
 
-      arcs = apply(highlight$arcs, 1, paste, collapse = "~")
+      to.highlight = apply(highlight$arcs, 1, paste, collapse = "~")
 
-      edgeRenderInfo(graph.plot)[["col"]][arcs] = highlight$col
+      edgeRenderInfo(graph.plot)[["col"]][to.highlight] = highlight$col
 
     }#THEN
 
@@ -85,16 +85,18 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
   # change arc line width according to arc weights.
   if (!is.null(arc.weights)) {
 
-    for (i in 1:length(edgeNames(graph.plot))) {
+    to.weight = apply(arcs, 1, paste, collapse = "~")
+
+    for (i in 1:length(to.weight)) {
 
       # plot an arc as a dotted line if it has a negative weight
       # (i.e. it's removal would improve the goodness of fit).
-      if (arc.weights[i] > 0) 
-        edgeRenderInfo(graph.plot)[["lwd"]][i] = arc.weights[i]
-      else 
-        edgeRenderInfo(graph.plot)[["lty"]][i] = "dotted"
+      if (arc.weights[i] > 0)
+        edgeRenderInfo(graph.plot)[["lwd"]][to.weight[i]] = arc.weights[i]
+      else
+        edgeRenderInfo(graph.plot)[["lty"]][to.weight[i]] = "dashed"
 
-    }#FOR
+    }#THEN
 
   }#THEN
 

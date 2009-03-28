@@ -222,7 +222,8 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
   }#REPEAT
 
   # remove all the extra elements from the return value.
-  end$updates = end$score.delta = end$learning$score = end$restart = NULL
+  end$updates = end$score.delta = end$learning$score = end$restart = 
+    end$learning$nodes = end$learning$arcs = NULL
 
   end
 
@@ -487,7 +488,8 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
   }#REPEAT
 
   # remove all the extra elements from the return value.
-  end$updates = end$score.delta = end$learning$score = end$restart = NULL
+  end$updates = end$score.delta = end$learning$score = end$restart = 
+    end$learning$nodes = end$learning$arcs = NULL
 
   end
 

@@ -55,7 +55,7 @@ available.ops = c("set", "drop", "reverse")
     updated.nodes = unique(c(from, to, x$nodes[[from]]$mb, x$nodes[[to]]$mb))
     # update the chosen nodes.
     for (node in updated.nodes)
-      x$nodes[[node]] = cache.partial.structure(names(x$nodes), 
+      x$nodes[[node]] = cache.partial.structure(names(x$nodes),
         target = node, amat = amat, debug = debug)
 
   }#THEN

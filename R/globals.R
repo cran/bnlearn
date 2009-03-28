@@ -1,7 +1,7 @@
 
 # Global variables.
-available.discrete.tests = c("mi", "fmi", "aict", "x2")
-available.continuous.tests = c("cor", "zf", "mi-g")
+available.discrete.tests = c("mi", "fmi", "aict", "x2", "mc-mi", "mc-x2")
+available.continuous.tests = c("cor", "zf", "mi-g", "mc-mi-g", "mc-cor", "mc-zf")
 available.tests = c(available.discrete.tests, available.continuous.tests)
 
 available.discrete.scores = c("lik", "loglik", "aic", "bic", "dir", "bde", "k2")
@@ -22,12 +22,17 @@ method.labels = c(
 
 test.labels = c(
   'mi' = "mutual information (discrete)",
+  'mc-mi' = "mutual information (discrete, Monte Carlo)",
   'mi-g' = "mutual information (gaussian)",
+  'mc-mi-g' = "mutual information (gaussian, Monte Carlo)",
   'fmi' = "fast mutual information",
   'aict'= "AIC-like test",
   'x2'= "Pearson's X^2",
+  'mc-x2'= "Pearson's X^2 (Monte Carlo)",
   'cor' = "linear correlation",
-  'zf' = "Fisher's Z test"
+  'mc-cor' = "linear correlation (Monte Carlo)",
+  'zf' = "Fisher's Z test",
+  'mc-zf' = "Fisher's Z test (Monte Carlo)"
 )
 
 score.labels = c(

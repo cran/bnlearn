@@ -24,16 +24,10 @@ hc(x, start = NULL, whitelist = NULL, blacklist = NULL,
      "from" and "to"), containing a set of arcs not to be included in
       the graph. }
   \item{score}{a character string, the label of the network score to
-      be used in the algorithm. Possible values are \code{lik}
-      (\emph{multinomial likelihood}), \code{loglik} (\emph{multinomial
-      loglikelihood}), \code{aic} (\emph{Akaike Information Criterion}),
-      \code{bic} (\emph{Bayesian Information Criterion}), \code{k2}
-      (\emph{K2 score}), \code{bde} or \code{dir} (\emph{Bayesian
-      Dirichlet posterior density}), \code{bge} (\emph{Bayesian
-      Gaussian posterior density}). If none is specified, the default
+      be used in the algorithm. If none is specified, the default
       score is the \emph{Akaike Information Criterion} for discrete
       data sets and the \emph{Bayesian Gaussian posterior density}
-      for discrete ones. See \code{\link{bnlearn-package}}
+      for continuous ones. See \code{\link{bnlearn-package}}
       for details.}
   \item{\dots}{additional tuning parameters for the network score.
       See \code{\link{score}} for details.}

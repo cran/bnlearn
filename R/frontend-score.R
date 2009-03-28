@@ -83,14 +83,17 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
   # expand and sanitize score-specific arguments and the alpha threshold.
   if (criterion %in% available.tests) {
 
+    # sanitize the alpha threshold.
     alpha = check.alpha(list(...)$alpha, network = x)
 
     # warn about unused arguments.
     check.unused.args(list(...), "alpha")
 
-    # sanitize the alpha threshold.
-    arc.strength.test(network = x, data = data, alpha = alpha,
+    res = arc.strength.test(network = x, data = data, alpha = alpha,
       test = criterion, debug = debug)
+
+    # add extra information for strength.plot().
+    res = structure(res, mode = "test", threshold = alpha)
 
   }#THEN
   else {
@@ -99,10 +102,15 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
     extra.args = check.score.args(score = criterion, network = x,
                  data = data, extra.args = list(...))
 
-    arc.strength.score(network = x, data = data, score = criterion,
+    res = arc.strength.score(network = x, data = data, score = criterion,
       extra = extra.args, debug = debug)
 
+    # add extra information for strength.plot().
+    res = structure(res, mode = "score", threshold = 0)
+
   }#ELSE
+
+  return(structure(res, class = c("bn-strength", class(res))))
 
 }#ARC.STRENGTH
 

@@ -16,8 +16,8 @@ grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
 
   }#FOR
 
-  # check markov blankets' consistency.
-  mb = mb.recovery(mb, nodes = nodes, strict = strict, debug = debug)
+  # check markov blankets for consistency.
+  mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
 
   # 2. [Compute Graph Structure]
   for (node in nodes) {
@@ -34,8 +34,8 @@ grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
   # update mb with the results of neighbour().
   mb = mb2
 
-  # hope it's never called ...
-  mb = nbr.recovery(mb, nodes = nodes, strict = strict, debug = debug)
+  # check neighbourhood sets for consistency.
+  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
 
   return(mb)
 
@@ -52,8 +52,8 @@ grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
 
-  # check markov blankets' consistency.
-  mb = mb.recovery(mb, nodes = nodes, strict = strict, debug = debug)
+  # check markov blankets for consistency.
+  mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
 
   # 2. [Compute Graph Structure]
   mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
@@ -61,8 +61,8 @@ grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test,
          test = test, debug = debug)
   names(mb) = nodes
 
-  # hope it's never called ...
-  mb = nbr.recovery(mb, nodes = nodes, strict = strict, debug = debug)
+  # check neighbourhood sets for consistency.
+  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
 
   return(mb)
 
@@ -79,8 +79,8 @@ grow.shrink = function(x, whitelist, blacklist, test, alpha,
          test = test, debug = debug)
   names(mb) = nodes
 
-  # check markov blankets' consistency.
-  mb = mb.recovery(mb, nodes = nodes, strict = strict, debug = debug)
+  # check markov blankets for consistency.
+  mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
 
   # 2. [Compute Graph Structure]
   mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
@@ -88,8 +88,8 @@ grow.shrink = function(x, whitelist, blacklist, test, alpha,
          debug = debug)
   names(mb) = nodes
 
-  # hope it's never called ...
-  mb = nbr.recovery(mb, nodes = nodes, strict = strict, debug = debug)
+  # check neighbourhood sets for consistency.
+  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
 
   return(mb)
 

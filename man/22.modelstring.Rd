@@ -43,23 +43,23 @@
 data(learning.test)
 res = set.arc(gs(learning.test), "A", "B")
 res
-# 
+#
 #   Bayesian network learned via Conditional Independence methods
 #
 #   model:
-#     [A][C][F][B|A][D|A:C][E|B:F] 
-#   nodes:                                 6 
-#   arcs:                                  5 
-#     undirected arcs:                     0 
-#     directed arcs:                       5 
-#   average markov blanket size:           2.33 
-#   average neighbourhood size:            1.67 
-#   average branching factor:              0.83 
-# 
-#   learning algorithm:                    grow-shrink 
-#   conditional independence test:         mutual information (discrete) 
-#   alpha threshold:                       0.05 
-#   tests used in the learning procedure:  41 
+#     [A][C][F][B|A][D|A:C][E|B:F]
+#   nodes:                                 6
+#   arcs:                                  5
+#     undirected arcs:                     0
+#     directed arcs:                       5
+#   average markov blanket size:           2.33
+#   average neighbourhood size:            1.67
+#   average branching factor:              0.83
+#
+#   learning algorithm:                    grow-shrink
+#   conditional independence test:         mutual information (discrete)
+#   alpha threshold:                       0.05
+#   tests used in the learning procedure:  41
 #
 modelstring(res)
 # [1] "[A][C][F][B|A][D|A:C][E|B:F]"
@@ -67,18 +67,18 @@ res2 = model2network(modelstring(res))
 res2
 #
 #   Randomly generated Bayesian network
-# 
-#   model:
-#     [A][C][F][B|A][D|A:C][E|B:F] 
-#   nodes:                                 6 
-#   arcs:                                  5 
-#     undirected arcs:                     0 
-#     directed arcs:                       5 
-#   average markov blanket size:           2.33 
-#   average neighbourhood size:            1.67 
-#   average branching factor:              0.83 
 #
-#   generation algorithm:                  empty 
+#   model:
+#     [A][C][F][B|A][D|A:C][E|B:F]
+#   nodes:                                 6
+#   arcs:                                  5
+#     undirected arcs:                     0
+#     directed arcs:                       5
+#   average markov blanket size:           2.33
+#   average neighbourhood size:            1.67
+#   average branching factor:              0.83
+#
+#   generation algorithm:                  empty
 #
 compare(res, res2)
 # [1] TRUE

@@ -24,7 +24,7 @@
   uses an implementation of the Logic Sampling (LS) algorithm
   (Korb and Nicholson, 2004).
 
-  The execution time scales linearly with the number of generated data.
+  Execution time scales linearly with the number of generated data.
 
 }
 \value{
@@ -41,7 +41,6 @@
 }
 \examples{
 \dontrun{
-library(bnlearn)
 data(learning.test)
 res = gs(learning.test)
 res = set.arc(res, "A", "B")

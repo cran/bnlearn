@@ -1,28 +1,27 @@
 Package: bnlearn
 Type: Package
 Title: Bayesian network structure learning
-Version: 1.2
-Date: 2009-02-04
+Version: 1.3
+Date: 2009-03-28
 Depends: R (>= 2.8.0), utils
 Suggests: snow, graph, Rgraphviz (>= 1.20.3)
 Author: Marco Scutari
 Maintainer: Marco Scutari <marco.scutari@gmail.com>
-Description: Bayesian network structure learning
-  via constraint-based (also known as 'conditional
-  independence') and score-based algorithms.
-  This package implements the Grow-Shrink (GS)
-  algorithm, the Incremental Association (IAMB)
-  algorithm, the Interleaved-IAMB (Inter-IAMB)
-  algorithm, the Fast-IAMB (Fast-IAMB) algorithm,
-  the Max-Min Parents and Children (MMPC) algorithm
-  and the Hill-Climbing (HC) greedy search
-  algorithm for both discrete and Gaussian networks,
-  along with many score functions and conditional
-  independence tests.
-  Some utility functions (model comparison and
-  manipulation, random data generation, arc
-  orientation testing) are also included.
+Description: Bayesian network structure learning via constraint-based
+        (also known as 'conditional independence') and score-based
+        algorithms. This package implements the Grow-Shrink (GS)
+        algorithm, the Incremental Association (IAMB) algorithm, the
+        Interleaved-IAMB (Inter-IAMB) algorithm, the Fast-IAMB
+        (Fast-IAMB) algorithm, the Max-Min Parents and Children (MMPC)
+        algorithm and the Hill-Climbing (HC) greedy search algorithm
+        for both discrete and Gaussian networks, along with many score
+        functions and conditional independence tests. Some utility
+        functions (model comparison and manipulation, random data
+        generation, arc orientation testing, simple ad advanced plots)
+        are also included.
 License: GPL (>= 2)
 LazyLoad: yes
 LazyData: yes
-Packaged: Wed Feb  4 23:13:45 2009; fizban
+Packaged: Sat Mar 28 17:22:38 2009; fizban
+Repository: CRAN
+Date/Publication: 2009-03-29 14:54:36

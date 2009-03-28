@@ -1,7 +1,15 @@
 
+bnlearn (1.3)
+  * added Monte Carlo permutation tests for mutual
+      information (for both discrete and Gaussianvdata), 
+      Pearson's X^2, linear correlation and Fisher's Z.
+  * added strength.plot().
+  * reimplemented random.graph() in C for speed.
+  * clean up of C memory allocation functions.
+
 bnlearn (1.2)
   * added cache.partial.structure() to selectively
-      update nodes' cached information stored in 
+      update nodes' cached information stored in
       'bn' objects.
   * fixed a bug in cache.structure().
   * reimplemented is.acyclic() in C to fix a bug

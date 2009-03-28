@@ -50,12 +50,12 @@ inter.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 # MMPC frontend.
 mmpc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
-    strict = FALSE, direction = FALSE) {
+    strict = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha,
     method = "mmpc", debug = debug, optimized = optimized,
-    strict = strict, undirected = TRUE, direction = direction)
+    strict = strict, undirected = TRUE)
 
 }#MMPC
 

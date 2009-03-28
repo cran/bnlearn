@@ -81,7 +81,7 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
       # mismatch in the sapply call below.
       levels(config) = union(levels(config), levels(config2))
 
-      # generate the contingency table of the node against the 
+      # generate the contingency table of the node against the
       # configurations of its parents.
       tab = table(data = data[, node], cfg = config)
 
@@ -97,7 +97,7 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
 
           # generate a human readable version of the two sets of configurations
           # for the debugging output.
-          obc = unique(apply(data[, node.parents], 1, paste, sep = "", 
+          obc = unique(apply(data[, node.parents], 1, paste, sep = "",
                      collapse = ":"))
           gnc = unique(apply(as.data.frame(result)[, node.parents], 1,
                      paste, sep = "", collapse = ":"))
@@ -111,8 +111,8 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
 
         }#THEN
 
-        warning(paste("some configurations of the parents of", node, 
-          "are not present in the original data. NA's may be generated.", 
+        warning(paste("some configurations of the parents of", node,
+          "are not present in the original data. NA's may be generated.",
            collpase = "", sep = " "))
 
       }#THEN
@@ -128,9 +128,9 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
 
         if (sum(tab[, cfg]) != 0) {
 
-          temp.gen[to.be.generated] = sample(node.levels, 
-             length(which(to.be.generated)), replace = TRUE, 
-             prob = tab[, cfg]/sum(tab[, cfg])) 
+          temp.gen[to.be.generated] = sample(node.levels,
+             length(which(to.be.generated)), replace = TRUE,
+             prob = tab[, cfg]/sum(tab[, cfg]))
 
         }#THEN
         else {

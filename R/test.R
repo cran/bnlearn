@@ -11,7 +11,7 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
 
   sx = sx[sx != ""]
   ndata = nrow(data)
-  df = NULL
+  df = B = NULL
 
   if (length(sx) == 0) {
 
@@ -61,7 +61,7 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
     # Canonical (Linear) Correlation (Student's t distribution)
     else if (test == "cor") {
 
-      statistic = cor(data[,x], data[,y])
+      statistic = fast.cor(data[,x], data[,y], ndata)
       df = ndata - 2
       p.value = pt(abs((statistic * sqrt(ndata - 2) / sqrt(1 - statistic^2))),
                   df, lower.tail = FALSE) * 2
@@ -70,7 +70,7 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
     # Fisher's Z (asymptotic normal distribution)
     else if (test == "zf") {
 
-       statistic = cor(data[,x], data[,y])
+       statistic = fast.cor(data[,x], data[,y], ndata)
        statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(ndata -3)
        p.value = pnorm(abs(statistic),
                    lower.tail = FALSE) * 2
@@ -82,6 +82,49 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
       statistic = mig.test(x, y, data, ndata, gsquare = TRUE)
       df = 1
       p.value = pchisq(statistic, df, lower.tail = FALSE)
+
+    }#THEN
+    # Mutual Infomation (monte carlo permutation distribution)
+    else if (test == "mc-mi") {
+
+      B = 5000L
+      perm.test = mc.test(data[,x], data[,y], ndata, samples = B, test = 1L)
+      statistic = perm.test[1]
+      p.value = perm.test[2]
+
+    }#THEN
+    # Pearson's X^2 test (monte carlo permutation distribution)
+    else if (test == "mc-x2") {
+
+      B = 5000L
+      perm.test = mc.test(data[,x], data[,y], ndata, samples = B, test = 2L)
+      statistic = perm.test[1]
+      p.value = perm.test[2]
+
+    }#THEN
+    # Mutual Information for Gaussian Data (monte carlo permutation distribution)
+    else if (test == "mc-mi-g") {
+
+      B = 5000L
+      statistic = mig.test(x, y, data, ndata, gsquare = TRUE)
+      p.value = gmc.test(data[, x] , data[, y], B, test = 3L)
+
+    }#THEN
+    # Canonical (Linear) Correlation (monte carlo permutation distribution)
+    else if (test == "mc-cor") {
+
+      B = 5000L
+      statistic = fast.cor(data[,x], data[,y], ndata)
+      p.value = gmc.test(data[, x] , data[, y], B, test = 4L)
+
+    }#THEN
+    # Fisher's Z (monte carlo permutation distribution)
+    else if (test == "mc-zf") {
+
+      B = 5000L
+      statistic = fast.cor(data[,x], data[,y], ndata)
+      statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(ndata -3)
+      p.value = gmc.test(data[, x] , data[, y], B, test = 4L)
 
     }#THEN
 
@@ -150,7 +193,7 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
       if (df < 1)
         stop("trying to do a conditional independence test with zero degrees of freedom.")
 
-      statistic = pcor(c(x, y, sx), data)
+      statistic = fast.pcor(x, y, sx, data, ndata)
       p.value = pt(abs(statistic * sqrt(df) / sqrt(1 - statistic^2)), df, lower.tail = FALSE) * 2
 
     }#THEN
@@ -162,7 +205,7 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
       if (df < 1)
         stop("trying to do a conditional independence test with zero degrees of freedom.")
 
-      statistic = pcor(c(x, y, sx), data)
+      statistic = fast.pcor(x, y, sx, data, ndata)
       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(df)
       p.value = pnorm(abs(statistic), lower.tail = FALSE) * 2
 
@@ -173,6 +216,50 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
       statistic = cmig.test(x, y, sx, data, ndata, gsquare =TRUE)
       df = 1
       p.value = pchisq(statistic, df, lower.tail = FALSE)
+
+    }#THEN
+    # Mutual Infomation (monte carlo permutation distribution)
+    else if (test == "mc-mi") {
+
+      B = 5000L
+      perm.test = cmc.test(data[,x], data[,y], config, ndata, samples = B, test = 1L)
+      statistic = perm.test[1]
+      p.value = perm.test[2]
+
+    }#THEN
+    # Pearson's X^2 test (monte carlo permutation distribution)
+    else if (test == "mc-x2") {
+
+      B = 5000L
+      perm.test = cmc.test(data[,x], data[,y], config, ndata, samples = B, test = 2L)
+      statistic = perm.test[1]
+      p.value = perm.test[2]
+
+    }#THEN
+    # Mutual Information for Gaussian Data (monte carlo permutation distribution)
+    else if (test == "mc-mi-g") {
+
+      B = 5000L
+      statistic = cmig.test(x, y, sx, data, ndata, gsquare = TRUE)
+      p.value = cgmc.test(x, y, sx, data, ndata, B, test = 3L)
+
+    }#THEN
+    # Canonical Partial Correlation (monte carlo permutation distribution)
+    else if (test == "mc-cor") {
+
+      B = 5000L
+      statistic = fast.pcor(x, y, sx, data, ndata)
+      p.value = cgmc.test(x, y, sx, data, ndata, B, test = 4L)
+
+    }#THEN
+    # Fisher's Z (monte carlo permutation distribution)
+    else if (test == "mc-zf") {
+
+      B = 5000L
+      df = ndata - 3 - length(sx)
+      statistic = fast.pcor(x, y, sx, data, ndata)
+      statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(df)
+      p.value = cgmc.test(x, y, sx, data, ndata, B, test = 4L)
 
     }#THEN
 
@@ -198,7 +285,7 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
              p.value = p.value,
              method = test.labels[test],
              null.value = c(value = 0),
-             alternative = ifelse(test %in% c("cor", "zf"),
+             alternative = ifelse(test %in% c("cor", "zf", "mc-cor", "mc-zf"),
                "two.sided", "greater"),
              data.name = paste(x, "~", y,
                ifelse(length(sx) > 0, "|", ""),
@@ -207,6 +294,9 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
 
     if (!is.null(df))
       result$parameter = structure(df, names = "df")
+
+    if (!is.null(B))
+      result$parameter = structure(B, names = "Monte Carlo samples")
 
     return(result)
 
@@ -229,6 +319,21 @@ mi.test = function(x, y, ndata, gsquare = TRUE) {
 
 }#MI.TEST
 
+# Monte Carlo (discrete data)
+mc.test = function(x, y, ndata, samples, test) {
+
+  .Call("mcarlo",
+        x = x,
+        y = y,
+        lx = nlevels(x),
+        ly = nlevels(y),
+        length = ndata,
+        samples = as.integer(samples),
+        test = test,
+        PACKAGE = "bnlearn")
+
+}#MI.MC.TEST
+
 # Conditional Mutual Information (discrete data)
 cmi.test = function(x, y, z, ndata, gsquare = TRUE) {
 
@@ -246,9 +351,26 @@ cmi.test = function(x, y, z, ndata, gsquare = TRUE) {
 
 }#CMI.TEST
 
+# Conditional Monte Carlo (discrete data)
+cmc.test = function(x, y, z, ndata, samples, test) {
+
+  .Call("cmcarlo",
+        x = x,
+        y = y,
+        z = z,
+        lx = nlevels(x),
+        ly = nlevels(y),
+        lz = nlevels(z),
+        length = ndata,
+        samples = as.integer(samples),
+        test = test,
+        PACKAGE = "bnlearn")
+
+}#CMI.MC.TEST
+
 mig.test = function(x, y, data, ndata, gsquare = TRUE) {
 
-  s = - 0.5 * log(1 - cor(data[,x], data[,y])^2)
+  s = - 0.5 * log(1 - fast.cor(data[, x], data[, y], ndata)^2)
 
   ifelse(gsquare, 2 * ndata * s, s)
 
@@ -257,11 +379,35 @@ mig.test = function(x, y, data, ndata, gsquare = TRUE) {
 # Conditional Mutual Information (gaussian data)
 cmig.test = function(x, y, z, data, ndata, gsquare = TRUE) {
 
-  s = - 0.5 * log(1 - pcor(c(x, y, z), data)^2)
+  s = - 0.5 * log(1 - fast.pcor(x, y, z, data, ndata)^2)
 
   ifelse(gsquare, 2 * ndata * s, s)
 
 }#CMIG.TEST
+
+# Monte Carlo (gaussian data)
+gmc.test = function(x, y, samples, test) {
+
+  .Call("gauss_mcarlo",
+        x = x,
+        y = y,
+        samples = samples,
+        test = test,
+        PACKAGE = "bnlearn")
+
+}#GMC.TEST
+
+# Conditional Monte Carlo (gaussian data)
+cgmc.test = function(x, y, sx, data, ndata, samples, test) {
+
+  .Call("gauss_cmcarlo",
+        data = data[, c(x, y, sx), drop = FALSE],
+        length = ndata,
+        samples = samples,
+        test = test,
+        PACKAGE = "bnlearn")
+
+}#CGMC.TEST
 
 # Pearson's X^2 test (discrete data)
 x2.test = function(x, y, ndata) {
@@ -291,51 +437,24 @@ cx2.test = function(x, y, z, ndata) {
 
 }#CX2.TEST
 
-# Partial Canonical (Linear) Correlation.
-# Original code was an internal copy of the pcor() function from
-# package ggm; later adapted to use pseudoinverse() instead of
-# solve() for greater reliability. Original copyright notice
-# and licence were:
-# Copyright Giovanni M. Marchetti, 2006.
-# Released under "GPL version 2 or newer".
-pcor = function (u, S) {
+# Fast implementation of the linear correlation coefficient.
+fast.cor = function(x, y, ndata) {
 
-  k = pseudoinverse(cor(S[, u]))
-  - k[1, 2] / sqrt(k[1, 1] * k[2, 2])
+  .Call("fast_cor",
+        x = x,
+        y = y,
+        length = ndata,
+        PACKAGE = "bnlearn")
 
-}#PCOR
+}#FAST.COR
 
-# Moore-Penrose pseudoinverse matrix.
-# Original code was an internal copy of the pseudoinverse()
-# function from package corpcor version 1.4.6; removed unused
-# stuff. Original copyright notice and licence were:
-# Copyright Korbinian Strimmer 2003-2004.
-# Released under "GPL version 2 or newer".
-pseudoinverse = function (m) {
+# Fast implementation of the partial correlation coefficient.
+fast.pcor = function(x, y, sx, data, ndata) {
 
-  msvd = positive.svd(m)
+  .Call("fast_pcor",
+        data = data[, c(x, y, sx), drop = FALSE],
+        length = ndata,
+        PACKAGE = "bnlearn")
 
-  if (length(msvd$d) == 0)
-    array(0, dim(m)[2:1])
-  else
-    msvd$v %*% (1/msvd$d * t(msvd$u))
-
-}#PSEUDOINVERSE
-
-# Singular value decomposition that retains only positive singular values.
-# Original code was an internal copy of the positive.svd()
-# function from package corpcor version 1.4.6; removed unused
-# stuff. Original copyright notice and licence were:
-# Copyright Korbinian Strimmer 2003-2006.
-# Released under "GPL version 2 or newer".
-positive.svd = function(m) {
-
-  s = svd(m)
-  tol = max(dim(m)) * max(s$d) * .Machine$double.eps
-  positive = s$d > tol
-
-  list(d = s$d[positive], u = s$u[, positive, drop = FALSE],
-      v = s$v[, positive, drop = FALSE])
-
-}#POSITIVE.SVD
+}#FAST.PCOR
 

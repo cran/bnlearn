@@ -35,10 +35,10 @@ random.graph = function(nodes, num = 1, method = "ordered", ..., debug = FALSE) 
     stop(" the number of graphs to generate must be a positive integer number.")
 
   # expand and sanitize method-specific arguments.
-  extra.args = check.graph.generation.args(method = method, 
+  extra.args = check.graph.generation.args(method = method,
                  nodes = nodes, extra.args = list(...))
 
-  random.graph.backend(num = num, nodes = nodes, method = method, 
+  random.graph.backend(num = num, nodes = nodes, method = method,
     extra.args = extra.args, debug = debug)
 
 }#RANDOM.GRAPH
@@ -46,7 +46,7 @@ random.graph = function(nodes, num = 1, method = "ordered", ..., debug = FALSE) 
 # create an empty graph from a given set of nodes.
 empty.graph = function(nodes, num = 1) {
 
-  random.graph(nodes = nodes, num = num, method = "empty", debug = debug)
+  random.graph(nodes = nodes, num = num, method = "empty", debug = FALSE)
 
 }#EMPTY.GRAPH
 

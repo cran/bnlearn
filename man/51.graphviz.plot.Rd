@@ -8,15 +8,16 @@
 
 }
 \usage{
-  graphviz.plot(x, highlight = NULL, layout = "dot", main = NULL, 
+  graphviz.plot(x, highlight = NULL, layout = "dot", main = NULL,
     sub = NULL)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
   \item{highlight}{a list, see below.}
-  \item{layout}{a character string, the layout parameter to 
-    be passed to \pkg{Rgraphviz}. Possible values are \code{dots}, 
-    \code{neato}, \code{twopi}, \code{circo} and \code{fdp}.}
+  \item{layout}{a character string, the layout parameter to
+    be passed to \pkg{Rgraphviz}. Possible values are \code{dots},
+    \code{neato}, \code{twopi}, \code{circo} and \code{fdp}. See
+    \pkg{Rgraphviz} documentation for details.}
   \item{main}{a character string, the main title of the graph.
     It's plotted at the top of the graph.}
   \item{sub}{a character string, a subtitle which is plotted
@@ -31,21 +32,21 @@
 
     \item \code{nodes}: a character vector, the labels
       of the nodes to be highlighted.
-    \item \code{arcs}: the arcs to be highlighted (a 
-      two-column matrix, whose columns are labeled 
+    \item \code{arcs}: the arcs to be highlighted (a
+      two-column matrix, whose columns are labeled
       \code{from} and \code{to}).
 
   }
 
-  and optionally one or more of the following formatting 
+  and optionally one or more of the following formatting
   parameters:
 
   \itemize{
 
-    \item \code{col}: an integer or character string (the 
+    \item \code{col}: an integer or character string (the
       highlight colour). The default value is \code{red}.
 
-    \item \code{fill}: an integer or character string (the 
+    \item \code{fill}: an integer or character string (the
       colour used as a background colour for the nodes).
       The default value is \code{white}.
 

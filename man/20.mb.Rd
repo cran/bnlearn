@@ -50,7 +50,8 @@
   nparams(x, data, debug = FALSE)
   acyclic(x, directed, debug = FALSE)
   directed(x)
-  path(x, from, to, direct = TRUE, underlying.graph = FALSE, debug = FALSE)
+  path(x, from, to, direct = TRUE, underlying.graph = FALSE, 
+    debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}

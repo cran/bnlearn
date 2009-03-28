@@ -95,3 +95,79 @@ arc.strength.score = function(network, data, score, extra, debug) {
 
 }#ARC.STRENGTH.SCORE
 
+# convert an arc strength object to the corresponding line widths for plotting.
+strength2lwd = function(strength, threshold, cutpoints, debug = TRUE) {
+
+  s = strength[, "strength"]
+  mode = attr(strength, "mode")
+
+  # sanitize user-defined cut points, if any.
+  if (!missing(cutpoints)) {
+
+    if (!is.numeric(cutpoints) || any(is.nan(cutpoints)))
+      stop("cut points must be numerical values.")
+    if (length(s) <= length(cutpoints))
+      stop("there are at least as many cut points as strength values.")
+
+  }#THEN
+
+  if (debug) {
+
+    cat("* using threshold:", threshold, "\n")
+    cat("* reported arc strength are:\n")
+    print(strength)
+
+  }#THEN
+
+  if (mode == "test") {
+
+    # use user-defined cut points if available.
+    if (missing(cutpoints))
+      cutpoints = unique(c(0, threshold/c(10, 5, 2, 1.5, 1), 1))
+    else
+      cutpoints = sort(cutpoints)
+
+    # p-values are already scaled, so the raw quantiles are good cut points.
+    arc.weights = cut(s, cutpoints, labels = FALSE, include.lowest = TRUE)
+
+    arc.weights = length(cutpoints) - arc.weights
+
+  }#THEN
+  else if (mode == "score") {
+
+    # score deltas are defined on a reversed scale (the more negative
+    # the better); change their sign (and that of the threshold)
+    # for simplicity
+    threshold = -threshold
+    s = -s
+
+    # define a set of cut points using the quantiles from the empirical
+    # distribution of the negative score deltas (that is, the ones
+    # corresponding to significant arcs) or use user-defined ones.
+    if (missing(cutpoints)) {
+
+      significant = s[s > threshold]
+      q = quantile(significant, c(0.50, 0.75, 0.90, 0.95, 1), names = FALSE)
+      cutpoints = sort(c(-Inf, threshold, unique(q), Inf))
+
+    }#THEN
+
+    arc.weights = cut(s, cutpoints, labels = FALSE)
+
+  }#THEN
+
+  # arcs beyond the significance threshold are given a negative weight,
+  # so that graphviz.backend() will draw them as dashed lines.
+  arc.weights[arc.weights == 1] = -1
+
+  if (debug) {
+
+    cat("* using cut points for strength intervals:\n")
+    print(cutpoints)
+    cat("* arc weights:", arc.weights, "\n")
+
+  }#THEN
+
+  return(arc.weights)
+
+}#STRENGTH2LWD

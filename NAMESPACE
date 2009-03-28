@@ -40,7 +40,8 @@ export(
   "ordering2blacklist",
   "empty.graph",
   "random.graph",
-  "graphviz.plot"
+  "graphviz.plot",
+  "strength.plot"
 )
 
 S3method(print, bn)

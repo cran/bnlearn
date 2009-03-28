@@ -1,12 +1,3 @@
-# check a matrix for symmetry.
-is.symmetric = function(m) {
-
-  # kill all the names; identical may return false otherwise.
-  colnames(m) = rownames(m) = NULL
-
-  identical(m, t(m))
-
-}#IS.SYMMETRIC
 
 # check whether a graph is completely directed (has no undirected arcs).
 is.dag = function(arcs, nodes) {
@@ -32,7 +23,7 @@ is.acyclic = function(arcs, nodes, debug = FALSE) {
 
 }#IS.ACYCLIC
 
-is.acyclic.backend = function(arcs, nodes, directed = FALSE, 
+is.acyclic.backend = function(arcs, nodes, directed = FALSE,
   return.nodes = FALSE, debug = FALSE) {
 
   # no arcs, no cycles.

@@ -163,20 +163,20 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     if (cluster.aware) {
 
-      mb = maxmin.pc.cluster(x = x, cluster = cluster, whitelist = whitelist, 
-        blacklist = blacklist, test = test, alpha = alpha, strict = strict, 
+      mb = maxmin.pc.cluster(x = x, cluster = cluster, whitelist = whitelist,
+        blacklist = blacklist, test = test, alpha = alpha, strict = strict,
         debug = debug)
 
     }#THEN
     else if (optimized) {
 
-      mb = maxmin.pc.optimized(x = x, whitelist = whitelist, blacklist = blacklist, 
+      mb = maxmin.pc.optimized(x = x, whitelist = whitelist, blacklist = blacklist,
         test = test, alpha = alpha, strict = strict, debug = debug)
 
     }#THEN
     else {
 
-      mb = maxmin.pc(x = x, whitelist = whitelist, blacklist = blacklist, 
+      mb = maxmin.pc(x = x, whitelist = whitelist, blacklist = blacklist,
         test = test, alpha = alpha, strict = strict, debug = debug)
 
     }#ELSE
@@ -187,29 +187,25 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     # save the status of the learning algorithm.
     arcs = nbr2arcs(mb)
-    learning = list(nodes = mb, arcs = arcs, whitelist = whitelist, 
-      blacklist = blacklist, test = test, args = list(alpha = alpha), 
+    learning = list(whitelist = whitelist, blacklist = blacklist, 
+      test = test, args = list(alpha = alpha),
       ntests = get(".test.counter", envir = .GlobalEnv))
     res = list(learning = learning, 
       nodes = cache.structure(names(mb), arcs = arcs), arcs = arcs)
-
-    # store the real markov blankets in learning.
-    for (n in names(res$nodes))
-      res$learning$nodes[[n]]$mb = res$nodes[[n]]$mb
 
   }#THEN
   else {
 
     # recover some of the arc directions.
-    res = second.principle(x = x, mb = mb, whitelist = whitelist, 
-            blacklist = blacklist, test = test, alpha = alpha, 
+    res = second.principle(x = x, mb = mb, whitelist = whitelist,
+            blacklist = blacklist, test = test, alpha = alpha,
             strict = strict, direction = direction, debug = debug)
 
   }#ELSE
 
   # add tests performed by the slaves to the test counter.
   if (cluster.aware)
-    res$ntests = res$ntests +
+    res$learning$ntests = res$learning$ntests +
       sum(unlist(clusterEvalQ(cluster, get(".test.counter", envir = .GlobalEnv))))
   # save the learning method used.
   res$learning$algo = method
@@ -291,9 +287,9 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
     if (optimized) {
 
-      res = hill.climbing.optimized(x = x, start = start, 
-        whitelist = whitelist, blacklist = blacklist, score = score, 
-        extra.args = extra.args, restart = restart, perturb = perturb, 
+      res = hill.climbing.optimized(x = x, start = start,
+        whitelist = whitelist, blacklist = blacklist, score = score,
+        extra.args = extra.args, restart = restart, perturb = perturb,
         max.iter = max.iter, debug = debug)
 
     }#THEN

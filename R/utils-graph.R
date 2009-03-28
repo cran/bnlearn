@@ -1,7 +1,7 @@
 
 # a modified depth-first search, which is able to cope with cycles
 # and mixed/undirected graphs.
-has.path = function(from, to, nodes, amat, exclude.direct = FALSE, 
+has.path = function(from, to, nodes, amat, exclude.direct = FALSE,
     underlying.graph = FALSE, debug = FALSE) {
 
   # remove any arc between "from" and "to".

@@ -3,12 +3,21 @@
 #define AMAT(i,j) INTEGER(amat)[i + j * n]
 #define NODE(i) CHAR(STRING_ELT(nodes, i))
 
-SEXP has_dag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes, 
+SEXP has_dag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes,
     SEXP underlying, SEXP debug) {
 
-  int start = INTEGER(from)[0] - 1;
-  int stop = INTEGER(to)[0] - 1;
-  int n = INTEGER(nrows)[0];
+  int start = INT(from) - 1;
+  int stop = INT(to) - 1;
+  int n = INT(nrows);
+  int *a = INTEGER(amat);
+
+  return c_has_dag_path(start, stop, a, n, nodes, underlying, debug);
+
+}/*HAS_DAG_PATH*/
+
+SEXP c_has_dag_path(int start, int stop, int *amat, int n, SEXP nodes,
+    SEXP underlying, SEXP debug) {
+
   int *counter;
   int *path;
   int path_pos = 0;
@@ -18,11 +27,9 @@ SEXP has_dag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes,
   SEXP res;
 
   /* initialize the position counters for the rows of the adjacency matrix. */
-  counter = (int *) R_alloc(n, sizeof(int));
-  memset(counter, '\0', sizeof(int) * n);
+  counter = alloc1dcont(n);
   /* initialize the path array. */
-  path = (int *) R_alloc(n, sizeof(int));
-  memset(path, '\0', sizeof(int) * n);
+  path = alloc1dcont(n);
 
   /* allocate the result. */
   PROTECT(res = allocVector(LGLSXP, 1));
@@ -48,7 +55,7 @@ there:
 
       if (!isTRUE(underlying)) {
 
-        if (AMAT(cur, counter[cur]) != 0)
+        if (amat[CMC(cur, counter[cur], n)] != 0)
           break;
 
       }/*THEN*/
@@ -56,7 +63,8 @@ there:
 
         /* if we are looking for a path in the underlying (undirected)
          * graph, check also the symmetric entry of the adjacency matrix. */
-        if ((AMAT(cur, counter[cur]) != 0) || (AMAT(counter[cur], cur) != 0))
+        if ((amat[CMC(cur, counter[cur], n)] != 0) ||
+            (amat[CMC(counter[cur], cur, n)] != 0))
           break;
 
       }/*ELSE*/
@@ -79,12 +87,9 @@ there:
 
       }/*THEN*/
 
-      if (isTRUE(debug)) {
-
+      if (isTRUE(debug))
         Rprintf("  > node '%s' has no more children, going back to '%s'.\n",
           NODE(cur), NODE(path[path_pos - 1]));
-
-      }/*THEN*/
 
       /* this node has no more children, skip back to the previous one. */
       cur = path[--path_pos];
@@ -105,11 +110,8 @@ there:
 
         if ((counter[cur] - 1) == path[i]) {
 
-          if (isTRUE(debug)) {
-
+          if (isTRUE(debug))
             Rprintf("  @ node '%s' already visited, skipping.\n", NODE(path[i]));
-
-          }/*THEN*/
 
           goto there;
 
@@ -122,11 +124,8 @@ there:
       /* the current node is now the children we have just found. */
       cur = counter[cur] - 1;
 
-      if (isTRUE(debug)) {
-
+      if (isTRUE(debug))
         Rprintf("  > jumping to '%s'.\n", NODE(cur));
-
-      }/*THEN*/
 
     }/*ELSE*/
 
@@ -136,13 +135,13 @@ there:
   UNPROTECT(1);
   return res;
 
-}/*HAS_DAG_PATH*/
+}/*C_HAS_DAG_PATH*/
 
 SEXP how_many_cycles(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes, SEXP debug) {
 
-  int start = INTEGER(from)[0] - 1;
-  int stop = INTEGER(to)[0] - 1;
-  int n = INTEGER(nrows)[0];
+  int start = INT(from) - 1;
+  int stop = INT(to) - 1;
+  int n = INT(nrows);
   int *counter;
   int *path;
   int path_pos = 0;
@@ -152,16 +151,15 @@ SEXP how_many_cycles(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes, SEXP
 
   SEXP res;
 
+
   /* initialize the position counters for the rows of the adjacency matrix. */
-  counter = (int *) R_alloc(n, sizeof(int));
-  memset(counter, '\0', sizeof(int) * n);
+  counter = alloc1dcont(n);
   /* initialize the path array. */
-  path = (int *) R_alloc(n, sizeof(int));
-  memset(path, '\0', sizeof(int) * n);
+  path = alloc1dcont(n);
 
   /* allocate the result. */
   PROTECT(res = allocVector(INTSXP, 1));
-  INTEGER(res)[0] = 0;
+  INT(res) = 0;
 
   while (1) {
 
@@ -211,7 +209,7 @@ there:
        * and the 'stop' node was not found; return FALSE.*/
       if  (path_pos == 0) {
 
-        INTEGER(res)[0] = cycle_counter;
+        INT(res) = cycle_counter;
         UNPROTECT(1);
         return res;
 

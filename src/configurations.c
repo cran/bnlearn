@@ -1,5 +1,4 @@
-#include <R.h>
-#include <Rinternals.h>
+#include "common.h"
 
 /* macro for the [i,j] element of the data frame. */
 #define BNLEARN_DATAFRAME(i, j) INTEGER(VECTOR_ELT(parents, j))[i]
@@ -18,8 +17,7 @@ SEXP cfg(SEXP parents) {
   SEXP ret;
 
   /* create the cumulative products of the number of levels. */
-  cumlevels = (int *) R_alloc(ncols, sizeof(int));
-  memset(cumlevels, '\0', sizeof(int) * ncols);
+  cumlevels = alloc1dcont(ncols);
 
   /* set the first one to 1 ... */
   cumlevels[0] = 1;

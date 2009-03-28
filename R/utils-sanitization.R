@@ -75,7 +75,7 @@ check.nodes = function(nodes, graph = NULL, min.nodes = 1, max.nodes = Inf) {
   # node must be a valid node label.
   if (!is.null(graph))
     if (!all(nodes %in% names(graph$nodes)))
-      stop(paste(c("node(s)", nodes[!(nodes %in% names(graph$nodes))], 
+      stop(paste(c("node(s)", nodes[!(nodes %in% names(graph$nodes))],
              "not present in the graph."), collapse = " "))
 
 }#CHECK.NODES
@@ -118,16 +118,16 @@ check.arcs = function(arcs, graph = NULL) {
     valid.nodes = arcs %in% names(graph$nodes)
 
     if (!all(valid.nodes))
-      stop(paste(c("node(s)", unique(arcs[!valid.nodes]), 
+      stop(paste(c("node(s)", unique(arcs[!valid.nodes]),
              "not present in the graph."), collapse = " "))
 
   }#THEN
 
   # check there are no loops among the arcs.
   loop = (arcs[, "from"] == arcs[, "to"])
- 
+
   if (any(loop))
-    stop(paste(c("invalid arcs that are actually loops:\n", 
+    stop(paste(c("invalid arcs that are actually loops:\n",
       paste("  ", arcs[loop, 1], "->", arcs[loop, 2], "\n"))))
 
   return(arcs)
@@ -563,7 +563,7 @@ check.graph.generation.args = function(method, nodes, extra.args) {
 
     }#ELSE
 
-  }#THEN 
+  }#THEN
 
   check.unused.args(extra.args, graph.generation.extra.args[[method]])
 
@@ -649,7 +649,7 @@ check.logical = function(bool) {
 
 }#CHECK.LOGICAL
 
-# check logical flags.
+# check an object of class bn.
 check.bn = function(bn) {
 
   if (missing(bn))
@@ -662,6 +662,40 @@ check.bn = function(bn) {
   }#THEN
 
 }#CHECK.BN
+
+# check an object of class bn-strength.
+check.bn.strength = function(strength, bn) {
+
+  if (missing(strength))
+    stop("an object of class 'bn-strength' is required.")
+  if (!is(strength, "bn-strength")) {
+
+    stop(sprintf("%s must be an object of class 'bn-strength'.",
+           deparse(substitute(strength))))
+
+  }#THEN
+
+}#CHECK.BN.STRENGTH
+
+# sanitize the threshold value.
+check.threshold = function(threshold, strength) {
+
+  if (missing(threshold))
+    threshold = attr(strength, "threshold")
+  else {
+
+    s = strength[, "strength"]
+  
+    if (!is.numeric(threshold) || (length(threshold) != 1) || is.nan(threshold))
+      stop("the threshold must be a numeric value.")
+    if ((threshold < min(s)) || (threshold > max(s)))
+      warning("the threshold is outside the range of the strength values.")
+
+  }#ELSE
+
+  return(threshold)
+
+}#CHECK.THRESHOLD
 
 # check parameters related to the random restart functions.
 check.restart = function(restart, perturb) {

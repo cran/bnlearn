@@ -39,13 +39,13 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
   arcs = propagate.directions(arcs = arcs, nodes = nodes, debug = debug)
 
   # arcs whitelisted in one direction (i.e. a -> b but not b -> a) are
-  # never checked for cycles, do it now. 
+  # never checked for cycles, do it now.
   if (!is.acyclic(arcs = arcs, nodes = nodes))
     stop("the graph contains cycles, possibly because of whitelisted nodes.")
 
   # save the status of the learning algorithm.
-  learning = list(nodes = mb, arcs = arcs, whitelist = whitelist,
-    blacklist = blacklist, test = test, args = list(alpha = alpha),
+  learning = list(whitelist = whitelist, blacklist = blacklist, 
+    test = test, args = list(alpha = alpha),
     ntests = get(".test.counter", envir = .GlobalEnv))
 
   # EXTRA [ESP]
@@ -53,7 +53,7 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
     arcs = set.directions(arcs = arcs, data = x, test = test,
              alpha = alpha, cluster = cluster, debug = debug)
 
-  list(learning = learning, nodes = cache.structure(nodes, arcs = arcs), 
+  list(learning = learning, nodes = cache.structure(nodes, arcs = arcs),
     arcs = arcs)
 
 }#SECOND.PRINCIPLE
@@ -522,7 +522,10 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
   }#THEN
 
   # get the undirected arcs.
-  undirected.arcs = arcs[which.undirected(arcs), ]
+  undirected.arcs = arcs[which.undirected(arcs), , drop = FALSE]
+
+  if (nrow(undirected.arcs) == 0)
+    return(arcs)
 
   if (is.null(cluster)) {
 
@@ -610,109 +613,17 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
 
 }#SET.DIRECTIONS
 
-# emergency measures for markov blanket recovery.
-mb.recovery = function(mb, nodes, strict, debug) {
+# emergency measures for markov blanket and neighbourhood recovery.
+bn.recovery = function(bn, nodes, strict, mb = FALSE, debug) {
 
-  # NOTE: backtracking forces symmetry.
-  if (is.symmetric(mb2amat(mb, redux = TRUE)))
-    return(mb)
+  .Call("bn_recovery",
+        bn = bn,
+        strict = strict,
+        mb = mb,
+        debug = debug,
+        PACKAGE = "bnlearn")
 
-  # you should not be here! no, really!
-  if (strict) {
-
-    if (debug) {
-
-      m = mb2amat(mb, redux = TRUE)
-      rownames(m) = colnames(m)
-
-      cat("----------------------------------------------------------------\n")
-      cat("> markov blankets as an adjacency matrix:\n")
-      print(m)
-      cat("----------------------------------------------------------------\n")
-      cat("> markov blankets as a list:\n")
-      print(mb)
-
-    }#THEN
-
-    stop("markov blankets are not symmetric.")
-
-  }#THEN
-  else {
-
-    # fix the markov blankets:
-    # if X \not\in MB(Y) => Y \not\in MB(X)
-    mb = apply(mb2amat(mb, redux = TRUE) *  t(mb2amat(mb, redux = TRUE)), 1,
-            function(x) { nodes[as.logical(x)] })
-    names(mb) = nodes
-
-    if (debug) {
-
-      cat("----------------------------------------------------------------\n")
-      cat("* fixing symmetry in the markov blankets.\n")
-      print(mb)
-
-    }#THEN
-
-    warning("markov blankets are not symmetric.")
-
-  }#ELSE
-
-  mb
-
-}#MB.RECOVERY
-
-# emergency measures for neighbourhood recovery.
-nbr.recovery = function(mb, nodes, strict, debug) {
-
-  # NOTE: backtracking forces symmetry.
-  if (is.symmetric(nbr2amat(mb)))
-    return(mb)
-
-  # you should not be here! no, really!
-  if (strict) {
-
-    if (debug) {
-
-      m = nbr2amat(mb)
-      rownames(m) = colnames(m)
-
-      cat("----------------------------------------------------------------\n")
-      cat("> neighbourhoods as an adjacency matrix:\n")
-      print(m)
-      cat("----------------------------------------------------------------\n")
-      cat("> neighbourhoods as a list:\n")
-      print(mb)
-
-     }#THEN
-
-     stop("neighbourhoods are not symmetric.")
-
-  }#THEN
-  else {
-
-    # if X \not\in NBR(Y) => Y \not\in NBR(X)
-    nbrhood = apply(nbr2amat(mb) *  t(nbr2amat(mb)), 1,
-                function(x) { nodes[as.logical(x)] })
-    names(nbrhood) = nodes
-
-    for (n in nodes)
-      mb[[n]]$nbr = nbrhood[[n]]
-
-    if (debug) {
-
-      cat("----------------------------------------------------------------\n")
-      cat("* fixing symmetry in the neighbourhoods.\n")
-      print(mb)
-
-    }#THEN
-
-    warning("neighbourhoods are not symmetric.")
-
-  }#ELSE
-
-  mb
-
-}#NBR.RECOVERY
+}#BN.RECOVERY
 
 # explore the structure of the network using its arc set.
 cache.structure = function(nodes, arcs, amat = NULL, debug = FALSE) {
@@ -730,7 +641,7 @@ cache.structure = function(nodes, arcs, amat = NULL, debug = FALSE) {
 }#CACHE.STRUCTURE
 
 # explore the structure of the neighbourhood of a target node.
-cache.partial.structure = function(nodes, target, arcs, amat = NULL, 
+cache.partial.structure = function(nodes, target, arcs, amat = NULL,
     debug = FALSE) {
 
   # rebuild the adjacency matrix only if it's not available

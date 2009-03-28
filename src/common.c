@@ -22,3 +22,23 @@ return elmt;
 
 }/*GETLISTELEMENT*/
 
+/* sampling without replacement, internal copy of the
+ * SampleNoReplace function in src/main/random.c.
+ * Copyright (C) 2003--2008  The R Foundation,
+ * licensed under "GPLv2 or later" licence. */
+void SampleNoReplace(int k, int n, int *y, int *x) {
+
+  int i, j;
+
+  for (i = 0; i < n; i++)
+    x[i] = i;
+  for (i = 0; i < k; i++) {
+
+    j = n * unif_rand();
+    y[i] = x[j] + 1;
+    x[j] = x[--n];
+
+  }/*FOR*/
+
+}/*SAMPLENOREPLACE*/
+

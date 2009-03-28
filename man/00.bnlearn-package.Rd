@@ -18,8 +18,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 1.2\cr
-    Date: \tab 2009-02-04\cr
+    Version: \tab 1.3\cr
+    Date: \tab 2009-03-28\cr
     License: \tab GPLv2 or later
 
   }
@@ -64,11 +64,11 @@
       another variant of IAMB which interleaves the backward selection with
       the forward one to avoid false positives (i.e. nodes erroneously included
       in the Markov blanket) (Yaramakala and Margaritis, 2005).
-    \item \emph{Max-Min Parents and Children} (\code{\link{mmpc}}): a 
-      forward-selection technique for neighbourhood detection based on the 
-      maximization of the minimum association measure observed with any subset 
-      of the current conditioning variables (Tsamardinos, Brown and Aliferis, 2006). 
-      It learns the underlying structure of the Bayesian networks (all the arcs 
+    \item \emph{Max-Min Parents and Children} (\code{\link{mmpc}}): a
+      forward-selection technique for neighbourhood detection based on the
+      maximization of the minimum association measure observed with any subset
+      of the current conditioning variables (Tsamardinos, Brown and Aliferis, 2006).
+      It learns the underlying structure of the Bayesian networks (all the arcs
       are undirected, no attempt is made to detect their orientation).
 
   }
@@ -91,14 +91,14 @@
 
   The computational complexity of these algorithms is polynomial
   in the number of tests, usually \eqn{O(N^2)}{O(N^2)} (\eqn{O(N^4)}{O(N^4)}
-  in the worst case scenario). The execution time also scales linearly with
+  in the worst case scenario). The execution time scales linearly with
   the size of the data set.
 
 }
 \section{Available score-based learning algorithms}{
 
   \itemize{
-    \item \emph{Hill-Climbing} (\code{\link{hc}}): an \emph{hill climbing}
+    \item \emph{Hill-Climbing} (\code{\link{hc}}): a \emph{hill climbing}
       greedy search on the space of the directed graphs. The optimized
       implementation uses score caching, score decomposability and score
       equivalence to reduce the number of duplicated tests. Random restart
@@ -120,28 +120,44 @@
           distance measure. It's proportional to the log-likelihood ratio
           (they differ by a \eqn{2n}{2n} factor) and is related to the
           deviance of the tested models.
+        \item \emph{Monte Carlo mutual information} (\code{mc-mi}): a Monte
+          Carlo implementation of the mutual information, which does not
+          rely on the asymptotic \eqn{\chi^2}{chi-square} distribution.
         \item \emph{fast mutual information} (\code{fmi}): a variant of the
           mutual information which is set to zero when there aren't at least
           five data per parameter.
         \item \emph{Pearson's \eqn{\chi^2}{chi-square}} (\code{x2}): the classical
           Pearson's Chi-squared test for contingency tables.
+        \item \emph{Monte Carlo Pearson's \eqn{\chi^2}{chi-square}} (\code{mc-x2}):
+          a Monte Carlo implementation of the \eqn{\chi^2}{chi-square} test, which
+          does not rely on the asymptotic \eqn{\chi^2}{chi-square} distribution.
         \item \emph{Akaike Information Criterion} (\code{aict}): an experimental
           AIC-based independence test, computed comparing the mutual information
           and the expected information gain.
 
       }
-    \item \emph{numerical data} (multivariate normal distribution)
+    \item \emph{numeric data} (multivariate normal distribution)
       \itemize{
 
         \item \emph{linear correlation} (\code{cor}): linear correlation.
+        \item \emph{Monte Carlo linear correlation} (\code{mc-cor}): a Monte
+          Carlo implementation of the linear correlation test, which does
+          not rely on the asymptotic Student's t distribution.
         \item \emph{Fisher's Z} (\code{zf}): a transformation of the
-           linear correlation with asymptotic normal distribution. Used
-           by commercial software (such as TETRAD II) for the PC algorithm
-           (an R implementation is present in the \code{pcalg} package
-           on CRAN).
+          linear correlation with asymptotic normal distribution. Used
+          by commercial software (such as TETRAD II) for the PC algorithm
+          (an R implementation is present in the \code{pcalg} package
+          on CRAN).
+        \item \emph{Monte Carlo Fisher's Z} (\code{mc-zf}): a Monte
+          Carlo implementation of Fisher's Z test, which does
+          not rely on the asymptotic normal distribution.
         \item \emph{mutual information} (\code{mi-g}): an information-theoretic
           distance measure. Again it's proportional to the log-likelihood ratio
           (they differ by a \eqn{2n}{2n} factor).
+        \item \emph{Monte Carlo mutual information} (\code{mc-mi-g}): a
+          Monte Carlo implementation of the mutual information for Gaussian
+          data, which does not rely on the asymptotic \eqn{\chi^2}{chi-square} 
+          distribution.
 
       }
 
@@ -158,10 +174,10 @@
       \itemize{
 
         \item the multinomial \emph{likelihood} (\code{lik}) score.
-        \item the multinomial \emph{loglikelihood} (\code{loglik}) score, 
+        \item the multinomial \emph{loglikelihood} (\code{loglik}) score,
           which is equivalent to the \emph{entropy measure}.
         \item the \emph{Akaike Information Criterion} score (\code{aic}).
-        \item the \emph{Bayesian Information Criterion} score (\code{bic}), 
+        \item the \emph{Bayesian Information Criterion} score (\code{bic}),
           which is equivalent to the \emph{Minimum Description Length} (MDL).
         \item the logarithm of the \emph{Bayesian Dirichlet equivalent}
           score (\code{bde} o \code{dir}), a score equivalent Dirichlet
@@ -171,7 +187,7 @@
 
       }
 
-    \item \emph{numerical data} (multivariate normal distribution)
+    \item \emph{numeric data} (multivariate normal distribution)
       \itemize{
 
         \item a score equivalent {Gaussian posterior density} (\code{bge}).
@@ -236,7 +252,7 @@
         are removed from that Markov blanket; they are treated
         as false positives.
       \item nodes which cause asymmetries in any neighbourhood
-        are removed from that neighbourhood; again theyare treated
+        are removed from that neighbourhood; again they are treated
         as false positives (see Tsamardinos, Brown and Aliferis, 2006).
     }
   }
@@ -261,10 +277,10 @@
      Artificial Intelligence Research Society Conference, pages 376-381. AAAI Press,
      2003.
 
-  I. Tsamardinos, C. F. Aliferis, A. Statnikov. Time and sample 
-     efficient discovery of Markov blankets and direct causal 
-     relations. Proceedings of the Ninth International Conference 
-     on Knowledge Discovery and Data Mining KDD, pages 673-8, 2003. 
+  I. Tsamardinos, C. F. Aliferis, A. Statnikov. Time and sample
+     efficient discovery of Markov blankets and direct causal
+     relations. Proceedings of the Ninth International Conference
+     on Knowledge Discovery and Data Mining KDD, pages 673-8, 2003.
 
   I. Tsamardinos, L. E. Brown, C. Aliferis. The max-min hill-climbing
      Bayesian network learning algorithm. Machine Learning, 65(1),
@@ -348,7 +364,7 @@ sink()
 \dontrun{
 res = gs(learning.test, optimized = FALSE, strict = TRUE, debug = TRUE)
 }
-# or disable strict mode to try to fix errors on the fly:
+# or disable strict mode to let the algorithm fix errors on the fly:
 \dontrun{
 res = gs(learning.test, optimized = FALSE, strict = FALSE, debug = TRUE)
 }
