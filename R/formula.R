@@ -56,6 +56,13 @@ model2network.backend = function(modelstring, debug = FALSE) {
     res = empty.graph.backend(nodes)
     # update the arcs of the network.
     res$arcs = do.call(rbind, arcs)
+    # then check the arcs.
+    check.arcs(res$arcs, graph = res)
+    # check whther the the graph is acyclic.
+    if (!is.acyclic.backend(nodes = nodes, arcs = res$arcs, 
+          directed = FALSE, debug = debug))
+      stop("the specified network contains cycles.")
+
     # update the network structure.
     res$nodes = cache.structure(sort(nodes), arcs = res$arcs, debug = debug)
 

@@ -41,7 +41,7 @@ check.data = function(x) {
     stop("the data set contains NULL/NaN/NA values.")
   # check the variables are either all continuous or all discrete.
   if (!is.data.discrete(x) && !is.data.continuous(x))
-    stop("variables must be either all numeric or all factors.")
+    stop("variables must be either all real numbers or all factors.")
   # check the number of levels of discrete variables, to guarantee that
   # the degrees of freedom of the tests are positive.
   if (is.data.discrete(x))
@@ -263,8 +263,8 @@ check.score = function(score, data) {
 
     # check the score/test label.
     if (!(score %in% available.scores))
-      stop(paste("valid scores are:",
-             paste(available.scores, collapse = " ")))
+      stop(paste(c("valid scores are:\n",
+             sprintf("    %-10s %s\n", names(score.labels), score.labels)), sep = ""))
     # check if it's the right score for the data (discrete, continuous).
     if (!is.data.discrete(data) && (score %in% available.discrete.scores))
       stop(paste("score '", score, "' may be used with discrete data only.", sep = ""))
@@ -292,8 +292,8 @@ check.test = function(test, data) {
 
     # check the score/test label.
     if (!(test %in% available.tests))
-      stop(paste("valid tests are:",
-             paste(available.tests, collapse = " ")))
+      stop(paste(c("valid tests are:\n",
+             sprintf("    %-10s %s\n", names(test.labels), test.labels)), sep = ""))
     # check if it's the right test for the data (discrete, continuous).
     if (!is.data.discrete(data) && (test %in% available.discrete.tests))
       stop(paste("test '", test, "' may be used with discrete data only.", sep = ""))
@@ -314,6 +314,23 @@ check.test = function(test, data) {
 
 }#CHECK.TEST
 
+check.criterion = function(criterion, data) {
+
+  if (criterion %in% available.tests)
+    criterion = check.test(criterion, data)
+  else if (criterion %in% available.scores)
+    criterion = check.score(criterion, data)
+  else 
+    stop(paste(c("valid tests are:\n",
+      sprintf("    %-10s %s\n", names(test.labels), test.labels),
+      "  valid scores are:\n",
+      sprintf("    %-10s %s\n", names(score.labels), score.labels)),
+      sep = ""))
+ 
+  return(criterion)
+
+}#CHECK.CRITERION
+
 # will the bayesian network be a discrete one?
 is.data.discrete = function(data) {
 
@@ -329,7 +346,7 @@ is.data.discrete = function(data) {
 is.data.continuous = function(data) {
 
   for (i in 1:ncol(data))
-    if (!is(data[, i], "numeric"))
+    if (!is.double(data[, i]))
       return(FALSE)
 
   return(TRUE)
@@ -381,9 +398,9 @@ check.iss = function(iss, network, data) {
       # if the network is not empty, use a somewhat larger imaginary sample
       # size to give it and adequate (but still small) weight.
       if (is.data.discrete(data))
-        iss = sum(nparams.backend(network, data, real = FALSE))
+        iss = sum(nparams.discrete(network, data, real = FALSE))
       else
-        iss = ncol(data) * (ncol(data) + 1)/2
+        iss = sum(nparams.gaussian(network))
 
     }#THEN
 
@@ -420,7 +437,7 @@ phi
 # sanitize the extra arguments passed to the network scores.
 check.score.args = function(score, network, data, extra.args) {
 
-  if (score %in% c("dir", "bde")) {
+  if (score == "bde") {
 
     # check the imaginary sample size.
     extra.args$iss = check.iss(iss = extra.args$iss,
@@ -606,6 +623,39 @@ check.alpha = function(alpha, network = NULL) {
   return(alpha)
 
 }#CHECK.ALPHA
+
+# check the number of permutation/boostrap samples.
+check.B = function(B, criterion) {
+
+  if (criterion %in% resampling.tests) {
+
+    if (!is.null(B)) {
+
+      if (!is.positive.integer(B))
+        stop("the number of permutations/bootstrap replications must be a positive integer number.")
+  
+      B = as.integer(B)
+
+    }#THEN
+    else {
+
+      B = 5000L
+
+    }#ELSE
+
+  }#THEN
+  else {
+
+    if (!is.null(B))
+      warning("this test does not require any permutations/bootstrap resampling, ignoring B.\n")
+
+    B = NULL
+
+  }#ELSE
+
+  return(B)
+
+}#CHECK.B
 
 check.amat = function(amat, nodes) {
 

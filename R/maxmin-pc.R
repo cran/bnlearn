@@ -1,6 +1,6 @@
 
 maxmin.pc.optimized = function(x, whitelist, blacklist, test,
-  alpha, strict, debug) {
+  alpha, B, strict, debug) {
 
   nodes = names(x)
   mb = list()
@@ -11,12 +11,12 @@ maxmin.pc.optimized = function(x, whitelist, blacklist, test,
 
     # 1. [Forward Phase (I)]
     mb[[node]] = maxmin.pc.forward.phase(node, data = x, nodes = nodes,
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
+         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, debug = debug)
 
     # 2. [Backward Phase (II)]
     mb[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
-         whitelist = whitelist, blacklist = blacklist,
+         B = B, whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, debug = debug)
 
   }#FOR
@@ -29,19 +29,19 @@ maxmin.pc.optimized = function(x, whitelist, blacklist, test,
 }#MAXMIN.PC.OPTIMIZED
 
 maxmin.pc.cluster = function(x, cluster, whitelist, blacklist,
-  test, alpha, strict, debug) {
+  test, alpha, B, strict, debug) {
 
   nodes = names(x)
 
   # 1. [Forward Phase (I)]
   mb = parLapply(cluster, as.list(nodes), maxmin.pc.forward.phase, data = x,
-         nodes = nodes, alpha = alpha, whitelist = whitelist,
+         nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
 
   # 2. [Backward Phase (II)]
   mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
+         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
   names(mb) = nodes
 
@@ -52,20 +52,20 @@ maxmin.pc.cluster = function(x, cluster, whitelist, blacklist,
 
 }#MAXMIN.PC.CLUSTER
 
-maxmin.pc = function(x, whitelist, blacklist, test, alpha,
+maxmin.pc = function(x, whitelist, blacklist, test, alpha, B, 
   strict, debug) {
 
   nodes = names(x)
 
   # 1. [Forward Phase (I)]
   mb = lapply(as.list(nodes), maxmin.pc.forward.phase, data = x, nodes = nodes,
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
+         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, optimized = FALSE, debug = debug)
   names(mb) = nodes
 
   # 2. [Backward Phase (II)]
   mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
-         whitelist = whitelist, blacklist = blacklist, test = test,
+         B = B, whitelist = whitelist, blacklist = blacklist, test = test,
          debug = debug)
   names(mb) = nodes
 
@@ -76,8 +76,8 @@ maxmin.pc = function(x, whitelist, blacklist, test, alpha,
 
 }#MAXMIN.PC
 
-maxmin.pc.forward.phase = function(x, data, nodes, alpha, whitelist, blacklist,
-  backtracking = NULL, test, optimized = TRUE, debug) {
+maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist, 
+  blacklist, backtracking = NULL, test, optimized = TRUE, debug) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
@@ -136,14 +136,15 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, whitelist, blacklist,
       to.be.checked = setdiff(names(which(association < alpha)), c(cpc, known.bad))
 
       association = sapply(to.be.checked, maxmin.pc.heuristic.optimized, y = x,
-                      sx = cpc, data = data, test = test, alpha = alpha,
+                      sx = cpc, data = data, test = test, alpha = alpha, B = B,
                       association = association, debug = debug)
 
     }#THEN
     else {
 
       association = sapply(nodes, maxmin.pc.heuristic, y = x, sx = cpc,
-                      data = data, test = test, alpha = alpha, debug = debug)
+                      data = data, test = test, alpha = alpha, B = B, 
+                      debug = debug)
 
     }#ELSE
 
@@ -174,7 +175,7 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, whitelist, blacklist,
 
 }#MAXMIN.PC.FORWARD.PHASE
 
-maxmin.pc.heuristic = function(x, y, sx, data, test, alpha, debug) {
+maxmin.pc.heuristic = function(x, y, sx, data, test, alpha, B, debug) {
 
   k = 0
   min.assoc = 0
@@ -190,7 +191,7 @@ maxmin.pc.heuristic = function(x, y, sx, data, test, alpha, debug) {
 
     for (s in 1:nrow(dsep.subsets)) {
 
-      a = conditional.test(x, y, dsep.subsets[s,], data = data, test = test)
+      a = conditional.test(x, y, dsep.subsets[s,], data = data, test = test, B = B)
 
       if (debug) {
 
@@ -219,7 +220,7 @@ maxmin.pc.heuristic = function(x, y, sx, data, test, alpha, debug) {
 
 }#MAXMIN.PC.HEURISTIC
 
-maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha,
+maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B, 
     association, debug) {
 
   k = 0
@@ -246,7 +247,7 @@ maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha,
 
     for (s in 1:nrow(dsep.subsets)) {
 
-      a = conditional.test(x, y, c(dsep.subsets[s,], last), data = data, test = test)
+      a = conditional.test(x, y, c(dsep.subsets[s,], last), data = data, test = test, B = B)
 
       if (debug) {
 

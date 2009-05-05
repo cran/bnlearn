@@ -13,12 +13,12 @@
 }
 \usage{
   \method{ci.test}{character}(x, y = NULL, z = NULL, data, test = NULL,
-    debug = FALSE, ...)
-  \method{ci.test}{data.frame}(x, test = NULL, debug = FALSE, ...)
+    B = NULL, debug = FALSE, ...)
+  \method{ci.test}{data.frame}(x, test = NULL, B = NULL, debug = FALSE, ...)
   \method{ci.test}{numeric}(x, y = NULL, z = NULL, test = NULL,
-    debug = FALSE, ...)
+    B = NULL, debug = FALSE, ...)
   \method{ci.test}{factor}(x, y = NULL, z = NULL, test = NULL,
-    debug = FALSE, ...)
+    B = NULL, debug = FALSE, ...)
   \method{ci.test}{default}(x, ...)
 }
 \arguments{
@@ -35,6 +35,10 @@
       specified, the default test statistic is the \emph{mutual information}
       for discrete data sets and the \emph{linear correlation} for 
       continuous ones. See \code{\link{bnlearn-package}} for details.}
+  \item{B}{a positive integer, the number of permutations considered
+      for each permutation test. It will be ignored with a warning if
+      the conditional independence test specified by the \code{test}
+      argument is not a permutation test.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
   \item{\dots}{extra arguments from the generic method (currently ignored).}
@@ -56,6 +60,19 @@
     hypothesis, always 0.}
   \item{alternative}{a character string describing the alternative
     hypothesis}
+
+}
+\references{
+
+  Edwards DI (2000). \emph{Introduction to Graphical Modelling}.
+      Springer, 2nd edition.
+
+  Legendre P (2000). "Comparison of Permutation Methods for the Partial 
+      Correlation and Partial Mantel Tests". \emph{Journal of Statistical
+      Computation and Simulation}, \strong{67}, 37-73.
+
+  Pesarin F (2001). \emph{Multivariate Permutation Tests With Applications 
+      in Biostatistics}. Wiley.
 
 }
 \examples{

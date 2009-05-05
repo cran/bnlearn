@@ -80,7 +80,10 @@
 
   The number of parameters of a discrete Bayesian network is defined as the
   sum of the number of logically independent parameters of each node given its
-  parents (Chickering, 1995).
+  parents (Chickering, 1995). For Gaussian Bayesian networks the distribution
+  of each node can be viewed as a linear regression, so it has a number of 
+  parameters equal to the number of the parents of the node plus two
+  (the intercept and the variance of the residuals) as per Neapolitan (2003).
 
 }
 \value{
@@ -93,16 +96,14 @@
   \code{acyclic}, \code{path} and \code{directed} return a boolean value.
 
 }
-\note{
-
-  \code{nparams} supports only completely directed discrete Bayesian networks.
-
-}
 \references{
 
-  D. M. Chickering. A Transformational Characterization of Equivalent Bayesian
-    Network Structures. In Proceedings of 11th Conference on Uncertainty in
-    Artificial Intelligence, pages 87-98. Morgan Kaufmann Publishers Inc., 1995.
+  Chickering DM (1995). "A Transformational Characterization of Equivalent 
+      Bayesian Network Structures". In "UAI '95: Proceedings of the Eleventh 
+      Annual Conference on Uncertainty in Artificial Intelligence", pp. 87-98. 
+      Morgan Kaufmann.
+
+  Neapolitan RE (2003). \emph{Learning Bayesian Networks}. Prentice Hall.
 
 }
 \examples{

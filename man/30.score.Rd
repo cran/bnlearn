@@ -66,16 +66,17 @@
 }
 \references{
 
-  D. M. Chickering. A Transformational Characterization of Equivalent Bayesian
-    Network Structures. In Proceedings of 11th Conference on Uncertainty in
-    Artificial Intelligence, pages 87-98. Morgan Kaufmann Publishers Inc., 1995.
+  Chickering DM (1995). "A Transformational Characterization of Equivalent 
+      Bayesian Network Structures". In "UAI '95: Proceedings of the Eleventh 
+      Annual Conference on Uncertainty in Artificial Intelligence", pp. 87-98.
+      Morgan Kaufmann.
 
-  D. Heckerman, D. Geiger and D. Chieckering. Learning Bayesian Networks: The
-    Combination of Knowledge and Statistical Data. Microsoft Research Technical
-    Report MSR-TR-94-09.
+  Geiger D, Heckerman D (1994). "Learning Gaussian Networks". \emph{Technical 
+      report}, Microsoft Research. Available as Technical Report MSR-TR-94-10.
 
-  D.Geiger and D. Heckerman. Learning Gaussian Networks. Microsoft Research
-    Technical Report MSR-TR-94-10.
+  Heckerman D, Geiger D, Chickering DM (1995). "Learning Bayesian Networks: The
+      Combination of Knowledge and Statistical Data". \emph{Machine Learning}, 
+      \strong{20}(3), 197-243. Available as Technical Report MSR-TR-94-09.
 
 }
 \value{

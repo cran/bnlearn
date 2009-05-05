@@ -4,8 +4,8 @@
 #define BNLEARN_NLEVELS(j) \
   LENGTH(getAttrib(VECTOR_ELT(data, j), R_LevelsSymbol))
 
-/* get the number of parameters of a single node. */
-SEXP nparams(SEXP graph, SEXP node, SEXP data, SEXP real) {
+/* get the number of parameters of a single node (discrete case). */
+SEXP nparams_dnode(SEXP graph, SEXP node, SEXP data, SEXP real) {
 
   int i = 0, j = 0;
   int nlevels = 1;
@@ -53,7 +53,25 @@ SEXP nparams(SEXP graph, SEXP node, SEXP data, SEXP real) {
 
 return temp;
 
-}/*NPARAMS*/
+}/*NPARAMS_DNODE*/
+
+/* get the number of parameters of a single node (discrete case). */
+SEXP nparams_gnode(SEXP graph, SEXP node) {
+
+  char *name = (char *)CHAR(STRING_ELT(node, 0));
+  SEXP temp, result;
+
+  temp = getListElement(graph, "nodes");
+  temp = getListElement(temp, name);
+  temp = getListElement(temp, "parents");
+
+  PROTECT(result = allocVector(INTSXP, 1));
+  INT(result) = LENGTH(temp) + 2;
+  UNPROTECT(1);
+
+  return result;
+
+}/*NPARAMS_GNODE*/
 
 /* schedule the children of the current nodes in a breadth-first search. */
 SEXP schedule_children(SEXP graph, SEXP nodes) {

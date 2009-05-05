@@ -1,6 +1,6 @@
 
 incremental.association.optimized = function(x, whitelist, blacklist, test,
-  alpha, strict, debug) {
+  alpha, B, strict, debug) {
 
   nodes = names(x)
   mb2 = mb = list()
@@ -11,7 +11,7 @@ incremental.association.optimized = function(x, whitelist, blacklist, test,
     backtracking = unlist(sapply(mb, function(x){ node %in% x  }))
 
     mb[[node]] = ia.markov.blanket(node, data = x, nodes = nodes,
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
+         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, debug = debug)
 
   }#FOR
@@ -26,7 +26,7 @@ incremental.association.optimized = function(x, whitelist, blacklist, test,
 
     # save results in a copy of mb;
     mb2[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
-         whitelist = whitelist, blacklist = blacklist,
+         B = B, whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, debug = debug)
 
   }#FOR
@@ -42,13 +42,13 @@ incremental.association.optimized = function(x, whitelist, blacklist, test,
 }#INCREMENTAL.ASSOCIATION.OPTIMIZED
 
 incremental.association.cluster = function(x, cluster, whitelist, blacklist,
-  test, alpha, strict, debug) {
+  test, alpha, B, strict, debug) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
   mb = parLapply(cluster, as.list(nodes), ia.markov.blanket, data = x,
-         nodes = nodes, alpha = alpha, whitelist = whitelist,
+         nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
 
@@ -57,7 +57,7 @@ incremental.association.cluster = function(x, cluster, whitelist, blacklist,
 
   # 2. [Compute Graph Structure]
   mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
+         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
   names(mb) = nodes
 
@@ -69,13 +69,13 @@ incremental.association.cluster = function(x, cluster, whitelist, blacklist,
 }#INCREMENTAL.ASSOCIATION.CLUSTER
 
 incremental.association = function(x, whitelist, blacklist, test, alpha,
-  strict, debug) {
+  B, strict, debug) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
   mb = lapply(as.list(nodes), ia.markov.blanket, data = x, nodes = nodes,
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
+         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
   names(mb) = nodes
 
@@ -84,7 +84,7 @@ incremental.association = function(x, whitelist, blacklist, test, alpha,
 
   # 2. [Compute Graph Structure]
   mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
-         whitelist = whitelist, blacklist = blacklist, test = test,
+         B = B, whitelist = whitelist, blacklist = blacklist, test = test,
          debug = debug)
   names(mb) = nodes
 
@@ -95,7 +95,7 @@ incremental.association = function(x, whitelist, blacklist, test, alpha,
 
 }#INCREMENTAL.ASSOCIATION
 
-ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
+ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   backtracking = NULL, test, debug) {
 
   nodes = nodes[nodes != x]
@@ -150,7 +150,7 @@ ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
 
     # get an association measure for each of the available nodes.
     association = sapply(nodes, conditional.test, x, sx = mb,
-                    test = test, data = data)
+                    test = test, data = data, B = B)
 
     if (debug) {
 
@@ -189,7 +189,7 @@ ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
     if (debug)
       cat("  * checking node", y, "for exclusion (shrinking phase).\n")
 
-    a = conditional.test(x, y, mb[mb != y], data = data, test = test)
+    a = conditional.test(x, y, mb[mb != y], data = data, test = test, B = B)
 
     if (a > alpha) {
 

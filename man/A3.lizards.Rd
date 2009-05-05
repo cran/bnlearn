@@ -33,14 +33,15 @@
 }
 \source{
 
-  D. Edwards. Introduction to Graphical Modelling.
-    Springer, 2000.
+  Edwards DI (2000). \emph{Introduction to Graphical Modelling}.
+      Springer, 2nd edition.
 
-  S. E. Fienberg. The Analysis of Cross-Classified Categorical
-    Data. MIT Press, 1980.
+  Fienberg SE (1980). \emph{The Analysis of Cross-Classified 
+      Categorical Data}. Springer, 2nd edition.
 
-  T. W. Schoener (1968). The anolis lizards of Bimini: Resource
-    partitioning in a complex fauna. Ecology, 49: 704 -- 726.
+  Schoener TW (1968). "The Anolis Lizards of Bimini: Resource
+      Partitioning in a Complex Fauna". \emph{Ecology}, 
+      \strong{49}(4), 704-726.
 
 }
 \examples{

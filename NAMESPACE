@@ -23,6 +23,7 @@ export(
   "amat<-",
   "nparams",
   "modelstring",
+  "modelstring<-",
   "model2network",
   "set.arc",
   "drop.arc",

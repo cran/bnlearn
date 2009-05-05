@@ -48,16 +48,16 @@ hc(x, start = NULL, whitelist = NULL, blacklist = NULL,
 }
 \references{
 
-  K. Korb and A. Nicholson. Bayesian artificial intelligence. Chapman and
-   Hall, 2004.
+  Korb K, Nicholson AE (2003). \emph{Bayesian Artificial Intelligence}.
+      Chapman & Hall/CRC.
 
-  D. Margaritis. Learning Bayesian Network Model Structure from Data. PhD
-    thesis, School of Computer Science, Carnegie-Mellon University, Pittsburgh,
-    PA, May 2003. Available as Technical Report CMU-CS-03-153.
+  Margaritis D (2003). \emph{Learning Bayesian Network Model Structure
+      from Data}. Ph.D. thesis, School of Computer Science, Carnegie-Mellon
+      University, Pittsburgh, PA. Available as Technical Report CMU-CS-03-153.
 
-  R. Daly and Q. Shen. Methods to accelerate the learning of Bayesian network
-    structures. Proceedings of the 2007 UK Workshop on Computational
-    Intelligence.
+  Daly R, Shen Q (2007). "Methods to Accelerate the Learning of Bayesian 
+    Network Structures". In "Proceedings of the 2007 UK Workshop on 
+    Computational Intelligence", Imperial College, London.
 
 }
 \author{ Marco Scutari }

@@ -1,6 +1,6 @@
 
 grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
-  strict, debug) {
+  B, strict, debug) {
 
   nodes = names(x)
   mb2 = mb = list()
@@ -11,7 +11,7 @@ grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
     backtracking = unlist(sapply(mb, function(x){ node %in% x  }))
 
     mb[[node]] = gs.markov.blanket(node, data = x, nodes = nodes,
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
+         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, debug = debug)
 
   }#FOR
@@ -26,7 +26,7 @@ grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
 
     # save results in a copy of mb;
     mb2[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
-         whitelist = whitelist, blacklist = blacklist,
+         B = B, whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, debug = debug)
 
   }#FOR
@@ -42,13 +42,13 @@ grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
 }#GROW.SHRINK.OPTIMIZED
 
 grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test,
-  alpha, strict, debug) {
+  alpha, B, strict, debug) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
   mb = parLapply(cluster, as.list(nodes), gs.markov.blanket, data = x,
-         nodes = nodes, alpha = alpha, whitelist = whitelist,
+         nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
 
@@ -57,7 +57,7 @@ grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test,
 
   # 2. [Compute Graph Structure]
   mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
+         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
   names(mb) = nodes
 
@@ -68,14 +68,14 @@ grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test,
 
 }#GROW.SHRINK.CLUSTER
 
-grow.shrink = function(x, whitelist, blacklist, test, alpha,
+grow.shrink = function(x, whitelist, blacklist, test, alpha, B, 
   strict, debug) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
   mb = lapply(as.list(nodes), gs.markov.blanket, data = x, nodes = nodes,
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
+         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
   names(mb) = nodes
 
@@ -84,7 +84,7 @@ grow.shrink = function(x, whitelist, blacklist, test, alpha,
 
   # 2. [Compute Graph Structure]
   mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
-         whitelist = whitelist, blacklist = blacklist, test = test,
+         B = B, whitelist = whitelist, blacklist = blacklist, test = test,
          debug = debug)
   names(mb) = nodes
 
@@ -95,7 +95,7 @@ grow.shrink = function(x, whitelist, blacklist, test, alpha,
 
 }#GROW.SHRINK
 
-gs.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
+gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   backtracking = NULL, test, debug) {
 
   nodes = nodes[nodes != x]
@@ -149,7 +149,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
     if (debug)
       cat("  * checking node", y, "for inclusion.\n")
 
-    a = conditional.test(x, y, mb, data = data, test = test)
+    a = conditional.test(x, y, mb, data = data, test = test, B = B)
 
     if (a <= alpha) {
 
@@ -189,7 +189,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
     if (debug)
       cat("  * checking node", y, "for exclusion (shrinking phase).\n")
 
-    a = conditional.test(x, y, mb[mb != y], data = data, test = test)
+    a = conditional.test(x, y, mb[mb != y], data = data, test = test, B = B)
 
     if (a > alpha) {
 

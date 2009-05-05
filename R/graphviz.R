@@ -36,8 +36,14 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
     else
       highlight$col = "red"
 
-    if ("fill" %in% names(highlight))
+    if ("fill" %in% names(highlight)) {
+
+      if (!("nodes" %in% names(highlight)))
+        warning("no node to apply the 'fill' color to, ignoring.")
+
       check.colour(highlight$fill)
+
+    }#THEN
     else
       highlight$fill = "transparent"
 

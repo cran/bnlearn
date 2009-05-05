@@ -18,15 +18,6 @@
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
 }
-\note{
-
-  Only discrete Bayesian networks are supported; the simulation
-  uses an implementation of the Logic Sampling (LS) algorithm
-  (Korb and Nicholson, 2004).
-
-  Execution time scales linearly with the number of generated data.
-
-}
 \value{
 
   A data frame with the same structure (column names and data types)
@@ -35,8 +26,8 @@
 }
 \references{
 
-  K. Korb and A. Nicholson. Bayesian artificial intelligence. Chapman and
-   Hall, 2004.
+  Korb K, Nicholson AE (2003). \emph{Bayesian Artificial Intelligence}.
+      Chapman & Hall/CRC.
 
 }
 \examples{

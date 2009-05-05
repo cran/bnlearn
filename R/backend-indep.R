@@ -1,7 +1,7 @@
 
 # second prinple of CI algorithms: infer arc orientation from graph structure.
 second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
-  test, alpha, data, strict, direction, debug) {
+  test, alpha, B = NULL, data, strict, debug) {
 
   nodes = names(x)
 
@@ -17,7 +17,7 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
   # 3.1 detect v-structures.
   vs = do.call("rbind",
          vstruct.detect(nodes = nodes, arcs = arcs, mb = mb, data = x,
-           alpha = alpha, test = test, debug = debug))
+           alpha = alpha, B = B, test = test, debug = debug))
   rownames(vs) = NULL
 
   if (!is.null(vs)) {
@@ -48,10 +48,10 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
     test = test, args = list(alpha = alpha),
     ntests = get(".test.counter", envir = .GlobalEnv))
 
-  # EXTRA [ESP]
-  if (direction)
-    arcs = set.directions(arcs = arcs, data = x, test = test,
-             alpha = alpha, cluster = cluster, debug = debug)
+  # include also the number of permutations/bootstrap samples
+  # if it makes sense.
+  if (!is.null(B))
+    learning$args$B = B
 
   list(learning = learning, nodes = cache.structure(nodes, arcs = arcs),
     arcs = arcs)
@@ -109,7 +109,7 @@ propagate.directions = function(arcs, nodes, debug) {
 }#PROPAGATE.DIRECTIONS
 
 # build the neighbourhood of a node from the markov blanket.
-neighbour = function(x, mb, data, alpha, whitelist, blacklist,
+neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
   backtracking = NULL, test, debug) {
 
   # save a prisitine copy of the markov blanket.
@@ -199,7 +199,7 @@ neighbour = function(x, mb, data, alpha, whitelist, blacklist,
           if (debug)
             cat("    > trying conditioning subset '", dsep.subsets[s,], "'.\n")
 
-          a = conditional.test(x, y, dsep.subsets[s,], data = data, test = test)
+          a = conditional.test(x, y, dsep.subsets[s,], data = data, test = test, B = B)
           if (a > alpha) {
 
             if (debug)
@@ -248,7 +248,7 @@ neighbour = function(x, mb, data, alpha, whitelist, blacklist,
 }#NEIGHBOUR
 
 # detect v-structures in the graph.
-vstruct.detect = function(nodes, arcs, mb, data, alpha, test, debug) {
+vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test, debug) {
 
   vstruct.centered.on = function(x, mb, data) {
 
@@ -302,7 +302,7 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, test, debug) {
 
           for (s in 1:nrow(dsep.subsets)) {
 
-            a = conditional.test(y, z, c(dsep.subsets[s,], x), data = data, test = test)
+            a = conditional.test(y, z, c(dsep.subsets[s,], x), data = data, test = test, B = B)
             if (debug)
               cat("    > testing", y, "vs", z, "given", c(dsep.subsets[s,], x), "(", a, ")\n")
             max_a = max(a, max_a)
@@ -348,7 +348,7 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, test, debug) {
 
   }#VSTRUCT.CENTERED.ON
 
-  sapply(nodes, vstruct.centered.on, mb = mb, data = data)
+  sapply(nodes, vstruct.centered.on, mb = mb, data = data, simplify = FALSE)
 
 }#VSTRUCT.DETECT
 
@@ -512,7 +512,7 @@ cycle.counter = function(arcs, nodes, cluster, debug = FALSE) {
 }#CYCLE.COUNTER
 
 # test undirected arcs in both direction to infer their orientation.
-set.directions = function(arcs, data, test, alpha, cluster, debug) {
+set.directions = function(arcs, data, test, alpha, B = NULL, cluster, debug) {
 
   if (debug) {
 
@@ -539,7 +539,7 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
       parents = parents.backend(arcs, arc[2], TRUE)
       conditional.test(arc[1], arc[2],
           parents[parents != arc[1]],
-          data = data, test = test)
+          data = data, test = test, B = B)
 
     })
 
@@ -556,9 +556,9 @@ set.directions = function(arcs, data, test, alpha, cluster, debug) {
       parents = parents.backend(arcs, arc[2], TRUE)
       conditional.test(arc[1], arc[2],
           parents[parents != arc[1]],
-          data = data, test = test)
+          data = data, test = test, B = B)
 
-    }, data = data, test = test)
+    }, data = data, test = test, B = B)
 
   }#ELSE
 

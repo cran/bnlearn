@@ -1,5 +1,5 @@
 
-conditional.test = function(x, y, sx, data, test, learning = TRUE) {
+conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
 
   if (learning) {
 
@@ -11,7 +11,7 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
 
   sx = sx[sx != ""]
   ndata = nrow(data)
-  df = B = NULL
+  df = NULL
 
   if (length(sx) == 0) {
 
@@ -87,7 +87,6 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
     # Mutual Infomation (monte carlo permutation distribution)
     else if (test == "mc-mi") {
 
-      B = 5000L
       perm.test = mc.test(data[,x], data[,y], ndata, samples = B, test = 1L)
       statistic = perm.test[1]
       p.value = perm.test[2]
@@ -96,7 +95,6 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
     # Pearson's X^2 test (monte carlo permutation distribution)
     else if (test == "mc-x2") {
 
-      B = 5000L
       perm.test = mc.test(data[,x], data[,y], ndata, samples = B, test = 2L)
       statistic = perm.test[1]
       p.value = perm.test[2]
@@ -105,7 +103,6 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
     # Mutual Information for Gaussian Data (monte carlo permutation distribution)
     else if (test == "mc-mi-g") {
 
-      B = 5000L
       statistic = mig.test(x, y, data, ndata, gsquare = TRUE)
       p.value = gmc.test(data[, x] , data[, y], B, test = 3L)
 
@@ -113,7 +110,6 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
     # Canonical (Linear) Correlation (monte carlo permutation distribution)
     else if (test == "mc-cor") {
 
-      B = 5000L
       statistic = fast.cor(data[,x], data[,y], ndata)
       p.value = gmc.test(data[, x] , data[, y], B, test = 4L)
 
@@ -121,7 +117,6 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
     # Fisher's Z (monte carlo permutation distribution)
     else if (test == "mc-zf") {
 
-      B = 5000L
       statistic = fast.cor(data[,x], data[,y], ndata)
       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(ndata -3)
       p.value = gmc.test(data[, x] , data[, y], B, test = 4L)
@@ -221,7 +216,6 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
     # Mutual Infomation (monte carlo permutation distribution)
     else if (test == "mc-mi") {
 
-      B = 5000L
       perm.test = cmc.test(data[,x], data[,y], config, ndata, samples = B, test = 1L)
       statistic = perm.test[1]
       p.value = perm.test[2]
@@ -230,7 +224,6 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
     # Pearson's X^2 test (monte carlo permutation distribution)
     else if (test == "mc-x2") {
 
-      B = 5000L
       perm.test = cmc.test(data[,x], data[,y], config, ndata, samples = B, test = 2L)
       statistic = perm.test[1]
       p.value = perm.test[2]
@@ -239,7 +232,6 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
     # Mutual Information for Gaussian Data (monte carlo permutation distribution)
     else if (test == "mc-mi-g") {
 
-      B = 5000L
       statistic = cmig.test(x, y, sx, data, ndata, gsquare = TRUE)
       p.value = cgmc.test(x, y, sx, data, ndata, B, test = 3L)
 
@@ -247,7 +239,6 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
     # Canonical Partial Correlation (monte carlo permutation distribution)
     else if (test == "mc-cor") {
 
-      B = 5000L
       statistic = fast.pcor(x, y, sx, data, ndata)
       p.value = cgmc.test(x, y, sx, data, ndata, B, test = 4L)
 
@@ -255,7 +246,6 @@ conditional.test = function(x, y, sx, data, test, learning = TRUE) {
     # Fisher's Z (monte carlo permutation distribution)
     else if (test == "mc-zf") {
 
-      B = 5000L
       df = ndata - 3 - length(sx)
       statistic = fast.pcor(x, y, sx, data, ndata)
       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(df)
@@ -328,7 +318,7 @@ mc.test = function(x, y, ndata, samples, test) {
         lx = nlevels(x),
         ly = nlevels(y),
         length = ndata,
-        samples = as.integer(samples),
+        samples = samples,
         test = test,
         PACKAGE = "bnlearn")
 
@@ -362,7 +352,7 @@ cmc.test = function(x, y, z, ndata, samples, test) {
         ly = nlevels(y),
         lz = nlevels(z),
         length = ndata,
-        samples = as.integer(samples),
+        samples = samples,
         test = test,
         PACKAGE = "bnlearn")
 

@@ -18,7 +18,7 @@ per.node.score = function(network, data, score, nodes, extra.args,
            debug = debug)
 
   }#THEN
-  else if (score %in% c("bde", "dir")) {
+  else if (score == "bde") {
 
    res = sapply(nodes, dirichlet.node, x = network,
            imaginary.sample.size = extra.args$iss, data = data,
@@ -117,7 +117,7 @@ loglik.node = function(node, x, data, debug = FALSE) {
 aic.node = function(node, x, data, k = 1, debug = FALSE) {
 
   loglik.node(x = x, node = node, data = data, debug = debug) -
-  k * nparams.node(node = node, x = x, data = data, real = TRUE)
+  k * nparams.discrete.node(node = node, x = x, data = data, real = TRUE)
 
 }#AIC.NODE
 
@@ -127,7 +127,7 @@ aic.node = function(node, x, data, k = 1, debug = FALSE) {
 # Original code licenced under GPLv2 or later version.
 dirichlet.node = function(node, x, data, imaginary.sample.size = NULL, debug = FALSE) {
 
-  node.params = nparams.node(node, x, data, real = FALSE)
+  node.params = nparams.discrete.node(node, x, data, real = FALSE)
   node.levels = nlevels(data[, node])
   node.parents = x$nodes[[node]]$parents
   parents.levels = node.params / node.levels

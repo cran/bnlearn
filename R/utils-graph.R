@@ -108,22 +108,37 @@ mb.backend = function(arcs, node) {
 # function returns the number of _independent_ parameters
 # (on parameter of each set is set by the constraint by
 # the condition \sum \pi_{i} = 1).
-nparams.backend = function(x, data, real = FALSE) {
+nparams.discrete = function(x, data, real = FALSE) {
 
-  sapply(nodes(x), nparams.node, x = x, data = data, real = real)
+  sapply(nodes(x), nparams.discrete.node, x = x, data = data, real = real)
 
-}#NPARAMS.BACKEND
+}#NPARAMS.DISCRETE
 
-nparams.node = function(node, x, data, real) {
+nparams.discrete.node = function(node, x, data, real) {
 
-  .Call("nparams",
+  .Call("nparams_dnode",
         graph = x,
         node = node,
         data = data,
         real = as.integer(real),
         PACKAGE = "bnlearn")
 
-}#NPARAMS.NODE
+}#NPARAMS.DISCRETE.NODE
+
+nparams.gaussian = function(x) {
+
+  sapply(nodes(x), nparams.gaussian.node, x = x)
+
+}#NPARAMS.GAUSSIAN
+
+nparams.gaussian.node = function(node, x) {
+
+  .Call("nparams_gnode",
+        graph = x,
+        node = node,
+        PACKAGE = "bnlearn")
+
+}#NPARAMS.GAUSSIAN.NODE
 
 # backend for neighbourhood detection.
 nbr.backend = function(arcs, node) {
@@ -220,25 +235,4 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
   return(new)
 
 }#PERTURB.BACKEND
-
-# compute the in-degree of the nodes.
-in.degree = function(amat) {
-
-  colSums(amat)
-
-}#IN.DEGREE
-
-# compute the out-degree of the nodes.
-out.degree = function(amat) {
-
-  rowSums(amat)
-
-}#OUT.DEGREE
-
-# compute the degree of the nodes.
-degree = function(amat) {
-
-  in.degree(amat) + out.degree(amat)
-
-}#DEGREE
 

@@ -1,6 +1,6 @@
 
 inter.incremental.association.optimized = function(x, whitelist, blacklist,
-  test, alpha, strict, debug) {
+  test, alpha, B, strict, debug) {
 
   nodes = names(x)
   mb2 = mb = list()
@@ -10,8 +10,8 @@ inter.incremental.association.optimized = function(x, whitelist, blacklist,
 
     backtracking = unlist(sapply(mb, function(x){ node %in% x  }))
 
-    mb[[node]] = fast.ia.markov.blanket(node, data = x, nodes = nodes,
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
+    mb[[node]] = inter.ia.markov.blanket(node, data = x, nodes = nodes,
+         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, debug = debug)
 
   }#FOR
@@ -26,7 +26,7 @@ inter.incremental.association.optimized = function(x, whitelist, blacklist,
 
     # save results in a copy of mb;
     mb2[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
-         whitelist = whitelist, blacklist = blacklist,
+         B = B, whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, debug = debug)
 
   }#FOR
@@ -42,13 +42,13 @@ inter.incremental.association.optimized = function(x, whitelist, blacklist,
 }#INTER.INCREMENTAL.ASSOCIATION.OPTIMIZED
 
 inter.incremental.association.cluster = function(x, cluster, whitelist,
-  blacklist, test, alpha, strict, debug) {
+  blacklist, test, alpha, B, strict, debug) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
-  mb = parLapply(cluster, as.list(nodes), fast.ia.markov.blanket, data = x,
-         nodes = nodes, alpha = alpha, whitelist = whitelist,
+  mb = parLapply(cluster, as.list(nodes), inter.ia.markov.blanket, data = x,
+         nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
 
@@ -57,7 +57,7 @@ inter.incremental.association.cluster = function(x, cluster, whitelist,
 
   # 2. [Compute Graph Structure]
   mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
-         alpha = alpha, whitelist = whitelist, blacklist = blacklist,
+         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
   names(mb) = nodes
 
@@ -69,13 +69,13 @@ inter.incremental.association.cluster = function(x, cluster, whitelist,
 }#INTER.INCREMENTAL.ASSOCIATION.CLUSTER
 
 inter.incremental.association = function(x, whitelist, blacklist, test,
-  alpha, strict, debug) {
+  alpha, B, strict, debug) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
-  mb = lapply(as.list(nodes), fast.ia.markov.blanket, data = x,
-         nodes = nodes, alpha = alpha, whitelist = whitelist,
+  mb = lapply(as.list(nodes), inter.ia.markov.blanket, data = x,
+         nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
 
@@ -84,7 +84,7 @@ inter.incremental.association = function(x, whitelist, blacklist, test,
 
   # 2. [Compute Graph Structure]
   mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
-         whitelist = whitelist, blacklist = blacklist, test = test,
+         B = B, whitelist = whitelist, blacklist = blacklist, test = test,
          debug = debug)
   names(mb) = nodes
 
@@ -95,7 +95,7 @@ inter.incremental.association = function(x, whitelist, blacklist, test,
 
 }#INTER.INCREMENTAL.ASSOCIATION
 
-inter.ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
+inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   backtracking = NULL, test, debug) {
 
   nodes = nodes[nodes != x]
@@ -103,14 +103,13 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
   whitelisted = nodes[sapply(nodes,
           function(y) { is.whitelisted(whitelist, c(x,y), either = TRUE) })]
   mb = c()
-  insufficient.data = FALSE
 
   del.node = function(y, x, test) {
 
     if (debug)
       cat("  * checking node", y, "for exclusion (shrinking phase).\n")
 
-    a = conditional.test(x, y, mb[mb != y], data = data, test = test)
+    a = conditional.test(x, y, mb[mb != y], data = data, test = test, B)
 
     if (a > alpha) {
 
@@ -182,7 +181,7 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, whitelist, blacklist,
 
     # get an association measure for each of the available nodes.
     association = sapply(nodes[!(nodes %in% mb)], conditional.test, x, sx = mb,
-                    test = test, data = data)
+                    test = test, data = data, B = B)
 
     # stop if there are no candidates for inclusion; the markov blanket
     # would obviously be unchanged.

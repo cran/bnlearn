@@ -71,12 +71,7 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
   }#THEN
   else {
 
-    if (criterion %in% available.tests)
-      criterion = check.test(criterion, data)
-    else if (criterion %in% available.scores)
-      criterion = check.score(criterion, data)
-    else stop(paste("valid criteria are:",
-           paste(available.tests, available.scores, collapse = " ")))
+    criterion = check.criterion(criterion, data)
 
   }#ELSE
 
@@ -86,11 +81,14 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
     # sanitize the alpha threshold.
     alpha = check.alpha(list(...)$alpha, network = x)
 
+    # sanitize B (the number of bootstrap/permutation samples).
+    B = check.B(list(...)$B, criterion)
+
     # warn about unused arguments.
-    check.unused.args(list(...), "alpha")
+    check.unused.args(list(...), c("alpha", "B"))
 
     res = arc.strength.test(network = x, data = data, alpha = alpha,
-      test = criterion, debug = debug)
+      test = criterion, B = B, debug = debug)
 
     # add extra information for strength.plot().
     res = structure(res, mode = "test", threshold = alpha)
@@ -138,12 +136,7 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
   }#THEN
   else {
 
-    if (criterion %in% available.tests)
-      criterion = check.test(criterion, data)
-    else if (criterion %in% available.scores)
-      criterion = check.score(criterion, data)
-    else stop(paste("valid criteria are:",
-           paste(available.tests, available.scores, collapse = " ")))
+    criterion = check.criterion(criterion, data)
 
   }#ELSE
 
@@ -152,13 +145,17 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
 
   if (criterion %in% available.tests) {
 
+    # sanitize the alpha threshold.
     alpha = check.alpha(list(...)$alpha, network = x)
 
+    # sanitize B (the number of bootstrap/permutation samples).
+    B = check.B(list(...)$B, criterion)
+
     # warn about unused arguments.
-    check.unused.args(list(...), "alpha")
+    check.unused.args(list(...), c("alpha", "B"))
 
     x = choose.direction.test(x, data = data, arc = arc, test = criterion,
-          alpha = alpha, debug = debug)
+          alpha = alpha, B = B, debug = debug)
 
   }#THEN
   else if (criterion %in% available.scores) {

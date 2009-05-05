@@ -1,7 +1,22 @@
 
+bnlearn (1.4)
+  * exported the "B" parameter to specify the number of
+      permutations to be done in a permutation test.
+  * removed the "direction" parameter from constraint-based
+      learning algorithms, as it was non-standard, 
+      misnamed and had various reported problems.
+  * removed the duplicate "dir" label for the BDe score.
+  * added support for Gaussian data to rbn() and nparams().
+  * added "modelstring<-"().
+  * revised references in documentation.
+  * added the alarm and marks data sets.
+  * moved the scripts to generate data from the networks
+      included as data sets to the "network.scripts"
+      directory.
+
 bnlearn (1.3)
   * added Monte Carlo permutation tests for mutual
-      information (for both discrete and Gaussianvdata), 
+      information (for both discrete and Gaussian data), 
       Pearson's X^2, linear correlation and Fisher's Z.
   * added strength.plot().
   * reimplemented random.graph() in C for speed.

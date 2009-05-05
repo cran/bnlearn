@@ -1,5 +1,6 @@
 \name{model string tools}
 \alias{modelstring}
+\alias{modelstring<-}
 \alias{model2network}
 \alias{as.character.bn}
 \alias{as.bn}
@@ -12,6 +13,8 @@
 }
 \usage{
   modelstring(x)
+  modelstring(x) <- value
+
   model2network(string, debug = FALSE)
 
   \method{as.character}{bn}(x, ...)
@@ -20,6 +23,7 @@
 \arguments{
   \item{x}{an object of class \code{bn}.}
   \item{string}{a character string describing the Bayesian network.}
+  \item{value}{a character string, the same as the \code{string}.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
   \item{\dots}{extra arguments from the generic method (currently ignored).}
@@ -44,7 +48,7 @@ data(learning.test)
 res = set.arc(gs(learning.test), "A", "B")
 res
 #
-#   Bayesian network learned via Conditional Independence methods
+#   Bayesian network learned via Constraint-based methods
 #
 #   model:
 #     [A][C][F][B|A][D|A:C][E|B:F]

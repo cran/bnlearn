@@ -10,8 +10,8 @@
 }
 \usage{
   mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
-    strict = FALSE)
+    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, 
+    optimized = TRUE, strict = FALSE)
 }
 \arguments{
   \item{x}{a data frame, containing the variables in the model.}
@@ -30,10 +30,14 @@
       for discrete data sets and the \emph{linear correlation} for 
       continuous ones. See \code{\link{bnlearn-package}} for details.}
   \item{alpha}{a numeric value, the target nominal type I error rate.}
+  \item{B}{a positive integer, the number of permutations considered
+      for each permutation test. It will be ignored with a warning if
+      the conditional independence test specified by the \code{test}
+      argument is not a permutation test.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-       is printed; otherwise the function is completely silent.}
+      is printed; otherwise the function is completely silent.}
   \item{optimized}{a boolean value. See \code{\link{bnlearn-package}}
-       for details.}
+      for details.}
   \item{strict}{a boolean value. If \code{TRUE} conflicting results in
       the learning process generate an error; otherwise they result in
       a warning.}
@@ -46,14 +50,14 @@
 }
 \references{
 
-  I. Tsamardinos, C. F. Aliferis, A. Statnikov. Time and sample
-     efficient discovery of Markov blankets and direct causal
-     relations. Proceedings of the Ninth International Conference
-     on Knowledge Discovery and Data Mining KDD, pages 673-8, 2003.
+  Tsamardinos I, Aliferis CF, Statnikov A (2003). "Time and Sample 
+     Efficient Discovery of Markov Blankets and Direct Causal Relations".
+     In "KDD '03: Proceedings of the Ninth ACM SIGKDD International 
+     Conference on Knowledge Discovery and Data Mining", pp. 673-678. ACM.
 
-  I. Tsamardinos, L. E. Brown, C. Aliferis. The max-min hill-climbing
-     Bayesian network learning algorithm. Machine Learning, 65(1),
-     pages 31-78. Kluwer Academic Publishers, 2006.
+  Tsamardinos I, Brown LE, Aliferis CF (2006). "The Max-Min Hill-Climbing 
+      Bayesian Network Structure Learning Algorithm". \emph{Machine Learning},
+      \strong{65}(1), 31-78.
 
 }
 \author{ Marco Scutari }

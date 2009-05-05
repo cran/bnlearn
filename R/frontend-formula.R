@@ -12,6 +12,18 @@ modelstring = function(x) {
 
 }#MODELSTRING
 
+"modelstring<-" = function(x, value) {
+
+  res = model2network(value)
+
+  # check that the new network constains the same nodes as the old one.
+  if (!setequal(names(x$nodes), names(res$nodes)))
+    stop("the model string describes a different network (the nodes are different).")
+
+  return(res)
+
+}#MODELSTRING<-
+
 # bn-to-character (i.e. the model string) conversion function.
 # an alias of modelstring().
 as.character.bn = function(x, ...) {
@@ -42,5 +54,4 @@ as.bn.character = function(x, debug = FALSE) {
   model2network(x, debug = debug)
 
 }#AS.BN.CHARACTER
-
 

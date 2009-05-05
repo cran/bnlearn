@@ -18,8 +18,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 1.3\cr
-    Date: \tab 2009-03-28\cr
+    Version: \tab 1.4\cr
+    Date: \tab 2009-05-05\cr
     License: \tab GPLv2 or later
 
   }
@@ -34,8 +34,8 @@
   Bayesian network. Proofs of correctness are present in the respective
   papers.
 
-  A \emph{score-based} learning algorithm (greedy search via hill-climbing) is
-  implemented as well for comparison purposes.
+  A \emph{score-based} learning algorithm (greedy search via hill-climbing) 
+  is implemented as well for comparison purposes.
 
 }
 \author{
@@ -51,25 +51,28 @@
 
   \itemize{
 
-    \item \emph{Grow-Shrink} (\code{\link{gs}}): based on the \emph{Grow-Shrink
-      Markov Blanket} algorithm, a forward-selection technique for Markov blanket
-      detection (Margaritis, 2003).
-    \item \emph{Incremental Association} (\code{\link{iamb}}): based on the
-      Markov blanket detection algorithm of the same name, which uses stepwise
-      selection (Tsamardinos et al., 2003).
-    \item \emph{Fast Incremental Association} (\code{\link{fast.iamb}}): a
-      variant of IAMB which uses speculative forward-selection to reduce the
-      number of conditional independence tests (Yaramakala and Margaritis, 2005).
+    \item \emph{Grow-Shrink} (\code{\link{gs}}): based on the \emph{Grow-Shrink 
+      Markov Blanket}, the first (and simplest) Markov blanket detection algorithm 
+      (Margaritis, 2003) used in a structure learning algorithm.
+    \item \emph{Incremental Association} (\code{\link{iamb}}): based on the 
+      Markov blanket detection algorithm of the same name (Tsamardinos et 
+      al., 2003), which is based on a two-phase selection scheme (a forward 
+      selection followed by an attempt to remove false positives).
+    \item \emph{Fast Incremental Association} (\code{\link{fast.iamb}}): a 
+      variant of IAMB which uses speculative stepwise forward selection to 
+      reduce the number of conditional independence tests (Yaramakala and 
+      Margaritis, 2005).
     \item \emph{Interleaved Incremental Association} (\code{\link{inter.iamb}}):
-      another variant of IAMB which interleaves the backward selection with
-      the forward one to avoid false positives (i.e. nodes erroneously included
-      in the Markov blanket) (Yaramakala and Margaritis, 2005).
+      another variant of IAMB which uses forward stepwise selection (Tsamardinos 
+      et al., 2003) to avoid false positives in the Markov blanket detection 
+      phase.
     \item \emph{Max-Min Parents and Children} (\code{\link{mmpc}}): a
-      forward-selection technique for neighbourhood detection based on the
+      forward selection technique for neighbourhood detection based on the
       maximization of the minimum association measure observed with any subset
-      of the current conditioning variables (Tsamardinos, Brown and Aliferis, 2006).
-      It learns the underlying structure of the Bayesian networks (all the arcs
-      are undirected, no attempt is made to detect their orientation).
+      of the nodes selected in the previous iterations (Tsamardinos, Brown and 
+      Aliferis, 2006). It learns the underlying structure of the Bayesian 
+      network (all the arcs are undirected, no attempt is made to detect their 
+      orientation).
 
   }
 
@@ -91,18 +94,21 @@
 
   The computational complexity of these algorithms is polynomial
   in the number of tests, usually \eqn{O(N^2)}{O(N^2)} (\eqn{O(N^4)}{O(N^4)}
-  in the worst case scenario). The execution time scales linearly with
+  in the worst case scenario). Execution time scales linearly with
   the size of the data set.
 
 }
 \section{Available score-based learning algorithms}{
 
   \itemize{
+
     \item \emph{Hill-Climbing} (\code{\link{hc}}): a \emph{hill climbing}
       greedy search on the space of the directed graphs. The optimized
       implementation uses score caching, score decomposability and score
       equivalence to reduce the number of duplicated tests. Random restart
-      with a configurable number of perturbing operations is implemented.}
+      with a configurable number of perturbing operations is implemented.
+
+  }
 
 }
 \section{Available (conditional) independence tests}{
@@ -113,7 +119,7 @@
 
   \itemize{
 
-    \item \emph{categorical data} (multinomial distribution)
+    \item \emph{discrete case} (multinomial distribution)
       \itemize{
 
         \item \emph{mutual information} (\code{mi}): an information-theoretic
@@ -126,17 +132,17 @@
         \item \emph{fast mutual information} (\code{fmi}): a variant of the
           mutual information which is set to zero when there aren't at least
           five data per parameter.
-        \item \emph{Pearson's \eqn{\chi^2}{chi-square}} (\code{x2}): the classical
-          Pearson's Chi-squared test for contingency tables.
-        \item \emph{Monte Carlo Pearson's \eqn{\chi^2}{chi-square}} (\code{mc-x2}):
-          a Monte Carlo implementation of the \eqn{\chi^2}{chi-square} test, which
-          does not rely on the asymptotic \eqn{\chi^2}{chi-square} distribution.
+        \item \emph{Pearson's X^2} (\code{x2}): the classical Pearson's X^2 
+          test for contingency tables.
+        \item \emph{Monte Carlo Pearson's X^2} (\code{mc-x2}): a Monte Carlo 
+          implementation of the X^2 test, which does not rely on the asymptotic
+          \eqn{\chi^2}{chi-square} distribution.
         \item \emph{Akaike Information Criterion} (\code{aict}): an experimental
           AIC-based independence test, computed comparing the mutual information
           and the expected information gain.
 
       }
-    \item \emph{numeric data} (multivariate normal distribution)
+    \item \emph{continuous case} (multivariate normal distribution)
       \itemize{
 
         \item \emph{linear correlation} (\code{cor}): linear correlation.
@@ -170,7 +176,7 @@
 
   \itemize{
 
-    \item \emph{categorical data} (multinomial distribution)
+    \item \emph{discrete case} (multinomial distribution)
       \itemize{
 
         \item the multinomial \emph{likelihood} (\code{lik}) score.
@@ -180,14 +186,14 @@
         \item the \emph{Bayesian Information Criterion} score (\code{bic}),
           which is equivalent to the \emph{Minimum Description Length} (MDL).
         \item the logarithm of the \emph{Bayesian Dirichlet equivalent}
-          score (\code{bde} o \code{dir}), a score equivalent Dirichlet
+          score (\code{bde}), a score equivalent Dirichlet
           posterior density.
         \item the logarithm of the \emph{K2} score (\code{k2}), a Dirichlet
           posterior density (not score equivalent).
 
       }
 
-    \item \emph{numeric data} (multivariate normal distribution)
+    \item \emph{continuous case} (multivariate normal distribution)
       \itemize{
 
         \item a score equivalent {Gaussian posterior density} (\code{bge}).
@@ -260,35 +266,32 @@
 }
 \references{
 
-  A. Agresti. Categorical Data Analysis. John Wiley & Sons, Inc., 2002.
+  Agresti A (2002). \emph{Categorical Data Analysis}. Wiley Series in
+      Probability and Statistics. Wiley-Interscience, 2nd edition.
 
-  K. Korb and A. Nicholson. Bayesian artificial intelligence. Chapman and
-     Hall, 2004.
+  Korb K, Nicholson AE (2003). \emph{Bayesian Artificial Intelligence}. 
+      Chapman & Hall/CRC.
 
-  D. Margaritis. Learning Bayesian Network Model Structure from Data. PhD
-     thesis, School of Computer Science, Carnegie-Mellon University, Pittsburgh,
-     PA, May 2003. Available as Technical Report CMU-CS-03-153.
+  Margaritis D (2003). \emph{Learning Bayesian Network Model Structure 
+      from Data}. Ph.D. thesis, School of Computer Science, Carnegie-Mellon 
+      University, Pittsburgh, PA. Available as Technical Report CMU-CS-03-153.
 
-  J. Pearl. Probabilistic Reasoning in Intelligent Systems: Networks of Plausible
-     Inference. Morgan Kaufmann Publishers Inc., 1988.
+  Pearl J (1988). \emph{Probabilistic reasoning in intelligent systems: 
+      networks of plausible inference}. Morgan Kaufmann.
 
-  I. Tsamardinos, C. F. Aliferis, and A. Statnikov. Algorithms for large scale Markov
-     blanket discovery. In Proceedings of the Sixteenth International Florida
-     Artificial Intelligence Research Society Conference, pages 376-381. AAAI Press,
-     2003.
+  Tsamardinos I, Aliferis CF, Statnikov A (2003). "Algorithms for Large 
+      Scale Markov Blanket Discovery". In "Proceedings of the Sixteenth 
+      International Florida Artificial Intelligence Research Society 
+      Conference", pp. 376-381. AAAI Press.
 
-  I. Tsamardinos, C. F. Aliferis, A. Statnikov. Time and sample
-     efficient discovery of Markov blankets and direct causal
-     relations. Proceedings of the Ninth International Conference
-     on Knowledge Discovery and Data Mining KDD, pages 673-8, 2003.
+  Tsamardinos I, Brown LE, Aliferis CF (2006). "The Max-Min Hill-Climbing 
+      Bayesian Network Structure Learning Algorithm". Machine Learning, 
+      65(1), 31-78.
 
-  I. Tsamardinos, L. E. Brown, C. Aliferis. The max-min hill-climbing
-     Bayesian network learning algorithm. Machine Learning, 65(1),
-     pages 31-78. Kluwer Academic Publishers, 2006.
-
-  S. Yaramakala, D. Margaritis. Speculative Markov Blanket Discovery for
-     Optimal Feature Selection. In Proceedings of the Fifth IEEE International
-     Conference on Data Mining, pages 809-812. IEEE Computer Society, 2005.
+  Yaramakala S, Margaritis D (2005). "Speculative Markov Blanket Discovery
+      for Optimal Feature Selection". In "ICDM '05: Proceedings of the Fifth
+      IEEE International Conference on Data Mining", pp. 809-812. IEEE 
+      Computer Society.
 
 }
 \examples{

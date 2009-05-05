@@ -4,11 +4,16 @@ available.discrete.tests = c("mi", "fmi", "aict", "x2", "mc-mi", "mc-x2")
 available.continuous.tests = c("cor", "zf", "mi-g", "mc-mi-g", "mc-cor", "mc-zf")
 available.tests = c(available.discrete.tests, available.continuous.tests)
 
-available.discrete.scores = c("lik", "loglik", "aic", "bic", "dir", "bde", "k2")
+resampling.tests = c("mc-mi", "mc-x2", "mc-mi-g", "mc-cor", "mc-zf")
+
+available.discrete.scores = c("lik", "loglik", "aic", "bic", "bde", "k2")
 available.continuous.scores = c("bge")
 available.scores = c(available.discrete.scores, available.continuous.scores)
 
-score.equivalent.scores = c("lik", "loglik", "aic", "bic", "dir", "bde", "bge")
+score.equivalent.scores = c("lik", "loglik", "aic", "bic", "bde", "bge")
+
+constraint.based.algorithms = c("gs", "iamb", "fast-iamb", "inter-iamb", "mmpc")
+score.based.algorithms = c("hc")
 
 method.labels = c(
   'gs' = "grow-shrink",
@@ -38,7 +43,6 @@ test.labels = c(
 score.labels = c(
   'k2' = "Cooper & Herskovits' K2",
   'bde' = "bayesian-dirichlet (score equivalent)",
-  'dir' = "bayesian-dirichlet (score equivalent)",
   'aic' = "Akaike information criterion",
   'bic' = "bayesian information criterion",
   'lik' = "likelihood",
@@ -48,7 +52,6 @@ score.labels = c(
 
 score.extra.args = list(
   "k2" = character(0),
-  "dir" = "iss",
   "bde" = "iss",
   "aic" = "k",
   "bic" = "k",

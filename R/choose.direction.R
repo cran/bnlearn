@@ -1,5 +1,5 @@
 
-choose.direction.test = function(x, arc, data, test, alpha, debug) {
+choose.direction.test = function(x, arc, data, test, alpha, B, debug) {
 
   nodes = names(x$nodes)
   amat = arcs2amat(x$arcs, nodes)
@@ -13,12 +13,12 @@ choose.direction.test = function(x, arc, data, test, alpha, debug) {
   parents1 = parents.backend(x$arcs, arc[2], undirected = TRUE)
   a1 = conditional.test(arc[1], arc[2],
         parents1[parents1 != arc[1]],
-        data = data, test = test)
+        data = data, test = test, B = B)
 
   parents2 = parents.backend(x$arcs, arc[1], undirected = TRUE)
   a2 = conditional.test(arc[2], arc[1],
         parents2[parents2 != arc[2]],
-        data = data, test = test)
+        data = data, test = test, B = B)
 
   if (debug) {
 

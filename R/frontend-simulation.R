@@ -13,11 +13,11 @@ rbn = function(x, n, data, debug = FALSE) {
   # no simulation if the graph is partially directed.
   if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
-  # only discrete networks are supported.
-  if (!is.data.discrete(data))
-    stop("simulation for continuous networks not implemented.")
 
-  rbn.discrete(x = x, n = n, data = data, debug = debug)
+  if (is.data.discrete(data))
+    rbn.discrete(x = x, n = n, data = data, debug = debug)
+  else
+    rbn.continuous(x = x, n = n, data = data, debug = debug)
 
 }#RBN
 

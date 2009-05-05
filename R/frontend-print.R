@@ -13,12 +13,14 @@ print.bn = function(x, ...) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  if (x$learning$test == "none")
+  if (x$learning$algo %in% graph.generation.algorithms)
     cat("\n  Randomly generated Bayesian network\n\n")
-  else if (x$learning$test %in% names(test.labels))
-    cat("\n  Bayesian network learned via Conditional Independence methods\n\n")
+  else if (x$learning$algo %in% constraint.based.algorithms)
+    cat("\n  Bayesian network learned via Constraint-based methods\n\n")
+  else if (x$learning$algo %in% score.based.algorithms)
+    cat("\n  Bayesian network learned via Score-based methods\n\n")
   else
-    cat("\n  Bayesian network learned via Scoring methods\n\n")
+    cat("\n  Bayesian network learned via [unknown] methods\n\n")
 
   cat("  model:\n   ", ifelse(is.dag(x$arcs, names(x$nodes)), formula.backend(x),
       "[partially directed graph]"), "\n")
@@ -44,6 +46,8 @@ print.bn = function(x, ...) {
 
     if ("alpha" %in% params)
       cat("  alpha threshold:                      ", x$learning$args$alpha, "\n")
+    if ("B" %in% params)
+      cat("  permutations/bootstrap samples:       ", x$learning$args$B, "\n")
     if ("iss" %in% params)
       cat("  imaginary sample size:                ", x$learning$args$iss, "\n")
     if ("phi" %in% params)

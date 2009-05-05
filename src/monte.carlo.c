@@ -356,7 +356,7 @@ static double _mi (int *n, int *nrowt, int *ncolt, int *nrows,
 
       if (n[CMC(i, j, *nrows)] != 0)
         res += ((double)n[CMC(i, j, *nrows)]) *
-                log((double)n[CMC(i, j, *ncols)]*(*length)/(double)(nrowt[i]*ncolt[j]));
+                log((double)n[CMC(i, j, *nrows)]*(*length)/(double)(nrowt[i]*ncolt[j]));
 
     }/*FOR*/
 

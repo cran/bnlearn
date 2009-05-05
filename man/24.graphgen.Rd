@@ -81,10 +81,9 @@
 }
 \references{
 
-  J.S. Ide and F.G. Cozman. Generating Random Bayesian Networks. Proceedings
-    on 16th Brazilian Symposium on Artificial Intelligence (SBIA 2002),
-    Advances in Artificial Intelligence, Springer-Verlag, Berlin, p. 366-375,
-    November, 2002.
+  Ide JS, Cozman FG (2002). "Random Generation of Bayesian Networks". 
+      In "SBIA '02: Proceedings of the 16th Brazilian Symposium on Artificial 
+      Intelligence", pp. 366-375. Springer-Verlag.
 
 }
 \examples{

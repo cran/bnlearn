@@ -38,19 +38,19 @@ schedule = function(x, debug = FALSE) {
 # Intelligence", Korb & Nicholson, chap 3.6.1.
 rbn.discrete = function(x, n, data, debug = FALSE) {
 
-  to.do = schedule(x, debug = debug)
+  to.do = schedule(x)
   result = list()
 
-  for(node in to.do){
+  if (debug)
+    cat("* partial node ordering is:", to.do, "\n")
 
-    node.parents = parents.backend(x$arcs, node)
+  for (node in to.do) {
+
+    node.parents = x$nodes[[node]]$parents
     node.levels = levels(data[, node])
 
-    if (debug) {
-
+    if (debug)
       cat("* simulating node", node, "with parents '", node.parents, "'.\n")
-
-    }#THEN
 
     if (length(node.parents) == 0) {
 
@@ -85,13 +85,13 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
       # configurations of its parents.
       tab = table(data = data[, node], cfg = config)
 
-      # there are configurations in the generated data which were
+      # if there are configurations in the generated data which were
       # not observed in the original data; notify the user and print
       # a human readable comparison when in debug mode.
       generated.configurations = as.character(unique(config2))
       observed.configurations = as.character(unique(config))
 
-      if (!setequal(observed.configurations, generated.configurations)) {
+      if (!all(generated.configurations %in% observed.configurations)) {
 
         if (debug) {
 
@@ -153,3 +153,68 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
   as.data.frame(result)[, nodes(x)]
 
 }#RBN.DISCRETE
+
+# a modified Logic Sampling (LS) algorithm for Gaussian data.
+rbn.continuous = function(x, n, data, debug = FALSE) {
+
+  to.do = schedule(x)
+  result = list()
+
+  intercept = rep(1, nrow(data))
+
+  if (debug)
+    cat("* partial node ordering is:", to.do, "\n")
+
+  for (node in to.do) {
+
+    node.parents = x$nodes[[node]]$parents
+
+    if (debug) 
+      cat("* simulating node", node, "with parents '", node.parents, "'.\n")
+
+    if (length(node.parents) == 0) {
+
+      mean = mean(data[, node])
+      sd = sd(data[, node])
+
+      if (debug)
+        cat("  > node", node, "has mean", mean, "and standard deviation", sd, ".\n")
+
+      result[[node]] = rnorm(n, mean, sd)
+
+    }#THEN
+    else {
+
+      # compute the regression coefficient and the standard deviation of
+      # the residuals with a QR decomposition.
+      qr.x = qr(cbind(intercept, data[, node.parents]))
+      coefs = qr.coef(qr.x, data[, node])
+      rsd = sd(qr.resid(qr.x, data[, node]))
+
+      # compute the predicted values for the data previously generated for
+      # the parents of this node.
+      names(coefs) = c("intercept", node.parents)
+      mean = rep(coefs["intercept"], n)
+      for (parent in node.parents)
+        mean = mean + result[[parent]] * coefs[parent]
+
+      if (debug) {
+
+        f = paste("(", format(coefs), ")", c("", node.parents),
+              sep = "", collapse = " + ")
+
+        cat("  > node", node, "is fitted as\n   ", f, "\n")
+        cat("  > residual standard deviation is", rsd, ".\n")
+
+      }
+
+      # add the gaussian noise, and be done.
+      result[[node]] = mean + rnorm(n, 0, rsd)
+
+    }#ELSE
+
+  }#FOR
+
+  as.data.frame(result)[, nodes(x)]
+
+}#RBN.CONTINUOUS

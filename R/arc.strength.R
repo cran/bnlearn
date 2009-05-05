@@ -1,5 +1,5 @@
 
-arc.strength.test = function(network, data, test, alpha, debug) {
+arc.strength.test = function(network, data, test, alpha, B, debug) {
 
   drop = function(arc) {
 
@@ -13,7 +13,7 @@ arc.strength.test = function(network, data, test, alpha, debug) {
     parents =
       network$nodes[[arc[2]]]$parents[network$nodes[[arc[2]]]$parents != arc[1]]
 
-    a = conditional.test(arc[1], arc[2], parents, data = data, test = test)
+    a = conditional.test(arc[1], arc[2], parents, data = data, test = test, B = B)
 
     if (debug) {
 

@@ -15,16 +15,16 @@ nparams = function(x, data, debug = FALSE) {
   check.data(data)
   # check the network against the data
   check.bn.vs.data(x, data)
-  # only discrete bayesian networks are supported.
-  if (!is.data.discrete(data))
-    stop("parameter enumeration for continuous networks not implemented.")
   # check debug.
   check.logical(debug)
   # nparams is unknown for partially directed graphs.
   if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
 
-  params = nparams.backend(x, data, real = TRUE)
+  if (is.data.discrete(data))
+    params = nparams.discrete(x, data, real = TRUE)
+  else
+    params = nparams.gaussian(x)
 
   if (debug) {
 
@@ -33,8 +33,7 @@ nparams = function(x, data, debug = FALSE) {
 
   }#THEN
 
-  sum(params)
+  return(sum(params))
 
 }#NPARAMS
-
 

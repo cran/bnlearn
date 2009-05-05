@@ -10,8 +10,8 @@
 }
 \usage{
   inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, debug = FALSE, optimized = TRUE,
-    strict = FALSE, undirected = FALSE, direction = FALSE)
+    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, 
+    optimized = TRUE, strict = FALSE, undirected = FALSE)
 }
 \arguments{
   \item{x}{a data frame, containing the variables in the model.}
@@ -30,21 +30,20 @@
       for discrete data sets and the \emph{linear correlation} for 
       continuous ones. See \code{\link{bnlearn-package}} for details.}
   \item{alpha}{a numeric value, the target nominal type I error rate.}
+  \item{B}{a positive integer, the number of permutations considered
+      for each permutation test. It will be ignored with a warning if
+      the conditional independence test specified by the \code{test}
+      argument is not a permutation test.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-       is printed; otherwise the function is completely silent.}
+      is printed; otherwise the function is completely silent.}
   \item{optimized}{a boolean value. See \code{\link{bnlearn-package}}
-       for details.}
+      for details.}
   \item{strict}{a boolean value. If \code{TRUE} conflicting results in
       the learning process generate an error; otherwise they result in
       a warning.}
   \item{undirected}{a boolean value. If \code{TRUE} no attempt will be made
       to determine the orientation of the arcs; the returned (undirected)
       graph will represent the underlying structure of the Bayesian network.}
-  \item{direction}{a boolean value. If \code{TRUE} (and \code{undirected} is
-      set to \code{FALSE}) each possible direction of each undirected arc is
-      tested, and the one with the lowest p-value is accepted as the true
-      direction for that arc. This step is not included in the original
-      algorithm, and is intended as an experimental debugging tool.}
 }
 \value{
 
@@ -54,9 +53,10 @@
 }
 \references{
 
-  S. Yaramakala, D. Margaritis. Speculative Markov Blanket Discovery for
-     Optimal Feature Selection. In Proceedings of the Fifth IEEE International
-     Conference on Data Mining, pages 809-812. IEEE Computer Society, 2005.
+  Yaramakala S, Margaritis D (2005). "Speculative Markov Blanket Discovery
+      for Optimal Feature Selection". In "ICDM '05: Proceedings of the Fifth
+      IEEE International Conference on Data Mining", pp. 809-812. IEEE
+      Computer Society.
 
 }
 \author{ Marco Scutari }
