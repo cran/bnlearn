@@ -18,8 +18,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 1.4\cr
-    Date: \tab 2009-05-05\cr
+    Version: \tab 1.4.1\cr
+    Date: \tab 2009-06-10\cr
     License: \tab GPLv2 or later
 
   }
@@ -132,11 +132,11 @@
         \item \emph{fast mutual information} (\code{fmi}): a variant of the
           mutual information which is set to zero when there aren't at least
           five data per parameter.
-        \item \emph{Pearson's X^2} (\code{x2}): the classical Pearson's X^2 
-          test for contingency tables.
-        \item \emph{Monte Carlo Pearson's X^2} (\code{mc-x2}): a Monte Carlo 
-          implementation of the X^2 test, which does not rely on the asymptotic
-          \eqn{\chi^2}{chi-square} distribution.
+        \item \emph{Pearson's \eqn{X^2}{X^2}} (\code{x2}): the classical 
+          Pearson's \eqn{X^2}{X^2} test for contingency tables.
+        \item \emph{Monte Carlo Pearson's \eqn{X^2}{X^2}} (\code{mc-x2}): a 
+          Monte Carlo implementation of the \eqn{X^2}{X^2} test, which does
+          not rely on the asymptotic \eqn{\chi^2}{chi-square} distribution.
         \item \emph{Akaike Information Criterion} (\code{aict}): an experimental
           AIC-based independence test, computed comparing the mutual information
           and the expected information gain.
