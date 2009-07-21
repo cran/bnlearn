@@ -31,12 +31,6 @@ per.node.score = function(network, data, score, nodes, extra.args,
             debug = debug)
 
   }#THEN
-  else if (score == "lik") {
-
-    res = exp(sapply(nodes, loglik.node, x = network, data = data,
-            debug = debug))
-
-  }#THEN
   else if (score %in% c("aic", "bic")) {
 
     res = sapply(nodes, aic.node, x = network, data = data,
@@ -50,6 +44,18 @@ per.node.score = function(network, data, score, nodes, extra.args,
             debug = debug)
 
   }#THEN
+  else if (score == "loglik-g") {
+
+    res = sapply(nodes, gloglik.node, x = network, data = data,
+            debug = debug)
+
+  }#THEN
+  else if (score %in% c("aic-g", "bic-g")) {
+
+    res = sapply(nodes, aic.gauss.node, x = network, data = data,
+            k = extra.args$k, debug = debug)
+
+  }#THEN
 
   # set the names on the resulting array for easy reference.
   names(res) = nodes
@@ -58,8 +64,55 @@ per.node.score = function(network, data, score, nodes, extra.args,
 
 }#PER.NODE.SCORE
 
-# compute the loglikelihood of single node of a discrete
-# bayesian network.
+# compute the loglikelihood of single node of a discrete bayesian network.
+gloglik.node = function(node, x, data, debug = FALSE) {
+
+  if (debug) {
+
+    cat("----------------------------------------------------------------\n")
+    cat("* processing node", node, ".\n")
+
+  }#THEN
+
+  # get the parents of the node.
+  node.parents = x$nodes[[node]]$parents
+
+  if (length(node.parents) == 0) {
+
+    res = sum(dnorm(data[, node], mean = mean(data[, node]), 
+                sd = sd(data[, node]), log = TRUE))
+
+  }#THEN
+  else {
+
+    intercept = rep(1, nrow(data))
+    qr.x = qr(cbind(intercept, data[, node.parents]))
+    fitted = qr.fitted(qr.x, data[, node])
+    sd = sd(qr.resid(qr.x, data[, node]))
+
+    res = sum(dnorm(data[, node], mean = fitted, sd = sd, log = TRUE))
+
+  }#ELSE
+
+  if (debug) {
+
+    cat("  > node loglikelihood is", res, ".\n")
+
+  }#THEN
+
+  return(res)
+
+}#GLOGLIK.NODE
+
+# compute the AIC of single node of a discrete bayesian network.
+aic.gauss.node = function(node, x, data, k = 1, debug = FALSE) {
+
+  gloglik.node(x = x, node = node, data = data, debug = debug) -
+  k * nparams.gaussian.node(node = node, x = x)
+
+}#AIC.GAUSS.NODE
+
+# compute the loglikelihood of single node of a discrete bayesian network.
 loglik.node = function(node, x, data, debug = FALSE) {
 
   if (debug) {
@@ -109,7 +162,7 @@ loglik.node = function(node, x, data, debug = FALSE) {
 
   }#THEN
 
-  node.loglik
+  return(node.loglik)
 
 }#LOGLIK.NODE
 
@@ -122,96 +175,58 @@ aic.node = function(node, x, data, k = 1, debug = FALSE) {
 }#AIC.NODE
 
 # compute the dirichlet posterior density of a node.
-# Reverse-engineered from the deal package, with copyright:
-# Copyright (C) 2002  Susanne Gammelgaard Bøttcher, Claus Dethlefsen
-# Original code licenced under GPLv2 or later version.
 dirichlet.node = function(node, x, data, imaginary.sample.size = NULL, debug = FALSE) {
-
-  node.params = nparams.discrete.node(node, x, data, real = FALSE)
-  node.levels = nlevels(data[, node])
-  node.parents = x$nodes[[node]]$parents
-  parents.levels = node.params / node.levels
-
-  # use an uniform a priori distribution.
-  if (!is.null(imaginary.sample.size)) {
-
-    # this is for the bde() score.
-    cprior = rep(imaginary.sample.size / node.params, node.params)
-
-    n = imaginary.sample.size
-    N = imaginary.sample.size + nrow(data)
-
-  }#THEN
-  else {
-
-    # this is for the k2() score.
-    cprior = rep(1, node.params)
-
-    n = node.params
-    N = node.params + nrow(data)
-
-  }#THEN
-
-  # update the a priori distribution to the a posteriori one.
-  alpha = cprior + as.vector(table(data[, c(node, node.parents)]))
 
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
     cat("* processing node", node, ".\n")
-    cat("  > prior distribution is:", cprior[1], "( x", length(cprior),")\n")
-    cat("  > sample distribution is:\n")
-    print(as.vector(table(data[, node])))
-    cat("  > posterior distribution is: ( x",  length(alpha),")\n")
-    print(alpha)
-    cat("  > real sample size:\n")
-    print(nrow(data))
 
   }#THEN
 
-  # if the node is not a root one, the a posteriori distribution depends
-  # on the configuration of the parents of the node.
-  if (length(node.parents) > 0) {
+  node.parents = x$nodes[[node]]$parents
+
+  if (length(node.parents) == 0) {
+
+    dirichlet = .Call("dpost",
+       x = data[, node],
+       lx = nlevels(data[, node]),
+       length = nrow(data),
+       iss = imaginary.sample.size,
+       debug = debug,
+       PACKAGE = "bnlearn")
+
+  }#THEN
+  else {
 
     # if there is only one parent, get it easy.
     if (length(node.parents) == 1)
       config = data[, node.parents]
     else
-      config = configurations(data[,node.parents])
+      config = configurations(data[, node.parents])
 
-    tab = colSums(table(data[, node], config))
-    alphaj = rep(n / length(tab), length(tab))
+    node.params = nparams.discrete.node(node, x, data, real = FALSE)
 
-    if (debug) {
-
-      cat("  > conditional prior distribution is:", alphaj[1],
-          "( x", length(alphaj) ,")\n")
-      cat("  > conditional sample distribution is: ( x ", length(tab), ")\n")
-      print(tab)
-      cat("  > conditional posterior distribution is:\n")
-      print(tab + alphaj)
-
-    }#THEN
-
-    res = - sum(lgamma(alphaj + tab) - lgamma(alphaj)) +
-              sum(lgamma(alpha) - lgamma(cprior))
-
-  }#THEN
-  else {
-
-      # if the node has no parents, use a fake one with a single configuration
-      # to make sense of the formula of the a posteriori distribution.
-      res = sum(lgamma(alpha) - lgamma(cprior)) + lgamma(n) - lgamma(N)
+    dirichlet = .Call("cdpost",
+       x = data[, node],
+       y = config,
+       lx = nlevels(data[, node]),
+       ly = nlevels(config),
+       length = nrow(data),
+       iss = imaginary.sample.size,
+       nparams = node.params,
+       debug = debug,
+       PACKAGE = "bnlearn")
 
   }#ELSE
 
   if (debug) {
 
-    cat("  > node dirichlet score is", res, ".\n")
+    cat("  > node dirichlet score is", dirichlet, ".\n")
 
   }#THEN
 
-res
+  return(dirichlet)
 
 }#DIRICHLET.NODE
 

@@ -2,12 +2,14 @@
 
 #define NODE(i) CHAR(STRING_ELT(nodes, i))
 
-static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached, 
+static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached,
     double _ntests, char *_test, char *_algo);
 
-static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work, 
+static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     int *degree, double *max, int *in_degree, double *max_in, int *out_degree,
     double *max_out, SEXP undirected, SEXP debug, SEXP debug2);
+
+static void print_modelstring(SEXP bn);
 
 /* generate an empty graph. */
 SEXP empty_graph(SEXP nodes, SEXP num) {
@@ -44,7 +46,7 @@ SEXP empty_graph(SEXP nodes, SEXP num) {
 
   PROTECT(cached = allocVector(VECSXP, nnodes));
   setAttrib(cached, R_NamesSymbol, nodes);
- 
+
   for (i = 0; i < 4; i++)
     SET_VECTOR_ELT(base, i, base2);
   for (i = 0; i < nnodes; i++)
@@ -57,7 +59,7 @@ SEXP empty_graph(SEXP nodes, SEXP num) {
   if (*n > 1) {
 
     PROTECT(list = allocVector(VECSXP, *n));
-    for (i = 0; i < *n; i++) 
+    for (i = 0; i < *n; i++)
       SET_VECTOR_ELT(list, i, res);
 
     UNPROTECT(10);
@@ -122,8 +124,8 @@ SEXP ordered_graph(SEXP nodes, SEXP num, SEXP prob) {
       /* sample each arc in the upper-triangular portion of the adjacency matrix
        * (so that node ordering is conserved) with the specified probability. */
       ORDERED_AMAT(*p);
-  
-      /* generate the arc set and the cached information form the adjacency 
+
+      /* generate the arc set and the cached information form the adjacency
        * matrix. */
       PROTECT(arcs = amat2arcs(amat, nodes));
       PROTECT(cached = cache_structure(nodes, amat, debug2));
@@ -148,17 +150,17 @@ SEXP ordered_graph(SEXP nodes, SEXP num, SEXP prob) {
     /* sample each arc in the upper-triangular portion of the adjacency matrix
      * (so that node ordering is conserved) with the specified probability. */
     ORDERED_AMAT(*p);
-  
-    /* generate the arc set and the cached information form the adjacency 
+
+    /* generate the arc set and the cached information form the adjacency
      * matrix. */
     PROTECT(arcs = amat2arcs(amat, nodes));
     PROTECT(cached = cache_structure(nodes, amat, debug2));
-  
+
     /* generate the "bn" structure. */
     PROTECT(res = bn_base_structure(nodes, args, arcs, cached, 0, "none", "ordered"));
-  
+
     PutRNGstate();
-  
+
     UNPROTECT(7);
     return res;
 
@@ -166,7 +168,7 @@ SEXP ordered_graph(SEXP nodes, SEXP num, SEXP prob) {
 
 }/*ORDERED_GRAPH*/
 
-/* generate a connected graph with uniform probability, subject to some 
+/* generate a connected graph with uniform probability, subject to some
  * constraints on the degree of the nodes. */
 SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
     SEXP max_out_degree, SEXP max_degree, SEXP debug) {
@@ -175,8 +177,8 @@ SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
   int changed = 0, *work, *arc, *a, *burn = INTEGER(burn_in);
   int *degree, *in_degree, *out_degree;
   double *max_in = REAL(max_in_degree), *max_out = REAL(max_out_degree),
-    *max = REAL(max_degree); 
-  SEXP list, res, args, argnames, amat, arcs, cached, debug2, null, 
+    *max = REAL(max_degree);
+  SEXP list, res, args, argnames, amat, arcs, cached, debug2, null,
     temp, undirected;
 
   /* a fake debug argument (set to FALSE) for cache_structure(). */
@@ -197,8 +199,8 @@ SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
   SET_VECTOR_ELT(args, 2, max_out_degree);
   SET_VECTOR_ELT(args, 3, max_degree);
 
-  /* a logical object to switch between a directed graph and the 
-   * corresponding undirected graph in c_has_dag_path().  */
+  /* a logical object to switch between a directed graph and the
+   * corresponding undirected graph in c_has_path().  */
   PROTECT(undirected = allocVector(LGLSXP, 1));
 
   /* allocate and initialize the adjacency matrix. */
@@ -236,10 +238,25 @@ SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
   for (k = 0; k < *burn; k++) {
 
     if (isTRUE(debug))
-      Rprintf("* current model (%d) is:\n", k + 1);
+      Rprintf("* current model (%d):\n", k + 1);
 
-    ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree, max_in, 
-      out_degree, max_out, undirected, debug, debug2);
+    changed = ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree, max_in,
+                out_degree, max_out, undirected, debug, debug2);
+
+    /* print the model string to allow a sane debugging experience; note that this
+     * has a huge impact on performance, so use it with care. */
+    if (isTRUE(debug) && (changed)) {
+
+      PROTECT(null = allocVector(NILSXP, 1));
+      PROTECT(res = bn_base_structure(nodes, args, null, null, 0, "none", "ic-dag"));
+      PROTECT(arcs = amat2arcs(amat, nodes));
+      PROTECT(cached = cache_structure(nodes, amat, debug2));
+      SET_VECTOR_ELT(res, 1, cached);
+      SET_VECTOR_ELT(res, 2, arcs);
+      print_modelstring(res);
+      UNPROTECT(4);
+
+    }/*THEN*/
 
   }/*FOR*/
 
@@ -255,7 +272,7 @@ SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
   if (*n > 1) {
 
     if (isTRUE(debug))
-        Rprintf("* end of the burn-in iterations.\n");
+      Rprintf("* end of the burn-in iterations.\n");
 
     PROTECT(list = allocVector(VECSXP, *n));
     PROTECT(null = allocVector(NILSXP, 1));
@@ -267,29 +284,29 @@ SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
     for (k = 0; k < *n; k++) {
 
       if (isTRUE(debug))
-        Rprintf("* current model (%d) is:\n", *burn + k + 1);
+        Rprintf("* current model (%d):\n", *burn + k + 1);
 
       changed = ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree,
                   max_in, out_degree, max_out, undirected, debug, debug2);
 
       if (changed || (k == 0)) {
 
-        /* generate the arc set and the cached information from the adjacency 
+        /* generate the arc set and the cached information from the adjacency
          * matrix. */
         if (k > 0) {
 
-          /* if a complete "bn" object is available, we can retrieve the cached 
+          /* if a complete "bn" object is available, we can retrieve the cached
            * information about the nodes from the structure stored in the last
            * iteration and update only the elements that really need it. */
           temp = VECTOR_ELT(VECTOR_ELT(list, k -1), 1);
           PROTECT(cached = duplicate(temp));
 
-          /* update the first sampled nodes; both of them gain/lose either 
+          /* update the first sampled nodes; both of them gain/lose either
            * a parent or a child.  */
           UPDATE_NODE_CACHE(arc[0] - 1);
           UPDATE_NODE_CACHE(arc[1] - 1);
 
-          /* all the parents of the second sampled node gain/lose a node in 
+          /* all the parents of the second sampled node gain/lose a node in
            * the markov blanket (the first sampled node, which shares a child
            * with all of them). */
           for (i = 0; i < nnodes; i++) {
@@ -312,7 +329,11 @@ SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
         PROTECT(arcs = amat2arcs(amat, nodes));
         SET_VECTOR_ELT(res, 1, cached);
         SET_VECTOR_ELT(res, 2, arcs);
-  
+
+        /* print the model string to allow a sane debugging experience. */
+        if (isTRUE(debug))
+          print_modelstring(res);
+
         /* save the structure in the list. */
         PROTECT(temp = duplicate(res));
         SET_VECTOR_ELT(list, k, temp);
@@ -322,7 +343,7 @@ SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
       }/*THEN*/
       else {
 
-        /* the adjacency matrix is unchanged; so we can just copy the bayesian 
+        /* the adjacency matrix is unchanged; so we can just copy the bayesian
          * network from the previous iteration in the k-th slot of the list. */
         SET_VECTOR_ELT(list, k, VECTOR_ELT(list, k - 1));
 
@@ -339,21 +360,25 @@ SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
   else {
 
     if (isTRUE(debug))
-      Rprintf("* end of the burn-in.\n* current model (%d) is:\n", *burn + 1);
+      Rprintf("* end of the burn-in.\n* current model (%d):\n", *burn + 1);
 
     ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree,
       max_in, out_degree, max_out, undirected, debug, debug2);
 
-    /* generate the arc set and the cached information form the adjacency 
+    /* generate the arc set and the cached information form the adjacency
      * matrix. */
     PROTECT(arcs = amat2arcs(amat, nodes));
     PROTECT(cached = cache_structure(nodes, amat, debug2));
-  
+
     /* generate the "bn" structure. */
     PROTECT(res = bn_base_structure(nodes, args, arcs, cached, 0, "none", "ic-dag"));
-  
+
+    /* print the model string to allow a sane debugging experience. */
+    if (isTRUE(debug))
+      print_modelstring(res);
+
     PutRNGstate();
-  
+
     UNPROTECT(8);
     return res;
 
@@ -362,7 +387,7 @@ SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
 }/*IDE_COZMAN_GRAPH*/
 
 /* helper function which does the dirty work. */
-static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached, 
+static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached,
     double _ntests, char *_test, char *_algo) {
 
   SEXP res, learning;
@@ -409,7 +434,7 @@ static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached,
   SET_VECTOR_ELT(learning, 5, args);
 
   /* allocate and initialize the main structure. */
-  PROTECT(res = allocVector(VECSXP, 3)); 
+  PROTECT(res = allocVector(VECSXP, 3));
   setAttrib(res, R_NamesSymbol, names2);
   setAttrib(res, R_ClassSymbol, class);
   SET_VECTOR_ELT(res, 0, learning);
@@ -421,7 +446,7 @@ static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached,
 
 }/*BN_BASE_STRUCTURE*/
 
-static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work, 
+static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     int *degree, double *max, int *in_degree, double *max_in, int *out_degree,
     double *max_out, SEXP undirected, SEXP debug, SEXP debug2) {
 
@@ -435,22 +460,22 @@ static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     /* if the arc (i, j) exists in the actual graph, delete the arc,
      * provided that the underlying graph remains connected. */
     if (isTRUE(debug))
-      Rprintf("  > arc %s -> %s is present.\n", 
+      Rprintf("  > arc %s -> %s is present.\n",
         NODE(arc[0] - 1), NODE(arc[1] - 1));
 
     /* if there is a(n undirected) path in the (underlying undirected) graph
-     * from arc[0] to arc[1] other than arc[0] -> arc[1], the graph is still 
+     * from arc[0] to arc[1] other than arc[0] -> arc[1], the graph is still
      * connected. */
     LOGICAL(undirected)[0] = TRUE;
     amat[CMC(arc[0] - 1, arc[1] - 1, *nnodes)] = 0;
-    PROTECT(path = c_has_dag_path(arc[0] - 1, arc[1] - 1, amat, *nnodes, 
-                     nodes, undirected, debug2));
+    PROTECT(path = c_has_path(arc[0] - 1, arc[1] - 1, amat, *nnodes,
+                     nodes, undirected, debug2, debug2));
     amat[CMC(arc[0] - 1, arc[1] - 1, *nnodes)] = 1;
 
     if (isTRUE(path)) {
 
       if (isTRUE(debug))
-        Rprintf("  @ removing arc %s -> %s.\n", 
+        Rprintf("  @ removing arc %s -> %s.\n",
           NODE(arc[0] - 1), NODE(arc[1] - 1));
 
       /* update the adjacency matrix. */
@@ -469,7 +494,7 @@ static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     else {
 
       if (isTRUE(debug))
-        Rprintf("  @ not removing arc %s -> %s (graph not connected).\n", 
+        Rprintf("  @ not removing arc %s -> %s (graph not connected).\n",
           NODE(arc[0] - 1), NODE(arc[1] - 1));
 
       UNPROTECT(1);
@@ -492,19 +517,19 @@ static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
       if (isTRUE(debug)) {
 
         if (degree[arc[0] - 1] >= *max)
-          Rprintf("  > node %s already has degree %d, max is %lf.\n", 
+          Rprintf("  > node %s already has degree %d, max is %lf.\n",
             NODE(arc[0] - 1), degree[arc[0] - 1], *max);
         if (degree[arc[1] - 1] >= *max)
-          Rprintf("  > node %s already has degree %d, max is %lf.\n", 
+          Rprintf("  > node %s already has degree %d, max is %lf.\n",
             NODE(arc[1] - 1), degree[arc[1] - 1], *max);
         if (out_degree[arc[0] - 1] >= *max_out)
-          Rprintf("  > node %s already has out-degree %d, max is %lf.\n", 
+          Rprintf("  > node %s already has out-degree %d, max is %lf.\n",
             NODE(arc[0] - 1), out_degree[arc[0] - 1], *max_out);
         if (in_degree[arc[1]] >= *max_in)
-          Rprintf("  > node %s already has in-degree %d, max is %lf.\n", 
+          Rprintf("  > node %s already has in-degree %d, max is %lf.\n",
             NODE(arc[1] - 1), in_degree[arc[1] - 1], *max_in);
 
-        Rprintf("  > not adding arc %s -> %s (constraints!).\n", 
+        Rprintf("  > not adding arc %s -> %s (constraints!).\n",
           NODE(arc[0] - 1), NODE(arc[1] - 1));
 
       }/*THEN*/
@@ -516,8 +541,8 @@ static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     /* if there is a (directed) path from arc[1] to arc[0], adding arc[0] -> arc[1]
      * would create a cycle, so do not do it. */
     LOGICAL(undirected)[0] = FALSE;
-    PROTECT(path = c_has_dag_path(arc[1] - 1, arc[0] - 1, amat, *nnodes, 
-                     nodes, undirected, debug2));
+    PROTECT(path = c_has_path(arc[1] - 1, arc[0] - 1, amat, *nnodes,
+                     nodes, undirected, debug2, debug2));
 
     if (!isTRUE(path)) {
 
@@ -540,7 +565,7 @@ static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     else {
 
       if (isTRUE(debug))
-        Rprintf("  > not adding arc %s -> %s (cycles!).\n", 
+        Rprintf("  > not adding arc %s -> %s (cycles!).\n",
           NODE(arc[0] - 1), NODE(arc[1] - 1));
 
       UNPROTECT(1);
@@ -550,5 +575,26 @@ static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
 
   }/*ELSE*/
 
-}/*IDE_COZMAN_INNER_LOOP*/
+}/*IC_LOGIC*/
+
+/* print the model string for debugging purposes. */
+static void print_modelstring(SEXP bn) {
+
+  SEXP s, t;
+
+  /* allocate and populate the pairlist to be valuated. */
+  PROTECT(t = s = allocList(2));
+  SET_TYPEOF(s, LANGSXP);
+  /*first slot, the function name. */
+  SETCAR(t, install("modelstring")); 
+  t = CDR(t);
+  /* second slot, the bayesian network (the only argument). */
+  SETCAR(t,  bn); 
+  /* evalueate ... */
+  PROTECT(t = eval(s, R_GlobalEnv));
+  /* ... and print the result. */
+  Rprintf("  > model string is:\n%s\n", CHAR(STRING_ELT(t, 0)));
+  UNPROTECT(2);
+
+}/*PRINT_MODELSTRING*/
 

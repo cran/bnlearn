@@ -66,7 +66,7 @@ SEXP nparams_gnode(SEXP graph, SEXP node) {
   temp = getListElement(temp, "parents");
 
   PROTECT(result = allocVector(INTSXP, 1));
-  INT(result) = LENGTH(temp) + 2;
+  INT(result) = LENGTH(temp) + 1;
   UNPROTECT(1);
 
   return result;

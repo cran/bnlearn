@@ -12,15 +12,14 @@ modelstring = function(x) {
 
 }#MODELSTRING
 
-"modelstring<-" = function(x, value) {
+# set a specific network structure with the model string.
+"modelstring<-" = function(x, debug = FALSE, value) {
 
-  res = model2network(value)
+  # check string's class.
+  if (!is(value, "character"))
+    stop("the model string must be a character string.")
 
-  # check that the new network constains the same nodes as the old one.
-  if (!setequal(names(x$nodes), names(res$nodes)))
-    stop("the model string describes a different network (the nodes are different).")
-
-  return(res)
+  model2network.backend(value, node.order = names(x$nodes), debug = debug)
 
 }#MODELSTRING<-
 
@@ -48,10 +47,17 @@ model2network = function(string, debug = FALSE) {
 
 }#MODEL2NETWORK
 
-# model-string-to-bn conversion function.
-as.bn.character = function(x, debug = FALSE) {
+# generic method to fool R CMD check (it's not even exported).
+as.bn = function(string, ...) {
+ 
+   UseMethod(string)
+ 
+}#AS.BN
 
-  model2network(x, debug = debug)
+# model-string-to-bn conversion function.
+as.bn.character = function(string, debug = FALSE) {
+
+  model2network(string, debug = debug)
 
 }#AS.BN.CHARACTER
 

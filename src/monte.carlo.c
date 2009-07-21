@@ -34,6 +34,7 @@ SEXP mcarlo (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP samples,
   double *fact, observed = 0;
   int *n, *ncolt, *nrowt, *workspace;
   int *num = INTEGER(length), *nr = INTEGER(lx), *nc = INTEGER(ly);
+  int *xx = INTEGER(x), *yy = INTEGER(y);
   int *B = INTEGER(samples);
   int k = 0;
 
@@ -59,9 +60,9 @@ SEXP mcarlo (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP samples,
   /* compute the joint frequency of x and y. */
   for (k = 0; k < *num; k++) {
 
-    n[CMC(INTEGER(x)[k] - 1, INTEGER(y)[k] - 1, *nr)]++;
-    nrowt[INTEGER(x)[k] - 1]++;
-    ncolt[INTEGER(y)[k] - 1]++;
+    n[CMC(xx[k] - 1, yy[k] - 1, *nr)]++;
+    nrowt[xx[k] - 1]++;
+    ncolt[yy[k] - 1]++;
 
   }/*FOR*/
 
@@ -121,17 +122,19 @@ SEXP mcarlo (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP samples,
 SEXP cmcarlo (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
     SEXP length, SEXP samples, SEXP test) {
 
-  double *fact, observed = 0;
+  double *fact, *res, observed = 0;
   int **n, **ncolt, **nrowt, *ncond, *workspace;
   int *num = INTEGER(length), *B = INTEGER(samples);;
   int *nr = INTEGER(lx), *nc = INTEGER(ly), *nl = INTEGER(lz);
+  int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
   int j = 0, k = 0;
 
   SEXP result;
 
   /* allocate and initialize the result */
   PROTECT(result = allocVector(REALSXP, 2));
-  REAL(result)[1] = 0;
+  res = REAL(result);
+  res[1] = 0;
 
   /* allocate and compute the factorials needed by rcont2. */
   allocfact(*num);
@@ -150,10 +153,10 @@ SEXP cmcarlo (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
   /* compute the joint frequency of x and y. */
   for (k = 0; k < *num; k++) {
 
-    n[INTEGER(z)[k] - 1][CMC(INTEGER(x)[k] - 1, INTEGER(y)[k] - 1, *nr)]++;
-    nrowt[INTEGER(z)[k] - 1][INTEGER(x)[k] - 1]++;
-    ncolt[INTEGER(z)[k] - 1][INTEGER(y)[k] - 1]++;
-    ncond[INTEGER(z)[k] - 1]++;
+    n[zz[k] - 1][CMC(xx[k] - 1, yy[k] - 1, *nr)]++;
+    nrowt[zz[k] - 1][xx[k] - 1]++;
+    ncolt[zz[k] - 1][yy[k] - 1]++;
+    ncond[zz[k] - 1]++;
 
   }/*FOR*/
 
@@ -174,7 +177,7 @@ SEXP cmcarlo (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
           rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
 
         if (_cmi(n, nrowt, ncolt, ncond, nr, nc, nl) > observed)
-          REAL(result)[1] += 1;
+          res[1] += 1;
 
       }/*FOR*/
 
@@ -191,7 +194,7 @@ SEXP cmcarlo (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
           rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
 
         if (_cx2(n, nrowt, ncolt, ncond, nr, nc, nl) > observed)
-          REAL(result)[1] += 1;
+          res[1] += 1;
 
       }/*FOR*/
 
@@ -202,8 +205,8 @@ SEXP cmcarlo (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
   PutRNGstate();
 
   /* save the observed value of the statistic and the corresponding p-value. */
-  NUM(result) = observed;
-  REAL(result)[1] = REAL(result)[1] / (*B);
+  res[0] = observed;
+  res[1] /= *B;
 
   UNPROTECT(1);
 
@@ -215,7 +218,7 @@ SEXP cmcarlo (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
 SEXP gauss_mcarlo (SEXP x, SEXP y, SEXP samples, SEXP test) {
 
   int j = 0, k = 0;
-  double *xx = REAL(x), *yy = REAL(y), *yperm;
+  double *xx = REAL(x), *yy = REAL(y), *yperm, *res;
   int num = LENGTH(x), *B = INTEGER(samples);
   double observed = 0;
   int *perm, *work;
@@ -230,7 +233,8 @@ SEXP gauss_mcarlo (SEXP x, SEXP y, SEXP samples, SEXP test) {
 
   /* allocate the result. */
   PROTECT(result = allocVector(REALSXP, 1));
-  NUM(result) = 0;
+  res = REAL(result);
+  *res = 0;
 
   /* initialize the random number generator. */
   GetRNGstate();
@@ -253,7 +257,7 @@ SEXP gauss_mcarlo (SEXP x, SEXP y, SEXP samples, SEXP test) {
           yperm[k] = yy[perm[k]];
 
         if (fabs(_cov(xx, yperm, &num)) > fabs(observed))
-          NUM(result) += 1;
+          *res += 1;
 
       }/*FOR*/
 
@@ -264,7 +268,7 @@ SEXP gauss_mcarlo (SEXP x, SEXP y, SEXP samples, SEXP test) {
   PutRNGstate();
 
   /* save the observed p-value. */
-  NUM(result) /= (*B);
+  *res /= *B;
 
   UNPROTECT(1);
 
@@ -280,11 +284,12 @@ SEXP gauss_cmcarlo (SEXP data, SEXP length, SEXP samples, SEXP test) {
   int *work, *perm;
   int *B = INTEGER(samples), *num = INTEGER(length);
   double observed = 0;
-  double *yperm, *yorig;
+  double *yperm, *yorig, *res;
 
-  /* allocate the result */
+  /* allocate and initialize the result. */
   PROTECT(result = allocVector(REALSXP, 1));
-  NUM(result) = 0;
+  res = REAL(result);
+  *res = 0;
 
   /* create a fake dataset which references all the columns of the original
    * data except the second one (which created from scratch and changed at
@@ -325,7 +330,7 @@ SEXP gauss_cmcarlo (SEXP data, SEXP length, SEXP samples, SEXP test) {
           yperm[k] = yorig[perm[k]];
 
         if (fabs(NUM(fast_pcor(data2, length))) > fabs(observed))
-          NUM(result) += 1;
+          *res += 1;
  
       }/*FOR*/
 
@@ -336,7 +341,7 @@ SEXP gauss_cmcarlo (SEXP data, SEXP length, SEXP samples, SEXP test) {
   PutRNGstate();
 
   /* save the observed p-value. */
-  NUM(result) /= *B;
+  *res /= *B;
 
   UNPROTECT(3);
 

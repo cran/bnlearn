@@ -4,19 +4,14 @@
 has.path = function(from, to, nodes, amat, exclude.direct = FALSE,
     underlying.graph = FALSE, debug = FALSE) {
 
-  # remove any arc between "from" and "to".
-  if (exclude.direct) amat[from, to] = amat[to, from] = 0L
-
-  # do not even begin the search if the node are adjacent.
-  if (amat[from, to] == 1) return(TRUE)
-
-  .Call("has_dag_path",
+  .Call("has_pdag_path",
         from = which(nodes == from),
         to = which(nodes == to),
         amat = amat,
         nrows = nrow(amat),
         nodes = nodes,
         underlying = underlying.graph,
+        exclude.direct = exclude.direct,
         debug = debug,
         PACKAGE = "bnlearn")
 
@@ -24,9 +19,6 @@ has.path = function(from, to, nodes, amat, exclude.direct = FALSE,
 
 # count the cycles the arc is part of (even in a partially directed graph).
 how.many.cycles = function(arc, nodes, amat, debug = FALSE) {
-
-  # remove any arc the end-vertices of arc.
-  amat[arc[1], arc[2]] = amat[arc[2], arc[1]] = 0L
 
   .Call("how_many_cycles",
         from = which(nodes == arc[2]),
@@ -106,7 +98,7 @@ mb.backend = function(arcs, node) {
 # backend of nparams, the "get the number of parameters of a
 # discrete bayesian network" function. If real = TRUE this
 # function returns the number of _independent_ parameters
-# (on parameter of each set is set by the constraint by
+# (one parameter of each set is set by the constraint by
 # the condition \sum \pi_{i} = 1).
 nparams.discrete = function(x, data, real = FALSE) {
 

@@ -3,15 +3,17 @@
 score.delta = function(arc, network, data, score, score.delta,
     reference.score, op, extra, debug = FALSE) {
 
+  # do a minimal update to the network structure.
+  fake = .Call("score_delta_helper",
+          net = network,
+          arc = arc,
+          operator = op,
+          PACKAGE = "bnlearn")
+
   if (op == "reverse") {
 
-    # do a minimal update to the network structure.
-    network$nodes[[arc[1]]]$parents = c(network$nodes[[arc[1]]]$parents, arc[2])
-    network$nodes[[arc[2]]]$parents =
-      network$nodes[[arc[2]]]$parents[network$nodes[[arc[2]]]$parents != arc[1]]
-
     # compute the updated score contributions of the nodes involved.
-    new.score = per.node.score(network = network, score = score,
+    new.score = per.node.score(network = fake, score = score,
                         nodes = arc, extra.args = extra, data = data)
 
     # update the test counter.
@@ -28,15 +30,8 @@ score.delta = function(arc, network, data, score, score.delta,
   }#THEN
   else {
 
-    # do a minimal update to the network structure.
-    if (op == "set")
-      network$nodes[[arc[2]]]$parents = c(network$nodes[[arc[2]]]$parents, arc[1])
-    else if (op == "drop")
-      network$nodes[[arc[2]]]$parents =
-        network$nodes[[arc[2]]]$parents[network$nodes[[arc[2]]]$parents != arc[1]]
-
     # compute the updated score contributions of arc[2].
-    new.score = per.node.score(network = network, score = score,
+    new.score = per.node.score(network = fake, score = score,
                         nodes = arc[2], extra.args = extra, data = data)
 
     # update the test counter.

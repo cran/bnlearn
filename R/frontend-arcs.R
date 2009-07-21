@@ -10,7 +10,7 @@ arcs = function(x) {
 }#ARCS
 
 # rebuild the network structure using a new set fo arcs.
-"arcs<-" <- function(x, debug = FALSE, value) {
+"arcs<-" <- function(x, ignore.cycles = FALSE, debug = FALSE, value) {
 
   # check x's class.
   check.bn(x)
@@ -19,13 +19,17 @@ arcs = function(x) {
     stop("no arc specified.")
   # sanitize the set of arcs.
   value = check.arcs(value, graph = x)
+  # check whether the the graph is acyclic.
+  if (!ignore.cycles)
+    if (!is.acyclic(nodes = names(x$nodes), arcs = value, debug = debug))
+      stop("the specified network contains cycles.")
 
   # update the arcs of the network.
   x$arcs = value
   # update the network structure.
   x$nodes = cache.structure(names(x$nodes), arcs = x$arcs, debug = debug)
 
-  x
+  return(x)
 
 }#ARCS<-
 
@@ -72,5 +76,4 @@ reverse.arc = function(x, from, to, check.cycles = TRUE, debug = FALSE) {
     check.cycles = check.cycles, debug = debug)
 
 }#REVERSE.ARC
-
 

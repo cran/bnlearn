@@ -140,19 +140,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
     # if the network is the same as the last iteration, give up.
     if (identical(start$arcs, end$arcs)) {
 
-      # the likelihood score has this nasty habit to be too small for its own
-      # good, and is often rounded to zero due to machine precision limit. If
-      # that's the case, switch to the loglikelihood.
-      if ((score == "lik") && (sum(reference.score) == 0)) {
-
-        warning("switching to loglikelihood due to machine precision limits.")
-
-        score = "loglik"
-        reference.score = sapply(names(start$nodes), loglik.node,
-                            x = start, data = x)
-
-      }#THEN
-      else if ((start$restart >= 0) && (restart > 0)) {
+      if ((start$restart >= 0) && (restart > 0)) {
 
         start = random.restart.network(start = start, restart = restart,
                   reference.score = reference.score, debug = debug)
@@ -222,7 +210,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
   }#REPEAT
 
   # remove all the extra elements from the return value.
-  end$updates = end$score.delta = end$learning$score = end$restart = 
+  end$updates = end$score.delta = end$learning$score = end$restart =
     end$learning$nodes = end$learning$arcs = NULL
 
   end
@@ -406,19 +394,7 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
     # if the network is the same as the last iteration, give up.
     if (identical(start$arcs, end$arcs)) {
 
-      # the likelihood score has this nasty habit to be too small for its own
-      # good, and is often rounded to zero due to machine precision limit. If
-      # that's the case, switch to the loglikelihood.
-      if ((score == "lik") && (sum(reference.score) == 0)) {
-
-        warning("switching to loglikelihood due to machine precision limits.")
-
-        score = "loglik"
-        reference.score = sapply(names(start$nodes), loglik.node,
-                            x = start, data = x)
-
-      }#THEN
-      else if ((start$restart >= 0) && (restart > 0)) {
+      if ((start$restart >= 0) && (restart > 0)) {
 
         start = random.restart.network(start = start, restart = restart,
                   reference.score = reference.score, debug = debug)
@@ -488,7 +464,7 @@ hill.climbing.optimized = function(x, start, whitelist, blacklist, score,
   }#REPEAT
 
   # remove all the extra elements from the return value.
-  end$updates = end$score.delta = end$learning$score = end$restart = 
+  end$updates = end$score.delta = end$learning$score = end$restart =
     end$learning$nodes = end$learning$arcs = NULL
 
   end

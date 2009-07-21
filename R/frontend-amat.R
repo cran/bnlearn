@@ -10,7 +10,7 @@ amat = function(x) {
 }#AMAT
 
 # rebuild the network structure using a new adjacency matrix.
-"amat<-" <- function(x, debug = FALSE, value) {
+"amat<-" <- function(x, ignore.cycles = FALSE, debug = FALSE, value) {
 
   # check x's class.
   check.bn(x)
@@ -22,11 +22,17 @@ amat = function(x) {
 
   # update the arcs of the network.
   x$arcs = amat2arcs(value, names(x$nodes))
+
+  # check whether the the graph is acyclic.
+  if (!ignore.cycles)
+    if (!is.acyclic(nodes = names(x$nodes), arcs = x$arcs, debug = debug))
+      stop("the specified network contains cycles.")
+
   # update the network structure.
   x$nodes = cache.structure(names(x$nodes),
               amat = as.integer(value), debug = debug)
 
-  x
+  return(x)
 
 }#AMAT<-
 

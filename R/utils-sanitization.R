@@ -27,6 +27,14 @@ is.probability = function(x) {
 
 }#IS.PROBABILITY
 
+is.string = function(x) {
+
+  is.character(x) &&
+  (length(x) == 1) &&
+  (x != "")
+
+}#IS.STRING
+
 # check the data set.
 check.data = function(x) {
 
@@ -261,6 +269,8 @@ check.score = function(score, data) {
 
   if (!is.null(score)) {
 
+    # check it's a single character string.
+    check.string(score)
     # check the score/test label.
     if (!(score %in% available.scores))
       stop(paste(c("valid scores are:\n",
@@ -277,9 +287,9 @@ check.score = function(score, data) {
   else {
 
     if (is.data.discrete(data))
-      return("aic")
+      return("bic")
     else
-      return("bge")
+      return("bic-g")
 
   }#ELSE
 
@@ -290,6 +300,8 @@ check.test = function(test, data) {
 
   if (!is.null(test)) {
 
+    # check it's a single character string.
+    check.string(test)
     # check the score/test label.
     if (!(test %in% available.tests))
       stop(paste(c("valid tests are:\n",
@@ -316,17 +328,20 @@ check.test = function(test, data) {
 
 check.criterion = function(criterion, data) {
 
+  # check it's a single character string.
+  check.string(criterion)
+  # check criterion's label.
   if (criterion %in% available.tests)
     criterion = check.test(criterion, data)
   else if (criterion %in% available.scores)
     criterion = check.score(criterion, data)
-  else 
+  else
     stop(paste(c("valid tests are:\n",
       sprintf("    %-10s %s\n", names(test.labels), test.labels),
       "  valid scores are:\n",
       sprintf("    %-10s %s\n", names(score.labels), score.labels)),
       sep = ""))
- 
+
   return(criterion)
 
 }#CHECK.CRITERION
@@ -444,7 +459,7 @@ check.score.args = function(score, network, data, extra.args) {
       network = network, data = data)
 
   }#THEN
-  else if (score %in% c("aic", "bic")) {
+  else if (score %in% c("aic", "bic", "aic-g", "bic-g")) {
 
     if (!is.null(extra.args$k)) {
 
@@ -588,6 +603,29 @@ check.graph.generation.args = function(method, nodes, extra.args) {
 
 }#CHECK.GRAPH.GENERATION.ARGS
 
+# check bootstrap arguments (when they are passed as variable length args).
+check.bootstrap.args = function(extra.args, network, data) {
+
+  # check the number of bootstrap replicates.
+  extra.args$R = check.replicates(extra.args$R)
+  # check the size of each bootstrap sample.
+  extra.args$m = check.bootsize(extra.args$m, data)
+  # check the learning algorithm.
+  algorithm = check.learning.algorithm(extra.args[["algorithm"]], bn = network)
+  # check the extra arguments for the learning algorithm.
+  algorithm.args = check.learning.algorithm.args(extra.args[["algorithm.args"]],
+                     algorithm = algorithm, bn = network)
+
+  extra.args[["algorithm"]] = algorithm
+  extra.args[["algorithm.args"]] = algorithm.args
+
+  # warn about unused arguments.
+  check.unused.args(extra.args, c("R", "m", "algorithm", "algorithm.args"))
+
+  return(extra.args)
+
+}#THEN
+
 # warn about unused arguments.
 check.unused.args = function(dots, used.args) {
 
@@ -633,7 +671,7 @@ check.B = function(B, criterion) {
 
       if (!is.positive.integer(B))
         stop("the number of permutations/bootstrap replications must be a positive integer number.")
-  
+
       B = as.integer(B)
 
     }#THEN
@@ -699,6 +737,18 @@ check.logical = function(bool) {
 
 }#CHECK.LOGICAL
 
+# check character strings.
+check.string = function(string) {
+
+  if (!is.string(string)) {
+
+    stop(sprintf("%s must be a character string.",
+           deparse(substitute(string))))
+
+  }#THEN
+
+}#CHECK.LOGICAL
+
 # check an object of class bn.
 check.bn = function(bn) {
 
@@ -713,14 +763,14 @@ check.bn = function(bn) {
 
 }#CHECK.BN
 
-# check an object of class bn-strength.
+# check an object of class bn.strength.
 check.bn.strength = function(strength, bn) {
 
   if (missing(strength))
-    stop("an object of class 'bn-strength' is required.")
-  if (!is(strength, "bn-strength")) {
+    stop("an object of class 'bn.strength' is required.")
+  if (!is(strength, "bn.strength")) {
 
-    stop(sprintf("%s must be an object of class 'bn-strength'.",
+    stop(sprintf("%s must be an object of class 'bn.strength'.",
            deparse(substitute(strength))))
 
   }#THEN
@@ -735,7 +785,7 @@ check.threshold = function(threshold, strength) {
   else {
 
     s = strength[, "strength"]
-  
+
     if (!is.numeric(threshold) || (length(threshold) != 1) || is.nan(threshold))
       stop("the threshold must be a numeric value.")
     if ((threshold < min(s)) || (threshold > max(s)))
@@ -791,3 +841,135 @@ check.colour = function(col) {
            deparse(substitute(col))))
 
 }#CHECK.COLOUR
+
+# check the label of a learning algorithm.
+check.learning.algorithm = function(algorithm, class = "all", bn) {
+
+  if (missing(algorithm) || is.null(algorithm)) {
+
+    # use the one specified by the bn object as the default.
+    if (missing(bn))
+      stop("the learning algorithm must be a character string.")
+    else if (is(bn, "bn"))
+      algorithm = bn$learning$algo
+
+  }#THEN
+  else if (!is.string(algorithm))
+    stop("the learning algorithm must be a character string.")
+
+  # select the right class of algorithms.
+  if (class == "constraint")
+    ok = constraint.based.algorithms
+  else if (class == "score")
+    ok = score.based.algorithms
+  else
+    ok = available.learning.algorithms
+
+  if (!(algorithm %in% ok))
+       stop(paste(c("valid learning algorithms are:\n",
+            sprintf("    %-10s %s\n", ok, method.labels[ok])), sep = ""))
+
+  return(algorithm)
+
+}#CHECK.LEARNING.ALGORITHM
+
+# check the aruments of a learning algorithm (for use in bootstrap).
+check.learning.algorithm.args = function(args, algorithm, bn) {
+
+  # convert args into a list, if it's not one already.
+  if (!is.list(args))
+      args = as.list(args)
+
+  # if a reference bn is specified, guess as many parameters as possbile.
+  if (!(missing(algorithm) || missing(bn))) {
+
+    # use the same score/conditional independence test.
+    if (algorithm %in% constraint.based.algorithms) {
+
+      # it's essential to check it's actually an independence test,
+      # it could be a score function or NA.
+      if (!("test" %in% names(args)))
+        if (bn$learning$test %in% available.tests)
+          args$test = bn$learning$test
+
+      # set the appropriate value for the optimization flag.
+      if (!("optimized" %in% names(args)))
+        args$optimized = bn$learning$optimized
+
+      # pass along all the parameters in bn$learning$args.
+      if (length(bn$learning$args) > 0) {
+
+        if (!("alpha" %in% names(args)))
+          args$alpha = bn$learning$args$alpha
+
+        if ("test" %in% names(args) && !("B" %in% names(args)))
+          if (args$test %in% resampling.tests)
+            args$B = bn$learning$args$B
+
+      }#THEN
+
+    }#THEN
+    else if (algorithm %in% score.based.algorithms) {
+
+      if (!("score" %in% names(args)))
+        if (bn$learning$test %in% available.scores)
+          args$score = bn$learning$test
+
+      # set the appropriate value for the optimization flag.
+      if (!("optimized" %in% names(args)))
+        args$optimized = bn$learning$optimized
+
+      # pass along the relevant parameters in bn$learning$args if the score
+      # function is the same (hint: different scores have paramenters with
+      # the same name but different meanings).
+      if (("score" %in% names(args)) && (args$score == bn$learning$test))
+        for (arg in names(bn$learning$args))
+          if (!(arg %in% names(args)) && (arg %in% (score.extra.args[[args$score]])))
+            args[[arg]] = bn$learning$args[[arg]]
+
+    }#THEN
+
+    # pass along whitelist and blacklist.
+    if (!is.null(bn$learning$whitelist))
+      args$whitelist = bn$learning$whitelist
+    if (!is.null(bn$learning$blacklist))
+      args$blacklist = bn$learning$blacklist
+
+  }#THEN
+
+  # remove any spurious x arguments, the data are provided by the bootstrap.
+  if ("x" %in% names(args)) {
+
+    args$x = NULL
+
+    warning("removing 'x' from 'algorithm.args', the data set is provided by the bootstrap sampling.")
+
+  }#THEN
+
+  return(args)
+
+}#CHECK.LEARNING.ALGORITHM.ARGS
+
+# check the number of bootstrap replicates.
+check.replicates = function(R) {
+
+  if (missing(R) || is.null(R))
+    R = 200
+  else if (!is.positive.integer(R))
+    stop("the number of bootstrap replicates must be a positive integer.")
+
+  return(R)
+
+}#CHECK.RESAMPLING
+
+# check the size of bootstrap replicates.
+check.bootsize = function(m, data) {
+
+  if (missing(m) || is.null(m))
+    m = round(2/3 * nrow(data))
+  else if (!is.positive.integer(m))
+    stop("bootstrap sample size must be a positive integer.")
+  return(m)
+
+}#CHECK.BOOTSIZE
+

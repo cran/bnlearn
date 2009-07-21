@@ -1,9 +1,31 @@
 
+bnlearn (1.5)
+
+  * improved paramenter sanitization in the "<-"()
+      functions and modelstring().
+  * added support for bootstrap inference with bnboot(),
+      boot.strength(), arc.strength(, criterion = "bootstrap")
+      and choose.direction(, criterion = "bootstrap").
+  * fixed a bug in acyclic() causing false negatives.
+  * added bn.fit() for estimating the parameters of a Baeysian
+      network conditional on its structure.
+  * mapped some S3 methods (print, fitted, fitted.values,
+      residuals, resid, coefs, coefficients) to objects of 
+      class "bn-fit", "bn-fit-gnode" and "bn-fit-dnode".
+  * added some plots for the fitted models based on the
+      lattice package.
+  * implemented AIC and BIC for continuous data, and
+      removed the likelihood score.
+  * various optimizations to C code.
+  * throughout documentation update.
+  * fixed an infinite-loop bug in inter.iamb().
+  * fixed a false negative in acyclic().
+
 bnlearn (1.4)
   * exported the "B" parameter to specify the number of
       permutations to be done in a permutation test.
   * removed the "direction" parameter from constraint-based
-      learning algorithms, as it was non-standard, 
+      learning algorithms, as it was non-standard,
       misnamed and had various reported problems.
   * removed the duplicate "dir" label for the BDe score.
   * added support for Gaussian data to rbn() and nparams().
@@ -16,7 +38,7 @@ bnlearn (1.4)
 
 bnlearn (1.3)
   * added Monte Carlo permutation tests for mutual
-      information (for both discrete and Gaussian data), 
+      information (for both discrete and Gaussian data),
       Pearson's X^2, linear correlation and Fisher's Z.
   * added strength.plot().
   * reimplemented random.graph() in C for speed.

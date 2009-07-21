@@ -103,6 +103,8 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
   whitelisted = nodes[sapply(nodes,
           function(y) { is.whitelisted(whitelist, c(x,y), either = TRUE) })]
   mb = c()
+  loop.counter = 1
+  state = vector(5 * length(nodes), mode = "list")
 
   del.node = function(y, x, test) {
 
@@ -217,6 +219,33 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
       break
 
     }#THEN
+
+    state[[loop.counter]] = mb
+
+    # the stepwise learning technique used here is stateless; make it stateful
+    # to detect and break infinite loops.
+    duplicated.check = duplicated(state[seq(loop.counter)])
+
+    if (any(duplicated.check)) {
+     
+      if (debug) {
+      
+        cat("  ! recurring markov blanket configuration detected (", 
+          state[[loop.counter]], ").\n") 
+        cat("  ! retracing the steps of the learning process:\n") 
+        sapply(state[seq(loop.counter)], 
+          function(str) { 
+            cat("    >", paste(str, collapse = " "), "\n") 
+          })
+
+      }#THEN
+
+      stop("infinite loop detected, probably have gone on forever.")
+
+    }#THEN
+
+    # increment the loop counter.
+    loop.counter = loop.counter + 1
 
   }#REPEAT
 

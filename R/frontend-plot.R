@@ -1,19 +1,20 @@
 
 # generic plot of an object of class 'bn' using graphivz.
-graphviz.plot = function(x, highlight = NULL, layout = "dot", main = NULL,
-    sub = NULL) {
+graphviz.plot = function(x, highlight = NULL, layout = "dot", shape = "circle", 
+    main = NULL, sub = NULL) {
 
   # check x's class.
   check.bn(x)
 
   graphviz.backend(nodes = names(x$nodes), arcs = x$arcs,
-    highlight = highlight, layout = layout, main = main, sub = sub)
+    highlight = highlight, layout = layout, shape = shape, 
+    main = main, sub = sub)
 
 }#GRAPHVIZ.PLOT
 
 # plot a graph with arcs formatted according to their own strength.
 strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
-    layout = "dot", main = NULL, sub = NULL, debug = FALSE) {
+    layout = "dot", shape = "circle", main = NULL, sub = NULL, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
@@ -22,13 +23,13 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
   # check the strength threshold.
   threshold = check.threshold(threshold, strength)
 
-  # compute the arc weights from the bn-strength object.
+  # compute arc weights from the bn.strength object.
   arc.weights = strength2lwd(strength = strength, threshold = threshold,
                   cutpoints = cutpoints, debug = debug)
 
   graphviz.backend(nodes = names(x$nodes), arcs = x$arcs,
     highlight = highlight, arc.weights = arc.weights,
-    layout = layout, main = main, sub = sub)
+    layout = layout, shape = shape, main = main, sub = sub)
 
 }#STRENGTH.PLOT
 

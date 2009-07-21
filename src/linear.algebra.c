@@ -9,7 +9,7 @@
 
 /* -------------------- function declarations --------------------------- */
 
-static void c_svd(double *A, double *U, double *D, double *V, int *nrows, 
+static void c_svd(double *A, double *U, double *D, double *V, int *nrows,
     int *ncols, int *mindim);
 
 /* -------------------- R level interfaces to LAPACK -------------------- */
@@ -43,7 +43,7 @@ SEXP r_svd(SEXP matrix) {
   SET_STRING_ELT(elnames, 0, mkChar("d"));
   SET_STRING_ELT(elnames, 1, mkChar("u"));
   SET_STRING_ELT(elnames, 2, mkChar("vt"));
-  setAttrib(result, R_NamesSymbol, elnames); 
+  setAttrib(result, R_NamesSymbol, elnames);
   SET_VECTOR_ELT(result, 0, D);
   SET_VECTOR_ELT(result, 1, U);
   SET_VECTOR_ELT(result, 2, Vt);
@@ -62,13 +62,13 @@ SEXP r_svd(SEXP matrix) {
 /* C-level wrapper around the dgesvd() F77 routine. Note that the input
  * matrix A is overwritten by dgesvd(), so it's sensible to have a
  * backup copy in case it's needed later. */
-static void c_svd(double *A, double *U, double *D, double *V, int *nrows, 
+static void c_svd(double *A, double *U, double *D, double *V, int *nrows,
     int *ncols, int *mindim) {
 
   int err, lwork = -1;
   char jobu, jobvt;
   double work1, *work;
-    
+
   if (*nrows < *ncols) {
 
     jobu = 'A';
@@ -80,11 +80,11 @@ static void c_svd(double *A, double *U, double *D, double *V, int *nrows,
     jobu = 'S';
     jobvt = 'A';
 
-  }/*ELSE*/    
+  }/*ELSE*/
 
-  F77_CALL(dgesvd)(&jobu, &jobvt, nrows, ncols, A, nrows, D, U, nrows, V, 
+  F77_CALL(dgesvd)(&jobu, &jobvt, nrows, ncols, A, nrows, D, U, nrows, V,
     mindim, &work1, &lwork, &err);
-  
+
   lwork = (int)floor(work1);
 
   if (work1 - lwork > 0.5) lwork++;
@@ -92,11 +92,11 @@ static void c_svd(double *A, double *U, double *D, double *V, int *nrows,
   work = (double *)Calloc(lwork, double);
 
   /* actual call */
-  F77_NAME(dgesvd)(&jobu, &jobvt, nrows, ncols, A, nrows, D, U, nrows, V, 
+  F77_NAME(dgesvd)(&jobu, &jobvt, nrows, ncols, A, nrows, D, U, nrows, V,
     mindim, work, &lwork, &err);
 
   Free(work);
-  
+
   if (err)
     error("an error (%d) occurred in the call to dgesvd().\n", err);
 

@@ -1,34 +1,34 @@
-#include <R.h>
-#include <Rinternals.h>
+#include "common.h"
 
 #define ARC(i,col) CHAR(STRING_ELT(arcs, i + col * nrows))
 #define NODE(i) CHAR(STRING_ELT(nodes, i))
-#define AMAT(i,j) INTEGER(amat)[i + j * nrows]
 
 SEXP arcs2amat(SEXP arcs, SEXP nodes) {
 
   int i = 0, j = 0, k = 0;
   int nrows = LENGTH(arcs) / 2;
   int dims = LENGTH(nodes);
-  SEXP res, dimnames;
+  int *res;
+  SEXP result, dimnames;
 
   /* allocate the adjacency matrix. */
-  PROTECT(res = allocMatrix(INTSXP, dims, dims));
+  PROTECT(result = allocMatrix(INTSXP, dims, dims));
+  res = INTEGER(result);
 
   /* allocate rownames and colnames. */
   PROTECT(dimnames = allocVector(VECSXP, 2));
   SET_VECTOR_ELT(dimnames, 0, nodes);
   SET_VECTOR_ELT(dimnames, 1, nodes);
-  setAttrib(res, R_DimNamesSymbol, dimnames);
+  setAttrib(result, R_DimNamesSymbol, dimnames);
 
   /* initialize the adjacency matrix. */
-  memset(INTEGER(res), '\0', sizeof(int) * dims * dims);
+  memset(res, '\0', sizeof(int) * dims * dims);
 
   /* nothing to do if there are no arcs. */
   if (nrows == 0) {
 
     UNPROTECT(2);
-    return res;
+    return result;
 
   }/*THEN*/
 
@@ -45,7 +45,7 @@ SEXP arcs2amat(SEXP arcs, SEXP nodes) {
 
           if (!strcmp(NODE(j), ARC(k, 1)) ) {
 
-            INTEGER(res)[i + j * dims] = 1;
+            res[i + j * dims] = 1;
 
           }/*THEN*/
 
@@ -59,15 +59,15 @@ SEXP arcs2amat(SEXP arcs, SEXP nodes) {
 
   UNPROTECT(2);
 
-  return res;
+  return result;
 
 }/*ARCS2AMAT*/
 
 SEXP amat2arcs(SEXP amat, SEXP nodes) {
 
   int i = 0, j = 0, k = 0;
-  int nrows = LENGTH(nodes);
-  int narcs = 0;
+  int nrows = LENGTH(nodes), narcs = 0;
+  int *a = INTEGER(amat);
   SEXP arcs, dimnames, colnames;
 
   /* count the number of arcs in the adjacency matrix. */
@@ -75,7 +75,7 @@ SEXP amat2arcs(SEXP amat, SEXP nodes) {
 
     for (j = 0; j < nrows; j++) {
 
-      if (AMAT(i, j) == 1) narcs++;
+      if (a[CMC(i, j, nrows)] == 1) narcs++;
 
     }/*FOR*/
 
@@ -117,7 +117,7 @@ SEXP amat2arcs(SEXP amat, SEXP nodes) {
 
       /* colnames and rownames are completely ignored. This kills some corner
            cases present in the old R code.  */
-      if (AMAT(i, j) == 1) {
+      if (a[CMC(i, j, nrows)] == 1) {
 
          SET_STRING_ELT(arcs, k, STRING_ELT(nodes, i));
          SET_STRING_ELT(arcs, k + 1 * narcs, STRING_ELT(nodes, j));

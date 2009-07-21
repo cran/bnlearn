@@ -266,3 +266,17 @@ compare = function (r1, r2, debug = FALSE) {
 
 }#COMPARE
 
+# reconstruct the equivalence class of a network.
+cpdag = function(x, debug = FALSE) {
+
+  # check x's class.
+  check.bn(x)
+  # check debug.
+  check.logical(debug)
+  # store nodes' names.
+  nodes = names(x$nodes)
+
+  cpdag.backend(amat = arcs2amat(x$arcs, nodes), nodes = nodes, debug = debug)
+
+}#CPDAG
+

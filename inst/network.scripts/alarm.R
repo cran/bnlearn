@@ -25,12 +25,12 @@ STROKEVOLUME[STROKEVOLUME == "TRUE:FALSE"] = sample(LV3, length(which(STROKEVOLU
 STROKEVOLUME[STROKEVOLUME == "FALSE:FALSE"] = sample(LV3, length(which(STROKEVOLUME == "FALSE:FALSE")), prob = c(0.05, 0.9, 0.05), replace = TRUE)
 
 CVP = LVEDVOLUME
-CVP[CVP == "LOW"] = sample(LV3, length(which(CVP == "LOW")), prob = c(0.95, 0.04, 0.01), replace = TRUE) 
+CVP[CVP == "LOW"] = sample(LV3, length(which(CVP == "LOW")), prob = c(0.95, 0.04, 0.01), replace = TRUE)
 CVP[CVP == "NORMAL"] = sample(LV3, length(which(CVP == "NORMAL")), prob = c(0.04, 0.95, 0.01), replace = TRUE)
 CVP[CVP == "HIGH"] = sample(LV3, length(which(CVP == "HIGH")), prob = c(0.01, 0.29, 0.7), replace = TRUE)
 
 PCWP = LVEDVOLUME
-PCWP[PCWP == "LOW"] = sample(LV3, length(which(PCWP == "LOW")), prob = c(0.95, 0.04, 0.01), replace = TRUE) 
+PCWP[PCWP == "LOW"] = sample(LV3, length(which(PCWP == "LOW")), prob = c(0.95, 0.04, 0.01), replace = TRUE)
 PCWP[PCWP == "NORMAL"] = sample(LV3, length(which(PCWP == "NORMAL")), prob = c(0.04, 0.95, 0.01), replace = TRUE)
 PCWP[PCWP == "HIGH"] = sample(LV3, length(which(PCWP == "HIGH")), prob = c(0.01, 0.04, 0.95), replace = TRUE)
 
@@ -80,7 +80,7 @@ VENTTUBE[VENTTUBE == "FALSE:NORMAL"] = sample(LV4, length(which(VENTTUBE == "FAL
 VENTTUBE[VENTTUBE == "TRUE:HIGH"] = sample(LV4, length(which(VENTTUBE == "TRUE:HIGH")), prob = c(0.01, 0.01, 0.97, 0.01), replace = TRUE)
 VENTTUBE[VENTTUBE == "FALSE:HIGH"] = sample(LV4, length(which(VENTTUBE == "FALSE:HIGH")), prob = c(0.01, 0.01, 0.01, 0.97), replace = TRUE)
 
-PRESS = apply(cbind(INTUBATION, KINKEDTUBE, VENTTUBE), 1, paste, collapse = ":") 
+PRESS = apply(cbind(INTUBATION, KINKEDTUBE, VENTTUBE), 1, paste, collapse = ":")
 PRESS[PRESS == "NORMAL:TRUE:ZERO"] = sample(LV4, length(which(PRESS == "NORMAL:TRUE:ZERO")), prob = c(0.97, 0.01, 0.01, 0.01), replace = TRUE)
 PRESS[PRESS == "ESOPHAGEAL:TRUE:ZERO"] = sample(LV4, length(which(PRESS == "ESOPHAGEAL:TRUE:ZERO")), prob = c(0.01, 0.30, 0.49, 0.20), replace = TRUE)
 PRESS[PRESS == "ONESIDED:TRUE:ZERO"] = sample(LV4, length(which(PRESS == "ONESIDED:TRUE:ZERO")), prob = c(0.01, 0.01, 0.08, 0.90), replace = TRUE)

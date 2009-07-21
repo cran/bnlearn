@@ -1,22 +1,19 @@
 
 # Parameter sanitization for the constraint-based learning algorithms.
 bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = "mi", alpha = 0.05, B = NULL, method = "gs", debug = FALSE, 
+    test = "mi", alpha = 0.05, B = NULL, method = "gs", debug = FALSE,
     optimized = TRUE, strict = TRUE, undirected = FALSE) {
 
   assign(".test.counter", 0, envir = .GlobalEnv)
 
   res = NULL
-  available.methods = c("gs", "iamb", "fast-iamb", "inter-iamb", "mmpc")
   supported.clusters = c("MPIcluster", "PVMcluster","SOCKcluster")
   cluster.aware = FALSE
 
   # check the data are there.
   check.data(x)
   # check the algorithm.
-  if (!(method %in% available.methods))
-    stop(paste("valid values for method are:",
-           paste(available.methods, collapse = " ")))
+  check.learning.algorithm(method, class = "constraint")
   # check test labels.
   test = check.test(test, x)
   # check the logical flags (debug, strict, optimized, undirected, direction).
@@ -97,20 +94,20 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     else if (optimized) {
 
       mb = incremental.association.optimized(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B, 
+        blacklist = blacklist, test = test, alpha = alpha, B = B,
         strict = strict, debug = debug)
 
     }#THEN
     else {
 
       mb = incremental.association(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B, 
+        blacklist = blacklist, test = test, alpha = alpha, B = B,
         strict = strict, debug = debug)
 
     }#ELSE
 
   }#THEN
-  else if (method == "fast-iamb") {
+  else if (method == "fast.iamb") {
 
     if (cluster.aware) {
 
@@ -122,20 +119,20 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     else if (optimized) {
 
       mb = fast.incremental.association.optimized(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B, 
+        blacklist = blacklist, test = test, alpha = alpha, B = B,
         strict = strict, debug = debug)
 
     }#THEN
     else {
 
       mb = fast.incremental.association(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B, 
+        blacklist = blacklist, test = test, alpha = alpha, B = B,
         strict = strict, debug = debug)
 
     }#ELSE
 
   }#THEN
-  else if (method == "inter-iamb") {
+  else if (method == "inter.iamb") {
 
     if (cluster.aware) {
 
@@ -147,14 +144,14 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     else if (optimized) {
 
       mb = inter.incremental.association.optimized(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B, 
+        blacklist = blacklist, test = test, alpha = alpha, B = B,
         strict = strict, debug = debug)
 
     }#THEN
     else {
 
       mb = inter.incremental.association(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B, 
+        blacklist = blacklist, test = test, alpha = alpha, B = B,
         strict = strict, debug = debug)
 
     }#ELSE
@@ -165,7 +162,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     if (cluster.aware) {
 
       mb = maxmin.pc.cluster(x = x, cluster = cluster, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B, 
+        blacklist = blacklist, test = test, alpha = alpha, B = B,
         strict = strict, debug = debug)
 
     }#THEN
@@ -188,8 +185,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     # save the status of the learning algorithm.
     arcs = nbr2arcs(mb)
-    learning = list(whitelist = whitelist, blacklist = blacklist, 
-      test = test, args = list(alpha = alpha),
+    learning = list(whitelist = whitelist, blacklist = blacklist,
+      test = test, args = list(alpha = alpha), optimized = optimized,
       ntests = get(".test.counter", envir = .GlobalEnv))
 
     # include also the number of permutations/bootstrap samples
@@ -197,13 +194,13 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     if (!is.null(B))
       learning$args$B = B
 
-    res = list(learning = learning, 
+    res = list(learning = learning,
       nodes = cache.structure(names(mb), arcs = arcs), arcs = arcs)
 
   }#THEN
   else {
 
-    # recover some of the arc directions.
+    # recover some arc directions.
     res = second.principle(x = x, mb = mb, whitelist = whitelist,
             blacklist = blacklist, test = test, alpha = alpha, B = B,
             strict = strict, debug = debug)
@@ -216,6 +213,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       sum(unlist(clusterEvalQ(cluster, get(".test.counter", envir = .GlobalEnv))))
   # save the learning method used.
   res$learning$algo = method
+  # save the 'optimized' flag.
+  res$learning$optimized = optimized
 
   invisible(structure(res, class = "bn"))
 
@@ -223,11 +222,13 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 # Parameter sanitization for the score-based learning algorithms.
 greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
-    score = "k2", heuristic = "hc", ..., debug = FALSE, restart = 0,
+    score = "aic", heuristic = "hc", ..., debug = FALSE, restart = 0,
     perturb = 1, max.iter = Inf, optimized = FALSE) {
 
   # check the data are there.
   check.data(x)
+  # check the algorithm.
+  check.learning.algorithm(heuristic, class = "score")
   # check the score label.
   score = check.score(score, x)
   # check debug.
@@ -290,6 +291,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   # create the test counter in .GlobalEnv.
   assign(".test.counter", 0, envir = .GlobalEnv)
 
+  # call the right backend.
   if (heuristic == "hc") {
 
     if (optimized) {
@@ -315,6 +317,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   res$learning$algo = heuristic
   res$learning$ntests = get(".test.counter", envir = .GlobalEnv)
   res$learning$test = score
+  res$learning$optimized = optimized
   res$learning$args = extra.args
 
   invisible(res)

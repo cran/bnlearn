@@ -36,13 +36,13 @@ SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
      if (isTRUE(debug))
        Rprintf("  > checking node %s.\n",  NODE(i));
 
-    /* get the entry for the (neighbours|elements of the markov blanket) 
+    /* get the entry for the (neighbours|elements of the markov blanket)
        of the node.*/
     temp = getListElement(bn, NODE(i));
     if (!isTRUE(mb))
       temp = getListElement(temp, "nbr");
 
-    /* check each element of the array and identify which variable it 
+    /* check each element of the array and identify which variable it
        corresponds to. */
     for (j = 0; j < LENGTH(temp); j++) {
 
@@ -132,7 +132,7 @@ SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
       PROTECT(temp = allocVector(VECSXP, 2));
       SET_VECTOR_ELT(fixed, i, temp);
       setAttrib(temp, R_NamesSymbol, elnames);
-  
+
       /* copy the "mb" part from the old structure. */
       temp2 = getListElement(bn, NODE(i));
       temp2 = getListElement(temp2, "mb");

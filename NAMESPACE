@@ -30,6 +30,7 @@ export(
   "reverse.arc",
   "choose.direction",
   "arc.strength",
+  "boot.strength",
   "rbn",
   "score",
   "ci.test",
@@ -41,8 +42,16 @@ export(
   "ordering2blacklist",
   "empty.graph",
   "random.graph",
+  "bnboot",
   "graphviz.plot",
-  "strength.plot"
+  "strength.plot",
+  "bn.fit",
+  "bn.fit.qqplot",
+  "bn.fit.histogram",
+  "bn.fit.xyplot",
+  "bn.fit.barchart",
+  "bn.fit.dotplot",
+  "cpdag"
 )
 
 S3method(print, bn)
@@ -56,3 +65,15 @@ S3method(ci.test, data.frame)
 S3method(ci.test, numeric)
 S3method(ci.test, factor)
 S3method(ci.test, default)
+S3method(print, "bn.fit")
+S3method(print, "bn.fit.dnode")
+S3method(print, "bn.fit.gnode")
+S3method(residuals, "bn.fit")
+S3method(residuals, "bn.fit.dnode")
+S3method(residuals, "bn.fit.gnode")
+S3method(fitted, "bn.fit")
+S3method(fitted, "bn.fit.dnode")
+S3method(fitted, "bn.fit.gnode")
+S3method(coef, "bn.fit")
+S3method(coef, "bn.fit.dnode")
+S3method(coef, "bn.fit.gnode")

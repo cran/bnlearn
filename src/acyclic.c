@@ -1,7 +1,6 @@
 #include "common.h"
 
 #define NODE(i) CHAR(STRING_ELT(nodes, i))
-#define AMAT(i,j) INTEGER(amat)[i + j * nrows]
 #define GOOD 1
 #define BAD 0
 
@@ -22,6 +21,7 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
   int check_status = nrows;
   int check_status_old = nrows;
   int rowsums, colsums;
+  int *a;
   short int *status;
 
   /* build the adjacency matrix from the arc set.  */
@@ -29,6 +29,7 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
     Rprintf("* building the adjacency matrix.\n");
 
   PROTECT(amat = arcs2amat(arcs, nodes));
+  a = INTEGER(amat);
 
   /* allocate and initialize the status array. */
   status = allocstatus(nrows);
@@ -55,8 +56,8 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
       /* compute row and column totals for the i-th node. */
       for (j = 0; j < nrows; j++) {
 
-        rowsums += AMAT(i, j);
-        colsums += AMAT(j, i);
+        rowsums += a[CMC(i, j, nrows)];
+        colsums += a[CMC(j, i, nrows)];
 
       }/*FOR*/
 
@@ -72,7 +73,7 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
           Rprintf("  @ node %s is cannot be part of a cycle.\n", NODE(i));
 
         for (j = 0; j < nrows; j++)
-          AMAT(i, j) = AMAT(j, i) = 0;
+          a[CMC(i, j, nrows)] = a[CMC(j, i, nrows)] = 0;
 
         /* mark the node as good. */
         status[i] = GOOD;
@@ -120,12 +121,12 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
 
 SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
 
-  SEXP amat;
+  SEXP amat, false, true;
   int i = 0, j = 0, z = 0;
   int nrows = LENGTH(nodes);
   int check_status = nrows;
   int check_status_old = nrows;
-  int *rowsums, *colsums, *crossprod;
+  int *rowsums, *colsums, *crossprod, *a;
   short int *status;
 
   /* build the adjacency matrix from the arc set.  */
@@ -133,6 +134,13 @@ SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
     Rprintf("* building the adjacency matrix.\n");
 
   PROTECT(amat = arcs2amat(arcs, nodes));
+  a = INTEGER(amat);
+
+  /* initialize a dummy variables to false and true. */
+  PROTECT(false = allocVector(LGLSXP, 1));
+  LOGICAL(false)[0] = FALSE;
+  PROTECT(true = allocVector(LGLSXP, 1));
+  LOGICAL(true)[0] = TRUE;
 
   /* initialize the status, {row,col}sums and crossprod arrays. */
   status = allocstatus(nrows);
@@ -148,6 +156,8 @@ SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
    * enough. */
   for (z = 0; z < nrows; z++) {
 
+start:
+
     if (isTRUE(debug))
       Rprintf("* beginning iteration %d.\n", z + 1);
 
@@ -162,9 +172,9 @@ SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
       /* compute row and column totals for the i-th node. */
       for (j = 0; j < nrows; j++) {
 
-        rowsums[i] += AMAT(i, j);
-        colsums[i] += AMAT(j, i);
-        crossprod[i] += AMAT(i, j) * AMAT(j, i);
+        rowsums[i] += a[CMC(i, j, nrows)];
+        colsums[i] += a[CMC(j, i, nrows)];
+        crossprod[i] += a[CMC(i, j, nrows)] * a[CMC(j, i, nrows)];
 
       }/*FOR*/
 
@@ -184,7 +194,7 @@ there:
 
         /* update the adjacency matrix and the row/column totals. */
         for (j = 0; j < nrows; j++)
-          AMAT(i, j) = AMAT(j, i) = 0;
+          a[CMC(i, j, nrows)] = a[CMC(j, i, nrows)] = 0;
 
         rowsums[i] = colsums[i] = crossprod[i] = 0;
 
@@ -197,7 +207,7 @@ there:
 
         /* find the other of the undirected arc. */
         for (j = 0; j < i; j++)
-          if (AMAT(i, j) * AMAT(j, i) == 1)
+          if (a[CMC(i, j, nrows)] * a[CMC(j, i, nrows)] == 1)
             break;
 
         /* safety check, just in case. */
@@ -210,7 +220,7 @@ there:
             Rprintf("  @ arc %s - %s is cannot be part of a cycle.\n", NODE(i), NODE(j));
 
           /* update the adjacency matrix and the row/column totals. */
-          AMAT(i, j) = AMAT(j, i) = 0;
+          a[CMC(i, j, nrows)] = a[CMC(j, i, nrows)] = 0;
           crossprod[i] = 0;
           rowsums[i]--;
           colsums[i]--;
@@ -235,7 +245,7 @@ there:
       if (isTRUE(debug))
         Rprintf("@ at least three nodes are needed to have a cycle.\n");
 
-      UNPROTECT(1);
+      UNPROTECT(3);
       return build_return_array(nodes, status, nrows, check_status, return_nodes);
 
     }/*THEN*/
@@ -247,16 +257,51 @@ there:
       if (isTRUE(debug))
         Rprintf("@ no change in the last iteration.\n");
 
-      UNPROTECT(1);
+      /* give up and call c_has_path() to kill some undirected arcs. */
+      for (i = 0; i < nrows; i++)
+        for (j = 0; j < i; j++)
+          if (a[CMC(i, j, nrows)] * a[CMC(j, i, nrows)] == 1) {
+
+            /* remove the arc from the adjacency matrix while testing it,
+             * there's a path is always found (the arc itself). */
+            a[CMC(i, j, nrows)] = a[CMC(j, i, nrows)] = 0;
+
+            if(!isTRUE(c_has_path(i, j, INTEGER(amat), nrows, nodes, false, true, false)) &&
+               !isTRUE(c_has_path(j, i, INTEGER(amat), nrows, nodes, false, true, false))) {
+
+              if (isTRUE(debug))
+                Rprintf("@ arc %s - %s is not part of any cycle, removing.\n", NODE(i), NODE(j));
+
+              /* increase the iteration counter and start again. */
+              z++;
+              goto start;
+
+            }/*THEN*/
+            else {
+
+              /* at least one cycle is really present; give up and return.  */
+              UNPROTECT(3);
+              return build_return_array(nodes, status, nrows, check_status, return_nodes);
+
+            }/*ELSE*/
+
+          }/*THEN*/
+
+      /* give up if there are no undirected arcs, cycles composed
+       * entirely by directed arcs are never false positives. */
+      UNPROTECT(3);
       return build_return_array(nodes, status, nrows, check_status, return_nodes);
 
     }/*THEN*/
-    else
+    else {
+
       check_status_old = check_status;
+
+    }/*ELSE*/
 
   }/*FOR*/
 
-  UNPROTECT(1);
+  UNPROTECT(3);
   return build_return_array(nodes, status, nrows, check_status, return_nodes);
 
 }/*IS_PDAG_ACYCLIC*/

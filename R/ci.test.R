@@ -15,9 +15,9 @@ ci.test.character = function(x, y = NULL, z = NULL, data, test = NULL,
   # check debug.
   check.logical(debug)
   # check the variables involved in the test.
-  if (length(x) != 1 || x == "" || !(x %in% names(data)))
+  if (!is.string(x) || !(x %in% names(data)))
     stop("'x' must be a character string, the name of one of the columns of 'data'.")
-  if (length(y) != 1 || !is.character(y) || y == "" || !(y %in% names(data)))
+  if (!is.string(y) || !(y %in% names(data)))
     stop("'y' must be a character string, the name of one of the columns of 'data'.")
   if (x == y)
     stop("'x' must be different from 'y'.")

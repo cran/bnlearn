@@ -68,7 +68,7 @@ grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test,
 
 }#GROW.SHRINK.CLUSTER
 
-grow.shrink = function(x, whitelist, blacklist, test, alpha, B, 
+grow.shrink = function(x, whitelist, blacklist, test, alpha, B,
   strict, debug) {
 
   nodes = names(x)

@@ -1,30 +1,36 @@
 #include "common.h"
 
-#define AMAT(i,j) INTEGER(amat)[i + j * n]
 #define NODE(i) CHAR(STRING_ELT(nodes, i))
 
-SEXP has_dag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes,
-    SEXP underlying, SEXP debug) {
+SEXP has_pdag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes,
+    SEXP underlying, SEXP exclude_direct, SEXP debug) {
 
   int start = INT(from) - 1;
   int stop = INT(to) - 1;
   int n = INT(nrows);
   int *a = INTEGER(amat);
 
-  return c_has_dag_path(start, stop, a, n, nodes, underlying, debug);
+  return c_has_path(start, stop, a, n, nodes, underlying, exclude_direct, debug);
 
 }/*HAS_DAG_PATH*/
 
-SEXP c_has_dag_path(int start, int stop, int *amat, int n, SEXP nodes,
-    SEXP underlying, SEXP debug) {
+SEXP c_has_path(int start, int stop, int *amat, int n, SEXP nodes,
+    SEXP underlying, SEXP exclude_direct, SEXP debug) {
 
-  int *counter;
-  int *path;
-  int path_pos = 0;
-  int cur = start;
-  int i = 0;
+  int *counter, *path;
+  int path_pos = 0, cur = start;
+  int i = 0, a1 = 0, a2 = 0;
 
   SEXP res;
+
+  /* remove any arc between start and stop if asked to. */
+  if (isTRUE(exclude_direct)) {
+
+    a1 = amat[CMC(start, stop, n)];
+    a2 = amat[CMC(stop, start, n)];
+    amat[CMC(start, stop, n)] =  amat[CMC(stop, start, n)] = 0;
+
+  }/*THEN*/
 
   /* initialize the position counters for the rows of the adjacency matrix. */
   counter = alloc1dcont(n);
@@ -83,6 +89,15 @@ there:
 
         LOGICAL(res)[0] = FALSE;
         UNPROTECT(1);
+
+        /* remove any arc between start and stop if asked to. */
+        if (isTRUE(exclude_direct)) {
+
+          amat[CMC(start, stop, n)] = a1;
+          amat[CMC(stop, start, n)] = a2;
+
+        }/*THEN*/
+
         return res;
 
       }/*THEN*/
@@ -133,24 +148,27 @@ there:
 
   /* node 'stop' has been found, return TRUE. */
   UNPROTECT(1);
+
+  /* remove any arc between start and stop if asked to. */
+  if (isTRUE(exclude_direct)) {
+
+    amat[CMC(start, stop, n)] = a1;
+    amat[CMC(stop, start, n)] = a2;
+
+  }/*THEN*/
+
   return res;
 
 }/*C_HAS_DAG_PATH*/
 
 SEXP how_many_cycles(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes, SEXP debug) {
 
-  int start = INT(from) - 1;
-  int stop = INT(to) - 1;
-  int n = INT(nrows);
-  int *counter;
-  int *path;
-  int path_pos = 0;
-  int cur = start;
-  int cycle_counter = 0;
-  int i = 0;
+  int start = INT(from) - 1, stop = INT(to) - 1, n = INT(nrows);
+  int *counter, *path, *a;
+  int path_pos = 0, cur = start, cycle_counter = 0;
+  int i = 0, a1 = 0, a2 = 0;
 
   SEXP res;
-
 
   /* initialize the position counters for the rows of the adjacency matrix. */
   counter = alloc1dcont(n);
@@ -160,6 +178,13 @@ SEXP how_many_cycles(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes, SEXP
   /* allocate the result. */
   PROTECT(res = allocVector(INTSXP, 1));
   INT(res) = 0;
+
+  /* map the adjacency matri. */
+  a = INTEGER(amat);
+  /* back up and remove any arc between "start" and "stop".  */
+  a1 = a[CMC(start, stop, n)];
+  a2 = a[CMC(stop, start, n)];
+  a[CMC(start, stop, n)] = a[CMC(stop, start, n)] = 0;
 
   while (1) {
 
@@ -171,7 +196,7 @@ there:
     /* find the next child of the 'cur' node. */
     for (i = 0; (i < n) && (counter[cur] < n); i++) {
 
-      if (AMAT(cur, counter[cur]) != 0)
+      if (a[CMC(cur, counter[cur], n)] != 0)
         break;
 
       counter[cur]++;
@@ -211,6 +236,11 @@ there:
 
         INT(res) = cycle_counter;
         UNPROTECT(1);
+
+        /* restore the original values in the adjacency matrix. */
+        a[CMC(start, stop, n)] = a1;
+        a[CMC(stop, start, n)] = a2;
+
         return res;
 
       }/*THEN*/

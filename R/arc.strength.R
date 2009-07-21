@@ -95,6 +95,58 @@ arc.strength.score = function(network, data, score, extra, debug) {
 
 }#ARC.STRENGTH.SCORE
 
+arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, debug) {
+
+  # allocate and initialize an empty adjacency matrix.
+  prob = matrix(0, ncol = ncol(data), nrow = ncol(data))
+  # get the names of the variables in the data set.
+  nodes = names(data)
+
+  for (r in seq_len(R)) {
+
+    if (debug) {
+
+      cat("----------------------------------------------------------------\n")
+      cat("* bootstrap replicate", r, ".\n")
+
+    }#THEN
+
+    # generate the r-th bootstrap sample.
+    replicate = data[sample(nrow(data), m, replace = TRUE), , drop = FALSE]
+
+    # learn the network structure from the bootstrap sample.
+    net = do.call(algorithm, c(list(x = replicate), algorithm.args))
+
+    if (debug) {
+
+      cat("* learning bayesian network structure.\n")
+      print(net)
+
+    }#THEN
+
+    # update the counters in the matrix: undirected arcs are counted half
+    # for each direction, so that when summing up strength and direction
+    # they get counted once instead of twice.
+    # BEWARE: in-place modification of prob!
+    .Call("bootstrap_strength_counters",
+          prob = prob,
+          arcs = net$arcs,
+          nodes = nodes,
+          PACKAGE = "bnlearn")
+
+  }#FOR
+
+  # rescale the counters to probabilities.
+  prob = prob / R
+
+  .Call("bootstrap_arc_coefficients",
+        prob = prob,
+        arcs = arcs,
+        nodes = nodes,
+        PACKAGE = "bnlearn")
+
+}#ARC.STRENGTH.BOOT
+
 # convert an arc strength object to the corresponding line widths for plotting.
 strength2lwd = function(strength, threshold, cutpoints, debug = TRUE) {
 
@@ -119,7 +171,10 @@ strength2lwd = function(strength, threshold, cutpoints, debug = TRUE) {
 
   }#THEN
 
-  if (mode == "test") {
+  if (mode %in% c("test", "bootstrap")) {
+
+    # bootstrap probabilities work list p-values, only reversed.
+    if (mode == "bootstrap") s = 1 - s
 
     # use user-defined cut points if available.
     if (missing(cutpoints))
@@ -163,7 +218,10 @@ strength2lwd = function(strength, threshold, cutpoints, debug = TRUE) {
   if (debug) {
 
     cat("* using cut points for strength intervals:\n")
-    print(cutpoints)
+    if (mode == "boot")
+      print(1 - cutpoints)
+    else
+      print(cutpoints)
     cat("* arc weights:", arc.weights, "\n")
 
   }#THEN

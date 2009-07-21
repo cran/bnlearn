@@ -44,7 +44,7 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
     stop("the graph contains cycles, possibly because of whitelisted nodes.")
 
   # save the status of the learning algorithm.
-  learning = list(whitelist = whitelist, blacklist = blacklist, 
+  learning = list(whitelist = whitelist, blacklist = blacklist,
     test = test, args = list(alpha = alpha),
     ntests = get(".test.counter", envir = .GlobalEnv))
 
@@ -405,8 +405,7 @@ vstruct.apply = function(arcs, vs, strict, debug) {
 # remove arcs from the graph to make it acyclic.
 orient.edges = function(arcs, nodes, whitelist, blacklist, cluster, debug) {
 
-  to.be.reversed = matrix(character(0), ncol = 2,
-                     dimnames = list(c(), c("from", "to")))
+  to.be.reversed = character(0)
   narcs = nrow(arcs)
   n = 0
 
@@ -456,8 +455,7 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, cluster, debug) {
     if (is.directed(cycles[1, c("from", "to")], arcs) &&
         !is.blacklisted(blacklist, cycles[1, c("to", "from")])) {
 
-      to.be.reversed = rbind(to.be.reversed,
-                         as.matrix(cycles[1, c("from", "to")]))
+      to.be.reversed = c(to.be.reversed, cycles[1, "from"], cycles[1, "to"])
 
     }#THEN
 
@@ -467,7 +465,8 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, cluster, debug) {
         "will be removed (", cycles[1, "cycles"], " cycles ).\n")
 
       cat("  > arcs scheduled for reversal are:\n")
-      print(to.be.reversed)
+      print(matrix(to.be.reversed, ncol = 2, byrow = TRUE, 
+              dimnames = list(NULL, c("from", "to"))))
 
     }#THEN
 
@@ -476,7 +475,9 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, cluster, debug) {
   }#REPEAT
 
   # add removed arcs, reversed and return.
-  rbind(arcs, to.be.reversed[, c(2,1)])
+  to.be.reversed = matrix(to.be.reversed, ncol = 2, byrow = TRUE)
+  matrix(c(arcs[, 1], to.be.reversed[, 2], arcs[, 2], to.be.reversed[, 1]), 
+    ncol = 2, dimnames = list(NULL, c("from", "to")), byrow = FALSE)
 
 }#ORIENT.EDGES
 

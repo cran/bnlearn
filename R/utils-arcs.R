@@ -9,21 +9,15 @@ is.row.equal = function(data, array) {
 }#IS.ROW.EQUAL
 
 # check whether an arc is present in a matrix or data frame (with 2 columns).
-is.listed = function(list, arc, either = FALSE, both = FALSE) {
+is.listed = function(set, arc, either = FALSE, both = FALSE) {
 
-  if (both && either)
-    stop("conflicting options both and either.")
-
-  if (is.null(list))
-    FALSE
-  else if (is.null(arc))
-    stop(" a valid arc must be specified.")
-  else if (both)
-    any(is.row.equal(list, arc)) && any(is.row.equal(list, arc[c(2,1)]))
-  else if (either)
-    any(is.row.equal(list, arc)) || any(is.row.equal(list, arc[c(2,1)]))
-  else
-    any(is.row.equal(list, arc))
+  .Call("is_listed",
+        arc = as.character(arc),
+        set = as.character(set),
+        either = either,
+        both = both,
+        debug = FALSE,
+        PACKAGE = "bnlearn")
 
 }#IS.LISTED
 
@@ -42,8 +36,8 @@ which.undirected = function(arcs) {
 # is this arc undirected?
 is.undirected = function(arc, arcs) {
 
-  # if it is there must be its reverse in the arc set.
-  is.listed(arcs, arc[c(2,1)])
+  # both A -> B  and B -> A must be present in the arc set.
+  is.listed(arcs, arc, both = TRUE)
 
 }#IS.UNDIRECTED
 

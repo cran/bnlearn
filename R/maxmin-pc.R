@@ -52,7 +52,7 @@ maxmin.pc.cluster = function(x, cluster, whitelist, blacklist,
 
 }#MAXMIN.PC.CLUSTER
 
-maxmin.pc = function(x, whitelist, blacklist, test, alpha, B, 
+maxmin.pc = function(x, whitelist, blacklist, test, alpha, B,
   strict, debug) {
 
   nodes = names(x)
@@ -76,7 +76,7 @@ maxmin.pc = function(x, whitelist, blacklist, test, alpha, B,
 
 }#MAXMIN.PC
 
-maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist, 
+maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
   blacklist, backtracking = NULL, test, optimized = TRUE, debug) {
 
   nodes = nodes[nodes != x]
@@ -143,7 +143,7 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
     else {
 
       association = sapply(nodes, maxmin.pc.heuristic, y = x, sx = cpc,
-                      data = data, test = test, alpha = alpha, B = B, 
+                      data = data, test = test, alpha = alpha, B = B,
                       debug = debug)
 
     }#ELSE
@@ -220,7 +220,7 @@ maxmin.pc.heuristic = function(x, y, sx, data, test, alpha, B, debug) {
 
 }#MAXMIN.PC.HEURISTIC
 
-maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B, 
+maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B,
     association, debug) {
 
   k = 0

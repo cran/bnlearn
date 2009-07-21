@@ -18,7 +18,7 @@ formula.backend = function(x) {
 
 # create an object of class 'bn' from a model formula.
 # (ported from the deal package)
-model2network.backend = function(modelstring, debug = FALSE) {
+model2network.backend = function(modelstring, node.order = NULL, debug = FALSE) {
 
     nodes = c()
 
@@ -26,7 +26,9 @@ model2network.backend = function(modelstring, debug = FALSE) {
       cat("* processing model string:\n ", modelstring, "\n")
 
     # split the model strings into the single nodes' strings.
-    st <- strsplit(strsplit(modelstring,"\\[")[[1]],"\\]")
+    # the first entry of the first split in always empty because the model
+    # string begins with a "["; remove it.
+    st <- strsplit(strsplit(modelstring,"\\[")[[1]][-1],"\\]")
 
     arcs = lapply(st, function(xp) {
 
@@ -49,24 +51,43 @@ model2network.backend = function(modelstring, debug = FALSE) {
         return(cbind(from = prnts, to = pa[1]))
 
       }#THEN
+      else {
+
+        # if there are no parents return an empty string, so that the returned
+        # list can be coerced to a matrix even for an empty graph.
+        return(cbind(from = character(0), to = character(0)))
+
+      }#THEN
 
     })
 
     # create an empty network structure.
-    res = empty.graph.backend(nodes)
+    if (is.null(node.order)) {
+
+      res = empty.graph.backend(nodes)
+
+    }#THEN
+    else {
+
+      # check that the new network contains the same nodes as the old one.
+      if (!setequal(nodes, node.order))
+        stop("the model string describes a different network (the nodes are different).")
+
+      res = empty.graph.backend(node.order)
+
+    }#ELSE
     # update the arcs of the network.
     res$arcs = do.call(rbind, arcs)
     # then check the arcs.
     check.arcs(res$arcs, graph = res)
-    # check whther the the graph is acyclic.
-    if (!is.acyclic.backend(nodes = nodes, arcs = res$arcs, 
-          directed = FALSE, debug = debug))
+    # check whether the the graph is acyclic.
+    if (!is.acyclic(nodes = nodes, arcs = res$arcs, debug = debug))
       stop("the specified network contains cycles.")
 
     # update the network structure.
     res$nodes = cache.structure(sort(nodes), arcs = res$arcs, debug = debug)
 
-    res
+    return(res)
 
 }#MODEL2NETWORK
 

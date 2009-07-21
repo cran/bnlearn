@@ -29,7 +29,7 @@ fast.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
-    method = "fast-iamb", debug = debug, optimized = optimized,
+    method = "fast.iamb", debug = debug, optimized = optimized,
     strict = strict, undirected = undirected)
 
 }#FAST.IAMB
@@ -41,7 +41,7 @@ inter.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
-    method = "inter-iamb", debug = debug, optimized = optimized,
+    method = "inter.iamb", debug = debug, optimized = optimized,
     strict = strict, undirected =  undirected)
 
 }#INTER.IAMB
@@ -64,9 +64,9 @@ hc = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     max.iter = Inf, optimized = TRUE) {
 
   greedy.search(x = x, start = start, whitelist = whitelist,
-    blacklist = blacklist, score = score, heuristic = "hc",
-    ..., debug = debug, restart = restart, perturb = perturb,
-   max.iter = max.iter, optimized = optimized)
+    blacklist = blacklist, score = score, heuristic = "hc", ...,
+    debug = debug, restart = restart, perturb = perturb,
+    max.iter = max.iter, optimized = optimized)
 
 }#HC
 

@@ -64,8 +64,8 @@ SEXP r_svd(SEXP matrix);
 SEXP fast_pcor(SEXP data, SEXP length);
 
 /* from path.c */
-SEXP c_has_dag_path(int start, int stop, int *amat, int n, SEXP nodes,
-    SEXP underlying, SEXP debug);
+SEXP c_has_path(int start, int stop, int *amat, int n, SEXP nodes,
+    SEXP underlying, SEXP exclude_direct, SEXP debug);
 
 /* memory allocation functions */
 

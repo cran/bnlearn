@@ -1,10 +1,11 @@
 
 # unified backend for the graphviz calls.
 graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
-    layout = "dot", main = NULL, sub = NULL) {
+    layout = "dot", shape = "circle", main = NULL, sub = NULL) {
 
   graphviz.layouts = c("dot", "neato", "twopi", "circo", "fdp")
-  highlight.params = c("nodes", "arcs", "col", "fill")
+  node.shapes = c("ellipse", "circle")
+  highlight.params = c("nodes", "arcs", "col", "fill", "lwd")
   highlighting = FALSE
 
   # check whether graphviz is loaded.
@@ -12,8 +13,15 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
     stop("this function requires Rgraphviz.")
 
   # sanitize the layout (to be passed to layoutGraph).
+  if (!is.string(layout))
+    stop("graph layout must be a character string.")
   if (!(layout %in% graphviz.layouts))
     stop(paste(c("valid layout schemes are:", graphviz.layouts), collapse = " "))
+  # sanitize nodes' shape.
+  if (!is.string(shape))
+    stop("node shape must be a character string.")
+  if (!(shape %in% node.shapes))
+    stop(paste(c("valid node shapes are:", node.shapes), collapse = " "))
   # sanitize the highlighting parameters (to be saved in *RenderInfo()).
   if (!is.null(highlight) || length(highlight) > 0) {
 
@@ -47,6 +55,16 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
     else
       highlight$fill = "transparent"
 
+    if ("lwd" %in% names(highlight)) {
+
+      if (!("arcs" %in% names(highlight)))
+        warning("no arc to apply the 'lwd' setting to, ignoring.")
+
+      if (!is.positive(highlight$lwd))
+        stop("the line width must be a positive number.")
+
+    }#THEN
+
   }#THEN
 
   # create the graphAM object from the bn object.
@@ -60,33 +78,30 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
   graph.par(list(graph = list(main = main, sub = sub)))
 
   # set graph layout and global parameters.
-  graph.plot = layoutGraph(graph.obj, layoutType = layout)
+  if (shape == "ellipse") {
+
+    # nodes have elliptic shapes whose width is determined by the
+    # length of the respective labels.
+    attrs = list(node = list(fixedsize = FALSE))
+    node.attrs = list(shape = rep("ellipse", length(nodes)))
+    names(node.attrs$shape) = nodes
+
+  }#THEN
+  else if (shape == "circle") {
+
+    # nodes have circular shapes.
+    attrs = node.attrs = list()
+
+  }#THEN
+
+  graph.plot = layoutGraph(graph.obj, attrs = attrs, nodeAttrs = node.attrs,
+                 layoutType = layout) 
 
   # kill the arroheads of undirected arcs.
   u = names(which(edgeRenderInfo(graph.plot)[['direction']] == "both"))
 
   edgeRenderInfo(graph.plot)[["arrowhead"]][u] = "none"
   edgeRenderInfo(graph.plot)[["arrowtail"]][u] = "none"
-
-  # apply the requested highlighting.
-  if (highlighting) {
-
-    if ("nodes" %in% names(highlight)) {
-
-      nodeRenderInfo(graph.plot)[["col"]][highlight$nodes] = highlight$col
-      nodeRenderInfo(graph.plot)[["fill"]][highlight$nodes] = highlight$fill
-
-    }#THEN
-
-    if ("arcs" %in% names(highlight)) {
-
-      to.highlight = apply(highlight$arcs, 1, paste, collapse = "~")
-
-      edgeRenderInfo(graph.plot)[["col"]][to.highlight] = highlight$col
-
-    }#THEN
-
-  }#THEN
 
   # change arc line width according to arc weights.
   if (!is.null(arc.weights)) {
@@ -106,7 +121,30 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
 
   }#THEN
 
-  # do the actual plotting
+  # apply the requested highlighting.
+  if (highlighting) {
+
+    if ("nodes" %in% names(highlight)) {
+
+      nodeRenderInfo(graph.plot)[["col"]][highlight$nodes] = highlight$col
+      nodeRenderInfo(graph.plot)[["fill"]][highlight$nodes] = highlight$fill
+
+    }#THEN
+
+    if ("arcs" %in% names(highlight)) {
+
+      to.highlight = apply(highlight$arcs, 1, paste, collapse = "~")
+
+      edgeRenderInfo(graph.plot)[["col"]][to.highlight] = highlight$col
+
+      if ("lwd" %in% names(highlight)) 
+        edgeRenderInfo(graph.plot)[["lwd"]][to.highlight] = highlight$lwd
+
+    }#THEN
+
+  }#THEN
+
+  # do the actual plotting.
   renderGraph(graph.plot)
 
   # restore the original global graphical settings.

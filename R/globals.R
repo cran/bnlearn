@@ -6,20 +6,23 @@ available.tests = c(available.discrete.tests, available.continuous.tests)
 
 resampling.tests = c("mc-mi", "mc-x2", "mc-mi-g", "mc-cor", "mc-zf")
 
-available.discrete.scores = c("lik", "loglik", "aic", "bic", "bde", "k2")
-available.continuous.scores = c("bge")
+available.discrete.scores = c("loglik", "aic", "bic", "bde", "k2")
+available.continuous.scores = c("bge", "loglik-g", "aic-g", "bic-g")
 available.scores = c(available.discrete.scores, available.continuous.scores)
 
-score.equivalent.scores = c("lik", "loglik", "aic", "bic", "bde", "bge")
+score.equivalent.scores = c("loglik", "aic", "bic", "bde", "bge", "loglik-g", "aic-g", "bic-g")
 
-constraint.based.algorithms = c("gs", "iamb", "fast-iamb", "inter-iamb", "mmpc")
+constraint.based.algorithms = c("gs", "iamb", "fast.iamb", "inter.iamb", "mmpc")
 score.based.algorithms = c("hc")
+available.learning.algorithms = c(constraint.based.algorithms, score.based.algorithms)
+
+always.dag.result = score.based.algorithms
 
 method.labels = c(
   'gs' = "grow-shrink",
   'iamb' = "incremental association",
-  'fast-iamb' = "fast incremental association",
-  'inter-iamb' = "interleaved incremental association",
+  'fast.iamb' = "fast incremental association",
+  'inter.iamb' = "interleaved incremental association",
   'rnd' = "random/generated",
   'hc' = 'hill-climbing',
   'mmpc' = 'max-min parent children'
@@ -45,9 +48,11 @@ score.labels = c(
   'bde' = "bayesian-dirichlet (score equivalent)",
   'aic' = "Akaike information criterion",
   'bic' = "bayesian information criterion",
-  'lik' = "likelihood",
   'loglik' = "log-likelihood",
-  'bge' = "bayesian-gaussian (score equivalent)"
+  'bge' = "bayesian-gaussian (score equivalent)",
+  'loglik-g' = "log-likelihood (gaussian)",
+  'aic-g' = "Akaike information criterion (gaussian)",
+  'bic-g' = "bayesian information criterion (gaussian)"
 )
 
 score.extra.args = list(
@@ -56,8 +61,13 @@ score.extra.args = list(
   "aic" = "k",
   "bic" = "k",
   "bge" = c("iss", "phi"),
-  "lik" = character(0),
-  "loglik" = character(0)
+  "loglik" = character(0),
+  "loglik-g" = character(0),
+  "aic" = "k",
+  "bic" = "k",
+  "aic-g" = "k",
+  "bic-g" = "k"
+
 )
 
 graph.generation.algorithms = c("ordered", "ic-dag", "empty")
@@ -74,3 +84,4 @@ graph.generation.extra.args = list(
 )
 
 graphviz.enabled = FALSE
+lattice.enabled = FALSE

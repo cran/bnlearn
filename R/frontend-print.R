@@ -56,6 +56,7 @@ print.bn = function(x, ...) {
       cat("  penalization coefficient:             ", x$learning$args$k, "\n")
 
     cat("  tests used in the learning procedure: ", x$learning$ntests, "\n")
+    cat("  optimized:                            ", x$learning$optimized, "\n")
 
   }#THEN
   else {
@@ -80,4 +81,52 @@ print.bn = function(x, ...) {
   invisible(x)
 
 }#PRINT.BN
+
+# print method for class bn.fit.
+"print.bn.fit" = function(x, ...) {
+
+  cat("\n  Bayesian network parameters\n")
+
+  for (i in seq(length(x)))
+    print(x[[i]])
+
+  cat("\n")
+
+  invisible(x)
+
+}#PRINT.BN-FIT
+
+# print method for class bn.fit.dnode.
+"print.bn.fit.dnode" = function(x, ...) {
+
+  cat("\n  Parameters of node", x$node, "(multinomial distribution)\n")
+
+  cat("\nConditional probability table:\n", ifelse(length(x$parents) > 0, "\n", ""))
+  print(x$prob)
+
+  invisible(x)
+
+}#PRINT.BN.FIT.DNODE
+
+# print method for class bn.fit.gnode.
+"print.bn.fit.gnode" = function(x, ...) {
+
+  cat("\n  Parameters of node", x$node, 
+    paste(ifelse(length(x$parents) > 1, "(conditional ", "("), 
+    "gaussian distribution)", collapse = "", sep = ""), "\n");
+
+  cat("\nConditional density: ")
+  if (length(x$parents) > 0)
+    cat(paste(x$node, "|", paste(x$parents, sep = "", collapse = " + ")))
+  else
+    cat(x$node)
+
+  cat("\nCoefficients:\n")
+  print.default(format(x$coefficients), print.gap = 2, right = TRUE, quote = FALSE)
+
+  cat("Standard deviation of the residuals:", x$sd, "\n")
+
+  invisible(x)
+
+}#PRINT.BN.FIT.GNODE
 
