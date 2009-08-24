@@ -3,7 +3,7 @@
 
 /* numerical constants */
 
-#define MACHINE_TOL 2.220446e-16
+#define MACHINE_TOL sqrt(DOUBLE_EPS)
 
 /* utility macros */
 

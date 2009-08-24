@@ -85,7 +85,7 @@
   sum of the number of logically independent parameters of each node given its
   parents (Chickering, 1995). For Gaussian Bayesian networks the distribution
   of each node can be viewed as a linear regression, so it has a number of
-  parameters equal to the number of the parents of the node plus one (the 
+  parameters equal to the number of the parents of the node plus one (the
   intercept) as per Neapolitan (2003).
 
 }

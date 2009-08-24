@@ -64,7 +64,7 @@ leafnodes.backend = function(arcs, nodes) {
 parents.backend = function(arcs, node, undirected = FALSE) {
 
   if (!undirected)
-    arcs[(arcs[, "to"] == node) & !which.undirected(arcs), "from"]
+    arcs[(arcs[, "to"] == node) & which.directed(arcs), "from"]
   else
     arcs[(arcs[, "to"] == node), "from"]
 
@@ -74,7 +74,7 @@ parents.backend = function(arcs, node, undirected = FALSE) {
 children.backend = function(arcs, node, undirected = FALSE) {
 
   if (!undirected)
-    arcs[(arcs[, "from"] == node) & !which.undirected(arcs), "to"]
+    arcs[(arcs[, "from"] == node) & which.directed(arcs), "to"]
   else
     arcs[(arcs[, "from"] == node), "to"]
 
@@ -158,7 +158,7 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
   # infinite loops (due to the lack of legal operations).
   for (i in seq_len(3 * iter)) {
 
-    to.be.added = arcs.to.be.added(amat, nodes, length(nodes), blmat)
+    to.be.added = arcs.to.be.added(amat, nodes, blmat)
     to.be.dropped = arcs.to.be.dropped(new$arcs, whitelist)
     to.be.reversed = arcs.to.be.reversed(new$arcs, blacklist)
 

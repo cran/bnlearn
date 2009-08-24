@@ -61,7 +61,7 @@
       two-level factor with levels \code{TRUE} and \code{FALSE}.
     \item \code{PMB} (\emph{pulmonary embolus}): a two-level factor
       with levels \code{TRUE} and \code{FALSE}.
-    \item \code{INT} (\emph{intubation}): a three-level facctor with
+    \item \code{INT} (\emph{intubation}): a three-level factor with
       levels \code{NORMAL}, \code{ESOPHAGEAL} and \code{ONESIDED}.
     \item \code{KINK} (\emph{kinked tube}): a two-level factor with
       levels \code{TRUE} and \code{FALSE}.
@@ -92,7 +92,7 @@
       \code{HIGH}.
     \item \code{VLNG} (\emph{lung ventilation}): a four-level factor with
       levels \code{ZERO}, \code{LOW}, \code{NORMAL} and \code{HIGH}.
-    \item \code{VTUB} (\emph{ventialtion tube}): a four-level factor with
+    \item \code{VTUB} (\emph{ventilation tube}): a four-level factor with
       levels \code{ZERO}, \code{LOW}, \code{NORMAL} and \code{HIGH}.
     \item \code{VMCH} (\emph{ventilation machine}): a four-level factor with
       levels \code{ZERO}, \code{LOW}, \code{NORMAL} and \code{HIGH}.

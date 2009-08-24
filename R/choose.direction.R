@@ -297,7 +297,7 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm, algorithm.
     if (res[1, "direction"] > res[2, "direction"]) {
 
       if (debug) cat("  @ arc", arc[1], "->", arc[2], "is better .\n")
- 
+
        # update the arc set.
        x$arcs = set.arc.direction(arc[1], arc[2], x$arcs)
        # check which nodes have to be updated.
@@ -317,17 +317,17 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm, algorithm.
     if (res[1, "direction"] > res[2, "direction"]) {
 
       if (debug) cat("  @ arc", arc[1], "->", arc[2], "is better .\n")
-  
+
        # update the arc set.
        x$arcs = set.arc.direction(arc[1], arc[2], x$arcs)
        # check which nodes have to be updated.
        updated.nodes = unique(c(arc, x$nodes[[arc[1]]]$mb, x$nodes[[arc[2]]]$mb))
-    
+
     }#THEN
     else {
 
       if (debug) cat("  @ arc", arc[2], "->", arc[1], "is better .\n")
-  
+
        # update the arc set.
        x$arcs = set.arc.direction(arc[2], arc[1], x$arcs)
        # check which nodes have to be updated.
@@ -339,7 +339,7 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm, algorithm.
 
   # update the chosen nodes.
   for (node in updated.nodes)
-    x$nodes[[node]] = cache.partial.structure(nodes, target = node, 
+    x$nodes[[node]] = cache.partial.structure(nodes, target = node,
       arcs = x$arcs, debug = debug)
 
   return(x)

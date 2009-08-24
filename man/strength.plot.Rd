@@ -10,7 +10,7 @@
 }
 \usage{
   strength.plot(x, strength, threshold, cutpoints, highlight = NULL,
-    layout = "dot", shape = "circle", main = NULL, sub = NULL, 
+    layout = "dot", shape = "circle", main = NULL, sub = NULL,
     debug = FALSE)
 }
 \arguments{

@@ -714,6 +714,21 @@ check.amat = function(amat, nodes) {
   if (!is.null(rownames(amat)))
     if (!all(rownames(amat) %in% nodes))
       stop("node (row label) not present in the graph.")
+  # column names must match with row names.
+  if (!is.null(colnames(amat)) && !is.null(rownames(amat))) {
+
+    if (!identical(colnames(amat), rownames(amat)))
+      stop("row/column names mismatch in the adjacency matrix.")
+
+    if (!identical(colnames(amat), nodes) || !identical(rownames(amat), nodes)) {
+
+      warning("rearranging the rows/columns of the adjacency matrix.")
+
+      amat = amat[nodes, nodes, drop = FALSE]
+
+    }#THEN
+
+  }#THEN
   # check the elements of the matrix.
   if (!all(amat %in% 0:1))
     stop("all the elements of an adjacency matrix must be equal to either 0 or 1.")

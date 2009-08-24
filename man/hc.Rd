@@ -60,7 +60,8 @@ hc(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{constraint-based algorithms}}, \code{\link{mmpc}}. }
+\seealso{\code{\link{constraint-based algorithms}}, \code{\link{hybrid algorithms}},
+  \code{\link{mmpc}}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

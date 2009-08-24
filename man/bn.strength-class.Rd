@@ -14,13 +14,13 @@
 }
 \details{
 
-  An object of class \code{bn.strength} is a data frame with the 
+  An object of class \code{bn.strength} is a data frame with the
   following columns (one row for each arc):
 
   \itemize{
 
     \item \code{from, to}: the nodes incident on the arc.
-    \item \code{strength}: the strength of the arc. See 
+    \item \code{strength}: the strength of the arc. See
       \code{\link{arc.strength}} and \code{\link{strength.plot}}
       for details.
 

@@ -70,3 +70,30 @@ hc = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
 }#HC
 
+# Generic Restricted Hill Climbing frontend.
+rshc = function(x, whitelist = NULL, blacklist = NULL, restrict,
+    maximize = "hc", test = NULL, score = NULL, alpha = 0.05, B = NULL,
+    ..., restart = 0, perturb = 1, max.iter = Inf, optimized = TRUE,
+    strict = FALSE, debug = FALSE) {
+
+  hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
+    restrict = restrict, maximize = maximize, test = test, score = score,
+    alpha = alpha, B = B, ..., restart = restart, perturb = perturb,
+    max.iter = max.iter, optimized = optimized, strict = strict,
+    debug = debug)
+
+}#RSHC
+
+# MMHC frontend.
+mmhc = function(x, whitelist = NULL, blacklist = NULL, test = NULL,
+    score = NULL, alpha = 0.05, B = NULL, ..., restart = 0, perturb = 1,
+    max.iter = Inf, optimized = TRUE, strict = FALSE, debug = FALSE) {
+
+  hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
+    restrict = "mmpc", maximize = "hc", test = test, score = score,
+    alpha = alpha, B = B, ..., restart = restart, perturb = perturb,
+    max.iter = max.iter, optimized = optimized, strict = strict,
+    debug = debug)
+
+}#MMHC
+

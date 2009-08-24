@@ -24,11 +24,16 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
       criterion = x$learning$test
 
   }#THEN
-  else if (!identical(criterion, "bootstrap")) {
+  else if (identical(criterion, "bootstrap")) {
+
+    # nothing to do, move along.
+
+  }#THEN
+  else  {
 
     criterion = check.criterion(criterion, data)
 
-  }#THEN
+  }#ELSE
 
   # expand and sanitize score-specific arguments and the alpha threshold.
   if (criterion %in% available.tests) {
@@ -67,9 +72,9 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
     # expand and check bootstrap-specific arguments.
     extra.args = check.bootstrap.args(list(...), network = x, data = data)
 
-    res = arc.strength.boot(data = data, R = extra.args$R, 
-            m = extra.args$m, algorithm = extra.args[["algorithm"]], 
-            algorithm.args = extra.args[["algorithm.args"]], arcs = x$arcs, 
+    res = arc.strength.boot(data = data, R = extra.args$R,
+            m = extra.args$m, algorithm = extra.args[["algorithm"]],
+            algorithm.args = extra.args[["algorithm.args"]], arcs = x$arcs,
             debug = debug)
 
     # add extra information for strength.plot(), and drop the column

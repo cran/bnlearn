@@ -95,7 +95,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
   }#THEN
 
   graph.plot = layoutGraph(graph.obj, attrs = attrs, nodeAttrs = node.attrs,
-                 layoutType = layout) 
+                 layoutType = layout)
 
   # kill the arroheads of undirected arcs.
   u = names(which(edgeRenderInfo(graph.plot)[['direction']] == "both"))
@@ -137,7 +137,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
 
       edgeRenderInfo(graph.plot)[["col"]][to.highlight] = highlight$col
 
-      if ("lwd" %in% names(highlight)) 
+      if ("lwd" %in% names(highlight))
         edgeRenderInfo(graph.plot)[["lwd"]][to.highlight] = highlight$lwd
 
     }#THEN

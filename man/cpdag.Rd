@@ -1,9 +1,9 @@
-\name{cpadg}
+\name{cpdag}
 \alias{cpdag}
-\title{ Find the equivalence class of a Bayesian nework  }
+\title{ Find the equivalence class of a Bayesian network  }
 \description{
 
-  Find the equivalence class of a Bayesian nework.
+  Find the equivalence class of a Bayesian network.
 
 }
 \usage{
@@ -22,7 +22,7 @@
 }
 \references{
 
-  Pearl J (2000). \emph{Causality: Models, Reasning and Inference}. 
+  Pearl J (2000). \emph{Causality: Models, Reasoning and Inference}.
       Cambridge University Press.
 
 }

@@ -1,7 +1,7 @@
 \name{gaussian.test}
 \docType{data}
 \alias{gaussian.test}
-\title{ Synthetic (continuous) dataset to test learning algorithms }
+\title{ Synthetic (continuous) data set to test learning algorithms }
 \description{
 
   This a synthetic data set used as a test case in the
@@ -27,7 +27,7 @@
 # load the data and build the correct network from the model string.
 data(gaussian.test)
 res = empty.graph(names(gaussian.test))
-modelstring(res) = "[A][B][E][G][C|A:B:E][D|B][F|A:D:E:G]"
+modelstring(res) = "[A][B][E][G][C|A:B][D|B][F|A:D:E:G]"
 plot(res)
 }
 \keyword{datasets}

@@ -225,8 +225,8 @@ compare = function (r1, r2, debug = FALSE) {
   if (!all(check)) result = FALSE
 
   # check directed arcs.
-  r1.arcs = apply(r1$arcs[!which.undirected(r1$arcs), , drop = FALSE], 1, paste, collapse = " -> ")
-  r2.arcs = apply(r2$arcs[!which.undirected(r2$arcs), , drop = FALSE], 1, paste, collapse = " -> ")
+  r1.arcs = apply(r1$arcs[which.directed(r1$arcs), , drop = FALSE], 1, paste, collapse = " -> ")
+  r2.arcs = apply(r2$arcs[which.directed(r2$arcs), , drop = FALSE], 1, paste, collapse = " -> ")
 
   if (!identical(sort(r1.arcs), sort(r2.arcs))) {
 

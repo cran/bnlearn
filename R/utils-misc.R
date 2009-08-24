@@ -90,3 +90,14 @@ configurations = function(data) {
 
 }#CONFIGURATIONS
 
+# rbind-like function for arc sets.
+arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
+
+  .Call("arcs_rbind1",
+        matrix1 = matrix1,
+        matrix2 = matrix2,
+        reverse2 = reverse2,
+        PACKAGE = "bnlearn")
+
+}#ARCS.RBIND
+

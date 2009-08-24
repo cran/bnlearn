@@ -46,10 +46,12 @@
 }
 \examples{
 
-## The graphical model for this data set is:
-#       Height - Species - Diameter
-
+# load the data and build the correct network from the model string.
 data(lizards)
+res = empty.graph(names(lizards))
+modelstring(res) = "[Species][Diameter|Species][Height|Species]"
+plot(res)
+
 table(lizards[, c(3,2,1)])
 # , , Species = Sagrei
 #

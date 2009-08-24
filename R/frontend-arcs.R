@@ -39,7 +39,7 @@ directed.arcs = function(x) {
   # check x's class.
   check.bn(x)
 
-  x$arcs[!which.undirected(x$arcs), , drop = FALSE]
+  x$arcs[which.directed(x$arcs), , drop = FALSE]
 
 }#DIRECTED.ARCS
 

@@ -55,7 +55,7 @@
     \item \code{lwd}: a positive number (the line width of
       highlighted arcs). It overrides the line width settings
       in \code{strength.plot}. The default value is to
-      use the global settings of \pkg{Rgraphviz}. 
+      use the global settings of \pkg{Rgraphviz}.
 
   }
 

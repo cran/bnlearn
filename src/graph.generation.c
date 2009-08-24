@@ -80,7 +80,7 @@ SEXP ordered_graph(SEXP nodes, SEXP num, SEXP prob) {
 
   int i = 0, j = 0, k = 0, nnodes = LENGTH(nodes), *a, *n = INTEGER(num);
   double *p = REAL(prob);
-  SEXP list, res, args, argnames, amat, arcs, cached, debug2, null;
+  SEXP list, res, args, argnames, amat, arcs, cached, debug2, null, temp;
 
   /* a fake debug argument (set to FALSE) for cache_structure(). */
   PROTECT(debug2 = allocVector(LGLSXP, 1));
@@ -133,9 +133,10 @@ SEXP ordered_graph(SEXP nodes, SEXP num, SEXP prob) {
       SET_VECTOR_ELT(res, 2, arcs);
 
       /* save the structure in the list. */
-      SET_VECTOR_ELT(list, k, res);
+      PROTECT(temp = duplicate(res));
+      SET_VECTOR_ELT(list, k, temp);
 
-      UNPROTECT(2);
+      UNPROTECT(3);
 
     }/*FOR*/
 
@@ -585,12 +586,12 @@ static void print_modelstring(SEXP bn) {
   /* allocate and populate the pairlist to be valuated. */
   PROTECT(t = s = allocList(2));
   SET_TYPEOF(s, LANGSXP);
-  /*first slot, the function name. */
+  /* first slot, the function name. */
   SETCAR(t, install("modelstring")); 
   t = CDR(t);
   /* second slot, the bayesian network (the only argument). */
   SETCAR(t,  bn); 
-  /* evalueate ... */
+  /* evaluate ... */
   PROTECT(t = eval(s, R_GlobalEnv));
   /* ... and print the result. */
   Rprintf("  > model string is:\n%s\n", CHAR(STRING_ELT(t, 0)));

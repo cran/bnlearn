@@ -14,9 +14,10 @@ score.equivalent.scores = c("loglik", "aic", "bic", "bde", "bge", "loglik-g", "a
 
 constraint.based.algorithms = c("gs", "iamb", "fast.iamb", "inter.iamb", "mmpc")
 score.based.algorithms = c("hc")
-available.learning.algorithms = c(constraint.based.algorithms, score.based.algorithms)
+hybrid.algorithms = c("rshc", "mmhc")
+available.learning.algorithms = c(constraint.based.algorithms, score.based.algorithms, hybrid.algorithms)
 
-always.dag.result = score.based.algorithms
+always.dag.result = c(score.based.algorithms, hybrid.algorithms)
 
 method.labels = c(
   'gs' = "grow-shrink",
@@ -25,7 +26,9 @@ method.labels = c(
   'inter.iamb' = "interleaved incremental association",
   'rnd' = "random/generated",
   'hc' = 'hill-climbing',
-  'mmpc' = 'max-min parent children'
+  'mmpc' = 'max-min parent children',
+  'rshc' = 'restricted hill climbing',
+  'mmhc' = 'max-min hill climbing'
 )
 
 test.labels = c(

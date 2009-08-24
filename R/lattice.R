@@ -35,7 +35,7 @@ lattice.discrete.backend = function(fitted, type, xlab, ylab, main, ...) {
         barchart(fitted$prob, groups = FALSE, as.table = TRUE,
           xlab = xlab, ylab = ylab, main = main,
           panel = function(x, y, ...) {
-            panel.grid(h = 0, v = -1) 
+            panel.grid(h = 0, v = -1)
             panel.barchart(x, y, ...)
           })
 
@@ -60,7 +60,7 @@ lattice.discrete.backend = function(fitted, type, xlab, ylab, main, ...) {
           type = c("p", "h"),
           xlab = xlab, ylab = ylab, main = main,
           panel = function(x, y, ...) {
-            panel.grid(h = 0, v = -1) 
+            panel.grid(h = 0, v = -1)
             panel.dotplot(x, y, ...)
           })
 
@@ -130,7 +130,7 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
         panel = function(x, ...) {
           panel.histogram(x, ...)
           panel.mathdensity(dmath = dnorm, col = "black",
-            args = list(mean = mean(x), 
+            args = list(mean = mean(x),
               sd = fitted[[panel.number()]]$sd))
         })
 
@@ -144,7 +144,7 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
     else if (type == "fitted") {
 
       xyplot(resid ~ fitted | node, data = temp,
-        xlab = xlab, ylab = ylab, main = main, 
+        xlab = xlab, ylab = ylab, main = main,
         panel = function(x, ...) {
           panel.xyplot(x, ...)
           panel.abline(h = 0)
@@ -187,7 +187,7 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
     else if (type == "fitted") {
 
       xyplot(residuals ~ fitted.values, data = fitted,
-        xlab = xlab, ylab = ylab, main = main, 
+        xlab = xlab, ylab = ylab, main = main,
         panel = function(x, ...) {
           panel.xyplot(x, ...)
           panel.abline(h = 0)
@@ -199,7 +199,7 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
   else {
 
     stop("fitted must be an object of class 'bn.fit' or 'bn.fit.gnode'.")
-  
+
   }#ELSE
 
 }#LATTICE.GAUSSIAN.BACKEND

@@ -72,7 +72,12 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
       criterion = x$learning$test
 
   }#THEN
-  else if (!identical(criterion, "bootstrap")) {
+  else if (identical(criterion, "bootstrap")) {
+
+    # nothing to do, move along.
+
+  }#THEN
+  else {
 
     criterion = check.criterion(criterion, data)
 
@@ -111,8 +116,8 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
     # expand and check bootstrap-specific arguments.
     extra.args = check.bootstrap.args(list(...), network = x, data = data)
 
-    x = choose.direction.boot(x, data = data, arc = arc, 
-          extra.args = extra.args, algorithm = extra.args[["algorithm"]], 
+    x = choose.direction.boot(x, data = data, arc = arc,
+          extra.args = extra.args, algorithm = extra.args[["algorithm"]],
           algorithm.args = extra.args[["algorithm.args"]], debug = debug)
 
   }#THEN

@@ -33,6 +33,13 @@ which.undirected = function(arcs) {
 
 }#WHICH.UNDIRECTED
 
+# which arcs are directed?
+which.directed = function(arcs) {
+
+  !which.undirected(arcs)
+
+}#WHICH.DIRECTED
+
 # is this arc undirected?
 is.undirected = function(arc, arcs) {
 
@@ -41,7 +48,7 @@ is.undirected = function(arc, arcs) {
 
 }#IS.UNDIRECTED
 
-#is this arc directed?
+# is this arc directed?
 is.directed = function(arc, arcs) {
 
   !is.undirected(arc, arcs)
@@ -139,9 +146,6 @@ which.listed = function(arcs, list) {
   apply(arcs, 1, function(arc) { is.listed(list, arc) })
 
 }#WHICH.LISTED
-
-which.whitelisted = which.listed
-which.blacklisted = which.listed
 
 # convert a set of neighbourhoods to an arc set.
 nbr2arcs = function(nbr) {

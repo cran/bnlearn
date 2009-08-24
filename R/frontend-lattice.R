@@ -1,20 +1,20 @@
 
 # dispatch qqmath() from lattice for fitted bayesian networks.
-bn.fit.qqplot = function(fitted, xlab = "Theoretical Quantiles", 
+bn.fit.qqplot = function(fitted, xlab = "Theoretical Quantiles",
     ylab = "Sample Quantiles", main = "Normal Q-Q Plot", ...) {
 
-  lattice.gaussian.backend(fitted = fitted, type = "qqplot", 
+  lattice.gaussian.backend(fitted = fitted, type = "qqplot",
     xlab = xlab, ylab = ylab, main = main, ...)
 
 }#BN.FIT.QQPLOT
 
 # dispatch histogram() from lattice for fitted bayesian networks.
-bn.fit.histogram = function(fitted, density = TRUE, xlab = "Residuals", 
+bn.fit.histogram = function(fitted, density = TRUE, xlab = "Residuals",
     ylab = ifelse(density, "Density", ""), main = "Histogram of the residuals",
      ...) {
 
-  lattice.gaussian.backend(fitted = fitted, 
-    type = ifelse(density, "hist-dens", "hist"), 
+  lattice.gaussian.backend(fitted = fitted,
+    type = ifelse(density, "hist-dens", "hist"),
     xlab = xlab, ylab = ylab, main = main, ...)
 
 }#BN.FIT.HISTOGRAM

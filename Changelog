@@ -1,17 +1,30 @@
 
+bnlearn (1.6)
+
+  * implemented the mmhc() algorithm and its generic 
+      template rshc().
+  * rewritten both the optimized and the standard implementation
+      of hc(), which are way faster than before.
+  * various fixes to documentation and bibtex references.
+  * revised the functions implementing the second half
+      of the constraint-based algorithm.
+  * improved parameter sanitization in "amat<-"().
+  * fixed the functions that set arcs' direction in 
+      constraint-based algorithms.
+
 bnlearn (1.5)
 
-  * improved paramenter sanitization in the "<-"()
+  * improved parameter sanitization in the "<-"()
       functions and modelstring().
   * added support for bootstrap inference with bnboot(),
       boot.strength(), arc.strength(, criterion = "bootstrap")
       and choose.direction(, criterion = "bootstrap").
   * fixed a bug in acyclic() causing false negatives.
-  * added bn.fit() for estimating the parameters of a Baeysian
+  * added bn.fit() for estimating the parameters of a Bayesian
       network conditional on its structure.
   * mapped some S3 methods (print, fitted, fitted.values,
       residuals, resid, coefs, coefficients) to objects of 
-      class "bn-fit", "bn-fit-gnode" and "bn-fit-dnode".
+      class "bn.fit", "bn.fit.gnode" and "bn.fit.dnode".
   * added some plots for the fitted models based on the
       lattice package.
   * implemented AIC and BIC for continuous data, and
@@ -135,7 +148,7 @@ bnlearn (0.4)
 
   * added rbn(), with support for discrete data.
   * added a score function, with support for likelihood,
-      loglikelihood, AIC, BIC, and posterior Dirichlet
+      log-likelihood, AIC, BIC, and posterior Dirichlet
       density of discrete networks.
   * ported modelstring(), a string representation of a network,
       from package deal.

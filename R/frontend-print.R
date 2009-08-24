@@ -3,7 +3,7 @@
 print.bn = function(x, ...) {
 
   params = names(x$learning$args)
-  directed.arcs = length(which(!which.undirected(x$arcs)))
+  directed.arcs = length(which(which.directed(x$arcs)))
   undirected.arcs = (nrow(x$arcs) - directed.arcs)/2
   arcs = undirected.arcs + directed.arcs
   avg.mb = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$mb) }))
@@ -19,6 +19,8 @@ print.bn = function(x, ...) {
     cat("\n  Bayesian network learned via Constraint-based methods\n\n")
   else if (x$learning$algo %in% score.based.algorithms)
     cat("\n  Bayesian network learned via Score-based methods\n\n")
+  else if (x$learning$algo %in% hybrid.algorithms)
+    cat("\n  Bayesian network learned via Hybrid methods\n\n")
   else
     cat("\n  Bayesian network learned via [unknown] methods\n\n")
 
@@ -38,11 +40,19 @@ print.bn = function(x, ...) {
   if (x$learning$test != "none") {
 
     cat("  learning algorithm:                   ", method.labels[x$learning$algo], "\n")
-  
-    if (x$learning$test %in% names(test.labels))
+
+    if (x$learning$algo %in% constraint.based.algorithms)
       cat("  conditional independence test:        ", test.labels[x$learning$test], "\n")
-    else
+    else if (x$learning$algo %in% score.based.algorithms)
       cat("  score:                                ", score.labels[x$learning$test], "\n")
+    else if (x$learning$algo %in% hybrid.algorithms) {
+
+      cat("  constraint-based method:              ", method.labels[x$learning$restrict], "\n")
+      cat("  conditional independence test:        ", test.labels[x$learning$rstest], "\n")
+      cat("  score-based method:                   ", method.labels[x$learning$maximize], "\n")
+      cat("  score:                                ", score.labels[x$learning$maxscore], "\n")
+
+    }#THEN
 
     if ("alpha" %in% params)
       cat("  alpha threshold:                      ", x$learning$args$alpha, "\n")
@@ -111,8 +121,8 @@ print.bn = function(x, ...) {
 # print method for class bn.fit.gnode.
 "print.bn.fit.gnode" = function(x, ...) {
 
-  cat("\n  Parameters of node", x$node, 
-    paste(ifelse(length(x$parents) > 1, "(conditional ", "("), 
+  cat("\n  Parameters of node", x$node,
+    paste(ifelse(length(x$parents) > 1, "(conditional ", "("),
     "gaussian distribution)", collapse = "", sep = ""), "\n");
 
   cat("\nConditional density: ")

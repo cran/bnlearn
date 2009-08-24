@@ -4,7 +4,7 @@ bn.fit = function(x, data, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
-  # check whether the data agree with the bayesian network. 
+  # check whether the data agree with the bayesian network.
   check.bn.vs.data(x, data)
   # no parameters if the network structure is only partially directed.
   if (is.pdag(x$arcs, names(x$nodes)))

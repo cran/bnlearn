@@ -21,7 +21,7 @@
   \item{type}{a character string, the label of a network score.
       If none is specified, the default score is the
       \emph{Akaike Information Criterion} for discrete data sets
-      and the \emph{Bayesian Information Criterion} for both discrete 
+      and the \emph{Bayesian Information Criterion} for both discrete
       and continuous data sets. See \code{\link{bnlearn-package}}
       for details.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output

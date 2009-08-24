@@ -79,7 +79,7 @@ gloglik.node = function(node, x, data, debug = FALSE) {
 
   if (length(node.parents) == 0) {
 
-    res = sum(dnorm(data[, node], mean = mean(data[, node]), 
+    res = sum(dnorm(data[, node], mean = mean(data[, node]),
                 sd = sd(data[, node]), log = TRUE))
 
   }#THEN

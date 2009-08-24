@@ -61,7 +61,8 @@
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{constraint-based algorithms}}, \code{\link{hc}}. }
+\seealso{\code{\link{constraint-based algorithms}}, \code{\link{hc}},
+  \code{\link{hybrid algorithms}}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

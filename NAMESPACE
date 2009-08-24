@@ -5,6 +5,8 @@ export(
   "fast.iamb",
   "mmpc",
   "hc",
+  "rshc",
+  "mmhc",
   "compare",
   "mb",
   "nbr",

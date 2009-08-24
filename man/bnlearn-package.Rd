@@ -18,23 +18,23 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 1.5\cr
-    Date: \tab 2009-07-21\cr
+    Version: \tab 1.6\cr
+    Date: \tab 2009-08-24\cr
     License: \tab GPLv2 or later
 
   }
 
   This package implements some algorithms for learning
-  the structure of Bayesian networks. 
+  the structure of Bayesian networks.
 
   \emph{Constraint-based algorithms}, also known as \emph{conditional
   independence learners}, are all optimized derivatives of the
   \emph{Inductive Causation} algorithm (Verma and Pearl, 1991).
-  These algorithms use conditional independence tests to detect the Markov 
-  blankets of the variables, which in turn are used to compute the 
-  structure of the Bayesian network. 
+  These algorithms use conditional independence tests to detect the Markov
+  blankets of the variables, which in turn are used to compute the
+  structure of the Bayesian network.
 
-  \emph{Score-based learning algorithms} are general purpose heuristic 
+  \emph{Score-based learning algorithms} are general purpose heuristic
   optimization algorithms which rank network structures with respect to
   a goodness-of-fit score.
 
@@ -112,6 +112,21 @@
   }
 
 }
+\section{Available hybrid learning algorithms}{
+
+  \itemize{
+
+    \item \emph{Max-Min Hill-Climbing} (\code{\link{mmhc}}): a hybrid
+      algorithm which combines the Max-Min Parents and Children algorithm
+      (to restrict the search space) and the Hill-Climbing algorithm
+      (to find the optimal network structure in the restricted space).
+    \item \emph{Restricted Hill-Climbing} (\code{\link{rshc}}): a more
+      general implementation of the Max-Min Hill-Climbing, which can use
+      any combination of constraint-based and score-based algorithms.
+
+  }
+
+}
 \section{Available (conditional) independence tests}{
 
   The conditional independence tests used in \emph{constraint-based}
@@ -133,8 +148,8 @@
           mutual information which is set to zero when there aren't at least
           five data per parameter.
         \item \emph{Pearson's \eqn{X^2}{X^2}}: the classical Pearson's
-          \eqn{X^2}{X^2} test for contingency tables. Both the asymptotic 
-          \eqn{\chi^2}{chi-square} test (\code{x2}) and the Monte Carlo 
+          \eqn{X^2}{X^2} test for contingency tables. Both the asymptotic
+          \eqn{\chi^2}{chi-square} test (\code{x2}) and the Monte Carlo
           permutation test (\code{mc-x2}) are implemented.
         \item \emph{Akaike Information Criterion} (\code{aict}): an experimental
           AIC-based independence test, computed comparing the mutual information
@@ -144,17 +159,17 @@
     \item \emph{continuous case} (multivariate normal distribution)
       \itemize{
 
-        \item \emph{linear correlation}: linear correlation. Both the asymptotic 
-          Student's t test (\code{cor}) and the Monte Carlo permutation test 
+        \item \emph{linear correlation}: linear correlation. Both the asymptotic
+          Student's t test (\code{cor}) and the Monte Carlo permutation test
           (\code{mc-cor}) are implemented.
-        \item \emph{Fisher's Z}: a transformation of the linear correlation 
-          with asymptotic normal distribution. Used by commercial software 
-          (such as TETRAD II) for the PC algorithm (an R implementation is 
-          present in the \code{pcalg} package on CRAN). Both the asymptotic 
-          normal (\code{zf}) and the Monte Carlo permutation test (\code{mc-zf}) 
+        \item \emph{Fisher's Z}: a transformation of the linear correlation
+          with asymptotic normal distribution. Used by commercial software
+          (such as TETRAD II) for the PC algorithm (an R implementation is
+          present in the \code{pcalg} package on CRAN). Both the asymptotic
+          normal (\code{zf}) and the Monte Carlo permutation test (\code{mc-zf})
           are implemented.
-        \item \emph{mutual information}: an information-theoretic distance 
-          measure. Again it's proportional to the log-likelihood ratio (they 
+        \item \emph{mutual information}: an information-theoretic distance
+          measure. Again it's proportional to the log-likelihood ratio (they
           differ by a \eqn{2n}{2n} factor). Both the asymptotic \eqn{\chi^2}{chi-square}
           test (\code{mi-g}) and the Monte Carlo permutation test (\code{mc-mi-g})
           are implemented.
@@ -173,7 +188,7 @@
     \item \emph{discrete case} (multinomial distribution)
       \itemize{
 
-        \item the multinomial \emph{loglikelihood} (\code{loglik}) score,
+        \item the multinomial \emph{log-likelihood} (\code{loglik}) score,
           which is equivalent to the \emph{entropy measure} used in Weka.
         \item the \emph{Akaike Information Criterion} score (\code{aic}).
         \item the \emph{Bayesian Information Criterion} score (\code{bic}),
@@ -189,7 +204,7 @@
     \item \emph{continuous case} (multivariate normal distribution)
       \itemize{
 
-        \item the multivariate Gaussian \emph{loglikelihood} (\code{loglik-g}) 
+        \item the multivariate Gaussian \emph{log-likelihood} (\code{loglik-g})
           score.
         \item the corresponding \emph{Akaike Information Criterion} score (\code{aic-g}).
         \item the corresponding \emph{Bayesian Information Criterion} score (\code{bic-g}).

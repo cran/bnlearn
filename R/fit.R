@@ -23,11 +23,11 @@ bn.fit.backend = function(x, data, debug) {
 
       # the parameters of the multinomial distribution are the probabilities
       # of the levels of the node and the configurations of its parents.
-      tab = table(learning.test[, c(node, parents), drop = FALSE]) 
+      tab = table(learning.test[, c(node, parents), drop = FALSE])
       # switch from the joint probabilities to the conditional ones.
       tab = prop.table((tab), margin = seq(length(parents) + 1)[-1])
 
-      structure(list(node = node, parents = parents, prob = tab), 
+      structure(list(node = node, parents = parents, prob = tab),
         class = "bn.fit.dnode")
 
     }#FIT
@@ -53,8 +53,8 @@ bn.fit.backend = function(x, data, debug) {
         resid = data[, node] - mean
         sd = sd(data[, node])
 
-        structure(list(node = node, parents = parents, coefficients = coefs, 
-          residuals = resid, fitted.values = rep(mean, n), sd = sd), 
+        structure(list(node = node, parents = parents, coefficients = coefs,
+          residuals = resid, fitted.values = rep(mean, n), sd = sd),
           class = "bn.fit.gnode")
 
       }#THEN
@@ -72,8 +72,8 @@ bn.fit.backend = function(x, data, debug) {
         fitted = qr.fitted(qr.x, data[, node])
         resid = qr.resid(qr.x, data[, node])
         sd = sd(resid)
- 
-        structure(list(node = node, parents = parents, coefficients = coefs, 
+
+        structure(list(node = node, parents = parents, coefficients = coefs,
           residuals = resid, fitted.values = fitted, sd = sd),
           class = "bn.fit.gnode")
 

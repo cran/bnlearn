@@ -15,7 +15,7 @@
 }
 \details{
 
-  An object of class \code{bn.fit} is a list whose elements 
+  An object of class \code{bn.fit} is a list whose elements
   correspond to the nodes of the Bayesian network. If the latter
   is discrete (i.e. the nodes are multinomial random variables)
   each node has class \code{bn.fit.dnode} and contains the
@@ -40,7 +40,7 @@
     \item \code{parents}: the labels of the parents of the node.
     \item \code{coefficients}: the linear regression coefficients of the
       parents against the node.
-    \item \code{residuals}: the residuals of the linear regression, 
+    \item \code{residuals}: the residuals of the linear regression,
       that is response minus fitted values.
     \item \code{fitted.values}: the fitted mean values of the linear
       regression.

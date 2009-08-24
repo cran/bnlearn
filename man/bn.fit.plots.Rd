@@ -16,10 +16,10 @@
 }
 \usage{
   ## for Gaussian Bayesian networks.
-  bn.fit.qqplot(fitted, xlab = "Theoretical Quantiles", 
+  bn.fit.qqplot(fitted, xlab = "Theoretical Quantiles",
     ylab = "Sample Quantiles", main = "Normal Q-Q Plot", ...)
-  bn.fit.histogram(fitted, density = TRUE, xlab = "Residuals", 
-    ylab = ifelse(density, "Density", ""), 
+  bn.fit.histogram(fitted, density = TRUE, xlab = "Residuals",
+    ylab = ifelse(density, "Density", ""),
     main = "Histogram of the residuals", ...)
   bn.fit.xyplot(fitted, xlab = "Fitted values",
     ylab = "Residuals", main = "Residuals vs Fitted", ...)
@@ -37,30 +37,30 @@
   \item{density}{a boolean value. If \code{TRUE} the histogram is
     plotted using relative frequencies, and the matching normal
     density is added to the plot.}
-  \item{\dots}{additional arguments to be passed to \pkg{lattice} 
+  \item{\dots}{additional arguments to be passed to \pkg{lattice}
    functions.}
 }
 \details{
 
-  \code{bn.fit.qqplot} draws a quantile-quantile plot of the 
+  \code{bn.fit.qqplot} draws a quantile-quantile plot of the
     residuals.
 
   \code{bn.fit.histogram} draws a histogram of the residuals,
     using either absolute or relative frequencies.
 
-  \code{bn.fit.xyplot} plots the residuals versus the fitted 
+  \code{bn.fit.xyplot} plots the residuals versus the fitted
     values.
 
   \code{bn.fit.barchart} and \code{bn.fit.dotplot} plot
-    the probabilties in the conditional probability table
+    the probabilities in the conditional probability table
     associated with each node.
 
 }
 \value{
 
   The \pkg{lattice} plot objects. Note that if auto-printing is
-  turned off (for example when the code is loaded with the 
-  \code{source} function), the return value must be printed 
+  turned off (for example when the code is loaded with the
+  \code{source} function), the return value must be printed
   explicitly for the plot to be displayed.
 
 }

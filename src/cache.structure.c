@@ -36,12 +36,15 @@ SEXP cache_node_structure(int cur, SEXP nodes, SEXP amat, int nrows,
 
           if ((AMAT(j,i) == 1) && (AMAT(i,j) == 0) && (j != cur)) {
 
-            if (isTRUE(debug))
-              Rprintf("  > found node %s in markov blanket.\n", NODE(j));
-
             /* don't mark a neighbour as in the markov blanket. */
-            if (status[i] <= 1)
+            if (status[j] <= 1) {
+
               status[j] = BLANKET;
+
+              if (isTRUE(debug))
+                Rprintf("  > found node %s in markov blanket.\n", NODE(j));
+
+            }/*THEN*/
 
           }/*THEN*/
 

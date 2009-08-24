@@ -53,6 +53,7 @@ SEXP fast_pcor(SEXP data, SEXP length) {
   SEXP res, cov, svd;
   double *u, *d, *vt;
   double k11 = 0, k12 = 0, k22 = 0;
+  double tol = MACHINE_TOL;
 
   /* compute the single-value decomposition of the matrix. */
   PROTECT(cov = cov2(data, length));
@@ -67,7 +68,7 @@ SEXP fast_pcor(SEXP data, SEXP length) {
    * for the partial correlation coefficient. */
   for (i = 0; i < ncols; i++) {
 
-    if (d[i] > MACHINE_TOL) {
+    if (d[i] > tol) {
 
       k11 += u[CMC(0, i, ncols)] * vt[CMC(i, 0, ncols)] / d[i];
       k12 += u[CMC(0, i, ncols)] * vt[CMC(i, 1, ncols)] / d[i];

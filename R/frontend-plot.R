@@ -1,13 +1,13 @@
 
 # generic plot of an object of class 'bn' using graphivz.
-graphviz.plot = function(x, highlight = NULL, layout = "dot", shape = "circle", 
+graphviz.plot = function(x, highlight = NULL, layout = "dot", shape = "circle",
     main = NULL, sub = NULL) {
 
   # check x's class.
   check.bn(x)
 
   graphviz.backend(nodes = names(x$nodes), arcs = x$arcs,
-    highlight = highlight, layout = layout, shape = shape, 
+    highlight = highlight, layout = layout, shape = shape,
     main = main, sub = sub)
 
 }#GRAPHVIZ.PLOT

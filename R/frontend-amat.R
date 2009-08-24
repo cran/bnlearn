@@ -18,7 +18,7 @@ amat = function(x) {
   if (missing(value))
     stop("no adjacency matrix specified.")
   # check the adjacency matrix.
-  check.amat(amat = value, nodes = names(x$nodes))
+  value = check.amat(amat = value, nodes = names(x$nodes))
 
   # update the arcs of the network.
   x$arcs = amat2arcs(value, names(x$nodes))

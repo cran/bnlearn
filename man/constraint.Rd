@@ -10,7 +10,7 @@
   Estimate the equivalence class of a directed acyclic graph (DAG)
   from data using the Grow-Shrink (GS) , the Incremental Association
   (IAMB), the Fast Incremental Association (Fast IAMB) and
-  Interleaved Incremental Association (Inter IAMB) constraint-based 
+  Interleaved Incremental Association (Inter IAMB) constraint-based
   algorithms.
 
 }
@@ -90,6 +90,7 @@
 
 }
 \author{ Marco Scutari }
+\seealso{\code{\link{mmpc}}, \code{\link{hc}}, \code{\link{hybrid algorithms}}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

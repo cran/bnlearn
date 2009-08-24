@@ -1,5 +1,5 @@
 
-# Parameter sanitization for the constraint-based learning algorithms.
+# Parameter sanitization for constraint-based learning algorithms.
 bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = "mi", alpha = 0.05, B = NULL, method = "gs", debug = FALSE,
     optimized = TRUE, strict = TRUE, undirected = FALSE) {
@@ -220,7 +220,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 }#BNLEARN
 
-# Parameter sanitization for the score-based learning algorithms.
+# Parameter sanitization for score-based learning algorithms.
 greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     score = "aic", heuristic = "hc", ..., debug = FALSE, restart = 0,
     perturb = 1, max.iter = Inf, optimized = FALSE) {
@@ -250,11 +250,8 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     # check start's class.
     if (!is(start, "bn"))
       stop("x must be an object of class 'bn'.")
-    # set all nodes as updated if the preseed network is not empty,
-    # so that all cache lookups are skipped.
-    if (nrow(start$arcs) > 0)
-      start$updates = array(rep(0, length(start$nodes)),
-                        dimnames = list(names(start$nodes)))
+    # check the preseeded network against the data set.
+    check.bn.vs.data(start, x)
 
   }#ELSE
 
@@ -294,22 +291,10 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   # call the right backend.
   if (heuristic == "hc") {
 
-    if (optimized) {
-
-      res = hill.climbing.optimized(x = x, start = start,
-        whitelist = whitelist, blacklist = blacklist, score = score,
-        extra.args = extra.args, restart = restart, perturb = perturb,
-        max.iter = max.iter, debug = debug)
-
-    }#THEN
-    else {
-
-      res = hill.climbing(x = x, start = start, whitelist = whitelist,
-        blacklist = blacklist, score = score, extra.args = extra.args,
-        restart = restart, perturb = perturb, max.iter = max.iter,
-        debug = debug)
-
-    }#ELSE
+    res = hill.climbing(x = x, start = start, whitelist = whitelist, 
+      blacklist = blacklist, score = score, extra.args = extra.args, 
+      restart = restart, perturb = perturb, max.iter = max.iter, 
+      optimized = optimized, debug = debug)
 
   }#THEN
 
@@ -324,3 +309,61 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
 }#GREEDY.SEARCH
 
+# Parameter sanitization for hybrid learning algorithms.
+hybrid.search = function(x, whitelist = NULL, blacklist = NULL, restrict = "mmpc",
+    maximize = "hc", test = NULL, score = NULL, alpha = 0.05, B = NULL, ...,
+    restart = 0, perturb = 0, max.iter = Inf, optimized = TRUE, strict = FALSE,
+    debug = FALSE) {
+
+  nodes = names(x)
+
+  # check the restrict and maximize parameters.
+  check.learning.algorithm(restrict, class = "constraint")
+  check.learning.algorithm(maximize, class = "score")
+  # choose the right method for the job.
+  method = ifelse((restrict == "mmpc") && (maximize == "hc"), "mmhc", "rshc")
+
+  if (debug) {
+
+    cat("----------------------------------------------------------------\n")
+    cat("* restrict phase.\n")
+
+  }#THEN
+
+  # restrict phase
+  rst = bnlearn(x, cluster = NULL, whitelist = whitelist, blacklist = blacklist,
+          test = test, alpha = alpha, B = B, method = restrict, debug = debug,
+          optimized = optimized, strict = strict, undirected = TRUE)
+
+  # transform the constraints learned during the restrict phase in a blacklist
+  # which will be used in the maximize phase.
+  constraints = arcs.to.be.added(rst$arcs, nodes, NULL)
+
+  # store the number of tests done up to now, to be added later at the end of
+  # the maximize phase.
+  ntests = get(".test.counter", envir = .GlobalEnv)
+
+  if (debug) {
+
+    cat("----------------------------------------------------------------\n")
+    cat("* maximize phase.\n")
+
+  }#THEN
+
+  # maximize phase
+  res = greedy.search(x, start = NULL, whitelist = whitelist, blacklist = constraints,
+          score = score, heuristic = maximize, ..., debug = debug, restart = restart,
+          perturb = perturb, max.iter = max.iter, optimized = optimized)
+
+  # set the metadata of the network.
+  res$learning$ntests = res$learning$ntests + ntests
+  res$learning$algo = method
+  res$learning$restrict = restrict
+  res$learning$rstest = rst$learning$test
+  res$learning$maximize = maximize
+  res$learning$maxscore = res$learning$test
+  res$learning$args = c(res$learning$args, rst$learning$args)
+
+  invisible(res)
+
+}#HYBRID.SEARCH

@@ -1,10 +1,10 @@
 \name{bnboot}
 \alias{bnboot}
-\title{ Paramentric and nonparametric bootstrap of Bayesian networks }
+\title{ Parametric and nonparametric bootstrap of Bayesian networks }
 \description{
 
   Apply a user-specified function to Bayesian networks learned
-  from bootstrap relicates of the original data.
+  from bootstrap samples of the original data.
 
 }
 \usage{
@@ -61,7 +61,7 @@ bnboot(data = learning.test, R = 2, m = 500, algorithm = "gs",
 }
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{constraint-based algorithms}}, \code{\link{mmpc}}, 
-  \code{\link{hc}}. }
+\seealso{\code{\link{constraint-based algorithms}}, \code{\link{mmpc}},
+  \code{\link{hc}}, \code{\link{hybrid algorithms}}. }
 \keyword{nonparametric}
 \keyword{multivariate}

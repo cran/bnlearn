@@ -53,8 +53,8 @@ is.acyclic.backend = function(arcs, nodes, directed = FALSE,
 # compute the data / cells ratio.
 obs.per.cell = function(x, y, z = NULL, data) {
 
-  # return +Inf  for continuous data to bypass countermeasures
-  # thought for scarce discrete data.
+  # return +Inf for continuous data to bypass countermeasures
+  # thought for sparce discrete data.
   if (is.data.continuous(data))
     return(Inf)
 

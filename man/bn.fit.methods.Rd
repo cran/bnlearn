@@ -13,8 +13,8 @@
 \title{ Utilities to manipulate fitted Bayesian networks }
 \description{
 
- Assign or extract various quantities of interest from an 
- object of class \code{bn.fit}, \code{bn.fit.dnode} or 
+ Assign or extract various quantities of interest from an
+ object of class \code{bn.fit}, \code{bn.fit.dnode} or
  \code{bn.fit.gnode}.
 
 }
@@ -43,8 +43,8 @@
   coefficients (which are conditional probabilities in discrete
   networks and linear regression coefficients in Gaussian networks).
 
-  \code{residuals} (and its alias \code{resid}) extracts model 
-  residuals and \code{fitted} (and its alias \code{fitted.values}) 
+  \code{residuals} (and its alias \code{resid}) extracts model
+  residuals and \code{fitted} (and its alias \code{fitted.values})
   extracts fitted values from fitted Gaussian networks.
 
 }
@@ -65,36 +65,36 @@ fitted = bn.fit(res, gaussian.test)
 
 coefficients(fitted)
 # $A
-# (Intercept) 
-#    1.007493 
-# 
+# (Intercept)
+#    1.007493
+#
 # $B
-# (Intercept) 
-#    2.039499 
-# 
+# (Intercept)
+#    2.039499
+#
 # $C
-# (Intercept)           A           B 
-#    2.001083    1.995901    1.999108 
-# 
+# (Intercept)           A           B
+#    2.001083    1.995901    1.999108
+#
 # $D
-# (Intercept)           B 
-#    5.995036    1.498395 
-# 
+# (Intercept)           B
+#    5.995036    1.498395
+#
 # $E
-# (Intercept) 
-#    3.493906 
-# 
+# (Intercept)
+#    3.493906
+#
 # $F
-#  (Intercept)            A            D            E            G 
-# -0.006047321  1.994853041  1.005636909  1.002577002  1.494373265 
-# 
+#  (Intercept)            A            D            E            G
+# -0.006047321  1.994853041  1.005636909  1.002577002  1.494373265
+#
 # $G
-# (Intercept) 
-#    5.028076 
-# 
+# (Intercept)
+#    5.028076
+#
 coefficients(fitted$C)
-# (Intercept)           A           B 
-#    2.001083    1.995901    1.999108 
+# (Intercept)           A           B
+#    2.001083    1.995901    1.999108
 str(residuals(fitted))
 # List of 7
 #  $ A: num [1:5000] 0.106 -1.255 0.847 -0.174 -0.519 ...
@@ -111,15 +111,15 @@ fitted2 = bn.fit(res2, learning.test)
 
 coefficients(fitted2$E)
 # , , F = a
-# 
+#
 #    B
 # E        a      b      c
 #   a 0.1902 0.0126 0.0244
 #   b 0.0230 0.0110 0.0234
 #   c 0.0230 0.0376 0.1566
-# 
+#
 # , , F = b
-# 
+#
 #    B
 # E        a      b      c
 #   a 0.0946 0.0166 0.0498

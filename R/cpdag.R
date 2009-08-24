@@ -119,7 +119,7 @@ cpdag.backend = function(amat, nodes, debug = TRUE) {
 
   }#REPEAT
 
-  res$arcs = matrix(c(res$arcs[, 1], other.arcs[, 1], other.arcs[, 2], res$arcs[, 2], 
+  res$arcs = matrix(c(res$arcs[, 1], other.arcs[, 1], other.arcs[, 2], res$arcs[, 2],
               other.arcs[, 2], other.arcs[, 1]), ncol = 2, dimnames = list(NULL, c("from", "to")))
   res$arcs = unique(res$arcs)
 
