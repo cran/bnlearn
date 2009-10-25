@@ -9,7 +9,7 @@
 
 }
 \usage{
-  data(gaussian.test)
+data(gaussian.test)
 }
 \format{
 

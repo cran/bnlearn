@@ -25,19 +25,19 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
     # 3.2 sort them in p-value order.
     vs = vs[order(vs[,"max_a"], decreasing = FALSE),]
     # 3.3 apply.
-    arcs = vstruct.apply(arcs = arcs, vs = vs, nodes = nodes, 
+    arcs = vstruct.apply(arcs = arcs, vs = vs, nodes = nodes,
              strict = strict, debug = debug)
 
   }#THEN
 
   # 4. [Remove Cycles] and 5. [Reverse Edges]
   # thou shalt not create cycles in the graph, it's acyclic!
-  arcs = orient.edges(arcs = arcs, nodes = nodes, whitelist = whitelist, 
+  arcs = orient.edges(arcs = arcs, nodes = nodes, whitelist = whitelist,
            blacklist = blacklist, cluster = cluster, debug = debug,
            pass = 1)
 
   # 6. [Propagate Directions]
-  arcs = orient.edges(arcs = arcs, nodes = nodes, whitelist = whitelist, 
+  arcs = orient.edges(arcs = arcs, nodes = nodes, whitelist = whitelist,
            blacklist = blacklist, cluster = cluster, debug = debug,
            pass = 2)
 
@@ -365,7 +365,7 @@ vstruct.apply = function(arcs, vs, nodes, strict, debug) {
 }#VSTRUCT.APPLY
 
 # remove arcs from the graph to make it acyclic.
-orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster, 
+orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
     debug) {
 
   to.be.reversed = character(0)
@@ -380,9 +380,9 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
   # the first pass considers only directed arcs; drop the undirected ones.
   if (pass == 1) {
 
-    u = arcs[which.undirected(arcs),, drop = FALSE]
-
-    arcs = arcs[which.directed(arcs),, drop = FALSE]
+    which.ones = which.undirected(arcs)
+    u = arcs[which.ones,, drop = FALSE]
+    arcs = arcs[!which.ones,, drop = FALSE]
 
   }#THEN
 
@@ -391,16 +391,16 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
     # the second pass has the main purpose to remove the propagate the directions
     # of the directed arcs; do not try to drop/reverse them again.
     if (pass == 2) {
-  
+
       d = arcs[which.directed(arcs),, drop = FALSE]
-  
+
       if (!is.null(whitelist))
         whitelist = arcs.rbind(whitelist, d)
       else
         whitelist = d
-  
+
     }#THEN
-  
+
     # cannot remove or reverse more arcs than you have.
     if (n > narcs)
       stop("too many iterations, probably would have gone on forever.")
@@ -434,7 +434,7 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
 
     # if an arc belongs to a completely directed cycle but do it reverse does
     # not, drop it from the cycles data frame (this makes the second pass compliant
-    # with Margaritis' algorithm specification). 
+    # with Margaritis' algorithm specification).
     if (pass == 2) {
 
         amatd = arcs2amat(arcs[which.directed(arcs),, drop = FALSE], nodes)
@@ -442,12 +442,12 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
 
         for (i in which(candidates)) {
 
-          res = !has.path(cycles[i, 2], cycles[i, 1], nodes, amatd, exclude.direct = TRUE) && 
+          res = !has.path(cycles[i, 2], cycles[i, 1], nodes, amatd, exclude.direct = TRUE) &&
                  has.path(cycles[i, 1], cycles[i, 2], nodes, amatd, exclude.direct = TRUE)
           candidates[i] = res
 
         }#FOR
- 
+
         cycles = cycles[!candidates,, drop = FALSE]
 
     }#THEN
@@ -456,7 +456,7 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
 
       changed = FALSE
 
-      # check which arcs belong to the maximum number of cycles in both 
+      # check which arcs belong to the maximum number of cycles in both
       # directions and ignore them; removing any of them does not make
       # sense.
       max.cycles = cycles[1, 3]

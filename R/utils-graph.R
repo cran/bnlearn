@@ -140,6 +140,48 @@ nbr.backend = function(arcs, node) {
 
 }#NBR.BACKEND
 
+# return the skeleton of a graph.
+dag2ug.backend = function(x) {
+
+  nodes = names(x$nodes)
+
+  arcs = .Call("dag2ug", 
+               arcs = x$arcs,
+               nodes = nodes,
+               PACKAGE = "bnlearn")
+
+  # update the arcs of the network.
+  x$arcs = arcs
+  # update the network structure.
+  x$nodes = cache.structure(nodes = nodes, arcs = arcs)
+
+  return(x)
+
+}#DAG2UG.BACKEND
+
+# return a complete orientation of a graph.
+pdag2dag.backend = function(x, ordering) {
+
+  nodes = names(x$nodes)
+
+  arcs = .Call("pdag2dag",
+               arcs = x$arcs,
+               nodes = ordering,
+               PACKAGE = "bnlearn")
+
+  # check that the new graph is still acyclic.
+  if (!is.acyclic.backend(arcs = arcs, nodes = nodes, directed = TRUE))
+    stop("this complete orientation of the graph is not acyclic.")
+
+  # update the arcs of the network.
+  x$arcs = arcs
+  # update the network structure.
+  x$nodes = cache.structure(nodes = names(x$nodes), arcs = arcs)
+
+  return(x)
+
+}#PDAG2DAG.BACKEND
+
 # apply random arc operators to the graph.
 perturb.backend = function(network, iter, nodes, amat, whitelist,
     blacklist, debug = FALSE) {

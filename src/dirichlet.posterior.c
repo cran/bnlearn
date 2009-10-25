@@ -5,11 +5,11 @@
 /* posterior dirichlet probability (covers BDe and K2 scores). */
 SEXP dpost (SEXP x, SEXP lx, SEXP length, SEXP iss, SEXP debug) {
 
-  int k = 0;
-  int *imaginary, *llx = INTEGER(lx), *num = INTEGER(length), *xx = INTEGER(x); 
-  int *n;
-  double alpha, *res; 
-  SEXP result;
+int k = 0;
+int *llx = INTEGER(lx), *num = INTEGER(length), *xx = INTEGER(x);
+int *n = NULL, *imaginary = NULL;
+double alpha = 0, *res = NULL;
+SEXP result;
 
   if (isNull(iss)) {
 
@@ -36,7 +36,7 @@ SEXP dpost (SEXP x, SEXP lx, SEXP length, SEXP iss, SEXP debug) {
   n = alloc1dcont(*llx);
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < *num; k++) 
+  for (k = 0; k < *num; k++)
     n[xx[k] - 1]++;
 
   if (isTRUE(debug)) {
@@ -65,7 +65,7 @@ SEXP dpost (SEXP x, SEXP lx, SEXP length, SEXP iss, SEXP debug) {
   /* compute the posterior probability. */
   for (k = 0; k < *llx; k++)
     *res += lgammafn(n[k] + alpha) - lgammafn(alpha);
-  *res += lgammafn((double)(*imaginary)) - 
+  *res += lgammafn((double)(*imaginary)) -
             lgammafn((double)(*imaginary + *num));
 
   UNPROTECT(1);
@@ -74,15 +74,15 @@ SEXP dpost (SEXP x, SEXP lx, SEXP length, SEXP iss, SEXP debug) {
 }/*DPOST*/
 
 /* conditional posterior dirichlet probability (covers BDe and K2 scores). */
-SEXP cdpost (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP iss, 
+SEXP cdpost (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP iss,
     SEXP nparams, SEXP debug) {
 
-  int j = 0, k = 0;
-  int *llx = INTEGER(lx), *lly = INTEGER(ly), *p = INTEGER(nparams);
-  int *imaginary, *xx = INTEGER(x), *yy = INTEGER(y), *num = INTEGER(length); 
-  int **n, *nj;
-  double alpha, *res; 
-  SEXP result;
+int j = 0, k = 0;
+int *llx = INTEGER(lx), *lly = INTEGER(ly), *p = INTEGER(nparams);
+int *xx = INTEGER(x), *yy = INTEGER(y), *num = INTEGER(length);
+int *imaginary = NULL, **n = NULL, *nj = NULL;
+double alpha = 0, *res = NULL;
+SEXP result;
 
   if (isNull(iss)) {
 
@@ -158,7 +158,7 @@ SEXP cdpost (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP iss,
     for (k = 0; k < *lly; k++)
       *res += lgammafn(n[j][k] + alpha) - lgammafn(alpha);
   for (k = 0; k < *lly; k++)
-    *res += lgammafn((double)*imaginary / *lly) - 
+    *res += lgammafn((double)*imaginary / *lly) -
               lgammafn(nj[k] + (double)*imaginary / *lly);
 
   UNPROTECT(1);

@@ -1,28 +1,22 @@
 #include "common.h"
 
-#define ARC(i,col) CHAR(STRING_ELT(arcs, i + col * nrows))
-#define NODE(i) CHAR(STRING_ELT(nodes, i))
-
+/* convert an arc set to an adjacency matrix. */
 SEXP arcs2amat(SEXP arcs, SEXP nodes) {
 
-  int i = 0, j = 0, k = 0;
-  int nrows = LENGTH(arcs) / 2;
-  int dims = LENGTH(nodes);
-  int *res;
-  SEXP result, dimnames;
+int k = 0, nrows = LENGTH(arcs) / 2, dims = LENGTH(nodes);
+int *res = NULL, *coords = NULL;
+SEXP result, dimnames, try;
 
-  /* allocate the adjacency matrix. */
+  /* allocate and initialize the adjacency matrix. */
   PROTECT(result = allocMatrix(INTSXP, dims, dims));
   res = INTEGER(result);
+  memset(res, '\0', sizeof(int) * dims * dims);
 
   /* allocate rownames and colnames. */
   PROTECT(dimnames = allocVector(VECSXP, 2));
   SET_VECTOR_ELT(dimnames, 0, nodes);
   SET_VECTOR_ELT(dimnames, 1, nodes);
   setAttrib(result, R_DimNamesSymbol, dimnames);
-
-  /* initialize the adjacency matrix. */
-  memset(res, '\0', sizeof(int) * dims * dims);
 
   /* nothing to do if there are no arcs. */
   if (nrows == 0) {
@@ -32,43 +26,26 @@ SEXP arcs2amat(SEXP arcs, SEXP nodes) {
 
   }/*THEN*/
 
+  /* match the node labels in the arc set. */
+  PROTECT(try = match(nodes, arcs, 0));
+  coords = INTEGER(try);
+
   /* iterate over the arcs. */
-  for (k = 0; k < nrows; k++) {
+  for (k = 0; k < nrows; k++)
+    res[CMC(coords[k] - 1, coords[k + nrows] - 1, dims)] = 1;
 
-    /* iterate over labels to match the parent's. */
-    for (i = 0; i < dims; i++) {
-
-      if (!strcmp(NODE(i), ARC(k, 0)) ) {
-
-        /* iterate over labels to match the parent's. */
-        for (j = 0; j < dims; j++) {
-
-          if (!strcmp(NODE(j), ARC(k, 1)) ) {
-
-            res[i + j * dims] = 1;
-
-          }/*THEN*/
-
-        }/*FOR*/
-
-      }/*THEN*/
-
-    }/*FOR*/
-
-  }/*FOR*/
-
-  UNPROTECT(2);
+  UNPROTECT(3);
 
   return result;
 
 }/*ARCS2AMAT*/
 
+/* convert an adjacency matrix to an arc set. */
 SEXP amat2arcs(SEXP amat, SEXP nodes) {
 
-  int i = 0, j = 0, k = 0;
-  int nrows = LENGTH(nodes), narcs = 0;
-  int *a = INTEGER(amat);
-  SEXP arcs, dimnames, colnames;
+int i = 0, j = 0, k = 0, nrows = LENGTH(nodes), narcs = 0;
+int *a = INTEGER(amat);
+SEXP arcs, dimnames, colnames;
 
   /* count the number of arcs in the adjacency matrix. */
   for (i = 0; i < nrows; i++) {

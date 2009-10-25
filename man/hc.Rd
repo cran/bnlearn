@@ -1,6 +1,7 @@
-\name{hc}
+\name{score-based algorithms}
+\alias{score-based algorithms}
 \alias{hc}
-\title{ Hill-Climbing (HC) learning algorithm }
+\title{ Score-based learning algorithms }
 \description{
 
   Learn the structure of a Bayesian network using a
@@ -9,8 +10,8 @@
 }
 \usage{
 hc(x, start = NULL, whitelist = NULL, blacklist = NULL,
-    score = NULL, ..., debug = FALSE, restart = 0,
-    perturb = 1, max.iter = Inf, optimized = TRUE)
+  score = NULL, ..., debug = FALSE, restart = 0,
+  perturb = 1, max.iter = Inf, optimized = TRUE)
 }
 \arguments{
   \item{x}{a data frame, containing the variables in the model.}
@@ -60,8 +61,8 @@ hc(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{constraint-based algorithms}}, \code{\link{hybrid algorithms}},
-  \code{\link{mmpc}}. }
+\seealso{\code{\link{constraint-based algorithms}}, \code{\link{hybrid algorithms}}, \cr
+  \code{\link{local discovery algorithms}}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

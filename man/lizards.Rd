@@ -10,7 +10,7 @@
 
 }
 \usage{
-  data(lizards)
+data(lizards)
 }
 \format{
 

@@ -7,7 +7,7 @@
 
 }
 \usage{
-  rbn(x, n, data, debug = FALSE)
+rbn(x, n, data, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}

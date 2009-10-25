@@ -23,7 +23,7 @@ bn.fit.backend = function(x, data, debug) {
 
       # the parameters of the multinomial distribution are the probabilities
       # of the levels of the node and the configurations of its parents.
-      tab = table(learning.test[, c(node, parents), drop = FALSE])
+      tab = table(data[, c(node, parents), drop = FALSE])
       # switch from the joint probabilities to the conditional ones.
       tab = prop.table((tab), margin = seq(length(parents) + 1)[-1])
 

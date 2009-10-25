@@ -10,6 +10,7 @@
 #define isTRUE(logical) LOGICAL(logical)[0] == TRUE
 #define INT(x) INTEGER(x)[0]
 #define NUM(x) REAL(x)[0]
+#define NODE(i) CHAR(STRING_ELT(nodes, i))
 
 /* coordinate systems conversion matrices */
 
@@ -34,6 +35,10 @@
 #define UPTRI2(x, y, n) \
   ((x) - 1) * n + (y) - ((x) * ((x) - 1)) / 2
 
+/* coordinate system for an upper triangular matrix (not including
+ * the diagonal elements). */
+#define UPTRI3(r, c, n) (UPTRI(r, c, n) - ((r > c) ? c : r))
+
 /* column-major coordinates for an arbitrary matrix. */
 #define CMC(i, j, nrows) ((i) + (j) * (nrows))
 
@@ -52,20 +57,21 @@ SEXP amat2arcs(SEXP amat, SEXP nodes);
 /* from cache.structure.c */
 
 SEXP cache_structure(SEXP nodes, SEXP amat, SEXP debug);
-SEXP cache_node_structure(int cur, SEXP nodes, SEXP amat, int nrows,
-    int *status, SEXP debug);
+SEXP c_cache_partial_structure(int target, SEXP nodes, SEXP amat, int *status, SEXP debug);
 
 /* from linear.algebra.c */
 
 SEXP r_svd(SEXP matrix);
+SEXP r_det(SEXP matrix, int scale);
+double c_det(double *matrix, int *rows);
 
 /* from linear.correlation.c */
 
 SEXP fast_pcor(SEXP data, SEXP length);
 
 /* from path.c */
-SEXP c_has_path(int start, int stop, int *amat, int n, SEXP nodes,
-    SEXP underlying, SEXP exclude_direct, SEXP debug);
+int c_has_path(int start, int stop, int *amat, int n, SEXP nodes,
+    int ugraph, int notdirect, int debuglevel);
 
 /* memory allocation functions */
 
@@ -74,3 +80,4 @@ int **alloc2dcont(int length, int width);
 int ***alloc3dcont(int length, int width, int depth);
 short int *allocstatus(int length);
 double *alloc1dreal(int length);
+char **alloc1dstring (int length);

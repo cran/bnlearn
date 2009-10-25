@@ -10,7 +10,7 @@
 
 }
 \usage{
-  data(asia)
+data(asia)
 }
 \format{
 
@@ -39,9 +39,20 @@
 }
 \note{
 
+  Lauritzen and Spiegelhalter (1988) motivate this example as follows:
+
+  \dQuote{Shortness-of-breath (dyspnoea) may be due to tuberculosis, lung
+  cancer or bronchitis, or none of them, or more than one of them. A recent
+  visit to Asia increases the chances of tuberculosis, while smoking is
+  known to be a risk factor for both lung cancer and bronchitis. The results
+  of a single chest X-ray do not discriminate between lung cancer and
+  tuberculosis, as neither does the presence or absence of dyspnoea.}
+
   Standard learning algorithms are not able to recover the true
   structure of the network because of the presence of a node (\code{E})
-  with conditional probabilities equal to both 0 and 1.
+  with conditional probabilities equal to both 0 and 1. Monte
+  Carlo tests seems to behvae better than their parametric
+  counterparts.
 
   The R script to generate data from this network is shipped in the
   \file{network.scripts} directory of this package.

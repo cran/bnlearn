@@ -9,7 +9,7 @@
 
 }
 \usage{
-  data(marks)
+data(marks)
 }
 \format{
 

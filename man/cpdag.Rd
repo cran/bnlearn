@@ -7,7 +7,7 @@
 
 }
 \usage{
-  cpdag(x, debug = FALSE)
+cpdag(x, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}

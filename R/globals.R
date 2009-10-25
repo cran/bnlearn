@@ -19,6 +19,8 @@ available.learning.algorithms = c(constraint.based.algorithms, score.based.algor
 
 always.dag.result = c(score.based.algorithms, hybrid.algorithms)
 
+available.mvber.vartests = c("tvar", "gvar", "nvar")
+
 method.labels = c(
   'gs' = "grow-shrink",
   'iamb' = "incremental association",
@@ -84,6 +86,12 @@ graph.generation.labels = c(
 graph.generation.extra.args = list(
   "ordered" = "prob",
   "ic-dag" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree")
+)
+
+mvber.labels = list(
+  "tvar" = "total variance",
+  "gvar" = "generalized variance",
+  "nvar" = "squared Frobenius norm"
 )
 
 graphviz.enabled = FALSE

@@ -3,8 +3,8 @@
 /* allocate a 1-dimensional contingency table. */
 int *alloc1dcont (int length) {
 
-  int *p = (int *) R_alloc(length, sizeof(int));
-  memset(p, '\0', sizeof(int) * length);
+int *p = (int *) R_alloc(length, sizeof(int));
+memset(p, '\0', sizeof(int) * length);
 
   return p;
 
@@ -13,8 +13,7 @@ int *alloc1dcont (int length) {
 /* allocate a 2-dimensional contingency table. */
 int **alloc2dcont (int length, int width) {
 
-  int **p;
-  int k = 0;
+int **p = NULL, k = 0;
 
   p = (int **) R_alloc(length, sizeof(int *));
 
@@ -32,8 +31,7 @@ int **alloc2dcont (int length, int width) {
 /* allocate a 3-dimensional contingency table. */
 int ***alloc3dcont (int length, int width, int depth) {
 
-  int ***p;
-  int i = 0, j = 0;
+int ***p = NULL, i = 0, j = 0;
 
   p = (int ***) R_alloc(length, sizeof(int *));
   for (i = 0; i < length; i++) {
@@ -56,7 +54,9 @@ int ***alloc3dcont (int length, int width, int depth) {
 /* allocate and initialize a status vector. */
 short int *allocstatus (int length) {
 
-  short int *p = (short int *) R_alloc(length, sizeof(short int));
+short int *p = NULL;
+
+  p= (short int *) R_alloc(length, sizeof(short int));
   memset(p, '\0', sizeof(short int) * length);
 
   return p;
@@ -66,9 +66,22 @@ short int *allocstatus (int length) {
 /* allocate a 1-dimensional real vector. */
 double *alloc1dreal (int length) {
 
-  double *p = (double *) R_alloc(length, sizeof(double));
+double *p = NULL;
+
+  p = (double *) R_alloc(length, sizeof(double));
   memset(p, '\0', sizeof(double) * length);
 
   return p;
 
 }/*ALLOC1DREAL*/
+
+char **alloc1dstring (int length) {
+
+char **p = NULL;
+
+  p = (char **) R_alloc(length, sizeof(char *));
+
+  return p;
+
+}/*ALLOC1DSTRING*/
+

@@ -8,9 +8,8 @@
 
 }
 \usage{
-  boot.strength(data, R = 200, m = round(2/3 * nrow(data)),
-    algorithm, algorithm.args = list(), debug = FALSE)
-
+boot.strength(data, R = 200, m = nrow(data),
+  algorithm, algorithm.args = list(), debug = FALSE)
 }
 \arguments{
   \item{data}{a data frame, containing the variables in the model.}

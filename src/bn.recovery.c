@@ -1,29 +1,29 @@
 #include "common.h"
 
-#define NODE(i) (char *)CHAR(STRING_ELT(names, i))
-
 /* check neighbourhood sets and markov blanets for consistency.. */
 SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
 
-  int i = 0, j = 0, k = 0, n = 0;
-  short int *checklist;
-  int counter = 0;
-  short int err = 0;
-
-  SEXP temp, temp2, names, elnames = NULL, fixed;
+int i = 0, j = 0, k = 0, n = 0, counter = 0;
+short int *checklist = NULL, err = 0;
+int *debuglevel = NULL, *checkmb = NULL;
+SEXP temp, temp2, nodes, elnames = NULL, fixed;
 
   /* get the names of the nodes. */
-  names = getAttrib(bn, R_NamesSymbol);
-  n = LENGTH(names);
+  nodes = getAttrib(bn, R_NamesSymbol);
+  n = LENGTH(nodes);
 
   /* allocate and initialize the checklist. */
   checklist = allocstatus(UPTRI(n, n, n));
 
-  if (isTRUE(debug)) {
+  /* dereference the debug and mb parameters. */
+  debuglevel = LOGICAL(debug);
+  checkmb = LOGICAL(mb);
+
+  if (*debuglevel > 0) {
 
     Rprintf("----------------------------------------------------------------\n");
 
-    if (isTRUE(mb))
+    if (*checkmb)
       Rprintf("* checking consistency of markov blankets.\n");
     else
       Rprintf("* checking consistency of neighbourhood sets.\n");
@@ -33,13 +33,13 @@ SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
   /* scan the structure to determine the number of arcs.  */
   for (i = 0; i < n; i++) {
 
-     if (isTRUE(debug))
+     if (*debuglevel > 0)
        Rprintf("  > checking node %s.\n",  NODE(i));
 
     /* get the entry for the (neighbours|elements of the markov blanket)
        of the node.*/
-    temp = getListElement(bn, NODE(i));
-    if (!isTRUE(mb))
+    temp = getListElement(bn, (char *)NODE(i));
+    if (!(*checkmb))
       temp = getListElement(temp, "nbr");
 
     /* check each element of the array and identify which variable it
@@ -69,9 +69,9 @@ SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
       if ((checklist[UPTRI(i + 1, j + 1, n) - 1] != 0) &&
           (checklist[UPTRI(i + 1, j + 1, n) - 1] != 2)) {
 
-        if (isTRUE(debug)) {
+        if (*debuglevel > 0) {
 
-          if (isTRUE(mb))
+          if (*checkmb)
             Rprintf("@ asymmetry in the markov blankets for %s and %s.\n",
               NODE(i), NODE(j));
           else
@@ -96,7 +96,7 @@ SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
   }/*THEN*/
   else if (isTRUE(strict)) {
 
-    if (isTRUE(mb))
+    if (*checkmb)
       error("markov blankets are not symmetric.\n");
     else
       error("neighbourhood sets are not symmetric.\n");
@@ -104,7 +104,7 @@ SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
   }/*THEN*/
   else {
 
-    if (isTRUE(mb))
+    if (*checkmb)
       warning("markov blankets are not symmetric.\n");
     else
       warning("neighbourhood sets are not symmetric.\n");
@@ -113,9 +113,9 @@ SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
 
   /* build a correct structure to return. */
   PROTECT(fixed = allocVector(VECSXP, n));
-  setAttrib(fixed, R_NamesSymbol, names);
+  setAttrib(fixed, R_NamesSymbol, nodes);
 
-  if (!isTRUE(mb)) {
+  if (!(*checkmb)) {
 
     /* allocate colnames. */
     PROTECT(elnames = allocVector(STRSXP, 2));
@@ -126,7 +126,7 @@ SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
 
   for (i = 0; i < n; i++) {
 
-    if (!isTRUE(mb)) {
+    if (!(*checkmb)) {
 
       /* allocate the "mb" and "nbr" elements of the node. */
       PROTECT(temp = allocVector(VECSXP, 2));
@@ -134,7 +134,7 @@ SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
       setAttrib(temp, R_NamesSymbol, elnames);
 
       /* copy the "mb" part from the old structure. */
-      temp2 = getListElement(bn, NODE(i));
+      temp2 = getListElement(bn, (char *)NODE(i));
       temp2 = getListElement(temp2, "mb");
       SET_VECTOR_ELT(temp, 0, temp2);
 
@@ -152,9 +152,9 @@ SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
     for (j = 0; j < n; j++)
       if (checklist[UPTRI(i + 1, j + 1, n) - 1] == 2)
         if (i != j)
-          SET_STRING_ELT(temp2, --counter, STRING_ELT(names, j));
+          SET_STRING_ELT(temp2, --counter, STRING_ELT(nodes, j));
 
-    if (isTRUE(mb)) {
+    if (*checkmb) {
 
       SET_VECTOR_ELT(fixed, i, temp2);
       UNPROTECT(1);
@@ -169,7 +169,7 @@ SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
 
   }/*FOR*/
 
-  if (isTRUE(mb))
+  if (*checkmb)
     UNPROTECT(1);
   else
     UNPROTECT(2);

@@ -1,17 +1,18 @@
-\name{mmpc}
+\name{local discovery algorithms}
+\alias{local discovery algorithms}
 \alias{mmpc}
-\title{ Max-Min Parents and Children (MMPC) learning algorithm }
+\title{ Local discovery learning algorithms }
 \description{
 
-  Estimate the underlying structure of a directed acyclic graph (DAG)
+  Learn the underlying structure of a directed acyclic graph (DAG)
   from data using the Max-Min Parents and Children (MMPC)
   constraint-based algorithm.
 
 }
 \usage{
-  mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
-    optimized = TRUE, strict = FALSE)
+mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+  test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
+  optimized = TRUE, strict = FALSE)
 }
 \arguments{
   \item{x}{a data frame, containing the variables in the model.}
@@ -61,7 +62,7 @@
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{constraint-based algorithms}}, \code{\link{hc}},
+\seealso{\code{\link{constraint-based algorithms}}, \code{\link{score-based algorithms}},
   \code{\link{hybrid algorithms}}. }
 \keyword{multivariate}
 \keyword{models}

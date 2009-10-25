@@ -9,9 +9,9 @@
 
 }
 \usage{
-  strength.plot(x, strength, threshold, cutpoints, highlight = NULL,
-    layout = "dot", shape = "circle", main = NULL, sub = NULL,
-    debug = FALSE)
+strength.plot(x, strength, threshold, cutpoints, highlight = NULL,
+  layout = "dot", shape = "circle", main = NULL, sub = NULL,
+  debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}

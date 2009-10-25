@@ -15,19 +15,19 @@
 
 }
 \usage{
-  ## for Gaussian Bayesian networks.
-  bn.fit.qqplot(fitted, xlab = "Theoretical Quantiles",
-    ylab = "Sample Quantiles", main = "Normal Q-Q Plot", ...)
-  bn.fit.histogram(fitted, density = TRUE, xlab = "Residuals",
-    ylab = ifelse(density, "Density", ""),
-    main = "Histogram of the residuals", ...)
-  bn.fit.xyplot(fitted, xlab = "Fitted values",
-    ylab = "Residuals", main = "Residuals vs Fitted", ...)
-  ## for discrete Bayesian networks
-  bn.fit.barchart(fitted, xlab = "Probabilities",
-    ylab = "Levels", main = "Conditional Probabilities", ...)
-  bn.fit.dotplot(fitted, xlab = "Probabilities",
-    ylab = "Levels", main = "Conditional Probabilities", ...)
+## for Gaussian Bayesian networks.
+bn.fit.qqplot(fitted, xlab = "Theoretical Quantiles",
+  ylab = "Sample Quantiles", main = "Normal Q-Q Plot", ...)
+bn.fit.histogram(fitted, density = TRUE, xlab = "Residuals",
+  ylab = ifelse(density, "Density", ""),
+  main = "Histogram of the residuals", ...)
+bn.fit.xyplot(fitted, xlab = "Fitted values",
+  ylab = "Residuals", main = "Residuals vs Fitted", ...)
+## for discrete Bayesian networks
+bn.fit.barchart(fitted, xlab = "Probabilities",
+  ylab = "Levels", main = "Conditional Probabilities", ...)
+bn.fit.dotplot(fitted, xlab = "Probabilities",
+  ylab = "Levels", main = "Conditional Probabilities", ...)
 }
 \arguments{
   \item{fitted}{an object of class \code{bn.fit}, \code{bn.fit.dnode}

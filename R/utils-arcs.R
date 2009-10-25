@@ -155,3 +155,15 @@ nbr2arcs = function(nbr) {
         PACKAGE = "bnlearn")
 
 }#NBR2ARCS
+
+# remove duplicate arcs and re-orient them according to node
+# ordering specified by the labels.
+unique.arcs = function(arcs, nodes) {
+
+  .Call("unique_arcs",
+        arcs = arcs,
+        nodes = nodes,
+        PACKAGE = "bnlearn")
+
+}#UNIQUE.ARCS
+

@@ -4,12 +4,11 @@
 /* unconditional mutual information, to be used for the asymptotic test. */
 SEXP mi (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
 
-  int i = 0, j = 0, k = 0;
-  int **n, *ni, *nj;
-  int *llx = INTEGER(lx), *lly = INTEGER(ly), *num = INTEGER(length);
-  int *xx = INTEGER(x), *yy = INTEGER(y);
-  double *res;
-  SEXP result;
+int i = 0, j = 0, k = 0, **n = NULL, *ni = NULL, *nj = NULL;
+int *llx = INTEGER(lx), *lly = INTEGER(ly), *num = INTEGER(length);
+int *xx = INTEGER(x), *yy = INTEGER(y);
+double *res = NULL;
+SEXP result;
 
   /* allocate and initialize result to zero. */
   PROTECT(result = allocVector(REALSXP, 1));
@@ -58,13 +57,12 @@ SEXP mi (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
 /* conditional mutual information, to be used for the asymptotic test. */
 SEXP cmi (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
 
-  int i = 0, j = 0, k = 0;
-  int ***n, **ni, **nj, *nk;
-  int *llx = INTEGER(lx), *lly = INTEGER(ly), *llz = INTEGER(lz);
-  int *num = INTEGER(length);
-  int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
-  double *res;
-  SEXP result;
+int i = 0, j = 0, k = 0, ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL;
+int *llx = INTEGER(lx), *lly = INTEGER(ly), *llz = INTEGER(lz);
+int *num = INTEGER(length);
+int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
+double *res = NULL;
+SEXP result;
 
   /* allocate and initialize result to zero. */
   PROTECT(result = allocVector(REALSXP, 1));

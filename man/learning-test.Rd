@@ -9,7 +9,7 @@
 
 }
 \usage{
-  data(learning.test)
+data(learning.test)
 }
 \format{
 

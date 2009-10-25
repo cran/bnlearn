@@ -4,8 +4,8 @@
 /* get the list element named str, or return NULL. */
 SEXP getListElement(SEXP list, char *str) {
 
-  SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
-  int i = 0;
+SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
+int i = 0;
 
   for (i = 0; i < length(list); i++) {
 
@@ -28,7 +28,7 @@ return elmt;
  * licensed under "GPLv2 or later" licence. */
 void SampleNoReplace(int k, int n, int *y, int *x) {
 
-  int i, j;
+int i = 0, j = 0;
 
   for (i = 0; i < n; i++)
     x[i] = i;

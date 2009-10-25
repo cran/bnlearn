@@ -9,7 +9,8 @@
 }
 \description{
 
-  Bayesian network learning via constraint-based and score-based algorithms.
+  Bayesian network learning via constraint-based, score-based and hybrid
+  algorithms.
 
 }
 \details{
@@ -18,8 +19,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 1.6\cr
-    Date: \tab 2009-08-24\cr
+    Version: \tab 1.7\cr
+    Date: \tab 2009-10-25\cr
     License: \tab GPLv2 or later
 
   }
@@ -37,6 +38,11 @@
   \emph{Score-based learning algorithms} are general purpose heuristic
   optimization algorithms which rank network structures with respect to
   a goodness-of-fit score.
+
+  \emph{Hybrid algorithms} combine aspects of both constraint-based and
+   score-based algorithms, as they use conditional independence tests
+   (usually to reduce the search space) and network scores (to find the
+   optimal network in the reduced space) at the same time.
 
 }
 \author{
@@ -67,13 +73,6 @@
       another variant of IAMB which uses forward stepwise selection (Tsamardinos
       et al., 2003) to avoid false positives in the Markov blanket detection
       phase.
-    \item \emph{Max-Min Parents and Children} (\code{\link{mmpc}}): a
-      forward selection technique for neighbourhood detection based on the
-      maximization of the minimum association measure observed with any subset
-      of the nodes selected in the previous iterations (Tsamardinos, Brown and
-      Aliferis, 2006). It learns the underlying structure of the Bayesian
-      network (all the arcs are undirected, no attempt is made to detect their
-      orientation).
 
   }
 
@@ -127,6 +126,28 @@
   }
 
 }
+\section{Other (constraint-based) local discovery algorithms}{
+
+  These algorithms learn the structure of the undirected graph underlying
+  the Bayesian network, which is known as the \emph{skeleton} of the
+  network or the \emph{correlation graph}. Therefore all the arcs are
+  undirected, and no attempt is made to detect their orientation. They
+  are often used in hybrid learning algorithms.
+
+  \itemize{
+
+    \item \emph{Max-Min Parents and Children} (\code{\link{mmpc}}): a
+      forward selection technique for neighbourhood detection based on
+      the maximization of the minimum association measure observed with
+      any subset of the nodes selected in the previous iterations
+      (Tsamardinos, Brown and Aliferis, 2006).
+
+  }
+
+  All these algorithms have three implementations (unoptimized,
+  optimized and cluster-aware) like other constraint-based algorithms.
+
+}
 \section{Available (conditional) independence tests}{
 
   The conditional independence tests used in \emph{constraint-based}
@@ -159,7 +180,7 @@
     \item \emph{continuous case} (multivariate normal distribution)
       \itemize{
 
-        \item \emph{linear correlation}: linear correlation. Both the asymptotic
+        \item \emph{linear correlation}: linear correlation. Both the exact
           Student's t test (\code{cor}) and the Monte Carlo permutation test
           (\code{mc-cor}) are implemented.
         \item \emph{Fisher's Z}: a transformation of the linear correlation

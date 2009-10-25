@@ -92,6 +92,14 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
       p.value = perm.test[2]
 
     }#THEN
+    # Shrinkage Mutual Infomation (monte carlo permutation distribution)
+    else if (test == "mc-smi") {
+
+      perm.test = mc.test(data[,x], data[,y], ndata, samples = B, test = 6L)
+      statistic = perm.test[1]
+      p.value = perm.test[2]
+
+    }#THEN
     # Pearson's X^2 test (monte carlo permutation distribution)
     else if (test == "mc-x2") {
 
@@ -119,7 +127,7 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
 
       statistic = fast.cor(data[,x], data[,y], ndata)
       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(ndata -3)
-      p.value = gmc.test(data[, x] , data[, y], B, test = 4L)
+      p.value = gmc.test(data[, x] , data[, y], B, test = 5L)
 
     }#THEN
 
@@ -221,6 +229,14 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
       p.value = perm.test[2]
 
     }#THEN
+    # Shrinkage Mutual Infomation (monte carlo permutation distribution)
+    else if (test == "mc-smi") {
+
+      perm.test = cmc.test(data[,x], data[,y], config, ndata, samples = B, test = 6L)
+      statistic = perm.test[1]
+      p.value = perm.test[2]
+
+    }#THEN
     # Pearson's X^2 test (monte carlo permutation distribution)
     else if (test == "mc-x2") {
 
@@ -249,7 +265,7 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
       df = ndata - 3 - length(sx)
       statistic = fast.pcor(x, y, sx, data, ndata)
       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(df)
-      p.value = cgmc.test(x, y, sx, data, ndata, B, test = 4L)
+      p.value = cgmc.test(x, y, sx, data, ndata, B, test = 5L)
 
     }#THEN
 

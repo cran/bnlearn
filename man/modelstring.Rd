@@ -1,5 +1,5 @@
-\name{model string tools}
-\alias{model string tools}
+\name{model string utilities}
+\alias{model string utilities}
 \alias{modelstring}
 \alias{modelstring<-}
 \alias{model2network}
@@ -13,13 +13,13 @@
 
 }
 \usage{
-  modelstring(x)
-  modelstring(x, debug = FALSE) <- value
+modelstring(x)
+modelstring(x, debug = FALSE) <- value
 
-  model2network(string, debug = FALSE)
+model2network(string, debug = FALSE)
 
-  \method{as.character}{bn}(x, ...)
-  \method{as.bn}{character}(string, debug = FALSE)
+\method{as.character}{bn}(x, ...)
+\method{as.bn}{character}(string, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}

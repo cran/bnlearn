@@ -10,9 +10,9 @@
 
 }
 \usage{
-  set.arc(x, from, to, check.cycles = TRUE, debug = FALSE)
-  drop.arc(x, from, to, debug = FALSE)
-  reverse.arc(x, from, to, check.cycles = TRUE, debug = FALSE)
+set.arc(x, from, to, check.cycles = TRUE, debug = FALSE)
+drop.arc(x, from, to, debug = FALSE)
+reverse.arc(x, from, to, check.cycles = TRUE, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}

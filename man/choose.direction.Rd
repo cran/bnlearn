@@ -9,7 +9,8 @@
 
 }
 \usage{
-  choose.direction(x, arc, data, criterion = NULL, ..., debug = FALSE)
+choose.direction(x, arc, data, criterion = NULL, ...,
+  debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
@@ -36,7 +37,7 @@ data(learning.test)
 res = gs(learning.test)
 
 ## the arc A - B has no direction.
-choose.direction(res, data = learning.test, arc = c("A", "B"), debug = TRUE)
+choose.direction(res, learning.test, arc = c("A", "B"), debug = TRUE)
 # * testing A - B for direction.
 #   > testing A -> B with conditioning set '  '.
 #     > p-value is 0 .
@@ -45,7 +46,7 @@ choose.direction(res, data = learning.test, arc = c("A", "B"), debug = TRUE)
 #   @ nothing to do, same p-value.
 
 ## let's see score equivalence in action.
-choose.direction(res, data = learning.test, criterion = "aic",
+choose.direction(res, learning.test, criterion = "aic",
   arc = c("A", "B"), debug = TRUE)
 # * testing A - B for direction.
 #   > initial score for node A is -5495.051 .
@@ -57,7 +58,7 @@ choose.direction(res, data = learning.test, criterion = "aic",
 ## arcs which introduce cycles are handled correctly.
 res = set.arc(res, "A", "B")
 # now A -> B -> E -> A is a cycle.
-choose.direction(res, data = learning.test, arc = c("E", "A"), debug = TRUE)
+choose.direction(res, learning.test, arc = c("E", "A"), debug = TRUE)
 # * testing E - A for direction.
 #   > testing E -> A with conditioning set '  '.
 #     > p-value is 1.426725e-99 .

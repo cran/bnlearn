@@ -41,6 +41,8 @@ export(
   "directed",
   "path",
   "node.ordering",
+  "dag2ug",
+  "pdag2dag",
   "ordering2blacklist",
   "empty.graph",
   "random.graph",
@@ -53,7 +55,10 @@ export(
   "bn.fit.xyplot",
   "bn.fit.barchart",
   "bn.fit.dotplot",
-  "cpdag"
+  "cpdag",
+  "bn.var",
+  "bn.var.test",
+  "bn.moments"
 )
 
 S3method(print, bn)
@@ -79,3 +84,4 @@ S3method(fitted, "bn.fit.gnode")
 S3method(coef, "bn.fit")
 S3method(coef, "bn.fit.dnode")
 S3method(coef, "bn.fit.gnode")
+S3method(print, "mvber.moments")

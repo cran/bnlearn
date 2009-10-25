@@ -8,13 +8,10 @@
 
 SEXP cfg(SEXP parents) {
 
-  int i = 0, j = 0;
-  int ncols = LENGTH(parents);
-  int nrows = LENGTH(VECTOR_ELT(parents, 0));
-  int cfgmap = 0;
-  int *cumlevels;
-
-  SEXP ret;
+int i = 0, j = 0, cfgmap = 0;
+int ncols = LENGTH(parents), nrows = LENGTH(VECTOR_ELT(parents, 0));
+int *cumlevels = NULL;
+SEXP ret;
 
   /* create the cumulative products of the number of levels. */
   cumlevels = alloc1dcont(ncols);

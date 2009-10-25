@@ -7,8 +7,8 @@
 
 }
 \usage{
- \method{plot}{bn}(x, ylim = c(0,600), xlim = ylim, radius = 250,
-   arrow = 35, highlight = NULL, color = "red", ...)
+\method{plot}{bn}(x, ylim = c(0,600), xlim = ylim, radius = 250,
+  arrow = 35, highlight = NULL, color = "red", ...)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}

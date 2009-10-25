@@ -5,11 +5,10 @@
 /* which elements of "data" match "array"? */
 SEXP is_row_equal(SEXP data, SEXP array) {
 
-  int i = 0;
-  int nrows = LENGTH(data) / 2;
-  const char *from = CHAR(STRING_ELT(array, 0));
-  const char *to = CHAR(STRING_ELT(array, 1));
-  SEXP res;
+int i = 0, nrows = LENGTH(data) / 2;
+const char *from = CHAR(STRING_ELT(array, 0));
+const char *to = CHAR(STRING_ELT(array, 1));
+SEXP res;
 
   /* allocate the return value, which is an array holding a
    * logical value for each arc in the arc set. */
@@ -53,11 +52,11 @@ SEXP is_row_equal(SEXP data, SEXP array) {
 /* does "arc" match any elements of "set"? */
 SEXP is_listed(SEXP arc, SEXP set, SEXP either, SEXP both, SEXP debug) {
 
-  int i = 0, matched = 0;
-  int nrows = LENGTH(set) / 2;
-  const char *from = CHAR(STRING_ELT(arc, 0));
-  const char *to = CHAR(STRING_ELT(arc, 1));
-  SEXP res;
+int i = 0, matched = 0, nrows = LENGTH(set) / 2;
+const char *from = CHAR(STRING_ELT(arc, 0));
+const char *to = CHAR(STRING_ELT(arc, 1));
+int *debuglevel = NULL;
+SEXP res;
 
   /* allocate and initialize the logical value to be returned. */
   PROTECT(res = allocVector(LGLSXP, 1));
@@ -71,9 +70,12 @@ SEXP is_listed(SEXP arc, SEXP set, SEXP either, SEXP both, SEXP debug) {
 
   }/*THEN*/
 
+  /* dereference the debug parameter. */
+  debuglevel = LOGICAL(debug);
+
   for (i = 0; i < nrows; i++) {
 
-    if (isTRUE(debug))
+    if (*debuglevel > 0)
       Rprintf("* checking %s -> %s\n", ARC(i, 0), ARC(i, 1));
 
     /* check the first element; if it does not match skip to the second one. */
@@ -87,8 +89,8 @@ SEXP is_listed(SEXP arc, SEXP set, SEXP either, SEXP both, SEXP debug) {
          * A -> B and B -> A are in the arc set when "both = TRUE". */
         matched++;
 
-        if (isTRUE(debug))
-          Rprintf("  > matched %s -> %s (matched is %d).\n", ARC(i, 0), 
+        if (*debuglevel > 0)
+          Rprintf("  > matched %s -> %s (matched is %d).\n", ARC(i, 0),
             ARC(i, 1), matched);
 
         /* return TRUE if one of the following conditions is met:
@@ -96,9 +98,9 @@ SEXP is_listed(SEXP arc, SEXP set, SEXP either, SEXP both, SEXP debug) {
          * 1) exact match (either = both = FALSE).
          * 2) match regardless of direction (either = TRUE).
          * 3) match both directions (both = TRUE) when the other
-         *      one has already been found (matched = 2). 
+         *      one has already been found (matched = 2).
          */
-        if ((!isTRUE(either) && !isTRUE(both)) || isTRUE(either) || 
+        if ((!isTRUE(either) && !isTRUE(both)) || isTRUE(either) ||
              ((matched == 2) && isTRUE(both)))
              goto success;
 
@@ -119,15 +121,15 @@ SEXP is_listed(SEXP arc, SEXP set, SEXP either, SEXP both, SEXP debug) {
            * A -> B and B -> A are in the arc set when "both = TRUE". */
           matched++;
 
-          if (isTRUE(debug))
-            Rprintf("  > matched %s -> %s (matched is %d).\n", ARC(i, 0), 
+          if (*debuglevel > 0)
+            Rprintf("  > matched %s -> %s (matched is %d).\n", ARC(i, 0),
               ARC(i, 1), matched);
 
           /* return TRUE if one of the following conditions is met:
            *
            * 1) match regardless of direction (either = TRUE).
            * 2) match both directions (both = TRUE) when the other
-           *      one has already been found (matched = 2). 
+           *      one has already been found (matched = 2).
            */
           if (isTRUE(either) || ((matched == 2) && isTRUE(both)))
             goto success;

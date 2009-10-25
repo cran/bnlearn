@@ -1,5 +1,5 @@
-\name{network tools}
-\alias{network tools}
+\name{misc utilities}
+\alias{misc utilities}
 \alias{mb}
 \alias{nbr}
 \alias{arcs}
@@ -16,49 +16,40 @@
 \alias{root.nodes}
 \alias{leaf.nodes}
 \alias{nparams}
-\alias{acyclic}
-\alias{directed}
-\alias{path}
-\title{ Utilities to manipulate graphs }
+\title{ Miscellaneous utilities }
 \description{
 
  Assign or extract various quantities of interest from an object of class \code{bn}.
 
 }
 \usage{
-  ## nodes
-  nodes(x)
-  mb(x, node, rebuild = FALSE)
-  nbr(x, node, rebuild = FALSE)
-  parents(x, node, rebuild = FALSE)
-  parents(x, node, debug = FALSE) <- value
-  children(x, node, rebuild = FALSE)
-  children(x, node, debug = FALSE) <- value
-  root.nodes(x)
-  leaf.nodes(x)
+## nodes
+nodes(x)
+mb(x, node, rebuild = FALSE)
+nbr(x, node, rebuild = FALSE)
+parents(x, node, rebuild = FALSE)
+parents(x, node, debug = FALSE) <- value
+children(x, node, rebuild = FALSE)
+children(x, node, debug = FALSE) <- value
+root.nodes(x)
+leaf.nodes(x)
 
-  ## arcs
-  arcs(x)
-  arcs(x, ignore.cycles = FALSE, debug = FALSE) <- value
-  directed.arcs(x)
-  undirected.arcs(x)
+## arcs
+arcs(x)
+arcs(x, ignore.cycles = FALSE, debug = FALSE) <- value
+directed.arcs(x)
+undirected.arcs(x)
 
-  ## adjacency matrix
-  amat(x)
-  amat(x, ignore.cycles = FALSE, debug = FALSE) <- value
+## adjacency matrix
+amat(x)
+amat(x, ignore.cycles = FALSE, debug = FALSE) <- value
 
-  ## graphs
-  nparams(x, data, debug = FALSE)
-  acyclic(x, directed, debug = FALSE)
-  directed(x)
-  path(x, from, to, direct = TRUE, underlying.graph = FALSE,
-    debug = FALSE)
+## graphs
+nparams(x, data, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
   \item{node}{a character string, the label of a node.}
-  \item{from}{a character string, the label of a node.}
-  \item{to}{a character string, the label of a node (different from \code{from}).}
   \item{value}{either a vector of character strings (for \code{parents} and
        \code{children}), an adjacency matrix (for \code{amat}) or a data
        frame with two columns (optionally labeled "from" and "to", for
@@ -67,13 +58,6 @@
        was learned from.}
   \item{rebuild}{a boolean value. If \code{TRUE} the return value is rebuilt
        from scratch using the arc set; otherwise the cached value are returned.}
-  \item{direct}{a boolean value. If \code{FALSE} ignore any arc between \code{from}
-       and \code{to} when looking for a path.}
-  \item{directed}{a boolean value. If \code{TRUE} the graph is assumed to be
-       completely directed (no undirected arcs), and a faster cycle detection
-       algorithm is used.}
-  \item{underlying.graph}{a boolean value. If \code{TRUE} the underlying undirected
-       graph is used instead of the (directed) one from the \code{x} parameter.}
   \item{ignore.cycles}{a boolean value. If \code{TRUE} the returned network will
        not be checked for cycles.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
@@ -96,7 +80,6 @@
   \code{arcs} returns a matrix of two columns of character strings. \cr
   \code{amat} returns a matrix of 0/1 numeric values. \cr
   \code{nparams} returns an integer. \cr
-  \code{acyclic}, \code{path} and \code{directed} return a boolean value.
 
 }
 \references{

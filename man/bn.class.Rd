@@ -97,7 +97,7 @@
         \dQuote{Maximize} phase of a hybrid learning algorithm.
 
       \item \code{maxscore}: the label of the network score used in the
-        \dQuote{Maximize} phase of a hybrid learning algorithm. 
+        \dQuote{Maximize} phase of a hybrid learning algorithm.
 
     }
 

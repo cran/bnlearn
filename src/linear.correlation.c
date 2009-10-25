@@ -5,10 +5,10 @@ static SEXP cov2(SEXP data, SEXP length);
 /* Linear Correlation. */
 SEXP fast_cor(SEXP x, SEXP y, SEXP length) {
 
-  int i = 0, *n = INTEGER(length);
-  double *sum, *xx = REAL(x), *yy = REAL(y);
-  double xm = 0, ym = 0, xsd = 0, ysd = 0;
-  SEXP res;
+int i = 0, *n = INTEGER(length);
+double *sum = NULL, *xx = REAL(x), *yy = REAL(y);
+double xm = 0, ym = 0, xsd = 0, ysd = 0;
+SEXP res;
 
   PROTECT(res = allocVector(REALSXP, 1));
   sum = REAL(res);
@@ -49,11 +49,11 @@ SEXP fast_cor(SEXP x, SEXP y, SEXP length) {
 /* Partial Linear Correlation. */
 SEXP fast_pcor(SEXP data, SEXP length) {
 
-  int i = 0, ncols = LENGTH(data);
-  SEXP res, cov, svd;
-  double *u, *d, *vt;
-  double k11 = 0, k12 = 0, k22 = 0;
-  double tol = MACHINE_TOL;
+int i = 0, ncols = LENGTH(data);
+double *u = NULL, *d = NULL, *vt = NULL;
+double k11 = 0, k12 = 0, k22 = 0;
+double tol = MACHINE_TOL;
+SEXP res, cov, svd;
 
   /* compute the single-value decomposition of the matrix. */
   PROTECT(cov = cov2(data, length));
@@ -89,10 +89,10 @@ SEXP fast_pcor(SEXP data, SEXP length) {
 
 static SEXP cov2(SEXP data, SEXP length) {
 
-  int i = 0, j = 0, k = 0, cur = 0;
-  int *n = INTEGER(length), ncols = LENGTH(data);
-  double *mean, *var, **column;
-  SEXP res;
+int i = 0, j = 0, k = 0, cur = 0;
+int *n = INTEGER(length), ncols = LENGTH(data);
+double *mean = NULL, *var = NULL, **column = NULL;
+SEXP res;
 
   /* allocate the covariance matrix. */
   PROTECT(res = allocMatrix(REALSXP, ncols, ncols));

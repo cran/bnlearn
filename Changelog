@@ -1,4 +1,15 @@
 
+bnlearn (1.7)
+
+  * big clean-up of C code, with some small optimizations.
+  * fixed bug in the handling of upper triangular matrices
+      (UPTRI3 macro in C code).
+  * added the dag2ug() and pdag2dag() functions.
+  * fixed a bug in bn.fit(), now it really works even for
+     discrete data.
+  * added bn.moments(), bn.var() and bn.var.test() for 
+     basic probabilistic modelling of network structures.
+
 bnlearn (1.6)
 
   * implemented the mmhc() algorithm and its generic 

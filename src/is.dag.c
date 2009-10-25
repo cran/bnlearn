@@ -6,14 +6,11 @@
  * the counter may be wrong, leading to false negatives.
  */
 
-#define ARC(i,col) INTEGER(arcs)[i + col * nrows]
-
 SEXP is_dag(SEXP arcs, SEXP nnodes) {
 
-int i = 0;
-int nrows = LENGTH(arcs)/2;
-int n = INT(nnodes);
-short int *checklist;
+int i = 0, nrows = LENGTH(arcs)/2, n = INT(nnodes);
+int *a = INTEGER(arcs);
+short int *checklist = NULL;
 SEXP res;
 
   /* allocate and initialize the checklist. */
@@ -25,10 +22,10 @@ SEXP res;
 
   for (i = 0; i < nrows; i++) {
 
-    if (checklist[UPTRI(ARC(i, 0), ARC(i, 1), n) - 1] == 0) {
+    if (checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n) - 1] == 0) {
 
-      /* this arc is no present in checklist; update it. */
-      checklist[UPTRI(ARC(i, 0), ARC(i, 1), n) - 1] = 1;
+      /* this arc is not present in the checklist; add it. */
+      checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n) - 1] = 1;
 
     }/*THEN*/
     else {
@@ -53,34 +50,34 @@ SEXP res;
 
 SEXP which_undirected(SEXP arcs) {
 
-int i = 0;
-int nrows = LENGTH(arcs)/2;
-int n = LENGTH(getAttrib(arcs, R_LevelsSymbol));
-short int *checklist;
-SEXP res;
+int i = 0, nrows = LENGTH(arcs)/2, n = LENGTH(getAttrib(arcs, R_LevelsSymbol));
+short int *checklist = NULL;
+int *res = NULL, *a = INTEGER(arcs);
+SEXP result;
 
   /* initialize the checklist. */
   checklist = allocstatus(UPTRI(n, n, n));
 
-  /* allocate the result. */
-  PROTECT(res = allocVector(LGLSXP, nrows));
+  /* allocate and dereference the return value. */
+  PROTECT(result = allocVector(LGLSXP, nrows));
+  res = INTEGER(result);
 
   for (i = 0; i < nrows; i++) {
 
-    checklist[UPTRI(ARC(i, 0), ARC(i, 1), n) - 1]++;
+    checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n) - 1]++;
 
   }/*FOR*/
 
   for (i = 0; i < nrows; i++) {
 
-    if (checklist[UPTRI(ARC(i, 0), ARC(i, 1), n) - 1] == 1) {
+    if (checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n) - 1] == 1) {
 
-      LOGICAL(res)[i] = FALSE;
+      res[i] = FALSE;
 
     }/*THEN*/
     else {
 
-      LOGICAL(res)[i] = TRUE;
+      res[i] = TRUE;
 
     }/*ELSE*/
 
@@ -88,6 +85,6 @@ SEXP res;
 
   UNPROTECT(1);
 
-  return res;
+  return result;
 
 }/*WHICH_UNDIRECTED*/

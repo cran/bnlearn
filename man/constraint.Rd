@@ -7,26 +7,26 @@
 \title{ Constraint-based learning algorithms }
 \description{
 
-  Estimate the equivalence class of a directed acyclic graph (DAG)
-  from data using the Grow-Shrink (GS) , the Incremental Association
-  (IAMB), the Fast Incremental Association (Fast IAMB) and
+  Learn the equivalence class of a directed acyclic graph (DAG)
+  from data using the Grow-Shrink (GS), the Incremental Association
+  (IAMB), the Fast Incremental Association (Fast IAMB) or the
   Interleaved Incremental Association (Inter IAMB) constraint-based
   algorithms.
 
 }
 \usage{
-  gs(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
-    optimized = TRUE, strict = FALSE, undirected = FALSE)
-  iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
-    optimized = TRUE, strict = FALSE, undirected = FALSE)
-  fast.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
-    optimized = TRUE, strict = FALSE, undirected = FALSE)
-  inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
-    optimized = TRUE, strict = FALSE, undirected = FALSE)
+gs(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+  test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
+  optimized = TRUE, strict = FALSE, undirected = FALSE)
+iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+  test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
+  optimized = TRUE, strict = FALSE, undirected = FALSE)
+fast.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+  test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
+  optimized = TRUE, strict = FALSE, undirected = FALSE)
+inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+  test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
+  optimized = TRUE, strict = FALSE, undirected = FALSE)
 }
 \arguments{
   \item{x}{a data frame, containing the variables in the model.}
@@ -68,20 +68,20 @@
 }
 \references{
 
-  for Grow-Shrink:
+  \bold{for Grow-Shrink (GS):}
 
   Margaritis D (2003). \emph{Learning Bayesian Network Model Structure
       from Data}. Ph.D. thesis, School of Computer Science, Carnegie-Mellon
       University, Pittsburgh, PA. Available as Technical Report CMU-CS-03-153.
 
-  for Incremental Association (IAMB):
+  \bold{for Incremental Association (IAMB):}
 
   Tsamardinos I, Aliferis CF, Statnikov A (2003). "Algorithms for Large
       Scale Markov Blanket Discovery". In "Proceedings of the Sixteenth
       International Florida Artificial Intelligence Research Society
       Conference", pp. 376-381. AAAI Press.
 
-  for Fast IAMB and Inter IAMB:
+  \bold{for Fast IAMB and Inter IAMB:}
 
   Yaramakala S, Margaritis D (2005). "Speculative Markov Blanket Discovery
       for Optimal Feature Selection". In "ICDM '05: Proceedings of the Fifth
@@ -90,7 +90,8 @@
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{mmpc}}, \code{\link{hc}}, \code{\link{hybrid algorithms}}. }
+\seealso{\code{\link{local discovery algorithms}},
+  \code{\link{score-based algorithms}}, \code{\link{hybrid algorithms}}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

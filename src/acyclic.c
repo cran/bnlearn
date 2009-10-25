@@ -1,6 +1,5 @@
 #include "common.h"
 
-#define NODE(i) CHAR(STRING_ELT(nodes, i))
 #define GOOD 1
 #define BAD 0
 
@@ -15,17 +14,20 @@ static SEXP build_return_array(SEXP nodes, short int *status,
 
 SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
 
-  SEXP amat;
-  int i = 0, j = 0, z = 0;
-  int nrows = LENGTH(nodes);
-  int check_status = nrows;
-  int check_status_old = nrows;
-  int rowsums, colsums;
-  int *a;
-  short int *status;
+SEXP amat;
+int i = 0, j = 0, z = 0;
+int nrows = LENGTH(nodes);
+int check_status = nrows;
+int check_status_old = nrows;
+int rowsums, colsums;
+int *a = NULL, *debuglevel = NULL;
+short int *status = NULL;
+
+  /* dereference the debug parameter. */
+  debuglevel = LOGICAL(debug);
 
   /* build the adjacency matrix from the arc set.  */
-  if (isTRUE(debug))
+  if (*debuglevel > 0)
     Rprintf("* building the adjacency matrix.\n");
 
   PROTECT(amat = arcs2amat(arcs, nodes));
@@ -34,7 +36,7 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
   /* allocate and initialize the status array. */
   status = allocstatus(nrows);
 
-  if (isTRUE(debug))
+  if (*debuglevel > 0)
     Rprintf("* checking whether the directed graph is acyclic.\n");
 
   /* even in the worst case scenario at least two nodes are marked as
@@ -42,7 +44,7 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
    * enough. */
   for (z = 0; z < nrows; z++) {
 
-    if (isTRUE(debug))
+    if (*debuglevel > 0)
       Rprintf("* beginning iteration %d.\n", z + 1);
 
     for (i = 0; i < nrows; i++) {
@@ -61,7 +63,7 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
 
       }/*FOR*/
 
-      if (isTRUE(debug))
+      if (*debuglevel > 0)
         Rprintf("  > checking node %s (%d child(ren), %d parent(s)).\n",
           NODE(i), rowsums, colsums);
 
@@ -69,7 +71,7 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
        * leaf node, and is not part of any cycle. */
       if ((rowsums == 0) || (colsums == 0)) {
 
-        if (isTRUE(debug))
+        if (*debuglevel > 0)
           Rprintf("  @ node %s is cannot be part of a cycle.\n", NODE(i));
 
         for (j = 0; j < nrows; j++)
@@ -86,7 +88,7 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
     /* at least three nodes are needed to have a cycle. */
     if (check_status < 3) {
 
-      if (isTRUE(debug))
+      if (*debuglevel > 0)
         Rprintf("@ at least three nodes are needed to have a cycle.\n");
 
       UNPROTECT(1);
@@ -98,7 +100,7 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
      * the last iteration, the algorithm is stuck on a cycle. */
     if (check_status_old == check_status) {
 
-      if (isTRUE(debug))
+      if (*debuglevel > 0)
         Rprintf("@ no change in the last iteration.\n");
 
       UNPROTECT(1);
@@ -121,26 +123,23 @@ SEXP is_dag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
 
 SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
 
-  SEXP amat, false, true;
-  int i = 0, j = 0, z = 0;
-  int nrows = LENGTH(nodes);
-  int check_status = nrows;
-  int check_status_old = nrows;
-  int *rowsums, *colsums, *crossprod, *a;
-  short int *status;
+int i = 0, j = 0, z = 0;
+int nrows = LENGTH(nodes);
+int check_status = nrows, check_status_old = nrows;
+int *rowsums = NULL, *colsums = NULL, *crossprod = NULL, *a = NULL;
+int *debuglevel = NULL;
+short int *status = NULL;
+SEXP amat;
+
+  /* dereference the debug parameter. */
+  debuglevel = LOGICAL(debug);
 
   /* build the adjacency matrix from the arc set.  */
-  if (isTRUE(debug))
+  if (*debuglevel > 0)
     Rprintf("* building the adjacency matrix.\n");
 
   PROTECT(amat = arcs2amat(arcs, nodes));
   a = INTEGER(amat);
-
-  /* initialize a dummy variables to false and true. */
-  PROTECT(false = allocVector(LGLSXP, 1));
-  LOGICAL(false)[0] = FALSE;
-  PROTECT(true = allocVector(LGLSXP, 1));
-  LOGICAL(true)[0] = TRUE;
 
   /* initialize the status, {row,col}sums and crossprod arrays. */
   status = allocstatus(nrows);
@@ -148,7 +147,7 @@ SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
   colsums = alloc1dcont(nrows);
   crossprod = alloc1dcont(nrows);
 
-  if (isTRUE(debug))
+  if (*debuglevel > 0)
     Rprintf("* checking whether the partially directed graph is acyclic.\n");
 
   /* even in the worst case scenario at least two nodes are marked as
@@ -158,7 +157,7 @@ SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
 
 start:
 
-    if (isTRUE(debug))
+    if (*debuglevel > 0)
       Rprintf("* beginning iteration %d.\n", z + 1);
 
     for (i = 0; i < nrows; i++) {
@@ -180,7 +179,7 @@ start:
 
 there:
 
-      if (isTRUE(debug))
+      if (*debuglevel > 0)
         Rprintf("  > checking node %s (%d child(ren), %d parent(s), %d neighbours).\n",
           NODE(i), rowsums[i], colsums[i], crossprod[i]);
 
@@ -189,7 +188,7 @@ there:
       if (((rowsums[i] == 0) || (colsums[i] == 0)) ||
           ((crossprod[i] == 1) && (rowsums[i] == 1) && (colsums[i] == 1))) {
 
-        if (isTRUE(debug))
+        if (*debuglevel > 0)
           Rprintf("  @ node %s is cannot be part of a cycle.\n", NODE(i));
 
         /* update the adjacency matrix and the row/column totals. */
@@ -216,7 +215,7 @@ there:
         if (((colsums[i] == 1) && (colsums[j] == 1)) ||
             ((rowsums[i] == 1) && (rowsums[j] == 1))) {
 
-          if (isTRUE(debug))
+          if (*debuglevel > 0)
             Rprintf("  @ arc %s - %s is cannot be part of a cycle.\n", NODE(i), NODE(j));
 
           /* update the adjacency matrix and the row/column totals. */
@@ -242,10 +241,10 @@ there:
     /* at least three nodes are needed to have a cycle. */
     if (check_status < 3) {
 
-      if (isTRUE(debug))
+      if (*debuglevel > 0)
         Rprintf("@ at least three nodes are needed to have a cycle.\n");
 
-      UNPROTECT(3);
+      UNPROTECT(1);
       return build_return_array(nodes, status, nrows, check_status, return_nodes);
 
     }/*THEN*/
@@ -254,7 +253,7 @@ there:
      * the last iteration, the algorithm is stuck on a cycle. */
     if (check_status_old == check_status) {
 
-      if (isTRUE(debug))
+      if (*debuglevel > 0)
         Rprintf("@ no change in the last iteration.\n");
 
       /* give up and call c_has_path() to kill some undirected arcs. */
@@ -266,10 +265,10 @@ there:
              * there's a path is always found (the arc itself). */
             a[CMC(i, j, nrows)] = a[CMC(j, i, nrows)] = 0;
 
-            if(!isTRUE(c_has_path(i, j, INTEGER(amat), nrows, nodes, false, true, false)) &&
-               !isTRUE(c_has_path(j, i, INTEGER(amat), nrows, nodes, false, true, false))) {
+            if(!c_has_path(i, j, INTEGER(amat), nrows, nodes, FALSE, TRUE, FALSE) &&
+               !c_has_path(j, i, INTEGER(amat), nrows, nodes, FALSE, TRUE, FALSE)) {
 
-              if (isTRUE(debug))
+              if (*debuglevel > 0)
                 Rprintf("@ arc %s - %s is not part of any cycle, removing.\n", NODE(i), NODE(j));
 
               /* increase the iteration counter and start again. */
@@ -280,7 +279,7 @@ there:
             else {
 
               /* at least one cycle is really present; give up and return.  */
-              UNPROTECT(3);
+              UNPROTECT(1);
               return build_return_array(nodes, status, nrows, check_status, return_nodes);
 
             }/*ELSE*/
@@ -289,7 +288,7 @@ there:
 
       /* give up if there are no undirected arcs, cycles composed
        * entirely by directed arcs are never false positives. */
-      UNPROTECT(3);
+      UNPROTECT(1);
       return build_return_array(nodes, status, nrows, check_status, return_nodes);
 
     }/*THEN*/
@@ -301,7 +300,7 @@ there:
 
   }/*FOR*/
 
-  UNPROTECT(3);
+  UNPROTECT(1);
   return build_return_array(nodes, status, nrows, check_status, return_nodes);
 
 }/*IS_PDAG_ACYCLIC*/
@@ -311,8 +310,8 @@ there:
 static SEXP build_return_array(SEXP nodes, short int *status, int nrows,
     int check_status, SEXP return_nodes) {
 
-  int i = 0, j = 0;
-  SEXP res;
+int i = 0, j = 0;
+SEXP res;
 
   if (check_status < 3) {
 

@@ -8,7 +8,7 @@
 
 }
 \usage{
-  arc.strength(x, data, criterion = NULL, ..., debug = FALSE)
+arc.strength(x, data, criterion = NULL, ..., debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}

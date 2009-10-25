@@ -7,9 +7,8 @@
 /* get the number of parameters of a single node (discrete case). */
 SEXP nparams_dnode(SEXP graph, SEXP node, SEXP data, SEXP real) {
 
-  int i = 0, j = 0;
-  int nlevels = 1;
-  int length_names = 0, length_nodes = 0;
+int i = 0, j = 0, nlevels = 1;
+int length_names = 0, length_nodes = 0;
 
   SEXP temp, names;
 
@@ -58,8 +57,8 @@ return temp;
 /* get the number of parameters of a single node (discrete case). */
 SEXP nparams_gnode(SEXP graph, SEXP node) {
 
-  char *name = (char *)CHAR(STRING_ELT(node, 0));
-  SEXP temp, result;
+char *name = (char *)CHAR(STRING_ELT(node, 0));
+SEXP temp, result;
 
   temp = getListElement(graph, "nodes");
   temp = getListElement(temp, name);
@@ -76,9 +75,9 @@ SEXP nparams_gnode(SEXP graph, SEXP node) {
 /* schedule the children of the current nodes in a breadth-first search. */
 SEXP schedule_children(SEXP graph, SEXP nodes) {
 
-  SEXP temp, names, children, result;
-  int count = 0, i = 0, j = 0, k = 0, l = 0;
-  int length_nodes = 0, length_names = 0;
+SEXP temp, names, children, result;
+int count = 0, i = 0, j = 0, k = 0, l = 0;
+int length_nodes = 0, length_names = 0;
 
   /* get the nodes' structures and their names. */
   temp = getListElement(graph, "nodes");
@@ -146,12 +145,9 @@ SEXP schedule_children(SEXP graph, SEXP nodes) {
 /* convert a set of neighbourhoods into an arc set. */
 SEXP nbr2arcs(SEXP nbr) {
 
-  int i = 0, j = 0, k = 0;
-  int narcs = 0;
-  int length_names = 0;
-
-  SEXP arcs, dimnames, colnames;
-  SEXP temp, names;
+int i = 0, j = 0, k = 0, narcs = 0;
+int length_names = 0;
+SEXP arcs, dimnames, colnames, temp, names;
 
   /* get the names of the nodes. */
   names = getAttrib(nbr, R_NamesSymbol);

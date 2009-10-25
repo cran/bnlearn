@@ -8,8 +8,8 @@
 
 }
 \usage{
-  graphviz.plot(x, highlight = NULL, layout = "dot", shape = "circle",
-    main = NULL, sub = NULL)
+graphviz.plot(x, highlight = NULL, layout = "dot", 
+  shape = "circle", main = NULL, sub = NULL)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}

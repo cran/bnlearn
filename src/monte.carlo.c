@@ -8,6 +8,7 @@
 #define GAUSSIAN_MUTUAL_INFORMATION    3
 #define LINEAR_CORRELATION             4
 #define FISHER_Z                       5
+#define SHRINKAGE_MUTUAL_INFORMATION   6
 
 /* initialize the table of log-factorials. */
 #define allocfact(n) \
@@ -21,6 +22,10 @@ static double _mi (int *n, int *nrowt, int *ncolt, int *nrows,
     int *ncols, int *length);
 static double _cmi (int **n, int **nrowt, int **ncolt, int *ncond,
     int *nr, int *nc, int *nl);
+static double _smi (int *n, int *nrowt, int *ncolt, int *nrows,
+    int *ncols, int *length);
+static double _scmi (int **n, int **nrowt, int **ncolt, int *ncond,
+    int *nr, int *nc, int *nl, int *length);
 static double _x2 (int *n, int *nrowt, int *ncolt, int *nrows,
     int *ncols, int *length);
 static double _cx2 (int **n, int **nrowt, int **ncolt, int *ncond,
@@ -31,14 +36,12 @@ static double _cov(double *xx, double *yy, int *n);
 SEXP mcarlo (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP samples,
     SEXP test) {
 
-  double *fact, observed = 0;
-  int *n, *ncolt, *nrowt, *workspace;
-  int *num = INTEGER(length), *nr = INTEGER(lx), *nc = INTEGER(ly);
-  int *xx = INTEGER(x), *yy = INTEGER(y);
-  int *B = INTEGER(samples);
-  int k = 0;
-
-  SEXP result;
+double *fact = NULL, observed = 0;
+int *n = NULL, *ncolt = NULL, *nrowt = NULL, *workspace = NULL;
+int *num = INTEGER(length), *nr = INTEGER(lx), *nc = INTEGER(ly);
+int *xx = INTEGER(x), *yy = INTEGER(y), *B = INTEGER(samples);
+int k = 0;
+SEXP result;
 
   /* allocate and initialize the result. */
   PROTECT(result = allocVector(REALSXP, 2));
@@ -104,6 +107,20 @@ SEXP mcarlo (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP samples,
 
       break;
 
+    case SHRINKAGE_MUTUAL_INFORMATION:
+      observed = _smi(n, nrowt, ncolt, nr, nc, num);
+
+      for (k = 0; k < *B; k++) {
+
+        rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
+
+        if (_smi(n, nrowt, ncolt, nr, nc, num) > observed)
+          REAL(result)[1] += 1;
+
+      }/*FOR*/
+
+      break;
+
   }/*SWITCH*/
 
   PutRNGstate();
@@ -122,14 +139,13 @@ SEXP mcarlo (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP samples,
 SEXP cmcarlo (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
     SEXP length, SEXP samples, SEXP test) {
 
-  double *fact, *res, observed = 0;
-  int **n, **ncolt, **nrowt, *ncond, *workspace;
-  int *num = INTEGER(length), *B = INTEGER(samples);;
-  int *nr = INTEGER(lx), *nc = INTEGER(ly), *nl = INTEGER(lz);
-  int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
-  int j = 0, k = 0;
-
-  SEXP result;
+double *fact = NULL, *res = NULL, observed = 0;
+int **n = NULL, **ncolt = NULL, **nrowt = NULL, *ncond = NULL, *workspace = NULL;
+int *num = INTEGER(length), *B = INTEGER(samples);;
+int *nr = INTEGER(lx), *nc = INTEGER(ly), *nl = INTEGER(lz);
+int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
+int j = 0, k = 0;
+SEXP result;
 
   /* allocate and initialize the result */
   PROTECT(result = allocVector(REALSXP, 2));
@@ -185,6 +201,21 @@ SEXP cmcarlo (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
 
       break;
 
+    case SHRINKAGE_MUTUAL_INFORMATION:
+      observed = _scmi(n, nrowt, ncolt, ncond, nr, nc, nl, num);
+
+      for (j = 0; j < *B; j++) {
+
+        for (k = 0; k < *nl; k++)
+          rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
+
+        if (_scmi(n, nrowt, ncolt, ncond, nr, nc, nl, num) > observed)
+          res[1] += 1;
+
+      }/*FOR*/
+
+      break;
+
     case PEARSON_X2:
       observed = _cx2(n, nrowt, ncolt, ncond, nr, nc, nl);
 
@@ -217,12 +248,11 @@ SEXP cmcarlo (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
 /* unconditional Monte Carlo simulation for correlation-based tests. */
 SEXP gauss_mcarlo (SEXP x, SEXP y, SEXP samples, SEXP test) {
 
-  int j = 0, k = 0;
-  double *xx = REAL(x), *yy = REAL(y), *yperm, *res;
-  int num = LENGTH(x), *B = INTEGER(samples);
-  double observed = 0;
-  int *perm, *work;
-  SEXP result;
+int j = 0, k = 0, num = LENGTH(x), *B = INTEGER(samples);
+double *xx = REAL(x), *yy = REAL(y), *yperm = NULL, *res = NULL;
+double observed = 0;
+int *perm = NULL, *work = NULL;
+SEXP result;
 
   /* allocate the arrays needed by RandomPermutation. */
   perm = alloc1dcont(num);
@@ -240,8 +270,8 @@ SEXP gauss_mcarlo (SEXP x, SEXP y, SEXP samples, SEXP test) {
   GetRNGstate();
 
   /* pick up the observed value of the test statistic, then generate a set of
-     random contingency tables (given row and column totals) and check how many
-     tests are greater (in absolute value) than the original one.*/
+     random permutations (all variable but the second are fixed) and check how
+     many tests are greater (in absolute value) than the original one.*/
   switch(INT(test)) {
 
     case GAUSSIAN_MUTUAL_INFORMATION:
@@ -279,12 +309,10 @@ SEXP gauss_mcarlo (SEXP x, SEXP y, SEXP samples, SEXP test) {
 /* conditional Monte Carlo simulation for correlation-based tests. */
 SEXP gauss_cmcarlo (SEXP data, SEXP length, SEXP samples, SEXP test) {
 
-  SEXP data2, yy, result;
-  int j = 0, k = 0;
-  int *work, *perm;
-  int *B = INTEGER(samples), *num = INTEGER(length);
-  double observed = 0;
-  double *yperm, *yorig, *res;
+int j = 0, k = 0, *work = NULL, *perm = NULL;
+int *B = INTEGER(samples), *num = INTEGER(length);
+double observed = 0, *yperm = NULL, *yorig = NULL, *res = NULL;
+SEXP data2, yy, result;
 
   /* allocate and initialize the result. */
   PROTECT(result = allocVector(REALSXP, 1));
@@ -313,8 +341,8 @@ SEXP gauss_cmcarlo (SEXP data, SEXP length, SEXP samples, SEXP test) {
   GetRNGstate();
 
   /* pick up the observed value of the test statistic, then generate a set of
-     random contingency tables (given row and column totals) and check how many
-     tests are greater (in absolute value) than the original one.*/
+     random permutations (all variable but the second are fixed) and check how
+     many tests are greater (in absolute value) than the original one.*/
   switch(INT(test)) {
 
     case GAUSSIAN_MUTUAL_INFORMATION:
@@ -325,13 +353,13 @@ SEXP gauss_cmcarlo (SEXP data, SEXP length, SEXP samples, SEXP test) {
       for (j = 0; j < (*B); j++) {
 
         RandomPermutation(*num, perm, work);
-        
+
         for (k = 0; k < *num; k++)
           yperm[k] = yorig[perm[k]];
 
         if (fabs(NUM(fast_pcor(data2, length))) > fabs(observed))
           *res += 1;
- 
+
       }/*FOR*/
 
     break;
@@ -353,8 +381,8 @@ SEXP gauss_cmcarlo (SEXP data, SEXP length, SEXP samples, SEXP test) {
 static double _mi (int *n, int *nrowt, int *ncolt, int *nrows,
     int *ncols, int *length) {
 
-  int i = 0, j = 0;
-  double res = 0;
+int i = 0, j = 0;
+double res = 0;
 
   for (i = 0; i < *nrows; i++)
     for (j = 0; j < *ncols; j++) {
@@ -373,8 +401,8 @@ static double _mi (int *n, int *nrowt, int *ncolt, int *nrows,
 static double _cmi (int **n, int **nrowt, int **ncolt, int *ncond,
     int *nr, int *nc, int *nl) {
 
-  int i = 0, j = 0, k = 0;
-  double res = 0;
+int i = 0, j = 0, k = 0;
+double res = 0;
 
   for (k = 0; k < *nl; k++)
     for (j = 0; j < *nc; j++)
@@ -393,12 +421,119 @@ static double _cmi (int **n, int **nrowt, int **ncolt, int *ncond,
 
 }/*_CMI*/
 
+/* compute shrinkage stimator for the mutual information. */
+static double _smi (int *n, int *nrowt, int *ncolt, int *nrows,
+    int *ncols, int *length) {
+
+int i = 0, j = 0;
+double res = 0, lambda = 0, lnum = 0, lden = 0, temp = 0, p0 = 0, pij = 0;
+double target = 1/(double)((*nrows) * (*ncols));
+
+  /* compute the numerator and the denominator of the shrinkage intensity. */
+  for (i = 0; i < *nrows; i++)
+    for (j = 0; j < *ncols; j++) {
+
+      temp = ((double)n[CMC(i, j, *nrows)] / (double)(*length));
+      lnum += temp * temp;
+      temp = (target - (double)n[CMC(i, j, *nrows)] / (double)(*length));
+      lden += temp * temp;
+
+    }/*FOR*/
+
+  /* compute the shrinkage intensity (avoiding "divide by zero" errors). */
+  if (lden == 0)
+    lambda = 1;
+  else
+    lambda = (1 - lnum) / ((double)(*length - 1) * lden);
+
+  /* bound the shrinkage intensity in the [0,1] interval. */
+  if (lambda > 1)
+    lambda = 1;
+  if (lambda < 0)
+    lambda = 0;
+
+  for (i = 0; i < *nrows; i++)
+    for (j = 0; j < *ncols; j++) {
+
+      pij = lambda * target + (1 - lambda) * (double)n[CMC(i, j, *nrows)] / (double)(*length);
+      p0 = lambda * target + (1 - lambda) * (double)(nrowt[i]*ncolt[j]) / (double)((*length) * (*length));
+
+      if (pij != 0)
+        res += pij * log(pij / p0);
+
+    }/*FOR*/
+
+  return res;
+
+}/*_SMI*/
+
+/* compute shrinkage stimator for the conditional mutual information. */
+static double _scmi (int **n, int **nrowt, int **ncolt, int *ncond,
+    int *nr, int *nc, int *nl, int *length) {
+
+int i = 0, j = 0, k = 0;
+double temp = 0, res = 0, lambda = 0, lnum = 0, lden = 0;
+double p0 = 0, pij = 0, pijk = 0;
+double target = 1/(double)((*nr) * (*nc) * (*nl));
+
+  /* compute the numerator and the denominator of the shrinkage intensity. */
+  for (i = 0; i < *nr; i++)
+    for (j = 0; j < *nc; j++)
+      for (k = 0; k < *nl; k++) {
+
+      temp = ((double)n[k][CMC(i, j, *nr)] / (double)(ncond[k]));
+      lnum += temp * temp;
+      temp = (target - (double)n[k][CMC(i, j, *nr)] / (double)(ncond[k]));
+      lden += temp * temp;
+
+    }/*FOR*/
+
+  /* compute the shrinkage intensity (avoiding "divide by zero" errors). */
+  if (lden == 0)
+    lambda = 1;
+  else
+    lambda = (1 - lnum) / ((double)(*length - 1) * lden);
+
+  /* bound the shrinkage intensity in the [0,1] interval. */
+  if (lambda > 1)
+    lambda = 1;
+  if (lambda < 0)
+    lambda = 0;
+
+  for (k = 0; k < *nl; k++) {
+
+    /* check each level of the conditioning variable to avoid (again)
+     * "divide by zero" errors. */
+    if (ncond[k] == 0)
+      continue;
+
+    for (j = 0; j < *nc; j++) {
+
+      for (i = 0; i < *nr; i++) {
+
+        p0 = lambda * target + (1 - lambda) * (double)(nrowt[k][i] * ncolt[k][j]) / (double)(ncond[k] * ncond[k]);
+        pij = lambda * target + (1 - lambda) * (double)(n[k][CMC(i, j, *nr)] / (double)ncond[k]);
+        pijk = lambda * target + (1 - lambda) * (double)(n[k][CMC(i, j, *nr)] / (double)(*length));
+
+        if (pijk > 0)
+          res += pijk * log(pij / p0);
+
+      }/*FOR*/
+
+    }/*FOR*/
+
+  }/*FOR*/
+
+  return res;
+
+}/*_SCMI*/
+
 /* compute Pearson's X^2 coefficient from the joint and marginal frequencies. */
 static double _x2 (int *n, int *nrowt, int *ncolt, int *nrows,
     int *ncols, int *length) {
 
-  int i = 0, j = 0;
-  double res = 0;
+int i = 0, j = 0;
+double res = 0;
 
   for (i = 0; i < *nrows; i++)
     for (j = 0; j < *ncols; j++) {
@@ -418,8 +553,8 @@ static double _x2 (int *n, int *nrowt, int *ncolt, int *nrows,
 static double _cx2 (int **n, int **nrowt, int **ncolt, int *ncond,
     int *nr, int *nc, int *nl) {
 
-  int i = 0, j = 0, k = 0;
-  double res = 0;
+int i = 0, j = 0, k = 0;
+double res = 0;
 
   for (k = 0; k < *nl; k++)
     for (j = 0; j < *nc; j++)
@@ -442,8 +577,8 @@ static double _cx2 (int **n, int **nrowt, int **ncolt, int *ncond,
 /* compute a (barebone version of) the linear correlation coefficient. */
 static double _cov(double *xx, double *yy, int *n) {
 
-  int i = 0;
-  double sum = 0, xm = 0, ym = 0;
+int i = 0;
+double sum = 0, xm = 0, ym = 0;
 
   /* compute the mean values  */
   for (i = 0; i < *n; i++) {

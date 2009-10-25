@@ -2,16 +2,20 @@
 
 static void bestop_update(SEXP bestop, char *op, const char *from, const char *to);
 
-SEXP hc_cache_fill(SEXP nodes, SEXP data, SEXP network, SEXP score, SEXP extra, 
-    SEXP reference, SEXP equivalence, SEXP updated, SEXP env, SEXP amat, 
+SEXP hc_cache_fill(SEXP nodes, SEXP data, SEXP network, SEXP score, SEXP extra,
+    SEXP reference, SEXP equivalence, SEXP updated, SEXP env, SEXP amat,
     SEXP cache, SEXP blmat, SEXP debug) {
 
-  int *colsum = NULL, nnodes = LENGTH(nodes), lupd = LENGTH(updated);
-  int *a, *upd, *b, i = 0, j = 0, k = 0;
-  double *cache_value;
-  SEXP arc, callenv, params, delta, op, dummy, temp;
+int *colsum = NULL, nnodes = LENGTH(nodes), lupd = LENGTH(updated);
+int *a = NULL, *upd = NULL, *b = NULL, *debuglevel = NULL;
+int i = 0, j = 0, k = 0;
+double *cache_value = NULL;
+SEXP arc, callenv, params, delta, op, dummy, temp;
 
-  /* save a pointer to the adjacency matrix, the blacklist and the 
+  /* dereference the debug parameter. */
+  debuglevel = LOGICAL(debug);
+
+  /* save a pointer to the adjacency matrix, the blacklist and the
    * updated nodes. */
   a = INTEGER(amat);
   b = INTEGER(blmat);
@@ -83,11 +87,11 @@ SEXP hc_cache_fill(SEXP nodes, SEXP data, SEXP network, SEXP score, SEXP extra,
        if (i == j) continue;
 
        /* if only one or two nodes' caches need updating, skip the rest. */
-       for (k = 0; k < lupd; k++) 
-         if (upd[k] == j) 
+       for (k = 0; k < lupd; k++)
+         if (upd[k] == j)
            goto there;
 
-       continue;  
+       continue;
 
 there:
 
@@ -98,11 +102,11 @@ there:
        /* use score equivalence if possible to check only one orientation. */
        if (isTRUE(equivalence)) {
 
-         /* if the following conditions are met, look up the score delta of 
-          * the reverse of the current arc: 
+         /* if the following conditions are met, look up the score delta of
+          * the reverse of the current arc:
           *   1) that score delta has already been computed.
           *   2) both incident nodes have no parent, so the arc is really
-          *      score equivalent (no v-structures). 
+          *      score equivalent (no v-structures).
           *   3) the reversed arc has not been blacklisted, as the score delta
           *      is not computed in this case. */
          if ((i > j) && (colsum[i] + colsum[j] == 0) && (b[CMC(j, i, nnodes)] == 0)) {
@@ -122,7 +126,7 @@ there:
        params = CDR(callenv);
        SETCAR(params, arc);
 
-       /* if the arc is not present in the graph it should be added; 
+       /* if the arc is not present in the graph it should be added;
         * otherwise it should be removed. */
        for (k = 0; k < 6; k++) params = CDR(params);
 
@@ -130,7 +134,7 @@ there:
          SET_STRING_ELT(op, 0, mkChar("set"));
        else
          SET_STRING_ELT(op, 0, mkChar("drop"));
-  
+
        SETCAR(params, op);
 
        /* evaluate the call to score.delta() for the arc. */
@@ -138,8 +142,8 @@ there:
        cache_value[CMC(i, j, nnodes)] = NUM(VECTOR_ELT(temp, 1));
        UNPROTECT(1);
 
-       if (isTRUE(debug))
-         Rprintf("* caching score delta for arc %s -> %s (%lf).\n", 
+       if (*debuglevel > 0)
+         Rprintf("* caching score delta for arc %s -> %s (%lf).\n",
            CHAR(STRING_ELT(nodes, i)), CHAR(STRING_ELT(nodes, j)),
             cache_value[CMC(i, j, nnodes)]);
 
@@ -152,22 +156,15 @@ there:
 
 }/*HC_CACHE_FILL*/
 
-#define NODE(i) CHAR(STRING_ELT(nodes, i))
-
 /* a single step of the optimized hill climbing (one arc addition/removal/reversal). */
 SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
     SEXP wlmat, SEXP blmat, SEXP debug) {
 
-  int nnodes = LENGTH(nodes), i = 0, j = 0;
-  int *am, *ad, *w, *b, counter = 0, update = 1, from = 0, to = 0;
-  double *cache_value, temp, max = 0;
-  SEXP false, true, bestop, names;
-
-  /* allocate and initialize the debug parameter. */
-  PROTECT(false = allocVector(LGLSXP, 1));
-  LOGICAL(false)[0] = FALSE;
-  PROTECT(true = allocVector(LGLSXP, 1));
-  LOGICAL(true)[0] = TRUE;
+int nnodes = LENGTH(nodes), i = 0, j = 0;
+int *am = NULL, *ad = NULL, *w = NULL, *b = NULL, *debuglevel = NULL;
+int counter = 0, update = 1, from = 0, to = 0;
+double *cache_value = NULL, temp = 0, max = 0;
+SEXP false, bestop, names;
 
   /* allocate and initialize the return value (use FALSE as a canary value). */
   PROTECT(bestop = allocVector(VECSXP, 3));
@@ -176,6 +173,10 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
   SET_STRING_ELT(names, 1, mkChar("from"));
   SET_STRING_ELT(names, 2, mkChar("to"));
   setAttrib(bestop, R_NamesSymbol, names);
+
+  /* allocate and initialize a dummy FALSE object. */
+  PROTECT(false = allocVector(LGLSXP, 1));
+  LOGICAL(false)[0] = FALSE;
   SET_VECTOR_ELT(bestop, 0, false);
 
   /* save pointers to the numeric/integer matrices. */
@@ -185,7 +186,10 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
   w = INTEGER(wlmat);
   b = INTEGER(blmat);
 
-  if (isTRUE(debug)) {
+  /* dereference the debug parameter. */
+  debuglevel = LOGICAL(debug);
+
+  if (*debuglevel > 0) {
 
      /* count how may arcs are to be tested. */
      for (i = 0; i < nnodes * nnodes; i++)
@@ -207,28 +211,28 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, nnodes)];
 
-      if (isTRUE(debug)) {
+      if (*debuglevel > 0) {
 
         Rprintf("  > trying to add %s -> %s.\n", NODE(i), NODE(j));
-        Rprintf("    > delta between scores for nodes %s %s is %lf.\n", 
+        Rprintf("    > delta between scores for nodes %s %s is %lf.\n",
           NODE(i), NODE(j), temp);
 
       }/*THEN*/
 
-      /* this score delta is the best one at the moment, so add the arc if it 
+      /* this score delta is the best one at the moment, so add the arc if it
        * does not introduce cycles in the graph. */
       if (temp - max > MACHINE_TOL) {
 
-        if (isTRUE(c_has_path(j, i, am, nnodes, nodes, false, false, false))) {
+        if (c_has_path(j, i, am, nnodes, nodes, FALSE, FALSE, FALSE)) {
 
-          if (isTRUE(debug))
+          if (*debuglevel > 0)
             Rprintf("    > not adding, introduces cycles in the graph.\n");
 
           continue;
 
         }/*THEN*/
 
-        if (isTRUE(debug)) 
+        if (*debuglevel > 0)
           Rprintf("    @ adding %s -> %s.\n", NODE(i), NODE(j));
 
         /* update the return value. */
@@ -246,7 +250,7 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
 
   }/*FOR*/
 
-  if (isTRUE(debug)) {
+  if (*debuglevel > 0) {
 
      /* count how may arcs are to be tested. */
      for (i = 0, counter = 0; i < nnodes * nnodes; i++)
@@ -272,17 +276,17 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, nnodes)];
 
-      if (isTRUE(debug)) {
+      if (*debuglevel > 0) {
 
         Rprintf("  > trying to remove %s -> %s.\n", NODE(i), NODE(j));
-        Rprintf("    > delta between scores for nodes %s %s is %lf.\n", 
+        Rprintf("    > delta between scores for nodes %s %s is %lf.\n",
           NODE(i), NODE(j), temp);
 
       }/*THEN*/
 
       if (temp - max > MACHINE_TOL) {
 
-        if (isTRUE(debug))
+        if (*debuglevel > 0)
           Rprintf("    @ removing %s -> %s.\n", NODE(i), NODE(j));
 
         /* update the return value. */
@@ -300,7 +304,7 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
 
   }/*FOR*/
 
-  if (isTRUE(debug)) {
+  if (*debuglevel > 0) {
 
      /* count how may arcs are to be tested. */
      for (i = 0, counter = 0; i < nnodes; i++)
@@ -328,26 +332,26 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, nnodes)] + cache_value[CMC(j, i, nnodes)];
 
-      if (isTRUE(debug)) {
+      if (*debuglevel > 0) {
 
         Rprintf("  > trying to reverse %s -> %s.\n", NODE(i), NODE(j));
-        Rprintf("    > delta between scores for nodes %s %s is %lf.\n", 
+        Rprintf("    > delta between scores for nodes %s %s is %lf.\n",
           NODE(i), NODE(j), temp);
 
       }/*THEN*/
 
       if (temp - max > MACHINE_TOL) {
 
-        if (isTRUE(c_has_path(i, j, am, nnodes, nodes, false, true, false))) {
+        if (c_has_path(i, j, am, nnodes, nodes, FALSE, TRUE, FALSE)) {
 
-          if (isTRUE(debug))
+          if (*debuglevel > 0)
             Rprintf("    > not reversing, introduces cycles in the graph.\n");
 
           continue;
 
         }/*THEN*/
 
-        if (isTRUE(debug))
+        if (*debuglevel > 0)
           Rprintf("    @ reversing %s -> %s.\n", NODE(i), NODE(j));
 
         /* update the return value. */
@@ -372,7 +376,7 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
   if (update == 2)
     REAL(reference)[from] += cache_value[CMC(to, from, nnodes)];
 
-  UNPROTECT(4);
+  UNPROTECT(3);
 
   return bestop;
 
@@ -380,7 +384,7 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
 
 static void bestop_update(SEXP bestop, char *op, const char *from, const char *to) {
 
-  SEXP temp;
+SEXP temp;
 
   PROTECT(temp = allocVector(STRSXP, 1));
 
@@ -399,9 +403,9 @@ static void bestop_update(SEXP bestop, char *op, const char *from, const char *t
 
 SEXP hc_to_be_added(SEXP arcs, SEXP blacklist, SEXP nodes, SEXP convert) {
 
-  SEXP amat, blmat, result, dimnames;
-  int i = 0, j = 0, dims = LENGTH(nodes);
-  int *res, *a, *b, coords = 0;
+int i = 0, j = 0, dims = LENGTH(nodes);
+int *res = NULL, *a = NULL, *b = NULL, coords = 0;
+SEXP amat, blmat, result, dimnames;
 
   /* transform the arc set into an adjacency matrix, if it's not one already. */
   if (isInteger(arcs)) {
@@ -484,7 +488,7 @@ SEXP hc_to_be_added(SEXP arcs, SEXP blacklist, SEXP nodes, SEXP convert) {
     PROTECT(dimnames = allocVector(VECSXP, 2));
     SET_VECTOR_ELT(dimnames, 0, nodes);
     SET_VECTOR_ELT(dimnames, 1, nodes);
-    setAttrib(result, R_DimNamesSymbol, dimnames);    
+    setAttrib(result, R_DimNamesSymbol, dimnames);
 
   }/*ELSE*/
 

@@ -291,9 +291,9 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   # call the right backend.
   if (heuristic == "hc") {
 
-    res = hill.climbing(x = x, start = start, whitelist = whitelist, 
-      blacklist = blacklist, score = score, extra.args = extra.args, 
-      restart = restart, perturb = perturb, max.iter = max.iter, 
+    res = hill.climbing(x = x, start = start, whitelist = whitelist,
+      blacklist = blacklist, score = score, extra.args = extra.args,
+      restart = restart, perturb = perturb, max.iter = max.iter,
       optimized = optimized, debug = debug)
 
   }#THEN

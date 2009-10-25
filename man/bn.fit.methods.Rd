@@ -19,18 +19,18 @@
 
 }
 \usage{
-  ## methods available for "bn.fit"
-  \method{fitted}{bn.fit}(object, ...)
-  \method{coef}{bn.fit}(object, ...)
-  \method{residuals}{bn.fit}(object, ...)
+## methods available for "bn.fit"
+\method{fitted}{bn.fit}(object, ...)
+\method{coef}{bn.fit}(object, ...)
+\method{residuals}{bn.fit}(object, ...)
 
-  ## methods available for "bn.fit.dnode"
-  \method{coef}{bn.fit.gnode}(object, ...)
+## methods available for "bn.fit.dnode"
+\method{coef}{bn.fit.gnode}(object, ...)
 
-  ## methods available for "bn.fit.gnode"
-  \method{fitted}{bn.fit.gnode}(object, ...)
-  \method{coef}{bn.fit.gnode}(object, ...)
-  \method{residuals}{bn.fit.gnode}(object, ...)
+## methods available for "bn.fit.gnode"
+\method{fitted}{bn.fit.gnode}(object, ...)
+\method{coef}{bn.fit.gnode}(object, ...)
+\method{residuals}{bn.fit.gnode}(object, ...)
 }
 \arguments{
   \item{object}{an object of class \code{bn.fit}, \code{bn.fit.dnode}

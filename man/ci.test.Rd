@@ -12,14 +12,14 @@
 
 }
 \usage{
-  \method{ci.test}{character}(x, y = NULL, z = NULL, data, test = NULL,
-    B = NULL, debug = FALSE, ...)
-  \method{ci.test}{data.frame}(x, test = NULL, B = NULL, debug = FALSE, ...)
-  \method{ci.test}{numeric}(x, y = NULL, z = NULL, test = NULL,
-    B = NULL, debug = FALSE, ...)
-  \method{ci.test}{factor}(x, y = NULL, z = NULL, test = NULL,
-    B = NULL, debug = FALSE, ...)
-  \method{ci.test}{default}(x, ...)
+\method{ci.test}{character}(x, y = NULL, z = NULL, data, test = NULL,
+  B = NULL, debug = FALSE, ...)
+\method{ci.test}{data.frame}(x, test = NULL, B = NULL, debug = FALSE, ...)
+\method{ci.test}{numeric}(x, y = NULL, z = NULL, test = NULL,
+  B = NULL, debug = FALSE, ...)
+\method{ci.test}{factor}(x, y = NULL, z = NULL, test = NULL,
+  B = NULL, debug = FALSE, ...)
+\method{ci.test}{default}(x, ...)
 }
 \arguments{
   \item{x}{a character string (the name of a variable), a data frame, a numeric
@@ -98,15 +98,14 @@ ci.test(gaussian.test)
 # alternative hypothesis: true value is not equal to 0
 
 # using factor objects.
-ci.test(x = learning.test[, "F"] , y = learning.test[, "B"],
-  z = learning.test[, c("C", "D")] )
+attach(learning.test)
+ci.test(x = F , y = B, z = data.frame(C, D))
 #
-#	 mutual information
+# 	mutual information (discrete)
 #
-# data:  learning.test[, "F"] ~ learning.test[, "B"] | learning.test[, c("C", "D")]
+# data:  F ~ B | data.frame(C, D)
 # mi = 25.2664, df = 18, p-value = 0.1178
 # alternative hypothesis: true value is greater than 0
-
 }
 \seealso{\code{\link{choose.direction}}, \code{\link{arc.strength}}. }
 \author{ Marco Scutari }

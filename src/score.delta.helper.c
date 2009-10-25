@@ -3,12 +3,12 @@
 
 SEXP score_delta_helper(SEXP net, SEXP arc, SEXP operator) {
 
-  int i = 0, k = 0;
-  char *from = (char *) CHAR(STRING_ELT(arc, 0));
-  char *to = (char *) CHAR(STRING_ELT(arc, 1));
-  char *op = (char *) CHAR(STRING_ELT(operator, 0));
-  SEXP fake, nodes, parents_from, parents_to;
-  SEXP start, cur, temp, _to, _nodes, _parents;
+int i = 0, k = 0;
+char *from = (char *) CHAR(STRING_ELT(arc, 0));
+char *to = (char *) CHAR(STRING_ELT(arc, 1));
+char *op = (char *) CHAR(STRING_ELT(operator, 0));
+SEXP fake, nodes, parents_from, parents_to;
+SEXP start, cur, temp, _to, _nodes, _parents;
 
   /* allocate the return value. */
   PROTECT(fake = allocVector(VECSXP, 1));
@@ -37,7 +37,7 @@ SEXP score_delta_helper(SEXP net, SEXP arc, SEXP operator) {
 
     PROTECT(parents_to = allocVector(STRSXP, LENGTH(cur) + 1));
 
-    /* the new parents are the old ones plus the other node incident on 
+    /* the new parents are the old ones plus the other node incident on
      * the arc. */
     for (i = 0; i < LENGTH(cur); i++)
       SET_STRING_ELT(parents_to, i, STRING_ELT(cur, i));
@@ -64,7 +64,7 @@ SEXP score_delta_helper(SEXP net, SEXP arc, SEXP operator) {
 
     PROTECT(parents_to = allocVector(STRSXP, LENGTH(cur) - 1));
 
-    /* the new parents are the old ones except the other node incident on 
+    /* the new parents are the old ones except the other node incident on
      * the arc. */
     for (i = 0, k = 0; i < LENGTH(cur); i++)
       if (strcmp(CHAR(STRING_ELT(cur, i)), from) != 0)

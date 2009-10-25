@@ -1,5 +1,5 @@
-\name{node ordering tools}
-\alias{node ordering tools}
+\name{node ordering utilities}
+\alias{node ordering utilities}
 \alias{node.ordering}
 \alias{ordering2blacklist}
 \title{ Partial node ordering utilities }
@@ -10,9 +10,8 @@
 
 }
 \usage{
-  node.ordering(x, debug = FALSE)
-
-  ordering2blacklist(nodes)
+node.ordering(x, debug = FALSE)
+ordering2blacklist(nodes)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}

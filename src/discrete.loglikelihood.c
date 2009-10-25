@@ -3,10 +3,10 @@
 
 SEXP dlik (SEXP x, SEXP lx, SEXP length) {
 
-  int i = 0, k = 0;
-  int *n, *xx = INTEGER(x), *llx = INTEGER(lx), *num = INTEGER(length);
-  double *res;
-  SEXP result;
+int i = 0, k = 0;
+int *n = NULL, *xx = INTEGER(x), *llx = INTEGER(lx), *num = INTEGER(length);
+double *res = NULL;
+SEXP result;
 
   /* allocate and initialize result to zero. */
   PROTECT(result = allocVector(REALSXP, 1));
@@ -39,12 +39,12 @@ SEXP dlik (SEXP x, SEXP lx, SEXP length) {
 
 SEXP cdlik (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
 
-  int i = 0, j = 0, k = 0;
-  int **n, *nj;
-  int *llx = INTEGER(lx), *lly = INTEGER(ly), *num = INTEGER(length);
-  int *xx = INTEGER(x), *yy = INTEGER(y);
-  double *res;
-  SEXP result;
+int i = 0, j = 0, k = 0;
+int **n = NULL, *nj = NULL;
+int *llx = INTEGER(lx), *lly = INTEGER(ly), *num = INTEGER(length);
+int *xx = INTEGER(x), *yy = INTEGER(y);
+double *res = NULL;
+SEXP result;
 
   /* allocate and initialize result to zero. */
   PROTECT(result = allocVector(REALSXP, 1));

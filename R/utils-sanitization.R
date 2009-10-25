@@ -740,6 +740,19 @@ check.amat = function(amat, nodes) {
 
 }#CHECK.AMAT
 
+check.covariance = function(m) {
+
+  # the adjacency matrix must, well, be a matrix.
+  if (!is(m, "matrix") || (ncol(m) != nrow(m)) || (length(dim(m)) != 2))
+    stop("a covariance matrix must be a 2-dimensional square matrix.")
+  # check the elements of the matrix.
+  if (!is.numeric(m))
+    stop("the elements of a covariance matrix must be real numbres.")
+  if (!identical(m, t(m)))
+    stop("a covariance matrix must be symmetric.")
+
+}#CHECK.COVARIANCE
+
 # check logical flags.
 check.logical = function(bool) {
 
@@ -966,10 +979,10 @@ check.learning.algorithm.args = function(args, algorithm, bn) {
 }#CHECK.LEARNING.ALGORITHM.ARGS
 
 # check the number of bootstrap replicates.
-check.replicates = function(R) {
+check.replicates = function(R, default = 200) {
 
   if (missing(R) || is.null(R))
-    R = 200
+    R = default
   else if (!is.positive.integer(R))
     stop("the number of bootstrap replicates must be a positive integer.")
 
@@ -978,13 +991,32 @@ check.replicates = function(R) {
 }#CHECK.RESAMPLING
 
 # check the size of bootstrap replicates.
-check.bootsize = function(m, data) {
+check.bootsize = function(m, data, default = nrow(data)) {
 
   if (missing(m) || is.null(m))
-    m = round(2/3 * nrow(data))
+    m = default
   else if (!is.positive.integer(m))
     stop("bootstrap sample size must be a positive integer.")
+
   return(m)
 
 }#CHECK.BOOTSIZE
+
+# check the label of the multivariate Bernulli variance test.
+check.mvber.vartest = function(method) {
+
+  if (missing(method))
+    stop(paste(c("valid statistical tests are:\n",
+           sprintf("    %-10s %s\n", names(mvber.labels), mvber.labels)), sep = ""))
+
+  if (method %in% available.mvber.vartests)
+    method = which(available.mvber.vartests %in% method)
+  else
+    stop(paste(c("valid statistical tests are:\n",
+           sprintf("    %-10s %s\n", names(mvber.labels), mvber.labels)), sep = ""))
+
+  return(method)
+
+}#CHECK.MVBER.VARTEST
+
 

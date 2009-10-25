@@ -7,7 +7,7 @@
 
 }
 \usage{
-  compare(r1, r2, debug = FALSE)
+compare(r1, r2, debug = FALSE)
 }
 \arguments{
   \item{r1}{an object of class \code{bn}.}

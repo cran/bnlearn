@@ -11,13 +11,14 @@
 
 }
 \usage{
-  rshc(x, whitelist = NULL, blacklist = NULL, restrict, maximize = "hc",
-    test = NULL, score = NULL, alpha = 0.05, B = NULL, ..., restart = 0,
-    perturb = 1, max.iter = Inf, optimized = TRUE, strict = FALSE,
-    debug = FALSE)
-  mmhc(x, whitelist = NULL, blacklist = NULL, test = NULL, score = NULL,
-    alpha = 0.05, B = NULL, ..., restart = 0, perturb = 1, max.iter = Inf,
-    optimized = TRUE, strict = FALSE, debug = FALSE)
+rshc(x, whitelist = NULL, blacklist = NULL, restrict,
+  maximize = "hc", test = NULL, score = NULL, alpha = 0.05,
+  B = NULL, ..., restart = 0, perturb = 1, max.iter = Inf,
+  optimized = TRUE, strict = FALSE, debug = FALSE)
+mmhc(x, whitelist = NULL, blacklist = NULL, test = NULL,
+  score = NULL, alpha = 0.05, B = NULL, ..., restart = 0,
+  perturb = 1, max.iter = Inf, optimized = TRUE,
+  strict = FALSE, debug = FALSE)
 }
 \arguments{
   \item{x}{a data frame, containing the variables in the model.}
@@ -88,7 +89,8 @@
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{mmpc}}, \code{\link{hc}}, \code{\link{constraint-based algorithms}}. }
+\seealso{\code{\link{local discovery algorithms}},
+  \code{\link{score-based algorithms}}, \code{\link{constraint-based algorithms}}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

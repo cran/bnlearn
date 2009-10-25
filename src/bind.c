@@ -2,9 +2,8 @@
 
 SEXP arcs_rbind1 (SEXP matrix1, SEXP matrix2, SEXP reverse2) {
 
-  int i = 0, j = 0;
-  int m1 = nrows(matrix1), m2 = nrows(matrix2);
-  SEXP res, colnames, dimnames;
+int i = 0, j = 0, m1 = nrows(matrix1), m2 = nrows(matrix2);
+SEXP res, colnames, dimnames;
 
   /* allocate the reutrn value*/
   PROTECT(res = allocMatrix(STRSXP, m1 + m2, 2));

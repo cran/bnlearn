@@ -140,3 +140,14 @@ print.bn = function(x, ...) {
 
 }#PRINT.BN.FIT.GNODE
 
+# print method for class mvber.moments.
+print.mvber.moments = function(x, ...) {
+
+  # reset the attributes to have a clean printout.
+  attributes(x) = list(R = NULL, m = NULL, class = NULL, names = names(x))
+  print(x)
+ 
+  invisible(x)
+
+}#PRINT.MVBER.MOMENTS
+

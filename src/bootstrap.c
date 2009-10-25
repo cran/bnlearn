@@ -1,14 +1,11 @@
 #include "common.h"
 
-#define NODE(i) CHAR(STRING_ELT(nodes, i))
-
 /* adjusted arc counting for boot.strength(). */
 SEXP bootstrap_strength_counters(SEXP prob, SEXP arcs, SEXP nodes) {
 
-  SEXP amat;
-  int i = 0, j = 0, n = LENGTH(nodes);
-  int *a;
-  double *p;
+int i = 0, j = 0, n = LENGTH(nodes), *a = NULL;
+double *p;
+SEXP amat;
 
   /* build the adjacency matrix for the current network. */
   PROTECT(amat = arcs2amat(arcs, nodes));
@@ -32,8 +29,8 @@ SEXP bootstrap_strength_counters(SEXP prob, SEXP arcs, SEXP nodes) {
           p[CMC(i, j, n)] += 1;
 
       }/*THEN*/
-   
-    }/*FOR*/      
+
+    }/*FOR*/
 
   }/*FOR*/
 
@@ -45,14 +42,9 @@ SEXP bootstrap_strength_counters(SEXP prob, SEXP arcs, SEXP nodes) {
 /* arc strength and direction confidence coefficients. */
 SEXP bootstrap_arc_coefficients(SEXP prob, SEXP arcs, SEXP nodes) {
 
-  int i = 0, j = 0, k = 0;
-  int narcs = 0, nnodes = LENGTH(nodes);
-  double *p = NULL;
-  const char *cur_from = NULL, *cur_to = NULL;
-  SEXP res, class, rownames, colnames, from, to, str, dir;
-
-  /* dereference the probability matrix once and for all. */
-  p = REAL(prob);
+int i = 0, j = 0, k = 0, *coords = NULL, narcs = 0, nnodes = LENGTH(nodes);
+double *p = NULL, *s = NULL, *d = NULL;
+SEXP res, class, rownames, colnames, from, to, str, dir, try;
 
   /* get the dimension of the arcs set; if none is specified get them all. */
   narcs = (isNull(arcs) ? nnodes * nnodes - nnodes : LENGTH(arcs) / 2);
@@ -63,10 +55,16 @@ SEXP bootstrap_arc_coefficients(SEXP prob, SEXP arcs, SEXP nodes) {
   PROTECT(str = allocVector(REALSXP, narcs));
   PROTECT(dir = allocVector(REALSXP, narcs));
 
+  /* dereference the probability matrix and the coefficients once and
+   * for all. */
+  p = REAL(prob);
+  s = REAL(str);
+  d = REAL(dir);
+
   if (isNull(arcs)) {
 
     /* fill in the coefficients. */
-    for (i = 0; i < nnodes; i++) {
+    for (i = 0, k = 0; i < nnodes; i++) {
 
       for (j = 0; j < nnodes; j++) {
 
@@ -78,8 +76,8 @@ SEXP bootstrap_arc_coefficients(SEXP prob, SEXP arcs, SEXP nodes) {
         SET_STRING_ELT(from, k, STRING_ELT(nodes, i));
         SET_STRING_ELT(to, k, STRING_ELT(nodes, j));
         /* compute arc strength and direction confidence. */
-        REAL(str)[k] = p[CMC(i, j, nnodes)] + p[CMC(j, i, nnodes)];
-        REAL(dir)[k] = (REAL(str)[k] == 0 ? 0 : p[CMC(i, j, nnodes)] / REAL(str)[k]);
+        s[k] = p[CMC(i, j, nnodes)] + p[CMC(j, i, nnodes)];
+        d[k] = (s[k] == 0 ? 0 : p[CMC(i, j, nnodes)] / s[k]);
 
         /* increment the arc counter. */
         k++;
@@ -91,30 +89,31 @@ SEXP bootstrap_arc_coefficients(SEXP prob, SEXP arcs, SEXP nodes) {
   }/*THEN*/
   else {
 
+    /* match the node labels in the arc set. */
+    PROTECT(try = match(nodes, arcs, 0));
+    coords = INTEGER(try);
+
     for (k = 0; k < narcs; k++) {
 
-      /* dereference incident nodes' labels. */
-      cur_from = CHAR(STRING_ELT(arcs, k));
-      cur_to = CHAR(STRING_ELT(arcs, k + narcs));
       /* set the labels in the data frame. */
-      SET_STRING_ELT(from, k, mkChar(cur_from));
-      SET_STRING_ELT(to, k, mkChar(cur_to));
+      SET_STRING_ELT(from, k, STRING_ELT(arcs, k));
+      SET_STRING_ELT(to, k, STRING_ELT(arcs, k + narcs));
 
-      /* mathc the positions of the nodes' labels and compute arc strength 
-       * and direction confidence of the arc. */ 
-      for (i = 0; (i < nnodes) && strcmp(cur_from, NODE(i)) ; i++) ;
-      for (j = 0; (j < nnodes) && strcmp(cur_to, NODE(j)); j++) ;
-
-      REAL(str)[k] = p[CMC(i, j, nnodes)] + p[CMC(j, i, nnodes)];
-      REAL(dir)[k] = (REAL(str)[k] == 0 ? 0 : p[CMC(i, j, nnodes)] / REAL(str)[k]);
+      /* match the positions of the nodes' labels and compute arc strength
+       * and direction confidence of the arc. */
+      s[k] = p[CMC(coords[k] - 1, coords[k + narcs] - 1, nnodes)] +
+             p[CMC(coords[k + narcs] - 1, coords[k] - 1, nnodes)];
+      d[k] = (s[k] == 0 ? 0 : p[CMC(coords[k], coords[k + narcs], nnodes)] / s[k]);
 
     }/*FOR*/
+
+    UNPROTECT(1);
 
   }/*ELSE*/
 
   /* allocate and initialize the return value. */
   PROTECT(res = allocVector(VECSXP, 4));
-  
+
   /* allocate, initialize and set the class name. */
   PROTECT(class = allocVector(STRSXP, 1));
   SET_STRING_ELT(class, 0, mkChar("data.frame"));
@@ -122,7 +121,7 @@ SEXP bootstrap_arc_coefficients(SEXP prob, SEXP arcs, SEXP nodes) {
 
   /* allocate, initialize and set row names. */
   PROTECT(rownames = allocVector(INTSXP, narcs));
-  for (i = 0; i < narcs; i++) 
+  for (i = 0; i < narcs; i++)
     INTEGER(rownames)[i] = i + 1;
   setAttrib(res, R_RowNamesSymbol, rownames);
 

@@ -9,10 +9,10 @@
 
 }
 \usage{
-  score(x, data, type = NULL, ..., debug = FALSE)
+score(x, data, type = NULL, ..., debug = FALSE)
 
-  \method{logLik}{bn}(object, data, ...)
-  \method{AIC}{bn}(object, data, ..., k = 1)
+\method{logLik}{bn}(object, data, ...)
+\method{AIC}{bn}(object, data, ..., k = 1)
 }
 \arguments{
   \item{x, object}{an object of class \code{bn}.}

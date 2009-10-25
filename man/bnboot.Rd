@@ -8,9 +8,9 @@
 
 }
 \usage{
-  bnboot(data, statistic, R = 200, m = round(2/3 * nrow(data)),
-    sim = "ordinary", algorithm, algorithm.args = list(),
-    statistic.args = list(), debug = FALSE)
+bnboot(data, statistic, R = 200, m = nrow(data),
+  sim = "ordinary", algorithm, algorithm.args = list(),
+  statistic.args = list(), debug = FALSE)
 }
 \arguments{
   \item{data}{a data frame, containing the variables in the model.}
@@ -61,7 +61,8 @@ bnboot(data = learning.test, R = 2, m = 500, algorithm = "gs",
 }
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{constraint-based algorithms}}, \code{\link{mmpc}},
-  \code{\link{hc}}, \code{\link{hybrid algorithms}}. }
+\seealso{\code{\link{constraint-based algorithms}},
+  \code{\link{local discovery algorithms}},
+  \code{\link{score-based algorithms}}, \code{\link{hybrid algorithms}}. }
 \keyword{nonparametric}
 \keyword{multivariate}

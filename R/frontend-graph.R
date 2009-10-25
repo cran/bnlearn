@@ -113,6 +113,29 @@ ordering2blacklist = function(nodes) {
 
 }#ORDERING2BLACKLIST
 
+# return the skeleton of a (partially) directed graph
+dag2ug = function(x) {
+
+  # check x's class.
+  check.bn(x)
+
+  dag2ug.backend(x)
+
+}#DAG2UG
+
+# return a complete orientation of a graph.
+pdag2dag = function(x, ordering) {
+
+  # check x's class.
+  check.bn(x)
+  # check the node ordering.
+  check.nodes(ordering, graph = x, min.nodes = length(x$nodes), 
+    max.nodes = length(x$nodes))
+
+  pdag2dag.backend(x, ordering)
+
+}#PDAG2DAG
+
 # compare two bayesian network structures.
 compare = function (r1, r2, debug = FALSE) {
 

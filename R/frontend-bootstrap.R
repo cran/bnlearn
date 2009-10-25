@@ -1,6 +1,6 @@
 
 # generic frontend to {non,}parametric bootstrap.
-bnboot = function(data, statistic, R = 200, m = round(2/3 * nrow(data)),
+bnboot = function(data, statistic, R = 200, m = nrow(data),
     sim = "ordinary", algorithm, algorithm.args = list(),
     statistic.args = list(), debug = FALSE) {
 
@@ -31,7 +31,7 @@ bnboot = function(data, statistic, R = 200, m = round(2/3 * nrow(data)),
 
 }#BNBOOT
 
-boot.strength = function(data, R = 200, m = round(2/3 * nrow(data)),
+boot.strength = function(data, R = 200, m = nrow(data),
     algorithm, algorithm.args = list(), debug = FALSE) {
 
   # check the data are there.

@@ -1,5 +1,5 @@
-\name{graph generation tools}
-\alias{graph generation tools}
+\name{graph generation utilities}
+\alias{graph generation utilities}
 \alias{empty.graph}
 \alias{random.graph}
 \title{ Generate an empty or random graph }
@@ -7,8 +7,9 @@
   Generate an empty or random graph from a given set of nodes.
 }
 \usage{
-  empty.graph(nodes, num = 1)
-  random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
+empty.graph(nodes, num = 1)
+random.graph(nodes, num = 1, method = "ordered", ...,
+  debug = FALSE)
 }
 \arguments{
   \item{nodes}{a vector of character strings, the labels of the nodes.}
