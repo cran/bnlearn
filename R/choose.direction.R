@@ -76,7 +76,7 @@ choose.direction.test = function(x, arc, data, test, alpha, B, debug) {
           # update the chosen nodes.
           for (node in updated.nodes)
             x$nodes[[node]] = cache.partial.structure(names(x$nodes),
-              target = node, arcs = x$arcs, debug = debug)
+              target = node, arcs = x$arcs, debug = FALSE)
 
           return(x)
 
@@ -195,7 +195,7 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug) {
           # update the chosen nodes.
           for (node in updated.nodes)
             x$nodes[[node]] = cache.partial.structure(names(x$nodes),
-              target = node, arcs = x$arcs, debug = debug)
+              target = node, arcs = x$arcs, debug = FALSE)
 
           return(x)
 
@@ -340,7 +340,7 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm, algorithm.
   # update the chosen nodes.
   for (node in updated.nodes)
     x$nodes[[node]] = cache.partial.structure(nodes, target = node,
-      arcs = x$arcs, debug = debug)
+      arcs = x$arcs, debug = FALSE)
 
   return(x)
 

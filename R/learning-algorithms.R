@@ -222,8 +222,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 # Parameter sanitization for score-based learning algorithms.
 greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
-    score = "aic", heuristic = "hc", ..., debug = FALSE, restart = 0,
-    perturb = 1, max.iter = Inf, optimized = FALSE) {
+    score = "aic", heuristic = "hc", ..., misc.args = list(), 
+    optimized = FALSE, debug = FALSE) {
 
   # check the data are there.
   check.data(x)
@@ -233,11 +233,28 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   score = check.score(score, x)
   # check debug.
   check.logical(debug)
-  # check restart and perturb.
-  check.restart(restart, perturb)
-  # check the max.iter parameter
-  if ((max.iter != Inf) && !is.positive.integer(max.iter))
-    stop("the maximum number of iterations must be a positive integer number.")
+  # expand and check the max.iter parameter (common to all algorithm)
+  max.iter = check.max.iter(misc.args$max.iter)
+
+  if (heuristic == "hc") {
+
+    # expand and check the number of random restarts.
+    restart = check.restart(misc.args$restart)
+    # expand and check the magnitude of the perturbation when random restarts
+    # are effectively used.
+    perturb = ifelse((restart > 0), check.perturb(misc.args$perturb), 0)
+
+  }#THEN
+  else if (heuristic == "tabu") {
+
+    # expand and check the arguments related to the tabu list.
+    tabu = check.tabu(misc.args$tabu)
+    max.tabu = check.max.tabu(misc.args$max.tabu, tabu)
+
+  }#THEN
+
+  # check unused arguments in misc.args.
+  check.unused.args(misc.args, method.extra.args[[heuristic]])
 
   # sanitize whitelist and blacklist, if any.
   whitelist = build.whitelist(whitelist, names(x))
@@ -297,6 +314,14 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
       optimized = optimized, debug = debug)
 
   }#THEN
+  else if (heuristic == "tabu"){
+
+    res = tabu.search(x = x, start = start, whitelist = whitelist,
+      blacklist = blacklist, score = score, extra.args = extra.args,
+      max.iter = max.iter, optimized = optimized, tabu = tabu, 
+      debug = debug)
+
+  }#THEN
 
   # set the metadata of the network.
   res$learning$algo = heuristic
@@ -312,8 +337,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 # Parameter sanitization for hybrid learning algorithms.
 hybrid.search = function(x, whitelist = NULL, blacklist = NULL, restrict = "mmpc",
     maximize = "hc", test = NULL, score = NULL, alpha = 0.05, B = NULL, ...,
-    restart = 0, perturb = 0, max.iter = Inf, optimized = TRUE, strict = FALSE,
-    debug = FALSE) {
+    maximize.args = list(), optimized = TRUE, strict = FALSE, debug = FALSE) {
 
   nodes = names(x)
 
@@ -321,12 +345,12 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL, restrict = "mmpc
   check.learning.algorithm(restrict, class = "constraint")
   check.learning.algorithm(maximize, class = "score")
   # choose the right method for the job.
-  method = ifelse((restrict == "mmpc") && (maximize == "hc"), "mmhc", "rshc")
+  method = ifelse((restrict == "mmpc") && (maximize == "hc"), "mmhc", "rsmax2")
 
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
-    cat("* restrict phase.\n")
+    cat("* restrict phase, using the", method.labels[restrict] ,"algorithm.\n")
 
   }#THEN
 
@@ -346,14 +370,14 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL, restrict = "mmpc
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
-    cat("* maximize phase.\n")
+    cat("* maximize phase, using the", method.labels[maximize] ,"algorithm.\n")
 
   }#THEN
 
   # maximize phase
   res = greedy.search(x, start = NULL, whitelist = whitelist, blacklist = constraints,
-          score = score, heuristic = maximize, ..., debug = debug, restart = restart,
-          perturb = perturb, max.iter = max.iter, optimized = optimized)
+          score = score, heuristic = maximize, ..., misc.args = maximize.args,
+          optimized = optimized, debug = debug)
 
   # set the metadata of the network.
   res$learning$ntests = res$learning$ntests + ntests

@@ -1,7 +1,5 @@
 #include "common.h"
 
-static void bestop_update(SEXP bestop, char *op, const char *from, const char *to);
-
 SEXP hc_cache_fill(SEXP nodes, SEXP data, SEXP network, SEXP score, SEXP extra,
     SEXP reference, SEXP equivalence, SEXP updated, SEXP env, SEXP amat,
     SEXP cache, SEXP blmat, SEXP debug) {
@@ -163,7 +161,7 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
 int nnodes = LENGTH(nodes), i = 0, j = 0;
 int *am = NULL, *ad = NULL, *w = NULL, *b = NULL, *debuglevel = NULL;
 int counter = 0, update = 1, from = 0, to = 0;
-double *cache_value = NULL, temp = 0, max = 0;
+double *cache_value = NULL, temp = 0, max = 0, tol = MACHINE_TOL;
 SEXP false, bestop, names;
 
   /* allocate and initialize the return value (use FALSE as a canary value). */
@@ -221,7 +219,7 @@ SEXP false, bestop, names;
 
       /* this score delta is the best one at the moment, so add the arc if it
        * does not introduce cycles in the graph. */
-      if (temp - max > MACHINE_TOL) {
+      if (temp - max > tol) {
 
         if (c_has_path(j, i, am, nnodes, nodes, FALSE, FALSE, FALSE)) {
 
@@ -284,7 +282,7 @@ SEXP false, bestop, names;
 
       }/*THEN*/
 
-      if (temp - max > MACHINE_TOL) {
+      if (temp - max > tol) {
 
         if (*debuglevel > 0)
           Rprintf("    @ removing %s -> %s.\n", NODE(i), NODE(j));
@@ -340,7 +338,7 @@ SEXP false, bestop, names;
 
       }/*THEN*/
 
-      if (temp - max > MACHINE_TOL) {
+      if (temp - max > tol) {
 
         if (c_has_path(i, j, am, nnodes, nodes, FALSE, TRUE, FALSE)) {
 
@@ -382,7 +380,7 @@ SEXP false, bestop, names;
 
 }/*HC_OPT_STEP*/
 
-static void bestop_update(SEXP bestop, char *op, const char *from, const char *to) {
+void bestop_update(SEXP bestop, char *op, const char *from, const char *to) {
 
 SEXP temp;
 

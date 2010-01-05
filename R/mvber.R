@@ -104,4 +104,4 @@ mvber.var.backend = function(x, method) {
 
   return(structure(res, names = c("statistic", "normalized")))
 
-}#THEN
+}#MVBER.VAR.BACKEND

@@ -31,6 +31,9 @@ bn.fit(x, data, debug = FALSE)
   details.
 
 }
+\seealso{
+  \code{\link{bn.fit utilities}}, \code{\link{bn.fit plots}}.
+}
 \examples{
 data(learning.test)
 

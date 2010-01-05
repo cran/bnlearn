@@ -13,7 +13,17 @@ random.graph.backend = function(num, nodes, method, extra.args, debug) {
             max.in.degree = extra.args$max.in.degree,
             max.out.degree = extra.args$max.out.degree,
             max.degree = extra.args$max.degree,
-            debug = debug)
+            connected = TRUE, debug = debug)
+
+  }#THEN
+  else if (method == "melancon") {
+
+    res = ide.cozman.graph(num = num, nodes = nodes,
+            burn.in = extra.args$burn.in,
+            max.in.degree = extra.args$max.in.degree,
+            max.out.degree = extra.args$max.out.degree,
+            max.degree = extra.args$max.degree,
+            connected = FALSE, debug = debug)
 
   }#THEN
   else if (method == "empty") {
@@ -38,9 +48,10 @@ ordered.graph = function (num, nodes, prob) {
 }#ORDERED.GRAPH
 
 # generate a random directed acyclic graph accordin to a uniform
-# probability distribution over the space of connected graphs.
+# probability distribution over the space of connected graphs (if
+# connected = TRUE) or the space of graphs (if connected = FALSE).
 ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
-    max.out.degree, max.degree, debug) {
+    max.out.degree, max.degree, connected, debug) {
 
   .Call("ide_cozman_graph",
         nodes = nodes,
@@ -49,6 +60,7 @@ ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
         max.in.degree = as.numeric(max.in.degree),
         max.out.degree = as.numeric(max.out.degree),
         max.degree = as.numeric(max.degree),
+        connected = connected,
         debug = debug,
         PACKAGE = "bnlearn")
 

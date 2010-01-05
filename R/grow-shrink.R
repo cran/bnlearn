@@ -108,7 +108,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
-    cat("* detecting markov blanket of", x, ".\n")
+    cat("* learning markov blanket of", x, ".\n")
 
   }#THEN
 
@@ -144,82 +144,97 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
   }#THEN
 
-  add.node = function(y, x, test) {
+  # grow phase.
+  repeat {
 
-    if (debug)
-      cat("  * checking node", y, "for inclusion.\n")
+    # store the current size of the Markov Blanket.
+    mb.size = length(mb)
 
-    a = conditional.test(x, y, mb, data = data, test = test, B = B)
+    for (y in nodes) {
 
-    if (a <= alpha) {
+      if (debug) cat("  * checking node", y, "for inclusion.\n")
 
-      if (debug) {
-
-        cat("    > node", y, "included in the markov blanket ( p-value:", a, ").\n")
-        cat("    > markov blanket now is '", c(mb, y), "'.\n")
-
-      }#THEN
-
-      assign('mb', c(mb, y), envir = sys.frame(-3))
-
-    }#THEN
-    else if (debug) {
-
-      cat("    >", x, "indep.", y, "given '", mb, "' ( p-value:", a, ").\n")
-
-    }#THEN
-
-  }#ADD.NODE
-
-  # first pass detects parents and children
-  sapply(nodes, add.node, x = x, test = test)
-  # second pass detects parents of the son
-  remaining = nodes[!(nodes %in% mb)]
-  # no second pass is needed if the only node standing is the last one,
-  # or if no node was added in the first pass.
-  if ((!identical(remaining, nodes)) && (!identical(remaining, nodes[length(nodes)])))
-      sapply(remaining, add.node, x = x, test = test)
-  # remember the last node added to the markov blanket, which is not to be
-  # tested for removal.
-  last.added = mb[length(mb)]
-
-  # shrinking phase
-  del.node = function(y, x, test) {
-
-    if (debug)
-      cat("  * checking node", y, "for exclusion (shrinking phase).\n")
-
-    a = conditional.test(x, y, mb[mb != y], data = data, test = test, B = B)
-
-    if (a > alpha) {
-
-      if (debug) {
-
-        cat("    > node", y, "removed from the markov blanket. ( p-value:", a, ")\n")
-        cat("    > conditioning subset: '", mb[mb != y], "'\n")
+      a = conditional.test(x, y, mb, data = data, test = test, B = B)
+  
+      if (a <= alpha) {
+ 
+        # add the node to the Markov blanket.
+        mb = c(mb, y)
+        # do not check the same node again.
+        nodes = nodes[nodes != y]
+ 
+        if (debug) {
+  
+          cat("    > node", y, "included in the markov blanket ( p-value:", a, ").\n")
+          cat("    > markov blanket now is '", mb, "'.\n")
+          cat("    > restarting grow loop.\n")
+  
+        }#THEN
+ 
+        break
 
       }#THEN
+      else if (debug) {
+  
+        cat("    >", x, "indep.", y, "given '", mb, "' ( p-value:", a, ").\n")
+  
+      }#THEN
 
-      # update the markov blanket.
-      assign("mb", mb[mb != y], envir = sys.frame(-3))
+    }#FOR
 
-      return(NULL)
+    # if the Markov blanket is unchanged exit the grow phase.
+    if (length(mb) == mb.size) break
 
-    }#THEN
-    else if (debug) {
-
-      cat("    > node", y, "remains in the markov blanket. ( p-value:", a, ")\n")
-
-    }#THEN
-
-  }#DEL.NODE
+  }#REPEAT
 
   # whitelisted nodes are neighbours, they cannot be removed from the
-  # markov blanket; the last node added in phase I will never be removed,
-  # because the tests for inclusion and removal are identical.
-  # known.good nodes from backtracking are not to be removed, either.
-  if (length(mb) > 1)
-    sapply(mb[!(mb %in% c(known.good, last.added, whitelisted))], del.node, x = x, test = test)
+  # markov blanket; known.good nodes from backtracking are not to be 
+  # removed, either.
+  nodes = mb[!(mb %in% c(known.good, whitelisted))]
+
+  # shrink phase.
+  repeat {
+
+    # store the current size of the Markov Blanket.
+    mb.size = length(mb)
+
+    for (y in nodes) {
+
+      if (debug)
+        cat("  * checking node", y, "for exclusion (shrinking phase).\n")
+  
+      a = conditional.test(x, y, mb[mb != y], data = data, test = test, B = B)
+  
+      if (a > alpha) {
+  
+        # update the markov blanket.
+        mb = mb[mb != y] 
+        # do not check the same node again.
+        nodes = nodes[nodes != y]
+ 
+        if (debug) {
+  
+          cat("    > node", y, "removed from the markov blanket. ( p-value:", a, ")\n")
+          cat("    > conditioning subset: '", mb, "'\n")
+          cat("    > restarting shrink loop.\n")
+  
+        }#THEN
+  
+        break
+  
+      }#THEN
+      else if (debug) {
+  
+        cat("    > node", y, "remains in the markov blanket. ( p-value:", a, ")\n")
+  
+      }#THEN
+
+    }#FOR
+
+    # if the Markov blanket is unchanged exit the grow phase.
+    if (length(mb) == mb.size) break
+
+  }#REPEAT
 
   mb
 

@@ -19,8 +19,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 1.7\cr
-    Date: \tab 2009-10-25\cr
+    Version: \tab 1.8\cr
+    Date: \tab 2010-01-05\cr
     License: \tab GPLv2 or later
 
   }
@@ -92,10 +92,10 @@
 
   }
 
-  The computational complexity of these algorithms is polynomial
-  in the number of tests, usually \eqn{O(N^2)}{O(N^2)} (\eqn{O(N^4)}{O(N^4)}
-  in the worst case scenario). Execution time scales linearly with
-  the size of the data set.
+  The computational complexity of these algorithms is polynomial in the 
+  number of tests, usually \eqn{O(N^2)}{O(N^2)} (\eqn{O(N^4)}{O(N^4)}
+  in the worst case scenario), where \eqn{N}{N} is the number of variables. 
+  Execution time scales linearly with the size of the data set.
 
 }
 \section{Available score-based learning algorithms}{
@@ -105,10 +105,15 @@
     \item \emph{Hill-Climbing} (\code{\link{hc}}): a \emph{hill climbing}
       greedy search on the space of the directed graphs. The optimized
       implementation uses score caching, score decomposability and score
-      equivalence to reduce the number of duplicated tests. Random restart
-      with a configurable number of perturbing operations is implemented.
+      equivalence to reduce the number of duplicated tests.
+    \item \emph{Tabu Search} (\code{\link{tabu}}): a modified hill
+      climbing able to escape local optima by selecting a network that
+      minimally decreases the score function.
 
   }
+
+  Random restart with a configurable number of perturbing operations 
+  is implemented for both algorithms.
 
 }
 \section{Available hybrid learning algorithms}{
@@ -119,7 +124,7 @@
       algorithm which combines the Max-Min Parents and Children algorithm
       (to restrict the search space) and the Hill-Climbing algorithm
       (to find the optimal network structure in the restricted space).
-    \item \emph{Restricted Hill-Climbing} (\code{\link{rshc}}): a more
+    \item \emph{Restricted Maximization} (\code{\link{rsmax2}}): a more
       general implementation of the Max-Min Hill-Climbing, which can use
       any combination of constraint-based and score-based algorithms.
 
@@ -165,9 +170,9 @@
           deviance of the tested models. Both the asymptotic \eqn{\chi^2}{chi-square}
           test (\code{mi}) and the Monte Carlo permutation test (\code{mc-mi})
           are implemented.
-        \item \emph{fast mutual information} (\code{fmi}): a variant of the
-          mutual information which is set to zero when there aren't at least
-          five data per parameter.
+        \item \emph{shrinkage estimator} for the \emph{mutual information}
+          (\code{mi-sh}): an improved asymptotic \eqn{\chi^2}{chi-square} test
+          based on the James-Stein estimator for the mutual information.
         \item \emph{Pearson's \eqn{X^2}{X^2}}: the classical Pearson's
           \eqn{X^2}{X^2} test for contingency tables. Both the asymptotic
           \eqn{\chi^2}{chi-square} test (\code{x2}) and the Monte Carlo
@@ -347,12 +352,12 @@ compare(res, res2)
 # [1] TRUE
 # how many tests each of the two algorithms used?
 res$learning$ntests
-# [1] 41
+# [1] 43
 res2$learning$ntests
 # [1] 50
 # and the unoptimized implementation of these algorithms?
 \dontrun{gs(learning.test, optimized = FALSE)$learning$ntests}
-# [1] 90
+# [1] 93
 \dontrun{iamb(learning.test, optimized = FALSE)$learning$ntests}
 # [1] 116
 

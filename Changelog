@@ -1,4 +1,24 @@
 
+bnlearn (1.8)
+
+  * removed the fast mutual information test in favour of
+      the equivalent shrinkage test, which uses a more
+      systematic approach.
+  * fixed fast.iamb(), which should not have truncated
+      exact and Monte Carlo tests.
+  * added the HailFinder and Insurance data sets.
+  * updated the Grow-Shrink implementation according to
+      newer (and much clearer) literature from Margaritis.
+  * rewritten more of the configuration() function in C,
+      resulting in dramatic (2x to 3x) speedups for large
+      data sets.
+  * implemented tabu search.
+  * reimplemented cpdag() in C, with an eye towards a
+      future integration with constraints-based algorithms.
+  * fixed a bug in coef() for discrete bn.fit objects.
+  * implemented Melancon's uniform probability random DAG
+      generation algorithm.
+
 bnlearn (1.7)
 
   * big clean-up of C code, with some small optimizations.
@@ -15,7 +35,7 @@ bnlearn (1.6)
   * implemented the mmhc() algorithm and its generic 
       template rshc().
   * rewritten both the optimized and the standard implementation
-      of hc(), which are way faster than before.
+      of hc() in C, they are way faster than before.
   * various fixes to documentation and bibtex references.
   * revised the functions implementing the second half
       of the constraint-based algorithm.

@@ -64,8 +64,12 @@
 }
 \references{
 
+  \strong{for (discrete) mutual information and Pearson's \eqn{X^2}{X^2}:}
+
   Edwards DI (2000). \emph{Introduction to Graphical Modelling}.
       Springer, 2nd edition.
+
+  \strong{for permutation tests:}
 
   Legendre P (2000). "Comparison of Permutation Methods for the Partial
       Correlation and Partial Mantel Tests". \emph{Journal of Statistical
@@ -73,6 +77,13 @@
 
   Pesarin F (2001). \emph{Multivariate Permutation Tests With Applications
       in Biostatistics}. Wiley.
+
+  \strong{for the shrinkage estimator for the mutual information:}
+
+  Hausser J, Strimmer K (2009). "Entropy inference and the James-Stein 
+      estimator, with application to nonlinear gene association networks". 
+      \emph{Statistical Applications in Genetics and Molecular Biology}, 
+      10, 1469-1484.
 
 }
 \examples{

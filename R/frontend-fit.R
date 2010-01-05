@@ -86,7 +86,7 @@ coef.bn.fit = function(object, ...) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  lapply(object, "[[", "coefficients")
+  lapply(object, "coef")
 
 }#COEF.BN.FIT
 

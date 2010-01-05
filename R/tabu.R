@@ -1,7 +1,7 @@
 
-# unified hill climbing implementation (both optimized and by spec).
-hill.climbing = function(x, start, whitelist, blacklist, score,
-    extra.args, restart, perturb, max.iter, optimized, debug) {
+# unified tabu search implementation (both optimized and by spec).
+tabu.search = function(x, start, whitelist, blacklist, score,
+    extra.args, max.iter, optimized, tabu, debug) {
 
   # cache nodes' labels.
   nodes = names(x)
@@ -15,8 +15,15 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
   cache = matrix(0, nrow = n.nodes, ncol = n.nodes)
   # nodes to be updated (all of them in the first iteration).
   updated = seq_len(n.nodes) - 1L
-  # set the number of random restarts.
-  restart.counter = restart
+  # allocate the tabu list.
+  tabu.list = vector("list", tabu)
+  # maximum number of iteration the algorithm can go on without
+  # improving the best network score.
+  max.loss.iter = tabu
+  # set the counter for suc iterations.
+  loss.iter = 0
+  #
+  best.score = -Inf
 
   # set the reference score.
   reference.score = per.node.score(network = start, score = score,
@@ -47,7 +54,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 
     # set the metadata of the network; othewise the debugging output is
     # confusing and not nearly as informative.
-    start$learning$algo = "hc"
+    start$learning$algo = "tabu"
     start$learning$ntests = 0
     start$learning$test = score
     start$learning$args = extra.args
@@ -57,8 +64,31 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 
   repeat {
 
+    current = as.integer((iter - 1) %% tabu)
+
+    # keep the best network seen so far and its score value for the 
+    # evaluation of the stopping rule.
+    if (sum(reference.score) > best.score) {
+
+      best.network = start
+      best.score = sum(reference.score)
+
+    }#THEN
+
+    if (debug)
+      cat("* iteration", iter, "using element", current, "of the tabu list.\n")
+
     # build the adjacency matrix of the current network structure.
     amat = arcs2amat(start$arcs, nodes)
+
+    # add the hash of the network into the tabu list for future reference.
+    # (BEWARE: in place modification of tabu.list!)
+    .Call("tabu_hash",
+          amat = amat,
+          nodes = nodes,
+          tabu.list = tabu.list,
+          current = current,
+          PACKAGE = "bnlearn")
 
     # set up the score cache (BEWARE: in place modification!).
     .Call("hc_cache_fill",
@@ -83,7 +113,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
                     arcs = FALSE)
 
     # get the best arc addition/removal/reversal.
-    bestop = .Call("hc_opt_step",
+    bestop = .Call("tabu_step",
                    amat = amat,
                    nodes = nodes,
                    added = to.be.added,  
@@ -91,119 +121,70 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
                    reference = reference.score,
                    wlmat = wlmat,
                    blmat = blmat,
+                   tabu.list = tabu.list,
+                   current = current,
+                   baseline = 0,
                    debug = debug,
                    PACKAGE = "bnlearn")
 
     # the value FALSE is the canary value in bestop$op meaning "no operation
-    # improved the network score"; break the loop.
+    # improved the network score"; reconsider prevously discarded solutions
+    # and find the one that causes the minimum decrease in the network score.
     if (bestop$op == FALSE) {
 
-      if ((restart.counter >= 0) && (restart > 0)) {
+      if (loss.iter >= max.loss.iter) {
 
-        if (restart.counter == restart) {
-
-          # store away the learned network at the first restart.
-          best.network = start
-          best.network.score = sum(reference.score)
-
-        }#THEN
-        else {
-
-          # if the network found by the algorithm is better, use that one as
-          # starting network for the next random restart; use the old one
-          # otherwise.
-          if (best.network.score > sum(reference.score)) {
-
-            start = best.network
-
-            if (debug) {
-
-              cat("----------------------------------------------------------------\n")
-              cat("* the old network was better, discarding the current one.\n")
-              cat("* now the current network is :\n")
-              print(start)
-              cat("* current score:", best.network.score, "\n")
-
-            }#THEN
-
-          }#THEN
-          else {
-
-            # store away the learned network at the first restart.
-            best.network = start
-            best.network.score = sum(reference.score)
-
-          }#ELSE
-
-        }#ELSE
-
-        # this is the end; if the network found by the algorithm is the best one
-        # it's now the 'end' one once more.
-        if (restart.counter == 0) break
-
-        # don't try to do anything if there are no more iterations left.
-        if (iter >= max.iter) {
-
-          if (debug)
-            cat("@ stopping at iteration", max.iter, "ignoring random restart.\n")
-
-          break
-
-        }#THEN
-        # increment the iteration counter.
-        iter = iter + 1
-
-        # decrement the number of random restart we still have to do.
-        restart.counter = restart.counter - 1;
+        # reset the return value to the best network ever found.
+        start = best.network
 
         if (debug) {
 
           cat("----------------------------------------------------------------\n")
-          cat("* doing a random restart,", restart.counter, "of", restart, "left.\n")
+          cat("* maximum number of iterations without improvements reached, stopping.\n")
+          cat("* best network ever seen is:\n")
+          print(best.network)
 
         }#THEN
 
-        # perturb the network.
-        start = perturb.backend(network = start, iter = perturb, nodes = nodes,
-                amat = amat, whitelist = whitelist, blacklist = blacklist,
-                debug = debug)
-
-        # update the cached values of the end network.
-        start$nodes = cache.structure(nodes, arcs = start$arcs)
-
-        # update the scores of the nodes as needed.
-        if (best.network.score > sum(reference.score)) {
-
-          # all scores must be updated; this happens when both the network
-          # resulted from the random restart is discarded and the old network
-          # is perturbed.
-          reference.score = per.node.score(network = start, score = score,
-                          nodes = nodes, extra.args = extra.args, data = x)
-
-          updated = which(nodes %in% nodes) - 1L
-
-        }#THEN
-        else {
-
-          # the scores whose nodes' parents changed must be updated.
-          reference.score[names(start$updates)] =
-            per.node.score(network = start, score = score, nodes = names(start$updates),
-               extra.args = extra.args, data = x)
-
-          updated = which(nodes %in% names(start$updates)) - 1L
-
-        }#THEN
-
-        # nuke start$updates from orbit.
-        start$updates = NULL
-
-        next
-
-      }#THEN
-      else
         break
 
+      }#THEN
+      else {
+  
+        # increase the counter of the iteration without improvements.      
+        loss.iter = loss.iter + 1
+
+      }#ELSE
+
+      if (debug) {
+
+        cat("----------------------------------------------------------------\n")
+        cat("* network score did not increase for", loss.iter, 
+              "iterations, looking for a minimal decrease :\n")
+
+      }#THEN
+
+      bestop = .Call("tabu_step",
+                     amat = amat,
+                     nodes = nodes,
+                     added = to.be.added,
+                     cache = cache,
+                     reference = reference.score,
+                     wlmat = wlmat,
+                     blmat = blmat,
+                     tabu.list = tabu.list,
+                     current = current,
+                     baseline = -Inf,
+                     debug = debug,
+                     PACKAGE = "bnlearn")
+
     }#THEN
+    else {
+
+      if (sum(reference.score) > best.score)
+        loss.iter = 0
+
+    }#ELSE
 
     # update the network structure.
     start = arc.operations(start, from = bestop$from, to = bestop$to,
@@ -233,6 +214,8 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
       cat("* current network is :\n")
       print(start)
       cat("* current score:", sum(reference.score), "\n")
+      cat(sprintf("* best score up to now: %s (delta: %s)\n", format(best.score), 
+        format(sum(reference.score) - best.score)))
 
     }#THEN
 
@@ -241,6 +224,10 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 
       if (debug)
         cat("@ stopping at iteration", max.iter, ".\n")
+
+      # reset the return value to the best network ever found.
+      if (loss.iter > 0)
+        start = best.network
 
       break
 
@@ -251,5 +238,5 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 
   return(start)
 
-}#HILL.CLIMBING
+}#TABU.SEARCH
 

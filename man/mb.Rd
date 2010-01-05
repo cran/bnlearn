@@ -25,11 +25,11 @@
 \usage{
 ## nodes
 nodes(x)
-mb(x, node, rebuild = FALSE)
-nbr(x, node, rebuild = FALSE)
-parents(x, node, rebuild = FALSE)
+mb(x, node)
+nbr(x, node)
+parents(x, node)
 parents(x, node, debug = FALSE) <- value
-children(x, node, rebuild = FALSE)
+children(x, node)
 children(x, node, debug = FALSE) <- value
 root.nodes(x)
 leaf.nodes(x)
@@ -56,8 +56,6 @@ nparams(x, data, debug = FALSE)
        \code{arcs})}.
   \item{data}{a data frame, containing the data the Bayesian network
        was learned from.}
-  \item{rebuild}{a boolean value. If \code{TRUE} the return value is rebuilt
-       from scratch using the arc set; otherwise the cached value are returned.}
   \item{ignore.cycles}{a boolean value. If \code{TRUE} the returned network will
        not be checked for cycles.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is

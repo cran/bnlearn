@@ -64,7 +64,7 @@ res
 #   learning algorithm:                    grow-shrink
 #   conditional independence test:         mutual information (discrete)
 #   alpha threshold:                       0.05
-#   tests used in the learning procedure:  41
+#   tests used in the learning procedure:  43
 #
 modelstring(res)
 # [1] "[A][C][F][B|A][D|A:C][E|B:F]"

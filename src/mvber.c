@@ -112,7 +112,7 @@ SEXP mvber_joint_counters(SEXP arcs, SEXP nodes, SEXP joint, SEXP debug) {
 
 int i = 0, j = 0, k = 0, *coords = NULL;
 int nnodes = LENGTH(nodes), narcs = LENGTH(arcs)/2, jsize = nrows(joint);
-int bufsize = UPTRI3(nnodes, nnodes, nnodes);
+int bufsize = UPTRI3_MATRIX(nnodes);
 short int *buffer = NULL;
 double *p = REAL(joint);
 SEXP try;
@@ -127,7 +127,7 @@ SEXP try;
   /* use the UPTRI3() macro as a unique identifier of each arc (modulo its
    * direction) and store the resulting hashes in the buffer. */
   for (k = 0; k < narcs; k++)
-    buffer[UPTRI3(coords[k], coords[k + narcs], nnodes) - 1] = 1;
+    buffer[UPTRI3(coords[k], coords[k + narcs], nnodes)] = 1;
 
   /* print arcs' mappings, which are essential to get the moments right. */
   if (isTRUE(debug)) {
@@ -138,7 +138,7 @@ SEXP try;
         CHAR(STRING_ELT(arcs, k)),
         CHAR(STRING_ELT(arcs, k + narcs)),
         coords[k], coords[k + narcs],
-        UPTRI3(coords[k], coords[k + narcs], nnodes) - 1);
+        UPTRI3(coords[k], coords[k + narcs], nnodes));
 
     }/*FOR*/
  

@@ -107,6 +107,9 @@ data(alarm)
       Belief Networks." In "Proceedings of the 2nd European Conference on
       Artificial Intelligence in Medicine", pp. 247-256. Springer-Verlag.
 
+  Elidan G (2001). "Bayesian Network Repository". \cr
+      http://www.cs.huji.ac.il/labs/compbio/Repository/.
+
 }
 \note{
 

@@ -139,7 +139,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
-    cat("* detecting markov blanket of", x, ".\n")
+    cat("* learning markov blanket of", x, ".\n")
 
   }#THEN
 
@@ -175,10 +175,6 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
 
   }#THEN
 
-  # do not use the the fast mutual information; this algorithm takes care
-  # of insufficient data itself, use mutual information instead.
-  if (test == "fmi") test = "mi"
-
   repeat {
 
     # growing phase.
@@ -205,7 +201,9 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
 
     for (node in names(association)) {
 
-      if (obs.per.cell(x, node, mb, data) >= 5) {
+      opc = obs.per.cell(x, node, mb, data)
+
+      if (!(test %in% asymptotic.tests) || (opc >= 5)) {
 
         if (debug) {
 
@@ -218,7 +216,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
           else {
 
             cat("    @", node, "included in the markov blanket (p-value:",
-              association[node], ", obs/cell:", obs.per.cell(x, node, mb, data), ").\n")
+              association[node], ", obs/cell:", opc, ").\n")
 
           }#ELSE
           cat("    > markov blanket now is '", c(mb, node), "'.\n")
@@ -231,6 +229,9 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
 
       }#THEN
       else {
+
+        if (debug)
+          cat("  @ not enough observations per cell (", opc ,"), skipping.\n")
 
         # do not add new nodes if that compromises the asymptotic behaviour
         # of the statistical tests.

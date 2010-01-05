@@ -13,53 +13,38 @@ nodes = function(x) {
 }#NODES
 
 # return the markov blanket of a node.
-mb = function(x, node, rebuild = FALSE) {
+mb = function(x, node) {
 
   # check x's class.
   check.bn(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
-  # check rebuild.
-  check.logical(rebuild)
 
-  if (rebuild)
-    mb.backend(x$arcs, node)
-  else
-    x$nodes[[node]]$mb
+  x$nodes[[node]]$mb
 
 }#MB
 
 # return the neighbourhood of a node.
-nbr = function(x, node, rebuild = FALSE) {
+nbr = function(x, node) {
 
   # check x's class.
   check.bn(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
-  # check rebuild.
-  check.logical(rebuild)
 
-  if (rebuild)
-    nbr.backend(x$arcs, node)
-  else
-    x$nodes[[node]]$nbr
+  x$nodes[[node]]$nbr
 
 }#NBR
 
 # get the parents of a node.
-parents = function(x, node, rebuild = FALSE) {
+parents = function(x, node) {
 
   # check x's class.
   check.bn(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
-  # check rebuild.
-  check.logical(rebuild)
 
-  if (rebuild)
-    parents.backend(x$arcs, node)
-  else
-    x$nodes[[node]]$parents
+  x$nodes[[node]]$parents
 
 }#PARENTS
 
@@ -118,19 +103,14 @@ parents = function(x, node, rebuild = FALSE) {
 }#PARENTS<-
 
 # get the children of a node.
-children = function(x, node, rebuild = FALSE) {
+children = function(x, node) {
 
   # check x's class.
   check.bn(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
-  # check rebuild.
-  check.logical(rebuild)
 
-  if (rebuild)
-    children.backend(x$arcs, node)
-  else
-    x$nodes[[node]]$children
+  x$nodes[[node]]$children
 
 }#CHILDREN
 

@@ -40,7 +40,7 @@ int ***p = NULL, i = 0, j = 0;
 
     for (j = 0; j < width; j++) {
 
-      p[i][j] = (int*) R_alloc(depth, sizeof(int));
+      p[i][j] = (int *) R_alloc(depth, sizeof(int));
       memset(p[i][j], '\0', sizeof(int) * depth);
 
     }/*FOR*/
@@ -56,7 +56,7 @@ short int *allocstatus (int length) {
 
 short int *p = NULL;
 
-  p= (short int *) R_alloc(length, sizeof(short int));
+  p = (short int *) R_alloc(length, sizeof(short int));
   memset(p, '\0', sizeof(short int) * length);
 
   return p;
@@ -75,6 +75,50 @@ double *p = NULL;
 
 }/*ALLOC1DREAL*/
 
+/* allocate a 2-dimensional contingency table. */
+double **alloc2dreal (int length, int width) {
+
+double **p = NULL;
+int k = 0;
+
+  p = (double **) R_alloc(length, sizeof(double *));
+
+  for (k = 0; k < length; k++) {
+
+    p[k] = (double *) R_alloc(width, sizeof(double));
+    memset(p[k], '\0', sizeof(double) * width);
+
+  }/*FOR*/
+
+  return p;
+
+}/*ALLOC2DREAL*/
+
+/* allocate a 3-dimensional real table. */
+double ***alloc3dreal (int length, int width, int depth) {
+
+double ***p = NULL;
+int i = 0, j = 0;
+
+  p = (double ***) R_alloc(length, sizeof(double *));
+  for (i = 0; i < length; i++) {
+
+    p[i] = (double **) R_alloc(width, sizeof(double *));
+
+    for (j = 0; j < width; j++) {
+
+      p[i][j] = (double *) R_alloc(depth, sizeof(double));
+      memset(p[i][j], '\0', sizeof(double) * depth);
+
+    }/*FOR*/
+
+  }/*FOR*/
+
+  return p;
+
+}/*ALLOC3DREAL*/
+
+/* allocate a 1-dimensional (char) pointer vector. */
 char **alloc1dstring (int length) {
 
 char **p = NULL;

@@ -76,7 +76,7 @@ res
 #   learning algorithm:                    grow-shrink
 #   conditional independence test:         mutual information (discrete)
 #   alpha threshold:                       0.05
-#   tests used in the learning procedure:  41
+#   tests used in the learning procedure:  43
 #   optimized:                             TRUE
 #
 directed(res)
@@ -98,7 +98,7 @@ dag2ug(res)
 #   learning algorithm:                    grow-shrink
 #   conditional independence test:         mutual information (discrete)
 #   alpha threshold:                       0.05
-#   tests used in the learning procedure:  41
+#   tests used in the learning procedure:  43
 #   optimized:                             TRUE
 #
 }

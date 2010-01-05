@@ -124,7 +124,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
-    cat("* detecting neighbourhood of", x, ".\n")
+    cat("* learning neighbourhood of", x, ".\n")
     cat("  * blacklisted nodes: '", blacklisted, "'\n")
     cat("  * whitelisted nodes: '", whitelisted, "'\n")
     cat("  * starting with neighbourhood: '", nbrhood, "'\n")

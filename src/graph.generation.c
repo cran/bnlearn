@@ -5,7 +5,7 @@ static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached,
 
 static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     int *degree, double *max, int *in_degree, double *max_in, int *out_degree,
-    double *max_out, int *debuglevel);
+    double *max_out, int *cozman, int *debuglevel);
 
 static void print_modelstring(SEXP bn);
 
@@ -170,19 +170,16 @@ SEXP list, res, args, argnames, amat, arcs, cached, debug2, null, temp;
 /* generate a connected graph with uniform probability, subject to some
  * constraints on the degree of the nodes. */
 SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
-    SEXP max_out_degree, SEXP max_degree, SEXP debug) {
+    SEXP max_out_degree, SEXP max_degree, SEXP connected, SEXP debug) {
 
 int i = 0, k = 0, nnodes = LENGTH(nodes), *n = INTEGER(num);
 int changed = 0, *work = NULL, *arc = NULL, *a = NULL, *burn = INTEGER(burn_in);
 int *degree = NULL, *in_degree = NULL, *out_degree = NULL;
-int *debuglevel = NULL;
+int *debuglevel = LOGICAL(debug), *cozman = LOGICAL(connected);
 double *max_in = REAL(max_in_degree), *max_out = REAL(max_out_degree),
   *max = REAL(max_degree);
 SEXP list, res, args, argnames, amat, arcs, cached, debug2, null,
   temp;
-
-  /* dereference the debug parameter. */
-  debuglevel = LOGICAL(debug);
 
   /* a fake debug argument (set to FALSE) for cache_structure(). */
   PROTECT(debug2 = allocVector(LGLSXP, 1));
@@ -240,7 +237,7 @@ SEXP list, res, args, argnames, amat, arcs, cached, debug2, null,
       Rprintf("* current model (%d):\n", k + 1);
 
     changed = ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree, max_in,
-                out_degree, max_out, debuglevel);
+                out_degree, max_out, cozman, debuglevel);
 
     /* print the model string to allow a sane debugging experience; note that this
      * has a huge impact on performance, so use it with care. */
@@ -286,7 +283,7 @@ SEXP list, res, args, argnames, amat, arcs, cached, debug2, null,
         Rprintf("* current model (%d):\n", *burn + k + 1);
 
       changed = ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree,
-                  max_in, out_degree, max_out, debuglevel);
+                  max_in, out_degree, max_out, cozman, debuglevel);
 
       if (changed || (k == 0)) {
 
@@ -362,7 +359,7 @@ SEXP list, res, args, argnames, amat, arcs, cached, debug2, null,
       Rprintf("* end of the burn-in.\n* current model (%d):\n", *burn + 1);
 
     ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree,
-      max_in, out_degree, max_out, debuglevel);
+      max_in, out_degree, max_out, cozman, debuglevel);
 
     /* generate the arc set and the cached information form the adjacency
      * matrix. */
@@ -445,7 +442,7 @@ SEXP res, learning, names, names2, class, test, ntests, algo;
 
 static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     int *degree, double *max, int *in_degree, double *max_in, int *out_degree,
-    double *max_out, int *debuglevel) {
+    double *max_out, int *cozman, int *debuglevel) {
 
 int path = 0;
 
@@ -460,13 +457,24 @@ int path = 0;
       Rprintf("  > arc %s -> %s is present.\n",
         NODE(arc[0] - 1), NODE(arc[1] - 1));
 
-    /* if there is a(n undirected) path in the (underlying undirected) graph
-     * from arc[0] to arc[1] other than arc[0] -> arc[1], the graph is still
-     * connected. */
-    amat[CMC(arc[0] - 1, arc[1] - 1, *nnodes)] = 0;
-    path = c_has_path(arc[0] - 1, arc[1] - 1, amat, *nnodes, nodes,
-             TRUE, FALSE, FALSE);
-    amat[CMC(arc[0] - 1, arc[1] - 1, *nnodes)] = 1;
+    /* skip the check on connectedness for Melancon's algorithm, it's not
+     * required.  */
+    if (*cozman == 1)  {
+
+      /* if there is a(n undirected) path in the (underlying undirected) graph
+       * from arc[0] to arc[1] other than arc[0] -> arc[1], the graph is still
+       * connected. */
+      amat[CMC(arc[0] - 1, arc[1] - 1, *nnodes)] = 0;
+      path = c_has_path(arc[0] - 1, arc[1] - 1, amat, *nnodes, nodes,
+               TRUE, FALSE, FALSE);
+      amat[CMC(arc[0] - 1, arc[1] - 1, *nnodes)] = 1;
+
+    }/*THEN*/
+    else {
+
+      path = 1;
+
+    }/*ELSE*/
 
     if (path) {
 

@@ -42,3 +42,65 @@ int i = 0, j = 0;
 
 }/*SAMPLENOREPLACE*/
 
+/* return the unique elements from an input vector.*/
+SEXP unique(SEXP array) {
+
+int *d = NULL, i = 0, k = 0, dup_counter = 0, n = LENGTH(array);
+SEXP dup, result;
+
+  PROTECT(dup = duplicated(array, FALSE));
+  d = LOGICAL(dup);
+
+  for (i = 0; i < n; i++)
+    if (d[i] == 0)
+      dup_counter++;
+
+  switch(TYPEOF(array)) {
+
+    case INTSXP:
+    default:
+
+      PROTECT(result = allocVector(INTSXP, dup_counter));
+      int *res = INTEGER(result), *a = INTEGER(array);
+
+      for (i = 0; i < n; i++)
+        if (d[i] == 0)
+          res[k++] = a[i];
+
+      break;
+
+  }/*SWITCH*/
+
+  UNPROTECT(2);
+
+  return result;
+
+}/*UNIQUE*/
+
+/* transform an integer vector into a factor. */
+SEXP int2fac(SEXP vector) {
+
+SEXP result, class, levels, lvls;
+
+  /* find out which levels are needed. */
+  PROTECT(levels = unique(vector));
+
+  /* match the elements of the vector against the levels. */
+  PROTECT(result = match(levels, vector, 0));
+
+  /* set the levels of the factor. */
+  PROTECT(lvls = coerceVector(levels, STRSXP));
+  setAttrib(result, R_LevelsSymbol, lvls);
+ 
+  /* set the class of the return value. */
+  PROTECT(class = allocVector(STRSXP, 1));
+  SET_STRING_ELT(class, 0, mkChar("factor"));
+  setAttrib(result, R_ClassSymbol, class);
+
+  UNPROTECT(4);
+
+  return result;
+
+}/*INT2FAC*/
+
+

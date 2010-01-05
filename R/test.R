@@ -31,23 +31,12 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
       p.value = as.integer(statistic)
 
     }#THEN
-    # Mutual Infomation a la FastIAMB (chi-square asymptotic distribution)
-    else if (test == "fmi") {
+    # Shrinked Mutual Infomation (chi-square asymptotic distribution)
+    if (test == "mi-sh") {
 
+      statistic = shmi.test(data[,x], data[,y], ndata, gsquare = TRUE)
       df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1)
-
-      if (obs.per.cell(x, y, data = data) >= 5) {
-
-        statistic = mi.test(data[,x], data[,y], ndata, gsquare = TRUE)
-        p.value = pchisq(statistic, df, lower.tail = FALSE)
-
-      }#THEN
-      else {
-
-        statistic = 0
-        p.value = 1
-
-      }#ELSE
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Pearson's X^2 test (chi-square asymptotic distribution)
@@ -88,14 +77,6 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
     else if (test == "mc-mi") {
 
       perm.test = mc.test(data[,x], data[,y], ndata, samples = B, test = 1L)
-      statistic = perm.test[1]
-      p.value = perm.test[2]
-
-    }#THEN
-    # Shrinkage Mutual Infomation (monte carlo permutation distribution)
-    else if (test == "mc-smi") {
-
-      perm.test = mc.test(data[,x], data[,y], ndata, samples = B, test = 6L)
       statistic = perm.test[1]
       p.value = perm.test[2]
 
@@ -161,23 +142,12 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
       p.value = as.integer(statistic)
 
     }#THEN
-    # Conditional Mutual Infomation a la FastIAMB (chi-square asymptotic distribution)
-    else if (test == "fmi") {
+    # Shrinked Conditional Mutual Infomation (chi-square asymptotic distribution)
+    if (test == "mi-sh") {
 
+      statistic = shcmi.test(data[,x], data[,y], config, ndata, gsquare = TRUE)
       df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config)
-
-      if (obs.per.cell(x, y, config, data = data) >= 5) {
-
-        statistic = cmi.test(data[,x], data[,y], config, ndata, gsquare = TRUE)
-        p.value = pchisq(statistic, df, lower.tail = FALSE)
-
-      }#THEN
-      else {
-
-        statistic = 0
-        p.value = 1
-
-      }#ELSE
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Pearson's X^2 test (chi-square asymptotic distribution)
@@ -225,14 +195,6 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
     else if (test == "mc-mi") {
 
       perm.test = cmc.test(data[,x], data[,y], config, ndata, samples = B, test = 1L)
-      statistic = perm.test[1]
-      p.value = perm.test[2]
-
-    }#THEN
-    # Shrinkage Mutual Infomation (monte carlo permutation distribution)
-    else if (test == "mc-smi") {
-
-      perm.test = cmc.test(data[,x], data[,y], config, ndata, samples = B, test = 6L)
       statistic = perm.test[1]
       p.value = perm.test[2]
 
@@ -325,6 +287,21 @@ mi.test = function(x, y, ndata, gsquare = TRUE) {
 
 }#MI.TEST
 
+# Shrinked Mutual Information (discrete data)
+shmi.test = function(x, y, ndata, gsquare = TRUE) {
+
+  s = .Call("shmi",
+      x = x,
+      y = y,
+      lx = nlevels(x),
+      ly = nlevels(y),
+      length = ndata,
+      PACKAGE = "bnlearn")
+
+  ifelse(gsquare, 2 * ndata * s, s)
+
+}#SHMI.TEST
+
 # Monte Carlo (discrete data)
 mc.test = function(x, y, ndata, samples, test) {
 
@@ -356,6 +333,23 @@ cmi.test = function(x, y, z, ndata, gsquare = TRUE) {
   ifelse(gsquare, 2 * ndata * s, s)
 
 }#CMI.TEST
+
+# Conditional Mutual Information (discrete data)
+shcmi.test = function(x, y, z, ndata, gsquare = TRUE) {
+
+  s = .Call("shcmi",
+      x = x,
+      y = y,
+      z = z,
+      lx = nlevels(x),
+      ly = nlevels(y),
+      lz = nlevels(z),
+      length = ndata,
+      PACKAGE = "bnlearn")
+
+  ifelse(gsquare, 2 * ndata * s, s)
+
+}#SHCMI.TEST
 
 # Conditional Monte Carlo (discrete data)
 cmc.test = function(x, y, z, ndata, samples, test) {

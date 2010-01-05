@@ -1,10 +1,11 @@
 
 # Global variables.
-available.discrete.tests = c("mi", "fmi", "aict", "x2", "mc-mi", "mc-x2")
+available.discrete.tests = c("mi", "aict", "mi-sh", "x2", "mc-mi", "mc-x2")
 available.continuous.tests = c("cor", "zf", "mi-g", "mc-mi-g", "mc-cor", "mc-zf")
 available.tests = c(available.discrete.tests, available.continuous.tests)
 
 resampling.tests = c("mc-mi", "mc-x2", "mc-mi-g", "mc-cor", "mc-zf")
+asymptotic.tests = c("mi", "mi-g", "x2", "zf")
 
 available.discrete.scores = c("loglik", "aic", "bic", "bde", "k2")
 available.continuous.scores = c("bge", "loglik-g", "aic-g", "bic-g")
@@ -13,8 +14,8 @@ available.scores = c(available.discrete.scores, available.continuous.scores)
 score.equivalent.scores = c("loglik", "aic", "bic", "bde", "bge", "loglik-g", "aic-g", "bic-g")
 
 constraint.based.algorithms = c("gs", "iamb", "fast.iamb", "inter.iamb", "mmpc")
-score.based.algorithms = c("hc")
-hybrid.algorithms = c("rshc", "mmhc")
+score.based.algorithms = c("hc", "tabu")
+hybrid.algorithms = c("rsmax2", "mmhc")
 available.learning.algorithms = c(constraint.based.algorithms, score.based.algorithms, hybrid.algorithms)
 
 always.dag.result = c(score.based.algorithms, hybrid.algorithms)
@@ -28,17 +29,23 @@ method.labels = c(
   'inter.iamb' = "interleaved incremental association",
   'rnd' = "random/generated",
   'hc' = 'hill-climbing',
+  'tabu' = 'tabu search',
   'mmpc' = 'max-min parent children',
-  'rshc' = 'restricted hill climbing',
+  'rsmax2' = 'two-phase restricted maximization',
   'mmhc' = 'max-min hill climbing'
+)
+
+method.extra.args = list(
+  'hc' = c("max.iter", "restart", "perturb"),
+  'tabu' = c("max.iter", "tabu", "max.tabu")
 )
 
 test.labels = c(
   'mi' = "mutual information (discrete)",
+  'mi-sh' = "mutual information (discrete, shrinkage)",
   'mc-mi' = "mutual information (discrete, Monte Carlo)",
   'mi-g' = "mutual information (gaussian)",
   'mc-mi-g' = "mutual information (gaussian, Monte Carlo)",
-  'fmi' = "fast mutual information",
   'aict'= "AIC-like test",
   'x2'= "Pearson's X^2",
   'mc-x2'= "Pearson's X^2 (Monte Carlo)",
@@ -75,7 +82,7 @@ score.extra.args = list(
 
 )
 
-graph.generation.algorithms = c("ordered", "ic-dag", "empty")
+graph.generation.algorithms = c("ordered", "ic-dag", "melancon", "empty")
 
 graph.generation.labels = c(
   "ordered" = "full ordering",
@@ -85,7 +92,8 @@ graph.generation.labels = c(
 
 graph.generation.extra.args = list(
   "ordered" = "prob",
-  "ic-dag" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree")
+  "ic-dag" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree"),
+  "melancon" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree")
 )
 
 mvber.labels = list(

@@ -13,7 +13,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
   n = LENGTH(nodes);
 
   /* allocate and initialize the checklist. */
-  checklist = allocstatus(UPTRI(n, n, n));
+  checklist = allocstatus(UPTRI_MATRIX(n));
 
   /* dereference the debug and mb parameters. */
   debuglevel = LOGICAL(debug);
@@ -50,7 +50,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
 
         /* increment the right element of checklist. */
         if (!strcmp(NODE(k), (char *)CHAR(STRING_ELT(temp, j))))
-          checklist[UPTRI(i + 1, k + 1, n) - 1]++;
+          checklist[UPTRI(i + 1, k + 1, n)]++;
 
       }/*FOR*/
 
@@ -66,8 +66,8 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
   for (i = 0; i < n; i++)
     for (j = i; j < n; j++) {
 
-      if ((checklist[UPTRI(i + 1, j + 1, n) - 1] != 0) &&
-          (checklist[UPTRI(i + 1, j + 1, n) - 1] != 2)) {
+      if ((checklist[UPTRI(i + 1, j + 1, n)] != 0) &&
+          (checklist[UPTRI(i + 1, j + 1, n)] != 2)) {
 
         if (*debuglevel > 0) {
 
@@ -142,7 +142,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
 
     /* rescan the checklist. */
     for (j = 0; j < n; j++)
-      if (checklist[UPTRI(i + 1, j + 1, n) - 1] == 2)
+      if (checklist[UPTRI(i + 1, j + 1, n)] == 2)
         if (i != j)
           counter++;
 
@@ -150,7 +150,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
     PROTECT(temp2 = allocVector(STRSXP, counter));
 
     for (j = 0; j < n; j++)
-      if (checklist[UPTRI(i + 1, j + 1, n) - 1] == 2)
+      if (checklist[UPTRI(i + 1, j + 1, n)] == 2)
         if (i != j)
           SET_STRING_ELT(temp2, --counter, STRING_ELT(nodes, j));
 

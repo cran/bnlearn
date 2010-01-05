@@ -296,10 +296,8 @@ cpdag = function(x, debug = FALSE) {
   check.bn(x)
   # check debug.
   check.logical(debug)
-  # store nodes' names.
-  nodes = names(x$nodes)
 
-  cpdag.backend(amat = arcs2amat(x$arcs, nodes), nodes = nodes, debug = debug)
+  cpdag.backend(x = x, nodes = names(x$nodes), debug = debug)
 
 }#CPDAG
 

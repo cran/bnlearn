@@ -8,7 +8,6 @@
 #define GAUSSIAN_MUTUAL_INFORMATION    3
 #define LINEAR_CORRELATION             4
 #define FISHER_Z                       5
-#define SHRINKAGE_MUTUAL_INFORMATION   6
 
 /* initialize the table of log-factorials. */
 #define allocfact(n) \
@@ -22,10 +21,6 @@ static double _mi (int *n, int *nrowt, int *ncolt, int *nrows,
     int *ncols, int *length);
 static double _cmi (int **n, int **nrowt, int **ncolt, int *ncond,
     int *nr, int *nc, int *nl);
-static double _smi (int *n, int *nrowt, int *ncolt, int *nrows,
-    int *ncols, int *length);
-static double _scmi (int **n, int **nrowt, int **ncolt, int *ncond,
-    int *nr, int *nc, int *nl, int *length);
 static double _x2 (int *n, int *nrowt, int *ncolt, int *nrows,
     int *ncols, int *length);
 static double _cx2 (int **n, int **nrowt, int **ncolt, int *ncond,
@@ -101,20 +96,6 @@ SEXP result;
         rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
 
         if (_x2(n, nrowt, ncolt, nr, nc, num) > observed)
-          REAL(result)[1] += 1;
-
-      }/*FOR*/
-
-      break;
-
-    case SHRINKAGE_MUTUAL_INFORMATION:
-      observed = _smi(n, nrowt, ncolt, nr, nc, num);
-
-      for (k = 0; k < *B; k++) {
-
-        rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
-
-        if (_smi(n, nrowt, ncolt, nr, nc, num) > observed)
           REAL(result)[1] += 1;
 
       }/*FOR*/
@@ -198,21 +179,6 @@ SEXP result;
       }/*FOR*/
 
       observed = 2 * observed;
-
-      break;
-
-    case SHRINKAGE_MUTUAL_INFORMATION:
-      observed = _scmi(n, nrowt, ncolt, ncond, nr, nc, nl, num);
-
-      for (j = 0; j < *B; j++) {
-
-        for (k = 0; k < *nl; k++)
-          rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
-
-        if (_scmi(n, nrowt, ncolt, ncond, nr, nc, nl, num) > observed)
-          res[1] += 1;
-
-      }/*FOR*/
 
       break;
 
@@ -420,113 +386,6 @@ double res = 0;
   return res;
 
 }/*_CMI*/
-
-/* compute shrinkage stimator for the mutual information. */
-static double _smi (int *n, int *nrowt, int *ncolt, int *nrows,
-    int *ncols, int *length) {
-
-int i = 0, j = 0;
-double res = 0, lambda = 0, lnum = 0, lden = 0, temp = 0, p0 = 0, pij = 0;
-double target = 1/(double)((*nrows) * (*ncols));
-
-  /* compute the numerator and the denominator of the shrinkage intensity. */
-  for (i = 0; i < *nrows; i++)
-    for (j = 0; j < *ncols; j++) {
-
-      temp = ((double)n[CMC(i, j, *nrows)] / (double)(*length));
-      lnum += temp * temp;
-      temp = (target - (double)n[CMC(i, j, *nrows)] / (double)(*length));
-      lden += temp * temp;
-
-    }/*FOR*/
-
-  /* compute the shrinkage intensity (avoiding "divide by zero" errors). */
-  if (lden == 0)
-    lambda = 1;
-  else
-    lambda = (1 - lnum) / ((double)(*length - 1) * lden);
-
-  /* bound the shrinkage intensity in the [0,1] interval. */
-  if (lambda > 1)
-    lambda = 1;
-  if (lambda < 0)
-    lambda = 0;
-
-  for (i = 0; i < *nrows; i++)
-    for (j = 0; j < *ncols; j++) {
-
-      pij = lambda * target + (1 - lambda) * (double)n[CMC(i, j, *nrows)] / (double)(*length);
-      p0 = lambda * target + (1 - lambda) * (double)(nrowt[i]*ncolt[j]) / (double)((*length) * (*length));
-
-      if (pij != 0)
-        res += pij * log(pij / p0);
-
-    }/*FOR*/
-
-  return res;
-
-}/*_SMI*/
-
-/* compute shrinkage stimator for the conditional mutual information. */
-static double _scmi (int **n, int **nrowt, int **ncolt, int *ncond,
-    int *nr, int *nc, int *nl, int *length) {
-
-int i = 0, j = 0, k = 0;
-double temp = 0, res = 0, lambda = 0, lnum = 0, lden = 0;
-double p0 = 0, pij = 0, pijk = 0;
-double target = 1/(double)((*nr) * (*nc) * (*nl));
-
-  /* compute the numerator and the denominator of the shrinkage intensity. */
-  for (i = 0; i < *nr; i++)
-    for (j = 0; j < *nc; j++)
-      for (k = 0; k < *nl; k++) {
-
-      temp = ((double)n[k][CMC(i, j, *nr)] / (double)(ncond[k]));
-      lnum += temp * temp;
-      temp = (target - (double)n[k][CMC(i, j, *nr)] / (double)(ncond[k]));
-      lden += temp * temp;
-
-    }/*FOR*/
-
-  /* compute the shrinkage intensity (avoiding "divide by zero" errors). */
-  if (lden == 0)
-    lambda = 1;
-  else
-    lambda = (1 - lnum) / ((double)(*length - 1) * lden);
-
-  /* bound the shrinkage intensity in the [0,1] interval. */
-  if (lambda > 1)
-    lambda = 1;
-  if (lambda < 0)
-    lambda = 0;
-
-  for (k = 0; k < *nl; k++) {
-
-    /* check each level of the conditioning variable to avoid (again)
-     * "divide by zero" errors. */
-    if (ncond[k] == 0)
-      continue;
-
-    for (j = 0; j < *nc; j++) {
-
-      for (i = 0; i < *nr; i++) {
-
-        p0 = lambda * target + (1 - lambda) * (double)(nrowt[k][i] * ncolt[k][j]) / (double)(ncond[k] * ncond[k]);
-        pij = lambda * target + (1 - lambda) * (double)(n[k][CMC(i, j, *nr)] / (double)ncond[k]);
-        pijk = lambda * target + (1 - lambda) * (double)(n[k][CMC(i, j, *nr)] / (double)(*length));
-
-        if (pijk > 0)
-          res += pijk * log(pij / p0);
-
-      }/*FOR*/
-
-    }/*FOR*/
-
-  }/*FOR*/
-
-  return res;
-
-}/*_SCMI*/
 
 /* compute Pearson's X^2 coefficient from the joint and marginal frequencies. */
 static double _x2 (int *n, int *nrowt, int *ncolt, int *nrows,

@@ -83,10 +83,9 @@ smaller = function(a, b) {
 # present in the 'data' argument.
 configurations = function(data) {
 
-  x = .Call("cfg", data = data, PACKAGE = "bnlearn")
-
-  factor(x = x, levels = unique.default(x), ordered = FALSE)
-
+  x = .Call("cfg2", 
+            data = data, 
+            PACKAGE = "bnlearn")
 
 }#CONFIGURATIONS
 

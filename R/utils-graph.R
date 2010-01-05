@@ -70,31 +70,6 @@ parents.backend = function(arcs, node, undirected = FALSE) {
 
 }#PARENTS.BACKEND
 
-# get the children of a node.
-children.backend = function(arcs, node, undirected = FALSE) {
-
-  if (!undirected)
-    arcs[(arcs[, "from"] == node) & which.directed(arcs), "to"]
-  else
-    arcs[(arcs[, "from"] == node), "to"]
-
-}#CHILDREN.BACKEND
-
-# get the markov blanket of a node.
-mb.backend = function(arcs, node) {
-
-  mb = c(nbr.backend(arcs, node),
-      unlist(sapply(children.backend(arcs, node),
-        function(child) {
-
-          parents.backend(arcs, node)
-
-        }), use.names = FALSE))
-
-  unique(mb[mb != node])
-
-}#MB.BACKEND
-
 # backend of nparams, the "get the number of parameters of a
 # discrete bayesian network" function. If real = TRUE this
 # function returns the number of _independent_ parameters
@@ -131,14 +106,6 @@ nparams.gaussian.node = function(node, x) {
         PACKAGE = "bnlearn")
 
 }#NPARAMS.GAUSSIAN.NODE
-
-# backend for neighbourhood detection.
-nbr.backend = function(arcs, node) {
-
-  # this includes neighbours with undirected arcs.
-  unique(c(arcs[arcs[, "from"] == node, "to"], arcs[arcs[, "to"] == node, "from"]))
-
-}#NBR.BACKEND
 
 # return the skeleton of a graph.
 dag2ug.backend = function(x) {
@@ -181,6 +148,25 @@ pdag2dag.backend = function(x, ordering) {
   return(x)
 
 }#PDAG2DAG.BACKEND
+
+# reconstruct the equivalence class of a network.
+cpdag.backend = function(x, nodes, debug = FALSE) {
+
+  amat = .Call("cpdag",
+               arcs = x$arcs,
+               nodes = nodes,
+               debug = debug,
+               PACKAGE = "bnlearn")
+
+  # update the arcs of the network.
+  x$arcs = amat2arcs(amat, nodes)
+
+  # update the network structure.
+  x$nodes = cache.structure(nodes, amat = amat, debug = debug)
+
+  return(x)
+
+}#CPDAG.BACKEND
 
 # apply random arc operators to the graph.
 perturb.backend = function(network, iter, nodes, amat, whitelist,

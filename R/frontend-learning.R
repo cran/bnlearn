@@ -65,22 +65,33 @@ hc = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
   greedy.search(x = x, start = start, whitelist = whitelist,
     blacklist = blacklist, score = score, heuristic = "hc", ...,
-    debug = debug, restart = restart, perturb = perturb,
-    max.iter = max.iter, optimized = optimized)
+    debug = debug, misc.args = list(restart = restart, perturb = perturb,
+    max.iter = max.iter), optimized = optimized)
 
 }#HC
 
-# Generic Restricted Hill Climbing frontend.
-rshc = function(x, whitelist = NULL, blacklist = NULL, restrict,
+# TABU list greedy search frontend.
+tabu = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
+    score = NULL, ..., debug = FALSE, tabu = 10, max.tabu = tabu, 
+    max.iter = Inf, optimized = TRUE) {
+
+  greedy.search(x = x, start = start, whitelist = whitelist,
+    blacklist = blacklist, score = score, heuristic = "tabu", ...,
+    debug = debug, misc.args = list(max.iter = max.iter, tabu = tabu, 
+    max.tabu = max.tabu), optimized = optimized)
+
+}#TABU
+
+# Generic Restricted Maximization frontend.
+rsmax2 = function(x, whitelist = NULL, blacklist = NULL, restrict = "gs",
     maximize = "hc", test = NULL, score = NULL, alpha = 0.05, B = NULL,
-    ..., restart = 0, perturb = 1, max.iter = Inf, optimized = TRUE,
-    strict = FALSE, debug = FALSE) {
+    ..., maximize.args = list(), optimized = TRUE, strict = FALSE, 
+    debug = FALSE) {
 
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
     restrict = restrict, maximize = maximize, test = test, score = score,
-    alpha = alpha, B = B, ..., restart = restart, perturb = perturb,
-    max.iter = max.iter, optimized = optimized, strict = strict,
-    debug = debug)
+    alpha = alpha, B = B, ..., maximize.args = maximize.args,
+    optimized = optimized, strict = strict, debug = debug)
 
 }#RSHC
 
@@ -89,10 +100,12 @@ mmhc = function(x, whitelist = NULL, blacklist = NULL, test = NULL,
     score = NULL, alpha = 0.05, B = NULL, ..., restart = 0, perturb = 1,
     max.iter = Inf, optimized = TRUE, strict = FALSE, debug = FALSE) {
 
+  max.args = list(restart = restart,perturb = perturb, max.iter = max.iter)
+
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
     restrict = "mmpc", maximize = "hc", test = test, score = score,
-    alpha = alpha, B = B, ..., restart = restart, perturb = perturb,
-    max.iter = max.iter, optimized = optimized, strict = strict,
+    alpha = alpha, B = B, ..., maximize.args = max.args, 
+    optimized = optimized, strict = strict,
     debug = debug)
 
 }#MMHC

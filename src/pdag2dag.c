@@ -49,7 +49,7 @@ SEXP try, res, dimnames, colnames;
   a = INTEGER(try);
 
   /* initialize the checklist. */
-  checklist = allocstatus(UPTRI(n, n, n));
+  checklist = allocstatus(UPTRI_MATRIX(n));
 
   /* add the arcs into the checklist. */
   for (i = 0; i < narcs; i++) {
@@ -57,7 +57,7 @@ SEXP try, res, dimnames, colnames;
       /* compute the index of the arc for the checklist array (which is the
        * upper-half of the adjacency matrix flattened into a 1-dimensional
        * array). */
-      coords = UPTRI(a[CMC(i, 0, narcs)], a[CMC(i, 1, narcs)], n) - 1;
+      coords = UPTRI(a[CMC(i, 0, narcs)], a[CMC(i, 1, narcs)], n);
 
       /* count the number of arcs ignoring their orientation. */
       if (checklist[coords] == 0)
@@ -79,7 +79,7 @@ SEXP try, res, dimnames, colnames;
 
     for (j = i; j < n; j++) {
 
-      coords = UPTRI(i + 1, j + 1, n) - 1;
+      coords = UPTRI(i + 1, j + 1, n);
 
       /* save both orientations for each arc. */
       if (checklist[coords] == 1) {
@@ -161,7 +161,7 @@ SEXP result, dimnames, colnames, try;
     nrows = LENGTH(arcs)/2;
 
     /* initialize the checklist. */
-    checklist = allocstatus(UPTRI(n, n, n));
+    checklist = allocstatus(UPTRI_MATRIX(n));
     
     /* match the node labels in the arc set. */
     PROTECT(try = match(nodes, arcs, 0));
@@ -169,14 +169,14 @@ SEXP result, dimnames, colnames, try;
 
     /* indentify the arcs in the reduced adjacency matrix. */
     for (i = 0; i < nrows; i++)
-      checklist[UPTRI(coords[CMC(i, 0, nrows)], coords[CMC(i, 1, nrows)], n) - 1]++;
+      checklist[UPTRI(coords[CMC(i, 0, nrows)], coords[CMC(i, 1, nrows)], n)]++;
 
     UNPROTECT(1);
 
     /* count them; allocate and initialize the return value. */
     nrows = 0;
 
-    for (i = 0; i < UPTRI(n, n, n); i++)
+    for (i = 0; i < UPTRI_MATRIX(n); i++)
       if (checklist[i] > 0)
         nrows++;
 
@@ -187,7 +187,7 @@ SEXP result, dimnames, colnames, try;
 
       for (j = i + 1; j < n; j++) {
 
-        if (checklist[UPTRI(i + 1, j + 1, n) - 1] > 0) {
+        if (checklist[UPTRI(i + 1, j + 1, n)] > 0) {
 
           SET_STRING_ELT(result, CMC(k, 0, nrows), STRING_ELT(nodes, i));
           SET_STRING_ELT(result, CMC(k, 1, nrows), STRING_ELT(nodes, j));

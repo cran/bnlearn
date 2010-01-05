@@ -28,16 +28,23 @@
 /* this macro swaps its arguments to avoid "memory not mapped" errors. */
 #define UPTRI(x, y, n) \
   (((x) <= (y)) ? \
-    ((x) - 1) * n + (y) - ((x) * ((x) - 1)) / 2 : \
-    ((y) - 1) * n + (x) - ((y) * ((y) - 1)) / 2)
+    ((x) - 1) * n + (y) - 1 - ((x) * ((x) - 1)) / 2 : \
+    ((y) - 1) * n + (x) - 1 - ((y) * ((y) - 1)) / 2)
 
 /* this macro trusts its arguments to be correct, beware. */
 #define UPTRI2(x, y, n) \
-  ((x) - 1) * n + (y) - ((x) * ((x) - 1)) / 2
+  ((x) - 1) * n + (y) - 1 - ((x) * ((x) - 1)) / 2
 
 /* coordinate system for an upper triangular matrix (not including
  * the diagonal elements). */
 #define UPTRI3(r, c, n) (UPTRI(r, c, n) - ((r > c) ? c : r))
+
+/* dimension of the upper triangular part of a n x n matrix. */
+#define UPTRI_MATRIX(n) (n) * ((n) + 1) / 2
+
+/* dimension of the upper triangular part of a n x n matrix (not
+ * including the diagonal elements). */
+#define UPTRI3_MATRIX(n) (n) * ((n) - 1) / 2
 
 /* column-major coordinates for an arbitrary matrix. */
 #define CMC(i, j, nrows) ((i) + (j) * (nrows))
@@ -48,6 +55,8 @@ SEXP getListElement(SEXP list, char *str);
 
 void SampleNoReplace(int k, int n, int *y, int *x);
 #define RandomPermutation(n, y, x) SampleNoReplace(n, n, y, x)
+
+SEXP int2fac(SEXP vector);
 
 /* from arcs2amat.c */
 
@@ -72,6 +81,11 @@ SEXP fast_pcor(SEXP data, SEXP length);
 /* from path.c */
 int c_has_path(int start, int stop, int *amat, int n, SEXP nodes,
     int ugraph, int notdirect, int debuglevel);
+int c_directed_path(int start, int stop, int *amat, int n, SEXP nodes,
+    int debuglevel);
+
+/* shared between hill climbing and tabu search. */
+void bestop_update(SEXP bestop, char *op, const char *from, const char *to);
 
 /* memory allocation functions */
 
@@ -80,4 +94,6 @@ int **alloc2dcont(int length, int width);
 int ***alloc3dcont(int length, int width, int depth);
 short int *allocstatus(int length);
 double *alloc1dreal(int length);
+double **alloc2dreal(int length, int width);
+double ***alloc3dreal(int length, int width, int depth);
 char **alloc1dstring (int length);

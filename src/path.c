@@ -151,7 +151,7 @@ there:
   /* node 'stop' has been found, return TRUE. */
   return TRUE;
 
-}/*C_HAS_DAG_PATH*/
+}/*C_HAS_PATH*/
 
 SEXP how_many_cycles(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes, SEXP debug) {
 
@@ -292,4 +292,99 @@ there:
   }/*WHILE*/
 
 }/*HOW_MANY_CYCLES*/
+
+int c_directed_path(int start, int stop, int *amat, int n, SEXP nodes,
+    int debuglevel) {
+
+int *counter = NULL, *path = NULL;
+int i = 0, path_pos = 0, cur = start;
+
+  /* initialize the position counters for the rows of the adjacency matrix. */
+  counter = alloc1dcont(n);
+  /* initialize the path array. */
+  path = alloc1dcont(n);
+
+  /* iterate until the other node is found. */
+  while (cur != stop) {
+
+    if (debuglevel > 0) {
+
+      Rprintf("* currently at '%s'.\n", NODE(cur));
+      Rprintf("  > current path is:\n");
+      for (int i = 0; i < path_pos ; i ++)
+        Rprintf("'%s' ", NODE(path[i]));
+      Rprintf("'%s' \n", NODE(cur));
+
+    }/*THEN*/
+
+there:
+
+    /* find the next child of the 'cur' node. */
+    for (i = 0; (i < n) && (counter[cur] < n); i++) {
+
+      if ((amat[CMC(cur, counter[cur], n)] != 0) &&
+          (amat[CMC(counter[cur], cur, n)] == 0))
+        break;
+
+      counter[cur]++;
+
+    }/*FOR*/
+
+    /* the column indexes range from 0 to n - 1;  counter value of n means
+     * that all the children of that node has beeen visited. */
+    if (counter[cur] == n) {
+
+      /* if this node is the first one in the path, there search is finished
+       * and the 'stop' node was not found; return FALSE. */
+      if  (path_pos == 0)
+        return FALSE;
+
+      if (debuglevel > 0)
+        Rprintf("  > node '%s' has no more children, going back to '%s'.\n",
+          NODE(cur), NODE(path[path_pos - 1]));
+
+      /* this node has no more children, skip back to the previous one. */
+      cur = path[--path_pos];
+      path[path_pos + 1] = 0;
+
+      goto there;
+
+    }/*THEN*/
+    else {
+
+      /* inrement the counter to get to the next node to check, unless
+       * that one was the last. */
+      if (counter[cur] < n)
+        counter[cur]++;
+
+      /* do not visit an already visited node */
+      for (i = path_pos - 1; i >= 0; i--) {
+
+        if ((counter[cur] - 1) == path[i]) {
+
+          if (debuglevel > 0)
+            Rprintf("  @ node '%s' already visited, skipping.\n", NODE(path[i]));
+
+          goto there;
+
+        }/*THEN*/
+
+      }/*FOR*/
+
+      /* update the path. */
+      path[path_pos++] = cur;
+      /* the current node is now the children we have just found. */
+      cur = counter[cur] - 1;
+
+      if (debuglevel > 0)
+        Rprintf("  > jumping to '%s'.\n", NODE(cur));
+
+    }/*ELSE*/
+
+  }/*WHILE*/
+
+  /* node 'stop' has been found, return TRUE. */
+  return TRUE;
+
+}/*C_DIRECTED_PATH*/
 

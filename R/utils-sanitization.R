@@ -27,6 +27,7 @@ is.probability = function(x) {
 
 }#IS.PROBABILITY
 
+# is x a single character string?
 is.string = function(x) {
 
   is.character(x) &&
@@ -34,6 +35,23 @@ is.string = function(x) {
   (x != "")
 
 }#IS.STRING
+
+# is x a symmetric matrix?
+is.symmetric = function(x) {
+
+  .Call("is_symmetric",
+        matrix = x,
+        PACKAGE = "bnlearn")
+
+}#IS.SYMMETRIC
+
+is.cauchy.schwarz = function(x) {
+
+  .Call("is_cauchy_schwarz",
+        matrix = x,
+        PACKAGE = "bnlearn")
+
+}#Is.CAUCHY.SCHWARZ
 
 # check the data set.
 check.data = function(x) {
@@ -107,7 +125,8 @@ check.arcs = function(arcs, graph = NULL) {
   }#THEN
   else if (is.character(arcs)) {
 
-    if (length(arcs) != 2)
+    # if there is an even number of labels fit them into a 2-column matrix.
+    if ((length(arcs) %% 2) != 0)
       stop("the arcs must have two columns.")
 
     arcs = matrix(arcs, ncol = 2, byrow = TRUE,
@@ -128,6 +147,14 @@ check.arcs = function(arcs, graph = NULL) {
     if (!all(valid.nodes))
       stop(paste(c("node(s)", unique(arcs[!valid.nodes]),
              "not present in the graph."), collapse = " "))
+
+  }#THEN
+
+  # check that there are no duplicate arcs.
+  if (any(duplicated(arcs))) {
+
+    arcs = unique(arcs)
+    warning("removed duplicate arcs.")
 
   }#THEN
 
@@ -516,7 +543,7 @@ check.graph.generation.args = function(method, nodes, extra.args) {
     }#ELSE
 
   }#THEN
-  else if (method == "ic-dag") {
+  else if (method %in% c("ic-dag", "melancon")) {
 
     if (!is.null(extra.args$burn.in)) {
 
@@ -618,6 +645,22 @@ check.bootstrap.args = function(extra.args, network, data) {
 
   extra.args[["algorithm"]] = algorithm
   extra.args[["algorithm.args"]] = algorithm.args
+
+  # remap additional arguments used in hybrid algorithms.
+  if (algorithm %in% hybrid.algorithms) {
+
+    # there's no need to sanitize these parameters, it's done either in
+    # bnlearn() or in greedy.search() already.
+    if (is.null(extra.args[["algorithm.args"]]$restrict))
+      extra.args[["algorithm.args"]]$restrict = network$learning$restrict
+    if (is.null(extra.args[["algorithm.args"]]$maximize))
+      extra.args[["algorithm.args"]]$maximize = network$learning$maximize
+    if (is.null(extra.args[["algorithm.args"]]$test))
+      extra.args[["algorithm.args"]]$test = network$learning$rstest
+    if (is.null(extra.args[["algorithm.args"]]$score))
+      extra.args[["algorithm.args"]]$score = network$learning$maxscore
+
+  }#THEN
 
   # warn about unused arguments.
   check.unused.args(extra.args, c("R", "m", "algorithm", "algorithm.args"))
@@ -748,8 +791,12 @@ check.covariance = function(m) {
   # check the elements of the matrix.
   if (!is.numeric(m))
     stop("the elements of a covariance matrix must be real numbres.")
-  if (!identical(m, t(m)))
+  # check whether the matrix is symmetric.
+  if (is.symmetric(m))
     stop("a covariance matrix must be symmetric.")
+  # check whether the matrix obeys the Cauchy-Schwarz theorem.
+  if (is.cauchy.schwarz(m))
+    stop("a covariance matrix must obey the Cauchy-Schwarz theorem.")
 
 }#CHECK.COVARIANCE
 
@@ -762,7 +809,6 @@ check.logical = function(bool) {
            deparse(substitute(bool))))
 
   }#THEN
-
 }#CHECK.LOGICAL
 
 # check character strings.
@@ -826,21 +872,78 @@ check.threshold = function(threshold, strength) {
 }#CHECK.THRESHOLD
 
 # check parameters related to the random restart functions.
-check.restart = function(restart, perturb) {
+check.restart = function(restart) {
 
-  if (!is.positive(restart)) {
+  # set the default value if not specified.
+  if (is.null(restart) || (restart == 0))
+      return(0)
 
-    if ((restart != 0) || (length(restart) != 1))
-      stop("the number of random restarts must be a non-negative numeric value.")
-
-  }#THEN
-  else if (!is.positive(perturb)) {
-
-    stop("the number of changes at each radom restart must be a non-negative numeric value.")
-
-  }#THEN
+  if (!is.positive.integer(restart)) 
+    stop("the number of random restarts must be a non-negative numeric value.")
+  else
+    return(restart)
 
 }#CHECK.RESTART
+
+check.perturb = function(perturb) {
+
+  # set the default value if not specified.
+  if (is.null(perturb))
+      return(1)
+
+  if (!is.positive.integer(perturb))
+    stop("the number of changes at each radom restart must be a non-negative numeric value.")
+  else
+    return(perturb)
+
+}#CHECK.PERTURB
+
+# check the maximum number of iterations.
+check.max.iter = function(max.iter) {
+
+  # set the default value if not specified.
+  if (is.null(max.iter))
+    return(Inf)
+
+  if ((max.iter != Inf) && !is.positive.integer(max.iter))
+    stop("the maximum number of iterations must be a positive integer number.")
+  else
+    return(max.iter)
+
+}#CHECK.MAX.ITER
+
+# check arguments related to the tabu list.
+check.tabu = function(tabu) {
+
+  # set the default value if not specified.
+  if (is.null(tabu))
+    return(10)
+
+  if (!is.positive.integer(tabu))
+    stop("the length of the tabu list must be a positive integer number.")
+  else
+    return(tabu)
+
+}#CHECK.TABU
+
+check.max.tabu = function(max, tabu) {
+
+  if (is.null(max))
+    return(tabu)
+
+  # check the number of iterations the algorithm can perform without 
+  # improving the best network score.
+  if (!is.positive.integer(max))
+    stop("the maximum number of iterations without any score improvement must be a positive integer number.")
+  # the tabu list should be longer than that, otherwise the search can do a
+  # U-turn and return to the local maximum it left before (thus creating an
+  # endless loop).
+  if (max > tabu)
+    stop("the maximum number of iterations without any score improvement must not be grater than the length of the tabu list.")
+
+  return(max)
+
+}#CHECK.MAX.TABU
 
 # check bn metadata against the data it's used with.
 check.bn.vs.data = function(bn, data) {

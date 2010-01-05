@@ -14,7 +14,7 @@ short int *checklist = NULL;
 SEXP res;
 
   /* allocate and initialize the checklist. */
-  checklist = allocstatus(UPTRI(n, n, n));
+  checklist = allocstatus(UPTRI_MATRIX(n));
 
   /* allocate the result. */
   PROTECT(res = allocVector(LGLSXP, 1));
@@ -22,10 +22,10 @@ SEXP res;
 
   for (i = 0; i < nrows; i++) {
 
-    if (checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n) - 1] == 0) {
+    if (checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n)] == 0) {
 
       /* this arc is not present in the checklist; add it. */
-      checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n) - 1] = 1;
+      checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n)] = 1;
 
     }/*THEN*/
     else {
@@ -56,7 +56,7 @@ int *res = NULL, *a = INTEGER(arcs);
 SEXP result;
 
   /* initialize the checklist. */
-  checklist = allocstatus(UPTRI(n, n, n));
+  checklist = allocstatus(UPTRI_MATRIX(n));
 
   /* allocate and dereference the return value. */
   PROTECT(result = allocVector(LGLSXP, nrows));
@@ -64,13 +64,13 @@ SEXP result;
 
   for (i = 0; i < nrows; i++) {
 
-    checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n) - 1]++;
+    checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n)]++;
 
   }/*FOR*/
 
   for (i = 0; i < nrows; i++) {
 
-    if (checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n) - 1] == 1) {
+    if (checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n)] == 1) {
 
       res[i] = FALSE;
 
