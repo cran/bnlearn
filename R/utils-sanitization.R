@@ -99,10 +99,24 @@ check.nodes = function(nodes, graph = NULL, min.nodes = 1, max.nodes = Inf) {
   if (length(nodes) < min.nodes)
     stop(paste("at least", min.nodes, "node(s) needed."))
   # node must be a valid node label.
-  if (!is.null(graph))
-    if (!all(nodes %in% names(graph$nodes)))
-      stop(paste(c("node(s)", nodes[!(nodes %in% names(graph$nodes))],
-             "not present in the graph."), collapse = " "))
+  if (!is.null(graph)) {
+
+    if (class(graph) == "bn") {
+
+      if (!all(nodes %in% names(graph$nodes)))
+        stop(paste(c("node(s)", nodes[!(nodes %in% names(graph$nodes))],
+               "not present in the graph."), collapse = " "))
+
+    }#THEN
+    else if (class(graph) == "bn.fit") {
+
+      if (!all(nodes %in% names(graph)))
+        stop(paste(c("node(s)", nodes[!(nodes %in% names(graph))],
+               "not present in the graph."), collapse = " "))
+
+    }#THEN
+
+  }#THEN
 
 }#CHECK.NODES
 
@@ -282,6 +296,9 @@ build.blacklist = function(blacklist, whitelist, nodes) {
 
       blacklist = matrix(blacklist, ncol = 2, byrow = FALSE,
         dimnames = list(NULL, c("from", "to")))
+
+      # drop duplicate rows.
+      blacklist = unique(blacklist)
 
     }#THEN
 
@@ -831,6 +848,20 @@ check.bn = function(bn) {
   if (!is(bn, "bn")) {
 
     stop(sprintf("%s must be an object of class 'bn'.",
+           deparse(substitute(bn))))
+
+  }#THEN
+
+}#CHECK.BN
+
+# check an object of class bn or bn.fit.
+check.bn.or.fit = function(bn) {
+
+  if (missing(bn))
+    stop("an object of class 'bn' or 'bn.fit' is required.")
+  if (!is(bn, "bn") && !is(bn, "bn.fit")) {
+
+    stop(sprintf("%s must be an object of class 'bn' or 'bn.fit'.",
            deparse(substitute(bn))))
 
   }#THEN

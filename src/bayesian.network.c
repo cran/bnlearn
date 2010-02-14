@@ -54,7 +54,7 @@ return temp;
 
 }/*NPARAMS_DNODE*/
 
-/* get the number of parameters of a single node (discrete case). */
+/* get the number of parameters of a single node (continuous case). */
 SEXP nparams_gnode(SEXP graph, SEXP node) {
 
 char *name = (char *)CHAR(STRING_ELT(node, 0));
@@ -71,76 +71,6 @@ SEXP temp, result;
   return result;
 
 }/*NPARAMS_GNODE*/
-
-/* schedule the children of the current nodes in a breadth-first search. */
-SEXP schedule_children(SEXP graph, SEXP nodes) {
-
-SEXP temp, names, children, result;
-int count = 0, i = 0, j = 0, k = 0, l = 0;
-int length_nodes = 0, length_names = 0;
-
-  /* get the nodes' structures and their names. */
-  temp = getListElement(graph, "nodes");
-  names = getAttrib(temp, R_NamesSymbol);
-
-  /* compute the length of both vectors, once.*/
-  length_nodes = LENGTH(nodes);
-  length_names = LENGTH(names);
-
-  /* count how many they are. */
-  for (i = 0; i < length_names; i++) {
-
-    for (j = 0; j < length_nodes; j ++) {
-
-      if (!strcmp(CHAR(STRING_ELT(names, i)), CHAR(STRING_ELT(nodes, j)))) {
-
-        children = getListElement(temp, (char *)CHAR(STRING_ELT(nodes, j)));
-        children = getListElement(children, "children");
-        count += LENGTH(children);
-
-      }/*THEN*/
-
-    }/*FOR*/
-
-  }/*FOR*/
-
-  /* allocate and protect the result. */
-  PROTECT(result = allocVector(STRSXP, count));
-
-  if (count == 0) {
-
-    UNPROTECT(1);
-    return result;
-
-  }/*THEN*/
-
-  /* fill in the result vector. */
-  for (i = 0; i < length_names; i++) {
-
-    for (j = 0; j < length_nodes; j ++) {
-
-      if (!strcmp(CHAR(STRING_ELT(names, i)), CHAR(STRING_ELT(nodes, j)))) {
-
-        children = getListElement(temp, (char *)CHAR(STRING_ELT(nodes, j)));
-        children = getListElement(children, "children");
-
-        /* if there are no children, skip to the next node. */
-        if (isNull(children)) continue;
-
-        for (k = 0; k < LENGTH(children); k++)
-          SET_STRING_ELT(result, l++, STRING_ELT(children, k));
-
-      }/*THEN*/
-
-    }/*FOR*/
-
-  }/*FOR*/
-
- UNPROTECT(1);
-
- return result;
-
-}/*SCHEDULE_CHILDREN*/
 
 /* convert a set of neighbourhoods into an arc set. */
 SEXP nbr2arcs(SEXP nbr) {

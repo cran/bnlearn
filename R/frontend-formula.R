@@ -3,10 +3,11 @@
 modelstring = function(x) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
   # no model string if the graph is partially directed.
-  if (is.pdag(x$arcs, names(x$nodes)))
-    stop("the graph is only partially directed.")
+  if (class(x) == "bn")
+    if (is.pdag(x$arcs, names(x$nodes)))
+      stop("the graph is only partially directed.")
 
   formula.backend(x)
 

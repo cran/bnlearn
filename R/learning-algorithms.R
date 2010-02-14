@@ -323,12 +323,10 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
   }#THEN
 
-  # set the metadata of the network.
-  res$learning$algo = heuristic
-  res$learning$ntests = get(".test.counter", envir = .GlobalEnv)
-  res$learning$test = score
-  res$learning$optimized = optimized
-  res$learning$args = extra.args
+  # set the metadata of the network in one stroke.
+  res$learning = list(whitelist = whitelist, blacklist = blacklist,
+    test = score, ntests = get(".test.counter", envir = .GlobalEnv),
+    algo = heuristic, args = extra.args, optimized = optimized)
 
   invisible(res)
 
@@ -361,7 +359,7 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL, restrict = "mmpc
 
   # transform the constraints learned during the restrict phase in a blacklist
   # which will be used in the maximize phase.
-  constraints = arcs.to.be.added(rst$arcs, nodes, NULL)
+  constraints = arcs.to.be.added(rst$arcs, nodes, whitelist = rst$learning$blacklist)
 
   # store the number of tests done up to now, to be added later at the end of
   # the maximize phase.
@@ -379,14 +377,13 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL, restrict = "mmpc
           score = score, heuristic = maximize, ..., misc.args = maximize.args,
           optimized = optimized, debug = debug)
 
-  # set the metadata of the network.
-  res$learning$ntests = res$learning$ntests + ntests
-  res$learning$algo = method
-  res$learning$restrict = restrict
-  res$learning$rstest = rst$learning$test
-  res$learning$maximize = maximize
-  res$learning$maxscore = res$learning$test
-  res$learning$args = c(res$learning$args, rst$learning$args)
+  # set the metadata of the network in one stroke.
+  res$learning = list(whitelist = rst$learning$whitelist, 
+    blacklist = rst$learning$blacklist, test = res$learning$test, 
+    ntests = res$learning$ntests + ntests, algo = method, 
+    args = c(res$learning$args, rst$learning$args), optimized = optimized,
+    restrict = restrict, rstest = rst$learning$test, maximize = maximize, 
+    maxscore = res$learning$test)
 
   invisible(res)
 

@@ -83,9 +83,9 @@ smaller = function(a, b) {
 # present in the 'data' argument.
 configurations = function(data) {
 
-  x = .Call("cfg2", 
-            data = data, 
-            PACKAGE = "bnlearn")
+  .Call("cfg2", 
+        data = data, 
+        PACKAGE = "bnlearn")
 
 }#CONFIGURATIONS
 

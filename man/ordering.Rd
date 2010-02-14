@@ -14,7 +14,8 @@ node.ordering(x, debug = FALSE)
 ordering2blacklist(nodes)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}.}
+  \item{x}{an object of class \code{bn}. \code{node.ordering} also accepts
+    objects of class \code{bn.fit}.}
   \item{nodes}{a vector of character strings, the labels of the nodes.
     The ordering of the labels must reflect the partial node ordering
     of the nodes in the graph.}

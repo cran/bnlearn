@@ -23,7 +23,8 @@ dag2ug(x)
 pdag2dag(x, ordering)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}.}
+  \item{x}{an object of class \code{bn}. \code{acyclic}, \code{directed} and
+       \code{path} also accept objects of class \code{bn.fit}.}
   \item{from}{a character string, the label of a node.}
   \item{to}{a character string, the label of a node (different from \code{from}).}
   \item{direct}{a boolean value. If \code{FALSE} ignore any arc between \code{from}

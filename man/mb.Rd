@@ -48,16 +48,19 @@ amat(x, ignore.cycles = FALSE, debug = FALSE) <- value
 nparams(x, data, debug = FALSE)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}.}
+  \item{x}{an object of class \code{bn} or \code{bn.fit}. The replacement 
+       form of \code{parents}, \code{children}, \code{arcs} and \code{amat}
+       require an object of class \code{bn}.}
   \item{node}{a character string, the label of a node.}
   \item{value}{either a vector of character strings (for \code{parents} and
        \code{children}), an adjacency matrix (for \code{amat}) or a data
        frame with two columns (optionally labeled "from" and "to", for
-       \code{arcs})}.
+       \code{arcs}).}
   \item{data}{a data frame, containing the data the Bayesian network
-       was learned from.}
-  \item{ignore.cycles}{a boolean value. If \code{TRUE} the returned network will
-       not be checked for cycles.}
+       was learned from. It's only needed if \code{x} is an object of 
+       class \code{bn}.}
+  \item{ignore.cycles}{a boolean value. If \code{TRUE} the returned network
+       will not be checked for cycles.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
        printed; otherwise the function is completely silent.}
 }

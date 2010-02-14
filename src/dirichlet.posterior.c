@@ -11,10 +11,14 @@ int *n = NULL, *imaginary = NULL;
 double alpha = 0, *res = NULL;
 SEXP result;
 
+  /* the correct vaules for the hyperparameters alpha are documented in
+   * "Learning Bayesian Networks: The Combination of Knowledge and Statistical
+   * Data" by Heckerman, Geiger & Chickering (1995), page 17. */
+
   if (isNull(iss)) {
 
     /* this is for K2, which does not define an imaginary sample size;
-     * all hyperparameters are set to 1 in the prior distriburion. */
+     * all hyperparameters are set to 1 in the prior distribution. */
     imaginary = llx;
     alpha = 1;
 
@@ -87,7 +91,7 @@ SEXP result;
   if (isNull(iss)) {
 
     /* this is for K2, which does not define an imaginary sample size;
-     * all hyperparameters are set to 1 in the prior distriburion. */
+     * all hyperparameters are set to 1 in the prior distribution. */
     imaginary = p;
     alpha = 1;
 

@@ -25,6 +25,7 @@
 
     \item \code{node}: the label of the node.
     \item \code{parents}: the labels of the parents of the node.
+    \item \code{children}: the labels of the children of the node.
     \item \code{prob}: the conditional probability table of the node
       given its parents.
 
@@ -38,6 +39,7 @@
 
     \item \code{node}: the label of the node.
     \item \code{parents}: the labels of the parents of the node.
+    \item \code{children}: the labels of the children of the node.
     \item \code{coefficients}: the linear regression coefficients of the
       parents against the node.
     \item \code{residuals}: the residuals of the linear regression,

@@ -3,9 +3,12 @@
 arcs = function(x) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
 
-  x$arcs
+  if (class(x) == "bn")
+    x$arcs
+  else
+    fit2arcs(x)
 
 }#ARCS
 
@@ -37,9 +40,12 @@ arcs = function(x) {
 directed.arcs = function(x) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
 
-  x$arcs[which.directed(x$arcs), , drop = FALSE]
+  if (class(x) == "bn")
+    x$arcs[which.directed(x$arcs), , drop = FALSE]
+  else
+    fit2arcs(x)
 
 }#DIRECTED.ARCS
 
@@ -47,9 +53,13 @@ directed.arcs = function(x) {
 undirected.arcs = function(x) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
 
-  x$arcs[which.undirected(x$arcs), , drop = FALSE]
+  if (class(x) == "bn")
+    x$arcs[which.undirected(x$arcs), , drop = FALSE]
+  else
+    matrix(character(0), nrow = 0, ncol = 2, 
+      dimnames = list(NULL, c("from", "to")))
 
 }#UNDIRECTED.ARCS
 

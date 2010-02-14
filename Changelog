@@ -1,4 +1,14 @@
 
+bnlearn (1.9)
+
+  * added support for "bn.fit" objects in nodes(), nbr(), 
+      parents(), children(), root.nodes(), leaf.nodes(),
+      arcs(), directed.arcs(), undirected.arcs(), amat(),
+      nparams(), mb(), path(), directed(), acyclic(),
+      node.ordering().
+  * fixed bug in hybrid and score-based learning algorithms,
+     which did not handle blacklists correctly.
+
 bnlearn (1.8)
 
   * removed the fast mutual information test in favour of
@@ -13,6 +23,8 @@ bnlearn (1.8)
       resulting in dramatic (2x to 3x) speedups for large
       data sets.
   * implemented tabu search.
+  * removed rshc() in favour of rsmax2(), a general two-stage
+      restricted maximization hybrid learning algorithm.
   * reimplemented cpdag() in C, with an eye towards a
       future integration with constraints-based algorithms.
   * fixed a bug in coef() for discrete bn.fit objects.
@@ -62,8 +74,7 @@ bnlearn (1.5)
       removed the likelihood score.
   * various optimizations to C code.
   * throughout documentation update.
-  * fixed an infinite-loop bug in inter.iamb().
-  * fixed a false negative in acyclic().
+  * fixed an infinite loop bug in inter.iamb().
 
 bnlearn (1.4)
   * exported the "B" parameter to specify the number of

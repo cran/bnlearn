@@ -3,9 +3,12 @@
 amat = function(x) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
 
-  arcs2amat(x$arcs, names(x$nodes))
+  if (class(x) == "bn")
+    arcs2amat(x$arcs, names(x$nodes))
+  else
+    arcs2amat(fit2arcs(x), names(x))
 
 }#AMAT
 

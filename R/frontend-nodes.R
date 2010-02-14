@@ -6,9 +6,12 @@ nodes = function(x) {
   if (class(x) %in% c("graphAM", "graphNEL"))
     return(graph:::nodes(x))
   else
-    check.bn(x)
+    check.bn.or.fit(x)
 
-  names(x$nodes)
+  if (class(x) == "bn")
+    names(x$nodes)
+  else
+    names(x)
 
 }#NODES
 
@@ -16,11 +19,14 @@ nodes = function(x) {
 mb = function(x, node) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
 
-  x$nodes[[node]]$mb
+  if (class(x) == "bn")
+    x$nodes[[node]]$mb
+  else
+    mb.fitted(x, node)
 
 }#MB
 
@@ -28,11 +34,14 @@ mb = function(x, node) {
 nbr = function(x, node) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
 
-  x$nodes[[node]]$nbr
+  if (class(x) == "bn")
+    x$nodes[[node]]$nbr
+  else
+    unique(c(x[[node]]$parents, x[[node]]$children))
 
 }#NBR
 
@@ -40,11 +49,14 @@ nbr = function(x, node) {
 parents = function(x, node) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
 
-  x$nodes[[node]]$parents
+  if (class(x) == "bn")
+    x$nodes[[node]]$parents
+  else
+    x[[node]]$parents
 
 }#PARENTS
 
@@ -106,11 +118,14 @@ parents = function(x, node) {
 children = function(x, node) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
 
-  x$nodes[[node]]$children
+  if (class(x) == "bn")
+    x$nodes[[node]]$children
+  else
+    x[[node]]$children
 
 }#CHILDREN
 

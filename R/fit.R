@@ -9,8 +9,10 @@ bn.fit.backend = function(x, data, debug) {
 
     fit = function(node) {
 
-      # store the labels of the parents to get them only once.
+      # store the labels of the parents and the children to get 
+      # them only once.
       parents = x$nodes[[node]]$parents
+      children = x$nodes[[node]]$children
 
       if (debug) {
 
@@ -27,8 +29,8 @@ bn.fit.backend = function(x, data, debug) {
       # switch from the joint probabilities to the conditional ones.
       tab = prop.table((tab), margin = seq(length(parents) + 1)[-1])
 
-      structure(list(node = node, parents = parents, prob = tab),
-        class = "bn.fit.dnode")
+      structure(list(node = node, parents = parents, children = children,
+        prob = tab), class = "bn.fit.dnode")
 
     }#FIT
 
@@ -37,8 +39,10 @@ bn.fit.backend = function(x, data, debug) {
 
     fit = function(node) {
 
-      # store the labels of the parents to get them only once.
+      # store the labels of the parents and the children to get 
+      # them only once.
       parents = x$nodes[[node]]$parents
+      children = x$nodes[[node]]$children
 
       if (debug)
         cat("* fitting parameters of node", node, "(continuous).\n")
@@ -53,9 +57,9 @@ bn.fit.backend = function(x, data, debug) {
         resid = data[, node] - mean
         sd = sd(data[, node])
 
-        structure(list(node = node, parents = parents, coefficients = coefs,
-          residuals = resid, fitted.values = rep(mean, n), sd = sd),
-          class = "bn.fit.gnode")
+        structure(list(node = node, parents = parents, children = children,
+          coefficients = coefs, residuals = resid, 
+          fitted.values = rep(mean, n), sd = sd), class = "bn.fit.gnode")
 
       }#THEN
       else {
@@ -73,9 +77,9 @@ bn.fit.backend = function(x, data, debug) {
         resid = qr.resid(qr.x, data[, node])
         sd = sd(resid)
 
-        structure(list(node = node, parents = parents, coefficients = coefs,
-          residuals = resid, fitted.values = fitted, sd = sd),
-          class = "bn.fit.gnode")
+        structure(list(node = node, parents = parents, children = children,
+          coefficients = coefs, residuals = resid, 
+          fitted.values = fitted, sd = sd), class = "bn.fit.gnode")
 
 
       }#ELSE

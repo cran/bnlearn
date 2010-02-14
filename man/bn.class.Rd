@@ -24,11 +24,6 @@
 
     \itemize{
 
-      \item \code{arcs}: the arcs of the Bayesian network (a two-column
-        matrix, whose columns are labeled \code{from} and \code{to}).
-        Undirected arcs are stored as two directed arcs with opposite
-        directions between the corresponding incident nodes.
-
       \item \code{whitelist}: a sanitized copy of the \code{whitelist}
         parameter (a two-column matrix, whose columns are labeled
         \code{from} and \code{to}).
@@ -43,11 +38,11 @@
         algorithms, and "none" for randomly generated graphs.
 
       \item \code{ntests}: the number of conditional independence tests
-        used in the learning (an integer value).
+        or score comparisons used in the learning (an integer value).
 
-      \item \code{algo}: the label of the algorithm used in the learning
-        process (a character string), or "random/generated" for randomly
-        generated or empty networks.
+      \item \code{algo}: the label of the learning algorithm or the 
+        random generation algorithm used to generate the network
+        (a character string).
 
       \item \code{args}: a list. The values of the parameters of
         either the conditional tests or the scores used in the learning
@@ -87,18 +82,6 @@
 
         }
 
-      \item \code{restrict}: the label of the constraint-based algorithm used in
-        the \dQuote{Restrict} phase of a hybrid learning algorithm.
-
-      \item \code{rtest}: the label of the conditional independence test used in
-        the \dQuote{Restrict} phase of a hybrid learning algorithm.
-
-      \item \code{maximize}: the label of the score-based algorithm used in the
-        \dQuote{Maximize} phase of a hybrid learning algorithm.
-
-      \item \code{maxscore}: the label of the network score used in the
-        \dQuote{Maximize} phase of a hybrid learning algorithm.
-
     }
 
     \item \code{nodes}: a list. Each element is named after a node
@@ -124,6 +107,31 @@
       matrix, whose columns are labeled \code{from} and \code{to}).
       Undirected arcs are stored as two directed arcs with opposite
       directions between the corresponding incident nodes.
+
+  }
+
+  Additional (optional) components under \code{learning}:
+
+  \itemize{
+
+    \item \code{optimized}: whether additional optimizations have been used in
+      the learning algorithm (a boolean value).
+
+    \item \code{restrict}: the label of the constraint-based algorithm used in
+      the \dQuote{Restrict} phase of a hybrid learning algorithm (a character
+      string).
+
+    \item \code{rtest}: the label of the conditional independence test used in
+      the \dQuote{Restrict} phase of a hybrid learning algorithm (a character
+      string).
+
+    \item \code{maximize}: the label of the score-based algorithm used in the
+      \dQuote{Maximize} phase of a hybrid learning algorithm (a character
+      string).
+
+    \item \code{maxscore}: the label of the network score used in the
+      \dQuote{Maximize} phase of a hybrid learning algorithm (a character
+      string).
 
   }
 

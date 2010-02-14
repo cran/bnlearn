@@ -46,19 +46,15 @@ mb2arcs = function(mb, nodes) {
 
 }#MB2ARCS
 
-# get the root nodes of a network.
-rootnodes.backend = function(arcs, nodes) {
+# get the root/leaf nodes of a graph.
+root.leaf.nodes = function(x, leaf = FALSE) {
 
-  nodes[!(nodes %in% unique(arcs[, "to"]))]
+  .Call("root_nodes", 
+        bn = x, 
+        check = as.integer(leaf),
+        PACKAGE = "bnlearn")
 
-}#ROOTNODES.BACKEND
-
-# get the leaf nodes of a network.
-leafnodes.backend = function(arcs, nodes) {
-
-  nodes[!(nodes %in% unique(arcs[, "from"]))]
-
-}#LEAFNODES.BACKEND
+}#ROOT.NODES.BACKEND
 
 # get the parents of a node.
 parents.backend = function(arcs, node, undirected = FALSE) {
@@ -69,6 +65,15 @@ parents.backend = function(arcs, node, undirected = FALSE) {
     arcs[(arcs[, "to"] == node), "from"]
 
 }#PARENTS.BACKEND
+
+mb.fitted = function(x, node) {
+
+  .Call("fitted_mb",
+        bn = x,
+        target = node,
+        PACKAGE = "bnlearn")
+
+}#MB.FITTED
 
 # backend of nparams, the "get the number of parameters of a
 # discrete bayesian network" function. If real = TRUE this
@@ -106,6 +111,14 @@ nparams.gaussian.node = function(node, x) {
         PACKAGE = "bnlearn")
 
 }#NPARAMS.GAUSSIAN.NODE
+
+nparams.fitted = function(x) {
+
+  .Call("fitted_nparams",
+        bn = x,
+        PACKAGE = "bnlearn")
+
+}#NPARAMS.FITTED
 
 # return the skeleton of a graph.
 dag2ug.backend = function(x) {
@@ -176,17 +189,12 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
   new = network
   # remember the nodes whose score has to be recomputed.
   updates = character(0)
-  # rebuild the blacklist as an adjacency matrix.
-  if (!is.null(blacklist))
-    blmat = arcs2amat(blacklist, nodes)
-  else
-    blmat = NULL
 
   # use a 'for' loop instead of a 'repeat' to avoid the threat of
   # infinite loops (due to the lack of legal operations).
   for (i in seq_len(3 * iter)) {
 
-    to.be.added = arcs.to.be.added(amat, nodes, blmat)
+    to.be.added = arcs.to.be.added(amat, nodes, blacklist)
     to.be.dropped = arcs.to.be.dropped(new$arcs, whitelist)
     to.be.reversed = arcs.to.be.reversed(new$arcs, blacklist)
 

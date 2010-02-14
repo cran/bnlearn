@@ -51,11 +51,12 @@ score.delta = function(arc, network, data, score, score.delta,
 }#SCORE.DELTA
 
 # create a data frame or an adjacency matrix containing the arcs to be added.
-arcs.to.be.added = function(amat, nodes, blmat, arcs = TRUE) {
+arcs.to.be.added = function(amat, nodes, blacklist = NULL, whitelist = NULL, arcs = TRUE) {
 
   .Call("hc_to_be_added",
         arcs = amat,
-        blacklist = blmat,
+        blacklist = blacklist,
+        whitelist = whitelist,
         nodes = nodes,
         convert = arcs,
         PACKAGE = "bnlearn")

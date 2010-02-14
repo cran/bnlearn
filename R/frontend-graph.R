@@ -3,9 +3,9 @@
 root.nodes = function(x) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
 
-  rootnodes.backend(x$arcs, names(x$nodes))
+  root.leaf.nodes(x, leaf = FALSE)
 
 }#ROOT.NODES
 
@@ -13,9 +13,9 @@ root.nodes = function(x) {
 leaf.nodes = function(x) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
 
-  leafnodes.backend(x$arcs, names(x$nodes))
+  root.leaf.nodes(x, leaf = TRUE)
 
 }#LEAF.NODES
 
@@ -23,9 +23,13 @@ leaf.nodes = function(x) {
 acyclic = function(x, directed, debug = FALSE) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
   # check debug.
   check.logical(debug)
+
+  # fitted bayesian networks are always acylic.
+  if (class(x) == "bn.fit")
+    return(TRUE)
 
   if (missing(directed)) {
 
@@ -48,7 +52,11 @@ acyclic = function(x, directed, debug = FALSE) {
 directed = function(x) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
+
+  # fitted bayesian networks are always directed.
+  if (class(x) == "bn.fit")
+    return(TRUE)
 
   is.dag(x$arcs, names(x$nodes))
 
@@ -59,7 +67,7 @@ path = function(x, from, to, direct = TRUE, underlying.graph = FALSE,
     debug = FALSE) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = from, graph = x, max.nodes = 1)
   # another valid node is needed.
@@ -72,11 +80,21 @@ path = function(x, from, to, direct = TRUE, underlying.graph = FALSE,
   # check debug.
   check.logical(debug)
 
-  has.path(from, to, names(x$nodes),
-    arcs2amat(x$arcs, names(x$nodes)),
-    exclude.direct = !direct,
-    underlying.graph = underlying.graph,
-    debug = debug)
+  if (class(x) == "bn") {
+
+    nodes = names(x$nodes)
+    amat = arcs2amat(x$arcs, nodes)
+
+  }#THEN
+  else {
+
+    nodes = names(x)
+    amat = arcs2amat(fit2arcs(x), nodes)
+
+  }#ELSE
+
+  has.path(from, to, nodes = nodes, amat = amat, exclude.direct = !direct,
+    underlying.graph = underlying.graph, debug = debug)
 
 }#PATH
 
@@ -84,12 +102,13 @@ path = function(x, from, to, direct = TRUE, underlying.graph = FALSE,
 node.ordering = function(x, debug = FALSE) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
   # check debug.
   check.logical(debug)
   # no model string if the graph is partially directed.
-  if (is.pdag(x$arcs, names(x$nodes)))
-    stop("the graph is only partially directed.")
+  if (class(x) == "bn")
+    if (is.pdag(x$arcs, names(x$nodes)))
+      stop("the graph is only partially directed.")
 
   schedule(x, debug = debug)
 

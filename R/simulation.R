@@ -1,34 +1,13 @@
 # do a partial ordering of the nodes of a graph.
 schedule = function(x, debug = FALSE) {
 
-  nodes = rootnodes.backend(x$arcs, names(x$nodes))
-  to.do = rep(0, length(x$nodes))
-  names(to.do) = names(x$nodes)
+  nodes = root.leaf.nodes(x, leaf = FALSE)
 
-  # this is a very simple implementation of a non-recursive breadth
-  # first search; infinite loops are impossible because the longest
-  # path in a graph is {#nodes}-long.
-  for (step in 1:length(x$nodes)) {
-
-    to.do[nodes] = step
-
-    if (debug) {
-
-      cat("* at depth", step, "the ordering of the nodes is:\n")
-      print(to.do)
-
-    }#THEN
-
-    nodes = .Call("schedule_children",
-            graph  = x,
-            nodes = nodes,
-            PACKAGE = "bnlearn")
-
-    nodes = unique(nodes)
-
-    if (length(nodes) == 0) break
-
-  }#FOR
+  to.do = .Call("schedule",
+                bn = x,
+                root.nodes = nodes,
+                debug = debug,
+                PACKAGE = "bnlearn")
 
   return(names(sort(to.do)))
 

@@ -399,104 +399,93 @@ SEXP temp;
 
 }/*BESTOP_UPDATE*/
 
-SEXP hc_to_be_added(SEXP arcs, SEXP blacklist, SEXP nodes, SEXP convert) {
+SEXP hc_to_be_added(SEXP arcs, SEXP blacklist, SEXP whitelist, SEXP nodes,
+    SEXP convert) {
 
-int i = 0, j = 0, dims = LENGTH(nodes);
-int *res = NULL, *a = NULL, *b = NULL, coords = 0;
-SEXP amat, blmat, result, dimnames;
+int i = 0, j = 0, narcs = 0, dims = LENGTH(nodes);
+int *a = NULL, *coords = NULL;
+short int duplicated = 0;
+SEXP try, result, result2;
 
   /* transform the arc set into an adjacency matrix, if it's not one already. */
   if (isInteger(arcs)) {
 
-    amat = arcs;
+    if ((duplicated = NAMED(arcs)) > 0)
+      PROTECT(result = duplicate(arcs));
 
   }/*THEN*/
   else {
 
-    PROTECT(amat = arcs2amat(arcs, nodes));
+    PROTECT(result = arcs2amat(arcs, nodes));
 
   }/*ELSE*/
 
-  /* do the same for the blacklist. */
-  if (isInteger(blacklist) || isNull(blacklist)) {
+  /* dereference the adjacency matrix once and for all. */
+  a = INTEGER(result);
 
-    blmat = blacklist;
-
-  }/*THEN*/
-  else {
-
-    PROTECT(blmat = arcs2amat(blacklist, nodes));
-
-  }/*ELSE*/
-
-  a = INTEGER(amat);
-
-  /* allocate and initialize the return value. */
-  PROTECT(result = allocMatrix(INTSXP, dims, dims));
-  res = INTEGER(result);
-  memset(res, '\0', sizeof(int) * dims * dims);
-
-  if (isNull(blmat)) {
+  /* flip all the nondiagonal cells. */
+  for (j = 0; j < dims; j++) {
 
     for (i = 0; i < dims; i++) {
 
-      for (j = 0; j < dims; j++) {
+      /* diagonal elements are always equal to zero, skip them. */
+      if (i == j)
+        continue;
 
-        /* diagonal elements are always zero, nothing to do. */
-        if (i == j) continue;
-        /* save the matrix element's coordinates (to compute them only once). */
-        coords = CMC(i, j, dims);
-
-        res[coords] = 1 * (1 - a[coords]) * (1 - a[CMC(j, i, dims)]);
-
-      }/*FOR*/
+      a[CMC(i, j, dims)] = 1 - a[CMC(i, j, dims)];
 
     }/*FOR*/
 
-  }/*THEN*/
-  else {
+  }/*FOR*/
 
-    b = INTEGER(blmat);
+  /* if an arc cannot be added in one direction, it cannot be added in the
+   * opposite one either; flip them off the adjacency matrix. */
+  for (j = 0; j < dims; j++)
+    for (i = j + 1; i < dims; i++)
+      a[CMC(j, i, dims)] = a[CMC(i, j, dims)] = a[CMC(i, j, dims)] * a[CMC(j, i, dims)];
 
-    for (i = 0; i < dims; i++) {
+#define FLIP_FROM_LIST(list, value) \
+  if (!isNull(list)) { \
+    if (!isInteger(list)) { \
+      PROTECT(try = match(nodes, list, 0)); \
+      coords = INTEGER(try); \
+      narcs = LENGTH(try)/2; \
+      for (i = 0; i < narcs; i++)  \
+        a[CMC(coords[i] - 1, coords[i + narcs] - 1, dims)] = value; \
+      UNPROTECT(1); \
+    } \
+    else { \
+      coords = INTEGER(list); \
+      for (i = 0; i < dims * dims; i ++) \
+        if (coords[i] == 1) \
+          a[i] = value; \
+    } \
+  }
 
-      for (j = 0; j < dims; j++) {
+  /* now the blacklist gets involved. */
+  FLIP_FROM_LIST(blacklist, 0);
+  /* and, last but not least, the whitelist gets involved. */
+  FLIP_FROM_LIST(whitelist, 1);
 
-        /* diagonal elements are always zero, nothing to do. */
-        if (i == j) continue;
-        /* save the matrix element's coordinates (to compute them only once). */
-        coords = CMC(i, j, dims);
-
-        res[coords] = 1 * (1 - a[coords]) * (1 - a[CMC(j, i, dims)]) * (1 - b[coords]);
-
-      }/*FOR*/
-
-    }/*FOR*/
-
-  }/*ELSE*/
-
+  /* return either the adjacency matrix or the arc set. */
   if (isTRUE(convert)) {
 
-    PROTECT(result = amat2arcs(result, nodes));
+    PROTECT(result2 = amat2arcs(result, nodes));
+
+    if ((duplicated > 0) || !isInteger(arcs))
+      UNPROTECT(2);
+    else
+      UNPROTECT(1);
+    return result2;
 
   }/*THEN*/
   else {
 
-    /* allocate rownames and colnames. */
-    PROTECT(dimnames = allocVector(VECSXP, 2));
-    SET_VECTOR_ELT(dimnames, 0, nodes);
-    SET_VECTOR_ELT(dimnames, 1, nodes);
-    setAttrib(result, R_DimNamesSymbol, dimnames);
+    if ((duplicated > 0) || !isInteger(arcs))
+      UNPROTECT(1);
+    return result;
 
   }/*ELSE*/
 
-  UNPROTECT(2);
-
-  if (!isInteger(arcs))
-    UNPROTECT(1);
-  if (!(isInteger(blacklist) || isNull(blacklist)))
-    UNPROTECT(1);
-
-  return result;
-
 }/*HC_TO_BE_ADDED*/
+

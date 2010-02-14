@@ -167,3 +167,11 @@ unique.arcs = function(arcs, nodes) {
 
 }#UNIQUE.ARCS
 
+# arcs of an object of class bn.fit.
+fit2arcs = function(x) {
+
+    .Call("fit2arcs",
+          x = x,
+          PACKAGE = "bnlearn")
+
+}#FIT2ARCS

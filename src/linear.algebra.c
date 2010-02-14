@@ -91,40 +91,28 @@ SEXP result;
 static void c_svd(double *A, double *U, double *D, double *V, int *nrows,
     int *ncols, int *mindim) {
 
-int err = 0, lwork = -1;
-char jobu, jobvt;
-double work1 = 0, *work = NULL;
+int err = 0, lwork = -1, *iwork = NULL;
+char jobz = 'A';
+double tmp = 0, *work = NULL;
 
-  if (*nrows < *ncols) {
+  iwork = (int *)Calloc(8 * (*mindim), int);
 
-    jobu = 'A';
-    jobvt = 'S';
-		
-  }/*THEN*/
-  else {
+  /* ask for the optimal size of the work array. */
+  F77_CALL(dgesdd)(&jobz, nrows, ncols, A, nrows, D, U, nrows, 
+                   V, mindim, &tmp, &lwork, iwork, &err);
 
-    jobu = 'S';
-    jobvt = 'A';
-
-  }/*ELSE*/
-
-  F77_CALL(dgesvd)(&jobu, &jobvt, nrows, ncols, A, nrows, D, U, nrows, V,
-    mindim, &work1, &lwork, &err);
-
-  lwork = (int)floor(work1);
-
-  if (work1 - lwork > 0.5) lwork++;
-
+  lwork = (int)tmp;
   work = (double *)Calloc(lwork, double);
 
   /* actual call */
-  F77_NAME(dgesvd)(&jobu, &jobvt, nrows, ncols, A, nrows, D, U, nrows, V,
-    mindim, work, &lwork, &err);
+  F77_NAME(dgesdd)(&jobz, nrows, ncols, A, nrows, D, U, nrows, 
+                   V, mindim, work, &lwork, iwork, &err);
 
   Free(work);
+  Free(iwork);
 
   if (err)
-    error("an error (%d) occurred in the call to dgesvd().\n", err);
+    error("an error (%d) occurred in the call to dgesdd().\n", err);
 
 }/*C_SVD*/
 
