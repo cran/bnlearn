@@ -95,7 +95,6 @@ strength.plot(res, strength)
 res = set.arc(res, "A", "C")
 strength = arc.strength(res, learning.test, criterion = "x2")
 strength.plot(res, strength)
-
 }
 }
 \author{ Marco Scutari }

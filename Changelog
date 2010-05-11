@@ -1,4 +1,15 @@
 
+bnlearn (2.0)
+
+  * added the shd() distance.
+  * renamed dag2ug() to skeleton(), which is more intuitive.
+  * added support for "bn.fit" objects in rbn().
+  * added vstructs() and moral().
+  * added the coronary data set.
+  * improved partial correlation resillience to floating point
+      errors when dealing with ill-behaved covariance matrices.
+  * miscellaneous (small) optimizations in both R and C code.
+
 bnlearn (1.9)
 
   * added support for "bn.fit" objects in nodes(), nbr(), 

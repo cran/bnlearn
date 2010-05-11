@@ -130,16 +130,19 @@ SEXP labels, node_data, children, result, colnames, dimnames;
 }/*FIT2ARCS*/
 
 /* compute the number of parameters of the model. */
-SEXP fitted_nparams(SEXP bn) {
+SEXP fitted_nparams(SEXP bn, SEXP debug) {
 
-int i = 0, j = 0, nnodes = LENGTH(bn);
-int *res = NULL;
-SEXP result, node_data, temp;
+int i = 0, j = 0, node_params = 0, nnodes = LENGTH(bn);
+int *res = NULL, *debuglevel = LOGICAL(debug);
+SEXP result, nodes = R_NilValue, node_data, temp;
 
   /* allocate, dereference and initialize the return value. */
-  PROTECT(result = allocVector(INTSXP, nnodes));
+  PROTECT(result = allocVector(INTSXP, 1));
   res = INTEGER(result);
-  *res = 0;
+  res[0] = 0;
+
+  if (*debuglevel > 0)
+    nodes = getAttrib(bn, R_NamesSymbol);
 
   for (i = 0; i < nnodes; i++) {
 
@@ -151,27 +154,29 @@ SEXP result, node_data, temp;
     if (!isNull(temp)) {
 
       /* reset the parameters' counter for this node. */
-      res[i] = 1;
+      node_params = 1;
       /* get the dimensions of the conditional probability table. */
       temp = getAttrib(temp, R_DimSymbol);
       /* compute the number of parameters. */
       for (j = 1; j < LENGTH(temp); j++)
-        res[i] *= INTEGER(temp)[j];
+        node_params *= INTEGER(temp)[j];
 
-      res[i] *= INTEGER(temp)[0] - 1;
+      node_params *= INTEGER(temp)[0] - 1;
 
     }/*THEN*/
     else {
 
       /* this is a continuous node, so it's a lot easier. */
-      res[i] = LENGTH(getListElement(node_data, "coefficients"));
+      node_params = LENGTH(getListElement(node_data, "coefficients"));
 
     }/*ELSE*/
 
-  }/*FOR*/
+    if (*debuglevel > 0)
+      Rprintf("* node %s has %d parameter(s).\n", NODE(i), node_params);
 
-  /* copy the labels of the nodes for an easier debugging. */
-  setAttrib(result, R_NamesSymbol, getAttrib(bn, R_NamesSymbol));
+    res[0] += node_params;
+
+  }/*FOR*/
 
   UNPROTECT(1);
 

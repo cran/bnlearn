@@ -9,7 +9,7 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
     stop("the graph is only partially directed.")
   # check the data are there.
   check.data(data)
-  # check the network against the data
+  # check the network against the data.
   check.bn.vs.data(x, data)
   # check debug.
   check.logical(debug)

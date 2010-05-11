@@ -6,7 +6,7 @@ score = function(x, data, type = NULL, ..., debug = FALSE) {
   check.bn(x)
   # the original data set is needed.
   check.data(data)
-  # check the network against the data
+  # check the network against the data.
   check.bn.vs.data(x, data)
   # check debug.
   check.logical(debug)

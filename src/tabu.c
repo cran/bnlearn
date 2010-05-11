@@ -1,6 +1,5 @@
 #include "common.h"
 
-SEXP c_tabu_hash(int *amat, int *nnodes);
 void tabu_add(double *cache_value, int *ad, int *am, SEXP bestop, SEXP nodes, 
     int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur, 
     int *narcs, int *debuglevel);
@@ -19,7 +18,7 @@ int *a = INTEGER(amat), nnodes = LENGTH(nodes);
 SEXP hash;
 
   /* compute the hash. */
-  PROTECT(hash = c_tabu_hash(a, &nnodes));
+  PROTECT(hash = c_amat_hash(a, &nnodes));
 
   /* set the hash into the tabu list. */
   SET_VECTOR_ELT(list, INT(current), hash);
@@ -30,35 +29,6 @@ SEXP hash;
 
 }/*TABU_HASH*/
 
-/* C-level interface for tabu_hash(). */
-SEXP c_tabu_hash(int *amat, int *nnodes) {
-
-int i = 0, k = 0, narcs = 0; 
-int *coords = NULL;
-SEXP hash;
-
-  /* count the arcs in the network.  */
-  for (i = 0; i < (*nnodes) * (*nnodes); i++)
-    if (amat[i] > 0)
-      narcs++;
-
-  /* allocate the hash (a vector containing the coordinates of the arcs in
-   * the flattened adjacency matrix, which uniquely identifies a directed 
-   * graph). */
-  PROTECT(hash = allocVector(INTSXP, narcs));
-  coords = INTEGER(hash);
-
-  /* the (flattened) coordinates into the hash vector. */
-  for (i = 0, k = 0; i < (*nnodes) * (*nnodes); i++)
-    if (amat[i] > 0)
-      coords[k++] = i;
-
-  UNPROTECT(1);
-
-  return hash;
-
-}/*C_TABU_HASH*/
-
 /* look up the current model (represented by the adjacency matrix) in the tabu list. */
 int tabu_match(SEXP tabu_list, int *cur, int *amat, int *narcs, int *nnodes,
     int *debuglevel) {
@@ -67,8 +37,7 @@ int i = 0, j = 0, ntabu = LENGTH(tabu_list);
 int *matches = NULL, *target = NULL;
 SEXP tabu_network, hash;
 
-
-  PROTECT(hash = c_tabu_hash(amat, nnodes));
+  PROTECT(hash = c_amat_hash(amat, nnodes));
   target = INTEGER(hash);
 
   for (i = 0; i < ntabu; i++) {

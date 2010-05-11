@@ -115,7 +115,7 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
   }#THEN
   else {
 
-    # build the contingency table for discrete data only.
+    # build the contingency table only for discrete data.
     if (test %in% available.discrete.tests) {
 
       # if there is only one parent, get it easy.

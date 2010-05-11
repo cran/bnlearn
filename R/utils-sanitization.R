@@ -121,7 +121,7 @@ check.nodes = function(nodes, graph = NULL, min.nodes = 1, max.nodes = Inf) {
 }#CHECK.NODES
 
 # check an arc set.
-check.arcs = function(arcs, graph = NULL) {
+check.arcs = function(arcs, nodes) {
 
   # sanitize the set of arcs.
   if (class(arcs) %in% c("matrix", "data.frame")) {
@@ -154,23 +154,12 @@ check.arcs = function(arcs, graph = NULL) {
   }#ELSE
 
   # nodes must be valid node labels.
-  if (!is.null(graph)) {
+  if (!all(arcs %in% nodes))
+    stop(paste(c("node(s)", unique(arcs[!nodes]),
+           "not present in the graph."), collapse = " "))
 
-    valid.nodes = arcs %in% names(graph$nodes)
-
-    if (!all(valid.nodes))
-      stop(paste(c("node(s)", unique(arcs[!valid.nodes]),
-             "not present in the graph."), collapse = " "))
-
-  }#THEN
-
-  # check that there are no duplicate arcs.
-  if (any(duplicated(arcs))) {
-
-    arcs = unique(arcs)
-    warning("removed duplicate arcs.")
-
-  }#THEN
+  # remove duplicate arcs.
+  arcs = unique.arcs(arcs, nodes, warn = TRUE)
 
   # check there are no loops among the arcs.
   loop = (arcs[, "from"] == arcs[, "to"])
@@ -218,7 +207,7 @@ build.whitelist = function(whitelist, nodes) {
   }#ELSE
 
   # drop duplicate rows.
-  whitelist = unique(whitelist)
+  whitelist = unique.arcs(whitelist, nodes, warn = TRUE)
   # add column names for easy reference.
   colnames(whitelist) = c("from", "to")
 
@@ -264,14 +253,12 @@ build.blacklist = function(blacklist, whitelist, nodes) {
 
     }#ELSE
 
-    # drop duplicate rows.
-    blacklist = unique(blacklist)
-    # add column names for easy reference.
-    colnames(blacklist) = c("from", "to")
-
     # check all the names in the blacklist against the column names of x.
     if (any(!(unique(as.vector(blacklist)) %in% nodes)))
       stop("unknown node label present in the blacklist.")
+
+    # drop duplicate rows.
+    blacklist = unique.arcs(blacklist, nodes);
 
   }#THEN
 
@@ -298,7 +285,7 @@ build.blacklist = function(blacklist, whitelist, nodes) {
         dimnames = list(NULL, c("from", "to")))
 
       # drop duplicate rows.
-      blacklist = unique(blacklist)
+      blacklist = unique.arcs(blacklist, nodes)
 
     }#THEN
 
@@ -433,6 +420,8 @@ check.iss = function(iss, network, data) {
     #   Lapack routine dgesv: system is exactly singular
     if(is.data.continuous(data) && (iss < 3))
       stop("the imaginary sample size must be at least 3.")
+    # coerce iss to integer.
+    iss = as.integer(iss)
 
   }#THEN
   else {
@@ -820,7 +809,7 @@ check.covariance = function(m) {
 # check logical flags.
 check.logical = function(bool) {
 
-  if (!is.logical(bool) || is.na(bool)) {
+  if (!is.logical(bool) || is.na(bool) || (length(bool) != 1)) {
 
     stop(sprintf("%s must be a logical value (TRUE/FALSE).",
            deparse(substitute(bool))))

@@ -40,6 +40,12 @@ SEXP res;
   else
     *sum /= sqrt(xsd) * sqrt(ysd);
 
+  /* double check that the coefficient is in the [-1, 1] range. */
+  if (*sum > 1)
+    *sum = 1;
+  else if (*sum < -1)
+    *sum = -1;
+
   UNPROTECT(1);
 
   return res;
@@ -50,10 +56,10 @@ SEXP res;
 SEXP fast_pcor(SEXP data, SEXP length) {
 
 int i = 0, ncols = LENGTH(data);
-double *u = NULL, *d = NULL, *vt = NULL;
+double *u = NULL, *d = NULL, *vt = NULL, *res = NULL;
 double k11 = 0, k12 = 0, k22 = 0;
 double tol = MACHINE_TOL;
-SEXP res, cov, svd;
+SEXP result, cov, svd;
 
   /* compute the single-value decomposition of the matrix. */
   PROTECT(cov = cov2(data, length));
@@ -79,11 +85,25 @@ SEXP res, cov, svd;
   }/*FOR*/
 
   /* allocate and initialize the return value. */
-  PROTECT(res = allocVector(REALSXP, 1));
-  NUM(res) = -k12 / sqrt(k11 * k22);
+  PROTECT(result = allocVector(REALSXP, 1));
+  res = REAL(result);
+
+  /* safety check against "divide by zero" errors. */
+  if (k11 == 0 || k22 == 0)
+    *res = 0;
+  else
+    *res = -k12 / sqrt(k11 * k22);
+
+  /* double check that partial correlation really is in [-1, 1], ill
+   * conditioned matrices and numeric errors in SVD can result in
+   * invalid partial correlation coefficients. */
+  if (*res > 1)
+    *res = 1;
+  else if (*res < -1)
+    *res = -1;
 
   UNPROTECT(3);
-  return res;
+  return result;
 
 }/*FAST_PCOR*/
 

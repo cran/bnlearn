@@ -93,7 +93,7 @@ data(learning.test)
 # using a data frame and column labels.
 ci.test(x = "F" , y = "B", z = c("C", "D"), data = gaussian.test)
 #
-#	 linear correlation
+#	 Pearson's Linear Correlation
 #
 # data:  F ~ B | C + D
 # cor = -0.1275, df = 4996, p-value < 2.2e-16
@@ -102,7 +102,7 @@ ci.test(x = "F" , y = "B", z = c("C", "D"), data = gaussian.test)
 # using a data frame.
 ci.test(gaussian.test)
 #
-#	 linear correlation
+#	 Pearson's Linear Correlation
 #
 # data:  A ~ B | C + D + E + F + G
 # cor = -0.5654, df = 4993, p-value < 2.2e-16
@@ -112,7 +112,7 @@ ci.test(gaussian.test)
 attach(learning.test)
 ci.test(x = F , y = B, z = data.frame(C, D))
 #
-# 	mutual information (discrete)
+# 	Mutual Information (discrete)
 #
 # data:  F ~ B | data.frame(C, D)
 # mi = 25.2664, df = 18, p-value = 0.1178

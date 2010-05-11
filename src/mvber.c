@@ -17,8 +17,8 @@ SEXP mvber_variance_test (SEXP var, SEXP replications, SEXP samples,
 
 int i = 0, r = 0, k = nrows(var);
 short int *buffer = NULL;
-double *gen = NULL, *res = NULL;
-int *B = INTEGER(samples), *R = INTEGER(replications);
+double *gen = NULL, *res = NULL, tmp = 0;
+int *B = INTEGER(samples), *R = INTEGER(replications), *debuglevel = LOGICAL(debug);
 SEXP result, genvar;
 
   /* allocate and initialize the return value. */
@@ -42,11 +42,19 @@ SEXP result, genvar;
 
       res[0] = _tvar(REAL(var), &k);
 
+      if (*debuglevel > 0)
+        Rprintf("* observed value of the test statistic is %lf.\n", res[0]);
+
       for (r = 0; r < *R; r++) {
 
         mvber_var(buffer, gen, k, B);
 
-        if (res[0] >= _tvar(gen, &k))
+        tmp = _tvar(gen, &k);
+
+        if (*debuglevel > 0)
+          Rprintf("  > test statistic is equal to %lf in permutation %d.\n", tmp, r + 1);
+
+        if (res[0] >= tmp)
           res[1] += 1;
 
       }/*FOR*/
@@ -61,6 +69,9 @@ SEXP result, genvar;
        * precision. */
       res[0] = NUM(r_det(var, 4));
 
+      if (*debuglevel > 0)
+        Rprintf("* observed value of the test statistic is %lf.\n", res[0]);
+
       for (r = 0; r < *R; r++) {
 
         mvber_var(buffer, gen, k, B);
@@ -69,7 +80,12 @@ SEXP result, genvar;
         for (i = 0; i < k * k; i++)
           gen[i] *= 4;
 
-        if (res[0] >= c_det(gen, &k))
+        tmp = c_det(gen, &k);
+
+        if (*debuglevel > 0)
+          Rprintf("  > test statistic is equal to %lf in permutation %d.\n", tmp, r + 1);
+
+        if (res[0] >= tmp)
           res[1] += 1;
 
       }/*FOR*/
@@ -83,11 +99,19 @@ SEXP result, genvar;
 
       res[0] = _nvar(REAL(var), &k);
 
+      if (*debuglevel > 0)
+        Rprintf("* observed value of the test statistic is %lf.\n", res[0]);
+
       for (r = 0; r < *R; r++) {
 
         mvber_var(buffer, gen, k, B);
 
-        if (res[0] <= _nvar(gen, &k))
+        tmp = _nvar(gen, &k);
+
+        if (*debuglevel > 0)
+          Rprintf("  > test statistic is equal to %lf in permutation %d.\n", tmp, r + 1);
+
+        if (res[0] <= tmp)
           res[1] += 1;
 
       }/*FOR*/

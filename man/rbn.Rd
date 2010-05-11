@@ -10,11 +10,12 @@
 rbn(x, n, data, debug = FALSE)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}.}
+  \item{x}{an object of class \code{bn} or \code{bn.fit}.}
   \item{n}{non-negative integer giving the number of observations
        to generate.}
   \item{data}{a data frame, containing the data the Bayesian network
-       was learned from.}
+       was learned from. It is only needed if \code{x} is an object 
+       of class \code{bn}.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
 }

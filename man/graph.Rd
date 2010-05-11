@@ -3,7 +3,7 @@
 \alias{acyclic}
 \alias{directed}
 \alias{path}
-\alias{dag2ug}
+\alias{skeleton}
 \alias{pdag2dag}
 \title{ Utilities to manipulate graphs }
 \description{
@@ -19,7 +19,7 @@ directed(x)
 path(x, from, to, direct = TRUE, underlying.graph = FALSE,
   debug = FALSE)
 # build the skeleton or a complete orientation of the graph.
-dag2ug(x)
+skeleton(x)
 pdag2dag(x, ordering)
 }
 \arguments{
@@ -42,7 +42,7 @@ pdag2dag(x, ordering)
 \value{
 
   \code{acyclic}, \code{path} and \code{directed} return a boolean value. \cr
-  \code{dag2ug} and \code{pdag2dag} return an object of class \code{bn}.
+  \code{skeleton} and \code{pdag2dag} return an object of class \code{bn}.
 
 }
 \references{
@@ -74,15 +74,15 @@ res
 #   average neighbourhood size:            1.67
 #   average branching factor:              0.83
 #
-#   learning algorithm:                    grow-shrink
-#   conditional independence test:         mutual information (discrete)
+#   learning algorithm:                    Grow-Shrink
+#   conditional independence test:         Mutual Information (discrete)
 #   alpha threshold:                       0.05
 #   tests used in the learning procedure:  43
 #   optimized:                             TRUE
 #
 directed(res)
 # [1] TRUE
-dag2ug(res)
+skeleton(res)
 #
 #   Bayesian network learned via Constraint-based methods
 #
@@ -96,8 +96,8 @@ dag2ug(res)
 #   average neighbourhood size:            1.67
 #   average branching factor:              0.00
 #
-#   learning algorithm:                    grow-shrink
-#   conditional independence test:         mutual information (discrete)
+#   learning algorithm:                    Grow-Shrink
+#   conditional independence test:         Mutual Information (discrete)
 #   alpha threshold:                       0.05
 #   tests used in the learning procedure:  43
 #   optimized:                             TRUE

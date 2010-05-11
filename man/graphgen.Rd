@@ -113,7 +113,7 @@ empty.graph(LETTERS[1:8])
 #  average neighbourhood size:            0.00
 #  average branching factor:              0.00
 #
-#  generation algorithm:                  empty
+#  generation algorithm:                  Empty
 #
 random.graph(LETTERS[1:8])
 # <insert the description of a random graph here>

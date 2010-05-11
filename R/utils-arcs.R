@@ -25,18 +25,19 @@ is.whitelisted = is.listed
 is.blacklisted = is.listed
 
 # which arcs are undirected?
-which.undirected = function(arcs) {
+which.undirected = function(arcs, nodes = NULL) {
 
   .Call("which_undirected",
-        arcs = factor(arcs),
+        arcs = arcs,
+        nodes = nodes,
         PACKAGE = "bnlearn")
 
 }#WHICH.UNDIRECTED
 
 # which arcs are directed?
-which.directed = function(arcs) {
+which.directed = function(arcs, nodes = NULL) {
 
-  !which.undirected(arcs)
+  !which.undirected(arcs, nodes = nodes)
 
 }#WHICH.DIRECTED
 
@@ -158,11 +159,12 @@ nbr2arcs = function(nbr) {
 
 # remove duplicate arcs and re-orient them according to node
 # ordering specified by the labels.
-unique.arcs = function(arcs, nodes) {
+unique.arcs = function(arcs, nodes, warn = FALSE) {
 
   .Call("unique_arcs",
         arcs = arcs,
         nodes = nodes,
+        warn = warn,
         PACKAGE = "bnlearn")
 
 }#UNIQUE.ARCS

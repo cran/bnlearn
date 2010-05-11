@@ -380,7 +380,7 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
   # the first pass considers only directed arcs; drop the undirected ones.
   if (pass == 1) {
 
-    which.ones = which.undirected(arcs)
+    which.ones = which.undirected(arcs, nodes)
     u = arcs[which.ones,, drop = FALSE]
     arcs = arcs[!which.ones,, drop = FALSE]
 
@@ -437,8 +437,8 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
     # with Margaritis' algorithm specification).
     if (pass == 2) {
 
-        amatd = arcs2amat(arcs[which.directed(arcs),, drop = FALSE], nodes)
-        candidates = which.undirected(as.matrix(cycles[, 1:2, drop = FALSE]))
+        amatd = arcs2amat(arcs[which.directed(arcs, nodes),, drop = FALSE], nodes)
+        candidates = which.undirected(as.matrix(cycles[, 1:2, drop = FALSE]), nodes)
 
         for (i in which(candidates)) {
 
@@ -461,7 +461,7 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
       # sense.
       max.cycles = cycles[1, 3]
       which.max.cycles = (cycles[, 3] == max.cycles)
-      candidates = which.undirected(as.matrix(cycles[which.max.cycles, 1:2, drop = FALSE]))
+      candidates = which.undirected(as.matrix(cycles[which.max.cycles, 1:2, drop = FALSE]), nodes)
 
       if ((length(which(candidates)) > 0) & (nrow(cycles[!candidates,, drop = FALSE]) > 0)) {
 
@@ -473,7 +473,7 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
       # if there is more than one candidate for removal, remove the one whose
       # reverse belongs to the least number of cycles.
       max.cycles = cycles[1, 3]
-      which.max.cycles = (cycles[, 3] == max.cycles) & which.undirected(as.matrix(cycles[, 1:2]))
+      which.max.cycles = (cycles[, 3] == max.cycles) & which.undirected(as.matrix(cycles[, 1:2]), nodes)
 
       if (length(which(which.max.cycles)) > 1) {
 

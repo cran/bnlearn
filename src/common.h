@@ -52,6 +52,8 @@
 /* utility functions  */
 
 SEXP getListElement(SEXP list, char *str);
+SEXP unique(SEXP array);
+SEXP dupe(SEXP array);
 
 void SampleNoReplace(int k, int n, int *y, int *x);
 #define RandomPermutation(n, y, x) SampleNoReplace(n, n, y, x)
@@ -83,6 +85,10 @@ int c_has_path(int start, int stop, int *amat, int n, SEXP nodes,
     int ugraph, int notdirect, int debuglevel);
 int c_directed_path(int start, int stop, int *amat, int n, SEXP nodes,
     int debuglevel);
+
+/* from hash.c */
+SEXP arc_hash(SEXP arcs, SEXP nodes);
+SEXP c_amat_hash(int *amat, int *nnodes);
 
 /* shared between hill climbing and tabu search. */
 void bestop_update(SEXP bestop, char *op, const char *from, const char *to);

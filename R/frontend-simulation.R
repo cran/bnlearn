@@ -3,18 +3,28 @@
 rbn = function(x, n, data, debug = FALSE) {
 
   # check x's class.
-  check.bn(x)
-  # the original data set is needed.
-  check.data(data)
-  # check the network against the data
-  check.bn.vs.data(x, data)
+  check.bn.or.fit(x)
+  # the original data set is needed if x is a bn object.
+  if (class(x) == "bn") {
+
+    # check the data.
+    check.data(data)
+    # check the network against the data.
+    check.bn.vs.data(x, data)
+    # no simulation if the graph is partially directed.
+    if (is.pdag(x$arcs, names(x$nodes)))
+      stop("the graph is only partially directed.")
+
+  }#THEN
   # check debug.
   check.logical(debug)
-  # no simulation if the graph is partially directed.
-  if (is.pdag(x$arcs, names(x$nodes)))
-    stop("the graph is only partially directed.")
-
-  if (is.data.discrete(data))
+  # decide if this is a discrete or continuous network.
+  if (class(x) == "bn")
+    discrete = is.data.discrete(data)
+  else
+    discrete = (class(x[[1]]) == "bn.fit.dnode") 
+  # call the right backend.
+  if (discrete)
     rbn.discrete(x = x, n = n, data = data, debug = debug)
   else
     rbn.continuous(x = x, n = n, data = data, debug = debug)

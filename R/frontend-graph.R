@@ -133,14 +133,14 @@ ordering2blacklist = function(nodes) {
 }#ORDERING2BLACKLIST
 
 # return the skeleton of a (partially) directed graph
-dag2ug = function(x) {
+skeleton = function(x) {
 
   # check x's class.
   check.bn(x)
 
-  dag2ug.backend(x)
+  dag2ug.backend(x, moral = FALSE)
 
-}#DAG2UG
+}#SKELETON
 
 # return a complete orientation of a graph.
 pdag2dag = function(x, ordering) {
@@ -307,16 +307,4 @@ compare = function (r1, r2, debug = FALSE) {
   result
 
 }#COMPARE
-
-# reconstruct the equivalence class of a network.
-cpdag = function(x, debug = FALSE) {
-
-  # check x's class.
-  check.bn(x)
-  # check debug.
-  check.logical(debug)
-
-  cpdag.backend(x = x, nodes = names(x$nodes), debug = debug)
-
-}#CPDAG
 

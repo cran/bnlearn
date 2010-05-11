@@ -18,22 +18,37 @@ FCST = c("IncCapDecIns", "LittleChange", "DecCapIncIns")
 FCST2 = c("XNIL", "SIG", "SVR")
 UNST = c("LessUnstable", "Average", "MoreUnstable")
 DEC = c("Decreasing", "LittleChange", "Increasing")
+SHADE = c("None", "Some", "Marked")
+WND = c("DCVZFavor", "StrongWest", "Westerly", "Other")
+LOLEV = c("StrongPos", "WeakPos", "Neutral", "Negative")
+DATE = c("May15_Jun14", "Jun15_Jul1", "Jul2_Jul15", "Jul16_Aug10", "Aug11_Aug20", "Aug20_Sep15")
+SAMI = c("ABI", "CDEJ", "F", "G", "H", "K")
+LIFR = c("LIGt0", "N1GtLIGt_4", "N5GtLIGt_8", "LILt_8")
+LLEV = c("Unfavorable", "Weak", "Moderate", "Strong") 
+MVMT = c("StrongFront", "MarkedUpper", "OtherRapid", "NoMajor")
+RHRLV = c("MoistMDryL", "DryMMoistL", "Other")
+TDISLV = c("QStationary", "Moving", "None", "Other")
+WLOFT = c("LV", "SWQuad", "NWQuad", "AllElse")
+SC34 = c("ACEFK", "B", "D", "GJ", "HI")
+AMDEW = c("Instability", "Neutral", "Stability")
+WNDMT = c("Westerly", "LVorOther")
+SCRLAM = c("AB", "CThruK")
 
-AMDewptCalPl = sample(c("Instability", "Neutral", "Stability"), n, prob = c(0.3, 0.25, 0.45), replace = TRUE)
+AMDewptCalPl = sample(AMDEW, n, prob = c(0.3, 0.25, 0.45), replace = TRUE)
 MorningBound = sample(STRENGTH, n, prob = c(0.5, 0.35, 0.15), replace = TRUE)
-LoLevMoistAd = sample(c("StrongPos", "WeakPos", "Neutral", "Negative"), n, prob = c(0.12, 0.28, 0.3, 0.3), replace = TRUE)
+LoLevMoistAd = sample(LOLEV, n, prob = c(0.12, 0.28, 0.3, 0.3), replace = TRUE)
 QGVertMotion = sample(VERT, n, prob = c(0.15, 0.15, 0.5, 0.2), replace = TRUE)
 MorningCIN = sample(INHIBIT, n, prob = c(0.15, 0.57, 0.2, 0.08), replace = TRUE)
-Date = sample(c("May15_Jun14", "Jun15_Jul1", "Jul2_Jul15", "Jul16_Aug10", "Aug11_Aug20", "Aug20_Sep15"), n, prob = c(0.254098, 0.131148, 0.106557, 0.213115, 0.07377, 0.221312), replace = TRUE)
+Date = sample(DATE, n, prob = c(0.254098, 0.131148, 0.106557, 0.213115, 0.07377, 0.221312), replace = TRUE)
 AMInstabMt = sample(STRENGTH, n, prob = c(1/3, 1/3, 1/3), replace = TRUE)
-LLIW = sample(c("Unfavorable", "Weak", "Moderate", "Strong"), n, prob = c(0.12, 0.32, 0.38, 0.18), replace = TRUE)
+LLIW = sample(LLEV, n, prob = c(0.12, 0.32, 0.38, 0.18), replace = TRUE)
 IRCloudCover = sample(CLOUDY, n, prob = c(0.15, 0.45, 0.4), replace = TRUE)
 LatestCIN = sample(INHIBIT, n, prob = c(0.4, 0.4, 0.15, 0.05), replace = TRUE)
 N07muVerMo = sample(VERT, n, prob = c(0.25, 0.25, 0.25, 0.25), replace = TRUE)
 RaoContMoist = sample(WET, n, prob = c(0.15, 0.2, 0.4, 0.25), replace = TRUE)
 SubjVertMo = sample(VERT, n, prob = c(0.15, 0.15, 0.5, 0.2), replace = TRUE)
-WndHodograph = sample(c("DCVZFavor", "StrongWest", "Westerly", "Other"), n, prob = c(0.3, 0.25, 0.25, 0.2), replace = TRUE)
-LIfr12ZDENSd = sample(c("LIGt0", "N1GtLIGt_4", "N5GtLIGt_8", "LILt_8"), n, prob = c(0.1, 0.52, 0.3, 0.08), replace = TRUE)
+WndHodograph = sample(WND, n, prob = c(0.3, 0.25, 0.25, 0.2), replace = TRUE)
+LIfr12ZDENSd = sample(LIFR, n, prob = c(0.1, 0.52, 0.3, 0.08), replace = TRUE)
 SatContMoist = sample(WET, n, prob = c(0.15, 0.2, 0.4, 0.25), replace = TRUE)
 VISCloudCov = sample(CLOUDY, n, prob = c(0.1, 0.5, 0.4), replace = TRUE)
 
@@ -46,30 +61,30 @@ Scenario[Scenario == "Aug11_Aug20"] = sample(LETTERS[1:11], length(which(Scenari
 Scenario[Scenario == "Aug20_Sep15"] = sample(LETTERS[1:11], length(which(Scenario == "Aug20_Sep15")), prob = c(0.05, 0.11, 0.1, 0.08, 0.11, 0.02, 0.11, 0.06, 0.08, 0.11, 0.17), replace = TRUE)
 
 WindFieldMt = Scenario
-WindFieldMt[WindFieldMt == "A"] = sample(c("Westerly", "LVorOther"), length(which(WindFieldMt == "A")), prob = c(0.8, 0.2), replace = TRUE)
-WindFieldMt[WindFieldMt == "B"] = sample(c("Westerly", "LVorOther"), length(which(WindFieldMt == "B")), prob = c(0.35, 0.65), replace = TRUE)
-WindFieldMt[WindFieldMt == "C"] = sample(c("Westerly", "LVorOther"), length(which(WindFieldMt == "C")), prob = c(0.75, 0.25), replace = TRUE)
-WindFieldMt[WindFieldMt == "D"] = sample(c("Westerly", "LVorOther"), length(which(WindFieldMt == "D")), prob = c(0.7, 0.3), replace = TRUE)
-WindFieldMt[WindFieldMt == "E"] = sample(c("Westerly", "LVorOther"), length(which(WindFieldMt == "E")), prob = c(0.65, 0.35), replace = TRUE)
-WindFieldMt[WindFieldMt == "F"] = sample(c("Westerly", "LVorOther"), length(which(WindFieldMt == "F")), prob = c(0.15, 0.85), replace = TRUE)
-WindFieldMt[WindFieldMt == "G"] = sample(c("Westerly", "LVorOther"), length(which(WindFieldMt == "G")), prob = c(0.7, 0.3), replace = TRUE)
-WindFieldMt[WindFieldMt == "H"] = sample(c("Westerly", "LVorOther"), length(which(WindFieldMt == "H")), prob = c(0.3, 0.7), replace = TRUE)
-WindFieldMt[WindFieldMt == "I"] = sample(c("Westerly", "LVorOther"), length(which(WindFieldMt == "I")), prob = c(0.5, 0.5), replace = TRUE)
-WindFieldMt[WindFieldMt == "J"] = sample(c("Westerly", "LVorOther"), length(which(WindFieldMt == "J")), prob = c(0.01, 0.99), replace = TRUE)
-WindFieldMt[WindFieldMt == "K"] = sample(c("Westerly", "LVorOther"), length(which(WindFieldMt == "K")), prob = c(0.7, 0.3), replace = TRUE)
+WindFieldMt[WindFieldMt == "A"] = sample(WNDMT, length(which(WindFieldMt == "A")), prob = c(0.8, 0.2), replace = TRUE)
+WindFieldMt[WindFieldMt == "B"] = sample(WNDMT, length(which(WindFieldMt == "B")), prob = c(0.35, 0.65), replace = TRUE)
+WindFieldMt[WindFieldMt == "C"] = sample(WNDMT, length(which(WindFieldMt == "C")), prob = c(0.75, 0.25), replace = TRUE)
+WindFieldMt[WindFieldMt == "D"] = sample(WNDMT, length(which(WindFieldMt == "D")), prob = c(0.7, 0.3), replace = TRUE)
+WindFieldMt[WindFieldMt == "E"] = sample(WNDMT, length(which(WindFieldMt == "E")), prob = c(0.65, 0.35), replace = TRUE)
+WindFieldMt[WindFieldMt == "F"] = sample(WNDMT, length(which(WindFieldMt == "F")), prob = c(0.15, 0.85), replace = TRUE)
+WindFieldMt[WindFieldMt == "G"] = sample(WNDMT, length(which(WindFieldMt == "G")), prob = c(0.7, 0.3), replace = TRUE)
+WindFieldMt[WindFieldMt == "H"] = sample(WNDMT, length(which(WindFieldMt == "H")), prob = c(0.3, 0.7), replace = TRUE)
+WindFieldMt[WindFieldMt == "I"] = sample(WNDMT, length(which(WindFieldMt == "I")), prob = c(0.5, 0.5), replace = TRUE)
+WindFieldMt[WindFieldMt == "J"] = sample(WNDMT, length(which(WindFieldMt == "J")), prob = c(0.01, 0.99), replace = TRUE)
+WindFieldMt[WindFieldMt == "K"] = sample(WNDMT, length(which(WindFieldMt == "K")), prob = c(0.7, 0.3), replace = TRUE)
 
 MvmtFeatures = Scenario
-MvmtFeatures[MvmtFeatures == "A"] = sample(c("StrongFront", "MarkedUpper", "OtherRapid", "NoMajor"), length(which(MvmtFeatures == "A")), prob = c(0.25, 0.55, 0.2, 0), replace = TRUE)
-MvmtFeatures[MvmtFeatures == "B"] = sample(c("StrongFront", "MarkedUpper", "OtherRapid", "NoMajor"), length(which(MvmtFeatures == "B")), prob = c(0.05, 0.1, 0.1, 0.75), replace = TRUE)
-MvmtFeatures[MvmtFeatures == "C"] = sample(c("StrongFront", "MarkedUpper", "OtherRapid", "NoMajor"), length(which(MvmtFeatures == "C")), prob = c(0.1, 0.3, 0.3, 0.3), replace = TRUE)
-MvmtFeatures[MvmtFeatures == "D"] = sample(c("StrongFront", "MarkedUpper", "OtherRapid", "NoMajor"), length(which(MvmtFeatures == "D")), prob = c(0.18, 0.38, 0.34, 0.1), replace = TRUE)
-MvmtFeatures[MvmtFeatures == "E"] = sample(c("StrongFront", "MarkedUpper", "OtherRapid", "NoMajor"), length(which(MvmtFeatures == "E")), prob = c(0.02, 0.02, 0.26, 0.7), replace = TRUE)
-MvmtFeatures[MvmtFeatures == "F"] = sample(c("StrongFront", "MarkedUpper", "OtherRapid", "NoMajor"), length(which(MvmtFeatures == "F")), prob = c(0.05, 0.07, 0.05, 0.83), replace = TRUE)
-MvmtFeatures[MvmtFeatures == "G"] = sample(c("StrongFront", "MarkedUpper", "OtherRapid", "NoMajor"), length(which(MvmtFeatures == "G")), prob = c(0.1, 0.25, 0.15, 0.5), replace = TRUE)
-MvmtFeatures[MvmtFeatures == "H"] = sample(c("StrongFront", "MarkedUpper", "OtherRapid", "NoMajor"), length(which(MvmtFeatures == "H")), prob = c(0, 0.6, 0.1, 0.3), replace = TRUE)
-MvmtFeatures[MvmtFeatures == "I"] = sample(c("StrongFront", "MarkedUpper", "OtherRapid", "NoMajor"), length(which(MvmtFeatures == "I")), prob = c(0.2, 0.1, 0.2, 0.5), replace = TRUE)
-MvmtFeatures[MvmtFeatures == "J"] = sample(c("StrongFront", "MarkedUpper", "OtherRapid", "NoMajor"), length(which(MvmtFeatures == "J")), prob = c(0.04, 0, 0.04, 0.92), replace = TRUE)
-MvmtFeatures[MvmtFeatures == "K"] = sample(c("StrongFront", "MarkedUpper", "OtherRapid", "NoMajor"), length(which(MvmtFeatures == "K")), prob = c(0.5, 0.35, 0.09, 0.06), replace = TRUE)
+MvmtFeatures[MvmtFeatures == "A"] = sample(MVMT, length(which(MvmtFeatures == "A")), prob = c(0.25, 0.55, 0.2, 0), replace = TRUE)
+MvmtFeatures[MvmtFeatures == "B"] = sample(MVMT, length(which(MvmtFeatures == "B")), prob = c(0.05, 0.1, 0.1, 0.75), replace = TRUE)
+MvmtFeatures[MvmtFeatures == "C"] = sample(MVMT, length(which(MvmtFeatures == "C")), prob = c(0.1, 0.3, 0.3, 0.3), replace = TRUE)
+MvmtFeatures[MvmtFeatures == "D"] = sample(MVMT, length(which(MvmtFeatures == "D")), prob = c(0.18, 0.38, 0.34, 0.1), replace = TRUE)
+MvmtFeatures[MvmtFeatures == "E"] = sample(MVMT, length(which(MvmtFeatures == "E")), prob = c(0.02, 0.02, 0.26, 0.7), replace = TRUE)
+MvmtFeatures[MvmtFeatures == "F"] = sample(MVMT, length(which(MvmtFeatures == "F")), prob = c(0.05, 0.07, 0.05, 0.83), replace = TRUE)
+MvmtFeatures[MvmtFeatures == "G"] = sample(MVMT, length(which(MvmtFeatures == "G")), prob = c(0.1, 0.25, 0.15, 0.5), replace = TRUE)
+MvmtFeatures[MvmtFeatures == "H"] = sample(MVMT, length(which(MvmtFeatures == "H")), prob = c(0, 0.6, 0.1, 0.3), replace = TRUE)
+MvmtFeatures[MvmtFeatures == "I"] = sample(MVMT, length(which(MvmtFeatures == "I")), prob = c(0.2, 0.1, 0.2, 0.5), replace = TRUE)
+MvmtFeatures[MvmtFeatures == "J"] = sample(MVMT, length(which(MvmtFeatures == "J")), prob = c(0.04, 0, 0.04, 0.92), replace = TRUE)
+MvmtFeatures[MvmtFeatures == "K"] = sample(MVMT, length(which(MvmtFeatures == "K")), prob = c(0.5, 0.35, 0.09, 0.06), replace = TRUE)
 
 MidLLapse = Scenario
 MidLLapse[MidLLapse == "A"] = sample(LL, length(which(MidLLapse == "A")), prob = c(0.25, 0.55, 0.2), replace = TRUE)
@@ -111,43 +126,43 @@ SfcWndShfDis[SfcWndShfDis == "J"] = sample(WIND, length(which(SfcWndShfDis == "J
 SfcWndShfDis[SfcWndShfDis == "K"] = sample(WIND, length(which(SfcWndShfDis == "K")), prob = c(0.05, 0.13, 0.05, 0.39, 0.13, 0.15, 0.1), replace = TRUE)
 
 RHRatio = Scenario
-RHRatio[RHRatio == "A"] = sample(c("MoistMDryL", "DryMMoistL", "Other"), length(which(RHRatio == "A")), prob = c(0.05, 0.5, 0.45), replace = TRUE)
-RHRatio[RHRatio == "B"] = sample(c("MoistMDryL", "DryMMoistL", "Other"), length(which(RHRatio == "B")), prob = c(0.1, 0.5, 0.4), replace = TRUE)
-RHRatio[RHRatio == "C"] = sample(c("MoistMDryL", "DryMMoistL", "Other"), length(which(RHRatio == "C")), prob = c(0.4, 0.15, 0.45), replace = TRUE)
-RHRatio[RHRatio == "D"] = sample(c("MoistMDryL", "DryMMoistL", "Other"), length(which(RHRatio == "D")), prob = c(0.2, 0.45, 0.35), replace = TRUE)
-RHRatio[RHRatio == "E"] = sample(c("MoistMDryL", "DryMMoistL", "Other"), length(which(RHRatio == "E")), prob = c(0.8, 0.05, 0.15), replace = TRUE)
-RHRatio[RHRatio == "F"] = sample(c("MoistMDryL", "DryMMoistL", "Other"), length(which(RHRatio == "F")), prob = c(0, 0, 1), replace = TRUE)
-RHRatio[RHRatio == "G"] = sample(c("MoistMDryL", "DryMMoistL", "Other"), length(which(RHRatio == "G")), prob = c(0.6, 0, 0.4), replace = TRUE)
-RHRatio[RHRatio == "H"] = sample(c("MoistMDryL", "DryMMoistL", "Other"), length(which(RHRatio == "H")), prob = c(0, 0.7, 0.3), replace = TRUE)
-RHRatio[RHRatio == "I"] = sample(c("MoistMDryL", "DryMMoistL", "Other"), length(which(RHRatio == "I")), prob = c(0.1, 0.7, 0.2), replace = TRUE)
-RHRatio[RHRatio == "J"] = sample(c("MoistMDryL", "DryMMoistL", "Other"), length(which(RHRatio == "J")), prob = c(0.4, 0.4, 0.2), replace = TRUE)
-RHRatio[RHRatio == "K"] = sample(c("MoistMDryL", "DryMMoistL", "Other"), length(which(RHRatio == "K")), prob = c(0.15, 0.45, 0.4), replace = TRUE)
+RHRatio[RHRatio == "A"] = sample(RHRLV, length(which(RHRatio == "A")), prob = c(0.05, 0.5, 0.45), replace = TRUE)
+RHRatio[RHRatio == "B"] = sample(RHRLV, length(which(RHRatio == "B")), prob = c(0.1, 0.5, 0.4), replace = TRUE)
+RHRatio[RHRatio == "C"] = sample(RHRLV, length(which(RHRatio == "C")), prob = c(0.4, 0.15, 0.45), replace = TRUE)
+RHRatio[RHRatio == "D"] = sample(RHRLV, length(which(RHRatio == "D")), prob = c(0.2, 0.45, 0.35), replace = TRUE)
+RHRatio[RHRatio == "E"] = sample(RHRLV, length(which(RHRatio == "E")), prob = c(0.8, 0.05, 0.15), replace = TRUE)
+RHRatio[RHRatio == "F"] = sample(RHRLV, length(which(RHRatio == "F")), prob = c(0, 0, 1), replace = TRUE)
+RHRatio[RHRatio == "G"] = sample(RHRLV, length(which(RHRatio == "G")), prob = c(0.6, 0, 0.4), replace = TRUE)
+RHRatio[RHRatio == "H"] = sample(RHRLV, length(which(RHRatio == "H")), prob = c(0, 0.7, 0.3), replace = TRUE)
+RHRatio[RHRatio == "I"] = sample(RHRLV, length(which(RHRatio == "I")), prob = c(0.1, 0.7, 0.2), replace = TRUE)
+RHRatio[RHRatio == "J"] = sample(RHRLV, length(which(RHRatio == "J")), prob = c(0.4, 0.4, 0.2), replace = TRUE)
+RHRatio[RHRatio == "K"] = sample(RHRLV, length(which(RHRatio == "K")), prob = c(0.15, 0.45, 0.4), replace = TRUE)
 
 ScenRelAMIns = Scenario
-ScenRelAMIns[ScenRelAMIns == "A"] = sample(c("ABI", "CDEJ", "F", "G", "H", "K"), length(which(ScenRelAMIns == "A")), prob = c(1, 0, 0, 0, 0, 0), replace = TRUE)
-ScenRelAMIns[ScenRelAMIns == "B"] = sample(c("ABI", "CDEJ", "F", "G", "H", "K"), length(which(ScenRelAMIns == "B")), prob = c(1, 0, 0, 0, 0, 0), replace = TRUE)
-ScenRelAMIns[ScenRelAMIns == "C"] = sample(c("ABI", "CDEJ", "F", "G", "H", "K"), length(which(ScenRelAMIns == "C")), prob = c(0, 1, 0, 0, 0, 0), replace = TRUE)
-ScenRelAMIns[ScenRelAMIns == "D"] = sample(c("ABI", "CDEJ", "F", "G", "H", "K"), length(which(ScenRelAMIns == "D")), prob = c(0, 1, 0, 0, 0, 0), replace = TRUE)
-ScenRelAMIns[ScenRelAMIns == "E"] = sample(c("ABI", "CDEJ", "F", "G", "H", "K"), length(which(ScenRelAMIns == "E")), prob = c(0, 1, 0, 0, 0, 0), replace = TRUE)
-ScenRelAMIns[ScenRelAMIns == "F"] = sample(c("ABI", "CDEJ", "F", "G", "H", "K"), length(which(ScenRelAMIns == "F")), prob = c(0, 0, 1, 0, 0, 0), replace = TRUE)
-ScenRelAMIns[ScenRelAMIns == "G"] = sample(c("ABI", "CDEJ", "F", "G", "H", "K"), length(which(ScenRelAMIns == "G")), prob = c(0, 0, 0, 1, 0, 0), replace = TRUE)
-ScenRelAMIns[ScenRelAMIns == "H"] = sample(c("ABI", "CDEJ", "F", "G", "H", "K"), length(which(ScenRelAMIns == "H")), prob = c(0, 0, 0, 0, 1, 0), replace = TRUE)
-ScenRelAMIns[ScenRelAMIns == "I"] = sample(c("ABI", "CDEJ", "F", "G", "H", "K"), length(which(ScenRelAMIns == "I")), prob = c(1, 0, 0, 0, 0, 0), replace = TRUE)
-ScenRelAMIns[ScenRelAMIns == "J"] = sample(c("ABI", "CDEJ", "F", "G", "H", "K"), length(which(ScenRelAMIns == "J")), prob = c(0, 1, 0, 0, 0, 0), replace = TRUE)
-ScenRelAMIns[ScenRelAMIns == "K"] = sample(c("ABI", "CDEJ", "F", "G", "H", "K"), length(which(ScenRelAMIns == "K")), prob = c(0, 0, 0, 0, 0, 1), replace = TRUE)
+ScenRelAMIns[ScenRelAMIns == "A"] = sample(SAMI, length(which(ScenRelAMIns == "A")), prob = c(1, 0, 0, 0, 0, 0), replace = TRUE)
+ScenRelAMIns[ScenRelAMIns == "B"] = sample(SAMI, length(which(ScenRelAMIns == "B")), prob = c(1, 0, 0, 0, 0, 0), replace = TRUE)
+ScenRelAMIns[ScenRelAMIns == "C"] = sample(SAMI, length(which(ScenRelAMIns == "C")), prob = c(0, 1, 0, 0, 0, 0), replace = TRUE)
+ScenRelAMIns[ScenRelAMIns == "D"] = sample(SAMI, length(which(ScenRelAMIns == "D")), prob = c(0, 1, 0, 0, 0, 0), replace = TRUE)
+ScenRelAMIns[ScenRelAMIns == "E"] = sample(SAMI, length(which(ScenRelAMIns == "E")), prob = c(0, 1, 0, 0, 0, 0), replace = TRUE)
+ScenRelAMIns[ScenRelAMIns == "F"] = sample(SAMI, length(which(ScenRelAMIns == "F")), prob = c(0, 0, 1, 0, 0, 0), replace = TRUE)
+ScenRelAMIns[ScenRelAMIns == "G"] = sample(SAMI, length(which(ScenRelAMIns == "G")), prob = c(0, 0, 0, 1, 0, 0), replace = TRUE)
+ScenRelAMIns[ScenRelAMIns == "H"] = sample(SAMI, length(which(ScenRelAMIns == "H")), prob = c(0, 0, 0, 0, 1, 0), replace = TRUE)
+ScenRelAMIns[ScenRelAMIns == "I"] = sample(SAMI, length(which(ScenRelAMIns == "I")), prob = c(1, 0, 0, 0, 0, 0), replace = TRUE)
+ScenRelAMIns[ScenRelAMIns == "J"] = sample(SAMI, length(which(ScenRelAMIns == "J")), prob = c(0, 1, 0, 0, 0, 0), replace = TRUE)
+ScenRelAMIns[ScenRelAMIns == "K"] = sample(SAMI, length(which(ScenRelAMIns == "K")), prob = c(0, 0, 0, 0, 0, 1), replace = TRUE)
 
 ScenRelAMCIN = Scenario
-ScenRelAMCIN[ScenRelAMCIN == "A"] = sample(c("AB", "CThruK"), length(which(ScenRelAMCIN == "A")), prob = c(1, 0), replace = TRUE)
-ScenRelAMCIN[ScenRelAMCIN == "B"] = sample(c("AB", "CThruK"), length(which(ScenRelAMCIN == "B")), prob = c(1, 0), replace = TRUE)
-ScenRelAMCIN[ScenRelAMCIN == "C"] = sample(c("AB", "CThruK"), length(which(ScenRelAMCIN == "C")), prob = c(0, 1), replace = TRUE)
-ScenRelAMCIN[ScenRelAMCIN == "D"] = sample(c("AB", "CThruK"), length(which(ScenRelAMCIN == "D")), prob = c(0, 1), replace = TRUE)
-ScenRelAMCIN[ScenRelAMCIN == "E"] = sample(c("AB", "CThruK"), length(which(ScenRelAMCIN == "E")), prob = c(0, 1), replace = TRUE)
-ScenRelAMCIN[ScenRelAMCIN == "F"] = sample(c("AB", "CThruK"), length(which(ScenRelAMCIN == "F")), prob = c(0, 1), replace = TRUE)
-ScenRelAMCIN[ScenRelAMCIN == "G"] = sample(c("AB", "CThruK"), length(which(ScenRelAMCIN == "G")), prob = c(0, 1), replace = TRUE)
-ScenRelAMCIN[ScenRelAMCIN == "H"] = sample(c("AB", "CThruK"), length(which(ScenRelAMCIN == "H")), prob = c(0, 1), replace = TRUE)
-ScenRelAMCIN[ScenRelAMCIN == "I"] = sample(c("AB", "CThruK"), length(which(ScenRelAMCIN == "I")), prob = c(0, 1), replace = TRUE)
-ScenRelAMCIN[ScenRelAMCIN == "J"] = sample(c("AB", "CThruK"), length(which(ScenRelAMCIN == "J")), prob = c(0, 1), replace = TRUE)
-ScenRelAMCIN[ScenRelAMCIN == "K"] = sample(c("AB", "CThruK"), length(which(ScenRelAMCIN == "K")), prob = c(0, 1), replace = TRUE)
+ScenRelAMCIN[ScenRelAMCIN == "A"] = sample(SCRLAM, length(which(ScenRelAMCIN == "A")), prob = c(1, 0), replace = TRUE)
+ScenRelAMCIN[ScenRelAMCIN == "B"] = sample(SCRLAM, length(which(ScenRelAMCIN == "B")), prob = c(1, 0), replace = TRUE)
+ScenRelAMCIN[ScenRelAMCIN == "C"] = sample(SCRLAM, length(which(ScenRelAMCIN == "C")), prob = c(0, 1), replace = TRUE)
+ScenRelAMCIN[ScenRelAMCIN == "D"] = sample(SCRLAM, length(which(ScenRelAMCIN == "D")), prob = c(0, 1), replace = TRUE)
+ScenRelAMCIN[ScenRelAMCIN == "E"] = sample(SCRLAM, length(which(ScenRelAMCIN == "E")), prob = c(0, 1), replace = TRUE)
+ScenRelAMCIN[ScenRelAMCIN == "F"] = sample(SCRLAM, length(which(ScenRelAMCIN == "F")), prob = c(0, 1), replace = TRUE)
+ScenRelAMCIN[ScenRelAMCIN == "G"] = sample(SCRLAM, length(which(ScenRelAMCIN == "G")), prob = c(0, 1), replace = TRUE)
+ScenRelAMCIN[ScenRelAMCIN == "H"] = sample(SCRLAM, length(which(ScenRelAMCIN == "H")), prob = c(0, 1), replace = TRUE)
+ScenRelAMCIN[ScenRelAMCIN == "I"] = sample(SCRLAM, length(which(ScenRelAMCIN == "I")), prob = c(0, 1), replace = TRUE)
+ScenRelAMCIN[ScenRelAMCIN == "J"] = sample(SCRLAM, length(which(ScenRelAMCIN == "J")), prob = c(0, 1), replace = TRUE)
+ScenRelAMCIN[ScenRelAMCIN == "K"] = sample(SCRLAM, length(which(ScenRelAMCIN == "K")), prob = c(0, 1), replace = TRUE)
 
 WindFieldPln = Scenario
 WindFieldPln[WindFieldPln == "A"] = sample(PLN, length(which(WindFieldPln == "A")), prob = c(0.05, 0.6, 0.02, 0.1, 0.23, 0), replace = TRUE)
@@ -163,17 +178,17 @@ WindFieldPln[WindFieldPln == "J"] = sample(PLN, length(which(WindFieldPln == "J"
 WindFieldPln[WindFieldPln == "K"] = sample(PLN, length(which(WindFieldPln == "K")), prob = c(0.1, 0.05, 0.1, 0.05, 0.2, 0.5), replace = TRUE)
 
 TempDis = Scenario
-TempDis[TempDis == "A"] = sample(c("QStationary", "Moving", "None", "Other"), length(which(TempDis == "A")), prob = c(0.13, 0.15, 0.1, 0.62), replace = TRUE)
-TempDis[TempDis == "B"] = sample(c("QStationary", "Moving", "None", "Other"), length(which(TempDis == "B")), prob = c(0.15, 0.15, 0.25, 0.45), replace = TRUE)
-TempDis[TempDis == "C"] = sample(c("QStationary", "Moving", "None", "Other"), length(which(TempDis == "C")), prob = c(0.12, 0.1, 0.35, 0.43), replace = TRUE)
-TempDis[TempDis == "D"] = sample(c("QStationary", "Moving", "None", "Other"), length(which(TempDis == "D")), prob = c(0.1, 0.15, 0.4, 0.35), replace = TRUE)
-TempDis[TempDis == "E"] = sample(c("QStationary", "Moving", "None", "Other"), length(which(TempDis == "E")), prob = c(0.04, 0.04, 0.82, 0.1), replace = TRUE)
-TempDis[TempDis == "F"] = sample(c("QStationary", "Moving", "None", "Other"), length(which(TempDis == "F")), prob = c(0.05, 0.12, 0.75, 0.08), replace = TRUE)
-TempDis[TempDis == "G"] = sample(c("QStationary", "Moving", "None", "Other"), length(which(TempDis == "G")), prob = c(0.03, 0.03, 0.84, 0.1), replace = TRUE)
-TempDis[TempDis == "H"] = sample(c("QStationary", "Moving", "None", "Other"), length(which(TempDis == "H")), prob = c(0.05, 0.4, 0.5, 0.05), replace = TRUE)
-TempDis[TempDis == "I"] = sample(c("QStationary", "Moving", "None", "Other"), length(which(TempDis == "I")), prob = c(0.8, 0.19, 0, 0.01), replace = TRUE)
-TempDis[TempDis == "J"] = sample(c("QStationary", "Moving", "None", "Other"), length(which(TempDis == "J")), prob = c(0.1, 0.05, 0.4, 0.45), replace = TRUE)
-TempDis[TempDis == "K"] = sample(c("QStationary", "Moving", "None", "Other"), length(which(TempDis == "K")), prob = c(0.2, 0.3, 0.3, 0.2), replace = TRUE)
+TempDis[TempDis == "A"] = sample(TDISLV, length(which(TempDis == "A")), prob = c(0.13, 0.15, 0.1, 0.62), replace = TRUE)
+TempDis[TempDis == "B"] = sample(TDISLV, length(which(TempDis == "B")), prob = c(0.15, 0.15, 0.25, 0.45), replace = TRUE)
+TempDis[TempDis == "C"] = sample(TDISLV, length(which(TempDis == "C")), prob = c(0.12, 0.1, 0.35, 0.43), replace = TRUE)
+TempDis[TempDis == "D"] = sample(TDISLV, length(which(TempDis == "D")), prob = c(0.1, 0.15, 0.4, 0.35), replace = TRUE)
+TempDis[TempDis == "E"] = sample(TDISLV, length(which(TempDis == "E")), prob = c(0.04, 0.04, 0.82, 0.1), replace = TRUE)
+TempDis[TempDis == "F"] = sample(TDISLV, length(which(TempDis == "F")), prob = c(0.05, 0.12, 0.75, 0.08), replace = TRUE)
+TempDis[TempDis == "G"] = sample(TDISLV, length(which(TempDis == "G")), prob = c(0.03, 0.03, 0.84, 0.1), replace = TRUE)
+TempDis[TempDis == "H"] = sample(TDISLV, length(which(TempDis == "H")), prob = c(0.05, 0.4, 0.5, 0.05), replace = TRUE)
+TempDis[TempDis == "I"] = sample(TDISLV, length(which(TempDis == "I")), prob = c(0.8, 0.19, 0, 0.01), replace = TRUE)
+TempDis[TempDis == "J"] = sample(TDISLV, length(which(TempDis == "J")), prob = c(0.1, 0.05, 0.4, 0.45), replace = TRUE)
+TempDis[TempDis == "K"] = sample(TDISLV, length(which(TempDis == "K")), prob = c(0.2, 0.3, 0.3, 0.2), replace = TRUE)
 
 SynForcng = Scenario
 SynForcng[SynForcng == "A"] = sample(SYN, length(which(SynForcng == "A")), prob = c(0.35, 0.25, 0, 0.35, 0.05), replace = TRUE)
@@ -217,30 +232,30 @@ LowLLapse[LowLLapse == "K"] = sample(LL2, length(which(LowLLapse == "K")), prob 
 ScnRelPlFcst = Scenario
 
 WindAloft = Scenario
-WindAloft[WindAloft == "A"] = sample(c("LV", "SWQuad", "NWQuad", "AllElse"), length(which(WindAloft == "A")), prob = c(0, 0.95, 0.01, 0.04), replace = TRUE)
-WindAloft[WindAloft == "B"] = sample(c("LV", "SWQuad", "NWQuad", "AllElse"), length(which(WindAloft == "B")), prob = c(0.2, 0.3, 0.2, 0.3), replace = TRUE)
-WindAloft[WindAloft == "C"] = sample(c("LV", "SWQuad", "NWQuad", "AllElse"), length(which(WindAloft == "C")), prob = c(0.05, 0.09, 0.59, 0.27), replace = TRUE)
-WindAloft[WindAloft == "D"] = sample(c("LV", "SWQuad", "NWQuad", "AllElse"), length(which(WindAloft == "D")), prob = c(0.03, 0.32, 0.42, 0.23), replace = TRUE)
-WindAloft[WindAloft == "E"] = sample(c("LV", "SWQuad", "NWQuad", "AllElse"), length(which(WindAloft == "E")), prob = c(0.07, 0.66, 0.02, 0.25), replace = TRUE)
-WindAloft[WindAloft == "F"] = sample(c("LV", "SWQuad", "NWQuad", "AllElse"), length(which(WindAloft == "F")), prob = c(0.5, 0, 0, 0.5), replace = TRUE)
-WindAloft[WindAloft == "G"] = sample(c("LV", "SWQuad", "NWQuad", "AllElse"), length(which(WindAloft == "G")), prob = c(0.25, 0.3, 0.25, 0.2), replace = TRUE)
-WindAloft[WindAloft == "H"] = sample(c("LV", "SWQuad", "NWQuad", "AllElse"), length(which(WindAloft == "H")), prob = c(0.2, 0.14, 0.43, 0.23), replace = TRUE)
-WindAloft[WindAloft == "I"] = sample(c("LV", "SWQuad", "NWQuad", "AllElse"), length(which(WindAloft == "I")), prob = c(0.2, 0.41, 0.1, 0.29), replace = TRUE)
-WindAloft[WindAloft == "J"] = sample(c("LV", "SWQuad", "NWQuad", "AllElse"), length(which(WindAloft == "J")), prob = c(0.96, 0, 0, 0.04), replace = TRUE)
-WindAloft[WindAloft == "K"] = sample(c("LV", "SWQuad", "NWQuad", "AllElse"), length(which(WindAloft == "K")), prob = c(0.03, 0.08, 0.33, 0.56), replace = TRUE)
+WindAloft[WindAloft == "A"] = sample(WLOFT, length(which(WindAloft == "A")), prob = c(0, 0.95, 0.01, 0.04), replace = TRUE)
+WindAloft[WindAloft == "B"] = sample(WLOFT, length(which(WindAloft == "B")), prob = c(0.2, 0.3, 0.2, 0.3), replace = TRUE)
+WindAloft[WindAloft == "C"] = sample(WLOFT, length(which(WindAloft == "C")), prob = c(0.05, 0.09, 0.59, 0.27), replace = TRUE)
+WindAloft[WindAloft == "D"] = sample(WLOFT, length(which(WindAloft == "D")), prob = c(0.03, 0.32, 0.42, 0.23), replace = TRUE)
+WindAloft[WindAloft == "E"] = sample(WLOFT, length(which(WindAloft == "E")), prob = c(0.07, 0.66, 0.02, 0.25), replace = TRUE)
+WindAloft[WindAloft == "F"] = sample(WLOFT, length(which(WindAloft == "F")), prob = c(0.5, 0, 0, 0.5), replace = TRUE)
+WindAloft[WindAloft == "G"] = sample(WLOFT, length(which(WindAloft == "G")), prob = c(0.25, 0.3, 0.25, 0.2), replace = TRUE)
+WindAloft[WindAloft == "H"] = sample(WLOFT, length(which(WindAloft == "H")), prob = c(0.2, 0.14, 0.43, 0.23), replace = TRUE)
+WindAloft[WindAloft == "I"] = sample(WLOFT, length(which(WindAloft == "I")), prob = c(0.2, 0.41, 0.1, 0.29), replace = TRUE)
+WindAloft[WindAloft == "J"] = sample(WLOFT, length(which(WindAloft == "J")), prob = c(0.96, 0, 0, 0.04), replace = TRUE)
+WindAloft[WindAloft == "K"] = sample(WLOFT, length(which(WindAloft == "K")), prob = c(0.03, 0.08, 0.33, 0.56), replace = TRUE)
 
 ScenRel34 = Scenario
-ScenRel34[ScenRel34 == "A"] = sample(c("ACEFK", "B", "D", "GJ", "HI"), length(which(ScenRel34 == "A")), prob = c(1, 0, 0, 0, 0), replace = TRUE)
-ScenRel34[ScenRel34 == "B"] = sample(c("ACEFK", "B", "D", "GJ", "HI"), length(which(ScenRel34 == "B")), prob = c(0, 1, 0, 0, 0), replace = TRUE)
-ScenRel34[ScenRel34 == "C"] = sample(c("ACEFK", "B", "D", "GJ", "HI"), length(which(ScenRel34 == "C")), prob = c(1, 0, 0, 0, 0), replace = TRUE)
-ScenRel34[ScenRel34 == "D"] = sample(c("ACEFK", "B", "D", "GJ", "HI"), length(which(ScenRel34 == "D")), prob = c(0, 0, 1, 0, 0), replace = TRUE)
-ScenRel34[ScenRel34 == "E"] = sample(c("ACEFK", "B", "D", "GJ", "HI"), length(which(ScenRel34 == "E")), prob = c(1, 0, 0, 0, 0), replace = TRUE)
-ScenRel34[ScenRel34 == "F"] = sample(c("ACEFK", "B", "D", "GJ", "HI"), length(which(ScenRel34 == "F")), prob = c(1, 0, 0, 0, 0), replace = TRUE)
-ScenRel34[ScenRel34 == "G"] = sample(c("ACEFK", "B", "D", "GJ", "HI"), length(which(ScenRel34 == "G")), prob = c(0, 0, 0, 1, 0), replace = TRUE)
-ScenRel34[ScenRel34 == "H"] = sample(c("ACEFK", "B", "D", "GJ", "HI"), length(which(ScenRel34 == "H")), prob = c(0, 0, 0, 0, 1), replace = TRUE)
-ScenRel34[ScenRel34 == "I"] = sample(c("ACEFK", "B", "D", "GJ", "HI"), length(which(ScenRel34 == "I")), prob = c(0, 0, 0, 0, 1), replace = TRUE)
-ScenRel34[ScenRel34 == "J"] = sample(c("ACEFK", "B", "D", "GJ", "HI"), length(which(ScenRel34 == "J")), prob = c(0, 0, 0, 1, 0), replace = TRUE)
-ScenRel34[ScenRel34 == "K"] = sample(c("ACEFK", "B", "D", "GJ", "HI"), length(which(ScenRel34 == "K")), prob = c(1, 0, 0, 0, 0), replace = TRUE)
+ScenRel34[ScenRel34 == "A"] = sample(SC34, length(which(ScenRel34 == "A")), prob = c(1, 0, 0, 0, 0), replace = TRUE)
+ScenRel34[ScenRel34 == "B"] = sample(SC34, length(which(ScenRel34 == "B")), prob = c(0, 1, 0, 0, 0), replace = TRUE)
+ScenRel34[ScenRel34 == "C"] = sample(SC34, length(which(ScenRel34 == "C")), prob = c(1, 0, 0, 0, 0), replace = TRUE)
+ScenRel34[ScenRel34 == "D"] = sample(SC34, length(which(ScenRel34 == "D")), prob = c(0, 0, 1, 0, 0), replace = TRUE)
+ScenRel34[ScenRel34 == "E"] = sample(SC34, length(which(ScenRel34 == "E")), prob = c(1, 0, 0, 0, 0), replace = TRUE)
+ScenRel34[ScenRel34 == "F"] = sample(SC34, length(which(ScenRel34 == "F")), prob = c(1, 0, 0, 0, 0), replace = TRUE)
+ScenRel34[ScenRel34 == "G"] = sample(SC34, length(which(ScenRel34 == "G")), prob = c(0, 0, 0, 1, 0), replace = TRUE)
+ScenRel34[ScenRel34 == "H"] = sample(SC34, length(which(ScenRel34 == "H")), prob = c(0, 0, 0, 0, 1), replace = TRUE)
+ScenRel34[ScenRel34 == "I"] = sample(SC34, length(which(ScenRel34 == "I")), prob = c(0, 0, 0, 0, 1), replace = TRUE)
+ScenRel34[ScenRel34 == "J"] = sample(SC34, length(which(ScenRel34 == "J")), prob = c(0, 0, 0, 1, 0), replace = TRUE)
+ScenRel34[ScenRel34 == "K"] = sample(SC34, length(which(ScenRel34 == "K")), prob = c(1, 0, 0, 0, 0), replace = TRUE)
 
 AMCINInScen = apply(cbind(ScenRelAMCIN, MorningCIN), 1, paste, collapse = ":")
 AMCINInScen[AMCINInScen == "AB:None"] = sample(AVE, length(which(AMCINInScen == "AB:None")), prob = c(1, 0, 0), replace = TRUE)
@@ -449,18 +464,18 @@ InsInMt[InsInMt == "Clear:Weak"] = sample(STRENGTH, length(which(InsInMt == "Cle
 InsInMt[InsInMt == "Clear:Strong"] = sample(STRENGTH, length(which(InsInMt == "Clear:Strong")), prob = c(0, 0, 1), replace = TRUE)
 
 CldShadeConv = apply(cbind(InsInMt, WndHodograph), 1, paste, collapse = ":")
-CldShadeConv[CldShadeConv == "None:DCVZFavor"] = sample(c("None", "Some", "Marked"), length(which(CldShadeConv == "None:DCVZFavor")), prob = c(1, 0, 0), replace = TRUE)
-CldShadeConv[CldShadeConv == "None:StrongWest"] = sample(c("None", "Some", "Marked"), length(which(CldShadeConv == "None:StrongWest")), prob = c(1, 0, 0), replace = TRUE)
-CldShadeConv[CldShadeConv == "None:Westerly"] = sample(c("None", "Some", "Marked"), length(which(CldShadeConv == "None:Westerly")), prob = c(1, 0, 0), replace = TRUE)
-CldShadeConv[CldShadeConv == "None:Other"] = sample(c("None", "Some", "Marked"), length(which(CldShadeConv == "None:Other")), prob = c(1, 0, 0), replace = TRUE)
-CldShadeConv[CldShadeConv == "Weak:DCVZFavor"] = sample(c("None", "Some", "Marked"), length(which(CldShadeConv == "Weak:DCVZFavor")), prob = c(0.3, 0.6, 0.1), replace = TRUE)
-CldShadeConv[CldShadeConv == "Weak:StrongWest"] = sample(c("None", "Some", "Marked"), length(which(CldShadeConv == "Weak:StrongWest")), prob = c(0.2, 0.7, 0.1), replace = TRUE)
-CldShadeConv[CldShadeConv == "Weak:Westerly"] = sample(c("None", "Some", "Marked"), length(which(CldShadeConv == "Weak:Westerly")), prob = c(0.5, 0.46, 0.04), replace = TRUE)
-CldShadeConv[CldShadeConv == "Weak:Other"] = sample(c("None", "Some", "Marked"), length(which(CldShadeConv == "Weak:Other")), prob = c(0.8, 0.19, 0.01), replace = TRUE)
-CldShadeConv[CldShadeConv == "Strong:DCVZFavor"] = sample(c("None", "Some", "Marked"), length(which(CldShadeConv == "Strong:DCVZFavor")), prob = c(0, 0.3, 0.7), replace = TRUE)
-CldShadeConv[CldShadeConv == "Strong:StrongWest"] = sample(c("None", "Some", "Marked"), length(which(CldShadeConv == "Strong:StrongWest")), prob = c(0, 0.2, 0.8), replace = TRUE)
-CldShadeConv[CldShadeConv == "Strong:Westerly"] = sample(c("None", "Some", "Marked"), length(which(CldShadeConv == "Strong:Westerly")), prob = c(0.1, 0.5, 0.4), replace = TRUE)
-CldShadeConv[CldShadeConv == "Strong:Other"] = sample(c("None", "Some", "Marked"), length(which(CldShadeConv == "Strong:Other")), prob = c(0.5, 0.38, 0.12), replace = TRUE)
+CldShadeConv[CldShadeConv == "None:DCVZFavor"] = sample(SHADE, length(which(CldShadeConv == "None:DCVZFavor")), prob = c(1, 0, 0), replace = TRUE)
+CldShadeConv[CldShadeConv == "None:StrongWest"] = sample(SHADE, length(which(CldShadeConv == "None:StrongWest")), prob = c(1, 0, 0), replace = TRUE)
+CldShadeConv[CldShadeConv == "None:Westerly"] = sample(SHADE, length(which(CldShadeConv == "None:Westerly")), prob = c(1, 0, 0), replace = TRUE)
+CldShadeConv[CldShadeConv == "None:Other"] = sample(SHADE, length(which(CldShadeConv == "None:Other")), prob = c(1, 0, 0), replace = TRUE)
+CldShadeConv[CldShadeConv == "Weak:DCVZFavor"] = sample(SHADE, length(which(CldShadeConv == "Weak:DCVZFavor")), prob = c(0.3, 0.6, 0.1), replace = TRUE)
+CldShadeConv[CldShadeConv == "Weak:StrongWest"] = sample(SHADE, length(which(CldShadeConv == "Weak:StrongWest")), prob = c(0.2, 0.7, 0.1), replace = TRUE)
+CldShadeConv[CldShadeConv == "Weak:Westerly"] = sample(SHADE, length(which(CldShadeConv == "Weak:Westerly")), prob = c(0.5, 0.46, 0.04), replace = TRUE)
+CldShadeConv[CldShadeConv == "Weak:Other"] = sample(SHADE, length(which(CldShadeConv == "Weak:Other")), prob = c(0.8, 0.19, 0.01), replace = TRUE)
+CldShadeConv[CldShadeConv == "Strong:DCVZFavor"] = sample(SHADE, length(which(CldShadeConv == "Strong:DCVZFavor")), prob = c(0, 0.3, 0.7), replace = TRUE)
+CldShadeConv[CldShadeConv == "Strong:StrongWest"] = sample(SHADE, length(which(CldShadeConv == "Strong:StrongWest")), prob = c(0, 0.2, 0.8), replace = TRUE)
+CldShadeConv[CldShadeConv == "Strong:Westerly"] = sample(SHADE, length(which(CldShadeConv == "Strong:Westerly")), prob = c(0.1, 0.5, 0.4), replace = TRUE)
+CldShadeConv[CldShadeConv == "Strong:Other"] = sample(SHADE, length(which(CldShadeConv == "Strong:Other")), prob = c(0.5, 0.38, 0.12), replace = TRUE)
 
 OutflowFrMt = apply(cbind(InsInMt, WndHodograph), 1, paste, collapse = ":")
 OutflowFrMt[OutflowFrMt == "None:DCVZFavor"] = sample(STRENGTH, length(which(OutflowFrMt == "None:DCVZFavor")), prob = c(1, 0, 0), replace = TRUE)
@@ -1174,60 +1189,60 @@ R5Fcst[R5Fcst == "SVR:SIG"] = sample(FCST2, length(which(R5Fcst == "SVR:SIG")), 
 R5Fcst[R5Fcst == "SVR:SVR"] = sample(FCST2, length(which(R5Fcst == "SVR:SVR")), prob = c(0, 0, 1), replace = TRUE)
 
 hailfinder = data.frame(
-  N07muVerMo = N07muVerMo,
-  SubjVertMo = SubjVertMo,
-  QGVertMotion = QGVertMotion,
-  CombVerMo = CombVerMo,
-  AreaMesoALS = AreaMesoALS,
-  SatContMoist = SatContMoist,
-  RaoContMoist = RaoContMoist,
-  CombMoisture = CombMoisture,
-  AreaMoDryAir = AreaMoDryAir,
-  VISCloudCov = VISCloudCov,
-  IRCloudCover = IRCloudCover,
-  CombClouds = CombClouds,
-  CldShadeOth = CldShadeOth,
-  AMInstabMt = AMInstabMt,
-  InsInMt = InsInMt,
-  WndHodograph = WndHodograph,
-  OutflowFrMt = OutflowFrMt,
-  MorningBound = MorningBound,
-  Boundaries = Boundaries,
-  CldShadeConv = CldShadeConv,
-  CompPlFcst = CompPlFcst,
-  CapChange = CapChange,
-  LoLevMoistAd = LoLevMoistAd,
-  InsChange = InsChange,
-  MountainFcst = MountainFcst,
-  Date = Date,
-  Scenario = Scenario,
-  ScenRelAMCIN = ScenRelAMCIN,
-  MorningCIN = MorningCIN,
-  AMCINInScen = AMCINInScen,
-  CapInScen = CapInScen,
-  ScenRelAMIns = ScenRelAMIns,
-  LIfr12ZDENSd = LIfr12ZDENSd,
-  AMDewptCalPl = AMDewptCalPl,
-  AMInsWliScen = AMInsWliScen,
-  InsSclInScen = InsSclInScen,
-  ScenRel34 = ScenRel34,
-  LatestCIN = LatestCIN,
-  LLIW = LLIW,
-  CurPropConv = CurPropConv,
-  ScnRelPlFcst = ScnRelPlFcst,
-  PlainsFcst = PlainsFcst,
-  N34StarFcst = N34StarFcst,
-  R5Fcst = R5Fcst,
-  Dewpoints = Dewpoints,
-  LowLLapse = LowLLapse,
-  MeanRH = MeanRH,
-  MidLLapse = MidLLapse,
-  MvmtFeatures = MvmtFeatures,
-  RHRatio = RHRatio,
-  SfcWndShfDis = SfcWndShfDis,
-  SynForcng = SynForcng,
-  TempDis = TempDis,
-  WindAloft = WindAloft,
-  WindFieldMt = WindFieldMt,
-  WindFieldPln = WindFieldPln
+  N07muVerMo = factor(N07muVerMo, levels = VERT),
+  SubjVertMo = factor(SubjVertMo, levels = VERT),
+  QGVertMotion = factor(QGVertMotion, levels = VERT),
+  CombVerMo = factor(CombVerMo, levels = VERT),
+  AreaMesoALS = factor(AreaMesoALS, levels = VERT),
+  SatContMoist = factor(SatContMoist, levels = WET),
+  RaoContMoist = factor(RaoContMoist, levels = WET),
+  CombMoisture = factor(CombMoisture, levels = WET),
+  AreaMoDryAir = factor(AreaMoDryAir, levels = WET),
+  VISCloudCov = factor(VISCloudCov, levels = CLOUDY),
+  IRCloudCover = factor(IRCloudCover, levels = CLOUDY),
+  CombClouds = factor(CombClouds, levels = CLOUDY),
+  CldShadeOth = factor(CldShadeOth, levels = CLOUDY),
+  AMInstabMt = factor(AMInstabMt, levels = STRENGTH),
+  InsInMt = factor(InsInMt, levels = STRENGTH),
+  WndHodograph = factor(WndHodograph, levels = WND),
+  OutflowFrMt = factor(OutflowFrMt, levels = STRENGTH),
+  MorningBound = factor(MorningBound, levels = STRENGTH),
+  Boundaries = factor(Boundaries, levels = STRENGTH),
+  CldShadeConv = factor(CldShadeConv, levels = SHADE),
+  CompPlFcst = factor(CompPlFcst, levels = FCST),
+  CapChange = factor(CapChange, levels = DEC),
+  LoLevMoistAd = factor(LoLevMoistAd, levels = LOLEV),
+  InsChange = factor(InsChange, levels = DEC),
+  MountainFcst = factor(MountainFcst, levels = FCST2),
+  Date = factor(Date, levels = DATE),
+  Scenario = factor(Scenario, levels = LETTERS[1:11]),
+  ScenRelAMCIN = factor(ScenRelAMCIN, levels = SCRLAM),
+  MorningCIN = factor(MorningCIN, levels = INHIBIT),
+  AMCINInScen = factor(AMCINInScen, levels = AVE),
+  CapInScen = factor(CapInScen, levels = AVE),
+  ScenRelAMIns = factor(ScenRelAMIns, levels = SAMI),
+  LIfr12ZDENSd = factor(LIfr12ZDENSd, levels = LIFR),
+  AMDewptCalPl = factor(AMDewptCalPl, levels = AMDEW),
+  AMInsWliScen = factor(AMInsWliScen, levels = UNST),
+  InsSclInScen = factor(InsSclInScen, levels = UNST),
+  ScenRel34 = factor(ScenRel34, levels = SC34),
+  LatestCIN = factor(LatestCIN, levels = INHIBIT),
+  LLIW = factor(LLIW, levels = LLEV),
+  CurPropConv = factor(CurPropConv, levels = STRENGTH2),
+  ScnRelPlFcst = factor(ScnRelPlFcst, levels = LETTERS[1:11]),
+  PlainsFcst = factor(PlainsFcst, levels = FCST2),
+  N34StarFcst = factor(N34StarFcst, levels = FCST2),
+  R5Fcst = factor(R5Fcst, levels = FCST2),
+  Dewpoints = factor(Dewpoints, levels = DEWPOINTS),
+  LowLLapse = factor(LowLLapse, levels = LL2),
+  MeanRH = factor(MeanRH, levels = MOIST),
+  MidLLapse = factor(MidLLapse, levels = LL),
+  MvmtFeatures = factor(MvmtFeatures, levels = MVMT),
+  RHRatio = factor(RHRatio, levels = RHRLV),
+  SfcWndShfDis = factor(SfcWndShfDis, levels = WIND),
+  SynForcng = factor(SynForcng, levels = SYN),
+  TempDis = factor(TempDis, levels = TDISLV),
+  WindAloft = factor(WindAloft, levels = WLOFT),
+  WindFieldMt = factor(WindFieldMt, levels = WNDMT),
+  WindFieldPln = factor(WindFieldPln, levels = PLN)
 )

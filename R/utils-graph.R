@@ -80,9 +80,14 @@ mb.fitted = function(x, node) {
 # function returns the number of _independent_ parameters
 # (one parameter of each set is set by the constraint by
 # the condition \sum \pi_{i} = 1).
-nparams.discrete = function(x, data, real = FALSE) {
+nparams.discrete = function(x, data, real = FALSE, debug = FALSE) {
 
-  sapply(nodes(x), nparams.discrete.node, x = x, data = data, real = real)
+  .Call("nparams_dnet",
+        graph = x,
+        data = data,
+        real = real,
+        debug = debug,
+        PACKAGE = "bnlearn")
 
 }#NPARAMS.DISCRETE
 
@@ -92,14 +97,17 @@ nparams.discrete.node = function(node, x, data, real) {
         graph = x,
         node = node,
         data = data,
-        real = as.integer(real),
+        real = real,
         PACKAGE = "bnlearn")
 
 }#NPARAMS.DISCRETE.NODE
 
-nparams.gaussian = function(x) {
+nparams.gaussian = function(x, debug = FALSE) {
 
-  sapply(nodes(x), nparams.gaussian.node, x = x)
+  .Call("nparams_gnet",
+        graph = x,
+        debug = debug,
+        PACKAGE = "bnlearn")
 
 }#NPARAMS.GAUSSIAN
 
@@ -112,22 +120,24 @@ nparams.gaussian.node = function(node, x) {
 
 }#NPARAMS.GAUSSIAN.NODE
 
-nparams.fitted = function(x) {
+nparams.fitted = function(x, debug = FALSE) {
 
   .Call("fitted_nparams",
         bn = x,
+        debug = debug,
         PACKAGE = "bnlearn")
 
 }#NPARAMS.FITTED
 
 # return the skeleton of a graph.
-dag2ug.backend = function(x) {
+dag2ug.backend = function(x, moral = FALSE, debug = FALSE) {
 
   nodes = names(x$nodes)
 
   arcs = .Call("dag2ug", 
-               arcs = x$arcs,
-               nodes = nodes,
+               bn = x,
+               moral = moral,
+               debug = debug,
                PACKAGE = "bnlearn")
 
   # update the arcs of the network.
@@ -163,7 +173,9 @@ pdag2dag.backend = function(x, ordering) {
 }#PDAG2DAG.BACKEND
 
 # reconstruct the equivalence class of a network.
-cpdag.backend = function(x, nodes, debug = FALSE) {
+cpdag.backend = function(x, debug = FALSE) {
+
+  nodes = names(x$nodes)
 
   amat = .Call("cpdag",
                arcs = x$arcs,
@@ -264,3 +276,24 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
 
 }#PERTURB.BACKEND
 
+# structural hamming distance backend
+structural.hamming.distance = function(learned, true, debug = FALSE) {
+
+  .Call("shd",
+        learned = cpdag.backend(learned),
+        golden = cpdag.backend(true),
+        debug = debug,
+        PACKAGE = "bnlearn")
+
+}#STRUCTURAL.HAMMING.DISTANCE
+
+# backend for extracting v-structures from a network.
+vstructures = function(x, arcs, debug = FALSE) {
+
+  .Call("vstructures",
+        x = x,
+        arcs = arcs,
+        debug = debug,
+        PACKAGE = "bnlearn")
+
+}#VSTRUCTURES

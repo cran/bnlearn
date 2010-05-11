@@ -178,8 +178,8 @@ int *degree = NULL, *in_degree = NULL, *out_degree = NULL;
 int *debuglevel = LOGICAL(debug), *cozman = LOGICAL(connected);
 double *max_in = REAL(max_in_degree), *max_out = REAL(max_out_degree),
   *max = REAL(max_degree);
-SEXP list, res, args, argnames, amat, arcs, cached, debug2, null,
-  temp;
+SEXP list, res, args, argnames, amat, arcs, cached, debug2, null, temp;
+char *label = (*cozman > 0) ? "ic-dag" : "melancon";
 
   /* a fake debug argument (set to FALSE) for cache_structure(). */
   PROTECT(debug2 = allocVector(LGLSXP, 1));
@@ -244,7 +244,7 @@ SEXP list, res, args, argnames, amat, arcs, cached, debug2, null,
     if ((*debuglevel > 0) && (changed)) {
 
       PROTECT(null = allocVector(NILSXP, 1));
-      PROTECT(res = bn_base_structure(nodes, args, null, null, 0, "none", "ic-dag"));
+      PROTECT(res = bn_base_structure(nodes, args, null, null, 0, "none", label));
       PROTECT(arcs = amat2arcs(amat, nodes));
       PROTECT(cached = cache_structure(nodes, amat, debug2));
       SET_VECTOR_ELT(res, 1, cached);
@@ -275,7 +275,7 @@ SEXP list, res, args, argnames, amat, arcs, cached, debug2, null,
 
     /* generate the "bn" structure, with dummy NULLs for the "arcs" and
      * "nodes" elements (which will be initialized later on). */
-    PROTECT(res = bn_base_structure(nodes, args, null, null, 0, "none", "ic-dag"));
+    PROTECT(res = bn_base_structure(nodes, args, null, null, 0, "none", label));
 
     for (k = 0; k < *n; k++) {
 
@@ -367,7 +367,7 @@ SEXP list, res, args, argnames, amat, arcs, cached, debug2, null,
     PROTECT(cached = cache_structure(nodes, amat, debug2));
 
     /* generate the "bn" structure. */
-    PROTECT(res = bn_base_structure(nodes, args, arcs, cached, 0, "none", "ic-dag"));
+    PROTECT(res = bn_base_structure(nodes, args, arcs, cached, 0, "none", label));
 
     /* print the model string to allow a sane debugging experience. */
     if (*debuglevel > 0)

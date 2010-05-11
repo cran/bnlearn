@@ -37,7 +37,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
       check.nodes(highlight$nodes, graph = fake.graph)
 
     if ("arcs" %in% names(highlight))
-      highlight$arcs = check.arcs(highlight$arcs, graph = fake.graph)
+      highlight$arcs = check.arcs(highlight$arcs, nodes = nodes)
 
     if ("col" %in% names(highlight))
       check.colour(highlight$col)

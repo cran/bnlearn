@@ -1,11 +1,12 @@
 #include "common.h"
 
 /*
- * Beware: these functions are based on the assumption
- * that each arc is unique in the arc set; otherwise
- * the counter may be wrong, leading to false negatives.
+ *  Beware: this function is based on the assumption that each arc is unique
+ *  in the arc set; otherwise the counter may be wrong, leading to false 
+ *  negatives.
  */
 
+/* determine whether a graph is DAG or a PDAG/UG. */
 SEXP is_dag(SEXP arcs, SEXP nnodes) {
 
 int i = 0, nrows = LENGTH(arcs)/2, n = INT(nnodes);
@@ -48,43 +49,3 @@ SEXP res;
 
 }/*IS_DAG*/
 
-SEXP which_undirected(SEXP arcs) {
-
-int i = 0, nrows = LENGTH(arcs)/2, n = LENGTH(getAttrib(arcs, R_LevelsSymbol));
-short int *checklist = NULL;
-int *res = NULL, *a = INTEGER(arcs);
-SEXP result;
-
-  /* initialize the checklist. */
-  checklist = allocstatus(UPTRI_MATRIX(n));
-
-  /* allocate and dereference the return value. */
-  PROTECT(result = allocVector(LGLSXP, nrows));
-  res = INTEGER(result);
-
-  for (i = 0; i < nrows; i++) {
-
-    checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n)]++;
-
-  }/*FOR*/
-
-  for (i = 0; i < nrows; i++) {
-
-    if (checklist[UPTRI(a[CMC(i, 0, nrows)], a[CMC(i, 1, nrows)], n)] == 1) {
-
-      res[i] = FALSE;
-
-    }/*THEN*/
-    else {
-
-      res[i] = TRUE;
-
-    }/*ELSE*/
-
-  }/*FOR*/
-
-  UNPROTECT(1);
-
-  return result;
-
-}/*WHICH_UNDIRECTED*/

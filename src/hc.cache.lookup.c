@@ -405,7 +405,7 @@ SEXP hc_to_be_added(SEXP arcs, SEXP blacklist, SEXP whitelist, SEXP nodes,
 int i = 0, j = 0, narcs = 0, dims = LENGTH(nodes);
 int *a = NULL, *coords = NULL;
 short int duplicated = 0;
-SEXP try, result, result2;
+SEXP try, result = R_NilValue, result2;
 
   /* transform the arc set into an adjacency matrix, if it's not one already. */
   if (isInteger(arcs)) {

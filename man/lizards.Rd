@@ -74,7 +74,7 @@ table(lizards[, c(3,2,1)])
 attach(lizards)
 ci.test(Height, Diameter, Species, test = "mi")
 #
-# 	mutual information (discrete)
+# 	Mutual Information (discrete)
 #
 # data:  Height ~ Diameter | Species
 # mi = 2.0256, df = 2, p-value = 0.3632

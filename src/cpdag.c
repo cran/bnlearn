@@ -308,3 +308,117 @@ static void renormalize_amat(int *a, int *nnodes) {
     a[i] = (a[i] > 1) ? 1 : a[i];
 
 }/*RENORMALIZE_AMAT*/
+
+SEXP vstructures(SEXP bn, SEXP arcs, SEXP debug) {
+
+int *return_arcs = LOGICAL(arcs), *debuglevel = LOGICAL(debug), *nparents = NULL;
+int i = 0, j = 0, k = 0, row = 0, nnodes = 0, nvstructs = 0;
+SEXP nodes, node_data, parents, result, dimnames, colnames;
+
+  /* get the nodes' data. */
+  node_data = getListElement(bn, "nodes");
+  nnodes = LENGTH(node_data);
+  nodes = getAttrib(node_data, R_NamesSymbol);
+
+  /* allocate and initialize the parents' counters. */
+  nparents = alloc1dcont(nnodes);
+
+  /* count the v-structures. */
+  for (i = 0; i < nnodes; i++) {
+
+    /* get the parents of the nodes. */
+    parents = getListElement(VECTOR_ELT(node_data, i), "parents");
+    nparents[i] = LENGTH(parents);
+
+    if (*debuglevel > 0)
+      Rprintf("* %d parents found for %s, implying %d v-structure(s).\n",
+        nparents[i], NODE(i), nparents[i] * (nparents[i] - 1) / 2);
+
+    /* count how many v-structures are centered on this node, or how many
+     * arcs they involve. */
+    if (*return_arcs > 0) 
+      nvstructs += nparents[i] * (nparents[i] > 1);
+    else
+      nvstructs += nparents[i] * (nparents[i] - 1) / 2;
+
+  }/*FOR*/
+
+  if (*debuglevel > 0)
+    Rprintf("* %d v-structures present in the network.\n", nvstructs);
+
+  /* allocate and initialize the return value. */
+  if (*return_arcs > 0) {
+
+    PROTECT(result = allocMatrix(STRSXP, nvstructs, 2));
+
+    /* allocate the colnames. */
+    PROTECT(dimnames = allocVector(VECSXP, 2));
+    PROTECT(colnames = allocVector(STRSXP, 2));
+    SET_STRING_ELT(colnames, 0, mkChar("from"));
+    SET_STRING_ELT(colnames, 1, mkChar("to"));
+
+    for (i = 0; i < nnodes; i++) {
+
+      /* at least two parents are needed for a v-structure to exist. */
+      if (nparents[i] < 2)
+        continue;
+
+      parents = getListElement(VECTOR_ELT(node_data, i), "parents");
+
+      for (j = 0; j < nparents[i]; j++) {
+
+        SET_STRING_ELT(result, CMC(row, 0, nvstructs), STRING_ELT(parents, j));
+        SET_STRING_ELT(result, CMC(row, 1, nvstructs), STRING_ELT(nodes, i));
+        row++;
+
+      }/*FOR*/
+
+    }/*FOR*/
+
+  }/*THEN*/
+  else {
+
+    PROTECT(result = allocMatrix(STRSXP, nvstructs, 3));
+
+    /* allocate the colnames. */
+    PROTECT(dimnames = allocVector(VECSXP, 2));
+    PROTECT(colnames = allocVector(STRSXP, 3));
+    SET_STRING_ELT(colnames, 0, mkChar("X"));
+    SET_STRING_ELT(colnames, 1, mkChar("Z"));
+    SET_STRING_ELT(colnames, 2, mkChar("Y"));
+
+    for (i = 0; i < nnodes; i++) {
+
+      /* at least two parents are needed for a v-structure to exist. */
+      if (nparents[i] < 2)
+        continue;
+
+      parents = getListElement(VECTOR_ELT(node_data, i), "parents");
+
+      for (j = 0; j < nparents[i]; j++) {
+
+        for (k = j + 1; k < nparents[i]; k++) {
+
+          SET_STRING_ELT(result, CMC(row, 0, nvstructs), STRING_ELT(parents, j));
+          SET_STRING_ELT(result, CMC(row, 1, nvstructs), STRING_ELT(nodes, i));
+          SET_STRING_ELT(result, CMC(row, 2, nvstructs), STRING_ELT(parents, k));
+
+          row++;
+
+        }/*FOR*/
+
+      }/*FOR*/
+
+    }/*FOR*/
+
+  }/*ELSE*/
+
+  /* set the column names. */
+  SET_VECTOR_ELT(dimnames, 1, colnames);
+  setAttrib(result, R_DimNamesSymbol, dimnames);
+
+  UNPROTECT(3);
+
+  return result;
+
+}/*VSTRUCTURES*/

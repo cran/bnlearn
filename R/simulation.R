@@ -20,102 +20,66 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
   to.do = schedule(x)
   result = list()
 
+  if (class(x) == "bn")
+    fitted = bn.fit.backend(x, data, debug = FALSE)
+  else
+    fitted = x
+
   if (debug)
     cat("* partial node ordering is:", to.do, "\n")
 
   for (node in to.do) {
 
-    node.parents = x$nodes[[node]]$parents
-    node.levels = levels(data[, node])
+    node.parents = fitted[[node]]$parents
+    node.levels = labels(fitted[[node]]$prob)[[1]]
+    prob = fitted[[node]]$prob
 
     if (debug)
       cat("* simulating node", node, "with parents '", node.parents, "'.\n")
 
     if (length(node.parents) == 0) {
 
-      prob = table(data[, node])/length(data[, node])
       result[[node]] = factor(x = sample(node.levels, n,
           replace = TRUE, prob = prob), levels = node.levels)
 
     }#THEN
     else {
 
-      # build an array with the configurations of the simulated data.
-      # if there is only a single parents, use it as is.
+      # if there is only a single parent, use it as is.
       if (length(node.parents) == 1)
         config2 = result[[node.parents]]
       else
         config2 = configurations(as.data.frame(result)[, node.parents])
 
-      # build a table of the original data to compute the conditional
-      # probabilities for each configuration of the parents.
-      # if there is only a single parent, use it as it is.
-      if (length(node.parents) == 1)
-        config = data[, node.parents]
-      else
-        config = configurations(data[, node.parents])
+      # get the contingency table of the node against the configurations
+      # of its parents.
+      tab = collapse.table(fitted[[node]]$prob)
 
-      # add the configurations present in the generated data to the ones
-      # observed in the original data; otherwise there might be a column
-      # mismatch in the sapply call below.
-      levels(config) = union(levels(config), levels(config2))
-
-      # generate the contingency table of the node against the
-      # configurations of its parents.
-      tab = table(data = data[, node], cfg = config)
-
-      # if there are configurations in the generated data which were
-      # not observed in the original data; notify the user and print
-      # a human readable comparison when in debug mode.
-      generated.configurations = as.character(unique(config2))
-      observed.configurations = as.character(unique(config))
-
-      if (!all(generated.configurations %in% observed.configurations)) {
-
-        if (debug) {
-
-          # generate a human readable version of the two sets of configurations
-          # for the debugging output.
-          obc = unique(apply(data[, node.parents], 1, paste, sep = "",
-                     collapse = ":"))
-          gnc = unique(apply(as.data.frame(result)[, node.parents], 1,
-                     paste, sep = "", collapse = ":"))
-
-          cat("  > observed configurations of the parents:\n")
-          print(sort(obc))
-          cat("  > configurations present in the generated data:\n")
-          print(sort(gnc))
-          cat("  > configurations not present in the original data:\n")
-          print(sort(union( setdiff(obc, gnc), setdiff(gnc, obc))))
-
-        }#THEN
-
-        warning(paste("some configurations of the parents of", node,
-          "are not present in the original data. NA's may be generated.",
-           collpase = "", sep = " "))
-
-      }#THEN
-
-      # initialize the vector to hold the generated data.
+      # initialize the vectors to hold the generated data and the subset identifier.
       temp.gen = character(n)
+      to.be.generated = logical(n)
       char.configurations = as.character(config2)
 
-      # generate each value according to its parents' configuration.
-      for (cfg in generated.configurations) {
+      # generate each value according to the right configuration. Iterate on
+      # the latter to achieve a reasonable speed.
+      for (cfg in unique(config2)) {
 
         to.be.generated = (char.configurations == cfg)
 
-        if (sum(tab[, cfg]) != 0) {
+        if (all(!is.nan(tab[, cfg]))) {
 
-          temp.gen[to.be.generated] = sample(node.levels,
-             length(which(to.be.generated)), replace = TRUE,
-             prob = tab[, cfg]/sum(tab[, cfg]))
+          temp.gen[to.be.generated] = sample(node.levels, length(which(to.be.generated)), 
+             replace = TRUE, prob = tab[, cfg])
 
         }#THEN
         else {
 
-          # the probability distribution in this case is unknown;
-          # generate a missing value (NA).
+          warning(paste("some configurations of the parents of", node,
+            "are not present in the original data. NAs will be generated.",
+            collpase = "", sep = " "))
+
+          # the conditional probability distribution in this case is unknown;
+          # generate a missing value (NA) insted of gthrowing an error.
           temp.gen[to.be.generated] = NA
 
         }#ELSE
@@ -139,22 +103,26 @@ rbn.continuous = function(x, n, data, debug = FALSE) {
   to.do = schedule(x)
   result = list()
 
-  intercept = rep(1, nrow(data))
+  if (class(x) == "bn")
+    fitted = bn.fit.backend(x, data, debug = FALSE)
+  else
+    fitted = x
 
   if (debug)
     cat("* partial node ordering is:", to.do, "\n")
 
   for (node in to.do) {
 
-    node.parents = x$nodes[[node]]$parents
+    node.parents = fitted[[node]]$parents
 
     if (debug) 
       cat("* simulating node", node, "with parents '", node.parents, "'.\n")
 
     if (length(node.parents) == 0) {
 
-      mean = mean(data[, node])
-      sd = sd(data[, node])
+      # extract the mean and the standard deviation.
+      mean = fitted[[node]]$coefficients
+      sd = fitted[[node]]$sd
 
       if (debug)
         cat("  > node", node, "has mean", mean, "and standard deviation", sd, ".\n")
@@ -164,16 +132,13 @@ rbn.continuous = function(x, n, data, debug = FALSE) {
     }#THEN
     else {
 
-      # compute the regression coefficient and the standard deviation of
-      # the residuals with a QR decomposition.
-      qr.x = qr(cbind(intercept, data[, node.parents]))
-      coefs = qr.coef(qr.x, data[, node])
-      rsd = sd(qr.resid(qr.x, data[, node]))
+      # extract the regression coefficients and the standard deviation.
+      coefs = fitted[[node]]$coefficients
+      rsd = fitted[[node]]$sd
 
       # compute the predicted values for the data previously generated for
       # the parents of this node.
-      names(coefs) = c("intercept", node.parents)
-      mean = rep(coefs["intercept"], n)
+      mean = rep(coefs["(Intercept)"], n)
       for (parent in node.parents)
         mean = mean + result[[parent]] * coefs[parent]
 
@@ -185,7 +150,7 @@ rbn.continuous = function(x, n, data, debug = FALSE) {
         cat("  > node", node, "is fitted as\n   ", f, "\n")
         cat("  > residual standard deviation is", rsd, ".\n")
 
-      }
+      }#THEN
 
       # add the gaussian noise, and be done.
       result[[node]] = mean + rnorm(n, 0, rsd)
@@ -194,6 +159,6 @@ rbn.continuous = function(x, n, data, debug = FALSE) {
 
   }#FOR
 
-  as.data.frame(result)[, nodes(x)]
+  as.data.frame(result)[, names(fitted)]
 
 }#RBN.CONTINUOUS

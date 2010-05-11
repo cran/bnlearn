@@ -78,7 +78,7 @@ bn.var(z, method = "tvar")
 #    1.29060    0.34416
 bn.var.test(z, method = "nvar")
 #
-# 	squared Frobenius norm
+# 	Squared Frobenius Norm
 #
 # data:  covariance matrix
 # nvar = 0.5471, B = 5000, R = 100, p-value < 2.2e-16

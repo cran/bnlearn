@@ -46,7 +46,7 @@ int i = 0, j = 0;
 SEXP unique(SEXP array) {
 
 int *d = NULL, i = 0, k = 0, dup_counter = 0, n = LENGTH(array);
-SEXP dup, result;
+SEXP dup, result = R_NilValue;
 
   PROTECT(dup = duplicated(array, FALSE));
   d = LOGICAL(dup);
@@ -58,7 +58,6 @@ SEXP dup, result;
   switch(TYPEOF(array)) {
 
     case INTSXP:
-    default:
 
       PROTECT(result = allocVector(INTSXP, dup_counter));
       int *res = INTEGER(result), *a = INTEGER(array);
@@ -69,6 +68,20 @@ SEXP dup, result;
 
       break;
 
+    case STRSXP:
+
+      PROTECT(result = allocVector(STRSXP, dup_counter));
+
+      for (i = 0; i < n; i++)
+        if (d[i] == 0)
+          SET_STRING_ELT(result, k++, STRING_ELT(array, i));
+
+      break;
+
+    default:
+
+      error("this SEXP type is no handled in unique().");
+
   }/*SWITCH*/
 
   UNPROTECT(2);
@@ -76,6 +89,27 @@ SEXP dup, result;
   return result;
 
 }/*UNIQUE*/
+
+/* determine which elements are dupes. */
+SEXP dupe(SEXP array) {
+
+int i = 0, n = LENGTH(array);
+int *res = NULL, *tmp = NULL;
+SEXP result, temp;  
+
+  PROTECT(result = duplicated(array, FALSE));
+  PROTECT(temp = duplicated(array, TRUE));
+  res = LOGICAL(result);
+  tmp = LOGICAL(temp);
+
+  for (i = 0; i < n; i++)
+    res[i] = res[i] || tmp[i];
+
+  UNPROTECT(2);
+
+  return result;
+
+}/*DUPE*/
 
 /* transform an integer vector into a factor. */
 SEXP int2fac(SEXP vector) {

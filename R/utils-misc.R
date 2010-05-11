@@ -89,6 +89,14 @@ configurations = function(data) {
 
 }#CONFIGURATIONS
 
+collapse.table = function(tab) {
+
+  .Call("collapse_table",
+        table = tab,
+        PACKAGE = "bnlearn")
+
+}#COLLAPSE.TABLE
+
 # rbind-like function for arc sets.
 arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
 

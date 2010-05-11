@@ -21,7 +21,7 @@ arcs = function(x) {
   if (missing(value))
     stop("no arc specified.")
   # sanitize the set of arcs.
-  value = check.arcs(value, graph = x)
+  value = check.arcs(value, nodes = names(x$nodes))
   # check whether the the graph is acyclic.
   if (!ignore.cycles)
     if (!is.acyclic(nodes = names(x$nodes), arcs = value, debug = debug))
@@ -43,7 +43,7 @@ directed.arcs = function(x) {
   check.bn.or.fit(x)
 
   if (class(x) == "bn")
-    x$arcs[which.directed(x$arcs), , drop = FALSE]
+    x$arcs[which.directed(x$arcs, names(x$nodes)), , drop = FALSE]
   else
     fit2arcs(x)
 
@@ -56,7 +56,7 @@ undirected.arcs = function(x) {
   check.bn.or.fit(x)
 
   if (class(x) == "bn")
-    x$arcs[which.undirected(x$arcs), , drop = FALSE]
+    x$arcs[which.undirected(x$arcs, names(x$nodes)), , drop = FALSE]
   else
     matrix(character(0), nrow = 0, ncol = 2, 
       dimnames = list(NULL, c("from", "to")))

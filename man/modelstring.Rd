@@ -62,8 +62,8 @@ res
 #   average neighbourhood size:            1.67
 #   average branching factor:              0.83
 #
-#   learning algorithm:                    grow-shrink
-#   conditional independence test:         mutual information (discrete)
+#   learning algorithm:                    Grow-Shrink
+#   conditional independence test:         Mutual Information (discrete)
 #   alpha threshold:                       0.05
 #   tests used in the learning procedure:  43
 #
@@ -84,7 +84,7 @@ res2
 #   average neighbourhood size:            1.67
 #   average branching factor:              0.83
 #
-#   generation algorithm:                  empty
+#   generation algorithm:                  Empty
 #
 compare(res, res2)
 # [1] TRUE
