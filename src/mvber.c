@@ -165,7 +165,7 @@ SEXP try;
         UPTRI3(coords[k], coords[k + narcs], nnodes));
 
     }/*FOR*/
- 
+
   }/*THEN*/
 
   /* unprotect coords, it's no longer needed. */

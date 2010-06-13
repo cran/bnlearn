@@ -14,7 +14,7 @@ SEXP nodes_data, nodes, try, children, ordering;
     nodes_data = bn;
 
   /* get and count the node labels. */
-  nodes = getAttrib(nodes_data, R_NamesSymbol); 
+  nodes = getAttrib(nodes_data, R_NamesSymbol);
   nnodes = LENGTH(nodes);
 
   /* allocate a status vector to trak the ordering of the nodes. */
@@ -70,7 +70,7 @@ SEXP nodes_data, nodes, try, children, ordering;
       for (j = 0; j < LENGTH(try); j++) {
 
         if (*debuglevel > 0)
-          Rprintf("  > got node %s, parent is %s.\n", 
+          Rprintf("  > got node %s, parent is %s.\n",
             NODE(matched[j] - 1), NODE(i));
 
         depth[matched[j] - 1] = d + 1;
@@ -90,7 +90,7 @@ SEXP nodes_data, nodes, try, children, ordering;
     Rprintf("* all nodes have been scheduled.\n");
 
   /* add the node labels to the return value. */
-  setAttrib(ordering, R_NamesSymbol, nodes);  
+  setAttrib(ordering, R_NamesSymbol, nodes);
 
   UNPROTECT(1);
 

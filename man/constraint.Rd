@@ -4,7 +4,7 @@
 \alias{iamb}
 \alias{fast.iamb}
 \alias{inter.iamb}
-\title{ Constraint-based learning algorithms }
+\title{ Constraint-based structure learning algorithms }
 \description{
 
   Learn the equivalence class of a directed acyclic graph (DAG)
@@ -29,7 +29,7 @@ inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   optimized = TRUE, strict = FALSE, undirected = FALSE)
 }
 \arguments{
-  \item{x}{a data frame, containing the variables in the model.}
+  \item{x}{a data frame containing the variables in the model.}
   \item{cluster}{an optional cluster object from package \pkg{snow}.
       See \code{\link{snow integration}} for details and a simple
       example.}

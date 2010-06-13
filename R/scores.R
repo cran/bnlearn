@@ -64,7 +64,7 @@ per.node.score = function(network, data, score, nodes, extra.args,
 
 }#PER.NODE.SCORE
 
-# compute the loglikelihood of single node of a discrete bayesian network.
+# compute the loglikelihood of single node of a continuous bayesian network.
 gloglik.node = function(node, x, data, debug = FALSE) {
 
   if (debug) {
@@ -76,21 +76,21 @@ gloglik.node = function(node, x, data, debug = FALSE) {
 
   # get the parents of the node.
   node.parents = x$nodes[[node]]$parents
+  # extract the node's column from the data frame.
+  datax = minimal.data.frame.column(data, node)
 
   if (length(node.parents) == 0) {
 
-    res = sum(dnorm(data[, node], mean = mean(data[, node]),
-                sd = sd(data[, node]), log = TRUE))
+    res = sum(dnorm(datax, mean = mean(datax), sd = sd(datax), log = TRUE))
 
   }#THEN
   else {
 
-    intercept = rep(1, nrow(data))
-    qr.x = qr(cbind(intercept, data[, node.parents]))
-    fitted = qr.fitted(qr.x, data[, node])
-    sd = sd(qr.resid(qr.x, data[, node]))
+    qr.x = qr(minimal.qr.matrix(data, node.parents))
+    fitted = qr.fitted(qr.x, datax)
+    sd = sd(qr.resid(qr.x, datax))
 
-    res = sum(dnorm(data[, node], mean = fitted, sd = sd, log = TRUE))
+    res = sum(dnorm(datax, mean = fitted, sd = sd, log = TRUE))
 
   }#ELSE
 
@@ -126,14 +126,16 @@ loglik.node = function(node, x, data, debug = FALSE) {
   node.parents = x$nodes[[node]]$parents
   # cache the sample size.
   ndata = nrow(data)
+  # extract the node's column from the data frame.
+  datax = minimal.data.frame.column(data, node)
 
   # this node is a root node.
   if (length(node.parents) == 0) {
 
     node.loglik = .Call("dlik",
-       x = data[, node],
-       lx = nlevels(data[, node]),
-       length = nrow(data),
+       x = datax,
+       lx = nlevels(datax),
+       length = ndata,
        PACKAGE = "bnlearn")
 
   }#THEN
@@ -142,16 +144,16 @@ loglik.node = function(node, x, data, debug = FALSE) {
 
     # if there is only one parent, get it easy.
     if (length(node.parents) == 1)
-      config = data[, node.parents]
+      config = minimal.data.frame.column(data, node.parents)
     else
-      config = configurations(data[,node.parents])
+      config = configurations(minimal.data.frame.column(data, node.parents))
 
     node.loglik = .Call("cdlik",
-       x = data[, node],
+       x = datax,
        y = config,
-       lx = nlevels(data[, node]),
+       lx = nlevels(datax),
        ly = nlevels(config),
-       length = nrow(data),
+       length = ndata,
        PACKAGE = "bnlearn")
 
   }#ELSE
@@ -184,13 +186,16 @@ dirichlet.node = function(node, x, data, imaginary.sample.size = NULL, debug = F
 
   }#THEN
 
+  # get the parents of the node.
   node.parents = x$nodes[[node]]$parents
+  # extract the node's column from the data frame.
+  datax = minimal.data.frame.column(data, node)
 
   if (length(node.parents) == 0) {
 
     dirichlet = .Call("dpost",
-       x = data[, node],
-       lx = nlevels(data[, node]),
+       x = datax,
+       lx = nlevels(datax),
        length = nrow(data),
        iss = imaginary.sample.size,
        debug = debug,
@@ -201,16 +206,16 @@ dirichlet.node = function(node, x, data, imaginary.sample.size = NULL, debug = F
 
     # if there is only one parent, get it easy.
     if (length(node.parents) == 1)
-      config = data[, node.parents]
+      config = minimal.data.frame.column(data, node.parents)
     else
-      config = configurations(data[, node.parents])
+      config = configurations(minimal.data.frame.column(data, node.parents))
 
     node.params = nparams.discrete.node(node, x, data, real = FALSE)
 
     dirichlet = .Call("cdpost",
-       x = data[, node],
+       x = datax,
        y = config,
-       lx = nlevels(data[, node]),
+       lx = nlevels(datax),
        ly = nlevels(config),
        length = nrow(data),
        iss = imaginary.sample.size,

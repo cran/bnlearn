@@ -126,7 +126,7 @@ SEXP result, nodes = R_NilValue, temp = getListElement(graph, "nodes");
   res = INTEGER(result);
   res[0] = 0;
 
-  if (*debuglevel > 0) 
+  if (*debuglevel > 0)
     nodes = getAttrib(temp, R_NamesSymbol);
 
   /* add one parameter for each regressor, which means one for each

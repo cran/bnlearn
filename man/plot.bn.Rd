@@ -3,7 +3,7 @@
 \title{ Plot a Bayesian network }
 \description{
 
-  Plot the graph associated with a Bayesian network.
+  Plot the graph associated with a small Bayesian network.
 
 }
 \usage{
@@ -48,5 +48,6 @@ par(oma = rep(0, 4), mar = rep(0, 4), mai = rep(0, 4),
   plt = c(0.06, 0.94, 0.12, 0.88))
 plot(res)
 }
+\seealso{\code{\link{graphviz.plot}}.}
 \author{ Marco Scutari }
 \keyword{hplot}

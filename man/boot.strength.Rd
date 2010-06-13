@@ -12,7 +12,7 @@ boot.strength(data, R = 200, m = nrow(data),
   algorithm, algorithm.args = list(), debug = FALSE)
 }
 \arguments{
-  \item{data}{a data frame, containing the variables in the model.}
+  \item{data}{a data frame containing the variables in the model.}
   \item{R}{a positive integer, the number of bootstrap replicates.}
   \item{m}{a positive integer, the size of each bootstrap replicate.}
   \item{algorithm}{a character string, the learning algorithm to be
@@ -50,6 +50,6 @@ boot.strength(data, R = 200, m = nrow(data),
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{arc.strength}}, \code{\link{bnboot}}. }
+\seealso{\code{\link{arc.strength}}, \code{\link{bn.boot}}. }
 \keyword{nonparametric}
 \keyword{multivariate}

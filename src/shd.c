@@ -8,17 +8,17 @@ int *lrn = NULL, *ref = NULL, *shd = NULL, *debuglevel = LOGICAL(debug);
 
   /* get the labels of the nodes. */
   temp = getListElement(learned, "nodes");
-  nodes = getAttrib(temp, R_NamesSymbol); 
+  nodes = getAttrib(temp, R_NamesSymbol);
   nnodes = LENGTH(nodes);
 
   /* get the arcs of the learned network. */
-  temp = getListElement(learned, "arcs"); 
+  temp = getListElement(learned, "arcs");
   /* build the adjacency matrix. */
   PROTECT(l = arcs2amat(temp, nodes));
   lrn = INTEGER(l);
 
   /* get the arcs of the learned network. */
-  temp = getListElement(golden, "arcs"); 
+  temp = getListElement(golden, "arcs");
   /* build the adjacency matrix. */
   PROTECT(r = arcs2amat(temp, nodes));
   ref = INTEGER(r);

@@ -1,6 +1,6 @@
 
 # generic frontend to {non,}parametric bootstrap.
-bnboot = function(data, statistic, R = 200, m = nrow(data),
+bn.boot = function(data, statistic, R = 200, m = nrow(data),
     sim = "ordinary", algorithm, algorithm.args = list(),
     statistic.args = list(), debug = FALSE) {
 
@@ -31,6 +31,7 @@ bnboot = function(data, statistic, R = 200, m = nrow(data),
 
 }#BNBOOT
 
+# compute arcs' strength via nonparametric bootstrap.
 boot.strength = function(data, R = 200, m = nrow(data),
     algorithm, algorithm.args = list(), debug = FALSE) {
 
@@ -52,3 +53,63 @@ boot.strength = function(data, R = 200, m = nrow(data),
 
 }#BOOT.STRENGTH
 
+# perform cross-validation.
+bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
+    loss.args = list(), fit = "mle", fit.args = list(), debug = FALSE) {
+
+  # check the data are there.
+  check.data(data)
+
+  n = nrow(data)
+  nodes = names(data)
+
+  # check the number of splits.
+  if (!is.positive.integer(k))
+    stop("the number of splits must be a positive integer number.")
+  if (k == 1)
+    stop("the number of splits must be at least 2.")
+  if (n < k)
+    stop("insufficient sample size for ", k, " subsets.")
+
+  # check the loss function.
+  loss = check.loss(loss, data)
+  # check the extra arguments passed down to the loss function.
+  loss.args = check.loss.args(loss, nodes, loss.args)
+  # check the fitting method (maximum likelihood, bayesian, etc.)
+  check.fitting.method(fit, data)
+
+  if (is.character(bn)) {
+
+    # check the learning algorithm.
+    check.learning.algorithm(bn)
+    # check whether it does return a DAG or not.
+    if (!(bn %in% always.dag.result))
+      stop(paste("this learning algorithm may result in a partially",
+             "directed dag, which is not handled by parametric bootstrap."))
+    # check the extra arguments for the learning algorithm.
+    algorithm.args = check.learning.algorithm.args(algorithm.args)
+
+  }#THEN
+  else if (class(bn) == "bn") {
+
+    if (!identical(algorithm.args, list()))
+      warning("no learning algorithm is used, so 'algorithm.args' will be ignored.")
+    # check whether the data agree with the bayesian network.
+    check.bn.vs.data(bn, data)
+    # no parameters if the network structure is only partially directed.
+    if (is.pdag(bn$arcs, nodes))
+      stop("the graph is only partially directed.")
+
+  }#THEN
+  else {
+
+    stop("bn must be the either label of a learning algorithm or a bn object.")
+
+  }#ELSE
+
+  crossvalidation(data = data, bn = bn, loss = loss, k = k, 
+    algorithm.args = algorithm.args, loss.args = loss.args,
+    fit = fit, fit.args = fit.args, debug = debug)
+
+
+}#BN.CV

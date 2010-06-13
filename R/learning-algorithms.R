@@ -222,7 +222,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 # Parameter sanitization for score-based learning algorithms.
 greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
-    score = "aic", heuristic = "hc", ..., misc.args = list(), 
+    score = "aic", heuristic = "hc", ..., misc.args = list(),
     optimized = FALSE, debug = FALSE) {
 
   # check the data are there.
@@ -318,7 +318,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
     res = tabu.search(x = x, start = start, whitelist = whitelist,
       blacklist = blacklist, score = score, extra.args = extra.args,
-      max.iter = max.iter, optimized = optimized, tabu = tabu, 
+      max.iter = max.iter, optimized = optimized, tabu = tabu,
       debug = debug)
 
   }#THEN
@@ -378,11 +378,11 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL, restrict = "mmpc
           optimized = optimized, debug = debug)
 
   # set the metadata of the network in one stroke.
-  res$learning = list(whitelist = rst$learning$whitelist, 
-    blacklist = rst$learning$blacklist, test = res$learning$test, 
-    ntests = res$learning$ntests + ntests, algo = method, 
+  res$learning = list(whitelist = rst$learning$whitelist,
+    blacklist = rst$learning$blacklist, test = res$learning$test,
+    ntests = res$learning$ntests + ntests, algo = method,
     args = c(res$learning$args, rst$learning$args), optimized = optimized,
-    restrict = restrict, rstest = rst$learning$test, maximize = maximize, 
+    restrict = restrict, rstest = rst$learning$test, maximize = maximize,
     maxscore = res$learning$test)
 
   invisible(res)

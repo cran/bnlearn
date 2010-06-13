@@ -72,12 +72,12 @@ hc = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
 # TABU list greedy search frontend.
 tabu = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
-    score = NULL, ..., debug = FALSE, tabu = 10, max.tabu = tabu, 
+    score = NULL, ..., debug = FALSE, tabu = 10, max.tabu = tabu,
     max.iter = Inf, optimized = TRUE) {
 
   greedy.search(x = x, start = start, whitelist = whitelist,
     blacklist = blacklist, score = score, heuristic = "tabu", ...,
-    debug = debug, misc.args = list(max.iter = max.iter, tabu = tabu, 
+    debug = debug, misc.args = list(max.iter = max.iter, tabu = tabu,
     max.tabu = max.tabu), optimized = optimized)
 
 }#TABU
@@ -85,7 +85,7 @@ tabu = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 # Generic Restricted Maximization frontend.
 rsmax2 = function(x, whitelist = NULL, blacklist = NULL, restrict = "gs",
     maximize = "hc", test = NULL, score = NULL, alpha = 0.05, B = NULL,
-    ..., maximize.args = list(), optimized = TRUE, strict = FALSE, 
+    ..., maximize.args = list(), optimized = TRUE, strict = FALSE,
     debug = FALSE) {
 
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
@@ -104,7 +104,7 @@ mmhc = function(x, whitelist = NULL, blacklist = NULL, test = NULL,
 
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
     restrict = "mmpc", maximize = "hc", test = test, score = score,
-    alpha = alpha, B = B, ..., maximize.args = max.args, 
+    alpha = alpha, B = B, ..., maximize.args = max.args,
     optimized = optimized, strict = strict,
     debug = debug)
 

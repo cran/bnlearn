@@ -82,7 +82,7 @@ SEXP node_data, current, nodes, dimnames, colnames, result, temp;
 
         Rprintf("* scanning node %s, found %d neighbours and %d parents.\n",
           NODE(i), nnbr[i], nparents[i]);
-        Rprintf("  > adding %d arcs, for a total of %d.\n", 
+        Rprintf("  > adding %d arcs, for a total of %d.\n",
           nnbr[i] + nparents[i] * (nparents[i] - 1), narcs);
 
       }/*THEN*/
@@ -93,7 +93,7 @@ SEXP node_data, current, nodes, dimnames, colnames, result, temp;
 
       }/*ELSE*/
 
-    }/*THEN*/   
+    }/*THEN*/
 
   }/*FOR*/
 

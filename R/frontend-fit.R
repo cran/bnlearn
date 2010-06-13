@@ -1,6 +1,6 @@
 
 # fit the parameters of the bayesian network for a given network stucture.
-bn.fit = function(x, data, debug = FALSE) {
+bn.fit = function(x, data, method = "mle", ..., debug = FALSE) {
 
   # check x's class.
   check.bn(x)
@@ -9,8 +9,13 @@ bn.fit = function(x, data, debug = FALSE) {
   # no parameters if the network structure is only partially directed.
   if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
+  # check the fitting method (maximum likelihood, bayesian, etc.)
+  check.fitting.method(method, data)
+  # check the extra arguments.
+  extra.args = check.fitting.args(method, x, data, list(...)) 
 
-  bn.fit.backend(x = x, data = data, debug = debug)
+  bn.fit.backend(x = x, data = data, method = method, extra.args = extra.args,
+    debug = debug)
 
 }#BN.FIT
 
@@ -20,7 +25,7 @@ residuals.bn.fit = function(object, ...) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  if (class(object[[1]]) == "bn.fit.dnode")
+  if (is.fitted.discrete(object))
     stop("residuals are not defined for discrete bayesian networks.")
 
   lapply(object, "[[", "residuals")
@@ -50,7 +55,7 @@ residuals.bn.fit.dnode = function(object, ...) {
 # extract fitted values for continuous bayesian networks.
 fitted.bn.fit = function(object, ...) {
 
-  if (class(object[[1]]) == "bn.fit.dnode")
+  if (is.fitted.discrete(object))
     stop("fitted values are not defined for discrete bayesian networks.")
 
   # warn about unused arguments.
@@ -103,7 +108,101 @@ coef.bn.fit.gnode = function(object, ...) {
 # extract probabilities from discrete nodes.
 coef.bn.fit.dnode = function(object, ...) {
 
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
   object$prob
 
 }#COEF.BN.FIT.DNODE
+
+# estimate the predicted values for a particular node.
+predict.bn.fit = function(object, node, data, ...) {
+
+  # check the data are there.
+  check.data(data)
+  # a valid node is needed.
+  check.nodes(nodes = node, graph = object, max.nodes = 1)
+  # check the fitted model.
+  check.fit.vs.data(fitted = object, data = data)
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  if (is.fitted.discrete(object))
+    discrete.prediction(node = node, fitted = object, data = data)
+  else
+    gaussian.prediction(node = node, fitted = object, data = data)
+
+}#PREDICT.BN.FIT
+
+# estimate the predicted values for a gaussian node.
+predict.bn.fit.gnode = function(object, data, ...) {
+
+  nodes = names(data)
+  target = object$node
+
+  # check the data are there.
+  check.data(data)
+  # a valid node is needed.
+  check.nodes(nodes = target, graph = nodes, max.nodes = 1)
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  # create a dummy bn.fit object to pass to gaussian.prediction().
+  dummy = vector(length(nodes), mode = "list")
+  names(dummy) = nodes
+  dummy[[target]] = object
+  # compute the predicted values.
+  gaussian.prediction(node = target, fitted = dummy, data = data)
+
+}#PREDICT.BN.FIT.GNODE
+
+# estimate the predicted values for a discrete node.
+predict.bn.fit.dnode = function(object, data, ...) {
+
+  # check the data are there.
+  check.data(data)
+  # a valid node is needed.
+  check.nodes(nodes = target, graph = nodes, max.nodes = 1)
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  nodes = names(data)
+  target = object$node
+
+  # create a dummy bn.fit object to pass to discrete.prediction().
+  dummy = vector(length(nodes), mode = "list")
+  names(dummy) = nodes
+  dummy[[target]] = object
+  # compute the predicted values.
+  discrete.prediction(node = target, fitted = dummy, data = data)
+
+}#PREDICT.BN.FIT.DNODE
+
+# logLik method for class 'bn.fit'.
+logLik.bn.fit = function(object, data, ...) {
+
+  # check the data are there.
+  check.data(data)
+  # check the fitted model.
+  check.fit.vs.data(fitted = object, data = data)
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  nodes = names(object)
+  ndata = nrow(data)
+
+  # parameter sanitization done in the score() function.
+  if (is.data.discrete(data))
+    - ndata * discrete.loss(nodes = nodes, fitted = object, data = data)
+  else
+    - ndata * gaussian.loss(nodes = nodes, fitted = object, data = data)
+
+}#LOGLIK.BN.FIT
+
+# AIC method for class 'bn.fit'.
+AIC.bn.fit = function(object, data, ..., k = 1) {
+
+  logLik(object, data) - k * nparams(object)
+
+}#AIC.BN.FIT
 

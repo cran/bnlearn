@@ -1,7 +1,7 @@
 \name{insurance}
 \docType{data}
 \alias{insurance}
-\title{Insurance evaluation network data set}
+\title{Insurance evaluation network (synthetic) data set}
 \description{
 
   Insurance is a network for evaluating car insurance risks.
@@ -29,7 +29,7 @@ data(insurance)
     \item \code{Antilock} (\emph{ABS}): a two-level factor with levels \code{False} and \code{True}.
     \item \code{DrivingSkill} (\emph{driving skill}): a three-level factor with levels \code{SubStandard}, \code{Normal} and \code{Expert}.
     \item \code{SeniorTrain} (\emph{senior training}): a two-level factor with levels \code{False} and \code{True}.
-    \item \code{ThisCarCost} (\emph{costs for the insured car}): a four-level factor with levels \code{Thousand}, \code{TenThou}, \code{HundredThou} and \code{Million}. 
+    \item \code{ThisCarCost} (\emph{costs for the insured car}): a four-level factor with levels \code{Thousand}, \code{TenThou}, \code{HundredThou} and \code{Million}.
     \item \code{Theft} (\emph{theft}): a two-level factor with levels \code{False} and \code{True}.
     \item \code{CarValue} (\emph{value of the car}): a five-level factor with levels \code{FiveThou}, \code{TenThou}, \code{TwentyThou}, \code{FiftyThou} and \code{Million}.
     \item \code{HomeBase} (\emph{neighbourhood type}): a four-level factor with levels \code{Secure}, \code{City}, \code{Suburb} and \code{Rural}.
@@ -48,8 +48,8 @@ data(insurance)
 }
 \source{
 
-  Binder J, Koller D, Russell S, Kanazawa K (1997). "Adaptive Probabilistic 
-      Networks with Hidden Variables". \emph{Machine Learning}, 
+  Binder J, Koller D, Russell S, Kanazawa K (1997). "Adaptive Probabilistic
+      Networks with Hidden Variables". \emph{Machine Learning},
       \strong{29}(2-3), 213-244.
 
   Elidan G (2001). "Bayesian Network Repository". \cr
@@ -66,22 +66,22 @@ data(insurance)
 # load the data and build the correct network from the model string.
 data(insurance)
 res = empty.graph(names(insurance))
-modelstring(res) = paste("[Age][Mileage][SocioEcon|Age][GoodStudent|Age:SocioEcon]",
-  "[RiskAversion|Age:SocioEcon][OtherCar|SocioEcon]",
-  "[VehicleYear|SocioEcon:RiskAversion][MakeModel|SocioEcon:RiskAversion]",
-  "[SeniorTrain|Age:RiskAversion][HomeBase|SocioEcon:RiskAversion]",
-  "[AntiTheft|SocioEcon:RiskAversion][RuggedAuto|VehicleYear:MakeModel]",
-  "[Antilock|VehicleYear:MakeModel][DrivingSkill|Age:SeniorTrain]",
-  "[CarValue|VehicleYear:MakeModel:Mileage][Airbag|VehicleYear:MakeModel]",
-  "[DrivQuality|RiskAversion:DrivingSkill][Theft|CarValue:HomeBase:AntiTheft]",
-  "[Cushioning|RuggedAuto:Airbag][DrivHist|RiskAversion:DrivingSkill]",
-  "[Accident|DrivQuality:Mileage:Antilock][ThisCarDam|RuggedAuto:Accident]",
-  "[OtherCarCost|RuggedAuto:Accident][MedCost|Age:Accident:Cushioning]",
-  "[ILiCost|Accident][ThisCarCost|ThisCarDam:Theft:CarValue]",
+modelstring(res) = paste("[Age][Mileage][SocioEcon|Age]",
+  "[GoodStudent|Age:SocioEcon][RiskAversion|Age:SocioEcon]",
+  "[OtherCar|SocioEcon][VehicleYear|SocioEcon:RiskAversion]",
+  "[MakeModel|SocioEcon:RiskAversion][SeniorTrain|Age:RiskAversion]",
+  "[HomeBase|SocioEcon:RiskAversion][AntiTheft|SocioEcon:RiskAversion]",
+  "[RuggedAuto|VehicleYear:MakeModel][Antilock|VehicleYear:MakeModel]",
+  "[DrivingSkill|Age:SeniorTrain][CarValue|VehicleYear:MakeModel:Mileage]",
+  "[Airbag|VehicleYear:MakeModel][DrivQuality|RiskAversion:DrivingSkill]",
+  "[Theft|CarValue:HomeBase:AntiTheft][Cushioning|RuggedAuto:Airbag]",
+  "[DrivHist|RiskAversion:DrivingSkill]",
+  "[Accident|DrivQuality:Mileage:Antilock]",
+  "[ThisCarDam|RuggedAuto:Accident][OtherCarCost|RuggedAuto:Accident]",
+  "[MedCost|Age:Accident:Cushioning][ILiCost|Accident]",
+  "[ThisCarCost|ThisCarDam:Theft:CarValue]",
   "[PropCost|ThisCarCost:OtherCarCost]", sep = "")
 \dontrun{
 # there are too many nodes for plot(), use graphviz.plot().
-graphviz.plot(res)
-}
-}
+graphviz.plot(res)}}
 \keyword{datasets}

@@ -26,8 +26,7 @@ score = function(x, data, type = NULL, ..., debug = FALSE) {
 
 }#SCORE
 
-# AIC method for class 'bn'.
-# an alias of score(..., type = "aic")
+# AIC method for class 'bn', an alias of score(..., type = "aic")
 AIC.bn = function(object, data, ..., k = 1) {
 
   # parameter sanitization done in the score() function.
@@ -36,10 +35,9 @@ AIC.bn = function(object, data, ..., k = 1) {
   else
     score(object, data = data, type = "aic-g", k = k, ...)
 
-}#AIC.bn
+}#AIC.BN
 
-# logLik method ofr class 'bn'.
-# an alias of score(..., type = "loglik")
+# logLik method for class 'bn', an alias of score(..., type = "loglik")
 logLik.bn = function(object, data, ...) {
 
   # parameter sanitization done in the score() function.

@@ -19,7 +19,8 @@
 \title{ Miscellaneous utilities }
 \description{
 
- Assign or extract various quantities of interest from an object of class \code{bn}.
+  Assign or extract various quantities of interest from an object of
+  class \code{bn} of \code{bn.fit}.
 
 }
 \usage{
@@ -48,7 +49,7 @@ amat(x, ignore.cycles = FALSE, debug = FALSE) <- value
 nparams(x, data, debug = FALSE)
 }
 \arguments{
-  \item{x}{an object of class \code{bn} or \code{bn.fit}. The replacement 
+  \item{x}{an object of class \code{bn} or \code{bn.fit}. The replacement
        form of \code{parents}, \code{children}, \code{arcs} and \code{amat}
        require an object of class \code{bn}.}
   \item{node}{a character string, the label of a node.}
@@ -56,8 +57,8 @@ nparams(x, data, debug = FALSE)
        \code{children}), an adjacency matrix (for \code{amat}) or a data
        frame with two columns (optionally labeled "from" and "to", for
        \code{arcs}).}
-  \item{data}{a data frame, containing the data the Bayesian network
-       was learned from. It's only needed if \code{x} is an object of 
+  \item{data}{a data frame containing the data the Bayesian network
+       was learned from. It's only needed if \code{x} is an object of
        class \code{bn}.}
   \item{ignore.cycles}{a boolean value. If \code{TRUE} the returned network
        will not be checked for cycles.}
@@ -76,10 +77,10 @@ nparams(x, data, debug = FALSE)
 }
 \value{
 
-  \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{rootnodes}
-  and \code{leafnodes} return a vector of character strings. \cr
+  \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{root.nodes}
+  and \code{leaf.nodes} return a vector of character strings. \cr
   \code{arcs} returns a matrix of two columns of character strings. \cr
-  \code{amat} returns a matrix of 0/1 numeric values. \cr
+  \code{amat} returns a matrix of 0/1 integer values. \cr
   \code{nparams} returns an integer. \cr
 
 }

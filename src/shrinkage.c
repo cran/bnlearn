@@ -1,7 +1,7 @@
 
 #include "common.h"
 
-static void _mi_lambda(double *n, double *lambda, double *target, int *num, 
+static void _mi_lambda(double *n, double *lambda, double *target, int *num,
     int *llx, int *lly, int *llz);
 
 /* shrinked mutual information, to be used for the asymptotic test. */
@@ -64,7 +64,7 @@ SEXP result;
 
 }/*SHMI*/
 
-/* shrinked conditional mutual information, to be used for the asymptotic 
+/* shrinked conditional mutual information, to be used for the asymptotic
  * test. */
 SEXP shcmi (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
 
@@ -91,7 +91,7 @@ SEXP result;
   /* compute the joint frequency of x, y, and z. */
   for (k = 0; k < *num; k++) {
 
-    n[xx[k] - 1][yy[k] - 1][zz[k] - 1]++; 
+    n[xx[k] - 1][yy[k] - 1][zz[k] - 1]++;
 
   }/*FOR*/
 
@@ -142,7 +142,7 @@ SEXP result;
 }/*SHCMI*/
 
 /* compute the shrinkage intensity lambda for the mutual information. */
-static void _mi_lambda(double *n, double *lambda, double *target, int *num, 
+static void _mi_lambda(double *n, double *lambda, double *target, int *num,
     int *llx, int *lly, int *llz) {
 
 double lden = 0, lnum = 0, temp = 0;
@@ -153,12 +153,12 @@ double lden = 0, lnum = 0, temp = 0;
 
     for (int i = 0; i < *llx; i++)
       for (int j = 0; j < *lly; j++) {
-  
+
         temp = ((double **)n)[i][j] / (double)(*num);
         lnum += temp * temp;
         temp = *target - ((double **)n)[i][j] / (double)(*num);
         lden += temp * temp;
-  
+
       }/*FOR*/
 
   }/*THEN*/
@@ -167,12 +167,12 @@ double lden = 0, lnum = 0, temp = 0;
     for (int i = 0; i < *llx; i++)
       for (int j = 0; j < *lly; j++)
         for (int k = 0; k < *llz; k++) {
-  
+
           temp = ((double ***)n)[i][j][k] / (double)(*num);
           lnum += temp * temp;
           temp = *target - ((double ***)n)[i][j][k] / (double)(*num);
           lden += temp * temp;
-  
+
       }/*FOR*/
 
   }/*ELSE*/

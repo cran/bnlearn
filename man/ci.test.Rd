@@ -29,7 +29,7 @@
   \item{z}{a vector of character strings (the names of the conditioning
       variables), a numeric vector, a factor object or a data frame.
       If \code{NULL} an independence test will be executed.}
-  \item{data}{a data frame, containing the variables to be tested.}
+  \item{data}{a data frame containing the variables to be tested.}
   \item{test}{a character string, the label of the conditional
       independence test to be used in the algorithm. If none is
       specified, the default test statistic is the \emph{mutual information}
@@ -47,7 +47,7 @@
 
   An object of class \code{htest} containing the following components:
 
-  \item{statistic}{the value the conditional independence test statistic.}
+  \item{statistic}{the value the test statistic.}
   \item{parameter}{the degrees of freedom of the approximate
     chi-squared or t distribution of the test statistic, \code{NA} if the
     p-value is computed by Monte Carlo simulation.}
@@ -64,25 +64,16 @@
 }
 \references{
 
-  \strong{for (discrete) mutual information and Pearson's \eqn{X^2}{X^2}:}
-
   Edwards DI (2000). \emph{Introduction to Graphical Modelling}.
       Springer, 2nd edition.
-
-  \strong{for permutation tests:}
 
   Legendre P (2000). "Comparison of Permutation Methods for the Partial
       Correlation and Partial Mantel Tests". \emph{Journal of Statistical
       Computation and Simulation}, \strong{67}, 37-73.
 
-  Pesarin F (2001). \emph{Multivariate Permutation Tests With Applications
-      in Biostatistics}. Wiley.
-
-  \strong{for the shrinkage estimator for the mutual information:}
-
-  Hausser J, Strimmer K (2009). "Entropy inference and the James-Stein 
-      estimator, with application to nonlinear gene association networks". 
-      \emph{Statistical Applications in Genetics and Molecular Biology}, 
+  Hausser J, Strimmer K (2009). "Entropy inference and the James-Stein
+      estimator, with application to nonlinear gene association networks".
+      \emph{Statistical Applications in Genetics and Molecular Biology},
       10, 1469-1484.
 
 }

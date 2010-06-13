@@ -79,14 +79,14 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 
     # select which arcs should be tested for inclusion in the graph (hybrid
     # learning algorithms should hook the restrict phase here).
-    to.be.added = arcs.to.be.added(amat = amat, nodes = nodes, 
+    to.be.added = arcs.to.be.added(amat = amat, nodes = nodes,
                     blacklist = blmat, whitelist = NULL, arcs = FALSE)
 
     # get the best arc addition/removal/reversal.
     bestop = .Call("hc_opt_step",
                    amat = amat,
                    nodes = nodes,
-                   added = to.be.added,  
+                   added = to.be.added,
                    cache = cache,
                    reference = reference.score,
                    wlmat = wlmat,

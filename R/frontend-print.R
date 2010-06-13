@@ -95,6 +95,9 @@ print.bn = function(x, ...) {
 # print method for class bn.fit.
 "print.bn.fit" = function(x, ...) {
 
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
   cat("\n  Bayesian network parameters\n")
 
   for (i in seq(length(x)))
@@ -109,6 +112,9 @@ print.bn = function(x, ...) {
 # print method for class bn.fit.dnode.
 "print.bn.fit.dnode" = function(x, ...) {
 
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
   cat("\n  Parameters of node", x$node, "(multinomial distribution)\n")
 
   cat("\nConditional probability table:\n", ifelse(length(x$parents) > 0, "\n", ""))
@@ -120,6 +126,9 @@ print.bn = function(x, ...) {
 
 # print method for class bn.fit.gnode.
 "print.bn.fit.gnode" = function(x, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
 
   cat("\n  Parameters of node", x$node,
     paste(ifelse(length(x$parents) > 1, "(conditional ", "("),
@@ -143,11 +152,38 @@ print.bn = function(x, ...) {
 # print method for class mvber.moments.
 print.mvber.moments = function(x, ...) {
 
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
   # reset the attributes to have a clean printout.
   attributes(x) = list(R = NULL, m = NULL, class = NULL, names = names(x))
   print(x)
- 
+
   invisible(x)
 
 }#PRINT.MVBER.MOMENTS
 
+# print method for k-fold cross-validation.
+print.bn.kcv = function(x, ...) {
+
+  a = attributes(x)
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  cat("\n  k-fold cross-validation for Bayesian networks\n\n")
+
+  if (is.character(a$bn))
+    cat("  target learning algorithm:            ", method.labels[a$bn], "\n")
+  else
+    cat("  target network structure:\n  ", formula.backend(a$bn), "\n")
+
+  cat("  number of subsets:                    ", length(x), "\n")
+  cat("  loss function:                        ", loss.labels[a$loss], "\n")
+  cat("  expected loss:                        ", a$mean, "\n")
+
+  cat("\n")
+
+  invisible(x)
+
+}#PRINT.BN.KCV

@@ -54,6 +54,7 @@
 SEXP getListElement(SEXP list, char *str);
 SEXP unique(SEXP array);
 SEXP dupe(SEXP array);
+int which_max(double *array, int length);
 
 void SampleNoReplace(int k, int n, int *y, int *x);
 #define RandomPermutation(n, y, x) SampleNoReplace(n, n, y, x)
@@ -81,16 +82,23 @@ double c_det(double *matrix, int *rows);
 SEXP fast_pcor(SEXP data, SEXP length);
 
 /* from path.c */
+
 int c_has_path(int start, int stop, int *amat, int n, SEXP nodes,
     int ugraph, int notdirect, int debuglevel);
 int c_directed_path(int start, int stop, int *amat, int n, SEXP nodes,
     int debuglevel);
 
 /* from hash.c */
+
 SEXP arc_hash(SEXP arcs, SEXP nodes);
 SEXP c_amat_hash(int *amat, int *nnodes);
 
+/* from configurations.c */
+
+SEXP cfg(SEXP parents);
+
 /* shared between hill climbing and tabu search. */
+
 void bestop_update(SEXP bestop, char *op, const char *from, const char *to);
 
 /* memory allocation functions */

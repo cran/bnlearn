@@ -58,7 +58,7 @@ undirected.arcs = function(x) {
   if (class(x) == "bn")
     x$arcs[which.undirected(x$arcs, names(x$nodes)), , drop = FALSE]
   else
-    matrix(character(0), nrow = 0, ncol = 2, 
+    matrix(character(0), nrow = 0, ncol = 2,
       dimnames = list(NULL, c("from", "to")))
 
 }#UNDIRECTED.ARCS

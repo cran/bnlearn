@@ -2,7 +2,7 @@
 \alias{bn.moments}
 \alias{bn.var}
 \alias{bn.var.test}
-\title{ Structure Variability of Bayesian networks }
+\title{ Structure variability of Bayesian networks }
 \description{
 
   Measure the variability of the structure of a Bayesian network.
@@ -18,7 +18,7 @@ bn.var(x, method)
 bn.var.test(x, method, R, B, debug = FALSE)
 }
 \arguments{
-  \item{data}{a data frame, containing the variables in the model.}
+  \item{data}{a data frame containing the variables in the model.}
   \item{R}{a positive integer, the number of bootstrap replicates (in
     \code{bn.moments}) or the number of Monte Carlo samples (in
     \code{bn.var.test}).}
@@ -86,4 +86,4 @@ bn.var.test(z, method = "nvar")
 }
 }
 \author{ Marco Scutari }
-\keyword{utilities}
+\keyword{multivariate}

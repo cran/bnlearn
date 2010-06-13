@@ -155,29 +155,29 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
       if (debug) cat("  * checking node", y, "for inclusion.\n")
 
       a = conditional.test(x, y, mb, data = data, test = test, B = B)
-  
+
       if (a <= alpha) {
- 
+
         # add the node to the Markov blanket.
         mb = c(mb, y)
         # do not check the same node again.
         nodes = nodes[nodes != y]
- 
+
         if (debug) {
-  
+
           cat("    > node", y, "included in the markov blanket ( p-value:", a, ").\n")
           cat("    > markov blanket now is '", mb, "'.\n")
           cat("    > restarting grow loop.\n")
-  
+
         }#THEN
- 
+
         break
 
       }#THEN
       else if (debug) {
-  
+
         cat("    >", x, "indep.", y, "given '", mb, "' ( p-value:", a, ").\n")
-  
+
       }#THEN
 
     }#FOR
@@ -188,7 +188,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   }#REPEAT
 
   # whitelisted nodes are neighbours, they cannot be removed from the
-  # markov blanket; known.good nodes from backtracking are not to be 
+  # markov blanket; known.good nodes from backtracking are not to be
   # removed, either.
   nodes = mb[!(mb %in% c(known.good, whitelisted))]
 
@@ -202,31 +202,31 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
       if (debug)
         cat("  * checking node", y, "for exclusion (shrinking phase).\n")
-  
+
       a = conditional.test(x, y, mb[mb != y], data = data, test = test, B = B)
-  
+
       if (a > alpha) {
-  
+
         # update the markov blanket.
-        mb = mb[mb != y] 
+        mb = mb[mb != y]
         # do not check the same node again.
         nodes = nodes[nodes != y]
- 
+
         if (debug) {
-  
+
           cat("    > node", y, "removed from the markov blanket. ( p-value:", a, ")\n")
           cat("    > conditioning subset: '", mb, "'\n")
           cat("    > restarting shrink loop.\n")
-  
+
         }#THEN
-  
+
         break
-  
+
       }#THEN
       else if (debug) {
-  
+
         cat("    > node", y, "remains in the markov blanket. ( p-value:", a, ")\n")
-  
+
       }#THEN
 
     }#FOR

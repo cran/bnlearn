@@ -7,13 +7,13 @@
 #define UNCHANGED  0
 #define CHANGED    1
 
-static void scan_graph(int *a, SEXP nodes, int *nnodes, 
+static void scan_graph(int *a, SEXP nodes, int *nnodes,
     short int *collider, int *debuglevel);
-static void mark_vstructures(int *a, SEXP nodes, int *nnodes, 
+static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
     short int *collider, int *debuglevel);
-static int prevent_cycles(int *a, SEXP nodes, int *nnodes, 
+static int prevent_cycles(int *a, SEXP nodes, int *nnodes,
     short int *collider, int *debuglevel);
-static int prevent_additional_vstructures(int *a, SEXP nodes, 
+static int prevent_additional_vstructures(int *a, SEXP nodes,
     int *nnodes, short int *collider, int *debuglevel);
 static void renormalize_amat(int *a, int *nnodes);
 
@@ -75,12 +75,12 @@ SEXP amat;
 
 }/*CPDAG*/
 
-static void scan_graph(int *a, SEXP nodes, int *nnodes, 
+static void scan_graph(int *a, SEXP nodes, int *nnodes,
     short int *collider, int *debuglevel) {
 
  int i = 0, j = 0, counter = 0;
 
-  /* count the parents of each node (the non-symmetric 1s in the 
+  /* count the parents of each node (the non-symmetric 1s in the
    * corresponding column of the adjacency matrix). */
   if (*debuglevel > 0)
     Rprintf("* scanning the graph (step 1).\n");
@@ -116,7 +116,7 @@ static void scan_graph(int *a, SEXP nodes, int *nnodes,
 
 }/*SCAN_GRAPH*/
 
-static void mark_vstructures(int *a, SEXP nodes, int *nnodes, 
+static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
     short int *collider, int *debuglevel) {
 
  int i = 0, j = 0;
@@ -127,7 +127,7 @@ static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
 
   for (j = 0; j < *nnodes; j++) {
 
-    /* no v-structure here, mark all arcs as undirected and skip to 
+    /* no v-structure here, mark all arcs as undirected and skip to
      * the next node. */
     if (!collider[j]) {
 
@@ -167,7 +167,7 @@ static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
 
           if (collider[i]) {
 
-            /* both directions create additional v-structures, which is forbidden; 
+            /* both directions create additional v-structures, which is forbidden;
              * fix the arc without setting a direction. */
             a[CMC(i, j, *nnodes)] = a[CMC(j, i, *nnodes)] = FIXED;
 
@@ -179,7 +179,7 @@ static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
           }/*THEN*/
           else {
 
-            /* this arc is not part of a v-structure; set its direction away from 
+            /* this arc is not part of a v-structure; set its direction away from
                the current node by exclusion.  */
             a[CMC(i, j, *nnodes)] = ABSENT;
             a[CMC(j, i, *nnodes)] = FIXED;
@@ -199,7 +199,7 @@ static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
 
 }/*MARK_VSTRUCTURES*/
 
-static int prevent_cycles(int *a, SEXP nodes, int *nnodes, short int *collider, 
+static int prevent_cycles(int *a, SEXP nodes, int *nnodes, short int *collider,
     int *debuglevel) {
 
 int i = 0, j = 0, changed = UNCHANGED, n = *nnodes;
@@ -336,7 +336,7 @@ SEXP nodes, node_data, parents, result, dimnames, colnames;
 
     /* count how many v-structures are centered on this node, or how many
      * arcs they involve. */
-    if (*return_arcs > 0) 
+    if (*return_arcs > 0)
       nvstructs += nparents[i] * (nparents[i] > 1);
     else
       nvstructs += nparents[i] * (nparents[i] - 1) / 2;

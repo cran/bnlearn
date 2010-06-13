@@ -63,7 +63,7 @@ directed = function(x) {
 }#DIRECTED
 
 # check if there's a path between two specific nodes.
-path = function(x, from, to, direct = TRUE, underlying.graph = FALSE, 
+path = function(x, from, to, direct = TRUE, underlying.graph = FALSE,
     debug = FALSE) {
 
   # check x's class.
@@ -148,7 +148,7 @@ pdag2dag = function(x, ordering) {
   # check x's class.
   check.bn(x)
   # check the node ordering.
-  check.nodes(ordering, graph = x, min.nodes = length(x$nodes), 
+  check.nodes(ordering, graph = x, min.nodes = length(x$nodes),
     max.nodes = length(x$nodes))
 
   pdag2dag.backend(x, ordering)

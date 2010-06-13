@@ -1,4 +1,21 @@
 
+bnlearn (2.1)
+
+  * optimized data frame subsetting and parents' configurations
+      construction in conditional.test() and score.delta().
+  * fixed and improved the performance of rbn().
+  * fixed wrong penalization coefficient for Gaussian AIC (was
+      computing a Gaussian BIC instead).
+  * added cpq() to perform conditional probability queries
+      via Logic (Rejection) Sampling.
+  * added bn.cv() to perform k-fold cross-validation, with
+      expected log-likelihood and classification error as
+      loss functions.
+  * added predict(), logLik() and AIC() methods for bn.fit
+      objects.
+  * renamed bnboot() to bn.boot() for consistency with bn.cv()
+     and bn.fit().
+
 bnlearn (2.0)
 
   * added the shd() distance.

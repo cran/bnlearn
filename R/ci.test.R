@@ -175,7 +175,7 @@ ci.test.factor = function(x, y = NULL, z = NULL, test = NULL, B = NULL, debug = 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  res = conditional.test(x = 1, y = 2, sx = sx, data = data,
+  res = conditional.test(x = 1L, y = 2L, sx = as.integer(sx), data = data,
     test = test, B = B, learning = FALSE)
 
   # rewrite the test formula.

@@ -20,8 +20,9 @@ shd(learned, true, debug = FALSE)
 }
 \value{
 
-  A boolean value: \code{TRUE} if the objects describe the same
-  network structure, \code{FALSE} otherwise.
+  \code{compare} returns a boolean value (\code{TRUE} if the objects
+  describe the same network structure, \code{FALSE} otherwise).
+  \code{shd} returns a non-negative integer number.
 
 }
 \examples{
@@ -65,4 +66,4 @@ shd(e2, e1, debug = TRUE)
 
 }
 \author{ Marco Scutari }
-\keyword{utilities}
+\keyword{graphs}

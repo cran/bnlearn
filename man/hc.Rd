@@ -2,7 +2,7 @@
 \alias{score-based algorithms}
 \alias{hc}
 \alias{tabu}
-\title{ Score-based learning algorithms }
+\title{ Score-based structure learning algorithms }
 \description{
 
   Learn the structure of a Bayesian network using a
@@ -18,7 +18,7 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL,
   max.iter = Inf, optimized = TRUE)
 }
 \arguments{
-  \item{x}{a data frame, containing the variables in the model.}
+  \item{x}{a data frame containing the variables in the model.}
   \item{start}{an object of class \code{bn}, the preseeded directed
       acyclic graph used to initialize the algorithm. If none is
       specified, an empty one (i.e. without any arc) is used.}
@@ -40,7 +40,7 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL,
   \item{restart}{an integer, the number of random restarts.}
   \item{tabu}{a positive integer number, the length of the tabu list used
        in the \code{tabu} function.}
-  \item{max.tabu}{a positive integer number, the iterations tabu search 
+  \item{max.tabu}{a positive integer number, the iterations tabu search
        can perform without improving the best network score.}
   \item{perturb}{an integer, the number of attempts to randomly
       insert/remove/reverse an arc on every random restart.}

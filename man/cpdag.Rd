@@ -24,7 +24,7 @@ moral(x, debug = FALSE)
 }
 \value{
 
-  \code{cpdag} returns an object of class \code{bn}, representing the 
+  \code{cpdag} returns an object of class \code{bn}, representing the
   equivalence class. \code{moral} on the other hand returns the moral
   graph. See \code{\link{bn-class}} for details.
 
@@ -67,5 +67,5 @@ vstructs(res)
 # [2,] "B" "E" "F"
 }
 \author{ Marco Scutari }
-\keyword{utilities}
+\keyword{graphs}
 \keyword{multivariate}

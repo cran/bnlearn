@@ -1,7 +1,7 @@
 \name{local discovery algorithms}
 \alias{local discovery algorithms}
 \alias{mmpc}
-\title{ Local discovery learning algorithms }
+\title{ Local discovery structure learning algorithms }
 \description{
 
   Learn the underlying structure of a directed acyclic graph (DAG)
@@ -15,7 +15,7 @@ mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   optimized = TRUE, strict = FALSE)
 }
 \arguments{
-  \item{x}{a data frame, containing the variables in the model.}
+  \item{x}{a data frame containing the variables in the model.}
   \item{cluster}{an optional cluster object from package \pkg{snow}.
       See \code{\link{snow integration}} for details and a simple
       example.}

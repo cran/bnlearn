@@ -3,19 +3,23 @@
 \alias{fitted.bn.fit}
 \alias{coef.bn.fit}
 \alias{residuals.bn.fit}
+\alias{predict.bn.fit}
+\alias{logLik.bn.fit}
+\alias{AIC.bn.fit}
 \alias{fitted.bn.fit.gnode}
 \alias{coef.bn.fit.gnode}
 \alias{residuals.bn.fit.gnode}
+\alias{predict.bn.fit.gnode}
 \alias{fitted.bn.fit.dnode}
 \alias{coef.bn.fit.dnode}
 \alias{residuals.bn.fit.dnode}
+\alias{predict.bn.fit.dnode}
 
 \title{ Utilities to manipulate fitted Bayesian networks }
 \description{
 
- Assign or extract various quantities of interest from an
- object of class \code{bn.fit}, \code{bn.fit.dnode} or
- \code{bn.fit.gnode}.
+ Assign, extract or compute various quantities of interest from an object 
+ of class \code{bn.fit}, \code{bn.fit.dnode} or \code{bn.fit.gnode}.
 
 }
 \usage{
@@ -23,19 +27,29 @@
 \method{fitted}{bn.fit}(object, ...)
 \method{coef}{bn.fit}(object, ...)
 \method{residuals}{bn.fit}(object, ...)
+\method{predict}{bn.fit}(object, node, data, ...)
+\method{logLik}{bn.fit}(object, data, ...)
+\method{AIC}{bn.fit}(object, data, ..., k = 1)
 
 ## methods available for "bn.fit.dnode"
-\method{coef}{bn.fit.gnode}(object, ...)
+\method{coef}{bn.fit.dnode}(object, ...)
+\method{predict}{bn.fit.dnode}(object, data, ...)
 
 ## methods available for "bn.fit.gnode"
 \method{fitted}{bn.fit.gnode}(object, ...)
 \method{coef}{bn.fit.gnode}(object, ...)
 \method{residuals}{bn.fit.gnode}(object, ...)
+\method{predict}{bn.fit.gnode}(object, data, ...)
 }
 \arguments{
   \item{object}{an object of class \code{bn.fit}, \code{bn.fit.dnode}
     or \code{bn.fit.gnode}.}
+  \item{node}{a character string, the label of a node.}
+  \item{data}{a data frame containing the variables in the model.}
   \item{\dots}{additional arguments (currently ignored).}
+  \item{k}{a numeric value, the penalty per parameter to be used; the
+       default \code{k = 1} gives the expression used to compute AIC.}
+
 }
 \details{
 
@@ -47,12 +61,18 @@
   residuals and \code{fitted} (and its alias \code{fitted.values})
   extracts fitted values from fitted Gaussian networks.
 
+  \code{predict} returns the predicted values for \code{node} for
+  the data specified by \code{data}.
+
 }
 \value{
 
-  A list with an element for each node in the network (if \code{object}
-  has class \code{bn.fit}) or a numeric vector (if \code{object} has class
-  \code{bn.fit.dnode} or \code{bn.fit.gnode}).
+  \code{predict} returns a numeric vector (for Gaussian networks) or a factor 
+  (for discrete networks).
+
+  All the other functions return a list with an element for each node in
+  the network (if \code{object} has class \code{bn.fit}) or a numeric
+  vector (if \code{object} has class \code{bn.fit.dnode} or \code{bn.fit.gnode}).
 
 }
 \seealso{

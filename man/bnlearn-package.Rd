@@ -9,8 +9,8 @@
 }
 \description{
 
-  Bayesian network learning via constraint-based, score-based and hybrid
-  algorithms.
+  Bayesian network structure learning via constraint-based, score-based
+  and hybrid algorithms.
 
 }
 \details{
@@ -19,14 +19,14 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 2.0\cr
-    Date: \tab 2010-05-11\cr
+    Version: \tab 2.1\cr
+    Date: \tab 2010-06-13\cr
     License: \tab GPLv2 or later
 
   }
 
-  This package implements some algorithms for learning
-  the structure of Bayesian networks.
+  This package implements some algorithms for learning the structure of
+  Bayesian networks.
 
   \emph{Constraint-based algorithms}, also known as \emph{conditional
   independence learners}, are all optimized derivatives of the
@@ -43,6 +43,11 @@
    score-based algorithms, as they use conditional independence tests
    (usually to reduce the search space) and network scores (to find the
    optimal network in the reduced space) at the same time.
+
+  Several functions for parameter estimation, parametric inference,
+  bootstrap, cross-validation and stochastic simulation are available.
+  Furthermore, advanced plotting capabilities are implemented on top
+  of the \pkg{Rgraphviz} and \pkg{lattice} packages.
 
 }
 \author{
@@ -92,9 +97,9 @@
 
   }
 
-  The computational complexity of these algorithms is polynomial in the 
+  The computational complexity of these algorithms is polynomial in the
   number of tests, usually \eqn{O(N^2)}{O(N^2)} (\eqn{O(N^4)}{O(N^4)}
-  in the worst case scenario), where \eqn{N}{N} is the number of variables. 
+  in the worst case scenario), where \eqn{N}{N} is the number of variables.
   Execution time scales linearly with the size of the data set.
 
 }
@@ -112,7 +117,7 @@
 
   }
 
-  Random restart with a configurable number of perturbing operations 
+  Random restart with a configurable number of perturbing operations
   is implemented for both algorithms.
 
 }
@@ -306,8 +311,8 @@
   (a BibTeX file with all the references cited throughout this manual
   is present in the \file{bibtex} directory of this package)
 
-  Agresti A (2002). \emph{Categorical Data Analysis}. Wiley Series in
-      Probability and Statistics. Wiley-Interscience, 2nd edition.
+  Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models: 
+      Principles and Techniques}. MIT Press.
 
   Korb K, Nicholson AE (2003). \emph{Bayesian Artificial Intelligence}.
       Chapman & Hall/CRC.

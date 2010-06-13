@@ -30,7 +30,7 @@ method.labels = c(
   'rnd' = "random/generated",
   'hc' = 'Hill-Climbing',
   'tabu' = 'Tabu Search',
-  'mmpc' = 'Max-min Parent Children',
+  'mmpc' = 'Max-Min Parent Children',
   'rsmax2' = 'Two-Phase Restricted Maximization',
   'mmhc' = 'Max-Min Hill Climbing'
 )
@@ -95,6 +95,44 @@ graph.generation.extra.args = list(
   "ordered" = "prob",
   "ic-dag" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree"),
   "melancon" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree")
+)
+
+cpq.algorithms = c("ls")
+
+cpq.labels = c(
+  "ls" = "Logic/Forward Sampling"
+)
+
+cpq.extra.args = list(
+  "ls" = c("n", "batch")
+)
+
+discrete.loss.functions = c("logl", "pred")
+continuous.loss.functions = c("logl-g")
+loss.functions = c(discrete.loss.functions, continuous.loss.functions)
+
+loss.labels = c(
+  "logl" = "Log-Likelihood Loss (discrete)",
+  "pred" = "Classification Error",
+  "logl-g" = "Log-Likelihood Loss (Gaussian)"
+)
+
+loss.extra.args = list(
+  "logl" = character(0),
+  "pred" = "target",
+  "logl-g" = character(0)
+)
+
+available.fitting.methods = c("mle", "bayes")
+
+fitting.labels = c(
+  "mle" = "Maximum Likelihood",
+  "bayes" = "Bayesian Parameter Estimation"
+)
+
+fitting.extra.args = list(
+  "mle" = character(0),
+  "bayes" = "iss"
 )
 
 mvber.labels = list(

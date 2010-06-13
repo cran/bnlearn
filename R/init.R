@@ -10,14 +10,14 @@
     if ("Rgraphviz" %in% rownames(installed.packages()))
       graphviz.enabled <<- require(Rgraphviz)
 
-    cat("Package Rgraphviz", 
+    cat("Package Rgraphviz",
       ifelse(graphviz.enabled, "loaded successfully.\n", "not loaded.\n"))
 
     # load lattice and set the corresponding flag.
     if ("lattice" %in% rownames(installed.packages()))
       lattice.enabled <<- require(lattice)
 
-    cat("Package lattice", 
+    cat("Package lattice",
       ifelse(lattice.enabled, "loaded successfully.\n", "not loaded.\n"))
 
     # restore the original warning level.

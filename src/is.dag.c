@@ -2,7 +2,7 @@
 
 /*
  *  Beware: this function is based on the assumption that each arc is unique
- *  in the arc set; otherwise the counter may be wrong, leading to false 
+ *  in the arc set; otherwise the counter may be wrong, leading to false
  *  negatives.
  */
 

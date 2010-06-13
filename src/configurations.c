@@ -1,7 +1,5 @@
 #include "common.h"
 
-/* macro for the [i,j] element of the data frame. */
-#define DATAFRAME(i, j) INTEGER(VECTOR_ELT(parents, j))[i]
 /* macro for the number of levels of the [,j] column. */
 #define NLEVELS(j) \
   LENGTH(getAttrib(VECTOR_ELT(parents, j), R_LevelsSymbol))
@@ -30,10 +28,16 @@ SEXP cfg(SEXP parents) {
 int i = 0, j = 0, cfgmap = 0;
 int ncols = LENGTH(parents), nrows = LENGTH(VECTOR_ELT(parents, 0));
 int *cumlevels = NULL, *res = NULL;
+int **columns = NULL;
 SEXP result;
 
   /* create the cumulative products of the number of levels. */
   cumlevels = alloc1dcont(ncols);
+
+  /* dereference the columns of the data frame. */
+  columns = Calloc(ncols, int *);
+  for (i = 0; i < ncols; i++)
+    columns[i] = INTEGER(VECTOR_ELT(parents, i));
 
   /* set the first one to 1 ... */
   cumlevels[0] = 1;
@@ -53,7 +57,7 @@ SEXP result;
 
     for (j = 0; j < ncols; j++) {
 
-      cfgmap += (DATAFRAME(i, j) - 1) * cumlevels[j];
+      cfgmap += (columns[j][i] - 1) * cumlevels[j];
 
     }/*FOR*/
 
@@ -61,6 +65,8 @@ SEXP result;
   res[i] = cfgmap;
 
   }/*FOR*/
+
+  Free(columns);
 
   UNPROTECT(1);
 
@@ -105,8 +111,8 @@ SEXP result, dimnames, rownames, colnames, labels, dimlabels;
   PROTECT(dimlabels = allocVector(STRSXP, 2));
   SET_STRING_ELT(dimlabels, 0, mkChar("data"));
   SET_STRING_ELT(dimlabels, 1, mkChar("cfg"));
-  setAttrib(dimnames, R_NamesSymbol, dimlabels);  
-  setAttrib(result, R_DimNamesSymbol, dimnames);  
+  setAttrib(dimnames, R_NamesSymbol, dimlabels);
+  setAttrib(result, R_DimNamesSymbol, dimnames);
 
   UNPROTECT(5);
 

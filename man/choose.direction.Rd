@@ -16,7 +16,7 @@ choose.direction(x, arc, data, criterion = NULL, ...,
   \item{x}{an object of class \code{bn}.}
   \item{arc}{ a character string vector of length 2, the labels of
        two nodes of the graph.}
-  \item{data}{a data frame, containing the data the Bayesian network
+  \item{data}{a data frame containing the data the Bayesian network
        was learned from.}
   \item{criterion}{a character string, the label of a score
        function, the label of an independence test or \code{bootstrap}.

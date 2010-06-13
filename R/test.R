@@ -15,42 +15,46 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
 
   if (length(sx) == 0) {
 
+    # all unconditional tests need this subsetting, do it here.
+    datax = minimal.data.frame.column(data, x)
+    datay = minimal.data.frame.column(data, y)
+
     # Mutual Infomation (chi-square asymptotic distribution)
     if (test == "mi") {
 
-      statistic = mi.test(data[,x], data[,y], ndata, gsquare = TRUE)
-      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1)
+      statistic = mi.test(datax, datay, ndata, gsquare = TRUE)
+      df = (nlevels(datax) - 1) * (nlevels(datay) - 1)
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Akaike Information Criterion-like test (binary, no p-value!)
     else if (test == "aict") {
 
-      statistic = mi.test(data[,x], data[,y], ndata, gsquare = FALSE) <
-               (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) / ndata
+      statistic = mi.test(datax, datay, ndata, gsquare = FALSE) <
+               (nlevels(datax) - 1) * (nlevels(datay) - 1) / ndata
       p.value = as.integer(statistic)
 
     }#THEN
     # Shrinked Mutual Infomation (chi-square asymptotic distribution)
     if (test == "mi-sh") {
 
-      statistic = shmi.test(data[,x], data[,y], ndata, gsquare = TRUE)
-      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1)
+      statistic = shmi.test(datax, datay, ndata, gsquare = TRUE)
+      df = (nlevels(datax) - 1) * (nlevels(datay) - 1)
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Pearson's X^2 test (chi-square asymptotic distribution)
     else if (test == "x2") {
 
-      statistic = x2.test(data[,x], data[,y], ndata)
-      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1)
+      statistic = x2.test(datax, datay, ndata)
+      df = (nlevels(datax) - 1) * (nlevels(datay) - 1)
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Canonical (Linear) Correlation (Student's t distribution)
     else if (test == "cor") {
 
-      statistic = fast.cor(data[,x], data[,y], ndata)
+      statistic = fast.cor(datax, datay, ndata)
       df = ndata - 2
       p.value = pt(abs((statistic * sqrt(ndata - 2) / sqrt(1 - statistic^2))),
                   df, lower.tail = FALSE) * 2
@@ -59,16 +63,16 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
     # Fisher's Z (asymptotic normal distribution)
     else if (test == "zf") {
 
-       statistic = fast.cor(data[,x], data[,y], ndata)
-       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(ndata -3)
-       p.value = pnorm(abs(statistic),
-                   lower.tail = FALSE) * 2
+      statistic = fast.cor(datax, datay, ndata)
+      statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(ndata -3)
+      p.value = pnorm(abs(statistic),
+                  lower.tail = FALSE) * 2
 
     }#THEN
     # Mutual Information for Gaussian Data (chi-square asymptotic distribution)
     else if (test == "mi-g") {
 
-      statistic = mig.test(x, y, data, ndata, gsquare = TRUE)
+      statistic = mig.test(datax, datay, ndata, gsquare = TRUE)
       df = 1
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
@@ -76,7 +80,7 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
     # Mutual Infomation (monte carlo permutation distribution)
     else if (test == "mc-mi") {
 
-      perm.test = mc.test(data[,x], data[,y], ndata, samples = B, test = 1L)
+      perm.test = mc.test(datax, datay, ndata, samples = B, test = 1L)
       statistic = perm.test[1]
       p.value = perm.test[2]
 
@@ -84,7 +88,7 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
     # Pearson's X^2 test (monte carlo permutation distribution)
     else if (test == "mc-x2") {
 
-      perm.test = mc.test(data[,x], data[,y], ndata, samples = B, test = 2L)
+      perm.test = mc.test(datax, datay, ndata, samples = B, test = 2L)
       statistic = perm.test[1]
       p.value = perm.test[2]
 
@@ -92,23 +96,23 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
     # Mutual Information for Gaussian Data (monte carlo permutation distribution)
     else if (test == "mc-mi-g") {
 
-      statistic = mig.test(x, y, data, ndata, gsquare = TRUE)
-      p.value = gmc.test(data[, x] , data[, y], B, test = 3L)
+      statistic = mig.test(datax, datay, ndata, gsquare = TRUE)
+      p.value = gmc.test(datax , datay, B, test = 3L)
 
     }#THEN
     # Canonical (Linear) Correlation (monte carlo permutation distribution)
     else if (test == "mc-cor") {
 
-      statistic = fast.cor(data[,x], data[,y], ndata)
-      p.value = gmc.test(data[, x] , data[, y], B, test = 4L)
+      statistic = fast.cor(datax, datay, ndata)
+      p.value = gmc.test(datax , datay, B, test = 4L)
 
     }#THEN
     # Fisher's Z (monte carlo permutation distribution)
     else if (test == "mc-zf") {
 
-      statistic = fast.cor(data[,x], data[,y], ndata)
+      statistic = fast.cor(datax, datay, ndata)
       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(ndata -3)
-      p.value = gmc.test(data[, x] , data[, y], B, test = 5L)
+      p.value = gmc.test(datax , datay, B, test = 5L)
 
     }#THEN
 
@@ -120,41 +124,53 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
 
       # if there is only one parent, get it easy.
       if (length(sx) == 1)
-        config = data[, sx]
+        config = minimal.data.frame.column(data, sx)
       else
-        config = configurations(data[, sx])
+        config = configurations(minimal.data.frame.column(data, sx))
 
     }#THEN
 
     # Conditional Mutual Infomation (chi-square asymptotic distribution)
     if (test == "mi") {
 
-      statistic = cmi.test(data[,x], data[,y], config, ndata, gsquare = TRUE)
-      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config)
+      datax = minimal.data.frame.column(data, x)
+      datay = minimal.data.frame.column(data, y)
+
+      statistic = cmi.test(datax, datay, config, ndata, gsquare = TRUE)
+      df = (nlevels(datax) - 1) * (nlevels(datay) - 1) * nlevels(config)
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Conditional Akaike Information Criterion-like test (binary, no p-value!)
     else if (test == "aict") {
 
-      statistic = cmi.test(data[,x], data[,y], config, ndata, gsquare = FALSE) <
-               (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config) / ndata
+      datax = minimal.data.frame.column(data, x)
+      datay = minimal.data.frame.column(data, y)
+
+      statistic = cmi.test(datax, datay, config, ndata, gsquare = FALSE) <
+               (nlevels(datax) - 1) * (nlevels(datay) - 1) * nlevels(config) / ndata
       p.value = as.integer(statistic)
 
     }#THEN
     # Shrinked Conditional Mutual Infomation (chi-square asymptotic distribution)
     if (test == "mi-sh") {
 
-      statistic = shcmi.test(data[,x], data[,y], config, ndata, gsquare = TRUE)
-      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config)
+      datax = minimal.data.frame.column(data, x)
+      datay = minimal.data.frame.column(data, y)
+
+      statistic = shcmi.test(datax, datay, config, ndata, gsquare = TRUE)
+      df = (nlevels(datax) - 1) * (nlevels(datay) - 1) * nlevels(config)
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Pearson's X^2 test (chi-square asymptotic distribution)
     else if (test == "x2") {
 
-      statistic = cx2.test(data[,x], data[,y], config, ndata)
-      df = (nlevels(data[,x]) - 1) * (nlevels(data[,y]) - 1) * nlevels(config)
+      datax = minimal.data.frame.column(data, x)
+      datay = minimal.data.frame.column(data, y)
+
+      statistic = cx2.test(datax, datay, config, ndata)
+      df = (nlevels(datax) - 1) * (nlevels(datay) - 1) * nlevels(config)
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
@@ -194,7 +210,10 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
     # Mutual Infomation (monte carlo permutation distribution)
     else if (test == "mc-mi") {
 
-      perm.test = cmc.test(data[,x], data[,y], config, ndata, samples = B, test = 1L)
+      datax = minimal.data.frame.column(data, x)
+      datay = minimal.data.frame.column(data, y)
+
+      perm.test = cmc.test(datax, datay, config, ndata, samples = B, test = 1L)
       statistic = perm.test[1]
       p.value = perm.test[2]
 
@@ -202,7 +221,10 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
     # Pearson's X^2 test (monte carlo permutation distribution)
     else if (test == "mc-x2") {
 
-      perm.test = cmc.test(data[,x], data[,y], config, ndata, samples = B, test = 2L)
+      datax = minimal.data.frame.column(data, x)
+      datay = minimal.data.frame.column(data, y)
+
+      perm.test = cmc.test(datax, datay, config, ndata, samples = B, test = 2L)
       statistic = perm.test[1]
       p.value = perm.test[2]
 
@@ -368,9 +390,9 @@ cmc.test = function(x, y, z, ndata, samples, test) {
 
 }#CMI.MC.TEST
 
-mig.test = function(x, y, data, ndata, gsquare = TRUE) {
+mig.test = function(x, y, ndata, gsquare = TRUE) {
 
-  s = - 0.5 * log(1 - fast.cor(data[, x], data[, y], ndata)^2)
+  s = - 0.5 * log(1 - fast.cor(x, y, ndata)^2)
 
   ifelse(gsquare, 2 * ndata * s, s)
 
@@ -401,7 +423,7 @@ gmc.test = function(x, y, samples, test) {
 cgmc.test = function(x, y, sx, data, ndata, samples, test) {
 
   .Call("gauss_cmcarlo",
-        data = data[, c(x, y, sx), drop = FALSE],
+        data = minimal.data.frame.column(data, c(x, y, sx)),
         length = ndata,
         samples = samples,
         test = test,
@@ -452,7 +474,7 @@ fast.cor = function(x, y, ndata) {
 fast.pcor = function(x, y, sx, data, ndata) {
 
   .Call("fast_pcor",
-        data = data[, c(x, y, sx), drop = FALSE],
+        data = minimal.data.frame.column(data, c(x, y, sx)),
         length = ndata,
         PACKAGE = "bnlearn")
 

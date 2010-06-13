@@ -17,13 +17,16 @@ schedule = function(x, debug = FALSE) {
 # Intelligence", Korb & Nicholson, chap 3.6.1.
 rbn.discrete = function(x, n, data, debug = FALSE) {
 
-  to.do = schedule(x)
-  result = list()
-
+  # fit the bayesian network if needed.
   if (class(x) == "bn")
     fitted = bn.fit.backend(x, data, debug = FALSE)
   else
     fitted = x
+
+  # schedule the nodes and prepare the return value.
+  to.do = schedule(x)
+  result = vector(length(fitted), mode = "list")
+  names(result) = names(fitted)
 
   if (debug)
     cat("* partial node ordering is:", to.do, "\n")
@@ -45,14 +48,9 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
     }#THEN
     else {
 
-      # if there is only a single parent, use it as is.
-      if (length(node.parents) == 1)
-        config2 = result[[node.parents]]
-      else
-        config2 = configurations(as.data.frame(result)[, node.parents])
-
-      # get the contingency table of the node against the configurations
+      # get the contingency table of this node against the configurations
       # of its parents.
+      config2 = configurations(result[node.parents])
       tab = collapse.table(fitted[[node]]$prob)
 
       # initialize the vectors to hold the generated data and the subset identifier.
@@ -62,13 +60,13 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
 
       # generate each value according to the right configuration. Iterate on
       # the latter to achieve a reasonable speed.
-      for (cfg in unique(config2)) {
+      for (cfg in unique(char.configurations)) {
 
         to.be.generated = (char.configurations == cfg)
 
         if (all(!is.nan(tab[, cfg]))) {
 
-          temp.gen[to.be.generated] = sample(node.levels, length(which(to.be.generated)), 
+          temp.gen[to.be.generated] = sample(node.levels, length(which(to.be.generated)),
              replace = TRUE, prob = tab[, cfg])
 
         }#THEN
@@ -93,20 +91,26 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
 
   }#FOR
 
-  as.data.frame(result)[, nodes(x)]
+  # WARNING: in-place modification of result to avoid copying potentially
+  # huge data sets around.
+  minimal.data.frame(result)
+
+  return(result)
 
 }#RBN.DISCRETE
 
 # a modified Logic Sampling (LS) algorithm for Gaussian data.
 rbn.continuous = function(x, n, data, debug = FALSE) {
 
-  to.do = schedule(x)
-  result = list()
-
   if (class(x) == "bn")
     fitted = bn.fit.backend(x, data, debug = FALSE)
   else
     fitted = x
+
+  # schedule the nodes and prepare the return value.
+  to.do = schedule(x)
+  result = vector(length(fitted), mode = "list")
+  names(result) = names(fitted)
 
   if (debug)
     cat("* partial node ordering is:", to.do, "\n")
@@ -115,7 +119,7 @@ rbn.continuous = function(x, n, data, debug = FALSE) {
 
     node.parents = fitted[[node]]$parents
 
-    if (debug) 
+    if (debug)
       cat("* simulating node", node, "with parents '", node.parents, "'.\n")
 
     if (length(node.parents) == 0) {
@@ -159,6 +163,10 @@ rbn.continuous = function(x, n, data, debug = FALSE) {
 
   }#FOR
 
-  as.data.frame(result)[, names(fitted)]
+  # WARNING: in-place modification of result to avoid copying potentially
+  # huge data sets around.
+  minimal.data.frame(result)
+
+  return(result)
 
 }#RBN.CONTINUOUS

@@ -1,10 +1,10 @@
 \name{hailfinder}
 \docType{data}
 \alias{hailfinder}
-\title{The HailFinder weather forecast system}
+\title{The HailFinder weather forecast system (synthetic) data set}
 \description{
 
-  Hailfinder is a Bayesian network designed to forecast severe 
+  Hailfinder is a Bayesian network designed to forecast severe
   summer hail in northeastern Colorado.
 
 }
@@ -56,7 +56,7 @@ data(hailfinder)
     \item \code{LatestCIN} (\emph{latest convective inhibition}): a four-level factor with levels \code{None}, \code{PartInhibit}, \code{Stifling} and \code{TotalInhibit}.
     \item \code{LLIW} (\emph{LLIW severe weather index}): a four-level factor with levels \code{Unfavorable}, \code{Weak}, \code{Moderate} and \code{Strong}.
     \item \code{CurPropConv} (\emph{current propensity to convection}): a four-level factor with levels \code{None}, \code{Slight}, \code{Moderate} and \code{Strong}.
-    \item \code{ScnRelPlFcst} (\emph{scenario relevant to plains forecast}): an eleven-level factor with levels \code{A}, \code{B}, \code{C}, \code{D}, \code{E}, \code{F}, \code{G}, \code{H}, \code{I}, \code{J} and \code{K}. 
+    \item \code{ScnRelPlFcst} (\emph{scenario relevant to plains forecast}): an eleven-level factor with levels \code{A}, \code{B}, \code{C}, \code{D}, \code{E}, \code{F}, \code{G}, \code{H}, \code{I}, \code{J} and \code{K}.
     \item \code{PlainsFcst} (\emph{plains forecast}): a three-level factor with levels \code{XNIL}, \code{SIG} and \code{SVR}.
     \item \code{N34StarFcst} (\emph{regions 2/3/4 forecast}): a three-level factor with levels \code{XNIL}, \code{SIG} and \code{SVR}.
     \item \code{R5Fcst} (\emph{region 5 forecast}): a three-level factor with levels \code{XNIL}, \code{SIG} and \code{SVR}.
@@ -66,7 +66,7 @@ data(hailfinder)
     \item \code{MidLLapse} (\emph{mid-level lapse rate}): a three-level factor with levels \code{CloseToDryAd}, \code{Steep} and \code{ModerateOrLe}.
     \item \code{MvmtFeatures} (\emph{movement of features}): a four-level factor with levels \code{StrongFront}, \code{MarkedUpper}, \code{OtherRapid} and \code{NoMajor}.
     \item \code{RHRatio} (\emph{realtive humidity ratio}): a three-level factor with levels \code{MoistMDryL}, \code{DryMMoistL} and \code{other}.
-    \item \code{SfcWndShfDis} (\emph{surface wind shifts and discontinuities}): a seven-level factor with levels \code{DenvCyclone}, \code{E_W_N}, \code{E_W_S}, \code{MovigFtorOt}, \code{DryLine}, \code{None} and \code{Other}. 
+    \item \code{SfcWndShfDis} (\emph{surface wind shifts and discontinuities}): a seven-level factor with levels \code{DenvCyclone}, \code{E_W_N}, \code{E_W_S}, \code{MovigFtorOt}, \code{DryLine}, \code{None} and \code{Other}.
     \item \code{SynForcng} (\emph{synoptic forcing}): a five-level factor with levels \code{SigNegative}, \code{NegToPos}, \code{SigPositive}, \code{PosToNeg} and \code{LittleChange}.
     \item \code{TempDis} (\emph{temperature discontinuities}): a four-level factor with levels \code{QStationary}, \code{Moving}, \code{None}, \code{Other}.
     \item \code{WindAloft} (\emph{wind aloft}): a four-level factor with levels \code{LV}, \code{SWQuad}, \code{NWQuad}, \code{AllElse}.
@@ -78,9 +78,9 @@ data(hailfinder)
 }
 \source{
 
-  Abramson B, Brown J, Edwards W, Murphy A, Winkler RL (1996). 
-      "Hailfinder: A Bayesian system for forecasting severe weather". 
-      \emph{International Journal of Forecasting}, \strong{12}(1), 
+  Abramson B, Brown J, Edwards W, Murphy A, Winkler RL (1996).
+      "Hailfinder: A Bayesian system for forecasting severe weather".
+      \emph{International Journal of Forecasting}, \strong{12}(1),
       57-71.
 
   Elidan G (2001). "Bayesian Network Repository". \cr
@@ -97,31 +97,34 @@ data(hailfinder)
 # load the data and build the correct network from the model string.
 data(hailfinder)
 res = empty.graph(names(hailfinder))
-modelstring(res) = paste("[N07muVerMo][SubjVertMo][QGVertMotion][SatContMoist]",
-  "[RaoContMoist][VISCloudCov][IRCloudCover][AMInstabMt][WndHodograph]",
-  "[MorningBound][LoLevMoistAd][Date][MorningCIN][LIfr12ZDENSd][AMDewptCalPl]",
-  "[LatestCIN][LLIW][CombVerMo|N07muVerMo:SubjVertMo:QGVertMotion]",
-  "[CombMoisture|SatContMoist:RaoContMoist][CombClouds|VISCloudCov:IRCloudCover]",
-  "[Scenario|Date][CurPropConv|LatestCIN:LLIW][AreaMesoALS|CombVerMo]",
+modelstring(res) = paste("[N07muVerMo][SubjVertMo][QGVertMotion]",
+  "[SatContMoist][RaoContMoist][VISCloudCov][IRCloudCover][AMInstabMt]",
+  "[WndHodograph][MorningBound][LoLevMoistAd][Date][MorningCIN]",
+  "[LIfr12ZDENSd][AMDewptCalPl][LatestCIN][LLIW]",
+  "[CombVerMo|N07muVerMo:SubjVertMo:QGVertMotion]",
+  "[CombMoisture|SatContMoist:RaoContMoist]",
+  "[CombClouds|VISCloudCov:IRCloudCover][Scenario|Date]",
+  "[CurPropConv|LatestCIN:LLIW][AreaMesoALS|CombVerMo]",
   "[ScenRelAMCIN|Scenario][ScenRelAMIns|Scenario][ScenRel34|Scenario]",
   "[ScnRelPlFcst|Scenario][Dewpoints|Scenario][LowLLapse|Scenario]",
-  "[MeanRH|Scenario][MidLLapse|Scenario][MvmtFeatures|Scenario][RHRatio|Scenario]",
-  "[SfcWndShfDis|Scenario][SynForcng|Scenario][TempDis|Scenario]",
-  "[WindAloft|Scenario][WindFieldMt|Scenario][WindFieldPln|Scenario]",
-  "[AreaMoDryAir|AreaMesoALS:CombMoisture][AMCINInScen|ScenRelAMCIN:MorningCIN]",
+  "[MeanRH|Scenario][MidLLapse|Scenario][MvmtFeatures|Scenario]",
+  "[RHRatio|Scenario][SfcWndShfDis|Scenario][SynForcng|Scenario]",
+  "[TempDis|Scenario][WindAloft|Scenario][WindFieldMt|Scenario]",
+  "[WindFieldPln|Scenario][AreaMoDryAir|AreaMesoALS:CombMoisture]",
+  "[AMCINInScen|ScenRelAMCIN:MorningCIN]",
   "[AMInsWliScen|ScenRelAMIns:LIfr12ZDENSd:AMDewptCalPl]",
-  "[CldShadeOth|AreaMesoALS:AreaMoDryAir:CombClouds][InsInMt|CldShadeOth:AMInstabMt]",
-  "[OutflowFrMt|InsInMt:WndHodograph][CldShadeConv|InsInMt:WndHodograph]",
-  "[MountainFcst|InsInMt][Boundaries|WndHodograph:OutflowFrMt:MorningBound]",
+  "[CldShadeOth|AreaMesoALS:AreaMoDryAir:CombClouds]",
+  "[InsInMt|CldShadeOth:AMInstabMt][OutflowFrMt|InsInMt:WndHodograph]",
+  "[CldShadeConv|InsInMt:WndHodograph][MountainFcst|InsInMt]",
+  "[Boundaries|WndHodograph:OutflowFrMt:MorningBound]",
   "[CompPlFcst|AreaMesoALS:CldShadeOth:Boundaries:CldShadeConv]",
   "[CapChange|CompPlFcst][InsChange|CompPlFcst:LoLevMoistAd]",
-  "[CapInScen|CapChange:AMCINInScen][InsSclInScen|InsChange:AMInsWliScen]",
+  "[CapInScen|CapChange:AMCINInScen]",
+  "[InsSclInScen|InsChange:AMInsWliScen]",
   "[PlainsFcst|CapInScen:InsSclInScen:CurPropConv:ScnRelPlFcst]",
   "[N34StarFcst|ScenRel34:PlainsFcst][R5Fcst|MountainFcst:N34StarFcst]",
   sep = "")
 \dontrun{
 # there are too many nodes for plot(), use graphviz.plot().
-graphviz.plot(res)
-}
-}
+graphviz.plot(res)}}
 \keyword{datasets}

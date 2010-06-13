@@ -48,7 +48,8 @@ export(
   "ordering2blacklist",
   "empty.graph",
   "random.graph",
-  "bnboot",
+  "bn.boot",
+  "bn.cv",
   "graphviz.plot",
   "strength.plot",
   "bn.fit",
@@ -57,6 +58,7 @@ export(
   "bn.fit.xyplot",
   "bn.fit.barchart",
   "bn.fit.dotplot",
+  "cpquery",
   "cpdag",
   "vstructs",
   "moral",
@@ -68,7 +70,12 @@ export(
 S3method(print, bn)
 S3method(plot, bn)
 S3method(AIC, bn)
+S3method(AIC, bn.fit)
 S3method(logLik, bn)
+S3method(logLik, bn.fit)
+S3method(rbn, bn)
+S3method(rbn, bn.fit)
+S3method(rbn, default)
 S3method(as.bn, character)
 S3method(as.character, bn)
 S3method(ci.test, character)
@@ -89,3 +96,8 @@ S3method(coef, "bn.fit")
 S3method(coef, "bn.fit.dnode")
 S3method(coef, "bn.fit.gnode")
 S3method(print, "mvber.moments")
+S3method(print, "bn.kcv")
+S3method(predict, "bn.fit")
+S3method(predict, "bn.fit.gnode")
+S3method(predict, "bn.fit.dnode")
+

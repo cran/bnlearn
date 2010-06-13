@@ -23,12 +23,12 @@ nparams = function(x, data, debug = FALSE) {
     # nparams is unknown for partially directed graphs.
     if (is.pdag(x$arcs, names(x$nodes)))
       stop("the graph is only partially directed.")
-  
+
     if (is.data.discrete(data))
       return(nparams.discrete(x, data, real = TRUE, debug = debug))
     else
       return(nparams.gaussian(x, debug = debug))
-  
+
   }#THEN
   else {
 
@@ -46,7 +46,7 @@ shd = function(learned, true, debug = FALSE) {
   check.bn(true)
   # check debug.
   check.logical(debug)
-  # the two networks must have the same node set.  
+  # the two networks must have the same node set.
   nodes = names(learned$nodes);
   check.nodes(nodes, graph = true, min.nodes = length(nodes))
 

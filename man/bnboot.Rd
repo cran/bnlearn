@@ -1,5 +1,5 @@
-\name{bnboot}
-\alias{bnboot}
+\name{bn.boot}
+\alias{bn.boot}
 \title{ Parametric and nonparametric bootstrap of Bayesian networks }
 \description{
 
@@ -8,12 +8,12 @@
 
 }
 \usage{
-bnboot(data, statistic, R = 200, m = nrow(data),
+bn.boot(data, statistic, R = 200, m = nrow(data),
   sim = "ordinary", algorithm, algorithm.args = list(),
   statistic.args = list(), debug = FALSE)
 }
 \arguments{
-  \item{data}{a data frame, containing the variables in the model.}
+  \item{data}{a data frame containing the variables in the model.}
   \item{statistic}{a function or a character string (the name of a
     function) to be applied to each bootstrap replicate.}
   \item{R}{a positive integer, the number of bootstrap replicates.}
@@ -49,7 +49,7 @@ bnboot(data, statistic, R = 200, m = nrow(data),
 \examples{
 \dontrun{
 data(learning.test)
-bnboot(data = learning.test, R = 2, m = 500, algorithm = "gs",
+bn.boot(data = learning.test, R = 2, m = 500, algorithm = "gs",
   statistic = arcs)
 # [[1]]
 #      from to
@@ -61,8 +61,6 @@ bnboot(data = learning.test, R = 2, m = 500, algorithm = "gs",
 }
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{constraint-based algorithms}},
-  \code{\link{local discovery algorithms}},
-  \code{\link{score-based algorithms}}, \code{\link{hybrid algorithms}}. }
+\seealso{\code{\link{bn.cv}}, \code{\link{rbn}}. }
 \keyword{nonparametric}
 \keyword{multivariate}

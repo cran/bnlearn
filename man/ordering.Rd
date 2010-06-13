@@ -2,7 +2,7 @@
 \alias{node ordering utilities}
 \alias{node.ordering}
 \alias{ordering2blacklist}
-\title{ Partial node ordering utilities }
+\title{ Utilities dealing with partial node orderings }
 \description{
 
   Detect the partial node ordering implied by a network or

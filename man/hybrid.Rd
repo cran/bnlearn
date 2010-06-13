@@ -2,18 +2,18 @@
 \alias{hybrid algorithms}
 \alias{rsmax2}
 \alias{mmhc}
-\title{ Hybrid learning algorithms }
+\title{ Hybrid structure learning algorithms }
 \description{
 
   Learn the structure of a Bayesian network with the Max-Min
-  Hill Climbing (MMHC) and the more general 2-phase Restricted 
+  Hill Climbing (MMHC) and the more general 2-phase Restricted
   Maximization (RSMAX2) hybrid algorithms.
 
 }
 \usage{
 rsmax2(x, whitelist = NULL, blacklist = NULL, restrict,
   maximize = "hc", test = NULL, score = NULL, alpha = 0.05,
-  B = NULL, ..., maximize.args = list(), optimized = TRUE, 
+  B = NULL, ..., maximize.args = list(), optimized = TRUE,
   strict = FALSE, debug = FALSE)
 mmhc(x, whitelist = NULL, blacklist = NULL, test = NULL,
   score = NULL, alpha = 0.05, B = NULL, ..., restart = 0,
@@ -21,7 +21,7 @@ mmhc(x, whitelist = NULL, blacklist = NULL, test = NULL,
   strict = FALSE, debug = FALSE)
 }
 \arguments{
-  \item{x}{a data frame, containing the variables in the model.}
+  \item{x}{a data frame containing the variables in the model.}
   \item{whitelist}{a data frame with two columns (optionally labeled
      "from" and "to"), containing a set of arcs to be included in the
      graph. }

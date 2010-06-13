@@ -9,7 +9,7 @@ lattice.discrete.backend = function(fitted, type, xlab, ylab, main, ...) {
 
     # plot a panel for each node in the bayesian network.
 
-    if (class(fitted[[1]]) != "bn.fit.dnode")
+    if (!is.fitted.discrete(fitted))
       stop("this plot is limited to discrete bayesian networks.")
 
     stop("only plots of single nodes are implemented.")
@@ -89,7 +89,7 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
 
     # plot a panel for each node in the bayesian network.
 
-    if (class(fitted[[1]]) != "bn.fit.gnode")
+    if (!is.fitted.continuous(fitted))
       stop("this plot is limited to gaussian bayesian networks.")
 
     nodes = names(fitted)

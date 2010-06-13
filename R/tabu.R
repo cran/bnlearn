@@ -66,7 +66,7 @@ tabu.search = function(x, start, whitelist, blacklist, score,
 
     current = as.integer((iter - 1) %% tabu)
 
-    # keep the best network seen so far and its score value for the 
+    # keep the best network seen so far and its score value for the
     # evaluation of the stopping rule.
     if (sum(reference.score) > best.score) {
 
@@ -109,14 +109,14 @@ tabu.search = function(x, start, whitelist, blacklist, score,
 
     # select which arcs should be tested for inclusion in the graph (hybrid
     # learning algorithms should hook the restrict phase here).
-    to.be.added = arcs.to.be.added(amat = amat, nodes = nodes, 
+    to.be.added = arcs.to.be.added(amat = amat, nodes = nodes,
                     blacklist = blmat, whitelist = NULL, arcs = FALSE)
 
     # get the best arc addition/removal/reversal.
     bestop = .Call("tabu_step",
                    amat = amat,
                    nodes = nodes,
-                   added = to.be.added,  
+                   added = to.be.added,
                    cache = cache,
                    reference = reference.score,
                    wlmat = wlmat,
@@ -150,8 +150,8 @@ tabu.search = function(x, start, whitelist, blacklist, score,
 
       }#THEN
       else {
-  
-        # increase the counter of the iteration without improvements.      
+
+        # increase the counter of the iteration without improvements.
         loss.iter = loss.iter + 1
 
       }#ELSE
@@ -159,7 +159,7 @@ tabu.search = function(x, start, whitelist, blacklist, score,
       if (debug) {
 
         cat("----------------------------------------------------------------\n")
-        cat("* network score did not increase for", loss.iter, 
+        cat("* network score did not increase for", loss.iter,
               "iterations, looking for a minimal decrease :\n")
 
       }#THEN
@@ -214,7 +214,7 @@ tabu.search = function(x, start, whitelist, blacklist, score,
       cat("* current network is :\n")
       print(start)
       cat("* current score:", sum(reference.score), "\n")
-      cat(sprintf("* best score up to now: %s (delta: %s)\n", format(best.score), 
+      cat(sprintf("* best score up to now: %s (delta: %s)\n", format(best.score),
         format(sum(reference.score) - best.score)))
 
     }#THEN

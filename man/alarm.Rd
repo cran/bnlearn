@@ -1,7 +1,7 @@
 \name{alarm}
 \docType{data}
 \alias{alarm}
-\title{ALARM Monitoring System data set}
+\title{ALARM Monitoring System (synthetic) data set}
 \description{
 
   The ALARM ("A Logical Alarm Reduction Mechanism") is a Bayesian
@@ -108,7 +108,7 @@ data(alarm)
       Artificial Intelligence in Medicine", pp. 247-256. Springer-Verlag.
 
   Elidan G (2001). "Bayesian Network Repository". \cr
-      http://www.cs.huji.ac.il/labs/compbio/Repository/.
+      \url{http://www.cs.huji.ac.il/labs/compbio/Repository}.
 
 }
 \note{
@@ -130,7 +130,5 @@ modelstring(res) = paste("[HIST|LVF][CVP|LVV][PCWP|LVV][HYP][LVV|HYP:LVF]",
   "[CCHL|ACO2:ANES:SAO2:TPR][HR|CCHL][CO|HR:STKV][BP|CO:TPR]", sep = "")
 \dontrun{
 # there are too many nodes for plot(), use graphviz.plot().
-graphviz.plot(res)
-}
-}
+graphviz.plot(res)}}
 \keyword{datasets}

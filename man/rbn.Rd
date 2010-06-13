@@ -1,5 +1,7 @@
 \name{rbn}
 \alias{rbn}
+\alias{rbn.bn}
+\alias{rbn.bn.fit}
 \title{ Generate random data from a given Bayesian network }
 \description{
 
@@ -7,15 +9,19 @@
 
 }
 \usage{
-rbn(x, n, data, debug = FALSE)
+\method{rbn}{bn}(x, n = 1, data, fit = "mle", \dots, debug = FALSE)
+\method{rbn}{bn.fit}(x, n = 1, \dots, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn} or \code{bn.fit}.}
-  \item{n}{non-negative integer giving the number of observations
+  \item{n}{a positive integer giving the number of observations
        to generate.}
-  \item{data}{a data frame, containing the data the Bayesian network
-       was learned from. It is only needed if \code{x} is an object 
-       of class \code{bn}.}
+  \item{data}{a data frame containing the data the Bayesian network
+       was learned from.}
+  \item{fit}{a character string, the label of the method used to fit the
+       parameters of the newtork. See \code{\link{bn.fit}} for details.}
+  \item{...}{additional arguments for the parameter estimation prcoedure,
+    see again \code{\link{bn.fit}} for details..}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
 }
@@ -39,9 +45,8 @@ res = set.arc(res, "A", "B")
 par(mfrow = c(1,2))
 plot(res)
 sim = rbn(res, 500, learning.test)
-plot(gs(sim))
-}
-}
+plot(gs(sim))}}
 \author{ Marco Scutari }
+\seealso{\code{\link{bn.boot}}, \code{\link{bn.cv}}.}
 \keyword{utilities}
 \keyword{multivariate}

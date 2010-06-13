@@ -22,7 +22,7 @@ model2network(string, debug = FALSE)
 \method{as.bn}{character}(string, debug = FALSE)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}. \code{modelstring} (but not its 
+  \item{x}{an object of class \code{bn}. \code{modelstring} (but not its
        replacement form) accepts also objects of class \code{bn.fit}.}
   \item{string}{a character string describing the Bayesian network.}
   \item{value}{a character string, the same as the \code{string}.}

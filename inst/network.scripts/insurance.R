@@ -481,7 +481,7 @@ PropCost[PropCost == "Million:HundredThou"] = sample(VALUE2, length(which(PropCo
 PropCost[PropCost == "Million:Million"] = sample(VALUE2, length(which(PropCost == "Million:Million")), prob = c(0, 0, 0, 1), replace = TRUE)
 
 insurance = data.frame(
-  GoodStudent = factor(GoodStudent, levels = BOOL), 
+  GoodStudent = factor(GoodStudent, levels = BOOL),
   Age = factor(Age, levels = AGE),
   SocioEcon = factor(SocioEcon, levels = SEC),
   RiskAversion = factor(RiskAversion, levels = RISK),

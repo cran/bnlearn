@@ -8,13 +8,18 @@
 
 }
 \usage{
-bn.fit(x, data, debug = FALSE)
+bn.fit(x, data, method = "mle", \dots, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
-  \item{data}{a data frame, containing the variables in the model.}
+  \item{data}{a data frame containing the variables in the model.}
+  \item{method}{a character string, either \code{mle} for \emph{Maximum
+    Likelihood parameter estimation} or \code{bayes} for \emph{Bayesian
+    parameter estimation} (currently implemented only for discrete data).}
+  \item{...}{additional arguments for the parameter estimation prcoedure,
+    see below.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-       is printed; otherwise the function is completely silent.}
+    is printed; otherwise the function is completely silent.}
 }
 \note{
 
@@ -23,6 +28,10 @@ bn.fit(x, data, debug = FALSE)
   completely directed (i.e. there are no undirected arcs). See
   \code{\link{set.arc}} and \code{\link{pdag2dag}} for two ways
   of manually setting the direction of one or more arcs.
+
+  The only supported additional parameter is the imaginary sample size
+  (\code{iss}) for the Dirichlet posterior distribution of discrete
+  networks (see \code{\link{score}} for details).
 
 }
 \value{

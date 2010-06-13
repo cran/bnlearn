@@ -50,9 +50,9 @@ model2network = function(string, debug = FALSE) {
 
 # generic method to fool R CMD check (it's not even exported).
 as.bn = function(string, ...) {
- 
+
    UseMethod(string)
- 
+
 }#AS.BN
 
 # model-string-to-bn conversion function.

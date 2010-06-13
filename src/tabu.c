@@ -1,13 +1,13 @@
 #include "common.h"
 
-void tabu_add(double *cache_value, int *ad, int *am, SEXP bestop, SEXP nodes, 
-    int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur, 
-    int *narcs, int *debuglevel);
-void tabu_del(double *cache_value, int *w, int *am, SEXP bestop, SEXP nodes, 
+void tabu_add(double *cache_value, int *ad, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,
     int *narcs, int *debuglevel);
-void tabu_rev(double *cache_value, int *b, int *am, SEXP bestop, SEXP nodes, 
-    int *nnodes, int *from, int *to, double *max, int *update, SEXP tabu_list, 
+void tabu_del(double *cache_value, int *w, int *am, SEXP bestop, SEXP nodes,
+    int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,
+    int *narcs, int *debuglevel);
+void tabu_rev(double *cache_value, int *b, int *am, SEXP bestop, SEXP nodes,
+    int *nnodes, int *from, int *to, double *max, int *update, SEXP tabu_list,
     int *cur, int *narcs, int *debuglevel);
 
 /* create a numerical compact representation of a network structure (akin to
@@ -59,7 +59,7 @@ SEXP tabu_network, hash;
     /* if a network in the abu list matches, return its index in the R-level list. */
     for (j = 0; j < *narcs; j++) {
 
-      /* since the two array are ordered by construction, a simple 
+      /* since the two array are ordered by construction, a simple
        * element-by-elements is all it's needed. */
       if (matches[j] != target[j])
         goto there;
@@ -82,10 +82,10 @@ there:
 
 }/*TABU_MATCH*/
 
-/* a single step of tabu search (one arc addition/removal/reversal, plus 
+/* a single step of tabu search (one arc addition/removal/reversal, plus
  * lookup in the tabu list). */
 SEXP tabu_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
-    SEXP wlmat, SEXP blmat, SEXP tabu_list, SEXP current, SEXP baseline, 
+    SEXP wlmat, SEXP blmat, SEXP tabu_list, SEXP current, SEXP baseline,
     SEXP debug) {
 
 int nnodes = LENGTH(nodes), narcs = 0, i = 0, j = 0;
@@ -135,7 +135,7 @@ SEXP false, bestop, names;
   }/*THEN*/
 
   /* test neighbours by arc addition. */
-  tabu_add(cache_value, ad, am, bestop, nodes, &nnodes, &from, &to, &max, 
+  tabu_add(cache_value, ad, am, bestop, nodes, &nnodes, &from, &to, &max,
     tabu_list, cur, &narcs, debuglevel);
 
   if (*debuglevel > 0) {
@@ -150,7 +150,7 @@ SEXP false, bestop, names;
   }/*THEN*/
 
   /* test neighbours by arc deletion. */
-  tabu_del(cache_value, w, am, bestop, nodes, &nnodes, &from, &to, &max, 
+  tabu_del(cache_value, w, am, bestop, nodes, &nnodes, &from, &to, &max,
     tabu_list, cur, &narcs, debuglevel);
 
   if (*debuglevel > 0) {
@@ -166,7 +166,7 @@ SEXP false, bestop, names;
   }/*THEN*/
 
   /* test neighbours by arc reversal. */
-  tabu_rev(cache_value, b, am, bestop, nodes, &nnodes, &from, &to, &max, 
+  tabu_rev(cache_value, b, am, bestop, nodes, &nnodes, &from, &to, &max,
     &update, tabu_list, cur, &narcs, debuglevel);
 
   /* update the reference scores. */
@@ -181,8 +181,8 @@ SEXP false, bestop, names;
 }/*TABU_STEP*/
 
 /* try to add an arc to the current network, minding the tabu list. */
-void tabu_add(double *cache_value, int *ad, int *am, SEXP bestop, SEXP nodes, 
-    int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur, 
+void tabu_add(double *cache_value, int *ad, int *am, SEXP bestop, SEXP nodes,
+    int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,
     int *narcs, int *debuglevel) {
 
 int i = 0, j = 0, idx = 0;
@@ -262,7 +262,7 @@ double temp = 0, tol = MACHINE_TOL;
 }/*TABU_ADD*/
 
 /* try to delete an arc from the current network, minding the tabu list. */
-void tabu_del(double *cache_value, int *w, int *am, SEXP bestop, SEXP nodes, 
+void tabu_del(double *cache_value, int *w, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,
     int *narcs, int *debuglevel) {
 
@@ -335,8 +335,8 @@ double temp = 0, tol = MACHINE_TOL;
 }/*TABU_DEL*/
 
 /* try to reverse an arc in the current network, minding the tabu list. */
-void tabu_rev(double *cache_value, int *b, int *am, SEXP bestop, SEXP nodes, 
-    int *nnodes, int *from, int *to, double *max, int *update, SEXP tabu_list, 
+void tabu_rev(double *cache_value, int *b, int *am, SEXP bestop, SEXP nodes,
+    int *nnodes, int *from, int *to, double *max, int *update, SEXP tabu_list,
     int *cur, int *narcs, int *debuglevel) {
 
 int i = 0, j = 0, idx = 0;

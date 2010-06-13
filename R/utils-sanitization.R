@@ -115,6 +115,13 @@ check.nodes = function(nodes, graph = NULL, min.nodes = 1, max.nodes = Inf) {
                "not present in the graph."), collapse = " "))
 
     }#THEN
+    else if (is.character(graph)) {
+
+      if (!all(nodes %in% graph))
+        stop(paste(c("node(s)", nodes[!(nodes %in% graph)],
+               "not present in the graph."), collapse = " "))
+
+    }#THEN
 
   }#THEN
 
@@ -377,6 +384,84 @@ check.criterion = function(criterion, data) {
 
 }#CHECK.CRITERION
 
+# check loss functions' labels.
+check.loss = function(loss, data) {
+
+  if (!is.null(loss)) {
+
+    # check it's a single character string.
+    check.string(loss)
+    # check the score/test label.
+    if (!(loss %in% loss.functions))
+      stop(paste(c("valid loss functions are:\n",
+             sprintf("    %-10s %s\n", names(loss.labels), loss.labels)), sep = ""))
+    if (!is.data.discrete(data) && (loss %in% discrete.loss.functions))
+      stop(paste("loss function '", loss, "' may be used with discrete data only.", sep = ""))
+    if (!is.data.continuous(data) && (loss %in% continuous.loss.functions))
+      stop(paste("loss function '", loss, "' may be used with continuous data only.", sep = ""))
+
+    return(loss)
+
+  }#THEN
+  else {
+
+    if (is.data.discrete(data))
+      return("logl")
+    else
+      return("logl-g")
+
+  }#ELSE
+
+}#CHECK.LOSS
+
+# check the method used to fit the parameters of the network.
+check.fitting.method = function(method, data) {
+
+  if (!is.null(method)) {
+
+    # check it's a single character string.
+    check.string(method)
+    # check the score/test label.
+    if (!(method %in% available.fitting.methods))
+      stop(paste(c("valid fitting methods are:\n",
+             sprintf("    %-10s %s\n", names(fitting.labels), fitting.labels)), sep = ""))
+    # bayesian parameter estimation is implemented only for discrete data.
+    if (is.data.continuous(data) && (method == "bayes"))
+      stop("Bayesian parameter estimation for Gaussian Bayesian networks is not implemented.")
+
+    return(method)
+
+  }#THEN
+  else {
+
+      return("mle")
+
+  }#ELSE
+
+}#CHECK.FITTING.METHOD
+
+# is the fitted bayesian network a discrete one?
+is.fitted.discrete = function(fitted) {
+
+  for (i in 1:length(fitted))
+    if (class(fitted[[i]]) != "bn.fit.dnode")
+      return(FALSE)
+
+  return(TRUE)
+
+}#IS.FITTED.DISCRETE
+
+# is the fitted bayesian network a continuous one?
+is.fitted.continuous = function(fitted) {
+
+  for (i in 1:length(fitted))
+    if (class(fitted[[i]]) != "bn.fit.gnode")
+      return(FALSE)
+
+  return(TRUE)
+
+}#IS.FITTED.CONTINUOUS
+
 # will the bayesian network be a discrete one?
 is.data.discrete = function(data) {
 
@@ -504,7 +589,7 @@ check.score.args = function(score, network, data, extra.args) {
     else {
 
       # set the penalty according to the chosen score.
-      if (score == "aic") extra.args$k = 1
+      if (score %in% c("aic", "aic-g")) extra.args$k = 1
       else extra.args$k = log(nrow(data))/2
 
     }#ELSE
@@ -673,7 +758,98 @@ check.bootstrap.args = function(extra.args, network, data) {
 
   return(extra.args)
 
-}#THEN
+}#CHECK.BOOTSTRAP.ARGS
+
+# sanitize the extra arguments passed to the conditional probability algorithms.
+check.cpq.args = function(fitted, extra.args, method) {
+
+  if (method %in% c("ls")) {
+
+    if (!is.null(extra.args$n)) {
+
+      if (!is.positive.integer(extra.args$n))
+        stop("the number of observations to be sampled must be a positive integer number.")
+
+    }#THEN
+    else {
+
+      # this is a rule of thumb, the error of the estimate has no closed-form
+      # expression (Friedman & Koller).
+      extra.args$n = 5000 * nparams.fitted(fitted)
+
+    }#ELSE
+
+    if (!is.null(extra.args$batch)) {
+
+      if (!is.positive.integer(extra.args$batch))
+        stop("the number of observations to be sampled must be a positive integer number.")
+
+      if (extra.args$batch > extra.args$n) {
+
+        warning("cannot generate a batch bigger than the whole generated data set.")
+        warning("batch size will be ignored.")
+
+      }#THEN
+
+    }#THEN
+    else {
+
+      # perform small simulations in a single batch, and split larger ones.
+      extra.args$batch = min(extra.args$n, 10^4)
+
+    }#ELSE
+
+  }#THEN
+
+  # warn about unused arguments.
+  check.unused.args(extra.args, cpq.extra.args[[method]])
+
+  return(extra.args)
+
+}#CHECK.CPQ.ARGS
+
+# sanitize the extra arguments passed to loss functions.
+check.loss.args = function(loss, nodes, extra.args) {
+
+  if (loss == "pred") {
+
+    if (!is.null(extra.args$target)) {
+
+      if (!is.string(extra.args$target) || !(extra.args$target %in% nodes))
+        stop("target node must be a single, valid node label for the network.")
+
+    }#THEN
+    else {
+
+      stop("missing target node for which to compute the prediction error.")
+
+    }#ELSE
+
+  }#THEN
+
+  # warn about unused arguments.
+  check.unused.args(extra.args, loss.extra.args[[loss]])
+
+  return(extra.args)
+
+}#CHECK.LOSS.ARGS
+
+check.fitting.args = function(method, network, data, extra.args) {
+
+  if (method == "bayes") {
+
+    # check the imaginary sample size.
+    extra.args$iss = check.iss(iss = extra.args$iss,
+      network = network, data = data)
+
+  }#THEN
+
+  # warn about unused arguments.
+  check.unused.args(extra.args, fitting.extra.args[[method]])
+
+  return(extra.args)
+
+}#CHECK.FITTING.ARGS
 
 # warn about unused arguments.
 check.unused.args = function(dots, used.args) {
@@ -855,7 +1031,21 @@ check.bn.or.fit = function(bn) {
 
   }#THEN
 
-}#CHECK.BN
+}#CHECK.BN.OR.FIT
+
+# check an object of class bn.
+check.fit = function(bn) {
+
+  if (missing(bn))
+    stop("an object of class 'bn.fit' is required.")
+  if (!is(bn, "bn.fit")) {
+
+    stop(sprintf("%s must be an object of class 'bn.fit'.",
+           deparse(substitute(bn))))
+
+  }#THEN
+
+}#CHECK.FIT
 
 # check an object of class bn.strength.
 check.bn.strength = function(strength, bn) {
@@ -898,7 +1088,7 @@ check.restart = function(restart) {
   if (is.null(restart) || (restart == 0))
       return(0)
 
-  if (!is.positive.integer(restart)) 
+  if (!is.positive.integer(restart))
     stop("the number of random restarts must be a non-negative numeric value.")
   else
     return(restart)
@@ -951,7 +1141,7 @@ check.max.tabu = function(max, tabu) {
   if (is.null(max))
     return(tabu)
 
-  # check the number of iterations the algorithm can perform without 
+  # check the number of iterations the algorithm can perform without
   # improving the best network score.
   if (!is.positive.integer(max))
     stop("the maximum number of iterations without any score improvement must be a positive integer number.")
@@ -974,7 +1164,7 @@ check.bn.vs.data = function(bn, data) {
   # the variables must be the same.
   if (length(setdiff(names(bn$nodes) , names(data))) != 0)
     stop("the variables in the data and in the network do not match.")
-  # data type versus network type
+  # data type versus network type.
   if (bn$learning$test %in% c(available.discrete.tests, available.discrete.scores) &&
       is.data.continuous(data))
     stop("continuous data and discrete network.")
@@ -983,6 +1173,23 @@ check.bn.vs.data = function(bn, data) {
     stop("discrete data and continuous network.")
 
 }#CHECK.BN.VS.DATA
+
+# check bn.fit metadata against the data it's used with.
+check.fit.vs.data = function(fitted, data) {
+
+  # the number of variables must be the same
+  if (length(names(fitted)) != ncol(data))
+    stop("the network and the data have different numbers of variables.")
+  # the variables must be the same.
+  if (length(setdiff(names(fitted) , names(data))) != 0)
+    stop("the variables in the data and in the network do not match.")
+  # data type versus network type.
+  if (is.fitted.discrete(fitted) && is.data.continuous(data))
+    stop("continuous data and discrete network.")
+  if (is.fitted.continuous(fitted) && is.data.discrete(data))
+    stop("discrete data and continuous network.")
+
+}#CHECK.FIT.VS.DATA
 
 # check a colour identifier (not necessarily a string/integer).
 check.colour = function(col) {

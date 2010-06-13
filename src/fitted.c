@@ -16,7 +16,7 @@ SEXP temp, temp2, nodes, node_data, labels, result;
   if (isNull(nodes))
     nodes = bn;
   /* get the nodes' labels. */
-  labels = getAttrib(nodes, R_NamesSymbol); 
+  labels = getAttrib(nodes, R_NamesSymbol);
   /* allocate and initialize a status vector. */
   status = allocstatus(LENGTH(nodes));
 
@@ -85,7 +85,7 @@ SEXP labels, node_data, children, result, colnames, dimnames;
   for (i = 0; i <  LENGTH(bn); i++) {
 
     /* get the node's data. */
-    node_data = VECTOR_ELT(bn, i);    
+    node_data = VECTOR_ELT(bn, i);
     /* count its children. */
     narcs += LENGTH(getListElement(node_data, "children"));
 
@@ -107,7 +107,7 @@ SEXP labels, node_data, children, result, colnames, dimnames;
   for (i = 0; i <  LENGTH(bn); i++) {
 
     /* get the node's data. */
-    node_data = VECTOR_ELT(bn, i);    
+    node_data = VECTOR_ELT(bn, i);
     /* get its children. */
     children = getListElement(node_data, "children");
 
@@ -216,7 +216,7 @@ SEXP mb, labels, try, temp, node_data;
 
   /* get the nodes' labels. */
   labels = getAttrib(bn, R_NamesSymbol);
-  nnodes = LENGTH(labels); 
+  nnodes = LENGTH(labels);
   /* allocate and initialize a status vector. */
   status = allocstatus(nnodes);
 

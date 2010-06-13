@@ -32,12 +32,12 @@ d[d == "no:yes"] = sample(BOOL, length(which(d == "no:yes")), prob = c(0.80, 0.2
 d[d == "no:no"] = sample(BOOL, length(which(d == "no:no")), prob = c(0.10, 0.90), replace = TRUE)
 
 asia = data.frame(
-  A = factor(a, levels = BOOL), 
-  S = factor(s, levels = BOOL), 
-  T = factor(t, levels = BOOL), 
-  L = factor(l, levels = BOOL), 
-  B = factor(b, levels = BOOL), 
-  E = factor(e, levels = BOOL), 
+  A = factor(a, levels = BOOL),
+  S = factor(s, levels = BOOL),
+  T = factor(t, levels = BOOL),
+  L = factor(l, levels = BOOL),
+  B = factor(b, levels = BOOL),
+  E = factor(e, levels = BOOL),
   X = factor(x, levels = BOOL),
   D = factor(d, levels = BOOL)
 )

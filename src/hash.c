@@ -27,7 +27,7 @@ SEXP matched, hash;
 /* compute the hash of an adjacency matrix using CMC() coordinates. */
 SEXP c_amat_hash(int *amat, int *nnodes) {
 
-int i = 0, k = 0, narcs = 0; 
+int i = 0, k = 0, narcs = 0;
 int *coords = NULL;
 SEXP hash;
 
@@ -37,7 +37,7 @@ SEXP hash;
       narcs++;
 
   /* allocate the hash (a vector containing the coordinates of the arcs in
-   * the flattened adjacency matrix, which uniquely identifies a directed 
+   * the flattened adjacency matrix, which uniquely identifies a directed
    * graph). */
   PROTECT(hash = allocVector(INTSXP, narcs));
   coords = INTEGER(hash);

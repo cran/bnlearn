@@ -16,7 +16,7 @@ score(x, data, type = NULL, ..., debug = FALSE)
 }
 \arguments{
   \item{x, object}{an object of class \code{bn}.}
-  \item{data}{a data frame, containing the data the Bayesian network
+  \item{data}{a data frame containing the data the Bayesian network
        was learned from.}
   \item{type}{a character string, the label of a network score.
       If none is specified, the default score is the
@@ -41,7 +41,8 @@ score(x, data, type = NULL, ..., debug = FALSE)
 
     \item \code{iss}: the imaginary sample size, used by the Bayesian
         Dirichlet equivalent score and the Bayesian Gaussian posterior
-        density. The default value is equal to the number of cells of the
+        density. It is also known as \dQuote{equivalent sample size}.
+        The default value is equal to the number of cells of the
         joint contingency table (for compatibility with the \pkg{deal}
         package) for the \code{bde} score, or to the number of
         independent parameters for the \code{bge} score.

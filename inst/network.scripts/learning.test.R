@@ -29,11 +29,11 @@ e[e == "c:a"] = sample(LV3, length(which(e == "c:a")), prob = c(0.1, 0.1, 0.8), 
 e[e == "c:b"] = sample(LV3, length(which(e == "c:b")), prob = c(0.25, 0.5, 0.25), replace = TRUE)
 
 learning.test = data.frame(
-  A = factor(a, levels = LV3), 
-  B = factor(b, levels = LV3), 
-  C = factor(c, levels = LV3), 
-  D = factor(d, levels = LV3), 
-  E = factor(e, levels = LV3), 
+  A = factor(a, levels = LV3),
+  B = factor(b, levels = LV3),
+  C = factor(c, levels = LV3),
+  D = factor(d, levels = LV3),
+  E = factor(e, levels = LV3),
   F = factor(f, levels = c("a", "b"))
 )
 

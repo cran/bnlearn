@@ -40,7 +40,7 @@
       \item \code{ntests}: the number of conditional independence tests
         or score comparisons used in the learning (an integer value).
 
-      \item \code{algo}: the label of the learning algorithm or the 
+      \item \code{algo}: the label of the learning algorithm or the
         random generation algorithm used to generate the network
         (a character string).
 

@@ -98,14 +98,14 @@ double tmp = 0, *work = NULL;
   iwork = (int *)Calloc(8 * (*mindim), int);
 
   /* ask for the optimal size of the work array. */
-  F77_CALL(dgesdd)(&jobz, nrows, ncols, A, nrows, D, U, nrows, 
+  F77_CALL(dgesdd)(&jobz, nrows, ncols, A, nrows, D, U, nrows,
                    V, mindim, &tmp, &lwork, iwork, &err);
 
   lwork = (int)tmp;
   work = (double *)Calloc(lwork, double);
 
   /* actual call */
-  F77_NAME(dgesdd)(&jobz, nrows, ncols, A, nrows, D, U, nrows, 
+  F77_NAME(dgesdd)(&jobz, nrows, ncols, A, nrows, D, U, nrows,
                    V, mindim, work, &lwork, iwork, &err);
 
   Free(work);

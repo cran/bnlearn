@@ -1,6 +1,6 @@
 
 # fit the parameters of the bayesian network for a given network stucture.
-bn.fit.backend = function(x, data, debug) {
+bn.fit.backend = function(x, data, method, extra.args, debug = FALSE) {
 
   n = nrow(data)
 
@@ -9,7 +9,7 @@ bn.fit.backend = function(x, data, debug) {
 
     fit = function(node) {
 
-      # store the labels of the parents and the children to get 
+      # store the labels of the parents and the children to get
       # them only once.
       parents = x$nodes[[node]]$parents
       children = x$nodes[[node]]$children
@@ -23,9 +23,22 @@ bn.fit.backend = function(x, data, debug) {
 
       }#THEN
 
-      # the parameters of the multinomial distribution are the probabilities
-      # of the levels of the node and the configurations of its parents.
-      tab = table(data[, c(node, parents), drop = FALSE])
+      if (method == "mle") {
+
+        # the parameters of the multinomial distribution are the probabilities
+        # of the levels of the node and the configurations of its parents.
+        tab = table(data[, c(node, parents), drop = FALSE])
+
+      }#THEN
+      else {
+
+        # the parameters of the multinomial distribution are the expected values
+        # of the corresponding parameters of the posterior Dirichlet distribution.
+        tab = table(data[, c(node, parents), drop = FALSE]) 
+        tab = tab + extra.args$iss / prod(dim(tab))
+
+      }#ELSE
+
       # switch from the joint probabilities to the conditional ones.
       tab = prop.table((tab), margin = seq(length(parents) + 1)[-1])
 
@@ -39,7 +52,7 @@ bn.fit.backend = function(x, data, debug) {
 
     fit = function(node) {
 
-      # store the labels of the parents and the children to get 
+      # store the labels of the parents and the children to get
       # them only once.
       parents = x$nodes[[node]]$parents
       children = x$nodes[[node]]$children
@@ -58,7 +71,7 @@ bn.fit.backend = function(x, data, debug) {
         sd = sd(data[, node])
 
         structure(list(node = node, parents = parents, children = children,
-          coefficients = coefs, residuals = resid, 
+          coefficients = coefs, residuals = resid,
           fitted.values = rep(mean, n), sd = sd), class = "bn.fit.gnode")
 
       }#THEN
@@ -70,15 +83,14 @@ bn.fit.backend = function(x, data, debug) {
         # the relevant quantities of the normal distribution are the ones
         # usually found in an lm object: coefficients, fitted values and
         # residuals, plus the standard deviation of the latter.
-        intercept = rep(1, nrow(data))
-        qr.x = qr(cbind(intercept, data[, parents]))
+        qr.x = qr(minimal.qr.matrix(data, parents))
         coefs = structure(qr.coef(qr.x, data[, node]), names = c("(Intercept)", parents))
         fitted = qr.fitted(qr.x, data[, node])
         resid = qr.resid(qr.x, data[, node])
         sd = sd(resid)
 
         structure(list(node = node, parents = parents, children = children,
-          coefficients = coefs, residuals = resid, 
+          coefficients = coefs, residuals = resid,
           fitted.values = fitted, sd = sd), class = "bn.fit.gnode")
 
 

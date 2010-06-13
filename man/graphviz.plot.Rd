@@ -8,7 +8,7 @@
 
 }
 \usage{
-graphviz.plot(x, highlight = NULL, layout = "dot", 
+graphviz.plot(x, highlight = NULL, layout = "dot",
   shape = "circle", main = NULL, sub = NULL)
 }
 \arguments{
@@ -60,5 +60,6 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
   }
 
 }
+\seealso{\code{\link{plot.bn}}.}
 \author{ Marco Scutari }
 \keyword{hplot}

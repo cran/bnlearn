@@ -69,7 +69,7 @@ ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
 # generate an empty 'bn' object given a set of nodes.
 empty.graph.backend = function(nodes, num = 1) {
 
-  .Call("empty_graph", 
+  .Call("empty_graph",
         nodes = nodes,
         num = as.integer(num),
         PACKAGE = "bnlearn")

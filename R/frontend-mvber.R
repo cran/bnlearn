@@ -37,7 +37,7 @@ bn.var.test = function(x, method, R, B, debug = FALSE) {
     R = check.replicates(R, default = attr(x, "R"))
     # check the size of each bootstrap sample.
     B = check.bootsize(B, data, default = attr(x, "m"))
- 
+
     mvber.var.test(x = x$covariance, method = method,
       method.string = method.string, R = R, B = B, debug = debug)
 
@@ -79,7 +79,7 @@ bn.moments = function(data, R = 200, m = nrow(data), algorithm,
   res = mvber.moments.backend(data = data, R = R, m = m, algorithm = algorithm,
           algorithm.args = algorithm.args, arcs = NULL, debug)
 
-  # reduce the return value either removing any arc which did not appear 
+  # reduce the return value either removing any arc which did not appear
   # in any bootstrap sample ("first") or that has zero variance ("second").
   if (!is.null(reduce)) {
 

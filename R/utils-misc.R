@@ -79,16 +79,25 @@ smaller = function(a, b) {
 
 }#SMALLER
 
-# build an array containing the configurations of the variables
-# present in the 'data' argument.
+# build an array containing the (factor) configurations of the variables.
 configurations = function(data) {
 
-  .Call("cfg2", 
-        data = data, 
+  .Call("cfg2",
+        data = data,
         PACKAGE = "bnlearn")
 
 }#CONFIGURATIONS
 
+# build an array containing the raw (integer) configurations of the variables.
+raw.configurations = function(data) {
+
+  .Call("cfg",
+        data = data,
+        PACKAGE = "bnlearn") + 1L
+
+}#RAW.CONFIGURATIONS
+
+# collapse a multi-dimensional table in a bi-dimensional one.
 collapse.table = function(tab) {
 
   .Call("collapse_table",
@@ -108,3 +117,29 @@ arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
 
 }#ARCS.RBIND
 
+minimal.data.frame = function(lst) {
+
+  .Call("minimal_data_frame",
+        obj = lst,
+        PACKAGE = "bnlearn")
+
+}#MINIMAL.DATA.FRAME
+
+minimal.data.frame.column = function(dataframe, column, drop = TRUE) {
+
+  .Call("dataframe_column",
+        dataframe = dataframe,
+        column = column,
+        drop = drop,
+        PACKAGE = "bnlearn")
+
+}#MINIMAL.DATA.FRAME.COLUMN
+
+minimal.qr.matrix = function(dataframe, column) {
+
+  .Call("qr_matrix",
+        dataframe = dataframe,
+        column = column,
+        PACKAGE = "bnlearn")
+
+}#MINIMAL.QR.MATRIX

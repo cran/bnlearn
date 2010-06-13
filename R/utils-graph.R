@@ -49,8 +49,8 @@ mb2arcs = function(mb, nodes) {
 # get the root/leaf nodes of a graph.
 root.leaf.nodes = function(x, leaf = FALSE) {
 
-  .Call("root_nodes", 
-        bn = x, 
+  .Call("root_nodes",
+        bn = x,
         check = as.integer(leaf),
         PACKAGE = "bnlearn")
 
@@ -134,7 +134,7 @@ dag2ug.backend = function(x, moral = FALSE, debug = FALSE) {
 
   nodes = names(x$nodes)
 
-  arcs = .Call("dag2ug", 
+  arcs = .Call("dag2ug",
                bn = x,
                moral = moral,
                debug = debug,

@@ -227,9 +227,9 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
     duplicated.check = duplicated(state[seq(loop.counter)])
 
     if (any(duplicated.check)) {
-  
+
       if (debug) {
-   
+
         cat("  ! recurring markov blanket configuration detected (",
           state[[loop.counter]], ").\n")
         cat("  ! retracing the steps of the learning process:\n")

@@ -14,7 +14,7 @@ SEXP res;
   sum = REAL(res);
   *sum = 0;
 
-  /* compute the mean values  */
+  /* compute the mean values.  */
   for (i = 0 ; i < *n; i++) {
 
     xm += xx[i];
@@ -41,10 +41,20 @@ SEXP res;
     *sum /= sqrt(xsd) * sqrt(ysd);
 
   /* double check that the coefficient is in the [-1, 1] range. */
-  if (*sum > 1)
+  if (*sum > 1) {
+
+    warning("fixed correlation coefficient greater than 1, probably due to floating point errors.");
+
     *sum = 1;
-  else if (*sum < -1)
+
+  }/*THEN*/
+  else if (*sum < -1) {
+
+    warning("fixed correlation coefficient lesser than -1, probably due to floating point errors.");
+
     *sum = -1;
+
+  }/*ELSE*/
 
   UNPROTECT(1);
 
@@ -61,16 +71,16 @@ double k11 = 0, k12 = 0, k22 = 0;
 double tol = MACHINE_TOL;
 SEXP result, cov, svd;
 
-  /* compute the single-value decomposition of the matrix. */
+  /* compute the singular value decomposition of the matrix. */
   PROTECT(cov = cov2(data, length));
   PROTECT(svd = r_svd(cov));
 
-  /* extrack the three matrices form the list. */
+  /* extract the three matrices form the list. */
   u = REAL(getListElement(svd, "u"));
   d = REAL(getListElement(svd, "d"));
   vt = REAL(getListElement(svd, "vt"));
 
-  /* compute the three elements of the pseudoinverse I need
+  /* compute the three elements of the pseudoinverse needed
    * for the partial correlation coefficient. */
   for (i = 0; i < ncols; i++) {
 
@@ -97,10 +107,20 @@ SEXP result, cov, svd;
   /* double check that partial correlation really is in [-1, 1], ill
    * conditioned matrices and numeric errors in SVD can result in
    * invalid partial correlation coefficients. */
-  if (*res > 1)
+  if (*res > 1) {
+
+    warning("fixed partial correlation coefficient greater than 1, probably due to floating point errors.");
+
     *res = 1;
-  else if (*res < -1)
+
+  }/*THEN*/
+  else if (*res < -1) {
+
+    warning("fixed partial correlation coefficient lesser than -1, probably due to floating point errors.");
+
     *res = -1;
+
+  }/*ELSE*/
 
   UNPROTECT(3);
   return result;
