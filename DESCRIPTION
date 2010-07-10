@@ -1,8 +1,8 @@
 Package: bnlearn
 Type: Package
 Title: Bayesian network structure learning
-Version: 2.1
-Date: 2010-06-13
+Version: 2.1.1
+Date: 2010-07-10
 Depends: R (>= 2.8.0), utils,
 Suggests: snow, graph, Rgraphviz (>= 1.20.3), lattice
 Author: Marco Scutari
@@ -27,6 +27,6 @@ URL: http://www.bnlearn.com/
 License: GPL (>= 2)
 LazyLoad: yes
 LazyData: yes
-Packaged: 2010-06-13 16:20:32 UTC; fizban
+Packaged: 2010-07-10 09:57:59 UTC; fizban
 Repository: CRAN
-Date/Publication: 2010-06-14 06:55:27
+Date/Publication: 2010-07-10 10:13:41

@@ -19,8 +19,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 2.1\cr
-    Date: \tab 2010-06-13\cr
+    Version: \tab 2.1.1\cr
+    Date: \tab 2010-07-10\cr
     License: \tab GPLv2 or later
 
   }
@@ -310,6 +310,10 @@
 
   (a BibTeX file with all the references cited throughout this manual
   is present in the \file{bibtex} directory of this package)
+
+  Scutari M (2010). "Learning Bayesian Networks with the bnlearn R
+      Package". Journal of Statistical Software, 35(3), 1-22. URL
+      http://www.jstatsoft.org/v35/i03/.
 
   Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models: 
       Principles and Techniques}. MIT Press.

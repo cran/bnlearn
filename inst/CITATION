@@ -1,0 +1,19 @@
+citHeader("To cite bnlearn in publications use:")
+
+citEntry(entry = "Article",
+  title        = "Learning Bayesian Networks with the {bnlearn} {R} Package",
+  author       = personList(as.person("Marco Scutari")),
+  journal      = "Journal of Statistical Software",
+  year         = "2010",
+  volume       = "35",
+  number       = "3",
+  pages        = "1--22",
+  url          = "http://www.jstatsoft.org/v35/i03/",
+
+  textVersion  =
+  paste("Marco Scutari (2010).",
+        "Learning Bayesian Networks with the bnlearn R Package.",
+        "Journal of Statistical Software, 35(3), 1-22.",
+        "URL http://www.jstatsoft.org/v35/i03/.")
+)
+
