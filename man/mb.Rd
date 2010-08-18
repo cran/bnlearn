@@ -6,6 +6,7 @@
 \alias{arcs<-}
 \alias{directed.arcs}
 \alias{undirected.arcs}
+\alias{narcs}
 \alias{nodes}
 \alias{amat}
 \alias{amat<-}
@@ -40,6 +41,7 @@ arcs(x)
 arcs(x, ignore.cycles = FALSE, debug = FALSE) <- value
 directed.arcs(x)
 undirected.arcs(x)
+narcs(x)
 
 ## adjacency matrix
 amat(x)
@@ -80,6 +82,7 @@ nparams(x, data, debug = FALSE)
   \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{root.nodes}
   and \code{leaf.nodes} return a vector of character strings. \cr
   \code{arcs} returns a matrix of two columns of character strings. \cr
+  \code{narcs} returns the number of arcs in the graph.
   \code{amat} returns a matrix of 0/1 integer values. \cr
   \code{nparams} returns an integer. \cr
 

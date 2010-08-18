@@ -94,11 +94,8 @@ gloglik.node = function(node, x, data, debug = FALSE) {
 
   }#ELSE
 
-  if (debug) {
-
-    cat("  > node loglikelihood is", res, ".\n")
-
-  }#THEN
+  if (debug)
+    cat("  > loglikelihood is", res, ".\n")
 
   return(res)
 
@@ -107,8 +104,17 @@ gloglik.node = function(node, x, data, debug = FALSE) {
 # compute the AIC of single node of a discrete bayesian network.
 aic.gauss.node = function(node, x, data, k = 1, debug = FALSE) {
 
-  gloglik.node(x = x, node = node, data = data, debug = debug) -
-  k * nparams.gaussian.node(node = node, x = x)
+  lik = gloglik.node(x = x, node = node, data = data, debug = debug)
+  pen = k * nparams.gaussian.node(node = node, x = x)
+
+  if (debug) {
+
+    cat("  > penalization is", pen, ".\n")
+    cat("  > penalized loglikelihood is", lik - pen, ".\n")
+
+  }#THEN
+
+  return(lik - pen)
 
 }#AIC.GAUSS.NODE
 
@@ -158,11 +164,8 @@ loglik.node = function(node, x, data, debug = FALSE) {
 
   }#ELSE
 
-  if (debug) {
-
-    cat("  > node loglikelihood is", node.loglik, ".\n")
-
-  }#THEN
+  if (debug)
+    cat("  > loglikelihood is", node.loglik, ".\n")
 
   return(node.loglik)
 
@@ -171,8 +174,17 @@ loglik.node = function(node, x, data, debug = FALSE) {
 # compute the AIC of single node of a discrete bayesian network.
 aic.node = function(node, x, data, k = 1, debug = FALSE) {
 
-  loglik.node(x = x, node = node, data = data, debug = debug) -
-  k * nparams.discrete.node(node = node, x = x, data = data, real = TRUE)
+  lik = loglik.node(x = x, node = node, data = data, debug = debug) 
+  pen = k * nparams.discrete.node(node = node, x = x, data = data, real = TRUE)
+
+  if (debug) {
+
+    cat("  > penalization is", pen, ".\n")
+    cat("  > penalized loglikelihood is", lik - pen, ".\n")
+
+  }#THEN
+
+  return(lik - pen)
 
 }#AIC.NODE
 
@@ -198,7 +210,6 @@ dirichlet.node = function(node, x, data, imaginary.sample.size = NULL, debug = F
        lx = nlevels(datax),
        length = nrow(data),
        iss = imaginary.sample.size,
-       debug = debug,
        PACKAGE = "bnlearn")
 
   }#THEN
@@ -220,16 +231,12 @@ dirichlet.node = function(node, x, data, imaginary.sample.size = NULL, debug = F
        length = nrow(data),
        iss = imaginary.sample.size,
        nparams = node.params,
-       debug = debug,
        PACKAGE = "bnlearn")
 
   }#ELSE
 
-  if (debug) {
-
-    cat("  > node dirichlet score is", dirichlet, ".\n")
-
-  }#THEN
+  if (debug)
+    cat("  > posterior density is", dirichlet, ".\n")
 
   return(dirichlet)
 
@@ -260,16 +267,6 @@ bge.node = function(node, x, data, imaginary.sample.size, phi = "heckerman",
   }#THEN
 
   if (length(x$nodes[[node]]$parents) == 0) {
-
-    if (debug) {
-
-      cat("  > node", node, "has no parents.\n")
-      cat("  > mu:", as.double(mean(data[, node])), "\n")
-      cat("  > tau:", as.double(imaginary.sample.size), "\n")
-      cat("  > rho:", as.double(imaginary.sample.size), "\n")
-      cat("  > phi:", as.double(var(data[, node]) * phi.coef), "\n")
-
-    }#THEN
 
     # Posterior for continuous node with no parents
     result = .C("postc0",
@@ -318,16 +315,6 @@ bge.node = function(node, x, data, imaginary.sample.size, phi = "heckerman",
             rho = imaginary.sample.size,
             phi = var(data[, node.parents, drop = FALSE]) * phi.coef)
 
-    if (debug) {
-
-      cat("  > node", node, "parents '", node.parents,"'.\n")
-      cat("  > mu:", as.double(c(mean(data[, node]), rep(0, n.parents))), "\n")
-      cat("  > tau:\n")
-      print(tau)
-      cat("  > rho:", as.double(imaginary.sample.size + n.parents), "\n")
-      cat("  > phi:", as.double(var(data[, node]) * phi.coef), "\n")
-
-    }#THEN
     result = .C("postc",
         mu = as.double(c(mean(data[, node]), rep(0, n.parents))),
         tau = as.double(t(tau)),
@@ -342,11 +329,8 @@ bge.node = function(node, x, data, imaginary.sample.size, phi = "heckerman",
 
   }#THEN
 
-  if (debug) {
-
-    cat("  > node gaussian score is", result, ".\n")
-
-  }#THEN
+  if (debug)
+    cat("  > posterior density is", result, ".\n")
 
 result
 

@@ -139,7 +139,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
-    cat("* learning markov blanket of", x, ".\n")
+    cat("* learning the markov blanket of", x, ".\n")
 
   }#THEN
 

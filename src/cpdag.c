@@ -309,6 +309,7 @@ static void renormalize_amat(int *a, int *nnodes) {
 
 }/*RENORMALIZE_AMAT*/
 
+/* return the v-structures present in the graph. */
 SEXP vstructures(SEXP bn, SEXP arcs, SEXP debug) {
 
 int *return_arcs = LOGICAL(arcs), *debuglevel = LOGICAL(debug), *nparents = NULL;
@@ -351,11 +352,8 @@ SEXP nodes, node_data, parents, result, dimnames, colnames;
 
     PROTECT(result = allocMatrix(STRSXP, nvstructs, 2));
 
-    /* allocate the colnames. */
-    PROTECT(dimnames = allocVector(VECSXP, 2));
-    PROTECT(colnames = allocVector(STRSXP, 2));
-    SET_STRING_ELT(colnames, 0, mkChar("from"));
-    SET_STRING_ELT(colnames, 1, mkChar("to"));
+    /* set the column names. */
+    finalize_arcs(result);
 
     for (i = 0; i < nnodes; i++) {
 
@@ -375,17 +373,21 @@ SEXP nodes, node_data, parents, result, dimnames, colnames;
 
     }/*FOR*/
 
+    UNPROTECT(1);
+
   }/*THEN*/
   else {
 
     PROTECT(result = allocMatrix(STRSXP, nvstructs, 3));
 
-    /* allocate the colnames. */
+    /* allocate and the colnames. */
     PROTECT(dimnames = allocVector(VECSXP, 2));
     PROTECT(colnames = allocVector(STRSXP, 3));
     SET_STRING_ELT(colnames, 0, mkChar("X"));
     SET_STRING_ELT(colnames, 1, mkChar("Z"));
     SET_STRING_ELT(colnames, 2, mkChar("Y"));
+    SET_VECTOR_ELT(dimnames, 1, colnames);
+    setAttrib(result, R_DimNamesSymbol, dimnames);
 
     for (i = 0; i < nnodes; i++) {
 
@@ -411,13 +413,9 @@ SEXP nodes, node_data, parents, result, dimnames, colnames;
 
     }/*FOR*/
 
+    UNPROTECT(3);
+
   }/*ELSE*/
-
-  /* set the column names. */
-  SET_VECTOR_ELT(dimnames, 1, colnames);
-  setAttrib(result, R_DimNamesSymbol, dimnames);
-
-  UNPROTECT(3);
 
   return result;
 

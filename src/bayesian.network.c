@@ -241,3 +241,106 @@ return arcs;
 
 }/*NBR2ARCS*/
 
+/* backend for the all.equal() function for bn objects. */
+SEXP all_equal(SEXP target, SEXP current) {
+
+int nnodes = 0,  narcs = 0;
+int *t = NULL, *c = NULL;
+SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash, result;
+
+  /* get the node set of each network. */
+  tnodes = getAttrib(getListElement(target, "nodes"), R_NamesSymbol); 
+  cnodes = getAttrib(getListElement(current, "nodes"), R_NamesSymbol); 
+
+  /* first check: node sets must have the same size. */
+  if (LENGTH(tnodes) != LENGTH(cnodes)) {
+
+    PROTECT(result = allocVector(STRSXP, 1));
+    SET_STRING_ELT(result, 0, mkChar("Different number of nodes"));
+    UNPROTECT(1);
+
+    return result;
+
+  }/*THEN*/
+
+  /* store for future use. */
+  nnodes = LENGTH(tnodes);
+
+  /* second check: node sets must contain the same node labels.  */
+  PROTECT(cmatch = match(tnodes, cnodes, 0));
+  c = INTEGER(cmatch);
+  R_isort(c, narcs);
+
+  /* check that every node in the first network is also present in the
+   * second one; this is enough because the node sets have the same size
+   * and the nodes in each set are guaranteed to be unique. */
+  for (int i = 0; i < nnodes; i++) {
+
+    if (c[i] != i + 1) { 
+
+      PROTECT(result = allocVector(STRSXP, 1));
+      SET_STRING_ELT(result, 0, mkChar("Different node sets"));
+      UNPROTECT(2);
+  
+      return result;
+
+    }/*THEN*/
+
+  }/*FOR*/
+
+  UNPROTECT(1);
+
+  /* get the node set of each network. */
+  tarcs = getListElement(target, "arcs"); 
+  carcs = getListElement(current, "arcs"); 
+
+  /* third check: arc sets must have the same size. */
+  if (LENGTH(tarcs) != LENGTH(carcs)) {
+
+    PROTECT(result = allocVector(STRSXP, 1));
+    SET_STRING_ELT(result, 0, mkChar("Different number of directed/undirected arcs"));
+    UNPROTECT(1);
+
+    return result;
+
+  }/*THEN*/
+
+  /* store for future use. */
+  narcs = LENGTH(tarcs)/2;
+
+  /* fourth check:  arcs sets must contain the same arcs. */
+  if (narcs > 0) {
+
+    /* compute the numeric hash of the arcs. */
+    PROTECT(thash = arc_hash(tarcs, tnodes));
+    PROTECT(chash = arc_hash(carcs, cnodes));
+    /* dereference the resulting integer vectors. */
+    t = INTEGER(thash);
+    c = INTEGER(chash);
+    /* sort them. */
+    R_isort(t, narcs);
+    R_isort(c, narcs);
+ 
+    /* compare the integer vectors as generic memory areas. */
+    if (memcmp(t, c, narcs * sizeof(int))) {
+  
+      PROTECT(result = allocVector(STRSXP, 1));
+      SET_STRING_ELT(result, 0, mkChar("Different arc sets"));
+      UNPROTECT(3);
+  
+      return result;
+  
+    }/*THEN*/
+
+    UNPROTECT(2);
+  
+  }/*THEN*/
+
+  /* all checks completed successfully, returning TRUE. */
+  PROTECT(result = allocVector(LGLSXP, 1));
+  LOGICAL(result)[0] = TRUE;
+  UNPROTECT(1);
+
+  return result;
+
+}/*ALL_EQUAL*/

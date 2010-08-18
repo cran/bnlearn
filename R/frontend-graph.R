@@ -117,18 +117,16 @@ node.ordering = function(x, debug = FALSE) {
 # generate a valid blacklist from a partial node ordering.
 ordering2blacklist = function(nodes) {
 
+  if (class(nodes) %in% c("bn", "bn.fit")) {
+
+    nodes = schedule(nodes)
+
+  }#THEN
+
   # check the node labels.
   check.nodes(nodes, min.nodes = 3)
 
-  do.call(rbind,
-
-    sapply(seq(from = 1, to = length(nodes)),
-      function(i) {
-
-        cbind(from = rep(nodes[i], i - 1), to = nodes[(1:i) - 1])
-
-    })
-  )
+  o2b.backend(nodes)
 
 }#ORDERING2BLACKLIST
 
@@ -155,156 +153,31 @@ pdag2dag = function(x, ordering) {
 
 }#PDAG2DAG
 
+# test the equality of two network structures.
+all.equal.bn = function(target, current, ...) {
+
+  # check the class of target and current.
+  check.bn(target)
+  check.bn(current)
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  equal.backend(target, current)
+
+}#ALL.EQUAL.BN
+
 # compare two bayesian network structures.
-compare = function (r1, r2, debug = FALSE) {
+compare = function(target, current, debug = FALSE) {
 
   result = TRUE
 
   # check both objects' class.
-  check.bn(r1)
-  check.bn(r2)
+  check.bn(target)
+  check.bn(current)
   # check debug.
   check.logical(debug)
 
-  # check the two graphs have the same nodes.
-  r1.nodes = names(r1$nodes)
-  r2.nodes = names(r2$nodes)
-
-  if (!identical(sort(r1.nodes), sort(r2.nodes))) {
-
-    if (debug) {
-
-      cat("* nodes in r1 not present in r2:\n")
-      print(r1.nodes[!(r1.nodes %in% r2.nodes)])
-      cat("* nodes in r2 not present in r1:\n")
-      print(r2.nodes[!(r2.nodes %in% r1.nodes)])
-
-    }#THEN
-
-    return(FALSE)
-
-  }#THEN
-
-  # for each node check ...
-  check = sapply(names(r1$nodes),
-
-    function(node) {
-
-      node.result = TRUE
-      r1.node = r1$nodes[[node]]
-      r2.node = r2$nodes[[node]]
-
-      # ... the markov blanket ...
-      if (!identical(sort(r1.node$mb), sort(r2.node$mb))) {
-
-        if (debug) {
-
-          cat("* nodes in the markov blanket of", node, "in r1 not present in r2:\n")
-          print(r1.node$mb[!(r1.node$mb %in% r2.node$mb)])
-          cat("* nodes in the markov blanket of", node, "in r2 not present in r1:\n")
-          print(r2.node$mb[!(r2.node$mb %in% r1.node$mb)])
-
-        }#THEN
-
-        node.result = FALSE
-
-      }#THEN
-
-      # ... and the neighbourhood ...
-      if (!identical(sort(r1.node$nbr), sort(r2.node$nbr))) {
-
-        if (debug) {
-
-          cat("* nodes in the neighbourhood of", node, "in r1 not present in r2:\n")
-          print(r1.node$nbr[!(r1.node$nbr %in% r2.node$nbr)])
-          cat("* nodes in the neighbourhood of", node, "in r2 not present in r1:\n")
-          print(r2.node$nbr[!(r2.node$nbr %in% r1.node$nbr)])
-
-        }#THEN
-
-        node.result = FALSE
-
-      }#THEN
-
-      # ... the parents ...
-      if (!identical(sort(r1.node$parents), sort(r2.node$parents))) {
-
-        if (debug) {
-
-          cat("* parents of", node, "in r1 not present in r2:\n")
-          print(r1.node$parents[!(r1.node$parents %in% r2.node$parents)])
-          cat("* parents of", node, "in r2 not present in r1:\n")
-          print(r2.node$parents[!(r2.node$parents %in% r1.node$parents)])
-
-        }#THEN
-
-        node.result = FALSE
-
-      }#THEN
-
-      # ... and the children.
-      if (!identical(sort(r1.node$children), sort(r2.node$children))) {
-
-        if (debug) {
-
-          cat("* children of", node, "in r1 not present in r2:\n")
-          print(r1.node$children[!(r1.node$children %in% r2.node$children)])
-          cat("* children of", node, "in r2 not present in r1:\n")
-          print(r2.node$children[!(r2.node$children %in% r1.node$children)])
-
-        }#THEN
-
-        node.result = FALSE
-
-      }#THEN
-
-      return(node.result)
-
-    }
-
-  )
-
-  if (!all(check)) result = FALSE
-
-  # check directed arcs.
-  r1.arcs = apply(r1$arcs[which.directed(r1$arcs), , drop = FALSE], 1, paste, collapse = " -> ")
-  r2.arcs = apply(r2$arcs[which.directed(r2$arcs), , drop = FALSE], 1, paste, collapse = " -> ")
-
-  if (!identical(sort(r1.arcs), sort(r2.arcs))) {
-
-    if (debug) {
-
-      cat("* directed arcs in r1 not present in r2:\n")
-      print(r1.arcs[!(r1.arcs %in% r2.arcs)])
-      cat("* directed arcs in r2 not present in r1:\n")
-      print(r2.arcs[!(r2.arcs %in% r1.arcs)])
-
-    }#THEN
-
-    result = FALSE
-
-  }#THEN
-
-  # check undirected arcs.
-  r1.arcs = apply(r1$arcs[which.undirected(r1$arcs), , drop = FALSE], 1, paste, collapse = " - ")
-  r2.arcs = apply(r2$arcs[which.undirected(r2$arcs), , drop = FALSE], 1, paste, collapse = " - ")
-
-  if (!identical(sort(r1.arcs), sort(r2.arcs))) {
-
-    if (debug) {
-
-      cat("* undirected arcs in r1 not present in r2:\n")
-      print(r1.arcs[!(r1.arcs %in% r2.arcs)])
-      cat("* undirected arcs in r2 not present in r1:\n")
-      print(r2.arcs[!(r2.arcs %in% r1.arcs)])
-
-    }#THEN
-
-    result = FALSE
-
-  }#THEN
-
-  result
+  compare.backend(target = target, current = current, debug = debug)
 
 }#COMPARE
 

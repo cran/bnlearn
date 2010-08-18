@@ -16,7 +16,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   check.learning.algorithm(method, class = "constraint")
   # check test labels.
   test = check.test(test, x)
-  # check the logical flags (debug, strict, optimized, undirected, direction).
+  # check the logical flags (debug, strict, optimized, undirected).
   check.logical(debug)
   check.logical(strict)
   check.logical(optimized)
@@ -388,3 +388,64 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL, restrict = "mmpc
   invisible(res)
 
 }#HYBRID.SEARCH
+
+# learn the markov blanket of a single node.
+mb.backend = function(x, node, method, whitelist = NULL, blacklist = NULL,
+    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE) {
+
+  assign(".test.counter", 0, envir = .GlobalEnv)
+
+  # check the data are there.
+  check.data(x)
+  # cache the node labels.
+  nodes = names(x)
+  # a valid node is needed.
+  check.nodes(nodes = node, graph = nodes, max.nodes = 1)
+  # check the algorithm.
+  check.learning.algorithm(method, class = "markov.blanket")
+  # check test labels.
+  test = check.test(test, x)
+  # check the logical flags (debug, optimized).
+  check.logical(debug)
+  check.logical(optimized)
+  # check alpha.
+  alpha = check.alpha(alpha)
+  # check B (the number of bootstrap/permutation samples).
+  B = check.B(B, test)
+  # sanitize whitelist and blacklist, if any.
+  whitelist = build.whitelist(whitelist, nodes)
+  blacklist = build.blacklist(blacklist, whitelist, nodes)
+
+  # call the right backend.
+  if (method == "gs") {
+
+    mb = gs.markov.blanket(x = node, data = x, nodes = nodes,
+           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist, 
+           backtracking = NULL, test = test, debug = debug)
+
+  }#THEN
+  else if (method == "iamb") {
+
+    mb = ia.markov.blanket(x = node, data = x, nodes = nodes,
+           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
+           backtracking = NULL, test = test, debug = debug)
+
+  }#THEN
+  else if (method == "fast.iamb") {
+
+    mb = fast.ia.markov.blanket(x = node, data = x, nodes = nodes,
+           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
+           backtracking = NULL, test = test, debug = debug)
+
+  }#THEN
+  else if (method == "inter.iamb") {
+
+    mb = inter.ia.markov.blanket(x = node, data = x, nodes = nodes,
+           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
+           backtracking = NULL, test = test, debug = debug)
+
+  }#THEN
+ 
+  return(mb)
+
+}#MB.BACKEND

@@ -297,3 +297,22 @@ vstructures = function(x, arcs, debug = FALSE) {
         PACKAGE = "bnlearn")
 
 }#VSTRUCTURES
+
+# test equality of two graphs (nodes and arcs).
+equal.backend = function(target, current) {
+
+  .Call("all_equal",
+        target = target,
+        current = current,
+        PACKAGE = "bnlearn")
+
+}#EQUAL.BACKEND
+
+# backend for ordering-based blacklist.
+o2b.backend = function(nodes) {
+
+  .Call("nodes2blacklist",
+        nodes = nodes,
+        PACKAGE = "bnlearn")
+
+}#O2B.BACKEND

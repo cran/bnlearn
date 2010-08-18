@@ -45,7 +45,7 @@ SEXP amat2arcs(SEXP amat, SEXP nodes) {
 
 int i = 0, j = 0, k = 0, nrows = LENGTH(nodes), narcs = 0;
 int *a = INTEGER(amat);
-SEXP arcs, dimnames, colnames;
+SEXP arcs;
 
   /* count the number of arcs in the adjacency matrix. */
   for (i = 0; i < nrows; i++) {
@@ -58,22 +58,15 @@ SEXP arcs, dimnames, colnames;
 
   }/*FOR*/
 
-  /* allocate colnames. */
-  PROTECT(dimnames = allocVector(VECSXP, 2));
-  PROTECT(colnames = allocVector(STRSXP, 2));
-  SET_STRING_ELT(colnames, 0, mkChar("from"));
-  SET_STRING_ELT(colnames, 1, mkChar("to"));
-  SET_VECTOR_ELT(dimnames, 1, colnames);
-
   /* if there are no arcs, return an empty arc set. */
   if (narcs == 0) {
 
     /* allocate an empty arc set. */
     PROTECT(arcs = allocMatrix(STRSXP, 0, 2));
     /* set the column names. */
-    setAttrib(arcs, R_DimNamesSymbol, dimnames);
+    finalize_arcs(arcs);
 
-    UNPROTECT(3);
+    UNPROTECT(1);
 
     return arcs;
 
@@ -83,7 +76,7 @@ SEXP arcs, dimnames, colnames;
     /* allocate the arc set. */
     PROTECT(arcs = allocMatrix(STRSXP, narcs, 2));
     /* set the column names. */
-    setAttrib(arcs, R_DimNamesSymbol, dimnames);
+    finalize_arcs(arcs);
 
   }/*ELSE*/
 
@@ -111,7 +104,7 @@ SEXP arcs, dimnames, colnames;
 
 end:
 
-  UNPROTECT(3);
+  UNPROTECT(1);
 
   return arcs;
 

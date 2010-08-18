@@ -75,7 +75,7 @@ SEXP ptab, result;
   prob = REAL(ptab);
 
   /* find out the mode. */
-  imax = which_max(prob, LENGTH(ptab)) + 1;
+  imax = which_max(prob, LENGTH(ptab));
 
   /* allocate and initialize the return value. */
   PROTECT(result = allocVector(INTSXP, ndata));

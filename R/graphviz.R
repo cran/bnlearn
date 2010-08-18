@@ -5,7 +5,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
 
   graphviz.layouts = c("dot", "neato", "twopi", "circo", "fdp")
   node.shapes = c("ellipse", "circle")
-  highlight.params = c("nodes", "arcs", "col", "fill", "lwd")
+  highlight.params = c("nodes", "arcs", "col", "fill", "lwd", "lty")
   highlighting = FALSE
 
   # check whether graphviz is loaded.
@@ -31,10 +31,8 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
       stop(paste(c("highlight must be a list with at least one of the",
              "following elements:", highlight.params), collapse = " "))
 
-    fake.graph = list(nodes = structure(nodes, names = nodes))
-
     if ("nodes" %in% names(highlight))
-      check.nodes(highlight$nodes, graph = fake.graph)
+      check.nodes(highlight$nodes, graph = nodes)
 
     if ("arcs" %in% names(highlight))
       highlight$arcs = check.arcs(highlight$arcs, nodes = nodes)
@@ -62,6 +60,15 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
 
       if (!is.positive(highlight$lwd))
         stop("the line width must be a positive number.")
+
+    }#THEN
+
+    if ("lty" %in% names(highlight)) {
+
+      if (!("arcs" %in% names(highlight)))
+        warning("no arc to apply the 'lty' setting to, ignoring.")
+
+      check.lty(highlight$lty)
 
     }#THEN
 
@@ -140,18 +147,33 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
       if ("lwd" %in% names(highlight))
         edgeRenderInfo(graph.plot)[["lwd"]][to.highlight] = highlight$lwd
 
+      # note that this overrides the changes made according to arc weights.
+      if ("lty" %in% names(highlight))
+        edgeRenderInfo(graph.plot)[["lty"]][to.highlight] = highlight$lty
+
     }#THEN
 
   }#THEN
 
   # do the actual plotting.
-  renderGraph(graph.plot)
+  if (nrow(arcs) > 0) {
+
+    renderGraph(graph.plot)
+
+  }#THEN
+  else {
+
+    # use a NOP function to render arcs, the default renderEdges() raises an
+    # error if the graph is empty.
+    renderGraph(graph.plot, drawEdges = function(x) {})
+
+  }#ELSE
 
   # restore the original global graphical settings.
   graph.par(graph.par.dump)
 
-  # return the graph object, to allow further customizations.
-  return(graph.plot)
+  # return (invisibly) the graph object, to allow further customizations.
+  invisible(graph.plot)
 
 }#GRAPHVIZ.BACKEND
 

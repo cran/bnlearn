@@ -1200,6 +1200,17 @@ check.colour = function(col) {
 
 }#CHECK.COLOUR
 
+# check the line type identifier.
+check.lty = function(lty) {
+
+lty.strings = c("blank", "solid", "dashed", "dotted", "dotdash", "longdash", "twodash")
+
+  if (!(lty %in% 0:6) && !(lty %in% lty.strings))
+    stop(sprintf("%s is not a valid line type identifier.",
+           deparse(substitute(lty))))
+
+}#CHECK.LTY
+
 # check the label of a learning algorithm.
 check.learning.algorithm = function(algorithm, class = "all", bn) {
 
@@ -1218,6 +1229,8 @@ check.learning.algorithm = function(algorithm, class = "all", bn) {
   # select the right class of algorithms.
   if (class == "constraint")
     ok = constraint.based.algorithms
+  else if (class == "markov.blanket")
+    ok = markov.blanket.algorithms
   else if (class == "score")
     ok = score.based.algorithms
   else

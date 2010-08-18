@@ -4,11 +4,23 @@ graphviz.plot = function(x, highlight = NULL, layout = "dot", shape = "circle",
     main = NULL, sub = NULL) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
 
-  graphviz.backend(nodes = names(x$nodes), arcs = x$arcs,
-    highlight = highlight, layout = layout, shape = shape,
-    main = main, sub = sub)
+  if (class(x) == "bn") {
+
+    nodes = names(x$nodes)
+    arcs = x$arcs
+
+  }#THEN
+  else {
+
+    nodes = names(x)
+    arcs = fit2arcs(x) 
+
+  }#ELSE
+
+  graphviz.backend(nodes = nodes, arcs = arcs, highlight = highlight,
+    layout = layout, shape = shape, main = main, sub = sub)
 
 }#GRAPHVIZ.PLOT
 

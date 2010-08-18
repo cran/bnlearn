@@ -14,11 +14,12 @@ node.ordering(x, debug = FALSE)
 ordering2blacklist(nodes)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}. \code{node.ordering} also accepts
-    objects of class \code{bn.fit}.}
+  \item{x}{an object of class \code{bn} or \code{bn.fit}.}
   \item{nodes}{a vector of character strings, the labels of the nodes.
     The ordering of the labels must reflect the partial node ordering
-    of the nodes in the graph.}
+    of the nodes in the graph. Objects of class \code{bn} or \code{bn.fit}
+    are also accepted, and the partial ordering of their nodes is
+    used.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
        printed; otherwise the function is completely silent.}
 }

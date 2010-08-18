@@ -12,7 +12,8 @@ maxmin.pc.optimized = function(x, whitelist, blacklist, test,
     # 1. [Forward Phase (I)]
     mb[[node]] = maxmin.pc.forward.phase(node, data = x, nodes = nodes,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, debug = debug)
+         backtracking = backtracking, test = test, optimized = TRUE,
+         debug = debug)
 
     # 2. [Backward Phase (II)]
     mb[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
@@ -36,7 +37,7 @@ maxmin.pc.cluster = function(x, cluster, whitelist, blacklist,
   # 1. [Forward Phase (I)]
   mb = parLapply(cluster, as.list(nodes), maxmin.pc.forward.phase, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, debug = debug)
+         blacklist = blacklist, test = test, optimized = TRUE, debug = debug)
   names(mb) = nodes
 
   # 2. [Backward Phase (II)]

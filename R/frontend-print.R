@@ -24,65 +24,72 @@ print.bn = function(x, ...) {
   else
     cat("\n  Bayesian network learned via [unknown] methods\n\n")
 
-  cat("  model:\n   ", ifelse(is.dag(x$arcs, names(x$nodes)), formula.backend(x),
-      "[partially directed graph]"), "\n")
+  # print the model string if possible, a short description otherwise.
+  cat("  model:\n")
 
-  cat("  nodes:                                ", length(x$nodes), "\n")
-  cat("  arcs:                                 ", arcs, "\n")
-  cat("    undirected arcs:                    ", undirected.arcs, "\n")
-  cat("    directed arcs:                      ", directed.arcs, "\n")
-  cat("  average markov blanket size:          ", format(avg.mb, digits = 2, nsmall = 2), "\n")
-  cat("  average neighbourhood size:           ", format(avg.nbr, digits = 2, nsmall = 2), "\n")
-  cat("  average branching factor:             ", format(avg.ch, digits = 2, nsmall = 2), "\n")
+  if (undirected.arcs == 0) 
+    fcat(formula.backend(x))
+  else if (directed.arcs == 0)
+    cat("    [undirected graph]\n")
+  else
+    cat("    [partially directed graph]\n")
+
+  wcat("  nodes:                                ", length(x$nodes))
+  wcat("  arcs:                                 ", arcs)
+  wcat("    undirected arcs:                    ", undirected.arcs)
+  wcat("    directed arcs:                      ", directed.arcs)
+  wcat("  average markov blanket size:          ", format(avg.mb, digits = 2, nsmall = 2))
+  wcat("  average neighbourhood size:           ", format(avg.nbr, digits = 2, nsmall = 2))
+  wcat("  average branching factor:             ", format(avg.ch, digits = 2, nsmall = 2))
 
   cat("\n")
 
   if (x$learning$test != "none") {
 
-    cat("  learning algorithm:                   ", method.labels[x$learning$algo], "\n")
+    wcat("  learning algorithm:                   ", method.labels[x$learning$algo])
 
     if (x$learning$algo %in% constraint.based.algorithms)
-      cat("  conditional independence test:        ", test.labels[x$learning$test], "\n")
+      wcat("  conditional independence test:        ", test.labels[x$learning$test])
     else if (x$learning$algo %in% score.based.algorithms)
-      cat("  score:                                ", score.labels[x$learning$test], "\n")
+      wcat("  score:                                ", score.labels[x$learning$test])
     else if (x$learning$algo %in% hybrid.algorithms) {
 
-      cat("  constraint-based method:              ", method.labels[x$learning$restrict], "\n")
-      cat("  conditional independence test:        ", test.labels[x$learning$rstest], "\n")
-      cat("  score-based method:                   ", method.labels[x$learning$maximize], "\n")
-      cat("  score:                                ", score.labels[x$learning$maxscore], "\n")
+      wcat("  constraint-based method:              ", method.labels[x$learning$restrict])
+      wcat("  conditional independence test:        ", test.labels[x$learning$rstest])
+      wcat("  score-based method:                   ", method.labels[x$learning$maximize])
+      wcat("  score:                                ", score.labels[x$learning$maxscore])
 
     }#THEN
 
     if ("alpha" %in% params)
-      cat("  alpha threshold:                      ", x$learning$args$alpha, "\n")
+      wcat("  alpha threshold:                      ", format(x$learning$args$alpha))
     if ("B" %in% params)
-      cat("  permutations/bootstrap samples:       ", x$learning$args$B, "\n")
+      wcat("  permutations/bootstrap samples:       ", format(x$learning$args$B))
     if ("iss" %in% params)
-      cat("  imaginary sample size:                ", x$learning$args$iss, "\n")
+      wcat("  imaginary sample size:                ", format(x$learning$args$iss))
     if ("phi" %in% params)
-      cat("  phi matrix structure:                 ", x$learning$args$phi, "\n")
+      wcat("  phi matrix structure:                 ", x$learning$args$phi)
     if ("k" %in% params)
-      cat("  penalization coefficient:             ", x$learning$args$k, "\n")
+      wcat("  penalization coefficient:             ", format(x$learning$args$k))
 
-    cat("  tests used in the learning procedure: ", x$learning$ntests, "\n")
-    cat("  optimized:                            ", x$learning$optimized, "\n")
+    wcat("  tests used in the learning procedure: ", x$learning$ntests)
+    wcat("  optimized:                            ", x$learning$optimized)
 
   }#THEN
   else {
 
-    cat("  generation algorithm:                 ", graph.generation.labels[x$learning$algo], "\n")
+    wcat("  generation algorithm:                 ", graph.generation.labels[x$learning$algo])
 
     if ("prob" %in% params)
-      cat("  arc sampling probability:             ", x$learning$args$prob, "\n")
+      wcat("  arc sampling probability:             ", format(x$learning$args$prob))
     if ("burn.in" %in% params)
-      cat("  burn in length:                       ", x$learning$args$burn.in, "\n")
+      wcat("  burn in length:                       ", format(x$learning$args$burn.in))
     if ("max.in.degree" %in% params)
-      cat("  maximum in-degree:                    ", x$learning$args$max.in.degree, "\n")
+      wcat("  maximum in-degree:                    ", format(x$learning$args$max.in.degree))
     if ("max.out.degree" %in% params)
-      cat("  maximum out-degree:                   ", x$learning$args$max.out.degree, "\n")
+      wcat("  maximum out-degree:                   ", format(x$learning$args$max.out.degree))
     if ("max.degree" %in% params)
-      cat("  maximum degree:                       ", x$learning$args$max.degree, "\n")
+      wcat("  maximum degree:                       ", format(x$learning$args$max.degree))
 
   }#ELSE
 
@@ -130,9 +137,7 @@ print.bn = function(x, ...) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  cat("\n  Parameters of node", x$node,
-    paste(ifelse(length(x$parents) > 1, "(conditional ", "("),
-    "gaussian distribution)", collapse = "", sep = ""), "\n");
+  cat("\n  Parameters of node", x$node, "(Gaussian distribution)\n")
 
   cat("\nConditional density: ")
   if (length(x$parents) > 0)

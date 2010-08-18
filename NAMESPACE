@@ -8,6 +8,7 @@ export(
   "tabu",
   "rsmax2",
   "mmhc",
+  "learn.mb",
   "compare",
   "shd",
   "mb",
@@ -16,6 +17,7 @@ export(
   "arcs<-",
   "directed.arcs",
   "undirected.arcs",
+  "narcs",
   "parents",
   "parents<-",
   "children",
@@ -67,6 +69,7 @@ export(
   "bn.moments"
 )
 
+S3method(all.equal, bn)
 S3method(print, bn)
 S3method(plot, bn)
 S3method(AIC, bn)

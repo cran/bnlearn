@@ -13,7 +13,9 @@ available.scores = c(available.discrete.scores, available.continuous.scores)
 
 score.equivalent.scores = c("loglik", "aic", "bic", "bde", "bge", "loglik-g", "aic-g", "bic-g")
 
-constraint.based.algorithms = c("gs", "iamb", "fast.iamb", "inter.iamb", "mmpc")
+markov.blanket.algorithms = c("gs", "iamb", "fast.iamb", "inter.iamb")
+local.search.algorithms = c("mmpc")
+constraint.based.algorithms = c(markov.blanket.algorithms, local.search.algorithms)
 score.based.algorithms = c("hc", "tabu")
 hybrid.algorithms = c("rsmax2", "mmhc")
 available.learning.algorithms = c(constraint.based.algorithms, score.based.algorithms, hybrid.algorithms)

@@ -1,12 +1,10 @@
 #include "common.h"
 
-#define ROOTNODES 0
-
 /* get root or leaf nodes of the graph. */
-SEXP root_nodes(SEXP bn, SEXP check) {
+SEXP root_nodes(SEXP bn, SEXP leaves) {
 
 short int *status = NULL;
-int *to_check = INTEGER(check);
+int *get_leaves = INTEGER(leaves);
 int i = 0, k = 0, counter = 0;
 SEXP temp, temp2, nodes, node_data, labels, result;
 
@@ -25,7 +23,7 @@ SEXP temp, temp2, nodes, node_data, labels, result;
     /* get the parents/children of this node. */
     node_data = VECTOR_ELT(nodes, i);
 
-    if (*to_check == ROOTNODES)
+    if (*get_leaves == FALSE)
       temp = getListElement(node_data, "parents");
     else
       temp = getListElement(node_data, "children");
@@ -39,7 +37,7 @@ SEXP temp, temp2, nodes, node_data, labels, result;
 
     if (!isNull(temp)) {
 
-      if (*to_check == ROOTNODES)
+      if (*get_leaves == FALSE)
         temp2 = getListElement(node_data, "children");
       else
         temp2 = getListElement(node_data, "parents");
@@ -76,7 +74,7 @@ SEXP temp, temp2, nodes, node_data, labels, result;
 SEXP fit2arcs(SEXP bn) {
 
 int i = 0, j = 0, k = 0, narcs = 0;
-SEXP labels, node_data, children, result, colnames, dimnames;
+SEXP labels, node_data, children, result;
 
   /* get the nodes' labels. */
   labels = getAttrib(bn, R_NamesSymbol);
@@ -91,17 +89,10 @@ SEXP labels, node_data, children, result, colnames, dimnames;
 
   }/*FOR*/
 
-  /* allocate the column names. */
-  PROTECT(dimnames = allocVector(VECSXP, 2));
-  PROTECT(colnames = allocVector(STRSXP, 2));
-  SET_STRING_ELT(colnames, 0, mkChar("from"));
-  SET_STRING_ELT(colnames, 1, mkChar("to"));
-  SET_VECTOR_ELT(dimnames, 1, colnames);
-
   /* allocate the arc set. */
   PROTECT(result = allocMatrix(STRSXP, narcs, 2));
   /* set the column names. */
-  setAttrib(result, R_DimNamesSymbol, dimnames);
+  finalize_arcs(result);
 
   /* second pass: initialize the return value. */
   for (i = 0; i <  LENGTH(bn); i++) {
@@ -123,7 +114,7 @@ SEXP labels, node_data, children, result, colnames, dimnames;
 
   }/*FOR*/
 
-  UNPROTECT(3);
+  UNPROTECT(1);
 
   return result;
 
@@ -259,3 +250,53 @@ SEXP mb, labels, try, temp, node_data;
   return mb;
 
 }/*FITTED_MB*/
+
+/* return the size of the arc set. */
+SEXP num_arcs(SEXP bn) {
+
+int i = 0, is_fitted = 0, *res = NULL;
+char *element = NULL;
+SEXP nodes, node_data, temp, result;
+
+  /* get to the nodes' data. */
+  nodes = getListElement(bn, "nodes");
+  /* check whether this is a "bn.fit" or "bn" object. */
+  is_fitted = isNull(nodes);
+  /* set the parameters for the object structure. */
+  if (is_fitted) {
+
+    nodes = bn;
+    element = "parents";
+
+  }/*THEN*/
+  else {
+
+   element = "nbr";
+
+  }/*ELSE*/
+
+  /* allocate and initialize the result. */
+  PROTECT(result = allocVector(INTSXP, 1));
+  res = INTEGER(result);
+  *res = 0;
+
+  for (i = 0; i < LENGTH(nodes); i++) {
+
+    /* get the parents/children of this node. */
+    node_data = VECTOR_ELT(nodes, i);
+
+    temp = getListElement(node_data, element);
+
+    *res += LENGTH(temp);
+
+  }/*FOR*/
+
+  /* summing up the neighbours counts each arc twice, dedeuplicate. */
+  if (!is_fitted)
+    *res /= 2;
+
+  UNPROTECT(1);
+
+  return result;
+
+}/*NUM_ARCS*/

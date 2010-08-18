@@ -90,7 +90,7 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
     # plot a panel for each node in the bayesian network.
 
     if (!is.fitted.continuous(fitted))
-      stop("this plot is limited to gaussian bayesian networks.")
+      stop("this plot is limited to Gaussian bayesian networks.")
 
     nodes = names(fitted)
     nrows = length(fitted[[1]]$residuals)

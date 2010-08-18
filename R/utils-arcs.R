@@ -172,8 +172,16 @@ unique.arcs = function(arcs, nodes, warn = FALSE) {
 # arcs of an object of class bn.fit.
 fit2arcs = function(x) {
 
-    .Call("fit2arcs",
-          x = x,
-          PACKAGE = "bnlearn")
+  .Call("fit2arcs",
+        x = x,
+        PACKAGE = "bnlearn")
 
 }#FIT2ARCS
+
+narcs.backend = function(x) {
+
+  .Call("num_arcs",
+        x = x,
+        PACKAGE = "bnlearn")
+
+}#NARCS.BACKEND

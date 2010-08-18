@@ -42,7 +42,7 @@ SEXP dag2ug(SEXP bn, SEXP moral, SEXP debug) {
 int i = 0, j = 0, k = 0, nnodes = 0, narcs = 0, row = 0;
 int *debuglevel = LOGICAL(debug), *moralize = LOGICAL(moral);\
 int *nparents = NULL, *nnbr = NULL;
-SEXP node_data, current, nodes, dimnames, colnames, result, temp;
+SEXP node_data, current, nodes, result, temp;
 
   /* get the nodes' data. */
   node_data = getListElement(bn, "nodes");
@@ -100,12 +100,7 @@ SEXP node_data, current, nodes, dimnames, colnames, result, temp;
   /* allocate the return value. */
   PROTECT(result = allocMatrix(STRSXP, narcs, 2));
   /* allocate and set the column names. */
-  PROTECT(dimnames = allocVector(VECSXP, 2));
-  PROTECT(colnames = allocVector(STRSXP, 2));
-  SET_STRING_ELT(colnames, 0, mkChar("from"));
-  SET_STRING_ELT(colnames, 1, mkChar("to"));
-  SET_VECTOR_ELT(dimnames, 1, colnames);
-  setAttrib(result, R_DimNamesSymbol, dimnames);
+  finalize_arcs(result);
 
   /* second pass: fill the return value. */
   for (i = 0; i < nnodes; i++) {
@@ -147,9 +142,14 @@ SEXP node_data, current, nodes, dimnames, colnames, result, temp;
 
   }/*FOR*/
 
-  UNPROTECT(3);
+  UNPROTECT(1);
 
-  return result;
+  /* be really sure not to return duplicate arcs in moral graphs when shielded
+   * parents are present (the "shielding" are is counted twice). */
+  if (*moralize > 0)
+    return c_unique_arcs(result, nodes, FALSE);
+  else
+    return result;
 
 }/*DAG2UG*/
 

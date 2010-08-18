@@ -2,7 +2,7 @@
 # the generic as method for class bn.
 as.bn = function(x, debug = FALSE) {
 
-  UseMethod("as.bn")
+  UseMethod("as.bn", x)
 
 }#AS.BN
 

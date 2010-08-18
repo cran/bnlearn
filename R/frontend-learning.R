@@ -110,3 +110,11 @@ mmhc = function(x, whitelist = NULL, blacklist = NULL, test = NULL,
 
 }#MMHC
 
+learn.mb = function(x, node, method, whitelist = NULL, blacklist = NULL,
+    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE) {
+
+  mb.backend(x, node = node, method = method, whitelist = whitelist, 
+    blacklist = blacklist, test = test, alpha = alpha, B = B, debug = debug,
+    optimized = optimized)
+
+}#LEARN.MB

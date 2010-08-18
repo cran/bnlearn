@@ -55,6 +55,7 @@ SEXP getListElement(SEXP list, char *str);
 SEXP unique(SEXP array);
 SEXP dupe(SEXP array);
 int which_max(double *array, int length);
+SEXP finalize_arcs(SEXP arcs); 
 
 void SampleNoReplace(int k, int n, int *y, int *x);
 #define RandomPermutation(n, y, x) SampleNoReplace(n, n, y, x)
@@ -100,6 +101,10 @@ SEXP cfg(SEXP parents);
 /* shared between hill climbing and tabu search. */
 
 void bestop_update(SEXP bestop, char *op, const char *from, const char *to);
+
+/* from filter.arcs.c */
+
+SEXP c_unique_arcs(SEXP arcs, SEXP nodes, int warnlevel);
 
 /* memory allocation functions */
 

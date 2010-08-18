@@ -63,6 +63,16 @@ undirected.arcs = function(x) {
 
 }#UNDIRECTED.ARCS
 
+# return the number of arcs in the graph.
+narcs = function(x) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+
+  narcs.backend(x)
+
+}#NARCS
+
 # set an arc direction manually.
 set.arc = function(x, from, to, check.cycles = TRUE, debug = FALSE) {
 

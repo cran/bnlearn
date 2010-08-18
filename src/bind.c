@@ -3,18 +3,12 @@
 SEXP arcs_rbind1 (SEXP matrix1, SEXP matrix2, SEXP reverse2) {
 
 int i = 0, j = 0, m1 = nrows(matrix1), m2 = nrows(matrix2);
-SEXP res, colnames, dimnames;
+SEXP res;
 
   /* allocate the reutrn value*/
   PROTECT(res = allocMatrix(STRSXP, m1 + m2, 2));
-
   /* allocate and initialize the column names. */
-  PROTECT(dimnames = allocVector(VECSXP, 2));
-  PROTECT(colnames = allocVector(STRSXP, 2));
-  SET_STRING_ELT(colnames, 0, mkChar("from"));
-  SET_STRING_ELT(colnames, 1, mkChar("to"));
-  SET_VECTOR_ELT(dimnames, 1, colnames);
-  setAttrib(res, R_DimNamesSymbol, dimnames);
+  finalize_arcs(res);
 
   /* copy the elements of the first matrix. */
   for (i  = 0; i < m1; i++)
@@ -38,7 +32,7 @@ SEXP res, colnames, dimnames;
 
   }/*ELSE*/
 
-  UNPROTECT(3);
+  UNPROTECT(1);
 
   return res;
 

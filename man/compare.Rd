@@ -1,5 +1,6 @@
 \name{compare}
 \alias{compare}
+\alias{all.equal.bn}
 \alias{shd}
 \title{ Compare two different Bayesian networks }
 \description{
@@ -9,19 +10,33 @@
 
 }
 \usage{
-compare(r1, r2, debug = FALSE)
+compare(target, current, debug = FALSE)
+\method{all.equal}{bn}(target, current, ...)
+
 shd(learned, true, debug = FALSE)
 }
 \arguments{
-  \item{r1, learned}{an object of class \code{bn}.}
-  \item{r2, true}{another object of class \code{bn}.}
+  \item{target, learned}{an object of class \code{bn}.}
+  \item{current, true}{another object of class \code{bn}.}
+  \item{\dots}{extra arguments from the generic method (currently ignored).}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
+}
+\note{
+
+  The main difference between \code{compare} and \code{all.equal} is
+  that the former is quite slow but provides a detailed description
+  of the differences between \code{target} and \code{current} (when
+  \code{debug} is set to \code{TRUE}), while the latter is much faster
+  but provides only generic diagnostic messages.
+
 }
 \value{
 
   \code{compare} returns a boolean value (\code{TRUE} if the objects
   describe the same network structure, \code{FALSE} otherwise).
+  \code{all.equal} returns either \code{TRUE} or a character string
+  describing the differences between \code{target} and \code{current}.
   \code{shd} returns a non-negative integer number.
 
 }

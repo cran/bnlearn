@@ -34,10 +34,10 @@ Loading required package: Rmpi
 # the two nodes of the cluster.
 > clusterEvalQ(cl, .test.counter)
 [[1]]
-[1] 46
+[1] 47
 
 [[2]]
-[1] 40
+[1] 42
 # a few tests are still executed by this process.
 > .test.counter
 [1] 4

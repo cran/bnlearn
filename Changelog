@@ -1,4 +1,24 @@
 
+bnlearn (2.2)
+
+  * fixed a bug in moral(), which returned duplicated arcs when
+      shielded parents were present in the graph.
+  * implemented all.equal() for bn objects.
+  * added workaround for plotting empty graphs with graphviz.plot(),
+      which previously generated an error in Rgraphviz.
+  * added a CITATION file.
+  * added the narcs() function.
+  * print.bn()'s now supports small(ish) line width.
+  * added support for "bn.fit" objects in graphviz.plot().
+  * added support for changing the line type of arcs in 
+      graphviz.plot().
+  * added the learn.mb() function to learn the Markov blanket of
+      a single variable.
+  * fixed calls to UseMethod(), which were not always working
+      correctly because of the changed parameter matching.
+  * fixed an off-by-one error in the prediction for discrete
+      root nodes.
+
 bnlearn (2.1)
 
   * optimized data frame subsetting and parents' configurations

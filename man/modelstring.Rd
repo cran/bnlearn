@@ -19,7 +19,7 @@ modelstring(x, debug = FALSE) <- value
 model2network(string, debug = FALSE)
 
 \method{as.character}{bn}(x, ...)
-\method{as.bn}{character}(string, debug = FALSE)
+\method{as.bn}{character}(string, ...)
 }
 \arguments{
   \item{x}{an object of class \code{bn}. \code{modelstring} (but not its

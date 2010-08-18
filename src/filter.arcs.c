@@ -3,9 +3,16 @@
 /* remove duplicate arcs from the arc set. */
 SEXP unique_arcs(SEXP arcs, SEXP nodes, SEXP warn) {
 
+  return c_unique_arcs(arcs, nodes, isTRUE(warn));
+
+}/*UNIQUE_ARCS*/
+
+/* C-level interface to unique_arcs. */
+SEXP c_unique_arcs(SEXP arcs, SEXP nodes, int warnlevel) {
+
 int i = 0, j = 0, k = 0, nrows = 0, uniq_rows = 0, n = LENGTH(nodes);
-int *checklist = NULL, *warnlevel = LOGICAL(warn);
-SEXP result, dimnames, colnames, try, dup;
+int *checklist = NULL;
+SEXP result, try, node, dup;
 
   if (isNull(arcs)) {
 
@@ -19,9 +26,11 @@ SEXP result, dimnames, colnames, try, dup;
     /* fill in the nodes' labels. */
     for (i = 0; i < n; i++) {
 
+      node = STRING_ELT(nodes, i);
+
       for (j = i + 1; j < n; j++) {
 
-        SET_STRING_ELT(result, CMC(k, 0, nrows), STRING_ELT(nodes, i));
+        SET_STRING_ELT(result, CMC(k, 0, nrows), node);
         SET_STRING_ELT(result, CMC(k, 1, nrows), STRING_ELT(nodes, j));
         k++;
 
@@ -62,7 +71,7 @@ SEXP result, dimnames, colnames, try, dup;
     else {
 
       /* warn the user if told to do so. */
-      if (*warnlevel > 0)
+      if (warnlevel > 0)
         warning("removed %d duplicate arcs.", nrows - uniq_rows);
 
       /* allocate and initialize the return value. */
@@ -86,21 +95,16 @@ SEXP result, dimnames, colnames, try, dup;
   }/*ELSE*/
 
   /* allocate, initialize and set the column names. */
-  PROTECT(dimnames = allocVector(VECSXP, 2));
-  PROTECT(colnames = allocVector(STRSXP, 2));
-  SET_STRING_ELT(colnames, 0, mkChar("from"));
-  SET_STRING_ELT(colnames, 1, mkChar("to"));
-  SET_VECTOR_ELT(dimnames, 1, colnames);
-  setAttrib(result, R_DimNamesSymbol, dimnames);
+  finalize_arcs(result);
 
   if (uniq_rows == 0)
-    UNPROTECT(3);
+    UNPROTECT(1);
   else
-    UNPROTECT(5);
+    UNPROTECT(3);
 
   return result;
 
-}/*UNIQUE_ARCS*/
+}/*C_UNIQUE_ARCS*/
 
 /* determine which arcs are undirected. */
 SEXP which_undirected(SEXP arcs, SEXP nodes) {
@@ -140,3 +144,37 @@ SEXP result, labels, try, arc_id;
   return result;
 
 }/*WHICH_UNDIRECTED*/
+
+/* determine which arcs are blacklisted according to the current topological
+ * ordering. */
+SEXP nodes2blacklist(SEXP topord) {
+
+int i = 0, j = 0, k = 0, nnodes = LENGTH(topord), nbl = nnodes * (nnodes - 1) / 2;
+SEXP node, result;
+
+  /* allocate the return value. */
+  PROTECT(result = allocMatrix(STRSXP, nbl, 2));
+
+  for (i = 0, k = 0; i < nnodes; i++) {
+
+    node = STRING_ELT(topord, i);
+
+    for (j = i + 1; j < nnodes; j++) {
+
+      SET_STRING_ELT(result, k, STRING_ELT(topord, j));
+      SET_STRING_ELT(result, k + nbl, node);
+      k++;
+
+    }/*FOR*/
+
+  }/*FOR*/
+
+  /* allocate, initialize and set the column names. */
+  finalize_arcs(result);
+
+  UNPROTECT(1);
+
+  return result;
+
+}/*NODES2BLACKLIST*/
+

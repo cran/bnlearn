@@ -3,7 +3,7 @@
 #include "common.h"
 
 /* posterior dirichlet probability (covers BDe and K2 scores). */
-SEXP dpost (SEXP x, SEXP lx, SEXP length, SEXP iss, SEXP debug) {
+SEXP dpost (SEXP x, SEXP lx, SEXP length, SEXP iss) {
 
 int k = 0;
 int *llx = INTEGER(lx), *num = INTEGER(length), *xx = INTEGER(x);
@@ -43,29 +43,6 @@ SEXP result;
   for (k = 0; k < *num; k++)
     n[xx[k] - 1]++;
 
-  if (isTRUE(debug)) {
-
-    Rprintf("  > prior distribution is: %lf (x%d)\n", alpha, *llx);
-    Rprintf("  > sample distribution is:\n    ");
-    for (k = 0; k < *llx; k++) {
-
-      Rprintf("%d ", n[k]);
-      if (((k % 6) == 0) && (k != 0)) Rprintf("\n    ");
-
-    }/*FOR*/
-    Rprintf("\n");
-    Rprintf("  > posterior distribution is:\n    ");
-    for (k = 0; k < *llx; k++) {
-
-      Rprintf("%lf ", n[k] + alpha);
-      if (((k % 6) == 0) && (k != 0)) Rprintf("\n    ");
-
-    }/*FOR*/
-    Rprintf("\n");
-    Rprintf("  > real sample size: %d\n", *num);
-
-  }/*THEN*/
-
   /* compute the posterior probability. */
   for (k = 0; k < *llx; k++)
     *res += lgammafn(n[k] + alpha) - lgammafn(alpha);
@@ -79,7 +56,7 @@ SEXP result;
 
 /* conditional posterior dirichlet probability (covers BDe and K2 scores). */
 SEXP cdpost (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP iss,
-    SEXP nparams, SEXP debug) {
+    SEXP nparams) {
 
 int j = 0, k = 0;
 int *llx = INTEGER(lx), *lly = INTEGER(ly), *p = INTEGER(nparams);
@@ -120,42 +97,6 @@ SEXP result;
     nj[yy[k] - 1]++;
 
   }/*FOR*/
-
-  if (isTRUE(debug)) {
-
-    Rprintf("  > prior distribution is: %lf (x%d)\n", alpha, *llx);
-    Rprintf("  > sample distribution is:\n");
-    for (j = 0; j < *llx; j++) {
-
-      Rprintf("    ");
-
-      for (k = 0; k < *lly; k++) {
-
-        Rprintf("%d ", n[j][k]);
-
-      }/*FOR*/
-
-      Rprintf("\n");
-
-    }/*FOR*/
-    Rprintf("  > posterior distribution is:\n");
-    for (j = 0; j < *llx; j++) {
-
-      Rprintf("    ");
-
-      for (k = 0; k < *lly; k++) {
-
-        Rprintf("%lf ", n[j][k] + alpha);
-
-      }/*FOR*/
-
-      Rprintf("\n");
-
-    }/*FOR*/
-
-    Rprintf("  > real sample size: %d\n", *num);
-
-  }/*THEN*/
 
   /* compute the conditional posterior probability. */
   for (j = 0; j < *llx; j++)

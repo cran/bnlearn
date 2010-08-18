@@ -105,7 +105,7 @@ SEXP dup, result = R_NilValue;
 
     default:
 
-      error("this SEXP type is no handled in unique().");
+      error("this SEXP type is not handled in unique().");
 
   }/*SWITCH*/
 
@@ -193,10 +193,11 @@ SEXP classname, rownames;
 SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop) {
 
 SEXP try, result, colnames = getAttrib(dataframe, R_NamesSymbol);
-int *idx = NULL, *d = LOGICAL(drop), nnames = LENGTH(name);
+int *idx = NULL, *d = LOGICAL(drop); 
+int nnames = LENGTH(name), name_type = TYPEOF(name);
 
 
-  switch(TYPEOF(name)) {
+  switch(name_type) {
 
     case STRSXP:
 
@@ -213,7 +214,7 @@ int *idx = NULL, *d = LOGICAL(drop), nnames = LENGTH(name);
 
     default:
 
-      error("this SEXP type is no handled in minimal.data.frame.column().");
+      error("this SEXP type is not handled in minimal.data.frame.column().");
 
   }/*SWITCH*/
 
@@ -233,7 +234,7 @@ int *idx = NULL, *d = LOGICAL(drop), nnames = LENGTH(name);
 
   }/*ELSE*/
 
-  if (TYPEOF(name) != INTSXP)
+  if (name_type != INTSXP)
     UNPROTECT(1);
 
   return result;
@@ -275,3 +276,25 @@ double *res = NULL, *source = NULL;
   return result;
 
 }/*QR_MATRIX*/
+
+/* set the column names on arc sets. */
+SEXP finalize_arcs(SEXP arcs) {
+
+SEXP dimnames, colnames;
+
+  /* allocate column names. */
+  PROTECT(dimnames = allocVector(VECSXP, 2));
+  PROTECT(colnames = allocVector(STRSXP, 2));
+  SET_STRING_ELT(colnames, 0, mkChar("from"));
+  SET_STRING_ELT(colnames, 1, mkChar("to"));
+  SET_VECTOR_ELT(dimnames, 1, colnames);
+
+  /* set the column names. */
+  setAttrib(arcs, R_DimNamesSymbol, dimnames);
+
+  UNPROTECT(2);
+
+  return arcs;
+
+}/*FINALIZE_ARCS*/
+

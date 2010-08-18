@@ -12,7 +12,7 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
   shape = "circle", main = NULL, sub = NULL)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}.}
+  \item{x}{an object of class \code{bn} or \code{bn.fit}.}
   \item{highlight}{a list, see below.}
   \item{layout}{a character string, the layout parameter to
     be passed to \pkg{Rgraphviz}. Possible values are \code{dots},
@@ -34,6 +34,7 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
 
     \item \code{nodes}: a character vector, the labels
       of the nodes to be highlighted.
+
     \item \code{arcs}: the arcs to be highlighted (a
       two-column matrix, whose columns are labeled
       \code{from} and \code{to}).
@@ -57,7 +58,18 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
       in \code{strength.plot}. The default value is to
       use the global settings of \pkg{Rgraphviz}.
 
+    \item \code{lty}: the line type of highlighted arcs. Possible
+      values are 0, 1, 2, 3, 4, 5, 6, "blank", "solid", "dashed",
+      "dotted", "dotdash", "longdash" and "twodash". The default
+      value is to use the global settings of \pkg{Rgraphviz}.
+
   }
+
+}
+\value{
+
+  \code{graphviz.plot} returns invisibly the \code{graph} object 
+  produced by \pkg{Rgraphviz}.
 
 }
 \seealso{\code{\link{plot.bn}}.}

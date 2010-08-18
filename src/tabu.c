@@ -56,7 +56,7 @@ SEXP tabu_network, hash;
     /* it seems we really need to compare the two networks, so be it. */
     matches = INTEGER(tabu_network);
 
-    /* if a network in the abu list matches, return its index in the R-level list. */
+    /* if a network in the tabu list matches, return its index in the R-level list. */
     for (j = 0; j < *narcs; j++) {
 
       /* since the two array are ordered by construction, a simple
