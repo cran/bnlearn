@@ -7,7 +7,6 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   assign(".test.counter", 0, envir = .GlobalEnv)
 
   res = NULL
-  supported.clusters = c("MPIcluster", "PVMcluster","SOCKcluster")
   cluster.aware = FALSE
 
   # check the data are there.
@@ -26,30 +25,22 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   # check B (the number of bootstrap/permutation samples).
   B = check.B(B, test)
 
-  # check cluster.
+  # check the cluster.
   if (!is.null(cluster)) {
 
-    if (!(any(class(cluster) %in% supported.clusters)))
-      stop("cluster is not a valid cluster object.")
-    else if (!(require(snow)))
-      stop("Can't find required packages: snow")
-    else if (!isClusterRunning(cluster))
-      stop("the cluster is stopped.")
-    else {
+    check.cluster(cluster)
 
-      # enter in cluster-aware mode.
-      cluster.aware = TRUE
-      # set the test counter in all the cluster nodes.
-      clusterEvalQ(cluster, assign(".test.counter", 0, envir = .GlobalEnv))
-      # disable debugging, the slaves do not cat() here.
-      if (debug) {
+    # enter in cluster-aware mode.
+    cluster.aware = TRUE
+    # set the test counter in all the cluster nodes.
+    clusterEvalQ(cluster, assign(".test.counter", 0, envir = .GlobalEnv))
+    # disable debugging, the slaves do not cat() here.
+    if (debug) {
 
-        warning("disabling debugging output in cluster-aware mode.")
-        debug = FALSE
+      warning("disabling debugging output in cluster-aware mode.")
+      debug = FALSE
 
-      }#THEN
-
-    }#ELSE
+    }#THEN
 
   }#THEN
 
@@ -265,8 +256,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   else {
 
     # check start's class.
-    if (!is(start, "bn"))
-      stop("x must be an object of class 'bn'.")
+    check.bn(start)
     # check the preseeded network against the data set.
     check.bn.vs.data(start, x)
 
@@ -420,7 +410,7 @@ mb.backend = function(x, node, method, whitelist = NULL, blacklist = NULL,
   if (method == "gs") {
 
     mb = gs.markov.blanket(x = node, data = x, nodes = nodes,
-           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist, 
+           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
            backtracking = NULL, test = test, debug = debug)
 
   }#THEN
@@ -445,7 +435,7 @@ mb.backend = function(x, node, method, whitelist = NULL, blacklist = NULL,
            backtracking = NULL, test = test, debug = debug)
 
   }#THEN
- 
+
   return(mb)
 
 }#MB.BACKEND

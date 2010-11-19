@@ -16,7 +16,7 @@
 modelstring(x)
 modelstring(x, debug = FALSE) <- value
 
-model2network(string, debug = FALSE)
+model2network(string, ordering = NULL, debug = FALSE)
 
 \method{as.character}{bn}(x, ...)
 \method{as.bn}{character}(string, ...)
@@ -25,6 +25,9 @@ model2network(string, debug = FALSE)
   \item{x}{an object of class \code{bn}. \code{modelstring} (but not its
        replacement form) accepts also objects of class \code{bn.fit}.}
   \item{string}{a character string describing the Bayesian network.}
+  \item{ordering}{the labels of all the nodes in the graph; their order is the
+       node ordering used in the construction of the \code{bn} object.
+       If \code{NULL} the nodes are sorted alphabetically.}  
   \item{value}{a character string, the same as the \code{string}.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
@@ -72,7 +75,7 @@ modelstring(res)
 res2 = model2network(modelstring(res))
 res2
 #
-#   Randomly generated Bayesian network
+#   Random/Generated Bayesian network
 #
 #   model:
 #     [A][C][F][B|A][D|A:C][E|B:F]

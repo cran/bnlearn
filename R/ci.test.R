@@ -42,8 +42,21 @@ ci.test.character = function(x, y = NULL, z = NULL, data, test = NULL,
 
 }#CI.TEST.CHARACTER
 
+# do a single conditional independence test (nodes in a matrix).
+ci.test.matrix = function(x, test = NULL, B = NULL, debug = FALSE, ...) {
+
+  if (ncol(x) < 2)
+    stop("'x' must have at least two columns.")
+
+  ci.test(x = as.data.frame(x), test = test, B = B, debug = debug, ...)
+
+}#CI.TEST.MATRIX
+
 # do a single conditional independence test (nodes in a data frame).
 ci.test.data.frame = function(x, test = NULL, B = NULL, debug = FALSE, ...) {
+
+  if (ncol(x) < 2)
+    stop("'x' must have at least two columns.")
 
   nodes = names(x)
 
@@ -82,7 +95,7 @@ ci.test.numeric = function(x, y = NULL, z = NULL, test = NULL, B = NULL, debug =
       if (length(z) != length(x))
         stop("'x', 'y', and 'z' must have the same length.")
 
-      sx = 3
+      sx = 3L
 
     }#THEN
     else
@@ -97,7 +110,7 @@ ci.test.numeric = function(x, y = NULL, z = NULL, test = NULL, B = NULL, debug =
     # build the data frame.
     data = data.frame(x = x, y = y)
 
-    sx = character(0)
+    sx = integer(0)
 
   }#ELSE
   # check the data are there.
@@ -109,7 +122,7 @@ ci.test.numeric = function(x, y = NULL, z = NULL, test = NULL, B = NULL, debug =
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  res = conditional.test(x = 1, y = 2, sx = sx, data = data,
+  res = conditional.test(x = 1L, y = 2L, sx = sx, data = data,
     test = test, B = B, learning = FALSE)
 
   # rewrite the test formula.
@@ -148,7 +161,7 @@ ci.test.factor = function(x, y = NULL, z = NULL, test = NULL, B = NULL, debug = 
       if (length(z) != length(x))
         stop("'x', 'y', and 'z' must have the same length.")
 
-      sx = 3
+      sx = 3L
 
     }#THEN
     else
@@ -163,7 +176,7 @@ ci.test.factor = function(x, y = NULL, z = NULL, test = NULL, B = NULL, debug = 
     # build the data frame.
     data = data.frame(x = x, y = y)
 
-    sx = character(0)
+    sx = integer(0)
 
   }#ELSE
   # check the data are there.

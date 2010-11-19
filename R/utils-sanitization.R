@@ -101,14 +101,14 @@ check.nodes = function(nodes, graph = NULL, min.nodes = 1, max.nodes = Inf) {
   # node must be a valid node label.
   if (!is.null(graph)) {
 
-    if (class(graph) == "bn") {
+    if (is(graph, "bn")) {
 
       if (!all(nodes %in% names(graph$nodes)))
         stop(paste(c("node(s)", nodes[!(nodes %in% names(graph$nodes))],
                "not present in the graph."), collapse = " "))
 
     }#THEN
-    else if (class(graph) == "bn.fit") {
+    else if (is(graph, "bn.fit")) {
 
       if (!all(nodes %in% names(graph)))
         stop(paste(c("node(s)", nodes[!(nodes %in% names(graph))],
@@ -137,8 +137,8 @@ check.arcs = function(arcs, nodes) {
        stop("the arcs must have two columns.")
 
      if (is.data.frame(arcs))
-       arcs = as.matrix(cbind(as.character(arcs[,1]),
-         as.character(arcs[,2])))
+       arcs = as.matrix(cbind(as.character(arcs[, 1]),
+         as.character(arcs[, 2])))
 
      # be sure to set the column names.
      dimnames(arcs) = list(c(), c("from", "to"))
@@ -195,8 +195,8 @@ build.whitelist = function(whitelist, nodes) {
       stop("whitelist must have two columns.")
 
     if (is.data.frame(whitelist))
-      whitelist = as.matrix(cbind(as.character(whitelist[,1]),
-        as.character(whitelist[,2])))
+      whitelist = as.matrix(cbind(as.character(whitelist[, 1]),
+        as.character(whitelist[, 2])))
 
   }#THEN
   else if (is.character(whitelist)) {
@@ -242,8 +242,8 @@ build.blacklist = function(blacklist, whitelist, nodes) {
         stop("blacklist must have two columns.")
 
       if (is.data.frame(blacklist))
-        blacklist = as.matrix(cbind(as.character(blacklist[,1]),
-          as.character(blacklist[,2])))
+        blacklist = as.matrix(cbind(as.character(blacklist[, 1]),
+          as.character(blacklist[, 2])))
 
     }#THEN
     else if (is.character(blacklist)) {
@@ -265,7 +265,7 @@ build.blacklist = function(blacklist, whitelist, nodes) {
       stop("unknown node label present in the blacklist.")
 
     # drop duplicate rows.
-    blacklist = unique.arcs(blacklist, nodes);
+    blacklist = unique.arcs(blacklist, nodes)
 
   }#THEN
 
@@ -277,8 +277,8 @@ build.blacklist = function(blacklist, whitelist, nodes) {
     # if x -> y is whitelisted but y -> x is not, it is to be blacklisted.
     apply(whitelist, 1,
       function(x) {
-        if (!is.whitelisted(whitelist, x[c(2,1)]))
-          assign("blacklist", rbind(blacklist, x[c(2,1)]),
+        if (!is.whitelisted(whitelist, x[c(2, 1)]))
+          assign("blacklist", rbind(blacklist, x[c(2, 1)]),
             envir = sys.frame(-2))
       })
 
@@ -505,8 +505,6 @@ check.iss = function(iss, network, data) {
     #   Lapack routine dgesv: system is exactly singular
     if(is.data.continuous(data) && (iss < 3))
       stop("the imaginary sample size must be at least 3.")
-    # coerce iss to integer.
-    iss = as.integer(iss)
 
   }#THEN
   else {
@@ -539,7 +537,8 @@ check.iss = function(iss, network, data) {
 
   }#ELSE
 
-return(iss)
+  # coerce iss to integer.
+  return(as.integer(iss))
 
 }#CHECK.ISS
 
@@ -809,7 +808,9 @@ check.cpq.args = function(fitted, extra.args, method) {
 }#CHECK.CPQ.ARGS
 
 # sanitize the extra arguments passed to loss functions.
-check.loss.args = function(loss, nodes, extra.args) {
+check.loss.args = function(loss, bn, nodes, data, extra.args) {
+
+  valid.args = loss.extra.args[[loss]]
 
   if (loss == "pred") {
 
@@ -821,14 +822,25 @@ check.loss.args = function(loss, nodes, extra.args) {
     }#THEN
     else {
 
-      stop("missing target node for which to compute the prediction error.")
+      if (is(bn, "bn.naive"))
+        extra.args$target = root.leaf.nodes(bn, leaf = FALSE)
+      else
+        stop("missing target node for which to compute the prediction error.")
 
     }#ELSE
+
+    # check the prior distribution.
+    if (is(bn, "bn.naive")) {
+
+      extra.args$prior = check.prior(extra.args$prior, data[, extra.args$target])
+      valid.args = c(valid.args, "prior")
+
+    }#THEN
 
   }#THEN
 
   # warn about unused arguments.
-  check.unused.args(extra.args, loss.extra.args[[loss]])
+  check.unused.args(extra.args, valid.args)
 
   return(extra.args)
 
@@ -1046,6 +1058,36 @@ check.fit = function(bn) {
   }#THEN
 
 }#CHECK.FIT
+
+# check the structure of a naive Bayes classifier,
+check.bn.naive = function(bn) {
+
+  # check whether it's a valid bn/bn.fit object.
+  check.bn.or.fit(bn)
+  # there must be a single root node, check.
+  root = root.leaf.nodes(bn, leaf = FALSE)
+
+  if (length(root) != 1)
+    stop("a naive Bayes classifier can have only one root node, the training variable.")
+
+  # cache the node labels.
+  if (is(bn, "bn"))
+    nodes = names(bn$nodes)
+  else
+    nodes = names(bn)
+  # get the explanatory variables.
+  explanatory = nodes[nodes != root]
+  leafs = root.leaf.nodes(bn, leaf = TRUE)
+  # all the explanatory variables must be leaf nodes, check.
+  if (!identical(sort(explanatory), sort(leafs)))
+    stop("all the explanatory variables must be leaf nodes.")
+  # all the explanatory variables must have a single parent, the root node, check.
+  nparents = sapply(explanatory, function(node) { length(parents(bn, node))  })
+
+  if (any(nparents != 1))
+    stop("all the explanatory variables must be children of the training variable.")
+
+}#CHECK.BN.NAIVE
 
 # check an object of class bn.strength.
 check.bn.strength = function(strength, bn) {
@@ -1362,4 +1404,34 @@ check.mvber.vartest = function(method) {
 
 }#CHECK.MVBER.VARTEST
 
+# check a prior distribution against the observed variable.
+check.prior = function(prior, training) {
+
+  if (is.factor(training)) {
+
+    if (missing(prior) || is.null(prior)) {
+ 
+      # use an emprirical prior if none is provided by the user. 
+      prior = summary(training)
+
+    }#THEN
+    else {
+
+      if (!is.numeric(prior) || (length(prior) != nlevels(training)))
+        stop("the prior distribution and the training variable have a different number of levels.")
+      if (any(prior < 0) || any(is.nan(prior)))
+        stop("prior probabilites must be non-negative numbers.")
+      if (all(prior == 0))
+        stop("at least one probability must be strictly positive.")
+
+    }#ELSE 
+
+  }#THEN
+
+  # make sure the prior probabilities sum to one.
+  prior = prior / sum(prior)
+
+  return(prior)
+
+}#CHECK.PRIOR
 

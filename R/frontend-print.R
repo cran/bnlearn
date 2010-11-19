@@ -6,15 +6,16 @@ print.bn = function(x, ...) {
   directed.arcs = length(which(which.directed(x$arcs)))
   undirected.arcs = (nrow(x$arcs) - directed.arcs)/2
   arcs = undirected.arcs + directed.arcs
-  avg.mb = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$mb) }))
-  avg.nbr = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$nbr) }))
-  avg.ch = mean(sapply(nodes(x), function(n) { length(x$nodes[[n]]$children) }))
+  nodes = names(x$nodes)
+  avg.mb = mean(sapply(nodes, function(n) { length(x$nodes[[n]]$mb) }))
+  avg.nbr = mean(sapply(nodes, function(n) { length(x$nodes[[n]]$nbr) }))
+  avg.ch = mean(sapply(nodes, function(n) { length(x$nodes[[n]]$children) }))
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
   if (x$learning$algo %in% graph.generation.algorithms)
-    cat("\n  Randomly generated Bayesian network\n\n")
+    cat("\n  Random/Generated Bayesian network\n\n")
   else if (x$learning$algo %in% constraint.based.algorithms)
     cat("\n  Bayesian network learned via Constraint-based methods\n\n")
   else if (x$learning$algo %in% score.based.algorithms)
@@ -27,7 +28,7 @@ print.bn = function(x, ...) {
   # print the model string if possible, a short description otherwise.
   cat("  model:\n")
 
-  if (undirected.arcs == 0) 
+  if (undirected.arcs == 0)
     fcat(formula.backend(x))
   else if (directed.arcs == 0)
     cat("    [undirected graph]\n")
@@ -178,14 +179,28 @@ print.bn.kcv = function(x, ...) {
 
   cat("\n  k-fold cross-validation for Bayesian networks\n\n")
 
-  if (is.character(a$bn))
-    cat("  target learning algorithm:            ", method.labels[a$bn], "\n")
-  else
-    cat("  target network structure:\n  ", formula.backend(a$bn), "\n")
+  if (is.character(a$bn)) {
 
-  cat("  number of subsets:                    ", length(x), "\n")
-  cat("  loss function:                        ", loss.labels[a$loss], "\n")
-  cat("  expected loss:                        ", a$mean, "\n")
+    wcat("  target learning algorithm:            ", method.labels[a$bn])
+
+  }#THEN
+  else {
+
+    cat("  target network structure:\n")
+    if (is(a$bn, "bn.naive"))
+      cat("   [Naive Bayes Classifier]\n")
+    else
+      fcat(formula.backend(a$bn))
+
+  }#LSE
+
+  wcat("  number of subsets:                    ", length(x))
+  wcat("  loss function:                        ", loss.labels[a$loss])
+
+  if (a$loss == "pred")
+    wcat("  training node:                        ", a$args$target)
+
+  wcat("  expected loss:                        ", a$mean)
 
   cat("\n")
 

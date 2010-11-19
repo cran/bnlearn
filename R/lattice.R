@@ -5,7 +5,7 @@ lattice.discrete.backend = function(fitted, type, xlab, ylab, main, ...) {
   if (!("lattice" %in% loadedNamespaces()))
     stop("this function requires lattice.")
 
-  if (class(fitted) == "bn.fit") {
+  if (is(fitted, "bn.fit")) {
 
     # plot a panel for each node in the bayesian network.
 
@@ -85,7 +85,7 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
   if (!("lattice" %in% loadedNamespaces()))
     stop("this function requires lattice.")
 
-  if (class(fitted) == "bn.fit") {
+  if (is(fitted, "bn.fit")) {
 
     # plot a panel for each node in the bayesian network.
 

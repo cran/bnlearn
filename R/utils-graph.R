@@ -211,7 +211,7 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
     to.be.reversed = arcs.to.be.reversed(new$arcs, blacklist)
 
     # no more operation to do.
-    if (iter == 0) break;
+    if (iter == 0) break
 
     # choose which arc operator to use.
     op = sample(c("set", "drop", "reverse"), 1, replace = TRUE)

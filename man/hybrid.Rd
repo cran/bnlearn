@@ -34,8 +34,9 @@ mmhc(x, whitelist = NULL, blacklist = NULL, test = NULL,
      \code{mmpc}. See \code{\link{bnlearn-package}} and the
      documentation of each algorithm for details.}
   \item{maximize}{a character string, the score-based algorithm
-     to be used in the \dQuote{maximize} phase. The only possible value
-     is \code{hc}. See \code{\link{bnlearn-package}} for details.}
+     to be used in the \dQuote{maximize} phase. Possible values are
+     \code{hc} and \code{tabu}. See \code{\link{bnlearn-package}} for
+     details.}
   \item{test}{a character string, the label of the conditional
      independence test to be used by the constraint-based algorithm.
      If none is specified, the default test statistic is the

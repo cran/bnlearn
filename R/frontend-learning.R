@@ -100,7 +100,7 @@ mmhc = function(x, whitelist = NULL, blacklist = NULL, test = NULL,
     score = NULL, alpha = 0.05, B = NULL, ..., restart = 0, perturb = 1,
     max.iter = Inf, optimized = TRUE, strict = FALSE, debug = FALSE) {
 
-  max.args = list(restart = restart,perturb = perturb, max.iter = max.iter)
+  max.args = list(restart = restart, perturb = perturb, max.iter = max.iter)
 
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
     restrict = "mmpc", maximize = "hc", test = test, score = score,
@@ -110,10 +110,11 @@ mmhc = function(x, whitelist = NULL, blacklist = NULL, test = NULL,
 
 }#MMHC
 
+# Frontend for the Markov blanket learning algotrithms.
 learn.mb = function(x, node, method, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE) {
 
-  mb.backend(x, node = node, method = method, whitelist = whitelist, 
+  mb.backend(x, node = node, method = method, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B, debug = debug,
     optimized = optimized)
 

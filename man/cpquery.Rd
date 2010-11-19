@@ -1,5 +1,6 @@
 \name{cpquery}
 \alias{cpquery}
+\alias{cpdist}
 \title{ Perform conditional probability queries }
 \description{
 
@@ -7,11 +8,17 @@
 
 }
 \usage{
-cpquery(fitted, event, evidence, method = "ls", ..., debug = FALSE)
+cpquery(fitted, event, evidence, cluster = NULL, method = "ls", ..., debug = FALSE)
+cpdist(fitted, nodes, evidence, cluster = NULL, method = "ls", ..., debug = FALSE)
 }
 \arguments{
   \item{fitted}{an object of class \code{bn.fit}.}
   \item{event, evidence}{see below.}
+  \item{nodes}{a vector of character strings, the labels of the nodes whose
+    conditional distribution we are interested in.}
+  \item{cluster}{an optional cluster object from package \pkg{snow}.
+      See \code{\link{snow integration}} for details and a simple
+      example.}
   \item{method}{a character string, the method used to perform the conditional
     probability query. Currently only \emph{Logic Sampling} is implemented.}
   \item{\dots}{additional tuning parameters.}
@@ -43,11 +50,17 @@ cpquery(fitted, event, evidence, method = "ls", ..., debug = FALSE)
 }
 \value{
 
-  A numeric value, the conditional probability of event \code{conditional}
-  on \code{evidence}.
+  \code{cpquery} returns a numeric value, the conditional probability of \code{event}
+  conditional on \code{evidence}.
+
+  \code{cpudist} returns a data frame containing the observations generated from
+  the conditional distribution of the \code{nodes} conditional on \code{evidence}.
 
 }
 \references{
+
+  Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
+      Principles and Techniques}. MIT Press.
 
   Korb K, Nicholson AE (2003). \emph{Bayesian Artificial Intelligence}.
       Chapman & Hall/CRC.
@@ -55,8 +68,10 @@ cpquery(fitted, event, evidence, method = "ls", ..., debug = FALSE)
 }
 \examples{
 fitted = bn.fit(hc(learning.test), learning.test)
-cpquery(fitted, (B == "b"), (A == "a"))
 # the result should be around 0.025.
+cpquery(fitted, (B == "b"), (A == "a"))
+
+table(cpdist(fitted, "A", (C == "c")))
 }
 \author{ Marco Scutari }
 \keyword{multivariate}

@@ -11,19 +11,19 @@
 subsets = function (n, r, v = 1:n, set = TRUE, repeats.allowed = FALSE) {
 
   # allow empty subsets (i.e. subsets of empty sets).
-  if ((n == 0) || (r == 0)) return(matrix(c(""),1,1))
+  if ((n == 0) || (r == 0)) return(matrix(c(""), 1, 1))
 
-  if (mode(n) != "numeric" || length(n) != 1 || n < 1 || (n%%1) != 0)
+  if (mode(n) != "numeric" || length(n) != 1 || n < 1 || (n %% 1) != 0)
     stop("bad value of n")
 
-  if (mode(r) != "numeric" || length(r) != 1 || r < 1 || (r%%1) != 0)
+  if (mode(r) != "numeric" || length(r) != 1 || r < 1 || (r %% 1) != 0)
     stop("bad value of r")
 
   if (!is.atomic(v) || length(v) < n)
     stop("v is either non-atomic or too short")
 
   if ((r > n) & repeats.allowed == FALSE)
-    stop("r > n and repeats.allowed=FALSE")
+    stop("r > n and repeats.allowed = FALSE")
 
   if (set) {
 

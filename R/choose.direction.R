@@ -137,7 +137,7 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug) {
               reference.score = reference.score, op = "set",
               extra = extra.args)
 
-  better2 = score.delta(arc = arc[c(2,1)], network = x, data = data,
+  better2 = score.delta(arc = arc[c(2, 1)], network = x, data = data,
               score = score, score.delta = 0,
               reference.score = reference.score, op = "set",
               extra = extra.args)

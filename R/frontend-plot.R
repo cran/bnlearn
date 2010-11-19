@@ -6,7 +6,7 @@ graphviz.plot = function(x, highlight = NULL, layout = "dot", shape = "circle",
   # check x's class.
   check.bn.or.fit(x)
 
-  if (class(x) == "bn") {
+  if (is(x, "bn")) {
 
     nodes = names(x$nodes)
     arcs = x$arcs
@@ -15,7 +15,7 @@ graphviz.plot = function(x, highlight = NULL, layout = "dot", shape = "circle",
   else {
 
     nodes = names(x)
-    arcs = fit2arcs(x) 
+    arcs = fit2arcs(x)
 
   }#ELSE
 
@@ -46,7 +46,7 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
 }#STRENGTH.PLOT
 
 # plot method for class 'bn'.
-plot.bn = function(x, ylim = c(0,600), xlim = ylim, radius = 250, arrow = 35,
+plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
   highlight = NULL, color = "red", ...) {
 
   meaningless.arguments = c("xlab", "ylab", "axes")
@@ -130,7 +130,7 @@ plot.bn = function(x, ylim = c(0,600), xlim = ylim, radius = 250, arrow = 35,
 
       }#THEN
 
-      if (is.listed(x$arcs, a[c(2,1)]))
+      if (is.listed(x$arcs, a[c(2, 1)]))
         length = 0
       else
         length = 0.20
@@ -152,14 +152,14 @@ plot.bn = function(x, ylim = c(0,600), xlim = ylim, radius = 250, arrow = 35,
     if (!is.null(highlight)) {
 
       if (names(x$nodes)[i] %in% highlight)
-        underlined(coords[i,1], coords[i,2], names(x$nodes)[i], col = color)
+        underlined(coords[i, 1], coords[i, 2], names(x$nodes)[i], col = color)
       else
-        text(coords[i,1], coords[i,2], names(x$nodes)[i], col = "black")
+        text(coords[i, 1], coords[i, 2], names(x$nodes)[i], col = "black")
 
     }#THEN
     else {
 
-      text(coords[i,1], coords[i,2], names(x$nodes)[i], col = "black")
+      text(coords[i, 1], coords[i, 2], names(x$nodes)[i], col = "black")
 
     }#ELSE
 

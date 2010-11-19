@@ -1,12 +1,61 @@
 
 # backend for conditional probability queries.
 conditional.probability.query = function(fitted, event, evidence, method,
-    extra, debug = FALSE) {
+    extra, probability = TRUE, cluster = NULL, debug = FALSE) {
 
   if (method == "ls") {
 
-    logic.sampling(fitted = fitted, event = event, evidence = evidence,
-      n = extra$n, batch = extra$batch, debug = debug)
+    if (!is.null(cluster)) {
+
+      # get the number of slaves.
+      s = nSlaves(cluster)
+      # divide the number of particles among the slaves.
+      batch = n = ceiling(extra$n / s)
+
+      if (probability) {
+
+        results = parSapply(cluster, seq(s),
+          function(x) {
+
+            logic.sampling(fitted = fitted, event = event,
+              evidence = evidence, n = n, batch = batch, debug = debug)
+
+          })
+ 
+        return(mean(results))
+
+      }#THEN
+      else {
+ 
+        results = parLapply(cluster, seq(s),
+          function(x) {
+
+            logic.distribution(fitted = fitted, nodes = event,
+              evidence = evidence, n = n, batch = batch, debug = debug)
+
+          })
+
+        return(do.call(rbind, results))
+
+      }#ELSE
+
+    }#THEN
+    else {
+
+      if (probability) {
+  
+        logic.sampling(fitted = fitted, event = event, evidence = evidence,
+          n = extra$n, batch = extra$batch, debug = debug)
+  
+      }#THEN
+      else {
+  
+        logic.distribution(fitted = fitted, nodes = event, evidence = evidence,
+          n = extra$n, batch = extra$batch, debug = debug)
+  
+      }#ELSE
+
+    }#ELSE
 
   }#THEN
 
@@ -27,7 +76,7 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug) {
   for (n in c(rep(batch, nbatches), last.one)) {
 
     # do a hard reset of generated.data, so that the memory used by the data
-    # set generated in the previous iteration can be garbage-collected and 
+    # set generated in the previous iteration can be garbage-collected and
     # reused _before_ rbn() returns.
     generated.data = NULL
 
@@ -42,10 +91,10 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug) {
     }#THEN
     else
       break
-  
+
     if (debug)
       cat("* generated", n, "samples from the bayesian network.\n")
-  
+
     # evaluate the expression defining the evidence.
     r = eval(evidence, generated.data, parent.frame())
     # double check that this is a logical vector.
@@ -53,19 +102,19 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug) {
       stop("evidence must evaluate to a logical vector.")
     # double check that it is of the right length.
     if (length(r) != n)
-      stop("logical vector for evidence is of length ", length(r), 
+      stop("logical vector for evidence is of length ", length(r),
         " instead of ", n, ".")
     # filter out the samples not matching the evidence we assume.
     filtered = r & !is.na(r)
- 
+
     # update the global counters.
     cpe = cpe + length(which(filtered))
- 
+
     if (debug) {
 
       lwfilter = length(which(filtered))
-      cat("  > evidence matches", lwfilter, "samples out of", n,
-        "(p =", lwfilter/n, ").\n");
+      cat("  > evidence matches ", lwfilter, " samples out of ", n,
+        " (p = ", lwfilter/n, ").\n", sep = "")
 
     }#THEN
 
@@ -76,20 +125,20 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug) {
       stop("event must evaluate to a logical vector.")
     # double check that it is of the right length.
     if (length(r) != n)
-      stop("logical vector for event is of length ", length(r), 
+      stop("logical vector for event is of length ", length(r),
         " instead of ", n, ".")
     # filter out the samples not matching the event we are looking for.
     matching = filtered & r & !is.na(r)
- 
+
     # update the global counters.
     cpxe = cpxe + length(which(matching))
- 
+
     if (debug) {
 
       lwmatch = length(which(matching))
       lwratio = ifelse(lwfilter == 0, 0, lwmatch/lwfilter)
-      cat("  > event matches", lwmatch, "samples out of", lwfilter, "(p =",
-        lwratio, ").\n");
+      cat("  > event matches ", lwmatch, " samples out of ", lwfilter,
+        " (p = ", lwratio, ").\n", sep = "")
 
     }#THEN
 
@@ -101,7 +150,8 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug) {
   if (debug && (nbatches > 1)) {
 
     cat("* generated a grand total of", n, "samples.\n")
-    cat("  > event matches", cpxe, "samples out of", cpe, "(p =", result, ").\n");
+    cat("  > event matches ", cpxe, " samples out of ", cpe,
+      " (p = ", result, ").\n", sep = "")
 
   }#THEN
 
@@ -109,3 +159,63 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug) {
 
 }#LOGIC.SAMPLING
 
+logic.distribution = function(fitted, nodes, evidence, n, batch, debug) {
+
+  filtered = logical(n)
+  result = NULL
+
+  # count how many complete batches we have to generate.
+  nbatches = n %/% batch
+  # count how many observations are in the last one.
+  last.one = n %% batch
+
+  for (n in c(rep(batch, nbatches), last.one)) {
+
+    # do a hard reset of generated.data, so that the memory used by the data
+    # set generated in the previous iteration can be garbage-collected and
+    # reused _before_ rbn() returns.
+    generated.data = NULL
+
+    # generate random data from the bayesian network.
+    if (n > 0) {
+
+      if (is.fitted.discrete(fitted))
+        generated.data = rbn.discrete(x = fitted, n = n)
+      else
+        generated.data = rbn.continuous(x = fitted, n = n)
+
+    }#THEN
+    else
+      break
+
+    if (debug)
+      cat("* generated", n, "samples from the bayesian network.\n")
+
+    # evaluate the expression defining the evidence.
+    r = eval(evidence, generated.data, parent.frame())
+    # double check that this is a logical vector.
+    if (!is.logical(r))
+      stop("evidence must evaluate to a logical vector.")
+    # double check that it is of the right length.
+    if (length(r) != n)
+      stop("logical vector for evidence is of length ", length(r),
+        " instead of ", n, ".")
+    # filter out the samples not matching the evidence we assume.
+    filtered = r & !is.na(r)
+
+    if (debug) {
+
+      lwfilter = length(which(filtered))
+      cat("  > evidence matches ", lwfilter, " samples out of ", n,
+        " (p = ", lwfilter/n, ").\n", sep = "")
+
+    }#THEN
+
+    # update the return value.
+    result = rbind(result, generated.data[filtered, nodes, drop = FALSE])
+
+  }#FOR
+
+  return(result)
+
+}#LOGIC.DISTRIBUTION

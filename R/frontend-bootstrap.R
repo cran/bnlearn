@@ -1,8 +1,8 @@
 
 # generic frontend to {non,}parametric bootstrap.
-bn.boot = function(data, statistic, R = 200, m = nrow(data),
-    sim = "ordinary", algorithm, algorithm.args = list(),
-    statistic.args = list(), debug = FALSE) {
+bn.boot = function(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
+    algorithm, algorithm.args = list(), statistic.args = list(), 
+    cluster = NULL, debug = FALSE) {
 
   # check the data are there.
   check.data(data)
@@ -25,9 +25,24 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data),
   if (!is.list(statistic.args))
     statistic.args = as.list(statistic.args)
 
+  # check the cluster.
+  if (!is.null(cluster)) {
+
+    check.cluster(cluster)
+
+    # disable debugging, the slaves do not cat() here.
+    if (debug) {
+
+      warning("disabling debugging output in cluster-aware mode.")
+      debug = FALSE
+
+    }#THEN
+
+  }#THEN
+
   bootstrap.backend(data = data, statistic = statistic, R = R, m = m,
     sim = sim, algorithm = algorithm, algorithm.args = algorithm.args,
-    statistic.args = statistic.args, debug = debug)
+    statistic.args = statistic.args, cluster = cluster, debug = debug)
 
 }#BNBOOT
 
@@ -55,7 +70,8 @@ boot.strength = function(data, R = 200, m = nrow(data),
 
 # perform cross-validation.
 bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
-    loss.args = list(), fit = "mle", fit.args = list(), debug = FALSE) {
+    loss.args = list(), fit = "mle", fit.args = list(), cluster = NULL,
+    debug = FALSE) {
 
   # check the data are there.
   check.data(data)
@@ -74,9 +90,23 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
   # check the loss function.
   loss = check.loss(loss, data)
   # check the extra arguments passed down to the loss function.
-  loss.args = check.loss.args(loss, nodes, loss.args)
+  loss.args = check.loss.args(loss, bn, nodes, data, loss.args)
   # check the fitting method (maximum likelihood, bayesian, etc.)
   check.fitting.method(fit, data)
+  # check the cluster.
+  if (!is.null(cluster)) {
+
+    check.cluster(cluster)
+
+    # disable debugging, the slaves do not cat() here.
+    if (debug) {
+
+      warning("disabling debugging output in cluster-aware mode.")
+      debug = FALSE
+
+    }#THEN
+
+  }#THEN
 
   if (is.character(bn)) {
 
@@ -90,7 +120,7 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
     algorithm.args = check.learning.algorithm.args(algorithm.args)
 
   }#THEN
-  else if (class(bn) == "bn") {
+  else if (is(bn, "bn")) {
 
     if (!identical(algorithm.args, list()))
       warning("no learning algorithm is used, so 'algorithm.args' will be ignored.")
@@ -99,6 +129,9 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
     # no parameters if the network structure is only partially directed.
     if (is.pdag(bn$arcs, nodes))
       stop("the graph is only partially directed.")
+    # check bn.naive objects if any.
+    if (is(bn, "bn.naive"))
+      check.bn.naive(bn)
 
   }#THEN
   else {
@@ -107,9 +140,9 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
 
   }#ELSE
 
-  crossvalidation(data = data, bn = bn, loss = loss, k = k, 
+  crossvalidation(data = data, bn = bn, loss = loss, k = k,
     algorithm.args = algorithm.args, loss.args = loss.args,
-    fit = fit, fit.args = fit.args, debug = debug)
+    fit = fit, fit.args = fit.args, cluster = cluster, debug = debug)
 
 
 }#BN.CV

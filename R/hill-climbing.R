@@ -154,7 +154,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
         iter = iter + 1
 
         # decrement the number of random restart we still have to do.
-        restart.counter = restart.counter - 1;
+        restart.counter = restart.counter - 1
 
         if (debug) {
 

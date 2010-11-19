@@ -1,6 +1,6 @@
 
-crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args, 
-    loss.args, fit, fit.args, debug = FALSE) {
+crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args,
+    loss.args, fit, fit.args, cluster = NULL, debug = FALSE) {
 
   n = nrow(data)
 
@@ -18,15 +18,39 @@ crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args,
 
   if (is.character(bn)) {
 
-    kcv = lapply(kcv, bn.cv.algorithm, data = data, algorithm = bn, 
-            algorithm.args = algorithm.args, loss = loss, loss.args = loss.args,
-            fit = fit, fit.args = fit.args, debug = debug)
+    if (!is.null(cluster)) {
+
+      kcv = parLapply(cluster, kcv, bn.cv.algorithm, data = data,
+              algorithm = bn, algorithm.args = algorithm.args, loss = loss, 
+              loss.args = loss.args, fit = fit, fit.args = fit.args,
+              debug = debug)
+
+    }#THEN
+    else {
+
+      kcv = lapply(kcv, bn.cv.algorithm, data = data, algorithm = bn,
+              algorithm.args = algorithm.args, loss = loss, 
+              loss.args = loss.args, fit = fit, fit.args = fit.args,
+              debug = debug)
+
+    }#ELSE
 
   }#THEN
-  else if (class(bn) == "bn") {
+  else if (is(bn, "bn")) {
 
-    kcv = lapply(kcv, bn.cv.structure, data = data, bn = bn, loss = loss,
-            loss.args = loss.args, fit = fit, fit.args = fit.args, debug = debug)
+    if (!is.null(cluster)) {
+
+      kcv = parLapply(cluster, kcv, bn.cv.structure, data = data, bn = bn, 
+              loss = loss, loss.args = loss.args, fit = fit, fit.args = fit.args,
+              debug = debug)
+    }#THEN
+    else {
+
+      kcv = lapply(kcv, bn.cv.structure, data = data, bn = bn, loss = loss,
+              loss.args = loss.args, fit = fit, fit.args = fit.args,
+              debug = debug)
+
+    }#ELSE
 
   }#THEN
 
@@ -44,7 +68,8 @@ crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args,
   # reset the names of the elements of the return value.
   names(kcv) = NULL
   # add some useful attributes to the return value.
-  kcv = structure(kcv, class = "bn.kcv", loss = loss, bn = bn, mean = mean)
+  kcv = structure(kcv, class = "bn.kcv", loss = loss, args = loss.args,
+          bn = bn, mean = mean)
 
   return(kcv)
 
@@ -71,22 +96,22 @@ bn.cv.algorithm = function(test, data, algorithm, algorithm.args, loss,
 bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
     debug) {
 
-  if (debug) 
+  if (debug)
     cat("* fitting the parameters of the network from the training sample.\n")
 
   # check the extra arguments.
-  fit.args = check.fitting.args(fit, bn, data[-test, ], fit.args) 
+  fit.args = check.fitting.args(fit, bn, data[-test, ], fit.args)
   # fit the parameters.
   net = bn.fit.backend(x = bn, data = data[-test, ], method = fit,
           extra.args = fit.args)
 
-  if (debug) 
+  if (debug)
     cat("* applying the loss function to the data from the test sample.\n")
 
-  obs.loss = loss.function(fitted = net, data = data[test, ], loss = loss, 
+  obs.loss = loss.function(fitted = net, data = data[test, ], loss = loss,
                extra.args = loss.args, debug = debug)
 
-  if (debug) 
+  if (debug)
     cat("----------------------------------------------------------------\n")
 
   return(list(test = test, fitted = net, loss = obs.loss))

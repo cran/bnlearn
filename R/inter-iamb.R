@@ -24,7 +24,7 @@ inter.incremental.association.optimized = function(x, whitelist, blacklist,
 
     backtracking = unlist(sapply(mb2, function(x){ node %in% x[["nbr"]]  }))
 
-    # save results in a copy of mb;
+    # save results in a copy of mb.
     mb2[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
          B = B, whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, debug = debug)
@@ -101,7 +101,7 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
   whitelisted = nodes[sapply(nodes,
-          function(y) { is.whitelisted(whitelist, c(x,y), either = TRUE) })]
+          function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
   mb = c()
   loop.counter = 1
   state = vector(5 * length(nodes), mode = "list")

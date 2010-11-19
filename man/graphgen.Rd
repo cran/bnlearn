@@ -101,7 +101,7 @@ random.graph(nodes, num = 1, method = "ordered", ...,
 \examples{
 empty.graph(LETTERS[1:8])
 #
-#  Randomly generated Bayesian network
+#  Random/Generated Bayesian network
 #
 #  model:
 #    [A][B][C][D][E][F][G][H]

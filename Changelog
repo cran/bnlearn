@@ -1,4 +1,20 @@
 
+bnlearn (2.3)
+
+  * added cpdist() to generate observations from arbitrary
+      conditional probability distributions.
+  * added a simple naive.bayes() implementation for discrete
+     networks, complete with a predict() implementation using
+     maximum posterior probability.
+  * added the shrinkage test for the Gaussian mutual information.
+  * added ntests(), in.degree(), out.degree(), degree(),
+     whitelist() and blacklist().
+  * added support for the snow package in bn.boot(), bn.cv(),
+     cpquery() and cpdist().
+  * fixed integer overflow in the computation of the number of
+     parameters of discrete networks.
+  * fixed errors in the labels of Gaussian scores.
+
 bnlearn (2.2)
 
   * fixed a bug in moral(), which returned duplicated arcs when
@@ -8,7 +24,7 @@ bnlearn (2.2)
       which previously generated an error in Rgraphviz.
   * added a CITATION file.
   * added the narcs() function.
-  * print.bn()'s now supports small(ish) line width.
+  * print.bn()'s now supports small(er) line widths.
   * added support for "bn.fit" objects in graphviz.plot().
   * added support for changing the line type of arcs in 
       graphviz.plot().
@@ -26,7 +42,7 @@ bnlearn (2.1)
   * fixed and improved the performance of rbn().
   * fixed wrong penalization coefficient for Gaussian AIC (was
       computing a Gaussian BIC instead).
-  * added cpq() to perform conditional probability queries
+  * added cpquery() to perform conditional probability queries
       via Logic (Rejection) Sampling.
   * added bn.cv() to perform k-fold cross-validation, with
       expected log-likelihood and classification error as

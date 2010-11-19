@@ -2,10 +2,12 @@
 # simple parametric and nonparametric bootstrap implementation.
 bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
     algorithm, algorithm.args = list(), statistic.args = list(),
-    debug = FALSE) {
+    cluster = NULL, debug = FALSE) {
 
   # allocate the result list.
-  res = vector(R, mode = "list")
+  res = as.list(seq(R))
+  # allocate the bayesian network to use for parametric bootstrap.
+  net = NULL
 
   # initialize the bayesian network used by the paramentric bootstrap.
   if (sim == "parametric") {
@@ -31,7 +33,8 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
 
   }#THEN
 
-  for (r in seq_len(R)) {
+  bootstrap.step = function(r, data, m, net, sim, algorithm, algorithm.args,
+      statistic, statistic.args, debug) {
 
     if (debug) {
 
@@ -53,11 +56,11 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
       cat("* learning bayesian network structure.\n")
 
     # learn the network structure from the bootstrap sample.
-    net = do.call(algorithm, c(list(x = replicate), algorithm.args))
+    bn = do.call(algorithm, c(list(x = replicate), algorithm.args))
 
     if (debug) {
 
-      print(net)
+      print(bn)
       cat("* applying user-defined statistic.\n")
 
     }#THEN
@@ -65,16 +68,33 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
     # apply the user-defined function to the newly-learned bayesian network;
     # the bayesian network is passed as the first argument hoping it will end
     # at the right place thanks to the positional matching.
-    res[[r]] = do.call(statistic, c(list(net), statistic.args))
+    res = do.call(statistic, c(list(bn), statistic.args))
 
     if (debug) {
 
       cat("  > the function returned:\n")
-      print(res[[r]]);
+      print(res)
 
     }#THEN
 
-  }#FOR
+    return(res)
+
+  }#BOOTSTRAP.TEST
+
+  if (!is.null(cluster)) {
+
+    res = parLapply(cluster, res, bootstrap.step, data = data, m = m, net = net, 
+      sim = sim, algorithm = algorithm, algorithm.args = algorithm.args,
+      statistic = statistic, statistic.args = statistic.args, debug = debug)
+
+  }#THEN
+  else {
+
+    res = lapply(res, bootstrap.step, data = data, m = m, net = net, sim = sim,
+      algorithm = algorithm, algorithm.args = algorithm.args, statistic = statistic,
+      statistic.args = statistic.args, debug = debug)
+
+  }#ELSE
 
   return(res)
 

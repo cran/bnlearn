@@ -6,7 +6,7 @@ as.bn = function(x, debug = FALSE) {
 
 }#AS.BN
 
-# get the number of paraters of the bayesian network.
+# get the number of parameters of the bayesian network.
 nparams = function(x, data, debug = FALSE) {
 
   # check x's class.
@@ -14,7 +14,7 @@ nparams = function(x, data, debug = FALSE) {
   # check debug.
   check.logical(debug)
 
-  if (class(x) == "bn") {
+  if (is(x, "bn")) {
 
     # check the data are there.
     check.data(data)
@@ -38,6 +38,16 @@ nparams = function(x, data, debug = FALSE) {
 
 }#NPARAMS
 
+# get the number of tests/scores used in structure learning.
+ntests = function(x) {
+
+  # check x's class.
+  check.bn(x)
+
+  x$learning$ntests
+
+}#NTESTS
+
 # structural hamming distance.
 shd = function(learned, true, debug = FALSE) {
 
@@ -47,12 +57,40 @@ shd = function(learned, true, debug = FALSE) {
   # check debug.
   check.logical(debug)
   # the two networks must have the same node set.
-  nodes = names(learned$nodes);
+  nodes = names(learned$nodes)
   check.nodes(nodes, graph = true, min.nodes = length(nodes))
 
   structural.hamming.distance(learned = learned, true = true, debug = debug)
 
 }#SHD
+
+# get the whitelist used by the learning algorithm.
+whitelist = function(x) {
+
+  # check x's class.
+  check.bn(x)
+
+  if (is.null(x$learning$whitelist)) 
+    return(matrix(character(0), nrow = 0, ncol = 2,
+      dimnames = list(NULL, c("from", "to"))))
+  else
+    return(x$learning$whitelist)
+
+}#WHITELIST
+
+# get the blacklist used by the learning algorithm.
+blacklist = function(x) {
+
+  # check x's class.
+  check.bn(x)
+
+  if (is.null(x$learning$blacklist)) 
+    return(matrix(character(0), nrow = 0, ncol = 2,
+      dimnames = list(NULL, c("from", "to"))))
+  else
+    return(x$learning$blacklist)
+
+}#BLACKLIST
 
 # reconstruct the equivalence class of a network.
 cpdag = function(x, debug = FALSE) {

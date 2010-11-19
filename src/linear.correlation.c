@@ -63,16 +63,21 @@ SEXP res;
 }/*FAST_COR*/
 
 /* Partial Linear Correlation. */
-SEXP fast_pcor(SEXP data, SEXP length) {
+SEXP fast_pcor(SEXP data, SEXP length, SEXP shrinkage) {
 
 int i = 0, ncols = LENGTH(data);
+int *shrink = LOGICAL(shrinkage);
 double *u = NULL, *d = NULL, *vt = NULL, *res = NULL;
 double k11 = 0, k12 = 0, k22 = 0;
 double tol = MACHINE_TOL;
 SEXP result, cov, svd;
 
-  /* compute the singular value decomposition of the matrix. */
-  PROTECT(cov = cov2(data, length));
+  /* compute the covariance matrix. */
+  if (*shrink > 0)
+    PROTECT(cov = cov_lambda(data, length)); 
+  else
+    PROTECT(cov = cov2(data, length));
+  /* compute the singular value decomposition of the covariance matrix. */
   PROTECT(svd = r_svd(cov));
 
   /* extract the three matrices form the list. */
@@ -183,3 +188,4 @@ SEXP res;
   return res;
 
 }/*COV2*/
+

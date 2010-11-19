@@ -107,7 +107,7 @@ drop.arc.backend = function(arcs, dropped, debug = FALSE) {
 
   # drop the arc.
   arcs[!(is.row.equal(arcs, dropped) |
-         is.row.equal(arcs, dropped[c(2,1)])), , drop = FALSE]
+         is.row.equal(arcs, dropped[c(2, 1)])), , drop = FALSE]
 
 }#DROP.ARC.BACKEND
 

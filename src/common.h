@@ -80,7 +80,11 @@ double c_det(double *matrix, int *rows);
 
 /* from linear.correlation.c */
 
-SEXP fast_pcor(SEXP data, SEXP length);
+SEXP fast_pcor(SEXP data, SEXP length, SEXP shrinkage);
+
+/* from shrinkage.c */
+
+SEXP cov_lambda(SEXP data, SEXP length);
 
 /* from path.c */
 

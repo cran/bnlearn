@@ -83,9 +83,9 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
   whitelisted = nodes[sapply(nodes,
-          function(y) { is.whitelisted(whitelist, c(x,y), either = TRUE) })]
+          function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
   blacklisted = nodes[sapply(nodes,
-          function(y) { is.blacklisted(blacklist, c(x,y), both = TRUE) })]
+          function(y) { is.blacklisted(blacklist, c(x, y), both = TRUE) })]
   cpc = c()
   association = structure(numeric(length(nodes)), names = nodes)
   to.add = ""

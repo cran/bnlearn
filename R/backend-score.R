@@ -79,7 +79,7 @@ arcs.to.be.dropped = function(arcs, whitelist) {
 arcs.to.be.reversed = function(arcs, blacklist) {
 
   if (!is.null(blacklist))
-    arcs[!which.listed(arcs[, c(2,1), drop = FALSE], blacklist), , drop = FALSE]
+    arcs[!which.listed(arcs[, c(2, 1), drop = FALSE], blacklist), , drop = FALSE]
   else
     arcs
 

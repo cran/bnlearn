@@ -5,7 +5,7 @@ amat = function(x) {
   # check x's class.
   check.bn.or.fit(x)
 
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     arcs2amat(x$arcs, names(x$nodes))
   else
     arcs2amat(fit2arcs(x), names(x))

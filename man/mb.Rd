@@ -14,9 +14,15 @@
 \alias{parents<-}
 \alias{children}
 \alias{children<-}
+\alias{in.degree}
+\alias{out.degree}
+\alias{degree}
 \alias{root.nodes}
 \alias{leaf.nodes}
 \alias{nparams}
+\alias{ntests}
+\alias{whitelist}
+\alias{blacklist}
 \title{ Miscellaneous utilities }
 \description{
 
@@ -33,6 +39,9 @@ parents(x, node)
 parents(x, node, debug = FALSE) <- value
 children(x, node)
 children(x, node, debug = FALSE) <- value
+in.degree(x, node)
+out.degree(x, node)
+degree(x, node)
 root.nodes(x)
 leaf.nodes(x)
 
@@ -49,6 +58,9 @@ amat(x, ignore.cycles = FALSE, debug = FALSE) <- value
 
 ## graphs
 nparams(x, data, debug = FALSE)
+ntests(x)
+whitelist(x)
+blacklist(x)
 }
 \arguments{
   \item{x}{an object of class \code{bn} or \code{bn.fit}. The replacement
@@ -81,10 +93,11 @@ nparams(x, data, debug = FALSE)
 
   \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{root.nodes}
   and \code{leaf.nodes} return a vector of character strings. \cr
-  \code{arcs} returns a matrix of two columns of character strings. \cr
+  \code{arcs}, \code{whitelist} and \code{blacklist} return a matrix of two
+  columns of character strings. \cr
   \code{narcs} returns the number of arcs in the graph.
   \code{amat} returns a matrix of 0/1 integer values. \cr
-  \code{nparams} returns an integer. \cr
+  \code{nparams} and \code{ntests} returns an integer. \cr
 
 }
 \references{

@@ -9,6 +9,7 @@ export(
   "rsmax2",
   "mmhc",
   "learn.mb",
+  "naive.bayes",
   "compare",
   "shd",
   "mb",
@@ -25,9 +26,15 @@ export(
   "nodes",
   "root.nodes",
   "leaf.nodes",
+  "in.degree",
+  "out.degree",
+  "degree",
   "amat",
   "amat<-",
   "nparams",
+  "ntests",
+  "whitelist",
+  "blacklist",
   "modelstring",
   "modelstring<-",
   "model2network",
@@ -61,6 +68,7 @@ export(
   "bn.fit.barchart",
   "bn.fit.dotplot",
   "cpquery",
+  "cpdist",
   "cpdag",
   "vstructs",
   "moral",
@@ -83,6 +91,7 @@ S3method(as.bn, character)
 S3method(as.character, bn)
 S3method(ci.test, character)
 S3method(ci.test, data.frame)
+S3method(ci.test, matrix)
 S3method(ci.test, numeric)
 S3method(ci.test, factor)
 S3method(ci.test, default)
@@ -100,7 +109,9 @@ S3method(coef, "bn.fit.dnode")
 S3method(coef, "bn.fit.gnode")
 S3method(print, "mvber.moments")
 S3method(print, "bn.kcv")
+S3method(predict, "bn")
 S3method(predict, "bn.fit")
 S3method(predict, "bn.fit.gnode")
 S3method(predict, "bn.fit.dnode")
+S3method(predict, "bn.naive")
 

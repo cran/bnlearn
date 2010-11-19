@@ -278,12 +278,16 @@ SEXP gauss_cmcarlo (SEXP data, SEXP length, SEXP samples, SEXP test) {
 int j = 0, k = 0, *work = NULL, *perm = NULL;
 int *B = INTEGER(samples), *num = INTEGER(length);
 double observed = 0, *yperm = NULL, *yorig = NULL, *res = NULL;
-SEXP data2, yy, result;
+SEXP data2, yy, no, result;
 
   /* allocate and initialize the result. */
   PROTECT(result = allocVector(REALSXP, 1));
   res = REAL(result);
   *res = 0;
+
+  /* allocate a FALSE logical value. */
+  PROTECT(no = allocVector(LGLSXP, 1));
+  LOGICAL(no)[0] = FALSE;
 
   /* create a fake dataset which references all the columns of the original
    * data except the second one (which created from scratch and changed at
@@ -314,7 +318,7 @@ SEXP data2, yy, result;
     case GAUSSIAN_MUTUAL_INFORMATION:
     case LINEAR_CORRELATION:
     case FISHER_Z:
-      observed = NUM(fast_pcor(data, length));
+      observed = NUM(fast_pcor(data, length, no));
 
       for (j = 0; j < (*B); j++) {
 
@@ -323,7 +327,7 @@ SEXP data2, yy, result;
         for (k = 0; k < *num; k++)
           yperm[k] = yorig[perm[k]];
 
-        if (fabs(NUM(fast_pcor(data2, length))) > fabs(observed))
+        if (fabs(NUM(fast_pcor(data2, length, no))) > fabs(observed))
           *res += 1;
 
       }/*FOR*/

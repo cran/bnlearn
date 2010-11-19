@@ -7,9 +7,10 @@
 /* get the number of parameters of the whole network (discrete case). */
 SEXP nparams_dnet(SEXP graph, SEXP data, SEXP real, SEXP debug) {
 
-int i = 0, j = 0, nnodes = 0, node_params = 0;
-int *nlvls = NULL, *index = NULL, *res = NULL;
-int *r = LOGICAL(real), *debuglevel = LOGICAL(debug);
+int i = 0, j = 0, nnodes = 0;
+int *index = NULL, *r = LOGICAL(real), *debuglevel = LOGICAL(debug);
+double node_params = 0;
+double *res = NULL, *nlevels = NULL;
 SEXP nodes, node_data, parents, try, result;
 
   /* get nodes' number and data. */
@@ -18,13 +19,13 @@ SEXP nodes, node_data, parents, try, result;
   nnodes = LENGTH(node_data);
 
   /* get the level count for each node. */
-  nlvls = alloc1dcont(nnodes);
+  nlevels = alloc1dreal(nnodes);
   for (i = 0; i < nnodes; i++)
-    nlvls[i] = BNLEARN_NLEVELS(i);
+    nlevels[i] = BNLEARN_NLEVELS(i);
 
   /* allocate and initialize the return value. */
-  PROTECT(result = allocVector(INTSXP, 1));
-  res = INTEGER(result);
+  PROTECT(result = allocVector(REALSXP, 1));
+  res = REAL(result);
   res[0] = 0;
 
   /* for each node... */
@@ -40,18 +41,18 @@ SEXP nodes, node_data, parents, try, result;
 
     /* compute the number of configurations. */
     for (j = 0; j < LENGTH(try); j++)
-      node_params *= nlvls[index[j] - 1];
+      node_params *= nlevels[index[j] - 1];
 
     UNPROTECT(1);
 
     /* multiply by the number of free parameters. */
     if (*r > 0)
-      node_params *= nlvls[i] - 1;
+      node_params *= nlevels[i] - 1;
     else
-      node_params *= nlvls[i];
+      node_params *= nlevels[i];
 
     if (*debuglevel > 0)
-      Rprintf("* node %s has %d parameter(s).\n", NODE(i), node_params);
+      Rprintf("* node %s has %.0lf parameter(s).\n", NODE(i), node_params);
 
     /* update the return value. */
     res[0] += node_params;
@@ -67,8 +68,8 @@ SEXP nodes, node_data, parents, try, result;
 /* get the number of parameters of a single node (discrete case). */
 SEXP nparams_dnode(SEXP graph, SEXP node, SEXP data, SEXP real) {
 
-int i = 0, j = 0, length_nodes = 0;
-int *nlevels = NULL, *r = LOGICAL(real);
+int i = 0, j = 0, length_nodes = 0, *r = LOGICAL(real);
+double  *nlevels = NULL;
 SEXP temp, names, result;
 
   /* get the entry for the parents of the node.*/
@@ -82,8 +83,8 @@ SEXP temp, names, result;
   length_nodes = LENGTH(temp);
 
   /* allocate and initialize the result. */
-  PROTECT(result = allocVector(INTSXP, 1));
-  nlevels = INTEGER(result);
+  PROTECT(result = allocVector(REALSXP, 1));
+  nlevels = REAL(result);
   *nlevels = 1;
 
   /* sum (multiply, actually) up the levels. */

@@ -19,8 +19,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 2.2\cr
-    Date: \tab 2010-08-18\cr
+    Version: \tab 2.3\cr
+    Date: \tab 2010-11-19\cr
     License: \tab GPLv2 or later
 
   }
@@ -204,6 +204,9 @@
           differ by a \eqn{2n}{2n} factor). Both the asymptotic \eqn{\chi^2}{chi-square}
           test (\code{mi-g}) and the Monte Carlo permutation test (\code{mc-mi-g})
           are implemented.
+        \item \emph{shrinkage estimator} for the \emph{mutual information}
+          (\code{mi-g-sh}): an improved asymptotic \eqn{\chi^2}{chi-square} test
+          based on the James-Stein estimator for the mutual information.
 
       }
 
@@ -315,7 +318,7 @@
       Package". Journal of Statistical Software, 35(3), 1-22. URL
       http://www.jstatsoft.org/v35/i03/.
 
-  Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models: 
+  Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
       Principles and Techniques}. MIT Press.
 
   Korb K, Nicholson AE (2003). \emph{Bayesian Artificial Intelligence}.

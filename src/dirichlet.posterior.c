@@ -58,26 +58,26 @@ SEXP result;
 SEXP cdpost (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP iss,
     SEXP nparams) {
 
-int j = 0, k = 0;
-int *llx = INTEGER(lx), *lly = INTEGER(ly), *p = INTEGER(nparams);
+int j = 0, k = 0, imaginary = 0;
+int *llx = INTEGER(lx), *lly = INTEGER(ly);
 int *xx = INTEGER(x), *yy = INTEGER(y), *num = INTEGER(length);
-int *imaginary = NULL, **n = NULL, *nj = NULL;
-double alpha = 0, *res = NULL;
+int **n = NULL, *nj = NULL;
+double alpha = 0, *res = NULL, *p = REAL(nparams);
 SEXP result;
 
   if (isNull(iss)) {
 
     /* this is for K2, which does not define an imaginary sample size;
      * all hyperparameters are set to 1 in the prior distribution. */
-    imaginary = p;
+    imaginary = (int) *p;
     alpha = 1;
 
   }/*THEN*/
   else {
 
     /* this is for the BDe score. */
-    imaginary = INTEGER(iss);
-    alpha = (double) *imaginary / (double) *p;
+    imaginary = INT(iss);
+    alpha = (double) imaginary / *p;
 
   }/*ELSE*/
 
@@ -103,8 +103,8 @@ SEXP result;
     for (k = 0; k < *lly; k++)
       *res += lgammafn(n[j][k] + alpha) - lgammafn(alpha);
   for (k = 0; k < *lly; k++)
-    *res += lgammafn((double)*imaginary / *lly) -
-              lgammafn(nj[k] + (double)*imaginary / *lly);
+    *res += lgammafn((double)imaginary / *lly) -
+              lgammafn(nj[k] + (double)imaginary / *lly);
 
   UNPROTECT(1);
   return result;

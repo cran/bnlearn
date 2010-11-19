@@ -77,6 +77,14 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
+    # Shrinked Mutual Information for Gaussian Data (chi-square asymptotic distribution)
+    else if (test == "mi-g-sh") {
+
+      statistic = shmig.test(datax, datay, ndata, gsquare = TRUE)
+      df = 1
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
+
+    }#THEN
     # Mutual Infomation (monte carlo permutation distribution)
     else if (test == "mc-mi") {
 
@@ -202,7 +210,15 @@ conditional.test = function(x, y, sx, data, test, B, learning = TRUE) {
     # Mutual Information for Gaussian Data (chi-square asymptotic distribution)
     else if (test == "mi-g") {
 
-      statistic = cmig.test(x, y, sx, data, ndata, gsquare =TRUE)
+      statistic = cmig.test(x, y, sx, data, ndata, gsquare = TRUE)
+      df = 1
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
+
+    }#THEN
+    # Shrinked Mutual Information for Gaussian Data (chi-square asymptotic distribution)
+    else if (test == "mi-g-sh") {
+
+      statistic = shcmig.test(x, y, sx, data, ndata, gsquare = TRUE)
       df = 1
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
@@ -337,7 +353,7 @@ mc.test = function(x, y, ndata, samples, test) {
         test = test,
         PACKAGE = "bnlearn")
 
-}#MI.MC.TEST
+}#MC.TEST
 
 # Conditional Mutual Information (discrete data)
 cmi.test = function(x, y, z, ndata, gsquare = TRUE) {
@@ -356,7 +372,7 @@ cmi.test = function(x, y, z, ndata, gsquare = TRUE) {
 
 }#CMI.TEST
 
-# Conditional Mutual Information (discrete data)
+# Shrinked Conditional Mutual Information (discrete data)
 shcmi.test = function(x, y, z, ndata, gsquare = TRUE) {
 
   s = .Call("shcmi",
@@ -388,8 +404,9 @@ cmc.test = function(x, y, z, ndata, samples, test) {
         test = test,
         PACKAGE = "bnlearn")
 
-}#CMI.MC.TEST
+}#CMC.TEST
 
+# Mutual Information (gaussian data)
 mig.test = function(x, y, ndata, gsquare = TRUE) {
 
   s = - 0.5 * log(1 - fast.cor(x, y, ndata)^2)
@@ -397,6 +414,15 @@ mig.test = function(x, y, ndata, gsquare = TRUE) {
   ifelse(gsquare, 2 * ndata * s, s)
 
 }#MIG.TEST
+
+# Shrinked Mutual Information (gaussian data)
+shmig.test = function(x, y, ndata, gsquare = TRUE) {
+
+  s = - 0.5 * log(1 - fast.shcor(x, y, ndata)^2)
+
+  ifelse(gsquare, 2 * ndata * s, s)
+
+}#SHMIG.TEST
 
 # Conditional Mutual Information (gaussian data)
 cmig.test = function(x, y, z, data, ndata, gsquare = TRUE) {
@@ -406,6 +432,15 @@ cmig.test = function(x, y, z, data, ndata, gsquare = TRUE) {
   ifelse(gsquare, 2 * ndata * s, s)
 
 }#CMIG.TEST
+
+# Shrinked Conditional Mutual Information (gaussian data)
+shcmig.test = function(x, y, z, data, ndata, gsquare = TRUE) {
+
+  s = - 0.5 * log(1 - fast.shpcor(x, y, z, data, ndata)^2)
+
+  ifelse(gsquare, 2 * ndata * s, s)
+
+}#SHCMIG.TEST
 
 # Monte Carlo (gaussian data)
 gmc.test = function(x, y, samples, test) {
@@ -476,7 +511,31 @@ fast.pcor = function(x, y, sx, data, ndata) {
   .Call("fast_pcor",
         data = minimal.data.frame.column(data, c(x, y, sx)),
         length = ndata,
+        shrinkage = FALSE,
         PACKAGE = "bnlearn")
 
 }#FAST.PCOR
+
+# Fast implementation of the shrinked linear correlation coefficient.
+fast.shcor = function(x, y, ndata) {
+
+  .Call("fast_shcor",
+        x = x,
+        y = y,
+        length = ndata,
+        PACKAGE = "bnlearn")
+
+}#FAST.SHCOR
+
+# Fast implementation of the shrinked partial correlation coefficient.
+fast.shpcor = function(x, y, sx, data, ndata) {
+
+  .Call("fast_pcor",
+        data = minimal.data.frame.column(data, c(x, y, sx)),
+        length = ndata,
+        shrinkage = TRUE,
+        PACKAGE = "bnlearn")
+
+}#FAST.PCOR
+
 

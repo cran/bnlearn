@@ -6,7 +6,7 @@
 # (ported from the deal package)
 formula.backend = function(x) {
 
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     base = x$nodes
   else
     base = x

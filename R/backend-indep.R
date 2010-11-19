@@ -96,9 +96,9 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
   known.good = known.bad = c()
   blacklisted = nbrhood[sapply(nbrhood,
-          function(y) { is.blacklisted(blacklist, c(x,y), both = TRUE) })]
+          function(y) { is.blacklisted(blacklist, c(x, y), both = TRUE) })]
   whitelisted = nbrhood[sapply(nbrhood,
-          function(y) { is.whitelisted(whitelist, c(x,y), either = TRUE) })]
+          function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
 
   # whitelisted nodes are included (arc orientation is irrelevant),
   # and blacklisted nodes are removed if both directed arcs are banned
@@ -204,7 +204,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
     # do not even try to remove whitelisted and backtracked (good) nodes.
     sapply(nbrhood[!(nbrhood %in% unique(c(whitelisted, known.good)))],
-             nbr, x = x, mb =mb, test = test)
+             nbr, x = x, mb = mb, test = test)
 
   }#THEN
 
@@ -235,8 +235,8 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test, debug) {
 
     for (j in 1:nrow(tos.combs)) {
 
-      y = tos.combs[j,1]
-      z = tos.combs[j,2]
+      y = tos.combs[j, 1]
+      z = tos.combs[j, 2]
 
       if (debug)
         cat("  * checking", y, "->", x, "<-", z, "\n")
@@ -416,7 +416,7 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
       cat("  > ignored nodes:", length(nodes) - length(in.cycles), "/", length(nodes), "\n")
       cat("  > ignored arcs:", length(which(!to.be.checked)), "/", nrow(arcs), "\n")
       print(arcs[!to.be.checked, , drop = FALSE])
-      cat("  > checked arcs:",length(which(to.be.checked)), "/", nrow(arcs), "\n")
+      cat("  > checked arcs:", length(which(to.be.checked)), "/", nrow(arcs), "\n")
 
     }#THEN
 

@@ -18,7 +18,7 @@
 \title{ Utilities to manipulate fitted Bayesian networks }
 \description{
 
- Assign, extract or compute various quantities of interest from an object 
+ Assign, extract or compute various quantities of interest from an object
  of class \code{bn.fit}, \code{bn.fit.dnode} or \code{bn.fit.gnode}.
 
 }
@@ -67,7 +67,7 @@
 }
 \value{
 
-  \code{predict} returns a numeric vector (for Gaussian networks) or a factor 
+  \code{predict} returns a numeric vector (for Gaussian networks) or a factor
   (for discrete networks).
 
   All the other functions return a list with an element for each node in

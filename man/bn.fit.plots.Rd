@@ -9,7 +9,7 @@
 \title{ Plot fitted Bayesian networks }
 \description{
 
-  Plot functions for the \code{bn.fit}, \code{bn.fit.dnode} and 
+  Plot functions for the \code{bn.fit}, \code{bn.fit.dnode} and
   \code{bn.fit.gnode} classes, based on the \pkg{lattice} package.
 
 }

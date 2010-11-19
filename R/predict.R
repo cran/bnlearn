@@ -53,3 +53,33 @@ discrete.prediction = function(node, fitted, data) {
   }#ELSE
 
 }#DISCRETE.PREDICTION
+
+# naive Bayes classifier for discrete networks.
+naive.classifier = function(training, fitted, prior, data) {
+
+  # get the prior distribution.
+  levels.out = levels(data[, training])
+  # get the labels of the explanatory variables.
+  nodes = names(fitted)
+  explanatory = nodes[nodes != training]
+
+  pred = apply(data, 1, function(x) {
+
+    prob = rep(1, length(prior))
+
+    # multiply all the fitted probabilities.
+    for (node in explanatory) 
+      prob = prob * fitted[[node]]$prob[x[node], ]
+    # add the prior distribution to the mix.
+    prob = prob * prior
+    # get which level is the most probable a posteriori.
+    levels.out[which.max(prob)]
+
+  })
+
+  # convert the return value into a factor.
+  pred = factor(pred, levels.out)
+
+  return(pred)
+
+}#NAIVE.CLASSIFIER

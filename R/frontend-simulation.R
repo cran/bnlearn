@@ -71,8 +71,55 @@ empty.graph = function(nodes, num = 1) {
 
 }#EMPTY.GRAPH
 
+# create the graph structure for a naive Bayes classifier.
+naive.bayes = function(training, explanatory, data) {
+
+  # check the training node (the center of the star-shaped graph).
+  check.nodes(training, max.nodes = 1)
+  # check the explantory variables (the points of the star-shaped graph).
+  if (missing(data)) {
+
+    check.nodes(explanatory)
+
+  }#THEN
+  else {
+
+    # warn the user that the explanatory argument will be ignored.
+    if (!missing(explanatory))
+      warning("the value of the 'explanatory' argument has been ignored.")
+    # cache the node labels.
+    nodes = names(data)
+    # check the label of the training variable.
+    check.nodes(training, graph = nodes, max.nodes = 1)
+    # get the labels of the explanatory variables.
+    explanatory = nodes[nodes != training]
+
+  }#ELSE
+  
+  # check that the training node is not included among the explanatory variables.
+  if (training %in% explanatory)
+    stop("node ", training, " is included in the model both as a training and an explanatory variable.")
+  # cache the whole node set.
+  nodes = c(training, explanatory)
+
+  # create the empty graph.
+  res = empty.graph(nodes)
+  # create the set of arcs outgoing from the training variable.
+  res$arcs = matrix(c(rep(training, length(explanatory)), explanatory),
+               ncol = 2, byrow = FALSE)
+  # update the network structure.
+  res$nodes = cache.structure(nodes, arcs = res$arcs)
+  # set the learning algorithm to "naive".
+  res$learning$algo = "naive"
+  # set a second class "bn.naive" to reroute the dispatch as needed.
+  class(res) = c("bn.naive", "bn")
+
+  return(res)
+
+}#NAIVE.BAYES
+
 # perform conditional probability queries.
-cpquery = function(fitted, event, evidence, method = "ls", ..., debug = FALSE) {
+cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ..., debug = FALSE) {
 
   # check fitted's class.
   check.fit(fitted)
@@ -87,8 +134,22 @@ cpquery = function(fitted, event, evidence, method = "ls", ..., debug = FALSE) {
   if (!(method %in% cpq.algorithms))
     stop(paste(c("valid conditional probability query methods are:\n",
       sprintf("    %-10s %s\n", cpq.algorithms, cpq.labels[cpq.algorithms])), sep = ""))
+  # check the cluster.
+  if (!is.null(cluster)) {
 
-  extra.args = check.cpq.args(fitted = fitted, extra.args = list(...), 
+    check.cluster(cluster)
+
+    # disable debugging, the slaves do not cat() here.
+    if (debug) {
+
+      warning("disabling debugging output in cluster-aware mode.")
+      debug = FALSE
+
+    }#THEN
+
+  }#THEN
+
+  extra.args = check.cpq.args(fitted = fitted, extra.args = list(...),
                  method = method)
 
   # deparse both event and evidence expressions before passing them to
@@ -103,7 +164,53 @@ cpquery = function(fitted, event, evidence, method = "ls", ..., debug = FALSE) {
     stop("evidence must be an unevaluated expression or TRUE.")
 
   conditional.probability.query(fitted = fitted, event = event,
-    evidence = evidence, method = method, extra = extra.args, debug = debug)
+    evidence = evidence, method = method, extra = extra.args,
+    probability = TRUE, cluster = cluster, debug = debug)
 
 }#CPQUERY
 
+# compute conditional probability distributions
+cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ..., debug = FALSE) {
+
+  # check fitted's class.
+  check.fit(fitted)
+  # check the node labels.
+  check.nodes(nodes, graph = fitted, min.nodes = 1)
+  # check debug.
+  check.logical(debug)
+  if (missing(evidence))
+    stop("the expression describing the evidence is missing.")
+  # check the generation method.
+  if (!(method %in% cpq.algorithms))
+    stop(paste(c("valid conditional probability query methods are:\n",
+      sprintf("    %-10s %s\n", cpq.algorithms, cpq.labels[cpq.algorithms])), sep = ""))
+  # check the cluster.
+  if (!is.null(cluster)) {
+  
+    check.cluster(cluster)
+
+    # disable debugging, the slaves do not cat() here.
+    if (debug) {
+
+      warning("disabling debugging output in cluster-aware mode.")
+      debug = FALSE
+
+    }#THEN
+
+  }#THEN
+
+  extra.args = check.cpq.args(fitted = fitted, extra.args = list(...),
+                 method = method)
+
+  # deparse evidence expression before passing it to the backend and beyond.
+  evidence = substitute(evidence)
+  # recheck event and evidence expression after deparsing.
+  if (!(is.language(evidence) || identical(evidence, TRUE)))
+    stop("evidence must be an unevaluated expression or TRUE.")
+
+  # pass the nodes we are querying as the event of interest.
+  conditional.probability.query(fitted = fitted, event = nodes,
+    evidence = evidence, method = method, extra = extra.args,
+    probability = FALSE, cluster = cluster, debug = debug)
+
+}#CPDIST

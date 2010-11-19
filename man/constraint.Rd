@@ -67,7 +67,7 @@ learn.mb(x, node, method, whitelist = NULL, blacklist = NULL,
      graph will represent the underlying structure of the Bayesian network.}
   \item{node}{a character string, the label of a node.}
   \item{method}{a character string, the label of a constraint-based algorithm.
-     Possible values are \code{gs}, \code{iamb}, \code{fast.iamb}, 
+     Possible values are \code{gs}, \code{iamb}, \code{fast.iamb},
      \code{inter.iamb}. See \code{\link{bnlearn-package}} and the
      documentation of each algorithm for details.}
 

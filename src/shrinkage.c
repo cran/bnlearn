@@ -191,4 +191,187 @@ double lden = 0, lnum = 0, temp = 0;
 
 }/*_MI_LAMBDA*/
 
+/* Shrinked Linear Correlation. */
+SEXP fast_shcor(SEXP x, SEXP y, SEXP length) {
+
+int i = 0, *n = INTEGER(length);
+double *sum = NULL, *xx = REAL(x), *yy = REAL(y);
+double xm = 0, ym = 0, xsd = 0, ysd = 0, lambda = 0;
+SEXP res;
+
+  PROTECT(res = allocVector(REALSXP, 1));
+  sum = REAL(res);
+  *sum = 0;
+
+  /* compute the mean values.  */
+  for (i = 0 ; i < *n; i++) {
+
+    xm += xx[i];
+    ym += yy[i];
+
+  }/*FOR*/
+
+  xm /= (*n);
+  ym /= (*n);
+
+  /* compute the actual covariance. */
+  for (i = 0; i < *n; i++) {
+
+    *sum += (xx[i] - xm) * (yy[i] - ym);
+    xsd += (xx[i] - xm) * (xx[i] - xm);
+    ysd += (yy[i] - ym) * (yy[i] - ym);
+
+  }/*FOR*/
+
+  /* note that the shrinkage intesity for the correlation coefficient is
+   * identical to the one for the covariance; so we don't need to standaridize
+   * the data*/
+  for (i = 0; i < *n; i++) {
+
+    lambda += ((xx[i] - xm) * (yy[i] - ym) - (*sum)/(*n)) * 
+              ((xx[i] - xm) * (yy[i] - ym) - (*sum)/(*n));
+
+  }/*FOR*/
+
+  /* compute lambda, the shrinkage intensity. */
+  lambda *= ((*n) / (*sum)) * ((*n) / (*sum));
+  lambda *= (double)(*n) / (double)(*n - 1) / (double)(*n -1) / (double)(*n -1);
+
+  /* truncate the shrinkage intensity in the [0,1] interval; this is not an
+   * error, but a measure to increase the quality of the shrinked estimate. */
+  if (lambda > 1) {
+
+    lambda = 1;
+
+  }/*THEN*/
+  else if (lambda < 0) {
+
+    lambda = 0;
+
+  }/*THEN*/
+
+  /* safety check against "divide by zero" errors. */
+  if (xsd == 0 || ysd == 0)
+    *sum = 0;
+  else
+    *sum *= (1 - lambda) / (sqrt(xsd) * sqrt(ysd));
+
+  /* double check that the coefficient is in the [-1, 1] range. */
+  if (*sum > 1) {
+
+    warning("fixed correlation coefficient greater than 1, probably due to floating point errors.");
+
+    *sum = 1;
+
+  }/*THEN*/
+  else if (*sum < -1) {
+
+    warning("fixed correlation coefficient lesser than -1, probably due to floating point errors.");
+
+    *sum = -1;
+
+  }/*ELSE*/
+
+  UNPROTECT(1);
+
+  return res;
+
+}/*FAST_SHCOR*/
+
+/* Shrinked Covariance Matrix. */
+SEXP cov_lambda(SEXP data, SEXP length) {
+
+int i = 0, j = 0, k = 0, cur = 0;
+int *n = INTEGER(length), ncols = LENGTH(data);
+double *mean = NULL, *var = NULL, **column = NULL;
+double lambda = 0, sumcors = 0, sumvars = 0;
+SEXP res;
+
+  /* allocate the covariance matrix. */
+  PROTECT(res = allocMatrix(REALSXP, ncols, ncols));
+  var = REAL(res);
+  memset(var, '\0', ncols * ncols * sizeof(double));
+
+  /* allocate an array to store the mean values. */
+  mean = Calloc(ncols, double);
+  memset(mean, '\0', sizeof(double) * ncols);
+
+  /* allocate and initialize an array of pointers for the variables. */
+  column = (double **) Calloc(ncols, double *);
+  for (i = 0; i < ncols; i++)
+    column[i] = REAL(VECTOR_ELT(data, i));
+
+  /* compute the mean values  */
+  for (i = 0; i < ncols; i++) {
+
+    for (j = 0 ; j < *n; j++)
+      mean[i] += column[i][j];
+
+    mean[i] /= (*n);
+
+  }/*FOR*/
+
+  for (i = 0; i < ncols; i++) {
+
+    for (j = i; j < ncols; j++) {
+
+      cur = CMC(i, j, ncols);
+
+      /* compute the actual variance/covariance. */
+      for (k = 0; k < *n; k++)
+        var[cur] += (column[i][k] - mean[i]) * (column[j][k] - mean[j]);
+
+      if (i != j) {
+
+        /* do the first round of computations for the shrinkage intensity. */
+        for (k = 0; k < *n; k++) {
+
+          sumvars += 
+            ((column[i][k] - mean[i]) * (column[j][k] - mean[j]) - var[cur] / (*n)) *
+            ((column[i][k] - mean[i]) * (column[j][k] - mean[j]) - var[cur] / (*n));
+
+        }/*FOR*/
+
+        sumcors += (var[cur] / (*n - 1)) * (var[cur] / (*n - 1));
+
+      }/*THEN*/
+
+      /* use the unbiased estimator for variances/covariances. */
+      var[cur] /= (*n) - 1;
+
+      /* fill in the symmetric element of the matrix. */
+      var[CMC(j, i, ncols)] = var[cur];
+
+    }/*FOR*/
+
+  }/*FOR*/
+
+  /* wrap up the computation of the shrinkage intensity. */
+  lambda = sumvars * (*n) / (*n - 1) / (*n -1) / (*n -1) / sumcors;
+
+  /* truncate the shrinkage intensity in the [0,1] interval; this is not an
+   * error, but a measure to increase the quality of the shrinked estimate. */
+  if (lambda > 1) {
+
+    lambda = 1;
+
+  }/*THEN*/
+  else if (lambda < 0) {
+
+    lambda = 0;
+
+  }/*THEN*/
+
+  /* shrink the covariance matrix (except the diagonal, which stays the same). */
+  for (i = 0; i < ncols; i++)
+    for (j = 0; j < ncols; j++)
+      if (i != j)
+        var[CMC(i, j, ncols)] *= 1 - lambda;
+
+  Free(column);
+  Free(mean);
+  UNPROTECT(1);
+  return res;
+
+}/*COV_LAMBDA*/
 

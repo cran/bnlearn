@@ -74,7 +74,12 @@
   Hausser J, Strimmer K (2009). "Entropy inference and the James-Stein
       estimator, with application to nonlinear gene association networks".
       \emph{Statistical Applications in Genetics and Molecular Biology},
-      10, 1469-1484.
+      \strong{10}, 1469-1484.
+
+  Ledoit O, Wolf M (2003). "Improved Estimation of the Covariance Matrix
+      of Stock Returns with an Application to Portfolio Selection".
+      \emph{Journal of Empirical Finance}, \strong{10}, 603-621.
+
 
 }
 \examples{

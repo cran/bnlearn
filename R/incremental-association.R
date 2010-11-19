@@ -101,7 +101,7 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
   whitelisted = nodes[sapply(nodes,
-          function(y) { is.whitelisted(whitelist, c(x,y), either = TRUE) })]
+          function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
   mb = c()
   to.add = ""
 

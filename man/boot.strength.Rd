@@ -17,9 +17,10 @@ boot.strength(data, R = 200, m = nrow(data),
   \item{m}{a positive integer, the size of each bootstrap replicate.}
   \item{algorithm}{a character string, the learning algorithm to be
     applied to the bootstrap replicates. Possible values are \code{gs},
-    \code{iamb}, \code{fast.iamb}, \code{inter.iamb}, \code{mmpc}
-    and \code{hc}. See \code{\link{bnlearn-package}} and the
-    documentation of each algorithm for details.}
+    \code{iamb}, \code{fast.iamb}, \code{inter.iamb}, \code{mmpc},
+    \code{hc}, \code{tabu}, \code{mmhc} and \code{rsmax2}. See
+    \code{\link{bnlearn-package}} and the documentation of each algorithm
+    for details.}
   \item{algorithm.args}{a list of extra arguments to be passed to
     the learning algorithm.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output

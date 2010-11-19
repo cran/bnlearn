@@ -28,7 +28,7 @@ acyclic = function(x, directed, debug = FALSE) {
   check.logical(debug)
 
   # fitted bayesian networks are always acylic.
-  if (class(x) == "bn.fit")
+  if (is(x, "bn.fit"))
     return(TRUE)
 
   if (missing(directed)) {
@@ -55,7 +55,7 @@ directed = function(x) {
   check.bn.or.fit(x)
 
   # fitted bayesian networks are always directed.
-  if (class(x) == "bn.fit")
+  if (is(x, "bn.fit"))
     return(TRUE)
 
   is.dag(x$arcs, names(x$nodes))
@@ -80,7 +80,7 @@ path = function(x, from, to, direct = TRUE, underlying.graph = FALSE,
   # check debug.
   check.logical(debug)
 
-  if (class(x) == "bn") {
+  if (is(x, "bn")) {
 
     nodes = names(x$nodes)
     amat = arcs2amat(x$arcs, nodes)
@@ -106,7 +106,7 @@ node.ordering = function(x, debug = FALSE) {
   # check debug.
   check.logical(debug)
   # no model string if the graph is partially directed.
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     if (is.pdag(x$arcs, names(x$nodes)))
       stop("the graph is only partially directed.")
 
@@ -117,7 +117,7 @@ node.ordering = function(x, debug = FALSE) {
 # generate a valid blacklist from a partial node ordering.
 ordering2blacklist = function(nodes) {
 
-  if (class(nodes) %in% c("bn", "bn.fit")) {
+  if (is(nodes, "bn") || is(nodes, "bn.fit")) {
 
     nodes = schedule(nodes)
 

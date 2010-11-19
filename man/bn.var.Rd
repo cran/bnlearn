@@ -26,9 +26,10 @@ bn.var.test(x, method, R, B, debug = FALSE)
     \code{bn.moments}) or Monte Carlo (in \code{bn.var.test}) replicate.}
   \item{algorithm}{a character string, the learning algorithm to be
     applied to the bootstrap replicates. Possible values are \code{gs},
-    \code{iamb}, \code{fast.iamb}, \code{inter.iamb}, \code{mmpc}
-    and \code{hc}. See \code{\link{bnlearn-package}} and the
-    documentation of each algorithm for details.}
+    \code{iamb}, \code{fast.iamb}, \code{inter.iamb}, \code{mmpc},
+    \code{hc}, \code{tabu}, \code{mmhc} and \code{rsmax2}. See
+    \code{\link{bnlearn-package}} and the documentation of each algorithm
+    for details.}
   \item{algorithm.args}{a list of extra arguments to be passed to
     the learning algorithm.}
   \item{x}{a covariance matrix or an object of class \code{mvber.moments}

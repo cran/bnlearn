@@ -68,7 +68,7 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
 }
 \value{
 
-  \code{graphviz.plot} returns invisibly the \code{graph} object 
+  \code{graphviz.plot} returns invisibly the \code{graph} object
   produced by \pkg{Rgraphviz}.
 
 }

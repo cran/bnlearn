@@ -174,7 +174,7 @@ loglik.node = function(node, x, data, debug = FALSE) {
 # compute the AIC of single node of a discrete bayesian network.
 aic.node = function(node, x, data, k = 1, debug = FALSE) {
 
-  lik = loglik.node(x = x, node = node, data = data, debug = debug) 
+  lik = loglik.node(x = x, node = node, data = data, debug = debug)
   pen = k * nparams.discrete.node(node = node, x = x, data = data, real = TRUE)
 
   if (debug) {

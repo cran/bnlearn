@@ -60,21 +60,21 @@ obs.per.cell = function(x, y, z = NULL, data) {
 
   if (is.null(z) || (length(z) == 0)) {
 
-    nrow(data) / (nlevels(data[,x]) * nlevels(data[,y]))
+    nrow(data) / (nlevels(data[, x]) * nlevels(data[, y]))
 
   }#THEN
   else if (is.character(z)) {
 
     if (length(z) == 1)
-      nrow(data) / (nlevels(data[,x]) * nlevels(data[,y]) * nlevels(data[,z]))
+      nrow(data) / (nlevels(data[, x]) * nlevels(data[, y]) * nlevels(data[, z]))
     else if (length(z) > 1)
-      nrow(data) / (nlevels(data[,x]) * nlevels(data[,y]) *
+      nrow(data) / (nlevels(data[, x]) * nlevels(data[, y]) *
         prod(sapply(z, function(col) { nlevels(data[, col]) } )))
 
   }#THEN
   else if (is.factor(z)) {
 
-    nrow(data) / (nlevels(data[,x]) * nlevels(data[,y]) * nlevels(z))
+    nrow(data) / (nlevels(data[, x]) * nlevels(data[, y]) * nlevels(z))
 
   }#ELSE
 

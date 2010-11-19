@@ -1,7 +1,7 @@
 
 # Global variables.
 available.discrete.tests = c("mi", "aict", "mi-sh", "x2", "mc-mi", "mc-x2")
-available.continuous.tests = c("cor", "zf", "mi-g", "mc-mi-g", "mc-cor", "mc-zf")
+available.continuous.tests = c("cor", "zf", "mi-g", "mi-g-sh", "mc-mi-g", "mc-cor", "mc-zf")
 available.tests = c(available.discrete.tests, available.continuous.tests)
 
 resampling.tests = c("mc-mi", "mc-x2", "mc-mi-g", "mc-cor", "mc-zf")
@@ -30,11 +30,11 @@ method.labels = c(
   'fast.iamb' = "Fast Incremental Association",
   'inter.iamb' = "Interleaved Incremental Association",
   'rnd' = "random/generated",
-  'hc' = 'Hill-Climbing',
-  'tabu' = 'Tabu Search',
-  'mmpc' = 'Max-Min Parent Children',
-  'rsmax2' = 'Two-Phase Restricted Maximization',
-  'mmhc' = 'Max-Min Hill Climbing'
+  'hc' = "Hill-Climbing",
+  'tabu' = "Tabu Search",
+  'mmpc' = "Max-Min Parent Children",
+  'rsmax2' = "Two-Phase Restricted Maximization",
+  'mmhc' = "Max-Min Hill-Climbing"
 )
 
 method.extra.args = list(
@@ -47,6 +47,7 @@ test.labels = c(
   'mi-sh' = "Mutual Information (discrete, shrinkage)",
   'mc-mi' = "Mutual Information (discrete, Monte Carlo)",
   'mi-g' = "Mutual Information (Gaussian)",
+  'mi-g-sh' = "Mutual Information (Gaussian, shrinkage)",
   'mc-mi-g' = "Mutual Information (Gaussian, Monte Carlo)",
   'aict'= "AIC-like Test",
   'x2'= "Pearson's X^2",
@@ -63,8 +64,8 @@ score.labels = c(
   'aic' = "Akaike Information Criterion",
   'bic' = "Bayesian Information Criterion",
   'loglik' = "Log-Likelihood",
-  'bge' = "Bayesian Gaussian (score equivalent)",
-  'loglik-g' = "Log-Likelihood (BGe)",
+  'bge' = "Bayesian Gaussian (BGe)",
+  'loglik-g' = "Log-Likelihood",
   'aic-g' = "Akaike Information Criterion (Gaussian)",
   'bic-g' = "Bayesian Information Criterion (Gaussian)"
 )
@@ -84,13 +85,14 @@ score.extra.args = list(
 
 )
 
-graph.generation.algorithms = c("ordered", "ic-dag", "melancon", "empty")
+graph.generation.algorithms = c("ordered", "ic-dag", "melancon", "empty", "naive")
 
 graph.generation.labels = c(
   "ordered" = "Full Ordering",
   "ic-dag" = "Ide & Cozman's Multiconnected DAGs",
   "melancon" = "Melancon's Uniform Probability DAGs",
-  "empty" = "Empty"
+  "empty" = "Empty",
+  "naive" = "Naive Bayes Classifier"
 )
 
 graph.generation.extra.args = list(
@@ -145,3 +147,5 @@ mvber.labels = list(
 
 graphviz.enabled = FALSE
 lattice.enabled = FALSE
+
+supported.clusters = c("MPIcluster", "PVMcluster","SOCKcluster")

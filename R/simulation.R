@@ -18,7 +18,7 @@ schedule = function(x, debug = FALSE) {
 rbn.discrete = function(x, n, data, debug = FALSE) {
 
   # fit the bayesian network if needed.
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     fitted = bn.fit.backend(x, data, debug = FALSE)
   else
     fitted = x
@@ -102,7 +102,7 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
 # a modified Logic Sampling (LS) algorithm for Gaussian data.
 rbn.continuous = function(x, n, data, debug = FALSE) {
 
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     fitted = bn.fit.backend(x, data, debug = FALSE)
   else
     fitted = x

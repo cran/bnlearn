@@ -10,7 +10,7 @@
 \usage{
 bn.boot(data, statistic, R = 200, m = nrow(data),
   sim = "ordinary", algorithm, algorithm.args = list(),
-  statistic.args = list(), debug = FALSE)
+  statistic.args = list(), cluster = NULL, debug = FALSE)
 }
 \arguments{
   \item{data}{a data frame containing the variables in the model.}
@@ -23,13 +23,17 @@ bn.boot(data, statistic, R = 200, m = nrow(data),
     and \code{"parametric"}.}
   \item{algorithm}{a character string, the learning algorithm to be
     applied to the bootstrap replicates. Possible values are \code{gs},
-    \code{iamb}, \code{fast.iamb}, \code{inter.iamb}, \code{mmpc}
-    and \code{hc}. See \code{\link{bnlearn-package}} and
-    documentation of each algorithm for details.}
+    \code{iamb}, \code{fast.iamb}, \code{inter.iamb}, \code{mmpc},
+    \code{hc}, \code{tabu}, \code{mmhc} and \code{rsmax2}. See
+    \code{\link{bnlearn-package}} and documentation of each algorithm
+    for details.}
   \item{algorithm.args}{a list of extra arguments to be passed to
     the learning algorithm.}
   \item{statistic.args}{a list of extra arguments to be passed to
     the function specified by \code{statistic}.}
+  \item{cluster}{an optional cluster object from package \pkg{snow}.
+      See \code{\link{snow integration}} for details and a simple
+      example.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
 }

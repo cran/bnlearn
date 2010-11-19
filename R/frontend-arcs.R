@@ -5,7 +5,7 @@ arcs = function(x) {
   # check x's class.
   check.bn.or.fit(x)
 
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     x$arcs
   else
     fit2arcs(x)
@@ -42,7 +42,7 @@ directed.arcs = function(x) {
   # check x's class.
   check.bn.or.fit(x)
 
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     x$arcs[which.directed(x$arcs, names(x$nodes)), , drop = FALSE]
   else
     fit2arcs(x)
@@ -55,7 +55,7 @@ undirected.arcs = function(x) {
   # check x's class.
   check.bn.or.fit(x)
 
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     x$arcs[which.undirected(x$arcs, names(x$nodes)), , drop = FALSE]
   else
     matrix(character(0), nrow = 0, ncol = 2,

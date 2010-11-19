@@ -1,6 +1,6 @@
 
 # fit the parameters of the bayesian network for a given network stucture.
-bn.fit.backend = function(x, data, method, extra.args, debug = FALSE) {
+bn.fit.backend = function(x, data, method = "mle", extra.args, debug = FALSE) {
 
   n = nrow(data)
 
@@ -34,7 +34,7 @@ bn.fit.backend = function(x, data, method, extra.args, debug = FALSE) {
 
         # the parameters of the multinomial distribution are the expected values
         # of the corresponding parameters of the posterior Dirichlet distribution.
-        tab = table(data[, c(node, parents), drop = FALSE]) 
+        tab = table(data[, c(node, parents), drop = FALSE])
         tab = tab + extra.args$iss / prod(dim(tab))
 
       }#ELSE
@@ -100,7 +100,11 @@ bn.fit.backend = function(x, data, method, extra.args, debug = FALSE) {
 
   }#ELSE
 
+  # preserve any additional class of the original bn object.
+  orig.class = class(x)
+  class = c(orig.class[orig.class != "bn"], "bn.fit")
+
   # fit the parameters of each node.
-  structure(sapply(names(x$nodes), fit, simplify = FALSE), class = "bn.fit")
+  structure(sapply(names(x$nodes), fit, simplify = FALSE), class = class)
 
 }#BN.FIT.BACKEND

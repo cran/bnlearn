@@ -3,12 +3,12 @@
 nodes = function(x) {
 
   # check x's class (beware of graphviz).
-  if (class(x) %in% c("graphAM", "graphNEL"))
+  if (is(x, "graphAM") || is(x, "graphNEL"))
     return(graph:::nodes(x))
   else
     check.bn.or.fit(x)
 
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     names(x$nodes)
   else
     names(x)
@@ -23,7 +23,7 @@ mb = function(x, node) {
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
 
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     x$nodes[[node]]$mb
   else
     mb.fitted(x, node)
@@ -38,7 +38,7 @@ nbr = function(x, node) {
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
 
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     x$nodes[[node]]$nbr
   else
     unique(c(x[[node]]$parents, x[[node]]$children))
@@ -53,7 +53,7 @@ parents = function(x, node) {
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
 
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     x$nodes[[node]]$parents
   else
     x[[node]]$parents
@@ -122,7 +122,7 @@ children = function(x, node) {
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
 
-  if (class(x) == "bn")
+  if (is(x, "bn"))
     x$nodes[[node]]$children
   else
     x[[node]]$children
@@ -182,4 +182,62 @@ children = function(x, node) {
   x
 
 }#CHILDREN<-
+
+# get the in-degree of a node.
+in.degree = function(x, node) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  # a valid node is needed.
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
+
+  if (is(x, "bn"))
+    length(x$nodes[[node]]$parents)
+  else
+    length(x[[node]]$parents)
+
+}#IN.DEGREE
+
+# get the out-degree of a node.
+out.degree = function(x, node) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  # a valid node is needed.
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
+
+  if (is(x, "bn"))
+    length(x$nodes[[node]]$children)
+  else
+    length(x[[node]]$children)
+
+}#OUT.DEGREE
+
+# get the degree of a node.
+degree = function(x, node) {
+
+  # check x's class (beware of graphviz).
+  if (is(x, "graphAM") || is(x, "graphNEL")) {
+
+    if (missing(node))
+      return(graph:::degree(x))
+    else
+      return(graph:::degree(x, node))
+
+  }#THEN
+  else {
+
+    check.bn.or.fit(x)
+
+  }#ELSE
+
+  # a valid node is needed.
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
+
+  if (is(x, "bn"))
+    length(x$nodes[[node]]$nbr)
+  else
+    length(x[[node]]$parents) + length(x[[node]]$children)
+
+}#DEGREE
 

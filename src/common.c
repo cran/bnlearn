@@ -206,6 +206,13 @@ int nnames = LENGTH(name), name_type = TYPEOF(name);
       idx = INTEGER(try);
       break;
 
+    case REALSXP:
+
+      /* these are almost good enough, coerce them to integers. */
+      PROTECT(try = coerceVector(name, INTSXP));
+      idx = INTEGER(try);
+      break;
+
     case INTSXP:
 
       /* these are already indexes, nothing to do. */
