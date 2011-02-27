@@ -9,7 +9,7 @@
 }
 \usage{
 naive.bayes(training, explanatory, data)
-\method{predict}{bn.naive}(object, data, prior, ...)
+\method{predict}{bn.naive}(object, data, prior, ..., debug = FALSE)
 }
 \arguments{
   \item{training}{a character string, the label of the training variable.}
@@ -20,6 +20,8 @@ naive.bayes(training, explanatory, data)
   \item{prior}{a numeric vector, the prior distribution for the training
     variable.}
  \item{\dots}{extra arguments from the generic method (currently ignored).}
+ \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
+    is printed; otherwise the function is completely silent.}
 }
 \details{
 

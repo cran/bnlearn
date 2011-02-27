@@ -27,19 +27,19 @@
 \method{fitted}{bn.fit}(object, ...)
 \method{coef}{bn.fit}(object, ...)
 \method{residuals}{bn.fit}(object, ...)
-\method{predict}{bn.fit}(object, node, data, ...)
+\method{predict}{bn.fit}(object, node, data, ..., debug = FALSE)
 \method{logLik}{bn.fit}(object, data, ...)
 \method{AIC}{bn.fit}(object, data, ..., k = 1)
 
 ## methods available for "bn.fit.dnode"
 \method{coef}{bn.fit.dnode}(object, ...)
-\method{predict}{bn.fit.dnode}(object, data, ...)
+\method{predict}{bn.fit.dnode}(object, data, ..., debug = FALSE)
 
 ## methods available for "bn.fit.gnode"
 \method{fitted}{bn.fit.gnode}(object, ...)
 \method{coef}{bn.fit.gnode}(object, ...)
 \method{residuals}{bn.fit.gnode}(object, ...)
-\method{predict}{bn.fit.gnode}(object, data, ...)
+\method{predict}{bn.fit.gnode}(object, data, ..., debug = FALSE)
 }
 \arguments{
   \item{object}{an object of class \code{bn.fit}, \code{bn.fit.dnode}
@@ -49,6 +49,8 @@
   \item{\dots}{additional arguments (currently ignored).}
   \item{k}{a numeric value, the penalty per parameter to be used; the
        default \code{k = 1} gives the expression used to compute AIC.}
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
+       is printed; otherwise the function is completely silent.}
 
 }
 \details{

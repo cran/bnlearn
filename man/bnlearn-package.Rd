@@ -4,13 +4,14 @@
 \docType{package}
 \title{
 
-  Bayesian network structure learning.
+  Bayesian network structure learning, parameter learning and inference.
 
 }
 \description{
 
-  Bayesian network structure learning via constraint-based, score-based
-  and hybrid algorithms.
+  Bayesian network structure learning (via constraint-based,
+  score-based and hybrid algorithms), parameter learning (via ML and
+  Bayesian estimators) and inference.
 
 }
 \details{
@@ -19,8 +20,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 2.3\cr
-    Date: \tab 2010-11-19\cr
+    Version: \tab 2.4\cr
+    Date: \tab 2011-02-27\cr
     License: \tab GPLv2 or later
 
   }

@@ -1,4 +1,14 @@
 
+bnlearn (2.4)
+
+  * reimplemented naive Bayes prediction in C for speed.
+  * added some debugging output to predict() methods.
+  * fixed printing of fitted Gaussian Bayesian networks.
+  * fixed stack imbalance in Gaussian Monte Carlo tests.
+  * implemented some discretization methods in discretize().
+  * added custom.strength() for arbitrary sets of networks.
+  * fixed strength.plot() threshold for significant arcs.
+
 bnlearn (2.3)
 
   * added cpdist() to generate observations from arbitrary

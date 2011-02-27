@@ -87,3 +87,25 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
 }#ARC.STRENGTH
 
+# compute the strength of all possible arcs from a list of network
+# structures/arc sets.
+custom.strength = function(networks, nodes, debug = FALSE) {
+
+  # check debug.
+  check.logical(debug)
+  # check the node labels.
+  check.nodes(nodes, min.nodes = 3)
+  # check networks.
+  check.customlist(networks, nodes = nodes)
+
+  res = arc.strength.custom(custom.list = networks, nodes, arcs = NULL,
+          debug = debug)
+
+  # add extra information for strength.plot().
+  res = structure(res, mode = "bootstrap", threshold = 0.5,
+          class = c("bn.strength", class(res)))
+
+  return(res)
+
+}#CUSTOM.STRENGTH
+

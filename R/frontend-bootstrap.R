@@ -63,8 +63,14 @@ boot.strength = function(data, R = 200, m = nrow(data),
   # check the extra arguments for the learning algorithm.
   algorithm.args = check.learning.algorithm.args(algorithm.args)
 
-  arc.strength.boot(data = data, R = R, m = m, algorithm = algorithm,
-    algorithm.args = algorithm.args, arcs = NULL, debug = debug)
+  res = arc.strength.boot(data = data, R = R, m = m, algorithm = algorithm,
+          algorithm.args = algorithm.args, arcs = NULL, debug = debug)
+
+  # add extra information for strength.plot().
+  res = structure(res, mode = "bootstrap", threshold = 0.5, 
+          class = c("bn.strength", class(res)))
+
+  return(res)
 
 }#BOOT.STRENGTH
 

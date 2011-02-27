@@ -5,10 +5,11 @@
 #define TOTAL_VARIANCE        1
 #define GENERALIZED_VARIANCE  2
 #define FROBENIUS_NORM        3
+#define FROBENIUS_NORM_K      4
 
 static void mvber_var(short int *buffer, double *gen, int k, int *B);
 static double _tvar(double *matrix, int *n);
-static double _nvar(double *matrix, int *n);
+static double _nvar(double *matrix, int *n, double lambda);
 
 /* test the variance of a multivariate Bernoulli distribution against
  * its worst case value. */
@@ -97,7 +98,7 @@ SEXP result, genvar;
 
     case FROBENIUS_NORM:
 
-      res[0] = _nvar(REAL(var), &k);
+      res[0] = _nvar(REAL(var), &k, 0.25);
 
       if (*debuglevel > 0)
         Rprintf("* observed value of the test statistic is %lf.\n", res[0]);
@@ -106,7 +107,7 @@ SEXP result, genvar;
 
         mvber_var(buffer, gen, k, B);
 
-        tmp = _nvar(gen, &k);
+        tmp = _nvar(gen, &k, 0.25);
 
         if (*debuglevel > 0)
           Rprintf("  > test statistic is equal to %lf in permutation %d.\n", tmp, r + 1);
@@ -116,6 +117,34 @@ SEXP result, genvar;
 
       }/*FOR*/
 
+      break;
+
+    case FROBENIUS_NORM_K:
+
+      res[0] = _nvar(REAL(var), &k, 0.25 * k);
+
+      if (*debuglevel > 0)
+        Rprintf("* observed value of the test statistic is %lf.\n", res[0]);
+
+      for (r = 0; r < *R; r++) {
+
+        mvber_var(buffer, gen, k, B);
+
+        tmp = _nvar(gen, &k, 0.25 * k);
+
+        if (*debuglevel > 0)
+          Rprintf("  > test statistic is equal to %lf in permutation %d.\n", tmp, r + 1);
+
+        if (res[0] <= tmp)
+          res[1] += 1;
+
+      }/*FOR*/
+
+      break;
+
+    default:
+
+      error("unknown test of the network's structure variability");
       break;
 
   }/*SWITCH*/
@@ -357,8 +386,19 @@ SEXP result;
 
     case FROBENIUS_NORM:
 
-      res[0] = _nvar(REAL(var), &k);
+      res[0] = _nvar(REAL(var), &k, 0.25);
       res[1] = NA_REAL;
+      break;
+
+    case FROBENIUS_NORM_K:
+
+      res[0] = _nvar(REAL(var), &k, 0.25 * k);
+      res[1] = (res[0] - 0.0625 * k * (k - 1) * (k - 1)) / (0.0625 * k * k * k - 0.0625 * k * (k - 1) * (k - 1));
+      break;
+
+    default:
+
+      error("unknown decriptive statistic of the network's structure variability");
       break;
 
   }/*SWITCH*/
@@ -381,7 +421,7 @@ double res = 0;
 
 }/*_TVAR*/
 
-static double _nvar(double *matrix, int *n) {
+static double _nvar(double *matrix, int *n, double lambda) {
 
 int i = 0, j = 0;
 double res = 0;
@@ -391,7 +431,7 @@ double res = 0;
       res += 2 * matrix[CMC(i, j, *n)] * matrix[CMC(i, j, *n)];
 
     for (i = 0; i < *n; i++)
-      res += (matrix[CMC(i, i, *n)] - 0.25) * (matrix[CMC(i, i, *n)] - 0.25);
+      res += (matrix[CMC(i, i, *n)] - lambda) * (matrix[CMC(i, i, *n)] - lambda);
 
   return res;
 

@@ -57,8 +57,11 @@ SEXP dupe(SEXP array);
 int which_max(double *array, int length);
 SEXP finalize_arcs(SEXP arcs); 
 
+/* from sampling.c */
+
 void SampleNoReplace(int k, int n, int *y, int *x);
 #define RandomPermutation(n, y, x) SampleNoReplace(n, n, y, x)
+void ProbSampleReplace(int n, double *p, int *perm, int nans, int *ans); 
 
 SEXP int2fac(SEXP vector);
 
@@ -119,4 +122,5 @@ short int *allocstatus(int length);
 double *alloc1dreal(int length);
 double **alloc2dreal(int length, int width);
 double ***alloc3dreal(int length, int width, int depth);
+void **alloc1dpointer (int length);
 char **alloc1dstring (int length);

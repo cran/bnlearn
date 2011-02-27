@@ -1,4 +1,5 @@
 
+# compute arcs' strength as the p-value of the test for their removal.
 arc.strength.test = function(network, data, test, alpha, B, debug) {
 
   drop = function(arc) {
@@ -42,6 +43,7 @@ arc.strength.test = function(network, data, test, alpha, B, debug) {
 
 }#ARC.STRENGTH.TEST
 
+# compute arcs' strength as the difference in score caused by their removal.
 arc.strength.score = function(network, data, score, extra, debug) {
 
   drop = function(arc) {
@@ -95,6 +97,7 @@ arc.strength.score = function(network, data, score, extra, debug) {
 
 }#ARC.STRENGTH.SCORE
 
+# compute arcs' strength as the relative frequency in boostrapped networks.
 arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, debug) {
 
   # allocate and initialize an empty adjacency matrix.
@@ -173,8 +176,13 @@ strength2lwd = function(strength, threshold, cutpoints, debug = TRUE) {
 
   if (mode %in% c("test", "bootstrap")) {
 
-    # bootstrap probabilities work list p-values, only reversed.
-    if (mode == "bootstrap") s = 1 - s
+    # bootstrap probabilities work like p-values, only reversed.
+    if (mode == "bootstrap") {
+
+      s = 1 - s
+      threshold = 1 - threshold
+
+    }#THEN
 
     # use user-defined cut points if available.
     if (missing(cutpoints))
@@ -229,3 +237,51 @@ strength2lwd = function(strength, threshold, cutpoints, debug = TRUE) {
   return(arc.weights)
 
 }#STRENGTH2LWD
+
+# compute arcs' strength as the relative frequency in a custom list of
+# network structures/arc sets.
+arc.strength.custom = function(custom.list, nodes, arcs, debug) {
+
+  # allocate and initialize an empty adjacency matrix.
+  prob = matrix(0, ncol = length(nodes), nrow = length(nodes))
+  #
+  R = length(custom.list)
+
+  for (r in seq_len(R)) {
+
+    if (debug) {
+
+      cat("----------------------------------------------------------------\n")
+      cat("* considering element", r, ".\n")
+
+    }#THEN
+
+    # get the arc set on way or the other.
+    if (is(custom.list[[r]], "bn"))
+      net.arcs = custom.list[[r]]$arcs
+    else
+      net.arcs = custom.list[[r]]
+
+    # update the counters in the matrix: undirected arcs are counted half
+    # for each direction, so that when summing up strength and direction
+    # they get counted once instead of twice.
+    # BEWARE: in-place modification of prob!
+    .Call("bootstrap_strength_counters",
+          prob = prob,
+          arcs = net.arcs,
+          nodes = nodes,
+          PACKAGE = "bnlearn")
+
+  }#FOR
+
+  # rescale the counters to probabilities.
+  prob = prob / R
+
+  .Call("bootstrap_arc_coefficients",
+        prob = prob,
+        arcs = arcs,
+        nodes = nodes,
+        PACKAGE = "bnlearn")
+
+}#ARC.STRENGTH.CUSTOM
+

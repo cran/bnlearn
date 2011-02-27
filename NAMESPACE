@@ -44,6 +44,7 @@ export(
   "choose.direction",
   "arc.strength",
   "boot.strength",
+  "custom.strength",
   "rbn",
   "score",
   "ci.test",
@@ -72,6 +73,7 @@ export(
   "cpdag",
   "vstructs",
   "moral",
+  "discretize",
   "bn.var",
   "bn.var.test",
   "bn.moments"

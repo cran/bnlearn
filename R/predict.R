@@ -1,14 +1,18 @@
 
 # predicted values for gaussian variables.
-gaussian.prediction = function(node, fitted, data) {
+gaussian.prediction = function(node, fitted, data, debug = FALSE) {
 
   parents = fitted[[node]]$parents
+
+  if (debug)
+    cat("* predicting values for node ", node, ".\n", sep = "")
 
   if (length(parents) == 0) {
 
     .Call("gpred",
           fitted = fitted[[node]],
           data = nrow(data),
+          debug = debug,
           PACKAGE = "bnlearn")
 
   }#THEN
@@ -17,6 +21,7 @@ gaussian.prediction = function(node, fitted, data) {
     .Call("cgpred",
           fitted = fitted[[node]],
           data = minimal.data.frame.column(data, parents, drop = FALSE),
+          debug = debug,
           PACKAGE = "bnlearn")
 
   }#ELSE
@@ -24,15 +29,19 @@ gaussian.prediction = function(node, fitted, data) {
 }#GAUSSIAN.PREDICTION
 
 # predicted values for discrete networks.
-discrete.prediction = function(node, fitted, data) {
+discrete.prediction = function(node, fitted, data, debug = FALSE) {
 
   parents = fitted[[node]]$parents
+
+  if (debug)
+    cat("* predicting values for node ", node, ".\n", sep = "")
 
   if (length(parents) == 0) {
 
     .Call("dpred",
           fitted = fitted[[node]],
           data = minimal.data.frame.column(data, node),
+          debug = debug,
           PACKAGE = "bnlearn")
 
   }#THEN
@@ -48,6 +57,7 @@ discrete.prediction = function(node, fitted, data) {
           fitted = fitted[[node]],
           data = minimal.data.frame.column(data, node),
           parents = config,
+          debug = debug,
           PACKAGE = "bnlearn")
 
   }#ELSE
@@ -55,31 +65,20 @@ discrete.prediction = function(node, fitted, data) {
 }#DISCRETE.PREDICTION
 
 # naive Bayes classifier for discrete networks.
-naive.classifier = function(training, fitted, prior, data) {
+naive.classifier = function(training, fitted, prior, data, debug = FALSE) {
 
-  # get the prior distribution.
-  levels.out = levels(data[, training])
   # get the labels of the explanatory variables.
   nodes = names(fitted)
-  explanatory = nodes[nodes != training]
 
-  pred = apply(data, 1, function(x) {
+  if (debug)
+    cat("* predicting values for node ", training, ".\n", sep = "")
 
-    prob = rep(1, length(prior))
-
-    # multiply all the fitted probabilities.
-    for (node in explanatory) 
-      prob = prob * fitted[[node]]$prob[x[node], ]
-    # add the prior distribution to the mix.
-    prob = prob * prior
-    # get which level is the most probable a posteriori.
-    levels.out[which.max(prob)]
-
-  })
-
-  # convert the return value into a factor.
-  pred = factor(pred, levels.out)
-
-  return(pred)
+  .Call("naivepred",
+        fitted = fitted,
+        data = minimal.data.frame.column(data, nodes, drop = FALSE),
+        training = which(nodes == training),
+        prior = prior,
+        debug = debug,
+        PACKAGE = "bnlearn")
 
 }#NAIVE.CLASSIFIER

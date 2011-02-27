@@ -84,7 +84,7 @@ data(hailfinder)
       57-71.
 
   Elidan G (2001). "Bayesian Network Repository". \cr
-      http://www.cs.huji.ac.il/labs/compbio/Repository/.
+      \url{http://www.cs.huji.ac.il/site/labs/compbio/Repository}.
 
 }
 \note{

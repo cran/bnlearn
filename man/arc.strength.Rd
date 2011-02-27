@@ -1,31 +1,54 @@
 \name{arc.strength}
 \alias{arc.strength}
-\title{ Measure the strength of the arcs present in the network}
+\alias{boot.strength}
+\alias{custom.strength}
+\title{ Measure arc strength}
 \description{
 
   Strength of the probabilistic relations expressed by the
-  arcs of the Bayesian network.
+  arcs of a Bayesian network.
 
 }
 \usage{
+# strength of the arcs present in x.
 arc.strength(x, data, criterion = NULL, ..., debug = FALSE)
+# strength of all possible arcs, as learned from bootstrapped data.
+boot.strength(data, R = 200, m = nrow(data),
+  algorithm, algorithm.args = list(), debug = FALSE)
+# strength of all possible arcs, from a list of custom networks. 
+custom.strength(networks, nodes, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
+  \item{networks}{a list, containing either object of class \code{bn}
+    or arc sets (matrices or data frames with two columns, optionally
+    labeled "from" and "to").}
+  \item{nodes}{a vector of character strings, the labels of the nodes
+    in the network.}
   \item{data}{a data frame containing the data the Bayesian network
-       was learned from.}
+    was learned from.}
   \item{criterion}{a character string, the label of a score
-       function, the label of an independence test or \code{bootstrap}.
-       See \code{\link{bnlearn-package}} for details on the first two
-       possibilities.}
+    function, the label of an independence test or \code{bootstrap}.
+    See \code{\link{bnlearn-package}} for details on the first two
+    possibilities.}
+  \item{R}{a positive integer, the number of bootstrap replicates.}
+  \item{m}{a positive integer, the size of each bootstrap replicate.}
+  \item{algorithm}{a character string, the learning algorithm to be
+    applied to the bootstrap replicates. Possible values are \code{gs},
+    \code{iamb}, \code{fast.iamb}, \code{inter.iamb}, \code{mmpc},
+    \code{hc}, \code{tabu}, \code{mmhc} and \code{rsmax2}. See
+    \code{\link{bnlearn-package}} and the documentation of each algorithm
+    for details.}
+  \item{algorithm.args}{a list of extra arguments to be passed to
+    the learning algorithm.}
   \item{\dots}{additional tuning parameters for the network score (if
-      \code{criterion} is the label of a score function, see
-      \code{\link{score}} for details), the conditional independence test
-      (currently the only one is \code{B}, the number of permutations)
-      or the bootstrap simulation (if \code{criterion} is set to
-      \code{bootstrap}, see \code{\link{boot.strength}} for details).}
+    \code{criterion} is the label of a score function, see
+    \code{\link{score}} for details), the conditional independence test
+    (currently the only one is \code{B}, the number of permutations)
+    or the bootstrap simulation (if \code{criterion} is set to
+    \code{bootstrap}, see \code{\link{boot.strength}} for details).}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-       is printed; otherwise the function is completely silent.}
+    is printed; otherwise the function is completely silent.}
 }
 \details{
 
@@ -34,7 +57,7 @@ arc.strength(x, data, criterion = NULL, ..., debug = FALSE)
   The only possible additional parameter is \code{B}, the number of
   permutations to be generated for each permutation test.
 
-  If \code{criterion} is the label of a score functioni, the strength is
+  If \code{criterion} is the label of a score function, the strength is
   measured by the score gain/loss which would be caused by the arc's
   removal. There may be additional parameters depending on the choice
   of the score, see \code{\link{score}} for details.
@@ -47,7 +70,10 @@ arc.strength(x, data, criterion = NULL, ..., debug = FALSE)
 }
 \value{
 
-  \code{arc.strength} returns an object of class \code{bn.strength}.
+  \code{arc.strength}, \code{boot.strength} and \code{custom.strength}
+  return an object of class \code{bn.strength}; \code{boot.strength}
+  and \code{custom.strength} also include information about the relative
+  probabilities of arc directions.
   See \code{\link{bn.strength class}} for details.
 
 }
@@ -62,34 +88,29 @@ arc.strength(res, learning.test)
 # 3    B  E 1.024198e-320
 # 4    C  D  0.000000e+00
 # 5    F  E 3.935648e-245
-arc.strength(res, learning.test, criterion = "aic")
-#   from to   strength
-# 1    A  B -1166.9139
-# 2    A  D -1978.0531
-# 3    B  E  -746.8954
-# 4    C  D  -862.8637
-# 5    F  E  -568.7816
-res = set.arc(res, "B", "A")
-# A -> B and B -> A have the same strength because they
-# are score equivalent.
-arc.strength(res, learning.test, criterion = "aic")
-#   from to   strength
-# 1    A  D -1978.0531
-# 2    B  E  -746.8954
-# 3    C  D  -862.8637
-# 4    F  E  -568.7816
-# 5    B  A -1166.9139
+arcs = boot.strength(learning.test, algorithm = "hc")
+arcs[(arcs$strength > 0.85) & (arcs$direction > 0.5), ]
+#    from to strength direction
+# 1     A  B        1         1
+# 3     A  D        1         1
+# 9     B  E        1         1
+# 13    C  D        1         1
+# 30    F  E        1         1
 \dontrun{
-arc.strength(res, data = learning.test, criterion = "bootstrap",
-  R = 200, algorithm.args = list(alpha = 0.10))
-#   from to strength
-# 1    A  B        1
-# 2    A  D        1
-# 3    B  E        1
-# 4    C  D        1
-# 5    F  E        1
+start = random.graph(nodes = names(learning.test), num = 50)
+netlist = lapply(start, function(net) {
+  hc(learning.test, score = "bde", iss = 10, start = net) })
+arcs = custom.strength(netlist, nodes = names(learning.test))
+arcs[(arcs$strength > 0.85) & (arcs$direction > 0.5), ]
+#    from to strength direction
+# 1     A  B        1      1.00
+# 3     A  D        1      1.00
+# 9     B  E        1      0.98
+# 13    C  D        1      0.96
+# 30    F  E        1      0.66
 }
 }
-\seealso{\code{\link{choose.direction}}, \code{\link{score}}. }
+\seealso{\code{\link{strength.plot}}, \code{\link{choose.direction}},
+  \code{\link{score}}, \code{\link{ci.test}}. }
 \author{ Marco Scutari }
 \keyword{htest}

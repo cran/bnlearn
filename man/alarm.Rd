@@ -108,7 +108,7 @@ data(alarm)
       Artificial Intelligence in Medicine", pp. 247-256. Springer-Verlag.
 
   Elidan G (2001). "Bayesian Network Repository". \cr
-      \url{http://www.cs.huji.ac.il/labs/compbio/Repository}.
+      \url{http://www.cs.huji.ac.il/site/labs/compbio/Repository}.
 
 }
 \note{

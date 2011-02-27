@@ -147,7 +147,7 @@ print.bn = function(x, ...) {
     cat(x$node)
 
   cat("\nCoefficients:\n")
-  print.default(format(x$coefficients), print.gap = 2, right = TRUE, quote = FALSE)
+  print.default(format(c(x$coefficients)), print.gap = 2, right = TRUE, quote = FALSE)
 
   cat("Standard deviation of the residuals:", x$sd, "\n")
 

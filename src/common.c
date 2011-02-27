@@ -4,14 +4,14 @@
 /* a rudimental C implementation of which.max(). */
 int which_max(double *array, int length) {
 
-int i = 0, imax = 0;
-double max = 0;
+int i = 0, imax = -1;
+double max = R_NegInf;
 
   for (i = 0; i < length; i++) {
 
-    /* NA and Nan cannot be compared with valid real numbers. */
+    /* NA and NaN cannot be compared with valid real numbers. */
     if (ISNAN(array[i]))
-      return NA_INTEGER;
+      continue;
 
     if (array[i] > max) {
 
@@ -21,6 +21,10 @@ double max = 0;
     }/*THEN*/
 
   }/*FOR*/
+
+    /* if all elements are NA/NaN return NA. */
+    if (imax < 0)
+      return NA_INTEGER;
 
   return imax + 1;
 
@@ -46,26 +50,6 @@ int i = 0;
 return elmt;
 
 }/*GETLISTELEMENT*/
-
-/* sampling without replacement, internal copy of the
- * SampleNoReplace function in src/main/random.c.
- * Copyright (C) 2003--2008  The R Foundation,
- * licensed under "GPLv2 or later" licence. */
-void SampleNoReplace(int k, int n, int *y, int *x) {
-
-int i = 0, j = 0;
-
-  for (i = 0; i < n; i++)
-    x[i] = i;
-  for (i = 0; i < k; i++) {
-
-    j = n * unif_rand();
-    y[i] = x[j] + 1;
-    x[j] = x[--n];
-
-  }/*FOR*/
-
-}/*SAMPLENOREPLACE*/
 
 /* return the unique elements from an input vector.*/
 SEXP unique(SEXP array) {

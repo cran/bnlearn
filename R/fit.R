@@ -90,7 +90,7 @@ bn.fit.backend = function(x, data, method = "mle", extra.args, debug = FALSE) {
         sd = sd(resid)
 
         structure(list(node = node, parents = parents, children = children,
-          coefficients = coefs, residuals = resid,
+          coefficients = c(coefs), residuals = resid,
           fitted.values = fitted, sd = sd), class = "bn.fit.gnode")
 
 

@@ -38,7 +38,8 @@ bn.var.test(x, method, R, B, debug = FALSE)
     in \code{bn.var} or \code{bn.var.test}. Possible values are
     \code{tvar} (\emph{total variance}), \code{gvar} (\code{generalized
     variance}), \code{nvar} (\emph{Frobenius matrix norm}, which is
-    equivalent to \emph{Nagao's test}).}
+    equivalent to \emph{Nagao's test}) and \code{nvark} (another measure
+    based on the \emph{Frobenius matrix norm}).}
   \item{reduce}{a character string, either \code{first} or \code{second}.
     If \code{first} all the arcs with first moment equal to zero are
     dropped; if if \code{second} all the arcs with zero variance

@@ -1,0 +1,136 @@
+
+discretize.backend = function(data, method, breaks, extra.args, debug = FALSE) {
+
+  if (method == "quantile")
+    quantile.discretization(data = data, breaks = breaks)
+  else if (method == "interval")
+    interval.discretization(data = data, breaks = breaks)
+  else if (method == "hartemink")
+    hartemink.discretization(data = data, breaks = breaks, 
+      initial.breaks = extra.args$initial.breaks, debug = debug)
+
+}#DISCRETIZE.BACKEND
+
+quantile.discretization = function(data, breaks) {
+
+  discretized = lapply(seq(ncol(data)), function(x) {
+
+    breaks = breaks[x]
+    x = minimal.data.frame.column(data, x)
+
+    # do not touch discrete variables.
+    if (is(x, "factor"))
+      return(x)
+    # compute the quantiles for the variable.
+    quantiles = quantile(x, probs = seq(from = 0, to = breaks)/breaks)
+    # check whther the quantiles are unique.
+    if (any(duplicated(quantiles)))
+      stop("unable to discretize in ", breaks, " intervals, some quantiles are not unique.")
+    # cut the range using the quantiles as break points.
+    cut(x, breaks = quantiles, include.lowest = TRUE)
+
+  })
+  # convert the return value to a data frame.
+  discretized = minimal.data.frame(discretized)
+  names(discretized) = names(data)
+
+  return(discretized)
+
+}#QUANTILE.DISCRETIZATION
+
+interval.discretization = function(data, breaks) {
+
+  # cut the range into intervals and assign observations.
+  discretized = lapply(seq(ncol(data)), function(x) {
+
+    breaks = breaks[x]
+    x = minimal.data.frame.column(data, x)
+
+    # do not touch discrete variables.
+    if (is(x, "factor"))
+      return(x)
+    # cut the range with the given number of break points.
+    cut(x, breaks = breaks)
+
+  })
+  # convert the return value to a data frame.
+  discretized = minimal.data.frame(discretized)
+  names(discretized) = names(data)
+
+  return(discretized)
+
+}#INTERVAL.DISCRETIZATION
+
+hartemink.discretization = function(data, breaks, initial.breaks, debug) {
+
+  # cache some useful quantities.
+  nodes = names(data)
+  nnodes = length(nodes)
+  ndata = nrow(data)
+  # perform an initial discretization.
+  discretized = quantile.discretization(data = data, 
+                  breaks = rep(initial.breaks, ncol(data)))
+
+  # conting down to the desired number of levels ...
+  for (nlevels in seq(from = initial.breaks, to = breaks + 1)) {
+
+    if (debug)
+      cat("* considering", nlevels, "levels.\n")
+
+    # ... for each variable ...
+    for (node in nodes) {
+
+      if (debug)
+        cat("* considering variable", node, ".\n")
+
+      total.mutual.information = numeric(nnodes - 1)
+      cur.levels = levels(minimal.data.frame.column(discretized, node))
+
+      # ... for each pair of levels ...
+      for (collapsing in seq(nlevels - 1)) {
+
+
+        if (debug)
+          cat("  > collapsing levels", cur.levels[collapsing], "and", cur.levels[collapsing + 1], ".\n")
+
+        # ... collapse them ...
+        collapsed = discretized[, node]
+        collapsed[collapsed == cur.levels[collapsing + 1]] = cur.levels[collapsing]
+
+        # ... and compute the total mutual information.
+	total.mutual.information[collapsing] = sum(sapply(nodes[nodes != node], 
+          function(node) {
+
+            mi.test(x = collapsed, 
+                    y = minimal.data.frame.column(discretized, node),
+                    ndata = ndata)  
+
+          }))
+
+        if (debug)
+          cat("    > total mutual information is", total.mutual.information[collapsing], ".\n")
+
+      }#FOR
+
+      # get which collapsing gives the best restults.
+      bestop = which.max(total.mutual.information) 
+
+      if (debug)
+        cat("@ best collapsing is", bestop, ".\n")
+
+      # build the new set of levels. 
+      from = strsplit(cur.levels[bestop], "\\(|\\[|,|\\]|\\)")[[1]][2] 
+      to = strsplit(cur.levels[bestop + 1], "\\(|\\[|,|\\]|\\)")[[1]][3] 
+      new.levels = cur.levels
+      new.levels[bestop] = new.levels[bestop + 1] = paste("(", from, ",", to, "]", sep = "")
+      # collapse the levels in the discretized data.
+      levels(discretized[, node]) = new.levels
+
+    }#FOR
+
+  }#FOR
+
+  return(discretized)
+
+}#HARTEMINK.DISCRETIZATION
+

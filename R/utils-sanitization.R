@@ -16,6 +16,15 @@ is.positive.integer = function(x) {
 
 }#IS.POSITIVE.INTEGER
 
+#is x a vector of positive numbers?
+is.positive.vector = function(x) {
+
+  is.numeric(x) &&
+  is.finite(x) &&
+  all(x > 0)
+
+}#IS.POSITIVE.VECTOR
+
 # is x a probability?
 is.probability = function(x) {
 
@@ -54,7 +63,7 @@ is.cauchy.schwarz = function(x) {
 }#Is.CAUCHY.SCHWARZ
 
 # check the data set.
-check.data = function(x) {
+check.data = function(x, allow.mixed = FALSE) {
 
   # check the data are there.
   if (missing(x))
@@ -65,9 +74,20 @@ check.data = function(x) {
   # check the data for NULL/NaN/NA.
   if (missing.data(x))
     stop("the data set contains NULL/NaN/NA values.")
-  # check the variables are either all continuous or all discrete.
-  if (!is.data.discrete(x) && !is.data.continuous(x))
-    stop("variables must be either all real numbers or all factors.")
+  if (allow.mixed) {
+
+    # check whether the variables are all factors or numeric.
+    if (!is.data.mixed(x))
+      stop("variables must be either numeric or factors.")
+
+  }#THEN
+  else {
+
+    # check whether the variables are either all continuous or all discrete.
+    if (!is.data.discrete(x) && !is.data.continuous(x))
+      stop("variables must be either all real numbers or all factors.")
+
+  }
   # check the number of levels of discrete variables, to guarantee that
   # the degrees of freedom of the tests are positive.
   if (is.data.discrete(x))
@@ -131,10 +151,10 @@ check.nodes = function(nodes, graph = NULL, min.nodes = 1, max.nodes = Inf) {
 check.arcs = function(arcs, nodes) {
 
   # sanitize the set of arcs.
-  if (class(arcs) %in% c("matrix", "data.frame")) {
+  if (is(arcs, "matrix") || is(arcs, "data.frame")) {
 
      if (dim(arcs)[2] != 2)
-       stop("the arcs must have two columns.")
+       stop("arc sets must have two columns.")
 
      if (is.data.frame(arcs))
        arcs = as.matrix(cbind(as.character(arcs[, 1]),
@@ -148,7 +168,7 @@ check.arcs = function(arcs, nodes) {
 
     # if there is an even number of labels fit them into a 2-column matrix.
     if ((length(arcs) %% 2) != 0)
-      stop("the arcs must have two columns.")
+      stop("arc sets must have two columns.")
 
     arcs = matrix(arcs, ncol = 2, byrow = TRUE,
               dimnames = list(c(), c("from", "to")))
@@ -156,7 +176,7 @@ check.arcs = function(arcs, nodes) {
   }#THEN
   else {
 
-     stop("the arcs must be a matrix or data.frame with two columns.")
+     stop("an arc set must be a matrix or data.frame with two columns.")
 
   }#ELSE
 
@@ -302,6 +322,44 @@ blacklist
 
 }#BUILD.BLACKLIST
 
+# check the list of networks passed to custom.strength().
+check.customlist = function(custom, nodes) {
+
+  # check 
+  if (!is(custom, "list"))
+    stop("networks must be a list of objects of class 'bn' or of arc sets.")
+  if(!all(sapply(custom, function(x) { is(x, "bn") || is(x, "matrix") })))
+    stop("x must be a list of objects of class 'bn' or of arc sets.")
+
+
+  validate = function(custom, nodes) {
+
+    if (is(custom, "bn")) {
+
+      check.nodes(names(custom$nodes), graph = nodes, min.nodes = length(nodes),
+        max.nodes = length(nodes))
+
+    }
+    else if (is(custom, "matrix")) {
+
+      check.arcs(arcs = custom, nodes = nodes)
+
+    }#THEN
+    else {
+
+      stop("x must be a list of objects of class 'bn' or of arc sets.")
+
+    }
+
+  return(TRUE)
+
+  }#VALIDATE
+
+  if (!all(sapply(custom, validate, nodes = nodes)))
+    stop("x must be a list of objects of class 'bn' or of arc sets.")
+
+}#CHECK.CUSTOMLIST
+
 # check score labels.
 check.score = function(score, data) {
 
@@ -440,6 +498,29 @@ check.fitting.method = function(method, data) {
 
 }#CHECK.FITTING.METHOD
 
+# check the method used to discretize the data.
+check.discretization.method = function(method) {
+
+  if (!is.null(method)) {
+
+    # check it's a single character string.
+    check.string(method)
+    # check the score/test label.
+    if (!(method %in% available.discretization.methods))
+      stop(paste(c("valid discretization methods are:\n",
+             sprintf("    %-10s %s\n", names(discretization.labels), discretization.labels)), sep = ""))
+
+    return(method)
+
+  }#THEN
+  else {
+
+      return("quantile")
+
+  }#ELSE
+
+}#CHECK.DISCRETIZATION.METHOD
+
 # is the fitted bayesian network a discrete one?
 is.fitted.discrete = function(fitted) {
 
@@ -483,6 +564,17 @@ is.data.continuous = function(data) {
   return(TRUE)
 
 }#IS.DATA.CONTINUOUS
+
+# does the data include coth discrete and continuous variables?
+is.data.mixed = function(data) {
+
+  for (i in 1:ncol(data))
+    if (!is.double(data[, i]) && !is(data[, i], "factor"))
+      return(FALSE)
+
+  return(TRUE)
+
+}#IS.DATA.MIXED
 
 # there are missing data?
 missing.data = function(data) {
@@ -846,6 +938,7 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
 
 }#CHECK.LOSS.ARGS
 
+# sanitize the extra arguments passed to fitting functions.
 check.fitting.args = function(method, network, data, extra.args) {
 
   if (method == "bayes") {
@@ -862,6 +955,43 @@ check.fitting.args = function(method, network, data, extra.args) {
   return(extra.args)
 
 }#CHECK.FITTING.ARGS
+
+# sanitize the extra arguments passed to discretization methods.
+check.discretization.args = function(method, data, extra.args) {
+
+  if (method == "hartemink") {
+
+    if (!is.null(extra.args$initial.breaks)) {
+
+      if (!is.positive.integer(extra.args$initial.breaks))
+        stop("the number of initial breaks must be a positive integer number.")
+
+    }#THEN
+    else {
+
+      ndata = nrow(data)
+
+      if (ndata > 500)
+        extra.args$initial.breaks = 100
+      else if (ndata > 100)
+        extra.args$initial.breaks = 50
+      else if (ndata > 50)
+        extra.args$initial.breaks = 20
+      else if (ndata > 10)
+        extra.args$initial.breaks = 10
+      else
+        extra.args$initial.breaks = ndata
+
+    }#ELSE
+
+  }#THEN
+
+  # warn about unused arguments.
+  check.unused.args(extra.args, discretization.extra.args[[method]])
+
+  return(extra.args)
+
+}#CHECK.DISCRETIZATION.ARGS
 
 # warn about unused arguments.
 check.unused.args = function(dots, used.args) {
@@ -986,10 +1116,10 @@ check.covariance = function(m) {
   if (!is.numeric(m))
     stop("the elements of a covariance matrix must be real numbres.")
   # check whether the matrix is symmetric.
-  if (is.symmetric(m))
+  if (!is.symmetric(m))
     stop("a covariance matrix must be symmetric.")
   # check whether the matrix obeys the Cauchy-Schwarz theorem.
-  if (is.cauchy.schwarz(m))
+  if (!is.cauchy.schwarz(m))
     stop("a covariance matrix must obey the Cauchy-Schwarz theorem.")
 
 }#CHECK.COVARIANCE
@@ -1226,8 +1356,24 @@ check.fit.vs.data = function(fitted, data) {
   if (length(setdiff(names(fitted) , names(data))) != 0)
     stop("the variables in the data and in the network do not match.")
   # data type versus network type.
-  if (is.fitted.discrete(fitted) && is.data.continuous(data))
-    stop("continuous data and discrete network.")
+  if (is.fitted.discrete(fitted)) { 
+
+    if (is.data.continuous(data))
+      stop("continuous data and discrete network.")
+
+    # double-check the levels of the variables against those of the nodes.
+    for (node in names(fitted)) {
+
+      data.levels = levels(data[, node])
+      node.levels = dimnames(fitted[[node]]$prob)[[1]]
+
+      if(!identical(data.levels, node.levels))
+        stop("the levels of node '", node, "' do not match the levels of the ",
+             "corresponding variable in the data.")
+
+    }#FOR
+
+  }#THEN
   if (is.fitted.continuous(fitted) && is.data.discrete(data))
     stop("discrete data and continuous network.")
 

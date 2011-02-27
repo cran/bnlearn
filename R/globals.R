@@ -22,7 +22,7 @@ available.learning.algorithms = c(constraint.based.algorithms, score.based.algor
 
 always.dag.result = c(score.based.algorithms, hybrid.algorithms)
 
-available.mvber.vartests = c("tvar", "gvar", "nvar")
+available.mvber.vartests = c("tvar", "gvar", "nvar", "nvark")
 
 method.labels = c(
   'gs' = "Grow-Shrink",
@@ -142,10 +142,25 @@ fitting.extra.args = list(
 mvber.labels = list(
   "tvar" = "Total Variance",
   "gvar" = "Generalized Variance",
-  "nvar" = "Squared Frobenius Norm"
+  "nvar" = "Squared Frobenius Norm (1/4)",
+  "nvark" = "Squared Frobenius Norm (k/4)"
 )
 
 graphviz.enabled = FALSE
 lattice.enabled = FALSE
 
 supported.clusters = c("MPIcluster", "PVMcluster","SOCKcluster")
+
+available.discretization.methods = c("quantile", "interval", "hartemink")
+
+discretization.labels = c(
+  "quantile" = "Quantile Discretization",
+  "interval" = "Interval Discretization",
+  "hartemink" = "Hartemink's Pairwise Mutual Information"
+)
+
+discretization.extra.args = list(
+  "quantile" = character(0),
+  "interval" = character(0),
+  "hartemink" = c("initial.breaks")
+)

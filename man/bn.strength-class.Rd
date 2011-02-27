@@ -21,7 +21,8 @@
 
     \item \code{from, to}: the nodes incident on the arc.
     \item \code{strength}: the strength of the arc. See
-      \code{\link{arc.strength}} and \code{\link{strength.plot}}
+      \code{\link{arc.strength}}, \code{\link{boot.strength}},
+      \code{\link{custom.strength}} and \code{\link{strength.plot}}
       for details.
 
   }
@@ -38,8 +39,12 @@
 
   }
 
-  No method is defined for this class; therefore it can be
-  manipulated as a standard data frame.
+  An optional column called \code{direction} may also be present,
+  giving the probability of the direction of an arc given its
+  presence in the graph.
+
+  No method is defined for this class; therefore it can be manipulated
+  as a standard data frame.
 
 }
 \author{ Marco Scutari }

@@ -8,8 +8,10 @@
 
 }
 \usage{
-cpquery(fitted, event, evidence, cluster = NULL, method = "ls", ..., debug = FALSE)
-cpdist(fitted, nodes, evidence, cluster = NULL, method = "ls", ..., debug = FALSE)
+cpquery(fitted, event, evidence, cluster = NULL, method = "ls", ...,
+  debug = FALSE)
+cpdist(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
+  debug = FALSE)
 }
 \arguments{
   \item{fitted}{an object of class \code{bn.fit}.}

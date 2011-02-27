@@ -118,14 +118,15 @@ int i = 0, j = 0;
 
 }/*ALLOC3DREAL*/
 
-/* allocate a 1-dimensional (char) pointer vector. */
-char **alloc1dstring (int length) {
+void **alloc1dpointer (int length) {
 
-char **p = NULL;
+void **p = NULL;
 
-  p = (char **) R_alloc(length, sizeof(char *));
+  p = (void **) R_alloc(length, sizeof(void *)); 
 
   return p;
 
-}/*ALLOC1DSTRING*/
+}/*ALLOC1DPOINTERS*/
+
+#define alloc1dstring(length) ((char **) alloc1dpointer(length))
 

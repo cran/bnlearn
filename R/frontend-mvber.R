@@ -104,4 +104,3 @@ bn.moments = function(data, R = 200, m = nrow(data), algorithm,
 
 }#BN.MOMENTS
 
-

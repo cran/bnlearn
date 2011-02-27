@@ -341,7 +341,7 @@ SEXP data2, yy, no, result;
   /* save the observed p-value. */
   *res /= *B;
 
-  UNPROTECT(3);
+  UNPROTECT(4);
 
   return result;
 

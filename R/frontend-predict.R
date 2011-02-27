@@ -1,13 +1,14 @@
 
 # passthrough for bn objects.
-predict.bn  = function(object, node, data, ...) {
+predict.bn  = function(object, node, data, ..., debug = FALSE) {
 
-  predict.bn.fit(object = bn.fit(object, data), node = node, data = data, ...)
+  predict.bn.fit(object = bn.fit(object, data), node = node, data = data, 
+    ..., debug = debug)
 
 }#PREDICT.BN
 
 # estimate the predicted values for a particular node.
-predict.bn.fit = function(object, node, data, ...) {
+predict.bn.fit = function(object, node, data, ..., debug = FALSE) {
 
   # check the data are there.
   check.data(data)
@@ -19,14 +20,14 @@ predict.bn.fit = function(object, node, data, ...) {
   check.unused.args(list(...), character(0))
 
   if (is.fitted.discrete(object))
-    discrete.prediction(node = node, fitted = object, data = data)
+    discrete.prediction(node = node, fitted = object, data = data, debug = debug)
   else
-    gaussian.prediction(node = node, fitted = object, data = data)
+    gaussian.prediction(node = node, fitted = object, data = data, debug = debug)
 
 }#PREDICT.BN.FIT
 
 # estimate the predicted values for a gaussian node.
-predict.bn.fit.gnode = function(object, data, ...) {
+predict.bn.fit.gnode = function(object, data, ..., debug = FALSE) {
 
   nodes = names(data)
   target = object$node
@@ -43,12 +44,12 @@ predict.bn.fit.gnode = function(object, data, ...) {
   names(dummy) = nodes
   dummy[[target]] = object
   # compute the predicted values.
-  gaussian.prediction(node = target, fitted = dummy, data = data)
+  gaussian.prediction(node = target, fitted = dummy, data = data, debug = debug)
 
 }#PREDICT.BN.FIT.GNODE
 
 # estimate the predicted values for a discrete node.
-predict.bn.fit.dnode = function(object, data, ...) {
+predict.bn.fit.dnode = function(object, data, ..., debug = FALSE) {
 
   # check the data are there.
   check.data(data)
@@ -65,12 +66,12 @@ predict.bn.fit.dnode = function(object, data, ...) {
   names(dummy) = nodes
   dummy[[target]] = object
   # compute the predicted values.
-  discrete.prediction(node = target, fitted = dummy, data = data)
+  discrete.prediction(node = target, fitted = dummy, data = data, debug = debug)
 
 }#PREDICT.BN.FIT.DNODE
 
 # estimate the predicted values for a naive Bayes classfier.
-predict.bn.naive = function(object, data, prior, ...) {
+predict.bn.naive = function(object, data, prior, ..., debug = FALSE) {
 
   # check the data are there.
   check.data(data)
@@ -94,7 +95,7 @@ predict.bn.naive = function(object, data, prior, ...) {
   prior = check.prior(prior, data[, training])
   # compute the predicted values.
   naive.classifier(training = training, fitted = fitted, data = data,
-    prior = prior)
+    prior = prior, debug = debug)
 
 }#PREDICT.BN.NAIVE
 
