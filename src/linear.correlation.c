@@ -2,60 +2,68 @@
 
 static SEXP cov2(SEXP data, SEXP length);
 
-/* Linear Correlation. */
-SEXP fast_cor(SEXP x, SEXP y, SEXP length) {
+/* Linear Correlation, to be used in C code. */
+double c_fast_cor(double *xx, double *yy, int *num) {
 
-int i = 0, *n = INTEGER(length);
-double *sum = NULL, *xx = REAL(x), *yy = REAL(y);
-double xm = 0, ym = 0, xsd = 0, ysd = 0;
-SEXP res;
-
-  PROTECT(res = allocVector(REALSXP, 1));
-  sum = REAL(res);
-  *sum = 0;
+int i = 0;
+double xm = 0, ym = 0, xsd = 0, ysd = 0, sum = 0;
+double tol = MACHINE_TOL;
 
   /* compute the mean values.  */
-  for (i = 0 ; i < *n; i++) {
+  for (i = 0 ; i < *num; i++) {
 
     xm += xx[i];
     ym += yy[i];
 
   }/*FOR*/
 
-  xm /= (*n);
-  ym /= (*n);
+  xm /= (*num);
+  ym /= (*num);
 
   /* compute the actual covariance. */
-  for (i = 0; i < *n; i++) {
+  for (i = 0; i < *num; i++) {
 
-    *sum += (xx[i] - xm) * (yy[i] - ym);
+    sum += (xx[i] - xm) * (yy[i] - ym);
     xsd += (xx[i] - xm) * (xx[i] - xm);
     ysd += (yy[i] - ym) * (yy[i] - ym);
 
   }/*FOR*/
 
   /* safety check against "divide by zero" errors. */
-  if (xsd == 0 || ysd == 0)
-    *sum = 0;
+  if (fabs(xsd) < tol || fabs(ysd) < tol)
+    sum = 0;
   else
-    *sum /= sqrt(xsd) * sqrt(ysd);
+    sum /= sqrt(xsd) * sqrt(ysd);
 
   /* double check that the coefficient is in the [-1, 1] range. */
-  if (*sum > 1) {
+  if (sum > 1) {
 
     warning("fixed correlation coefficient greater than 1, probably due to floating point errors.");
 
-    *sum = 1;
+    sum = 1;
 
   }/*THEN*/
-  else if (*sum < -1) {
+  else if (sum < -1) {
 
     warning("fixed correlation coefficient lesser than -1, probably due to floating point errors.");
 
-    *sum = -1;
+    sum = -1;
 
   }/*ELSE*/
 
+  return sum;
+
+}/*C_FAST_COR*/
+
+/* Linear Correlation. */
+SEXP fast_cor(SEXP x, SEXP y, SEXP length) {
+
+int *n = INTEGER(length);
+double *xx = REAL(x), *yy = REAL(y);
+SEXP res;
+
+  PROTECT(res = allocVector(REALSXP, 1));
+  NUM(res) = c_fast_cor(xx, yy, n);
   UNPROTECT(1);
 
   return res;
@@ -104,7 +112,7 @@ SEXP result, cov, svd;
   res = REAL(result);
 
   /* safety check against "divide by zero" errors. */
-  if (k11 == 0 || k22 == 0)
+  if (fabs(k11) < tol || fabs(k22) < tol)
     *res = 0;
   else
     *res = -k12 / sqrt(k11 * k22);

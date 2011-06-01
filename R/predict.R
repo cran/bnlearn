@@ -51,7 +51,7 @@ discrete.prediction = function(node, fitted, data, debug = FALSE) {
     if (length(parents) == 1)
       config = minimal.data.frame.column(data, parents)
     else
-      config = raw.configurations(minimal.data.frame.column(data, parents))
+      config = configurations(minimal.data.frame.column(data, parents), factor = FALSE)
 
     .Call("cdpred",
           fitted = fitted[[node]],

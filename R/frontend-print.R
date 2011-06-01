@@ -22,6 +22,8 @@ print.bn = function(x, ...) {
     cat("\n  Bayesian network learned via Score-based methods\n\n")
   else if (x$learning$algo %in% hybrid.algorithms)
     cat("\n  Bayesian network learned via Hybrid methods\n\n")
+  else if (x$learning$algo %in% mim.based.algorithms)
+    cat("\n  Bayesian network learned via Pairwise Mutual Information methods\n\n")
   else
     cat("\n  Bayesian network learned via [unknown] methods\n\n")
 
@@ -45,7 +47,7 @@ print.bn = function(x, ...) {
 
   cat("\n")
 
-  if (x$learning$test != "none") {
+  if (!(x$learning$algo %in% graph.generation.algorithms)) {
 
     wcat("  learning algorithm:                   ", method.labels[x$learning$algo])
 
@@ -55,8 +57,19 @@ print.bn = function(x, ...) {
       wcat("  score:                                ", score.labels[x$learning$test])
     else if (x$learning$algo %in% hybrid.algorithms) {
 
-      wcat("  constraint-based method:              ", method.labels[x$learning$restrict])
-      wcat("  conditional independence test:        ", test.labels[x$learning$rstest])
+      if (x$learning$restrict %in% constraint.based.algorithms) {
+
+        wcat("  constraint-based method:              ", method.labels[x$learning$restrict])
+        wcat("  conditional independence test:        ", test.labels[x$learning$rstest])
+
+      }#THEN
+      else if (x$learning$restrict %in% mim.based.algorithms) {
+
+        wcat("  pairwise mutual information method:   ", method.labels[x$learning$restrict])
+        wcat("  mutual information estimator:         ", format(mi.estimator.labels[x$learning$args$estimator]))
+
+      }#THEN
+
       wcat("  score-based method:                   ", method.labels[x$learning$maximize])
       wcat("  score:                                ", score.labels[x$learning$maxscore])
 
@@ -72,9 +85,13 @@ print.bn = function(x, ...) {
       wcat("  phi matrix structure:                 ", x$learning$args$phi)
     if ("k" %in% params)
       wcat("  penalization coefficient:             ", format(x$learning$args$k))
+    if (("estimator" %in% params) && (x$learning$algo %in% mim.based.algorithms))
+      wcat("  mutual information estimator:         ", format(mi.estimator.labels[x$learning$args$estimator]))
 
     wcat("  tests used in the learning procedure: ", x$learning$ntests)
-    wcat("  optimized:                            ", x$learning$optimized)
+
+    if (!is.null(x$learning$optimized))
+      wcat("  optimized:                            ", x$learning$optimized)
 
   }#THEN
   else {

@@ -1,5 +1,6 @@
 \name{bn.fit}
 \alias{bn.fit}
+\alias{bn.net}
 \title{ Fit the parameters of a Bayesian network }
 \description{
 
@@ -9,6 +10,7 @@
 }
 \usage{
 bn.fit(x, data, method = "mle", \dots, debug = FALSE)
+bn.net(x, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
@@ -20,6 +22,13 @@ bn.fit(x, data, method = "mle", \dots, debug = FALSE)
     see below.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
     is printed; otherwise the function is completely silent.}
+}
+\details{
+
+  \code{bn.fit} fits the parameters of a Bayesian network given its
+  structure and a data set; \code{bn.net} returns the network structure
+  underlying a fitted network.
+
 }
 \note{
 
@@ -36,8 +45,9 @@ bn.fit(x, data, method = "mle", \dots, debug = FALSE)
 }
 \value{
 
-  An object of class \code{bn.fit}. See \code{\link{bn.fit class}} for
-  details.
+  \code{bn.fit} returns an object of class \code{bn.fit}, \code{bn.net}
+  an object of class \code{bn}. See \code{\link{bn class}} and
+  \code{\link{bn.fit class}} for details.
 
 }
 \seealso{

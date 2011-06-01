@@ -58,15 +58,33 @@ mmpc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 }#MMPC
 
+# ARACNE frontend.
+aracne = function(x, whitelist = NULL, blacklist = NULL, mi = NULL,
+    debug = FALSE) {
+
+  mi.matrix(x = x, whitelist = whitelist, blacklist = blacklist,
+    method = "aracne", mi = mi, debug = debug)
+
+}#ARACNE
+
+# Chow-Liu algorithm.
+chow.liu  = function(x, whitelist = NULL, blacklist = NULL, mi = NULL,
+    debug = FALSE) {
+
+  mi.matrix(x = x, whitelist = whitelist, blacklist = blacklist,
+    method = "chow.liu", mi = mi, debug = debug)
+
+}#CHOW.LIU
+
 # Hill Climbing greedy search frontend.
 hc = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     score = NULL, ..., debug = FALSE, restart = 0, perturb = 1,
     max.iter = Inf, optimized = TRUE) {
 
   greedy.search(x = x, start = start, whitelist = whitelist,
-    blacklist = blacklist, score = score, heuristic = "hc", ...,
-    debug = debug, misc.args = list(restart = restart, perturb = perturb,
-    max.iter = max.iter), optimized = optimized)
+    blacklist = blacklist, score = score, heuristic = "hc",
+    debug = debug, expand = c(list(...), restart = restart,
+    perturb = perturb, max.iter = max.iter), optimized = optimized)
 
 }#HC
 
@@ -76,9 +94,9 @@ tabu = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     max.iter = Inf, optimized = TRUE) {
 
   greedy.search(x = x, start = start, whitelist = whitelist,
-    blacklist = blacklist, score = score, heuristic = "tabu", ...,
-    debug = debug, misc.args = list(max.iter = max.iter, tabu = tabu,
-    max.tabu = max.tabu), optimized = optimized)
+    blacklist = blacklist, score = score, heuristic = "tabu",
+    debug = debug, expand = c(list(...), max.iter = max.iter,
+    tabu = tabu, max.tabu = max.tabu), optimized = optimized)
 
 }#TABU
 
@@ -88,10 +106,13 @@ rsmax2 = function(x, whitelist = NULL, blacklist = NULL, restrict = "gs",
     ..., maximize.args = list(), optimized = TRUE, strict = FALSE,
     debug = FALSE) {
 
+  restrict.args = list(test = test, alpha = alpha, B = B, strict = strict)
+  maximize.args = list(...)
+
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
-    restrict = restrict, maximize = maximize, test = test, score = score,
-    alpha = alpha, B = B, ..., maximize.args = maximize.args,
-    optimized = optimized, strict = strict, debug = debug)
+    restrict = restrict, maximize = maximize, score = score,
+    restrict.args = restrict.args, maximize.args = maximize.args,
+    optimized = optimized, debug = debug)
 
 }#RSHC
 
@@ -100,13 +121,13 @@ mmhc = function(x, whitelist = NULL, blacklist = NULL, test = NULL,
     score = NULL, alpha = 0.05, B = NULL, ..., restart = 0, perturb = 1,
     max.iter = Inf, optimized = TRUE, strict = FALSE, debug = FALSE) {
 
-  max.args = list(restart = restart, perturb = perturb, max.iter = max.iter)
+  restrict.args = list(test = test, alpha = alpha, B = B, strict = strict)
+  maximize.args = c(list(...), restart = restart,
+                   perturb = perturb, max.iter = max.iter)
 
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
-    restrict = "mmpc", maximize = "hc", test = test, score = score,
-    alpha = alpha, B = B, ..., maximize.args = max.args,
-    optimized = optimized, strict = strict,
-    debug = debug)
+    restrict = "mmpc", maximize = "hc", restrict.args = restrict.args,
+    maximize.args = maximize.args, score = score, optimized = optimized, debug = debug)
 
 }#MMHC
 

@@ -1,19 +1,12 @@
 
 #include "common.h"
 
-/* unconditional mutual information, to be used for the asymptotic test. */
-SEXP mi (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
+/* unconditional mutual information, to be used in C code. */
+double c_mi (int *xx, int *llx, int *yy, int *lly, int *num) {
 
-int i = 0, j = 0, k = 0, **n = NULL, *ni = NULL, *nj = NULL;
-int *llx = INTEGER(lx), *lly = INTEGER(ly), *num = INTEGER(length);
-int *xx = INTEGER(x), *yy = INTEGER(y);
-double *res = NULL;
-SEXP result;
-
-  /* allocate and initialize result to zero. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
-  *res = 0;
+int i = 0, j = 0, k = 0;
+int  **n = NULL, *ni = NULL, *nj = NULL;
+double res = 0;
 
   /* initialize the contingency table and the marginal frequencies. */
   n = alloc2dcont(*llx, *lly);
@@ -41,13 +34,24 @@ SEXP result;
     for (j = 0; j < *lly; j++) {
 
       if (n[i][j] != 0)
-        *res += ((double)n[i][j]) *
+        res += ((double)n[i][j]) *
            log((double)n[i][j]*(*num)/(double)(ni[i]*nj[j]));
 
     }/*FOR*/
 
-  *res = (*res)/(*num);
+  return (res)/(*num);
 
+}/*C_MI*/
+
+/* unconditional mutual information, to be used for the asymptotic test. */
+SEXP mi (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
+
+int *llx = INTEGER(lx), *lly = INTEGER(ly), *num = INTEGER(length);
+int *xx = INTEGER(x), *yy = INTEGER(y);
+SEXP result;
+
+  PROTECT(result = allocVector(REALSXP, 1));
+  NUM(result) = c_mi(xx, llx, yy, lly, num);
   UNPROTECT(1);
 
   return result;
@@ -116,3 +120,26 @@ SEXP result;
 
 }/*CMI*/
 
+/* unconditional Gaussian mutual information, to be used in C code. */
+double c_mig(double *xx, double *yy, int *num) {
+
+double cor = c_fast_cor(xx, yy, num);
+
+  return - 0.5 * log(1 - cor * cor);
+
+}/*C_MIG*/
+
+/* unconditional Gaussian mutual information, to be used in the asymptotic test. */
+SEXP mig(SEXP x, SEXP y, SEXP length) {
+
+double *xx = REAL(x), *yy = REAL(y);
+int *num = INTEGER(length);
+SEXP result;
+
+  PROTECT(result = allocVector(REALSXP, 1));
+  NUM(result) = c_mig(xx, yy, num);
+  UNPROTECT(1);
+
+  return result;
+
+}/*MIG*/

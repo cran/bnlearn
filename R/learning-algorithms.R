@@ -1,5 +1,5 @@
 
-# Parameter sanitization for constraint-based learning algorithms.
+# constraint-based learning algorithms.
 bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = "mi", alpha = 0.05, B = NULL, method = "gs", debug = FALSE,
     optimized = TRUE, strict = TRUE, undirected = FALSE) {
@@ -211,10 +211,9 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 }#BNLEARN
 
-# Parameter sanitization for score-based learning algorithms.
+# score-based learning algorithms.
 greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
-    score = "aic", heuristic = "hc", ..., misc.args = list(),
-    optimized = FALSE, debug = FALSE) {
+    score = "aic", heuristic = "hc", expand, optimized = FALSE, debug = FALSE) {
 
   # check the data are there.
   check.data(x)
@@ -224,6 +223,12 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   score = check.score(score, x)
   # check debug.
   check.logical(debug)
+
+  # check unused arguments in misc.args.
+  misc.args = expand[names(expand) %in% method.extra.args[[heuristic]]]
+  extra.args = expand[names(expand) %in% score.extra.args[[score]]]
+  check.unused.args(expand, c(method.extra.args[[heuristic]], score.extra.args[[score]]))
+
   # expand and check the max.iter parameter (common to all algorithm)
   max.iter = check.max.iter(misc.args$max.iter)
 
@@ -243,9 +248,6 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     max.tabu = check.max.tabu(misc.args$max.tabu, tabu)
 
   }#THEN
-
-  # check unused arguments in misc.args.
-  check.unused.args(misc.args, method.extra.args[[heuristic]])
 
   # sanitize whitelist and blacklist, if any.
   whitelist = build.whitelist(whitelist, names(x))
@@ -288,9 +290,9 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   if (!is.acyclic.backend(start$arcs, names(start$nodes), directed = TRUE))
     stop("the preseeded graph contains cycles.")
 
-  # expand and sanitize score-specific arguments.
+  # sanitize score-specific arguments.
   extra.args = check.score.args(score = score, network = start,
-                 data = x, extra.args = list(...))
+                 data = x, extra.args = extra.args)
 
   # create the test counter in .GlobalEnv.
   assign(".test.counter", 0, envir = .GlobalEnv)
@@ -322,15 +324,15 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
 }#GREEDY.SEARCH
 
-# Parameter sanitization for hybrid learning algorithms.
-hybrid.search = function(x, whitelist = NULL, blacklist = NULL, restrict = "mmpc",
-    maximize = "hc", test = NULL, score = NULL, alpha = 0.05, B = NULL, ...,
-    maximize.args = list(), optimized = TRUE, strict = FALSE, debug = FALSE) {
+# hybrid learning algorithms.
+hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
+    restrict = "mmpc", maximize = "hc", restrict.args = list(), score = NULL,
+    maximize.args = list(), optimized = TRUE, debug = FALSE) {
 
   nodes = names(x)
 
   # check the restrict and maximize parameters.
-  check.learning.algorithm(restrict, class = "constraint")
+  check.learning.algorithm(restrict, class = c("constraint", "mim"))
   check.learning.algorithm(maximize, class = "score")
   # choose the right method for the job.
   method = ifelse((restrict == "mmpc") && (maximize == "hc"), "mmhc", "rsmax2")
@@ -343,9 +345,20 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL, restrict = "mmpc
   }#THEN
 
   # restrict phase
-  rst = bnlearn(x, cluster = NULL, whitelist = whitelist, blacklist = blacklist,
-          test = test, alpha = alpha, B = B, method = restrict, debug = debug,
-          optimized = optimized, strict = strict, undirected = TRUE)
+  if (restrict %in% constraint.based.algorithms) {
+
+    rst = bnlearn(x, cluster = NULL, whitelist = whitelist, blacklist = blacklist,
+            test = restrict.args$test, alpha = restrict.args$alpha,
+            B = restrict.args$B, method = restrict, debug = debug,
+            optimized = optimized, strict = restrict.args$strict, undirected = TRUE)
+
+  }#THEN
+  else if (restrict %in% mim.based.algorithms) {
+
+    rst = mi.matrix(x, whitelist = whitelist, blacklist = blacklist,
+            method = restrict, mi = restrict.args$mi, debug = debug)
+
+  }#THEN
 
   # transform the constraints learned during the restrict phase in a blacklist
   # which will be used in the maximize phase.
@@ -364,7 +377,7 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL, restrict = "mmpc
 
   # maximize phase
   res = greedy.search(x, start = NULL, whitelist = whitelist, blacklist = constraints,
-          score = score, heuristic = maximize, ..., misc.args = maximize.args,
+          score = score, heuristic = maximize, expand = maximize.args,
           optimized = optimized, debug = debug)
 
   # set the metadata of the network in one stroke.
@@ -378,6 +391,54 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL, restrict = "mmpc
   invisible(res)
 
 }#HYBRID.SEARCH
+
+# learning algorithm based on the mutual information matrix.
+mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
+    debug = FALSE) {
+
+  # check the data are there.
+  check.data(x)
+  # check the algorithm.
+  check.learning.algorithm(method, class = "mim")
+  # check debug.
+  check.logical(debug)
+  # check the label of the mutual information estimator.
+  estimator = check.mi.estimator(mi, x)
+  # sanitize whitelist and blacklist, if any.
+  nodes = names(x)
+  nnodes = length(nodes)
+  whitelist = build.whitelist(whitelist, nodes)
+  blacklist = build.blacklist(blacklist, whitelist, nodes)
+
+  assign(".test.counter", nnodes * (nnodes - 1) / 2, envir = .GlobalEnv)
+
+  if (method == "aracne") {
+
+    arcs = aracne.backend(x = x, estimator = match(estimator, available.mi),
+             whitelist = whitelist, blacklist = blacklist, debug = debug)
+
+  }#THEN
+  else if (method == "chow.liu") {
+
+    arcs = chow.liu.backend(x = x, estimator = match(estimator, available.mi),
+             whitelist = whitelist, blacklist = blacklist, debug = debug)
+
+  }#THEN
+
+  res = empty.graph(nodes)
+  # update the arcs of the network.
+  res$arcs = arcs
+  # update the network structure.
+  res$nodes = cache.structure(nodes, arcs = arcs)
+  # set the metadata of the network in one stroke.
+  res$learning = list(whitelist = whitelist, blacklist = blacklist,
+    test = mi.estimator.tests[estimator], alpha = 0.05,
+    ntests = get(".test.counter", envir = .GlobalEnv), algo = method,
+    args = list(estimator = estimator), optimized = NULL)
+
+  invisible(res)
+
+}#MI.MATRIX
 
 # learn the markov blanket of a single node.
 mb.backend = function(x, node, method, whitelist = NULL, blacklist = NULL,

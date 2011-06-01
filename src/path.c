@@ -388,3 +388,72 @@ there:
 
 }/*C_DIRECTED_PATH*/
 
+int c_uptri3_path(short int *uptri, int from, int to, int nnodes, SEXP nodes, int debuglevel) {
+
+int i = 0, j = 0, d = 0, *depth = NULL;
+
+  depth = alloc1dcont(nnodes);
+
+  depth[from] = 1;
+
+  /* for each depth level... */
+  for (d = 1; d <= nnodes; d++) {
+
+    if (debuglevel)
+      Rprintf("* considering depth %d.\n", d);
+
+    /* ... for each node... */
+    for (i = 0; i < nnodes; i++) {
+
+      /* ... if it is at the current depth level... */
+      if (depth[i] != d)
+        continue;
+
+      if (debuglevel)
+        Rprintf("  > found node %s.\n", NODE(i));
+
+      for (j = 0; j < nnodes; j++) {
+
+        /* ... and it is adjacent to another node... */
+        if (!(uptri[UPTRI3(i + 1, j + 1, nnodes)] == 1) || (i == j))
+          continue;
+
+        /* ... that hasn't already been visited... */
+        if (depth[j] != 0) {
+
+          if (debuglevel)
+            Rprintf("  @ node '%s' already visited, skipping.\n", NODE(j));
+    
+          continue;
+
+        }/*THEN*/
+
+        if (j == to) {
+
+          /* ... and it's the destination, exit. */
+          if (debuglevel)
+            Rprintf("  @ arrived at node %s, exiting.\n", NODE(to));
+
+          return TRUE;
+
+        }/*THEN*/
+        else {
+
+          /* ...and it's not the destination, add it to the next depth level. */
+          depth[j] = d + 1;
+
+        }/*ELSE*/
+
+        if (debuglevel)
+          Rprintf("  > added node %s at depth %d\n", NODE(j), d + 1);
+
+      }/*FOR*/
+
+    }/*FOR*/
+
+  }/*FOR*/
+
+  return FALSE;
+
+}/*HAS_UPTRI3_PATH*/
+

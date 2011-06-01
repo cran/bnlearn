@@ -197,6 +197,7 @@ SEXP fast_shcor(SEXP x, SEXP y, SEXP length) {
 int i = 0, *n = INTEGER(length);
 double *sum = NULL, *xx = REAL(x), *yy = REAL(y);
 double xm = 0, ym = 0, xsd = 0, ysd = 0, lambda = 0;
+double tol = MACHINE_TOL;
 SEXP res;
 
   PROTECT(res = allocVector(REALSXP, 1));
@@ -251,7 +252,7 @@ SEXP res;
   }/*THEN*/
 
   /* safety check against "divide by zero" errors. */
-  if (xsd == 0 || ysd == 0)
+  if (fabs(xsd) < tol || fabs(ysd) < tol)
     *sum = 0;
   else
     *sum *= (1 - lambda) / (sqrt(xsd) * sqrt(ysd));

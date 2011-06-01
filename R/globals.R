@@ -13,12 +13,18 @@ available.scores = c(available.discrete.scores, available.continuous.scores)
 
 score.equivalent.scores = c("loglik", "aic", "bic", "bde", "bge", "loglik-g", "aic-g", "bic-g")
 
+available.discrete.mi = c("mi")
+available.continuous.mi = c("mi-g")
+available.mi = c(available.discrete.mi, available.continuous.mi)
+
 markov.blanket.algorithms = c("gs", "iamb", "fast.iamb", "inter.iamb")
 local.search.algorithms = c("mmpc")
 constraint.based.algorithms = c(markov.blanket.algorithms, local.search.algorithms)
 score.based.algorithms = c("hc", "tabu")
 hybrid.algorithms = c("rsmax2", "mmhc")
-available.learning.algorithms = c(constraint.based.algorithms, score.based.algorithms, hybrid.algorithms)
+mim.based.algorithms = c("chow.liu", "aracne")
+available.learning.algorithms = c(constraint.based.algorithms, score.based.algorithms,
+  hybrid.algorithms, mim.based.algorithms)
 
 always.dag.result = c(score.based.algorithms, hybrid.algorithms)
 
@@ -34,7 +40,9 @@ method.labels = c(
   'tabu' = "Tabu Search",
   'mmpc' = "Max-Min Parent Children",
   'rsmax2' = "Two-Phase Restricted Maximization",
-  'mmhc' = "Max-Min Hill-Climbing"
+  'mmhc' = "Max-Min Hill-Climbing",
+  'aracne' = "ARACNE",
+  'chow.liu' = "Chow-Liu"
 )
 
 method.extra.args = list(
@@ -83,6 +91,16 @@ score.extra.args = list(
   "aic-g" = "k",
   "bic-g" = "k"
 
+)
+
+mi.estimator.labels = c(
+  'mi' = "Maximum Likelihood (discrete)",
+  'mi-g' = "Maximum Likelihood (Gaussian)"
+)
+
+mi.estimator.tests = c(
+  'mi' = "mi",
+  'mi-g' = "mi-g"
 )
 
 graph.generation.algorithms = c("ordered", "ic-dag", "melancon", "empty", "naive")

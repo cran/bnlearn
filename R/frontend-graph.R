@@ -149,7 +149,14 @@ pdag2dag = function(x, ordering) {
   check.nodes(ordering, graph = x, min.nodes = length(x$nodes),
     max.nodes = length(x$nodes))
 
-  pdag2dag.backend(x, ordering)
+  arcs = pdag2dag.backend(x$arcs, ordering)
+
+  # update the arcs of the network.
+  x$arcs = arcs
+  # update the network structure.
+  x$nodes = cache.structure(nodes = names(x$nodes), arcs = arcs)
+
+  return(x)
 
 }#PDAG2DAG
 

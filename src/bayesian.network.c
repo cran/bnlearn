@@ -1,9 +1,5 @@
 #include "common.h"
 
-/* macro for the number of levels of the j-th node. */
-#define BNLEARN_NLEVELS(j) \
-  LENGTH(getAttrib(VECTOR_ELT(data, j), R_LevelsSymbol))
-
 /* get the number of parameters of the whole network (discrete case). */
 SEXP nparams_dnet(SEXP graph, SEXP data, SEXP real, SEXP debug) {
 
@@ -21,7 +17,7 @@ SEXP nodes, node_data, parents, try, result;
   /* get the level count for each node. */
   nlevels = alloc1dreal(nnodes);
   for (i = 0; i < nnodes; i++)
-    nlevels[i] = BNLEARN_NLEVELS(i);
+    nlevels[i] = NLEVELS(data, i);
 
   /* allocate and initialize the return value. */
   PROTECT(result = allocVector(REALSXP, 1));
@@ -95,7 +91,7 @@ SEXP temp, names, result;
       /* this is a parent. */
       if (!strcmp(CHAR(STRING_ELT(names, i)), CHAR(STRING_ELT(temp, j)))) {
 
-        *nlevels *= BNLEARN_NLEVELS(i);
+        *nlevels *= NLEVELS(data, i);
 
       }/*THEN*/
 
@@ -104,7 +100,7 @@ SEXP temp, names, result;
     /* this is the node. */
     if (!strcmp(CHAR(STRING_ELT(names, i)), CHAR(STRING_ELT(node, 0)))) {
 
-      *nlevels *= BNLEARN_NLEVELS(i) - 1 * (*r);
+      *nlevels *= NLEVELS(data, i) - 1 * (*r);
 
     }/*THEN*/
 
@@ -312,15 +308,12 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash, result;
   /* fourth check:  arcs sets must contain the same arcs. */
   if (narcs > 0) {
 
-    /* compute the numeric hash of the arcs. */
-    PROTECT(thash = arc_hash(tarcs, tnodes));
-    PROTECT(chash = arc_hash(carcs, cnodes));
+    /* compute the numeric hash of the arcs and sort them. */
+    PROTECT(thash = arc_hash(tarcs, tnodes, FALSE, TRUE));
+    PROTECT(chash = arc_hash(carcs, cnodes, FALSE, TRUE));
     /* dereference the resulting integer vectors. */
     t = INTEGER(thash);
     c = INTEGER(chash);
-    /* sort them. */
-    R_isort(t, narcs);
-    R_isort(c, narcs);
  
     /* compare the integer vectors as generic memory areas. */
     if (memcmp(t, c, narcs * sizeof(int))) {

@@ -98,7 +98,7 @@ arc.strength.score = function(network, data, score, extra, debug) {
 }#ARC.STRENGTH.SCORE
 
 # compute arcs' strength as the relative frequency in boostrapped networks.
-arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, debug) {
+arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, cpdag, debug) {
 
   # allocate and initialize an empty adjacency matrix.
   prob = matrix(0, ncol = ncol(data), nrow = ncol(data))
@@ -119,6 +119,10 @@ arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, debug)
 
     # learn the network structure from the bootstrap sample.
     net = do.call(algorithm, c(list(x = replicate), algorithm.args))
+
+    # switch to the equivalence class if asked to.
+    if (cpdag)
+      net = cpdag(net)
 
     if (debug) {
 
@@ -150,18 +154,39 @@ arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, debug)
 
 }#ARC.STRENGTH.BOOT
 
-# convert an arc strength object to the corresponding line widths for plotting.
-strength2lwd = function(strength, threshold, cutpoints, debug = TRUE) {
+# match arc sets and strength coefficients.
+match.arcs.and.strengths = function(arcs, nodes, strengths) {
 
-  s = strength[, "strength"]
-  mode = attr(strength, "mode")
+  if (nrow(strengths) < nrow(arcs))
+    stop("insufficient number of strength coefficients.")
+
+  a_hash = interaction(arcs[, "from"], arcs[, "to"])
+  s_hash = interaction(strengths[, "from"], strengths[, "to"])
+
+  s = strengths[match(a_hash, s_hash), "strength"]
+
+  if (any(is.na(s))) {
+
+    missing = apply(arcs[is.na(s), ], 1, function(x) { paste(" (", x[1], ", ", x[2], ")", sep = "")  })
+
+    stop("the following arcs do not have a corresponding strength coefficients:",
+      missing, ".")
+
+  }#THEN
+
+  return(s)
+
+}#MATCH.ARCS.AND.STRENGTH
+
+# convert an arc strength object to the corresponding line widths for plotting.
+strength2lwd = function(strength, threshold, cutpoints, mode, arcs = NULL, debug = TRUE) {
 
   # sanitize user-defined cut points, if any.
   if (!missing(cutpoints)) {
 
     if (!is.numeric(cutpoints) || any(is.nan(cutpoints)))
       stop("cut points must be numerical values.")
-    if (length(s) <= length(cutpoints))
+    if (length(strength) <= length(cutpoints))
       stop("there are at least as many cut points as strength values.")
 
   }#THEN
@@ -170,7 +195,10 @@ strength2lwd = function(strength, threshold, cutpoints, debug = TRUE) {
 
     cat("* using threshold:", threshold, "\n")
     cat("* reported arc strength are:\n")
-    print(strength)
+    if (!is.null(arcs))
+      print(cbind(arcs, strength))
+    else
+      print(strength)
 
   }#THEN
 
@@ -179,7 +207,7 @@ strength2lwd = function(strength, threshold, cutpoints, debug = TRUE) {
     # bootstrap probabilities work like p-values, only reversed.
     if (mode == "bootstrap") {
 
-      s = 1 - s
+      strength = 1 - strength
       threshold = 1 - threshold
 
     }#THEN
@@ -191,7 +219,7 @@ strength2lwd = function(strength, threshold, cutpoints, debug = TRUE) {
       cutpoints = sort(cutpoints)
 
     # p-values are already scaled, so the raw quantiles are good cut points.
-    arc.weights = cut(s, cutpoints, labels = FALSE, include.lowest = TRUE)
+    arc.weights = cut(strength, cutpoints, labels = FALSE, include.lowest = TRUE)
 
     arc.weights = length(cutpoints) - arc.weights
 
@@ -202,20 +230,20 @@ strength2lwd = function(strength, threshold, cutpoints, debug = TRUE) {
     # the better); change their sign (and that of the threshold)
     # for simplicity
     threshold = -threshold
-    s = -s
+    strength = -strength
 
     # define a set of cut points using the quantiles from the empirical
     # distribution of the negative score deltas (that is, the ones
     # corresponding to significant arcs) or use user-defined ones.
     if (missing(cutpoints)) {
 
-      significant = s[s > threshold]
+      significant = strength[strength > threshold]
       q = quantile(significant, c(0.50, 0.75, 0.90, 0.95, 1), names = FALSE)
       cutpoints = sort(c(-Inf, threshold, unique(q), Inf))
 
     }#THEN
 
-    arc.weights = cut(s, cutpoints, labels = FALSE)
+    arc.weights = cut(strength, cutpoints, labels = FALSE)
 
   }#THEN
 
@@ -240,7 +268,7 @@ strength2lwd = function(strength, threshold, cutpoints, debug = TRUE) {
 
 # compute arcs' strength as the relative frequency in a custom list of
 # network structures/arc sets.
-arc.strength.custom = function(custom.list, nodes, arcs, debug) {
+arc.strength.custom = function(custom.list, nodes, arcs, cpdag, debug) {
 
   # allocate and initialize an empty adjacency matrix.
   prob = matrix(0, ncol = length(nodes), nrow = length(nodes))
@@ -261,6 +289,9 @@ arc.strength.custom = function(custom.list, nodes, arcs, debug) {
       net.arcs = custom.list[[r]]$arcs
     else
       net.arcs = custom.list[[r]]
+
+    if (cpdag)
+      net.arcs = cpdag.arc.backend(nodes, net.arcs)
 
     # update the counters in the matrix: undirected arcs are counted half
     # for each direction, so that when summing up strength and direction

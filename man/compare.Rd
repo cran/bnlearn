@@ -2,11 +2,13 @@
 \alias{compare}
 \alias{all.equal.bn}
 \alias{shd}
+\alias{hamming}
 \title{ Compare two different Bayesian networks }
 \description{
 
- Compare two different Bayesian networks or compute the Structural
- Hamming Distance (SHD) between them.
+ Compare two different Bayesian networks; compute the Structural
+ Hamming Distance (SHD) between them or the Hamming distance
+ between their skeletons.
 
 }
 \usage{
@@ -14,6 +16,7 @@ compare(target, current, debug = FALSE)
 \method{all.equal}{bn}(target, current, ...)
 
 shd(learned, true, debug = FALSE)
+hamming(learned, true, debug = FALSE)
 }
 \arguments{
   \item{target, learned}{an object of class \code{bn}.}

@@ -79,32 +79,15 @@ smaller = function(a, b) {
 
 }#SMALLER
 
-# build an array containing the (factor) configurations of the variables.
-configurations = function(data) {
+# build an array containing the configurations of the variables.
+configurations = function(data, factor = TRUE) {
 
   .Call("cfg2",
         data = data,
+        factor = factor,
         PACKAGE = "bnlearn")
 
 }#CONFIGURATIONS
-
-# build an array containing the raw (integer) configurations of the variables.
-raw.configurations = function(data) {
-
-  .Call("cfg",
-        data = data,
-        PACKAGE = "bnlearn") + 1L
-
-}#RAW.CONFIGURATIONS
-
-# collapse a multi-dimensional table in a bi-dimensional one.
-collapse.table = function(tab) {
-
-  .Call("collapse_table",
-        table = tab,
-        PACKAGE = "bnlearn")
-
-}#COLLAPSE.TABLE
 
 # rbind-like function for arc sets.
 arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {

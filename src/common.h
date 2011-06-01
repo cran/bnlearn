@@ -12,6 +12,10 @@
 #define NUM(x) REAL(x)[0]
 #define NODE(i) CHAR(STRING_ELT(nodes, i))
 
+/* macro for the number of levels of the [,j] column. */
+#define NLEVELS(data, j) \
+  LENGTH(getAttrib(VECTOR_ELT(data, j), R_LevelsSymbol))
+
 /* coordinate systems conversion matrices */
 
 /*
@@ -38,6 +42,7 @@
 /* coordinate system for an upper triangular matrix (not including
  * the diagonal elements). */
 #define UPTRI3(r, c, n) (UPTRI(r, c, n) - ((r > c) ? c : r))
+void INV_UPTRI3(int x, int n, int *res);
 
 /* dimension of the upper triangular part of a n x n matrix. */
 #define UPTRI_MATRIX(n) (n) * ((n) + 1) / 2
@@ -56,6 +61,8 @@ SEXP unique(SEXP array);
 SEXP dupe(SEXP array);
 int which_max(double *array, int length);
 SEXP finalize_arcs(SEXP arcs); 
+SEXP minimal_data_frame(SEXP obj);
+SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop);
 
 /* from sampling.c */
 
@@ -83,6 +90,7 @@ double c_det(double *matrix, int *rows);
 
 /* from linear.correlation.c */
 
+double c_fast_cor(double *xx, double *yy, int *num);
 SEXP fast_pcor(SEXP data, SEXP length, SEXP shrinkage);
 
 /* from shrinkage.c */
@@ -95,15 +103,17 @@ int c_has_path(int start, int stop, int *amat, int n, SEXP nodes,
     int ugraph, int notdirect, int debuglevel);
 int c_directed_path(int start, int stop, int *amat, int n, SEXP nodes,
     int debuglevel);
+int c_uptri3_path(short int *uptri, int from, int to, int nnodes,
+    SEXP nodes, int debuglevel);
 
 /* from hash.c */
 
-SEXP arc_hash(SEXP arcs, SEXP nodes);
+SEXP arc_hash(SEXP arcs, SEXP nodes, int uptri, int sort);
 SEXP c_amat_hash(int *amat, int *nnodes);
 
 /* from configurations.c */
 
-SEXP cfg(SEXP parents);
+void cfg(SEXP parents, int *configurations);
 
 /* shared between hill climbing and tabu search. */
 
@@ -112,6 +122,19 @@ void bestop_update(SEXP bestop, char *op, const char *from, const char *to);
 /* from filter.arcs.c */
 
 SEXP c_unique_arcs(SEXP arcs, SEXP nodes, int warnlevel);
+
+/* from fitted.c */
+
+SEXP root_nodes(SEXP bn, SEXP leaves);
+
+/* from simulation.c */
+
+SEXP schedule(SEXP bn, SEXP root_nodes, SEXP debug);
+
+/* from mutual.information.c */
+
+double c_mi(int *xx, int *llx, int *yy, int *lly, int *num); 
+double c_mig(double *xx, double *yy, int *num); 
 
 /* memory allocation functions */
 

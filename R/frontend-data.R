@@ -12,10 +12,10 @@ discretize = function(x, method, breaks = 3, ..., debug = FALSE) {
     if (length(breaks) == 1) {
 
       # get an array of the correct length.
-      breaks = rep(breaks, ncol(data))
+      breaks = rep(breaks, ncol(x))
 
     }#THEN
-    else if (length(breaks) != ncol(data))
+    else if (length(breaks) != ncol(x))
       stop("the 'breaks' vector must have an element for each variable in the data.")
     if (!is.positive.vector(breaks))
       stop("the numbers of breaks must be positive integer numbers.")

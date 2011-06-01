@@ -289,3 +289,24 @@ SEXP dimnames, colnames;
 
 }/*FINALIZE_ARCS*/
 
+/* inverse function of the UPTRI3() macro. */
+void INV_UPTRI3(int x, int n, int *res) {
+
+int c = 0, r = 0, cn = n - 1;
+ 
+  for (r = 0; r < n; r++) {
+
+    if (x < cn) {
+      c = n - (cn - x);
+      break;
+    }
+    else
+      cn += n - (r + 2);
+
+  }/*FOR*/
+
+  res[0] = r; 
+  res[1] = c;
+
+}/*INV_UPTRI3*/
+

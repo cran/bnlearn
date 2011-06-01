@@ -51,7 +51,7 @@ SEXP result, try, node, dup;
     nrows = LENGTH(arcs)/2;
 
     /* match the node labels in the arc set. */
-    PROTECT(try = arc_hash(arcs, nodes));
+    PROTECT(try = arc_hash(arcs, nodes, FALSE, FALSE));
     /* check which are duplicated. */
     PROTECT(dup = duplicated(try, FALSE));
     checklist = INTEGER(dup);

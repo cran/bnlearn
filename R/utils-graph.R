@@ -150,25 +150,18 @@ dag2ug.backend = function(x, moral = FALSE, debug = FALSE) {
 }#DAG2UG.BACKEND
 
 # return a complete orientation of a graph.
-pdag2dag.backend = function(x, ordering) {
-
-  nodes = names(x$nodes)
+pdag2dag.backend = function(arcs, ordering) {
 
   arcs = .Call("pdag2dag",
-               arcs = x$arcs,
+               arcs = arcs,
                nodes = ordering,
                PACKAGE = "bnlearn")
 
   # check that the new graph is still acyclic.
-  if (!is.acyclic.backend(arcs = arcs, nodes = nodes, directed = TRUE))
+  if (!is.acyclic.backend(arcs = arcs, nodes = ordering, directed = TRUE))
     stop("this complete orientation of the graph is not acyclic.")
 
-  # update the arcs of the network.
-  x$arcs = arcs
-  # update the network structure.
-  x$nodes = cache.structure(nodes = names(x$nodes), arcs = arcs)
-
-  return(x)
+  return(arcs)
 
 }#PDAG2DAG.BACKEND
 
@@ -192,6 +185,19 @@ cpdag.backend = function(x, debug = FALSE) {
   return(x)
 
 }#CPDAG.BACKEND
+
+# reconstruct the arc set of the equivalence class of a network.
+cpdag.arc.backend = function(nodes, arcs, debug = FALSE) {
+
+  amat = .Call("cpdag",
+               arcs = arcs,
+               nodes = nodes,
+               debug = debug,
+               PACKAGE = "bnlearn")
+
+  return(amat2arcs(amat, nodes))
+
+}#CPDAG.ARCS.BACKEND
 
 # apply random arc operators to the graph.
 perturb.backend = function(network, iter, nodes, amat, whitelist,
@@ -276,7 +282,7 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
 
 }#PERTURB.BACKEND
 
-# structural hamming distance backend
+# structural hamming distance backend.
 structural.hamming.distance = function(learned, true, debug = FALSE) {
 
   .Call("shd",
@@ -286,6 +292,17 @@ structural.hamming.distance = function(learned, true, debug = FALSE) {
         PACKAGE = "bnlearn")
 
 }#STRUCTURAL.HAMMING.DISTANCE
+
+# hamming distance backend.
+hamming.distance = function(learned, true, debug = FALSE) {
+
+  .Call("shd",
+        learned = skeleton(learned),
+        golden = skeleton(true),
+        debug = debug,
+        PACKAGE = "bnlearn")
+
+}#HAMMING.DISTANCE
 
 # backend for extracting v-structures from a network.
 vstructures = function(x, arcs, debug = FALSE) {

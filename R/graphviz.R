@@ -22,6 +22,15 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
     stop("node shape must be a character string.")
   if (!(shape %in% node.shapes))
     stop(paste(c("valid node shapes are:", node.shapes), collapse = " "))
+  # sanitize arc weights.
+  if (!is.null(arc.weights)) {
+
+    if (!is.numeric(arc.weights))
+      stop("arc weights must be numeric values.")
+    if (length(arc.weights) != nrow(arcs))
+      stop("mismatch between the number of weights and the number of arcs.")
+
+  }#THEN
   # sanitize the highlighting parameters (to be saved in *RenderInfo()).
   if (!is.null(highlight) || length(highlight) > 0) {
 

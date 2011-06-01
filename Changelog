@@ -1,4 +1,18 @@
 
+bnlearn (2.5)
+
+  * reimplemented rbn.discrete() in C both for speed and to
+      get CPT indexing right this time.
+  * added bn.net() to complement bn.fit().
+  * changed the default value of the imaginary sample size to
+     10, which is a de facto standard in literature.
+  * implemented the ARACNE and Chow-Liu learning algorithms.
+  * improved robustness of correlation estimation.
+  * added a "cpdag" option to boot.strength().
+  * fixed bug in discretize().
+  * improved sanitization in graphviz.plot() and strength.plot().
+  * added Hamming distance.
+
 bnlearn (2.4)
 
   * reimplemented naive Bayes prediction in C for speed.

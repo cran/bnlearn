@@ -20,8 +20,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 2.4\cr
-    Date: \tab 2011-02-27\cr
+    Version: \tab 2.5\cr
+    Date: \tab 2011-06-01\cr
     License: \tab GPLv2 or later
 
   }

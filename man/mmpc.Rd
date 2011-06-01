@@ -1,18 +1,23 @@
 \name{local discovery algorithms}
 \alias{local discovery algorithms}
 \alias{mmpc}
+\alias{aracne}
+\alias{chow.liu}
 \title{ Local discovery structure learning algorithms }
 \description{
 
   Learn the underlying structure of a directed acyclic graph (DAG)
   from data using the Max-Min Parents and Children (MMPC)
-  constraint-based algorithm.
+  constraint-based algorithm. ARACNE learns an approximation
+  of that structure using pairwise mutual information coefficients.
 
 }
 \usage{
 mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
   optimized = TRUE, strict = FALSE)
+aracne(x, whitelist = NULL, blacklist = NULL, mi = NULL, debug = FALSE)
+chow.liu(x, whitelist = NULL, blacklist = NULL, mi = NULL, debug = FALSE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
@@ -25,6 +30,10 @@ mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   \item{blacklist}{a data frame with two columns (optionally labeled
      "from" and "to"), containing a set of arcs not to be included in
       the graph. }
+  \item{mi}{a character string, the estimator used for the pairwise
+      (i.e. unconditional) mutual information coefficients in the ARACNE
+      and Chow-Liu algorithms. Possible values are \code{mi} (discrete
+      mutual information) and \code{mi-g} (Gaussian mutual information).}
   \item{test}{a character string, the label of the conditional
       independence test to be used in the algorithm. If none is
       specified, the default test statistic is the \emph{mutual information}
@@ -59,6 +68,11 @@ mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   Tsamardinos I, Brown LE, Aliferis CF (2006). "The Max-Min Hill-Climbing
       Bayesian Network Structure Learning Algorithm". \emph{Machine Learning},
       \strong{65}(1), 31-78.
+
+  Margolin AA, Nemenman I, Basso K, Wiggins C, Stolovitzky G, Dalla Favera R,
+      Califano A (2006). "ARACNE: An Algorithm for the Reconstruction of
+      Gene Regulatory Networks in a Mammalian Cellular Context". \emph{BMC
+      Bioinformatics}, \strong{7}(Suppl 1):S7.
 
 }
 \author{ Marco Scutari }

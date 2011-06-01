@@ -64,6 +64,22 @@ shd = function(learned, true, debug = FALSE) {
 
 }#SHD
 
+# hamming distance and related quantities.
+hamming = function(learned, true, debug = FALSE) {
+
+  # check x's class.
+  check.bn(learned)
+  check.bn(true)
+  # check debug.
+  check.logical(debug)
+  # the two networks must have the same node set.
+  nodes = names(learned$nodes)
+  check.nodes(nodes, graph = true, min.nodes = length(nodes))
+
+  hamming.distance(learned = learned, true = true, debug = debug)
+
+}#HAMMING
+
 # get the whitelist used by the learning algorithm.
 whitelist = function(x) {
 

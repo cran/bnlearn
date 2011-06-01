@@ -14,9 +14,9 @@
 arc.strength(x, data, criterion = NULL, ..., debug = FALSE)
 # strength of all possible arcs, as learned from bootstrapped data.
 boot.strength(data, R = 200, m = nrow(data),
-  algorithm, algorithm.args = list(), debug = FALSE)
+  algorithm, algorithm.args = list(), cpdag = FALSE, debug = FALSE)
 # strength of all possible arcs, from a list of custom networks. 
-custom.strength(networks, nodes, debug = FALSE)
+custom.strength(networks, nodes, cpdag = FALSE, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
@@ -33,6 +33,10 @@ custom.strength(networks, nodes, debug = FALSE)
     possibilities.}
   \item{R}{a positive integer, the number of bootstrap replicates.}
   \item{m}{a positive integer, the size of each bootstrap replicate.}
+  \item{cpdag}{a boolean value. If \code{TRUE} the (PDAG of) the
+    equivalence class is used instead of the network structure
+    itself. It should make it easier to identify score-equivalent
+    arcs.}
   \item{algorithm}{a character string, the learning algorithm to be
     applied to the bootstrap replicates. Possible values are \code{gs},
     \code{iamb}, \code{fast.iamb}, \code{inter.iamb}, \code{mmpc},

@@ -409,7 +409,11 @@ cmc.test = function(x, y, z, ndata, samples, test) {
 # Mutual Information (gaussian data)
 mig.test = function(x, y, ndata, gsquare = TRUE) {
 
-  s = - 0.5 * log(1 - fast.cor(x, y, ndata)^2)
+  s = .Call("mig",
+      x = x,
+      y = y,
+      length = ndata,
+      PACKAGE = "bnlearn")
 
   ifelse(gsquare, 2 * ndata * s, s)
 

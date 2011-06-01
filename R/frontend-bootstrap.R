@@ -48,7 +48,7 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
 
 # compute arcs' strength via nonparametric bootstrap.
 boot.strength = function(data, R = 200, m = nrow(data),
-    algorithm, algorithm.args = list(), debug = FALSE) {
+    algorithm, algorithm.args = list(), cpdag = FALSE, debug = FALSE) {
 
   # check the data are there.
   check.data(data)
@@ -58,13 +58,16 @@ boot.strength = function(data, R = 200, m = nrow(data),
   m = check.bootsize(m, data)
   # check debug.
   check.logical(debug)
+  # check cpdag.
+  check.logical(cpdag)
   # check the learning algorithm.
   check.learning.algorithm(algorithm)
   # check the extra arguments for the learning algorithm.
   algorithm.args = check.learning.algorithm.args(algorithm.args)
 
   res = arc.strength.boot(data = data, R = R, m = m, algorithm = algorithm,
-          algorithm.args = algorithm.args, arcs = NULL, debug = debug)
+          algorithm.args = algorithm.args, arcs = NULL, cpdag = cpdag,
+          debug = debug)
 
   # add extra information for strength.plot().
   res = structure(res, mode = "bootstrap", threshold = 0.5, 
@@ -120,8 +123,8 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
     check.learning.algorithm(bn)
     # check whether it does return a DAG or not.
     if (!(bn %in% always.dag.result))
-      stop(paste("this learning algorithm may result in a partially",
-             "directed dag, which is not handled by parametric bootstrap."))
+      stop(paste("this learning algorithm may result in a partially directed",
+        "or undirected network, which is not handled by parameter fitting."))
     # check the extra arguments for the learning algorithm.
     algorithm.args = check.learning.algorithm.args(algorithm.args)
 

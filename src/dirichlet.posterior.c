@@ -39,7 +39,7 @@ SEXP result;
   /* initialize the contingency table. */
   n = alloc1dcont(*llx);
 
-  /* compute the joint frequency of x and y. */
+  /* compute the frequency table of x. */
   for (k = 0; k < *num; k++)
     n[xx[k] - 1]++;
 

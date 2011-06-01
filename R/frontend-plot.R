@@ -35,9 +35,14 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
   # check the strength threshold.
   threshold = check.threshold(threshold, strength)
 
+  # check and match the strength coefficients.
+  str = match.arcs.and.strengths(arcs = x$arcs, nodes = names(x$nodes),
+          strengths = strength)
+
   # compute arc weights from the bn.strength object.
-  arc.weights = strength2lwd(strength = strength, threshold = threshold,
-                  cutpoints = cutpoints, debug = debug)
+  arc.weights = strength2lwd(strength = str, threshold = threshold,
+                  cutpoints = cutpoints, mode = attr(strength, "mode"),
+                  arcs = x$arcs, debug = debug)
 
   graphviz.backend(nodes = names(x$nodes), arcs = x$arcs,
     highlight = highlight, arc.weights = arc.weights,

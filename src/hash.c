@@ -1,9 +1,9 @@
 #include "common.h"
 
 /* compute the hash of an arc set using CMC() coordinates. */
-SEXP arc_hash(SEXP arcs, SEXP nodes) {
+SEXP arc_hash(SEXP arcs, SEXP nodes, int uptri, int sort) {
 
-int i = 0, narcs = LENGTH(arcs)/2;
+int i = 0, narcs = LENGTH(arcs)/2, nnodes = LENGTH(nodes);
 int *temp = NULL, *hash_el = NULL;
 SEXP matched, hash;
 
@@ -15,8 +15,21 @@ SEXP matched, hash;
   PROTECT(hash = allocVector(INTSXP, narcs));
   hash_el = INTEGER(hash);
 
-  for (i = 0; i < narcs; i++)
-    hash_el[i] = CMC(temp[i], temp[i + narcs], narcs);
+  if (uptri) {
+
+    for (i = 0; i < narcs; i++)
+      hash_el[i] = UPTRI3(temp[i], temp[i + narcs], nnodes);
+
+  }/*THEN*/
+  else {
+
+    for (i = 0; i < narcs; i++)
+      hash_el[i] = CMC(temp[i], temp[i + narcs], nnodes);
+
+  }/*ELSE*/
+
+  if (sort)
+    R_isort(hash_el, narcs); 
 
   UNPROTECT(2);
 

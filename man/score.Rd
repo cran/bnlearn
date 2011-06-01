@@ -83,11 +83,11 @@ score(x, data, type = NULL, ..., debug = FALSE)
 data(learning.test)
 res = set.arc(gs(learning.test), "A", "B")
 score(res, learning.test, type = "bde")
-# [1] -24002.36
+# [1] -23967.65
 ## let's see score equivalence in action!
 res2 = set.arc(gs(learning.test), "B", "A")
 score(res2, learning.test, type = "bde")
-# [1] -24002.36
+# [1] -23967.65
 
 ## k2 score on the other hand is not score equivalent.
 score(res, learning.test, type = "k2")

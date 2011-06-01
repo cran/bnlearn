@@ -19,6 +19,20 @@ bn.fit = function(x, data, method = "mle", ..., debug = FALSE) {
 
 }#BN.FIT
 
+# get back the network structure from the fitted object.
+bn.net = function(x, debug = FALSE) {
+
+  # check x's class.
+  check.fit(x)
+
+  nodes = names(x)
+  net = empty.graph.backend(nodes)
+  arcs(net) = fit2arcs(x)
+
+  return(net)
+
+}#BN.NET
+
 # extract residuals for continuous bayesian networks.
 residuals.bn.fit = function(object, ...) {
 

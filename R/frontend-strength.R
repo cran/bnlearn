@@ -75,7 +75,7 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
     res = arc.strength.boot(data = data, R = extra.args$R,
             m = extra.args$m, algorithm = extra.args[["algorithm"]],
             algorithm.args = extra.args[["algorithm.args"]], arcs = x$arcs,
-            debug = debug)
+            cpdag = FALSE, debug = debug)
 
     # add extra information for strength.plot(), and drop the column
     # with the direction confidence.
@@ -89,17 +89,19 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
 # compute the strength of all possible arcs from a list of network
 # structures/arc sets.
-custom.strength = function(networks, nodes, debug = FALSE) {
+custom.strength = function(networks, nodes, cpdag = FALSE, debug = FALSE) {
 
   # check debug.
   check.logical(debug)
+  # check cpdag.
+  check.logical(cpdag)
   # check the node labels.
   check.nodes(nodes, min.nodes = 3)
   # check networks.
   check.customlist(networks, nodes = nodes)
 
   res = arc.strength.custom(custom.list = networks, nodes, arcs = NULL,
-          debug = debug)
+          cpdag = cpdag, debug = debug)
 
   # add extra information for strength.plot().
   res = structure(res, mode = "bootstrap", threshold = 0.5,

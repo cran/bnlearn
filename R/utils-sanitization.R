@@ -16,11 +16,11 @@ is.positive.integer = function(x) {
 
 }#IS.POSITIVE.INTEGER
 
-#is x a vector of positive numbers?
+# is x a vector of positive numbers?
 is.positive.vector = function(x) {
 
   is.numeric(x) &&
-  is.finite(x) &&
+  all(is.finite(x)) &&
   all(x > 0)
 
 }#IS.POSITIVE.VECTOR
@@ -521,6 +521,37 @@ check.discretization.method = function(method) {
 
 }#CHECK.DISCRETIZATION.METHOD
 
+# check the estimator for the mutual information.
+check.mi.estimator = function(estimator, data) {
+
+   if (!is.null(estimator)) {
+
+    # check it's a single character string.
+    check.string(estimator)
+    # check the score/estimator label.
+    if (!(estimator %in% available.mi))
+      stop(paste(c("valid estimators are:\n",
+             sprintf("    %-10s %s\n", names(mi.estimator.labels), mi.estimator.labels)), sep = ""))
+    # check if it's the right estimator for the data (discrete, continuous).
+    if (!is.data.discrete(data) && (estimator %in% available.discrete.mi))
+      stop(paste("estimator '", estimator, "' may be used with discrete data only.", sep = ""))
+    if (!is.data.continuous(data) && (estimator %in% available.continuous.mi))
+      stop(paste("estimator '", estimator, "' may be used with continuous data only.", sep = ""))
+
+    return(estimator)
+
+  }#THEN
+  else {
+
+    if (is.data.discrete(data))
+      return("mi")
+    else
+      return("mi-g")
+
+  }#ELSE
+
+}#CHECK.MI.ESTIMATOR
+
 # is the fitted bayesian network a discrete one?
 is.fitted.discrete = function(fitted) {
 
@@ -583,7 +614,7 @@ missing.data = function(data) {
 
 }#MISSING.DATA
 
-# check the imaginary sample size
+# check the imaginary sample size.
 check.iss = function(iss, network, data) {
 
   if (!is.null(iss)) {
@@ -601,31 +632,12 @@ check.iss = function(iss, network, data) {
   }#THEN
   else {
 
-    # check if there is an imaginary sample size stored in the bn object;
-    # otherwise use a the lowest possible value (3) if the network is
-    # empty of the number of its parameters it is not.
-    if (!is.null(network$learning$args$iss)) {
-
+    # check whether there is an imaginary sample size stored in the bn object;
+    # otherwise use a the de facto standard value of 10.
+    if (!is.null(network$learning$args$iss))
       iss = network$learning$args$iss
-
-    }#THEN
-    else if (nrow(network$arcs) == 0) {
-
-      # even if the network is empty, the score should scale with the
-      # number of nodes.
-      iss = ncol(data)
-
-    }#THEN
-    else {
-
-      # if the network is not empty, use a somewhat larger imaginary sample
-      # size to give it and adequate (but still small) weight.
-      if (is.data.discrete(data))
-        iss = sum(nparams.discrete(network, data, real = FALSE))
-      else
-        iss = sum(nparams.gaussian(network))
-
-    }#THEN
+    else
+      iss = 10
 
   }#ELSE
 
@@ -1402,6 +1414,8 @@ lty.strings = c("blank", "solid", "dashed", "dotted", "dotdash", "longdash", "tw
 # check the label of a learning algorithm.
 check.learning.algorithm = function(algorithm, class = "all", bn) {
 
+  ok = character(0)
+
   if (missing(algorithm) || is.null(algorithm)) {
 
     # use the one specified by the bn object as the default.
@@ -1415,13 +1429,15 @@ check.learning.algorithm = function(algorithm, class = "all", bn) {
     stop("the learning algorithm must be a character string.")
 
   # select the right class of algorithms.
-  if (class == "constraint")
-    ok = constraint.based.algorithms
-  else if (class == "markov.blanket")
-    ok = markov.blanket.algorithms
-  else if (class == "score")
-    ok = score.based.algorithms
-  else
+  if ("constraint" %in% class)
+    ok = c(ok, constraint.based.algorithms)
+  if ("markov.blanket" %in% class)
+    ok = c(ok, markov.blanket.algorithms)
+  if ("score" %in% class)
+    ok = c(ok, score.based.algorithms)
+  if ("mim" %in% class)
+    ok = c(ok, mim.based.algorithms)
+  if ("all" %in% class)
     ok = available.learning.algorithms
 
   if (!(algorithm %in% ok))

@@ -23,79 +23,11 @@ rbn.discrete = function(x, n, data, debug = FALSE) {
   else
     fitted = x
 
-  # schedule the nodes and prepare the return value.
-  to.do = schedule(x)
-  result = vector(length(fitted), mode = "list")
-  names(result) = names(fitted)
-
-  if (debug)
-    cat("* partial node ordering is:", to.do, "\n")
-
-  for (node in to.do) {
-
-    node.parents = fitted[[node]]$parents
-    node.levels = labels(fitted[[node]]$prob)[[1]]
-    prob = fitted[[node]]$prob
-
-    if (debug)
-      cat("* simulating node", node, "with parents '", node.parents, "'.\n")
-
-    if (length(node.parents) == 0) {
-
-      result[[node]] = factor(x = sample(node.levels, n,
-          replace = TRUE, prob = prob), levels = node.levels)
-
-    }#THEN
-    else {
-
-      # get the contingency table of this node against the configurations
-      # of its parents.
-      config2 = configurations(result[node.parents])
-      tab = collapse.table(fitted[[node]]$prob)
-
-      # initialize the vectors to hold the generated data and the subset identifier.
-      temp.gen = character(n)
-      to.be.generated = logical(n)
-      char.configurations = as.character(config2)
-
-      # generate each value according to the right configuration. Iterate on
-      # the latter to achieve a reasonable speed.
-      for (cfg in unique(char.configurations)) {
-
-        to.be.generated = (char.configurations == cfg)
-
-        if (all(!is.nan(tab[, cfg]))) {
-
-          temp.gen[to.be.generated] = sample(node.levels, length(which(to.be.generated)),
-             replace = TRUE, prob = tab[, cfg])
-
-        }#THEN
-        else {
-
-          warning(paste("some configurations of the parents of", node,
-            "are not present in the original data. NAs will be generated.",
-            collpase = "", sep = " "))
-
-          # the conditional probability distribution in this case is unknown;
-          # generate a missing value (NA) insted of gthrowing an error.
-          temp.gen[to.be.generated] = NA
-
-        }#ELSE
-
-      }#FOR
-
-      # convert the generated values into a factor object.
-      result[[node]] = factor(temp.gen, levels = node.levels)
-
-    }#ELSE
-
-  }#FOR
-
-  # WARNING: in-place modification of result to avoid copying potentially
-  # huge data sets around.
-  minimal.data.frame(result)
-
-  return(result)
+  .Call("rbn_discrete",
+        fitted = fitted,
+        n = as.integer(n),
+        debug = debug,
+        PACKAGE = "bnlearn")
 
 }#RBN.DISCRETE
 
