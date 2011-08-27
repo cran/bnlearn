@@ -33,8 +33,8 @@
 }
 \references{
 
-  Korb K, Nicholson AE (2003). \emph{Bayesian Artificial Intelligence}.
-      Chapman & Hall/CRC.
+  Korb K, Nicholson AE (2010). \emph{Bayesian Artificial Intelligence}.
+      Chapman & Hall/CRC, 2nd edition.
 
 }
 \examples{

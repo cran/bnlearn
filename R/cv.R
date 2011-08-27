@@ -21,7 +21,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args,
     if (!is.null(cluster)) {
 
       kcv = parLapply(cluster, kcv, bn.cv.algorithm, data = data,
-              algorithm = bn, algorithm.args = algorithm.args, loss = loss, 
+              algorithm = bn, algorithm.args = algorithm.args, loss = loss,
               loss.args = loss.args, fit = fit, fit.args = fit.args,
               debug = debug)
 
@@ -29,7 +29,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args,
     else {
 
       kcv = lapply(kcv, bn.cv.algorithm, data = data, algorithm = bn,
-              algorithm.args = algorithm.args, loss = loss, 
+              algorithm.args = algorithm.args, loss = loss,
               loss.args = loss.args, fit = fit, fit.args = fit.args,
               debug = debug)
 
@@ -40,7 +40,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args,
 
     if (!is.null(cluster)) {
 
-      kcv = parLapply(cluster, kcv, bn.cv.structure, data = data, bn = bn, 
+      kcv = parLapply(cluster, kcv, bn.cv.structure, data = data, bn = bn,
               loss = loss, loss.args = loss.args, fit = fit, fit.args = fit.args,
               debug = debug)
     }#THEN
@@ -114,7 +114,7 @@ bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
   if (debug)
     cat("----------------------------------------------------------------\n")
 
-  return(list(test = test, fitted = net, loss = obs.loss))
+  return(c(list(test = test, fitted = net), obs.loss))
 
 }#BN.CV.STRUCTURE
 

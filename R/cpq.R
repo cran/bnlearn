@@ -21,12 +21,12 @@ conditional.probability.query = function(fitted, event, evidence, method,
               evidence = evidence, n = n, batch = batch, debug = debug)
 
           })
- 
+
         return(mean(results))
 
       }#THEN
       else {
- 
+
         results = parLapply(cluster, seq(s),
           function(x) {
 
@@ -43,16 +43,16 @@ conditional.probability.query = function(fitted, event, evidence, method,
     else {
 
       if (probability) {
-  
+
         logic.sampling(fitted = fitted, event = event, evidence = evidence,
           n = extra$n, batch = extra$batch, debug = debug)
-  
+
       }#THEN
       else {
-  
+
         logic.distribution(fitted = fitted, nodes = event, evidence = evidence,
           n = extra$n, batch = extra$batch, debug = debug)
-  
+
       }#ELSE
 
     }#ELSE

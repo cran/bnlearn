@@ -36,6 +36,16 @@ is.probability = function(x) {
 
 }#IS.PROBABILITY
 
+# is x a vector of probabilities?
+is.probability.vector = function(x) {
+
+  is.numeric(x) &&
+  all(is.finite(x)) &&
+  all(x >= 0) &&
+  all(x <= 1)
+
+}#IS.PROBABILITY.VECTOR
+
 # is x a single character string?
 is.string = function(x) {
 
@@ -182,7 +192,7 @@ check.arcs = function(arcs, nodes) {
 
   # nodes must be valid node labels.
   if (!all(arcs %in% nodes))
-    stop(paste(c("node(s)", unique(arcs[!nodes]),
+    stop(paste(c("node(s)", unique(arcs[!(arcs %in% nodes)]),
            "not present in the graph."), collapse = " "))
 
   # remove duplicate arcs.
@@ -325,7 +335,7 @@ blacklist
 # check the list of networks passed to custom.strength().
 check.customlist = function(custom, nodes) {
 
-  # check 
+  # check
   if (!is(custom, "list"))
     stop("networks must be a list of objects of class 'bn' or of arc sets.")
   if(!all(sapply(custom, function(x) { is(x, "bn") || is(x, "matrix") })))
@@ -969,14 +979,22 @@ check.fitting.args = function(method, network, data, extra.args) {
 }#CHECK.FITTING.ARGS
 
 # sanitize the extra arguments passed to discretization methods.
-check.discretization.args = function(method, data, extra.args) {
+check.discretization.args = function(method, data, breaks, extra.args) {
 
   if (method == "hartemink") {
 
-    if (!is.null(extra.args$initial.breaks)) {
+    if (is.data.discrete(data)) {
+
+      extra.args$initial.breaks = nlevels(data[, 1])
+      warning("data are already discrete, initial.breaks is ignored.")
+
+    }#THEN
+    else if (!is.null(extra.args$initial.breaks)) {
 
       if (!is.positive.integer(extra.args$initial.breaks))
         stop("the number of initial breaks must be a positive integer number.")
+      if (extra.args$initial.breaks < breaks)
+        stop("insufficient number of levels, at least ", breaks, " required.")
 
     }#THEN
     else {
@@ -1173,6 +1191,20 @@ check.bn = function(bn) {
 
 }#CHECK.BN
 
+# check two bn's against each other.
+match.bn = function(bn1, bn2) {
+
+  # the two networks must have the same node set.
+  nodes1 = names(bn1$nodes)
+  nodes2 = names(bn2$nodes)
+
+  equal = setequal(nodes1, nodes2) && (length(nodes1) == length(nodes2))
+
+  if (!equal)
+    stop("the two networks have different node sets.")
+
+}#MATCH.BN
+
 # check an object of class bn or bn.fit.
 check.bn.or.fit = function(bn) {
 
@@ -1232,7 +1264,7 @@ check.bn.naive = function(bn) {
 }#CHECK.BN.NAIVE
 
 # check an object of class bn.strength.
-check.bn.strength = function(strength, bn) {
+check.bn.strength = function(strength, nodes) {
 
   if (missing(strength))
     stop("an object of class 'bn.strength' is required.")
@@ -1242,6 +1274,16 @@ check.bn.strength = function(strength, bn) {
            deparse(substitute(strength))))
 
   }#THEN
+  if (!(ncol(strength) %in% 3:4))
+    stop("objects of class 'bn.strength' must have 3 or 4 columns.")
+  if (!identical(names(strength), c("from", "to", "strength")) &&
+      !identical(names(strength), c("from", "to", "strength", "direction")))
+    stop("objects of class 'bn.strength' must be data frames with column names ",
+         "'from', 'to', 'strength' and (optionally) 'direction'.")
+  if (!all(c("mode", "threshold") %in% names(attributes(strength))))
+    stop("objects of class 'bn.strength' must have a 'mode' and a 'strength' attribute.")
+  if (!missing(nodes))
+    check.arcs(strength[, c("from", "to"), drop = FALSE], nodes)
 
 }#CHECK.BN.STRENGTH
 
@@ -1368,7 +1410,7 @@ check.fit.vs.data = function(fitted, data) {
   if (length(setdiff(names(fitted) , names(data))) != 0)
     stop("the variables in the data and in the network do not match.")
   # data type versus network type.
-  if (is.fitted.discrete(fitted)) { 
+  if (is.fitted.discrete(fitted)) {
 
     if (is.data.continuous(data))
       stop("continuous data and discrete network.")
@@ -1572,8 +1614,8 @@ check.prior = function(prior, training) {
   if (is.factor(training)) {
 
     if (missing(prior) || is.null(prior)) {
- 
-      # use an emprirical prior if none is provided by the user. 
+
+      # use an emprirical prior if none is provided by the user.
       prior = summary(training)
 
     }#THEN
@@ -1586,7 +1628,7 @@ check.prior = function(prior, training) {
       if (all(prior == 0))
         stop("at least one probability must be strictly positive.")
 
-    }#ELSE 
+    }#ELSE
 
   }#THEN
 

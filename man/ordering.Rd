@@ -5,7 +5,7 @@
 \title{ Utilities dealing with partial node orderings }
 \description{
 
-  Detect the partial node ordering implied by a network or
+  Find the partial node ordering implied by a network or
   generate the blacklist implied by a complete node ordering.
 
 }

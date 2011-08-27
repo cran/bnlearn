@@ -2,11 +2,13 @@
 \alias{arc.strength}
 \alias{boot.strength}
 \alias{custom.strength}
-\title{ Measure arc strength}
+\alias{averaged.network}
+\title{Measure arc strength}
 \description{
 
-  Strength of the probabilistic relations expressed by the
-  arcs of a Bayesian network.
+  Measure the strength of the probabilistic relationships expressed
+  by the arcs of a Bayesian network, and use model averaging to build
+  a network containing only the significant arcs.
 
 }
 \usage{
@@ -15,18 +17,26 @@ arc.strength(x, data, criterion = NULL, ..., debug = FALSE)
 # strength of all possible arcs, as learned from bootstrapped data.
 boot.strength(data, R = 200, m = nrow(data),
   algorithm, algorithm.args = list(), cpdag = FALSE, debug = FALSE)
-# strength of all possible arcs, from a list of custom networks. 
+# strength of all possible arcs, from a list of custom networks.
 custom.strength(networks, nodes, cpdag = FALSE, debug = FALSE)
+
+# averaged network structure.
+averaged.network(strength, nodes, threshold)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
   \item{networks}{a list, containing either object of class \code{bn}
     or arc sets (matrices or data frames with two columns, optionally
     labeled "from" and "to").}
-  \item{nodes}{a vector of character strings, the labels of the nodes
-    in the network.}
   \item{data}{a data frame containing the data the Bayesian network
     was learned from.}
+  \item{strength}{an object of class \code{bn.strength}, see below.}
+  \item{threshold}{a numeric value, the minimum strength required for
+    an arc to be included in the averaged network. The default value
+    is the \code{threshold} attribute of the \code{strength} argument.}
+  \item{nodes}{a vector of character strings, the labels of the nodes
+    in the network. In \code{\link{averaged.network}}, it defaults to
+    the set of the unique node labels in the \code{strength} argument.}
   \item{criterion}{a character string, the label of a score
     function, the label of an independence test or \code{bootstrap}.
     See \code{\link{bnlearn-package}} for details on the first two
@@ -71,6 +81,13 @@ custom.strength(networks, nodes, cpdag = FALSE, debug = FALSE)
   \code{m}, \code{algorithm} and \code{algorithm.args}; if the latter two
   are not specified, the values stored in \code{x} are used.
 
+  Model averaging is supported for objects of class \code{bn.strength}
+  returned by \code{\link{boot.strength}}, by \code{\link{custom.strength}},
+  or by \code{\link{arc.strength}} with \code{criterion} set to
+  \code{bootstrap}. The returned network contains the arcs whose strength
+  is greater than the \code{threshold} attribute of the \code{bn.strength}
+  object passed to \code{averaged.network}.
+
 }
 \value{
 
@@ -78,7 +95,27 @@ custom.strength(networks, nodes, cpdag = FALSE, debug = FALSE)
   return an object of class \code{bn.strength}; \code{boot.strength}
   and \code{custom.strength} also include information about the relative
   probabilities of arc directions.
-  See \code{\link{bn.strength class}} for details.
+
+  \code{averaged.network} returns an object of class \code{bn}.
+
+  See \code{\link{bn.strength class}} and \code{\link{bn-class}} for details.
+
+}
+\references{
+
+  \bold{for model averaging and boostrap strength (confidence):}
+
+  Friedman N, Goldszmidt M, Wyner A (1999). "Data Analysis with Bayesian
+      Networks: A Bootstrap Approach". In "UAI '99: Proceedings of the
+      15th Annual Conference on Uncertainty in Artificial Intelligence",
+      pp. 196-20. Morgan Kaufmann.
+
+  \bold{for the computation of the strength (confidence) significance threshold:}
+
+  Scutari M, Nagarajan R (2011). "On Identifying Significant Edges in
+      Graphical Models". In "Proceedings of the Workshop 'Probabilistic
+      Problem Solving in Biomedicine' of the 13th Artificial Intelligence
+      in Medicine (AIME) Conference", pp. 15-27.
 
 }
 \examples{
@@ -100,6 +137,23 @@ arcs[(arcs$strength > 0.85) & (arcs$direction > 0.5), ]
 # 9     B  E        1         1
 # 13    C  D        1         1
 # 30    F  E        1         1
+averaged.network(arcs)
+#
+#   Random/Generated Bayesian network
+#
+#   model:
+#    [A][C][F][B|A][D|A:C][E|B:F]
+#   nodes:                                 6
+#   arcs:                                  5
+#     undirected arcs:                     0
+#     directed arcs:                       5
+#   average markov blanket size:           2.33
+#   average neighbourhood size:            1.67
+#   average branching factor:              0.83
+
+#   generation algorithm:                  Model Averaging
+#   significance threshold:                0.025
+
 \dontrun{
 start = random.graph(nodes = names(learning.test), num = 50)
 netlist = lapply(start, function(net) {
@@ -112,6 +166,8 @@ arcs[(arcs$strength > 0.85) & (arcs$direction > 0.5), ]
 # 9     B  E        1      0.98
 # 13    C  D        1      0.96
 # 30    F  E        1      0.66
+modelstring(averaged.network(arcs))
+# [1] "[A][C][F][B|A][D|A:C][E|B:F]"
 }
 }
 \seealso{\code{\link{strength.plot}}, \code{\link{choose.direction}},

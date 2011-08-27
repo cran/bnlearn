@@ -27,7 +27,7 @@ model2network(string, ordering = NULL, debug = FALSE)
   \item{string}{a character string describing the Bayesian network.}
   \item{ordering}{the labels of all the nodes in the graph; their order is the
        node ordering used in the construction of the \code{bn} object.
-       If \code{NULL} the nodes are sorted alphabetically.}  
+       If \code{NULL} the nodes are sorted alphabetically.}
   \item{value}{a character string, the same as the \code{string}.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}

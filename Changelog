@@ -1,11 +1,31 @@
 
+bnlearn (2.7)
+
+  *
+
+bnlearn (2.6)
+
+  * allow discrete data in Hartemink's discretization algorithm.
+  * implemented {read,write}.bif() to import/export BIF files.
+  * implemented {read,write}.dsc() to import/export DSC files.
+  * implemented {read,write}.net() to import/export NET files.
+  * completely reimplemented compare() to return useful metrics,
+      it was just a slower version of all.equal().
+  * implemented model averaging with significance thresholding
+      in averaged.network().
+  * use new significance thresholding in {boot,custom}.strength()
+      and arc.strength(criterion = "bootstrap").
+  * export predicted values in bn.cv() when using classification
+      error.
+  * fixed an integer overflow in mutual information tests.
+
 bnlearn (2.5)
 
   * reimplemented rbn.discrete() in C both for speed and to
       get CPT indexing right this time.
   * added bn.net() to complement bn.fit().
   * changed the default value of the imaginary sample size to
-     10, which is a de facto standard in literature.
+      10, which is a de facto standard in literature.
   * implemented the ARACNE and Chow-Liu learning algorithms.
   * improved robustness of correlation estimation.
   * added a "cpdag" option to boot.strength().
@@ -28,15 +48,15 @@ bnlearn (2.3)
   * added cpdist() to generate observations from arbitrary
       conditional probability distributions.
   * added a simple naive.bayes() implementation for discrete
-     networks, complete with a predict() implementation using
-     maximum posterior probability.
+      networks, complete with a predict() implementation using
+      maximum posterior probability.
   * added the shrinkage test for the Gaussian mutual information.
   * added ntests(), in.degree(), out.degree(), degree(),
-     whitelist() and blacklist().
+      whitelist() and blacklist().
   * added support for the snow package in bn.boot(), bn.cv(),
-     cpquery() and cpdist().
+      cpquery() and cpdist().
   * fixed integer overflow in the computation of the number of
-     parameters of discrete networks.
+      parameters of discrete networks.
   * fixed errors in the labels of Gaussian scores.
 
 bnlearn (2.2)
@@ -50,7 +70,7 @@ bnlearn (2.2)
   * added the narcs() function.
   * print.bn()'s now supports small(er) line widths.
   * added support for "bn.fit" objects in graphviz.plot().
-  * added support for changing the line type of arcs in 
+  * added support for changing the line type of arcs in
       graphviz.plot().
   * added the learn.mb() function to learn the Markov blanket of
       a single variable.
@@ -74,7 +94,7 @@ bnlearn (2.1)
   * added predict(), logLik() and AIC() methods for bn.fit
       objects.
   * renamed bnboot() to bn.boot() for consistency with bn.cv()
-     and bn.fit().
+      and bn.fit().
 
 bnlearn (2.0)
 
@@ -89,13 +109,13 @@ bnlearn (2.0)
 
 bnlearn (1.9)
 
-  * added support for "bn.fit" objects in nodes(), nbr(), 
+  * added support for "bn.fit" objects in nodes(), nbr(),
       parents(), children(), root.nodes(), leaf.nodes(),
       arcs(), directed.arcs(), undirected.arcs(), amat(),
       nparams(), mb(), path(), directed(), acyclic(),
       node.ordering().
   * fixed bug in hybrid and score-based learning algorithms,
-     which did not handle blacklists correctly.
+      which did not handle blacklists correctly.
 
 bnlearn (1.8)
 
@@ -126,13 +146,13 @@ bnlearn (1.7)
       (UPTRI3 macro in C code).
   * added the dag2ug() and pdag2dag() functions.
   * fixed a bug in bn.fit(), now it really works even for
-     discrete data.
-  * added bn.moments(), bn.var() and bn.var.test() for 
-     basic probabilistic modelling of network structures.
+      discrete data.
+  * added bn.moments(), bn.var() and bn.var.test() for
+      basic probabilistic modelling of network structures.
 
 bnlearn (1.6)
 
-  * implemented the mmhc() algorithm and its generic 
+  * implemented the mmhc() algorithm and its generic
       template rshc().
   * rewritten both the optimized and the standard implementation
       of hc() in C, they are way faster than before.
@@ -140,7 +160,7 @@ bnlearn (1.6)
   * revised the functions implementing the second half
       of the constraint-based algorithm.
   * improved parameter sanitization in "amat<-"().
-  * fixed the functions that set arcs' direction in 
+  * fixed the functions that set arcs' direction in
       constraint-based algorithms.
 
 bnlearn (1.5)
@@ -154,7 +174,7 @@ bnlearn (1.5)
   * added bn.fit() for estimating the parameters of a Bayesian
       network conditional on its structure.
   * mapped some S3 methods (print, fitted, fitted.values,
-      residuals, resid, coefs, coefficients) to objects of 
+      residuals, resid, coefs, coefficients) to objects of
       class "bn.fit", "bn.fit.gnode" and "bn.fit.dnode".
   * added some plots for the fitted models based on the
       lattice package.
@@ -248,7 +268,7 @@ bnlearn (0.8)
 bnlearn (0.7)
 
   * optimized hc() via score caching, score equivalence,
-    and partial reimplementation in C.
+      and partial reimplementation in C.
   * many utility functions' backends reimplemented in C
       for speed.
   * improved cycle and path detection.
@@ -283,7 +303,7 @@ bnlearn (0.4)
   * ported modelstring(), a string representation of a network,
       from package deal.
   * added many utility functions, such as parents() and children()
-     and their counterparts "parents<-"() and "children<-"().
+      and their counterparts "parents<-"() and "children<-"().
   * lots of documentation updates.
 
 bnlearn (0.3)

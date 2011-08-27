@@ -61,7 +61,7 @@ parents = function(x, node) {
 }#PARENTS
 
 # add one or more parents to a node.
-"parents<-" <- function(x, node, debug = FALSE, value) {
+"parents<-" = function(x, node, debug = FALSE, value) {
 
   # check x's class.
   check.bn(x)
@@ -130,7 +130,7 @@ children = function(x, node) {
 }#CHILDREN
 
 # add one or more children to a node.
-"children<-" <- function(x, node, debug = FALSE, value) {
+"children<-" = function(x, node, debug = FALSE, value) {
 
   # check x's class.
   check.bn(x)

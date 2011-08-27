@@ -162,9 +162,9 @@ SEXP classname, rownames;
 
   setAttrib(obj, R_RowNamesSymbol, rownames);
 
-  // set the class name.      
+  // set the class name.
   PROTECT(classname = allocVector(STRSXP, 1));
-  SET_STRING_ELT(classname, 0, mkChar("data.frame"));  
+  SET_STRING_ELT(classname, 0, mkChar("data.frame"));
   setAttrib(obj, R_ClassSymbol, classname);
 
   UNPROTECT(2);
@@ -177,7 +177,7 @@ SEXP classname, rownames;
 SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop) {
 
 SEXP try, result, colnames = getAttrib(dataframe, R_NamesSymbol);
-int *idx = NULL, *d = LOGICAL(drop); 
+int *idx = NULL, *d = LOGICAL(drop);
 int nnames = LENGTH(name), name_type = TYPEOF(name);
 
 
@@ -293,7 +293,7 @@ SEXP dimnames, colnames;
 void INV_UPTRI3(int x, int n, int *res) {
 
 int c = 0, r = 0, cn = n - 1;
- 
+
   for (r = 0; r < n; r++) {
 
     if (x < cn) {
@@ -305,7 +305,7 @@ int c = 0, r = 0, cn = n - 1;
 
   }/*FOR*/
 
-  res[0] = r; 
+  res[0] = r;
   res[1] = c;
 
 }/*INV_UPTRI3*/

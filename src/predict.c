@@ -65,7 +65,7 @@ SEXP result;
         i + 1, res[i]);
 
       Rprintf("    (%lf) + (%lf) * (%lf)", coefs[0], columns[0][i], coefs[1]);
-      for (j = 1; j < ncols; j++) 
+      for (j = 1; j < ncols; j++)
         Rprintf(" + (%lf) * (%lf)", columns[j][i], coefs[j + 1]);
       Rprintf("\n");
 
@@ -86,7 +86,7 @@ SEXP dpred(SEXP fitted, SEXP data, SEXP debug) {
 
 int i = 0, imax = 0, ndata = LENGTH(data);
 int *res = NULL, *debuglevel = LOGICAL(debug);
-double *prob = NULL; 
+double *prob = NULL;
 SEXP ptab, result, tr_levels = getAttrib(data, R_LevelsSymbol);
 
   /* get the probabilities of the multinomial distribution. */
@@ -167,7 +167,7 @@ SEXP temp, result, tr_levels = getAttrib(data, R_LevelsSymbol);
           i + 1, CHAR(STRING_ELT(tr_levels, res[i] - 1)));
 
       Rprintf("  ");
-      for (int k = 0; k < nrows; k++) 
+      for (int k = 0; k < nrows; k++)
         Rprintf("  %lf", (prob + nrows * (configs[i] - 1))[k]);
       Rprintf("\n");
 
@@ -263,7 +263,7 @@ SEXP class, temp, tr, tr_levels, result;
         i + 1, CHAR(STRING_ELT(tr_levels, res[i] - 1)));
 
       Rprintf("  ");
-      for (k = 0; k < tr_nlevels; k++) 
+      for (k = 0; k < tr_nlevels; k++)
         Rprintf("  %lf", scratch[k]);
       Rprintf("\n");
 

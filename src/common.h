@@ -60,7 +60,7 @@ SEXP getListElement(SEXP list, char *str);
 SEXP unique(SEXP array);
 SEXP dupe(SEXP array);
 int which_max(double *array, int length);
-SEXP finalize_arcs(SEXP arcs); 
+SEXP finalize_arcs(SEXP arcs);
 SEXP minimal_data_frame(SEXP obj);
 SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop);
 
@@ -68,7 +68,7 @@ SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop);
 
 void SampleNoReplace(int k, int n, int *y, int *x);
 #define RandomPermutation(n, y, x) SampleNoReplace(n, n, y, x)
-void ProbSampleReplace(int n, double *p, int *perm, int nans, int *ans); 
+void ProbSampleReplace(int n, double *p, int *perm, int nans, int *ans);
 
 SEXP int2fac(SEXP vector);
 
@@ -133,8 +133,8 @@ SEXP schedule(SEXP bn, SEXP root_nodes, SEXP debug);
 
 /* from mutual.information.c */
 
-double c_mi(int *xx, int *llx, int *yy, int *lly, int *num); 
-double c_mig(double *xx, double *yy, int *num); 
+double c_mi(int *xx, int *llx, int *yy, int *lly, int *num);
+double c_mig(double *xx, double *yy, int *num);
 
 /* memory allocation functions */
 

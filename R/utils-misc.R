@@ -27,16 +27,16 @@ subsets = function (n, r, v = 1:n, set = TRUE, repeats.allowed = FALSE) {
 
   if (set) {
 
-    v <- unique(sort(v))
+    v = unique(sort(v))
     if (length(v) < n)
       stop("too few different elements")
 
   }#THEN
 
-  v0 <- vector(mode(v), 0)
+  v0 = vector(mode(v), 0)
   if (repeats.allowed) {
 
-    sub <- function(n, r, v) {
+    sub = function(n, r, v) {
 
         if (r == 0)
             v0
@@ -51,7 +51,7 @@ subsets = function (n, r, v = 1:n, set = TRUE, repeats.allowed = FALSE) {
   }#THEN
   else {
 
-    sub <- function(n, r, v) {
+    sub = function(n, r, v) {
 
         if (r == 0)
             v0

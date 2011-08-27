@@ -33,8 +33,14 @@ loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
 
   }#THEN
 
-  if (debug)
-    cat("  @ total loss is", result, ".\n")
+  if (debug) {
+
+    if (loss == "pred")
+      cat("  @ total loss is", result$loss, ".\n")
+    else
+      cat("  @ total loss is", result, ".\n")
+
+  }#THEN
 
   return(result)
 
@@ -43,8 +49,8 @@ loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
 # log-likelihood loss function for gaussian networks.
 gaussian.loss = function(nodes, fitted, data, debug = FALSE) {
 
-  sum(sapply(nodes, gaussian.loss.node, fitted = fitted, data = data,
-    debug = debug))
+  list(loss = sum(sapply(nodes, gaussian.loss.node, fitted = fitted,
+    data = data, debug = debug)))
 
 }#GAUSSIAN.LOSS
 
@@ -75,13 +81,13 @@ gaussian.loss.node = function(node, fitted, data, debug = FALSE) {
 
   return(l)
 
-}#GAUSSIAN.LOSS
+}#GAUSSIAN.LOSS.NODE
 
 # log-likelihood loss function for discrete networks.
 discrete.loss = function(nodes, fitted, data, debug = FALSE) {
 
-  sum(sapply(nodes, discrete.loss.node, fitted = fitted, data = data,
-    debug = debug))
+  list(loss = sum(sapply(nodes, discrete.loss.node, fitted = fitted,
+    data = data, debug = debug)))
 
 }#DISCRETE.LOSS
 
@@ -121,34 +127,38 @@ discrete.loss.node = function(node, fitted, data, debug = FALSE) {
 
   return(l)
 
-}#DISCRETE.LOSS
+}#DISCRETE.LOSS.NODE
 
 # classification error as a loss function.
 classification.error = function(node, fitted, data, debug = FALSE) {
 
+  pred = discrete.prediction(node, fitted, data)
+
   l = .Call("class_err",
             reference = minimal.data.frame.column(data, node),
-            predicted = discrete.prediction(node, fitted, data),
+            predicted = pred,
             PACKAGE = "bnlearn")
 
   if (debug)
     cat("  > classification error for node", node, "is", l, ".\n")
 
-  return(l)
+  return(list(loss = l, predicted = pred))
 
 }#CLASSIFICATION.ERROR
 
 # classification error for naive Bayes classifiers.
 naive.error = function(node, fitted, prior, data, debug = FALSE) {
 
+  pred = naive.classifier(node, fitted, prior, data)
+
   l = .Call("class_err",
             reference = minimal.data.frame.column(data, node),
-            predicted = naive.classifier(node, fitted, prior, data),
+            predicted = pred,
             PACKAGE = "bnlearn")
 
   if (debug)
     cat("  > classification error for node", node, "is", l, ".\n")
 
-  return(l)
+  return(list(loss = l, predicted = pred))
 
 }#NAIVE.ERROR

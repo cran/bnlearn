@@ -1,0 +1,428 @@
+
+# read a BIF file into a bn.fit object.
+read.bif.backend = function(lines, debug = FALSE) {
+
+  nlines = length(lines)
+
+  # remove comments.
+  lines = sub("//.*", "", lines)
+  # remove indentation.
+  lines = sub("^\\s+", "", lines, perl = TRUE)
+  # remove empty lines.
+  lines = lines[grep("^\\s*$", lines, perl = TRUE, invert = TRUE)]
+
+  if (grep("^network", lines[1]) != 1)
+    stop("the file '", file, "' does not conform to the BIF standard.")
+
+  # get the node labels.
+  nodes = sub("variable\\s+(.+)\\s+\\{", "\\1", 
+            grep("^variable .+", lines, value = TRUE), perl = TRUE)
+  nnodes = length(nodes)
+
+  # check whether all variables are discrete.
+  if (length(grep("type discrete", lines)) != nnodes)
+    stop("only BIF files describing discrete networks are supported.")
+  # check whether the labels on the probability tables match with the node labels.
+  cpts =  sub("probability\\s+\\(\\s+(.+?)\\s+.+", "\\1",
+            grep("^probability", lines, value = TRUE))
+
+  if (!setequal(cpts, nodes)) {
+
+    missing.cpts = setdiff(nodes, cpts)
+    missing.nodes = setdiff(cpts, nodes)
+    bogus = unique(c(missing.cpts, missing.nodes))
+
+    for (m in  missing.cpts)
+      warning("the CPT corresponding to node ", m, " is missing, dropping.")
+
+    for (m in  missing.nodes)
+      warning("the node description of node ", m, " is missing, dropping.")
+
+    # recompute fundamental quantities.
+    nodes = nodes[!(nodes %in% bogus)]
+    nnodes = length(nodes)
+
+  }#THEN
+  else {
+
+    bogus = character(0)
+
+  }#ELSE
+
+  # find out where each node description begins.
+  description.start = .Call("match_descriptions",
+                            lines = lines,
+                            nodes = nodes,
+                            string = "variable",
+                            PACKAGE = "bnlearn");
+
+  # find out where each conditional probability table begins.
+  cpt.start = .Call("match_descriptions",
+                    lines = lines,
+                    nodes = cpts,
+                    string = "probability",
+                    PACKAGE = "bnlearn");
+
+  # get the levels associated with each node.
+  nodes.levels = sapply(nodes, bif.get.levels, start = description.start,
+                   lines = lines, simplify = FALSE)
+
+  # all nodes should have at least two levels, drop dummy nodes with a warning.
+  dummies = names(which(sapply(nodes.levels, length) < 2))
+
+  if (length(dummies) > 0) {
+
+    for (d in dummies)
+      warning("node ", d, " have only one level, dropping.")
+
+    # recompute some fundamental quantities.
+    nodes = nodes[!(nodes %in% dummies)]
+    nnodes = length(nodes)
+    description.start = description.start[nodes]
+    cpt.start = cpt.start[nodes]
+
+  }#THEN
+
+  # get the parents of each node.
+  parents = bif.get.parents(lines, start = cpt.start, dummies = dummies,
+              bogus = bogus)
+
+  # separate root and non-root nodes.
+  nonroot.nodes = names(parents)
+  root.nodes = nodes[!(nodes %in% nonroot.nodes)]
+
+  # create the empty bn.fit object.
+  fitted = structure(vector(nnodes, mode = "list"), names = nodes,
+             class = "bn.fit")
+
+  # fill in the metadata for the root nodes.
+  for (node in nodes) {
+
+    # built the probability table.
+    node.cpt = bif.get.probabilities(node, start = cpt.start, lines = lines,
+                 nodes.levels = nodes.levels, parents = parents,
+                 root = (node %in% root.nodes))
+
+    # get the parent set.
+    if (node %in% root.nodes)
+      parent.set = character(0)
+    else
+      parent.set = parents[[node]]
+
+    fitted[[node]] = structure(list(node = node, parents = parent.set,
+                       children = bif.get.children(node, parents), prob = node.cpt),
+                       class = "bn.fit.dnode")
+
+    if (debug) {
+
+      if (node %in% root.nodes) {
+
+        cat("* found root node", node, ".\n")
+        cat("  > node", node, "has levels", nodes.levels[[node]], "\n")
+
+      }#THEN
+      else {
+
+        cat("* found node", node, "with parents", parent.set, ".\n")
+        cat("  > node", node, "has levels", nodes.levels[[node]], "\n")
+
+      }#ELSE
+
+      cat("  > conditional probability table:\n")
+      print(node.cpt)
+
+    }#THEN
+
+  }#FOR
+
+  return(fitted)
+
+}#READ.BIF
+
+bif.get.parents = function(lines, start, dummies, bogus) {
+
+  # get the dependencies.
+  parents = (lines[start])[grep("\\|", lines[start])]
+  # extract the node labels and the labels of the respective parents.
+  parents = sub("probability\\s+\\(\\s+(.+)\\s+\\|(.+)\\)\\s+\\{", "\\1 \\2",
+               parents)
+  # split the labels of the parents.
+  nonroot.nodes = sapply(strsplit(parents, " "), "[", 1)
+  parents = sapply(strsplit(parents, " "), "[", -1, simplify = FALSE)
+  names(parents) = nonroot.nodes
+  # remove commas and empty values.
+  parents = lapply(parents, function(x) {
+
+    p = sub(",", "", x[grep("^\\s*$", x, perl = TRUE, invert = TRUE)])
+
+    # check whether there are dropped nodes among the parents.
+    if (any(p %in% dummies))
+      stop("dropped dummy node is the parent of another node.")
+    if (any(p %in% bogus))
+      stop("dropped mismatched node is the parent of another node.")
+
+    return(p)
+
+  } )
+
+  return(parents)
+
+}#BIF.GET.PARENTS
+
+bif.get.children = function(node, parents) {
+
+  names(which(sapply(parents, function(x, node) { node %in% x  }, node = node)))
+
+}#BIF.GET.CHILDREN
+
+bif.get.levels = function(node, start, lines) {
+
+  end.line = 0
+
+  # get the line in which the description is starting.
+  start.line = start[node]
+
+  # loop until the line in which the description is ending.
+  end.line = .Call("match_brace",
+                   lines = lines,
+                   start = start.line,
+                   PACKAGE = "bnlearn")
+
+  # get all the node's description on one line for easy handling.
+  desc = paste(lines[start.line:end.line], collapse = "")
+  # deparse the node's level.
+  levels = sub(".+type\\s+discrete\\s*\\[\\s*\\d+\\s*\\]\\s+[=]*\\s*\\{\\s+(.+)\\s*\\}.+", "\\1", desc)
+  levels = strsplit(levels, ",")[[1]]
+  levels = sub("^\\s*(.+?)\\s*$", "\\1", levels)
+
+  return(levels)
+
+}#BIF.GET.LEVELS
+
+bif.get.probabilities = function(node, start, lines, nodes.levels, parents, root) {
+
+  end.line = 0
+
+  # get the line in which the description is starting.
+  start.line = start[node]
+
+  # loop until the line in which the description is ending.
+  end.line = .Call("match_brace",
+                   lines = lines,
+                   start = start.line,
+                   PACKAGE = "bnlearn")
+
+  # get all the node's description on one line for easy handling.
+  desc = paste(lines[start.line:end.line], collapse = "")
+  # deparse the node's probability table.
+  if (root) {
+
+    probs = sub(".+table\\s+(.+)\\s*;\\s*\\}.*", "\\1", desc)
+    probs = strsplit(probs, ",")[[1]]
+
+    if (length(probs) != length(nodes.levels[[node]]))
+      stop("the dimension of the CPT of node ", node,
+        " does not match the number of its levels.")
+
+    node.cpt = as.table(as.numeric(probs))
+    dimnames(node.cpt) = list(nodes.levels[[node]])
+
+  }#THEN
+  else {
+
+    row = strsplit(sub(".+\\{[^(]*(\\(.+?)\\s*[;]*\\s*\\}.*", "\\1", desc), ";")[[1]]
+    cfg = strsplit(sub(".*\\((.+)\\).+", "\\1", row), ",")
+    cfg = lapply(cfg, sub, pattern = "^\\s*(.+?)\\s*$", replacement = "\\1")
+    probs = strsplit(sub(".*\\)\\s*(.+)", "\\1", row), ",")
+    probs = lapply(probs, as.numeric)
+    dims = lapply(c(node, parents[[node]]), function(x) nodes.levels[[x]])
+
+    # check whether the number of conditional probability distributions matches
+    # the number of configurations.
+    if (length(probs) != length(cfg))
+      stop("the number of conditional distributions for node ", node,
+        " do not math the number of configurations of its parents")
+    # check whether each conditional probability distribution is valid.
+    if (any(!sapply(probs, is.probability.vector)))
+      stop("one of the conditional probability ditributions of node ", node,
+        " is not a vector of probabilities.")
+    # check whether each conditional probability distribution sums to one.
+    if (any(lapply(probs, function(x) sum(x)) < 0.99)) {
+
+      # if more than 1% of probability mass, let's assume that the conditional
+      # probability distribution is misspecied.
+      stop("one of the conditional probability ditributions of node ", node,
+        " does not sum to one.")
+
+    }#THEN
+    else {
+
+      # perform some more rounding to make the total probability mass closer
+      # to one.
+      probs = lapply(probs, prop.table)
+
+    }#THEN
+    # check whether the conditional probability distributions have the right
+    # number of elements
+    if (any(lapply(probs, function(x) length(x)) != length(nodes.levels[[node]])))
+      stop("one of the conditional probability ditributions of node ", node,
+        " has the wrong number of elements.")
+
+    node.cpt = table(seq(prod(sapply(dims, length))))
+    dim(node.cpt) = sapply(dims, length)
+    dimnames(node.cpt) = dims 
+
+    for (i in seq_along(probs)) {
+
+      node.cpt = do.call("[<-", c(list(node.cpt, 1:length(nodes.levels[[node]])),
+                   cfg[[i]], list(probs[[i]])))
+
+    }#FOR
+
+  }#ELSE
+
+  return(node.cpt)
+
+}#BIF.GET.PROBABILITIES
+
+# dump a bn.fit object into a BIF/DSC file.
+write.bif.backend = function(fd, fitted, format = "bif") {
+
+  # print the preamble.
+  if (format == "dsc")
+    cat("belief network \"unknown\"\n", file = fd)
+  if (format == "net")
+    cat("network {\n}\n", file = fd)
+  else if (format == "bif")
+    cat("network unknown {\n}\n", file = fd)
+
+  # get the levels and the parents of each node.
+  levels = sapply(names(fitted), function(x) dimnames(fitted[[x]]$prob)[[1]]) 
+  parents = lapply(fitted, "[[", "parents")
+
+  # print the variable decalarations, describing the number and the labels of
+  # the levels of eah node.
+  for (node in names(fitted)) {
+
+    if (format == "dsc") {
+
+      cat("node", node, "{\n  type : discrete [", length(levels[[node]]),
+        "] = {", paste("\"", paste(levels[[node]], collapse = "\", \""), "\"", sep = ""), 
+        "};\n}\n", file = fd)
+
+    }#THEN
+    else if (format == "net") {
+
+      cat("node", node, "{\n  states = (", paste("\"", paste(levels[[node]],
+        collapse = "\" \""), "\"", sep = ""), ");\n}\n", file = fd)
+
+    }#THEN
+    else if (format == "bif") {
+
+      cat("variable", node, "{\n  type discrete [", length(levels[[node]]),
+        "] {", paste(levels[[node]], collapse = ", "), 
+        "};\n}\n", file = fd)
+
+    }#THEN
+
+  }#FOR
+
+  # print the (conditional) probbability table of each node.
+  for (node in names(fitted)) {
+
+    # root nodes have a slightly different format.
+    if (length(parents[[node]]) == 0) {
+
+      if (format == "dsc") {
+
+        probs = paste(format(fitted[[node]]$prob, nsmall = 1), collapse = ", ")
+
+        cat("probability (", node, ") {\n", file = fd)
+        cat("  ", paste(probs, ";\n", sep = ""), file = fd)
+        cat("}\n", file = fd)
+
+      }#THEN
+      else if (format == "net") {
+
+        probs = paste(format(fitted[[node]]$prob, nsmall = 1))
+
+        cat("potential (", node, ") {\n", file = fd)
+        cat("  data = (", probs, ");\n}\n", file = fd)
+
+      }
+      else if (format == "bif") {
+
+        probs = paste(format(fitted[[node]]$prob, nsmall = 1), collapse = ", ")
+
+        cat("probability (", node, ") {\n", file = fd)
+        cat("  table", paste(probs, ";\n", sep = ""), file = fd)
+        cat("}\n", file = fd)
+
+      }#THEN
+
+    }#THEN
+    else {
+
+      cpt = fitted[[node]]$prob
+      nlevels = length(levels[[node]])
+
+      # BIF files index CPT columns with labels, DSC with numeric indexes.
+      if (format == "dsc") {
+
+        configs = expand.grid(lapply(dim(cpt)[-1], function(x) seq(x) - 1), stringsAsFactors = FALSE)
+        configs = apply(configs, 1, function(x) paste("(", paste(x, collapse = ", "), ")", sep = "") )
+
+        cat("probability (", node, "|", paste(parents[[node]], collapse = ", "),
+          ") {\n", file = fd)
+
+        for (i in seq_along(configs)) {
+
+          probs = paste(format(cpt[nlevels * (i - 1) + seq(nlevels)], nsmall = 1), collapse = ", ")
+          cat(" ", configs[i], ":", paste(probs, ";\n", sep = ""), file = fd)
+
+        }#FOR
+
+        cat("}\n", file = fd)
+
+      }#THEN
+      else if (format == "net") {
+
+        cat("potential (", node, "|", paste(parents[[node]], collapse = ", "),
+          ") {\n  data =  (", file = fd)
+
+        for (i in seq_along(expand.grid(dimnames(cpt)[-1]))) {
+
+          probs = paste(format(cpt[nlevels * (i - 1) + seq(nlevels)], nsmall = 1), collapse = ", ")
+
+            cat("\n    (", paste(probs), ")", file = fd)
+
+        }#FOR
+
+        cat("\n  )\n}\n", file = fd)
+
+      }#THEN
+      else if (format == "bif") {
+
+        configs = expand.grid(dimnames(cpt)[-1], stringsAsFactors = FALSE)
+        configs = apply(configs, 1, function(x) paste("(", paste(x, collapse = ", "), ")", sep = "") )
+
+        cat("probability (", node, "|", paste(parents[[node]], collapse = ", "),
+          ") {\n", file = fd)
+
+        for (i in seq_along(configs)) {
+
+          probs = paste(format(cpt[nlevels * (i - 1) + seq(nlevels)], nsmall = 1), collapse = ", ")
+          cat(" ", configs[i], paste(probs, ";\n", sep = ""), file = fd)
+
+        }#FOR
+
+        cat("}\n", file = fd)
+
+      }#THEN
+
+    }#ELSE
+
+  }#FOR
+
+}#WRITE.BIF.BACKEND
+

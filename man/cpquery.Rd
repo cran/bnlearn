@@ -64,8 +64,8 @@ cpdist(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
   Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
       Principles and Techniques}. MIT Press.
 
-  Korb K, Nicholson AE (2003). \emph{Bayesian Artificial Intelligence}.
-      Chapman & Hall/CRC.
+  Korb K, Nicholson AE (2010). \emph{Bayesian Artificial Intelligence}.
+      Chapman & Hall/CRC, 2nd edition.
 
 }
 \examples{

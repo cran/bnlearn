@@ -10,7 +10,7 @@
   discretize(x, method, breaks = 3, ..., debug = FALSE)
 }
 \arguments{
-  \item{x}{a data frame containing with numeric and factor columns.}  
+  \item{x}{a data frame containing with numeric and factor columns.}
   \item{method}{a character string, either \code{interval} for \emph{interval
     discretization}, \code{quantile} for \emph{quantile discretization} or
     \code{hartemink} for \emph{Hartemink's pairwise mutual information} method.}
@@ -21,6 +21,18 @@
   \item{\dots}{additional tuning parameters, see below.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
       is printed; otherwise the function is completely silent.}
+}
+\note{
+
+  Hartemink's algorithm has been designed to deal with sets of homogeneous,
+  continuous variables; this is the reason why they are initially transformed
+  into discrete variables, all with the same number of levels (given by the
+  \code{initial.breaks} argument). The implementation in \code{bnlearn}
+  also handles sets of discrete variables with the same number of levels,
+  which are treated as adjacent interval identifiers. This allows the user
+  to discretize each variable with the algorithm of his choice, as long as
+  all variables have the same number of levels in the end.
+
 }
 \value{
 

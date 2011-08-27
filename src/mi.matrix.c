@@ -59,7 +59,7 @@ int i = 0, j = 0;
           for (j = i + 1; j < dim; j++) {
 
             mim[UPTRI3(i + 1, j + 1, dim)] =
-              c_mi(((int **)columns)[i], nlevels + i, 
+              c_mi(((int **)columns)[i], nlevels + i,
                    ((int **)columns)[j], nlevels + j, num);
 
           }/*FOR*/
@@ -99,7 +99,7 @@ short int *exclude = NULL;
 double *mim = NULL;
 SEXP arcs, nodes, wlist, blist;
 
-  nodes = getAttrib(data, R_NamesSymbol); 
+  nodes = getAttrib(data, R_NamesSymbol);
 
   /* dereference the columns of the data frame. */
   DEREFERENCE_DATA_FRAME()
@@ -203,7 +203,7 @@ SEXP arcs, nodes, wlist, blist;
 
     PROTECT(blist = arc_hash(blacklist, nodes, TRUE, TRUE));
     bl = INTEGER(blist);
-    
+
     for (i = 0; i < LENGTH(blist); i++) {
 
       if (*debuglevel > 0) {
@@ -232,7 +232,7 @@ SEXP arcs, nodes, wlist, blist;
       exclude[bl[i]] = 1;
 
     }/*FOR*/
-    
+
     UNPROTECT(1);
 
   }/*THEN*/
@@ -255,7 +255,7 @@ short int *include = NULL;
 double *mim = NULL;
 SEXP arcs, nodes, wlist, blist;
 
-  nodes = getAttrib(data, R_NamesSymbol); 
+  nodes = getAttrib(data, R_NamesSymbol);
 
   /* dereference the columns of the data frame. */
   DEREFERENCE_DATA_FRAME()
@@ -324,7 +324,7 @@ SEXP arcs, nodes, wlist, blist;
   for (i = 0; i < UPTRI3_MATRIX(ncols); i++)
     poset[i] = i;
   R_qsort_I(mim, poset, 1, UPTRI3_MATRIX(ncols));
- 
+
   for (i = UPTRI3_MATRIX(ncols) - 1, k = 0; i > 0; i--) {
 
     /* get back the coordinates from the position in the half-matrix. */
@@ -343,7 +343,7 @@ SEXP arcs, nodes, wlist, blist;
 
         if (*debuglevel > 0) {
 
-          Rprintf("* arc %s - %s is blacklisted, skipping.\n", 
+          Rprintf("* arc %s - %s is blacklisted, skipping.\n",
             NODE(debug_coord[0]), NODE(debug_coord[1]));
 
         }/*THEN*/
@@ -359,7 +359,7 @@ SEXP arcs, nodes, wlist, blist;
 
       if (*debuglevel > 0) {
 
-        Rprintf("* arc %s - %s introduces cycles, skipping.\n", 
+        Rprintf("* arc %s - %s introduces cycles, skipping.\n",
           NODE(debug_coord[0]), NODE(debug_coord[1]));
 
       }/*THEN*/
@@ -383,7 +383,7 @@ SEXP arcs, nodes, wlist, blist;
 
   }/*FOR*/
 
-  if ((!isNull(blacklist)) && (LENGTH(blacklist) > 0)) 
+  if ((!isNull(blacklist)) && (LENGTH(blacklist) > 0))
     UNPROTECT(1);
 
   CONVERT_TO_ARC_SET(include, 0, 2 * (ncols - 1));

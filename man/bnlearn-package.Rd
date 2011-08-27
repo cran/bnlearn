@@ -20,8 +20,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 2.5\cr
-    Date: \tab 2011-06-01\cr
+    Version: \tab 2.6\cr
+    Date: \tab 2011-08-27\cr
     License: \tab GPLv2 or later
 
   }
@@ -54,8 +54,8 @@
 \author{
 
   Marco Scutari\cr
-  Department of Statistical Sciences\cr
-  University of Padova
+  UCL Genetics Institute (UGI) \cr
+  University College London
 
   Maintainer: Marco Scutari \email{marco.scutari@gmail.com}
 
@@ -322,8 +322,8 @@
   Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
       Principles and Techniques}. MIT Press.
 
-  Korb K, Nicholson AE (2003). \emph{Bayesian Artificial Intelligence}.
-      Chapman & Hall/CRC.
+  Korb K, Nicholson AE (2010). \emph{Bayesian Artificial Intelligence}.
+      Chapman & Hall/CRC, 2nd edition.
 
   Margaritis D (2003). \emph{Learning Bayesian Network Model Structure
       from Data}. Ph.D. thesis, School of Computer Science, Carnegie-Mellon

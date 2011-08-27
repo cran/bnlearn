@@ -1,11 +1,11 @@
 #include "common.h"
 
-void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int *num); 
-void rbn_discrete_cond(SEXP result, int cur, SEXP cpt, int *configurations, 
-    int *num, int *warn); 
+void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int *num);
+void rbn_discrete_cond(SEXP result, int cur, SEXP cpt, int *configurations,
+    int *num, int *warn);
 
 /* sampling without replacement, internal copy of the SampleNoReplace function
- * in src/main/random.c. 
+ * in src/main/random.c.
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
  * Copyright (C) 1997--2010  The R Development Core Team
  * Copyright (C) 2003--2008  The R Foundation
@@ -55,8 +55,8 @@ int nm1 = n - 1;
 
     rU = unif_rand();
 
-    for (j = 0; j < nm1; j++) 
-      if (rU <= p[j]) 
+    for (j = 0; j < nm1; j++)
+      if (rU <= p[j])
         break;
 
     ans[i] = perm[j];
@@ -99,8 +99,8 @@ double rU = 0;
 
     rU = unif_rand();
 
-    for (j = 0; j < r; j++) 
-      if (rU <= p[CMC(j, conf[i], r)]) 
+    for (j = 0; j < r; j++)
+      if (rU <= p[CMC(j, conf[i], r)])
         break;
 
     ans[i] = perm[CMC(j, conf[i], r)];

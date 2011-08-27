@@ -146,16 +146,74 @@ arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, cpdag,
   # rescale the counters to probabilities.
   prob = prob / R
 
-  .Call("bootstrap_arc_coefficients",
-        prob = prob,
-        arcs = arcs,
-        nodes = nodes,
-        PACKAGE = "bnlearn")
+  res = .Call("bootstrap_arc_coefficients",
+              prob = prob,
+              nodes = nodes,
+              PACKAGE = "bnlearn")
+
+  if (!is.null(arcs))
+    return(match.arcs.and.strengths(arcs, nodes, res, keep = TRUE))
+  else
+    return(res)
 
 }#ARC.STRENGTH.BOOT
 
+# compute arcs' strength as the relative frequency in a custom list of
+# network structures/arc sets.
+arc.strength.custom = function(custom.list, nodes, arcs, cpdag, debug) {
+
+  # allocate and initialize an empty adjacency matrix.
+  prob = matrix(0, ncol = length(nodes), nrow = length(nodes))
+  # get the number of networks to average.
+  R = length(custom.list)
+
+  for (r in seq_len(R)) {
+
+    if (debug) {
+
+      cat("----------------------------------------------------------------\n")
+      cat("* considering element", r, ".\n")
+
+    }#THEN
+
+    # get the arc set on way or the other.
+    if (is(custom.list[[r]], "bn"))
+      net.arcs = custom.list[[r]]$arcs
+    else
+      net.arcs = custom.list[[r]]
+
+    if (cpdag)
+      net.arcs = cpdag.arc.backend(nodes, net.arcs)
+
+    # update the counters in the matrix: undirected arcs are counted half
+    # for each direction, so that when summing up strength and direction
+    # they get counted once instead of twice.
+    # BEWARE: in-place modification of prob!
+    .Call("bootstrap_strength_counters",
+          prob = prob,
+          arcs = net.arcs,
+          nodes = nodes,
+          PACKAGE = "bnlearn")
+
+  }#FOR
+
+  # rescale the counters to probabilities.
+  prob = prob / R
+
+  res = .Call("bootstrap_arc_coefficients",
+              prob = prob,
+              nodes = nodes,
+              PACKAGE = "bnlearn")
+
+  if (!is.null(arcs))
+    return(match.arcs.and.strengths(arcs, nodes, res, keep = TRUE))
+  else
+    return(res)
+
+}#ARC.STRENGTH.CUSTOM
+
 # match arc sets and strength coefficients.
-match.arcs.and.strengths = function(arcs, nodes, strengths) {
+match.arcs.and.strengths = function(arcs, nodes, strengths, keep = FALSE) {
 
   if (nrow(strengths) < nrow(arcs))
     stop("insufficient number of strength coefficients.")
@@ -163,11 +221,23 @@ match.arcs.and.strengths = function(arcs, nodes, strengths) {
   a_hash = interaction(arcs[, "from"], arcs[, "to"])
   s_hash = interaction(strengths[, "from"], strengths[, "to"])
 
-  s = strengths[match(a_hash, s_hash), "strength"]
+  if (keep) {
 
-  if (any(is.na(s))) {
+    s = strengths[match(a_hash, s_hash), , drop = FALSE]
+    coef = s$strength
 
-    missing = apply(arcs[is.na(s), ], 1, function(x) { paste(" (", x[1], ", ", x[2], ")", sep = "")  })
+  }#THEN
+  else {
+
+    s = strengths[match(a_hash, s_hash), "strength"]
+    coef = s
+
+  }#ELSE
+
+  if (any(is.na(coef))) {
+
+    missing = apply(arcs[is.na(coef), , drop = FALSE], 1,
+                function(x) { paste(" (", x[1], ", ", x[2], ")", sep = "")  })
 
     stop("the following arcs do not have a corresponding strength coefficients:",
       missing, ".")
@@ -266,53 +336,28 @@ strength2lwd = function(strength, threshold, cutpoints, mode, arcs = NULL, debug
 
 }#STRENGTH2LWD
 
-# compute arcs' strength as the relative frequency in a custom list of
-# network structures/arc sets.
-arc.strength.custom = function(custom.list, nodes, arcs, cpdag, debug) {
+threshold = function(strength, method = "l1") {
 
-  # allocate and initialize an empty adjacency matrix.
-  prob = matrix(0, ncol = length(nodes), nrow = length(nodes))
-  #
-  R = length(custom.list)
+  e = ecdf(strength$strength)
+  u = knots(e)
 
-  for (r in seq_len(R)) {
+  if (method == "l1") {
 
-    if (debug) {
+    norm = function(p)
+      sum( diff(unique(c(0, u, 1))) * abs(e(unique(c(0, u[u < 1]))) - p))
 
-      cat("----------------------------------------------------------------\n")
-      cat("* considering element", r, ".\n")
+  }#THEN
 
-    }#THEN
+  p0 = optimize(f = norm, interval = c(0, 1))$minimum
 
-    # get the arc set on way or the other.
-    if (is(custom.list[[r]], "bn"))
-      net.arcs = custom.list[[r]]$arcs
-    else
-      net.arcs = custom.list[[r]]
+  # double check the boundaries, it's a legal solution but optimize() does
+  # not check it.
+  if (norm(1) < norm(p0))
+    p0 = 1
+  if (norm(0) < norm(p0))
+    p0 = 0
 
-    if (cpdag)
-      net.arcs = cpdag.arc.backend(nodes, net.arcs)
+  quantile(strength$strength, p0, type = 1, names = FALSE)
 
-    # update the counters in the matrix: undirected arcs are counted half
-    # for each direction, so that when summing up strength and direction
-    # they get counted once instead of twice.
-    # BEWARE: in-place modification of prob!
-    .Call("bootstrap_strength_counters",
-          prob = prob,
-          arcs = net.arcs,
-          nodes = nodes,
-          PACKAGE = "bnlearn")
-
-  }#FOR
-
-  # rescale the counters to probabilities.
-  prob = prob / R
-
-  .Call("bootstrap_arc_coefficients",
-        prob = prob,
-        arcs = arcs,
-        nodes = nodes,
-        PACKAGE = "bnlearn")
-
-}#ARC.STRENGTH.CUSTOM
+}#THRESHOLD
 

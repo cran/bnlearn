@@ -16,7 +16,7 @@ SEXP temp, result;
     result = int2fac(temp);
 
   }/*THEN*/
-  else { 
+  else {
 
     /* keep the configurations as they are, but add 1 to get indexing right
      * in R. */
@@ -25,7 +25,7 @@ SEXP temp, result;
 
     for (i = 0; i < LENGTH(result); i++)
       res[i]++;
-    
+
   }/*ELSE*/
 
   UNPROTECT(1);

@@ -83,7 +83,7 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
 
   if (!is.null(cluster)) {
 
-    res = parLapply(cluster, res, bootstrap.step, data = data, m = m, net = net, 
+    res = parLapply(cluster, res, bootstrap.step, data = data, m = m, net = net,
       sim = sim, algorithm = algorithm, algorithm.args = algorithm.args,
       statistic = statistic, statistic.args = statistic.args, debug = debug)
 
@@ -99,4 +99,47 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
   return(res)
 
 }#BOOTSTRAP.BACKEND
+
+# model averaging for bootstrapped network structures.
+averaged.network.backend = function(strength, nodes, threshold) {
+
+  e = empty.graph(nodes)
+
+  # arcs with a strength of one should always be selected, regardless of
+  # the threshold.
+  significant = (strength$strength > threshold) | (strength$strength == 1)
+
+  # filter also the direction if present in the bn.strength object.
+  if ("direction" %in% names(strength))
+    significant = significant & (strength$direction >= 0.5)
+
+  # nothing to, move along.
+  if (!any(significant))
+    return(e)
+
+  candidate.arcs = as.matrix(strength[significant, c("from", "to"), drop = FALSE])
+
+  if (all(which.undirected(candidate.arcs))) {
+
+    # update the arcs of the network, no cycles.
+    e$arcs = candidate.arcs
+
+  }#THEN
+  else {
+
+    # update the arcs of the network, minding cycles.
+    e$arcs = .Call("smart_network_averaging",
+                   arcs = candidate.arcs,
+                   nodes = nodes,
+                   weights = strength$strength[significant],
+                   PACKAGE = "bnlearn")
+
+  }#ELSE
+
+  # update the network structure.
+  e$nodes = cache.structure(nodes, arcs = candidate.arcs)
+
+  return(e)
+
+}#AVERAGED.NETWORK.BACKEND
 

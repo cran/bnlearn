@@ -82,7 +82,7 @@ SEXP result, cov, svd;
 
   /* compute the covariance matrix. */
   if (*shrink > 0)
-    PROTECT(cov = cov_lambda(data, length)); 
+    PROTECT(cov = cov_lambda(data, length));
   else
     PROTECT(cov = cov2(data, length));
   /* compute the singular value decomposition of the covariance matrix. */

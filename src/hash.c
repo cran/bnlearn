@@ -29,7 +29,7 @@ SEXP matched, hash;
   }/*ELSE*/
 
   if (sort)
-    R_isort(hash_el, narcs); 
+    R_isort(hash_el, narcs);
 
   UNPROTECT(2);
 

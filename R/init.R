@@ -1,4 +1,4 @@
-.onLoad <- function(lib, pkg) {
+.onLoad = function(lib, pkg) {
 
     # silence all warnings while looking for suggested packages.
     warning.level  = as.numeric(options("warn"))
@@ -10,15 +10,15 @@
     if ("Rgraphviz" %in% rownames(installed.packages()))
       graphviz.enabled <<- require(Rgraphviz)
 
-    cat("Package Rgraphviz",
-      ifelse(graphviz.enabled, "loaded successfully.\n", "not loaded.\n"))
+    packageStartupMessage("Package Rgraphviz ",
+      ifelse(graphviz.enabled, "loaded successfully.", "not loaded."))
 
     # load lattice and set the corresponding flag.
     if ("lattice" %in% rownames(installed.packages()))
       lattice.enabled <<- require(lattice)
 
-    cat("Package lattice",
-      ifelse(lattice.enabled, "loaded successfully.\n", "not loaded.\n"))
+    packageStartupMessage("Package lattice ",
+      ifelse(lattice.enabled, "loaded successfully.", "not loaded."))
 
     # restore the original warning level.
     options("warn" = warning.level)

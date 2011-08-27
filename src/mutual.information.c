@@ -35,7 +35,8 @@ double res = 0;
 
       if (n[i][j] != 0)
         res += ((double)n[i][j]) *
-           log((double)n[i][j]*(*num)/(double)(ni[i]*nj[j]));
+           ( log((double)n[i][j]) + log((double)(*num)) -
+             log((double)ni[i]) - log((double)nj[j]) );
 
     }/*FOR*/
 
@@ -106,7 +107,8 @@ SEXP result;
        if (n[i][j][k] != 0) {
 
           *res += (double)n[i][j][k] *
-            log( (double)(n[i][j][k]*nk[k]) / (double)(ni[i][k]*nj[j][k]) );
+            ( log((double)n[i][j][k]) + log((double)nk[k]) -
+              log((double)ni[i][k]) - log((double)nj[j][k]) );
 
         }/*THEN*/
 

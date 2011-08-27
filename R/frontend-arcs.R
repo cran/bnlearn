@@ -13,7 +13,7 @@ arcs = function(x) {
 }#ARCS
 
 # rebuild the network structure using a new set fo arcs.
-"arcs<-" <- function(x, ignore.cycles = FALSE, debug = FALSE, value) {
+"arcs<-" = function(x, ignore.cycles = FALSE, debug = FALSE, value) {
 
   # check x's class.
   check.bn(x)

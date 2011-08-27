@@ -57,8 +57,7 @@ shd = function(learned, true, debug = FALSE) {
   # check debug.
   check.logical(debug)
   # the two networks must have the same node set.
-  nodes = names(learned$nodes)
-  check.nodes(nodes, graph = true, min.nodes = length(nodes))
+  match.bn(learned, true)
 
   structural.hamming.distance(learned = learned, true = true, debug = debug)
 
@@ -67,14 +66,13 @@ shd = function(learned, true, debug = FALSE) {
 # hamming distance and related quantities.
 hamming = function(learned, true, debug = FALSE) {
 
-  # check x's class.
+  # check learned's and true's class.
   check.bn(learned)
   check.bn(true)
   # check debug.
   check.logical(debug)
   # the two networks must have the same node set.
-  nodes = names(learned$nodes)
-  check.nodes(nodes, graph = true, min.nodes = length(nodes))
+  match.bn(learned, true)
 
   hamming.distance(learned = learned, true = true, debug = debug)
 
@@ -86,7 +84,7 @@ whitelist = function(x) {
   # check x's class.
   check.bn(x)
 
-  if (is.null(x$learning$whitelist)) 
+  if (is.null(x$learning$whitelist))
     return(matrix(character(0), nrow = 0, ncol = 2,
       dimnames = list(NULL, c("from", "to"))))
   else
@@ -100,7 +98,7 @@ blacklist = function(x) {
   # check x's class.
   check.bn(x)
 
-  if (is.null(x$learning$blacklist)) 
+  if (is.null(x$learning$blacklist))
     return(matrix(character(0), nrow = 0, ncol = 2,
       dimnames = list(NULL, c("from", "to"))))
   else

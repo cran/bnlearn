@@ -9,7 +9,7 @@
 }
 \usage{
 bn.cv(data, bn, loss = NULL, k = 10, algorithm.args = list(),
-  loss.args = list(), fit = "mle", fit.args = list(), 
+  loss.args = list(), fit = "mle", fit.args = list(),
   cluster = NULL, debug = FALSE)
 }
 \arguments{

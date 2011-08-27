@@ -4,7 +4,7 @@ rbn = function(x, n = 1, ...) {
 
   UseMethod("rbn", x)
 
-}#CI.TEST
+}#RBN
 
 # generate random data from a network structure (parameters are learned on the fly).
 rbn.bn = function(x, n = 1, data, fit = "mle", ..., debug = FALSE) {
@@ -14,7 +14,7 @@ rbn.bn = function(x, n = 1, data, fit = "mle", ..., debug = FALSE) {
   # call the other method.
   rbn.bn.fit(x = fitted, n = n, debug = debug)
 
-}#RBN
+}#RBN.BN
 
 # generate random data from a bayesian network.
 rbn.bn.fit = function(x, n = 1, ..., debug = FALSE) {
@@ -33,14 +33,14 @@ rbn.bn.fit = function(x, n = 1, ..., debug = FALSE) {
   else
     rbn.continuous(x = x, n = n, data = NULL, debug = debug)
 
-}#RBN
+}#RBN.BN.FIT
 
 # catch-all, fallback method.
 rbn.default = function(x, n = 1, ...) {
 
   check.bn.or.fit(x)
 
-}#CI.TEST.DEFAULT
+}#RBN.DEFAULT
 
 # generate a random graph.
 random.graph = function(nodes, num = 1, method = "ordered", ..., debug = FALSE) {
@@ -95,7 +95,7 @@ naive.bayes = function(training, explanatory, data) {
     explanatory = nodes[nodes != training]
 
   }#ELSE
-  
+
   # check that the training node is not included among the explanatory variables.
   if (training %in% explanatory)
     stop("node ", training, " is included in the model both as a training and an explanatory variable.")
@@ -186,7 +186,7 @@ cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ..., d
       sprintf("    %-10s %s\n", cpq.algorithms, cpq.labels[cpq.algorithms])), sep = ""))
   # check the cluster.
   if (!is.null(cluster)) {
-  
+
     check.cluster(cluster)
 
     # disable debugging, the slaves do not cat() here.
@@ -214,3 +214,4 @@ cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ..., d
     probability = FALSE, cluster = cluster, debug = debug)
 
 }#CPDIST
+

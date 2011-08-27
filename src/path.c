@@ -423,7 +423,7 @@ int i = 0, j = 0, d = 0, *depth = NULL;
 
           if (debuglevel)
             Rprintf("  @ node '%s' already visited, skipping.\n", NODE(j));
-    
+
           continue;
 
         }/*THEN*/

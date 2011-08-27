@@ -59,8 +59,8 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL,
   Russell SJ, Norvig P (2009). \emph{Artificial Intelligence:
       A Modern Approach}. Prentice Hall, 3rd edition.
 
-  Korb K, Nicholson AE (2003). \emph{Bayesian Artificial Intelligence}.
-      Chapman & Hall/CRC.
+  Korb K, Nicholson AE (2010). \emph{Bayesian Artificial Intelligence}.
+      Chapman & Hall/CRC, 2nd edition.
 
   Margaritis D (2003). \emph{Learning Bayesian Network Model Structure
       from Data}. Ph.D. thesis, School of Computer Science, Carnegie-Mellon

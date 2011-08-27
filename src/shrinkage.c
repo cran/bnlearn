@@ -229,7 +229,7 @@ SEXP res;
    * the data*/
   for (i = 0; i < *n; i++) {
 
-    lambda += ((xx[i] - xm) * (yy[i] - ym) - (*sum)/(*n)) * 
+    lambda += ((xx[i] - xm) * (yy[i] - ym) - (*sum)/(*n)) *
               ((xx[i] - xm) * (yy[i] - ym) - (*sum)/(*n));
 
   }/*FOR*/
@@ -327,7 +327,7 @@ SEXP res;
         /* do the first round of computations for the shrinkage intensity. */
         for (k = 0; k < *n; k++) {
 
-          sumvars += 
+          sumvars +=
             ((column[i][k] - mean[i]) * (column[j][k] - mean[j]) - var[cur] / (*n)) *
             ((column[i][k] - mean[i]) * (column[j][k] - mean[j]) - var[cur] / (*n));
 

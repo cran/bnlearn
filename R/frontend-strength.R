@@ -74,16 +74,21 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
     res = arc.strength.boot(data = data, R = extra.args$R,
             m = extra.args$m, algorithm = extra.args[["algorithm"]],
-            algorithm.args = extra.args[["algorithm.args"]], arcs = x$arcs,
+            algorithm.args = extra.args[["algorithm.args"]], arcs = NULL,
             cpdag = FALSE, debug = debug)
+
+    # compute the confidence threshold before subsetting.
+    t = threshold(res)
+    # extract the subset of arcs of interest.
+    res = match.arcs.and.strengths(x$arcs, names(x$nodes), res, keep = TRUE)
 
     # add extra information for strength.plot(), and drop the column
     # with the direction confidence.
-    res = structure(res[, 1:3], mode = "bootstrap", threshold = 0.5)
+    res = structure(res[, 1:3], mode = "bootstrap", threshold = t)
 
   }#THEN
 
-  return(structure(res, class = c("bn.strength", class(res))))
+  return(structure(res, row.names = seq(nrow(res)), class = c("bn.strength", class(res))))
 
 }#ARC.STRENGTH
 
@@ -100,14 +105,52 @@ custom.strength = function(networks, nodes, cpdag = FALSE, debug = FALSE) {
   # check networks.
   check.customlist(networks, nodes = nodes)
 
-  res = arc.strength.custom(custom.list = networks, nodes, arcs = NULL,
-          cpdag = cpdag, debug = debug)
+  res = arc.strength.custom(custom.list = networks, nodes, cpdag = cpdag,
+          arcs = NULL, debug = debug)
 
   # add extra information for strength.plot().
-  res = structure(res, mode = "bootstrap", threshold = 0.5,
+  res = structure(res, mode = "bootstrap", threshold = threshold(res),
           class = c("bn.strength", class(res)))
 
   return(res)
 
 }#CUSTOM.STRENGTH
+
+# build the averaged network structure using arc strengths and a
+# significance threshold.
+averaged.network = function(strength, nodes, threshold) {
+
+  # check the strength parameter.
+  check.bn.strength(strength)
+  # this works only with bootstrapped networks.
+  if (attributes(strength)$mode != "bootstrap")
+    stop("only arc strength computed from bootstrapped networks are supported.")
+  # check the strength threshold.
+  threshold = check.threshold(threshold, strength)
+  # check nodes.
+  if (missing(nodes)) {
+
+    # use the bn.strength object to get a node set.
+    nodes = unique(c(strength[, "from"], strength[, "to"]))
+
+  }#THEN
+  else {
+
+    # sanitize the node set.
+    check.nodes(nodes = nodes, min.nodes = 3)
+    # double-check whther the bn.strength object agrees with the node set.
+    check.bn.strength(strength, nodes = nodes)
+
+  }#ELSE
+
+  avg = averaged.network.backend(strength = strength, nodes = nodes,
+          threshold = threshold)
+
+  # add the metadata for the print() method.
+  avg$learning$algo = "averaged"
+  avg$learning$args = list(threshold = threshold)
+
+  return(avg)
+
+}#AVERAGED.NETWORK
 

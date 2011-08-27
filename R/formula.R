@@ -33,7 +33,7 @@ model2network.backend = function(modelstring, node.order = NULL, debug = FALSE) 
     # split the model strings into the single nodes' strings.
     # the first entry of the first split in always empty because the model
     # string begins with a "["; remove it.
-    st <- strsplit(strsplit(modelstring,"\\[")[[1]][-1],"\\]")
+    st = strsplit(strsplit(modelstring,"\\[")[[1]][-1],"\\]")
 
     arcs = lapply(st, function(xp) {
 

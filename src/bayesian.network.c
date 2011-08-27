@@ -246,8 +246,8 @@ int *t = NULL, *c = NULL;
 SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash, result;
 
   /* get the node set of each network. */
-  tnodes = getAttrib(getListElement(target, "nodes"), R_NamesSymbol); 
-  cnodes = getAttrib(getListElement(current, "nodes"), R_NamesSymbol); 
+  tnodes = getAttrib(getListElement(target, "nodes"), R_NamesSymbol);
+  cnodes = getAttrib(getListElement(current, "nodes"), R_NamesSymbol);
 
   /* first check: node sets must have the same size. */
   if (LENGTH(tnodes) != LENGTH(cnodes)) {
@@ -273,12 +273,12 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash, result;
    * and the nodes in each set are guaranteed to be unique. */
   for (int i = 0; i < nnodes; i++) {
 
-    if (c[i] != i + 1) { 
+    if (c[i] != i + 1) {
 
       PROTECT(result = allocVector(STRSXP, 1));
       SET_STRING_ELT(result, 0, mkChar("Different node sets"));
       UNPROTECT(2);
-  
+
       return result;
 
     }/*THEN*/
@@ -288,8 +288,8 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash, result;
   UNPROTECT(1);
 
   /* get the node set of each network. */
-  tarcs = getListElement(target, "arcs"); 
-  carcs = getListElement(current, "arcs"); 
+  tarcs = getListElement(target, "arcs");
+  carcs = getListElement(current, "arcs");
 
   /* third check: arc sets must have the same size. */
   if (LENGTH(tarcs) != LENGTH(carcs)) {
@@ -314,20 +314,20 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash, result;
     /* dereference the resulting integer vectors. */
     t = INTEGER(thash);
     c = INTEGER(chash);
- 
+
     /* compare the integer vectors as generic memory areas. */
     if (memcmp(t, c, narcs * sizeof(int))) {
-  
+
       PROTECT(result = allocVector(STRSXP, 1));
       SET_STRING_ELT(result, 0, mkChar("Different arc sets"));
       UNPROTECT(3);
-  
+
       return result;
-  
+
     }/*THEN*/
 
     UNPROTECT(2);
-  
+
   }/*THEN*/
 
   /* all checks completed successfully, returning TRUE. */

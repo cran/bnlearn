@@ -13,7 +13,8 @@ bn.fit(x, data, method = "mle", \dots, debug = FALSE)
 bn.net(x, debug = FALSE)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}.}
+  \item{x}{an object of class \code{bn} (for \code{bn.fit}) or an object
+    of class \code{bn.fit} (for \code{bn.net}).}
   \item{data}{a data frame containing the variables in the model.}
   \item{method}{a character string, either \code{mle} for \emph{Maximum
     Likelihood parameter estimation} or \code{bayes} for \emph{Bayesian

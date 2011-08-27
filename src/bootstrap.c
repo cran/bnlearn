@@ -39,15 +39,15 @@ SEXP amat;
 
 }/*BOOTSTRAP_STRENGTH*/
 
-/* arc strength and direction confidence coefficients. */
-SEXP bootstrap_arc_coefficients(SEXP prob, SEXP arcs, SEXP nodes) {
+/* arc strength (confidence) and direction coefficients. */
+SEXP bootstrap_arc_coefficients(SEXP prob, SEXP nodes) {
 
-int i = 0, j = 0, k = 0, *coords = NULL, narcs = 0, nnodes = LENGTH(nodes);
+int i = 0, j = 0, k = 0, narcs = 0, nnodes = LENGTH(nodes);
 double *p = NULL, *s = NULL, *d = NULL;
-SEXP res, class, rownames, colnames, from, to, str, dir, try;
+SEXP res, class, rownames, colnames, from, to, str, dir;
 
-  /* get the dimension of the arcs set; if none is specified get them all. */
-  narcs = (isNull(arcs) ? nnodes * nnodes - nnodes : LENGTH(arcs) / 2);
+  /* compute the dimension of the arcs set. */
+  narcs = nnodes * (nnodes - 1);
 
   /* allocate and initialize the various columns. */
   PROTECT(from = allocVector(STRSXP, narcs));
@@ -61,55 +61,28 @@ SEXP res, class, rownames, colnames, from, to, str, dir, try;
   s = REAL(str);
   d = REAL(dir);
 
-  if (isNull(arcs)) {
+  /* fill in the coefficients. */
+  for (i = 0, k = 0; i < nnodes; i++) {
 
-    /* fill in the coefficients. */
-    for (i = 0, k = 0; i < nnodes; i++) {
+    for (j = 0; j < nnodes; j++) {
 
-      for (j = 0; j < nnodes; j++) {
+      /* "from" must differ from "to". */
+      if (i == j)
+        continue;
 
-        /* "from" must differ from "to". */
-        if (i == j)
-          continue;
+      /* set the labels of the incident nodes. */
+      SET_STRING_ELT(from, k, STRING_ELT(nodes, i));
+      SET_STRING_ELT(to, k, STRING_ELT(nodes, j));
+      /* compute arc strength and direction confidence. */
+      s[k] = p[CMC(i, j, nnodes)] + p[CMC(j, i, nnodes)];
+      d[k] = (s[k] == 0 ? 0 : p[CMC(i, j, nnodes)] / s[k]);
 
-        /* set the labels of the incident nodes. */
-        SET_STRING_ELT(from, k, STRING_ELT(nodes, i));
-        SET_STRING_ELT(to, k, STRING_ELT(nodes, j));
-        /* compute arc strength and direction confidence. */
-        s[k] = p[CMC(i, j, nnodes)] + p[CMC(j, i, nnodes)];
-        d[k] = (s[k] == 0 ? 0 : p[CMC(i, j, nnodes)] / s[k]);
-
-        /* increment the arc counter. */
-        k++;
-
-      }/*FOR*/
+      /* increment the arc counter. */
+      k++;
 
     }/*FOR*/
 
-  }/*THEN*/
-  else {
-
-    /* match the node labels in the arc set. */
-    PROTECT(try = match(nodes, arcs, 0));
-    coords = INTEGER(try);
-
-    for (k = 0; k < narcs; k++) {
-
-      /* set the labels in the data frame. */
-      SET_STRING_ELT(from, k, STRING_ELT(arcs, k));
-      SET_STRING_ELT(to, k, STRING_ELT(arcs, k + narcs));
-
-      /* match the positions of the nodes' labels and compute arc strength
-       * and direction confidence of the arc. */
-      s[k] = p[CMC(coords[k] - 1, coords[k + narcs] - 1, nnodes)] +
-             p[CMC(coords[k + narcs] - 1, coords[k] - 1, nnodes)];
-      d[k] = (s[k] == 0 ? 0 : p[CMC(coords[k], coords[k + narcs], nnodes)] / s[k]);
-
-    }/*FOR*/
-
-    UNPROTECT(1);
-
-  }/*ELSE*/
+  }/*FOR*/
 
   /* allocate and initialize the return value. */
   PROTECT(res = allocVector(VECSXP, 4));

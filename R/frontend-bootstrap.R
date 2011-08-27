@@ -1,7 +1,7 @@
 
 # generic frontend to {non,}parametric bootstrap.
 bn.boot = function(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
-    algorithm, algorithm.args = list(), statistic.args = list(), 
+    algorithm, algorithm.args = list(), statistic.args = list(),
     cluster = NULL, debug = FALSE) {
 
   # check the data are there.
@@ -70,7 +70,7 @@ boot.strength = function(data, R = 200, m = nrow(data),
           debug = debug)
 
   # add extra information for strength.plot().
-  res = structure(res, mode = "bootstrap", threshold = 0.5, 
+  res = structure(res, mode = "bootstrap", threshold = threshold(res),
           class = c("bn.strength", class(res)))
 
   return(res)

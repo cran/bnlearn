@@ -8,7 +8,7 @@
 
   Learn the underlying structure of a directed acyclic graph (DAG)
   from data using the Max-Min Parents and Children (MMPC)
-  constraint-based algorithm. ARACNE learns an approximation
+  constraint-based algorithm. ARACNE and Chow-Liu learn an approximation
   of that structure using pairwise mutual information coefficients.
 
 }

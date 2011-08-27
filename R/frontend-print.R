@@ -108,6 +108,8 @@ print.bn = function(x, ...) {
       wcat("  maximum out-degree:                   ", format(x$learning$args$max.out.degree))
     if ("max.degree" %in% params)
       wcat("  maximum degree:                       ", format(x$learning$args$max.degree))
+    if ("threshold" %in% params)
+      wcat("  significance threshold:               ", format(x$learning$args$threshold))
 
   }#ELSE
 

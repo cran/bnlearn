@@ -6,7 +6,7 @@ discretize.backend = function(data, method, breaks, extra.args, debug = FALSE) {
   else if (method == "interval")
     interval.discretization(data = data, breaks = breaks)
   else if (method == "hartemink")
-    hartemink.discretization(data = data, breaks = breaks, 
+    hartemink.discretization(data = data, breaks = breaks,
       initial.breaks = extra.args$initial.breaks, debug = debug)
 
 }#DISCRETIZE.BACKEND
@@ -67,9 +67,22 @@ hartemink.discretization = function(data, breaks, initial.breaks, debug) {
   nodes = names(data)
   nnodes = length(nodes)
   ndata = nrow(data)
-  # perform an initial discretization.
-  discretized = quantile.discretization(data = data, 
-                  breaks = rep(initial.breaks, ncol(data)))
+  # perform an initial discretization if needed.
+  if (is.data.continuous(data)) {
+
+    discretized = quantile.discretization(data = data,
+                    breaks = rep(initial.breaks, ncol(data)))
+
+  }#THEN
+  else {
+
+    discretized = data
+
+  }#THEN
+
+  # nothing to do, move along.
+  if (initial.breaks == breaks)
+    return(discretized)
 
   # conting down to the desired number of levels ...
   for (nlevels in seq(from = initial.breaks, to = breaks + 1)) {
@@ -98,12 +111,12 @@ hartemink.discretization = function(data, breaks, initial.breaks, debug) {
         collapsed[collapsed == cur.levels[collapsing + 1]] = cur.levels[collapsing]
 
         # ... and compute the total mutual information.
-	total.mutual.information[collapsing] = sum(sapply(nodes[nodes != node], 
+	total.mutual.information[collapsing] = sum(sapply(nodes[nodes != node],
           function(node) {
 
-            mi.test(x = collapsed, 
+            mi.test(x = collapsed,
                     y = minimal.data.frame.column(discretized, node),
-                    ndata = ndata)  
+                    ndata = ndata)
 
           }))
 
@@ -113,16 +126,29 @@ hartemink.discretization = function(data, breaks, initial.breaks, debug) {
       }#FOR
 
       # get which collapsing gives the best restults.
-      bestop = which.max(total.mutual.information) 
+      bestop = which.max(total.mutual.information)
 
       if (debug)
         cat("@ best collapsing is", bestop, ".\n")
 
-      # build the new set of levels. 
-      from = strsplit(cur.levels[bestop], "\\(|\\[|,|\\]|\\)")[[1]][2] 
-      to = strsplit(cur.levels[bestop + 1], "\\(|\\[|,|\\]|\\)")[[1]][3] 
+      # build the new set of levels.
+      from = strsplit(cur.levels[bestop], "\\(|\\[|,|\\]|\\)")[[1]][2]
+      to = strsplit(cur.levels[bestop + 1], "\\(|\\[|,|\\]|\\)")[[1]][3]
       new.levels = cur.levels
-      new.levels[bestop] = new.levels[bestop + 1] = paste("(", from, ",", to, "]", sep = "")
+
+      if (is.na(from) || is.na(to)) {
+
+        cur.levels[bestop] = gsub("\\[|\\]", "", cur.levels[bestop])
+        cur.levels[bestop + 1] = gsub("\\[|\\]", "", cur.levels[bestop + 1])
+        new.levels[bestop] = new.levels[bestop + 1] = paste("[", cur.levels[bestop], ":", cur.levels[bestop + 1], "]", sep = "")
+
+      }#THEN
+      else {
+
+        new.levels[bestop] = new.levels[bestop + 1] = paste("(", from, ",", to, "]", sep = "")
+
+      }#ELSE
+
       # collapse the levels in the discretized data.
       levels(discretized[, node]) = new.levels
 

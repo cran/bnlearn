@@ -144,9 +144,9 @@ logLik.bn.fit = function(object, data, ...) {
 
   # parameter sanitization done in the score() function.
   if (is.data.discrete(data))
-    - ndata * discrete.loss(nodes = nodes, fitted = object, data = data)
+    - ndata * discrete.loss(nodes = nodes, fitted = object, data = data)$loss
   else
-    - ndata * gaussian.loss(nodes = nodes, fitted = object, data = data)
+    - ndata * gaussian.loss(nodes = nodes, fitted = object, data = data)$loss
 
 }#LOGLIK.BN.FIT
 

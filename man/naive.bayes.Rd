@@ -54,7 +54,7 @@ naive.bayes(training, explanatory, data)
 }
 \references{
 
-  Borgelt C, Kruse R, Steinbrecher M (2009). \emph{Graphical Models: 
+  Borgelt C, Kruse R, Steinbrecher M (2009). \emph{Graphical Models:
       Representations for Learning, Reasoning and Data Mining}.
       Wiley, 2nd edition.
 
@@ -64,16 +64,16 @@ data(learning.test)
 bn = naive.bayes("A", LETTERS[2:6])
 pred = predict(bn, learning.test)
 table(pred, learning.test[, "A"])
-#     
+#
 # pred    a    b    c
 #    a 1286  310  178
 #    b  192  977  203
 #    c  190  383 1281
-# 
+#
 fitted = bn.fit(bn, learning.test, method = "bayes")
 pred = predict(fitted, learning.test)
 table(pred, learning.test[, "A"])
-#     
+#
 # pred    a    b    c
 #    a 1286  310  178
 #    b  192  977  203

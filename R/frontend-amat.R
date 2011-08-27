@@ -13,7 +13,7 @@ amat = function(x) {
 }#AMAT
 
 # rebuild the network structure using a new adjacency matrix.
-"amat<-" <- function(x, ignore.cycles = FALSE, debug = FALSE, value) {
+"amat<-" = function(x, ignore.cycles = FALSE, debug = FALSE, value) {
 
   # check x's class.
   check.bn(x)

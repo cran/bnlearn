@@ -103,20 +103,22 @@ mi.estimator.tests = c(
   'mi-g' = "mi-g"
 )
 
-graph.generation.algorithms = c("ordered", "ic-dag", "melancon", "empty", "naive")
+graph.generation.algorithms = c("ordered", "ic-dag", "melancon", "empty", "averaged", "naive")
 
 graph.generation.labels = c(
   "ordered" = "Full Ordering",
   "ic-dag" = "Ide & Cozman's Multiconnected DAGs",
   "melancon" = "Melancon's Uniform Probability DAGs",
   "empty" = "Empty",
+  "averaged" = "Model Averaging",
   "naive" = "Naive Bayes Classifier"
 )
 
 graph.generation.extra.args = list(
   "ordered" = "prob",
   "ic-dag" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree"),
-  "melancon" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree")
+  "melancon" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree"),
+  "averaged" = "threshold"
 )
 
 cpq.algorithms = c("ls")

@@ -48,6 +48,7 @@ export(
   "arc.strength",
   "boot.strength",
   "custom.strength",
+  "averaged.network",
   "rbn",
   "score",
   "ci.test",
@@ -80,7 +81,13 @@ export(
   "discretize",
   "bn.var",
   "bn.var.test",
-  "bn.moments"
+  "bn.moments",
+  "read.bif",
+  "write.bif",
+  "read.dsc",
+  "write.dsc",
+  "read.net",
+  "write.net"
 )
 
 S3method(all.equal, bn)

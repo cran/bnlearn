@@ -31,7 +31,7 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
   # check x's class.
   check.bn(x)
   # check the strength parameter.
-  check.bn.strength(strength, bn = x)
+  check.bn.strength(strength, nodes = names(x$nodes))
   # check the strength threshold.
   threshold = check.threshold(threshold, strength)
 
@@ -105,8 +105,8 @@ plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
 
   # set the stepping (in radiants) and the center of the plot.
   unit = 2 * pi / length(x$nodes)
-  xc <- mean(xlim)
-  yc <- mean(ylim)
+  xc = mean(xlim)
+  yc = mean(ylim)
 
   # compute the coordinates of the nodes
   coords = matrix(c(xc + radius * cos(1:length(x$nodes) * unit + pi/2),

@@ -12,7 +12,7 @@ SEXP result;
    * of the residuals. */
   mean = REAL(getListElement(fitted, "coefficients"));
   sd = REAL(getListElement(fitted, "sd"));
-  
+
   /* allocate and initialize the return value. */
   PROTECT(result = allocVector(REALSXP, 1));
   res = REAL(result);

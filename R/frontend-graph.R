@@ -174,17 +174,59 @@ all.equal.bn = function(target, current, ...) {
 }#ALL.EQUAL.BN
 
 # compare two bayesian network structures.
-compare = function(target, current, debug = FALSE) {
-
-  result = TRUE
+compare = function(target, current, arcs = FALSE) {
 
   # check both objects' class.
   check.bn(target)
   check.bn(current)
+  # the two networks must have the same node set.
+  match.bn(target, current)
   # check debug.
-  check.logical(debug)
+  check.logical(arcs)
 
-  compare.backend(target = target, current = current, debug = debug)
+  # cache some useful quantities.
+  nodes = names(target$nodes)
+  nnodes = length(target$nodes)
+
+  # separate directed and undirected arcs in the target network.
+  which.dir = which.directed(target$arcs, nodes)
+  target.dir = target$arcs[which.dir, , drop = FALSE]
+  target.und = target$arcs[!which.dir, , drop = FALSE]
+  # separate directed and undirected arcs in the current network.
+  which.dir = which.directed(current$arcs, nodes)
+  current.dir = current$arcs[which.dir, , drop = FALSE]
+  current.und = current$arcs[!which.dir, , drop = FALSE]
+
+  # treat directed and undirected arcs separately; directed arcs are
+  # compared in both presence and direction.
+  which.tp.dir = which.listed(target.dir, current.dir)
+  which.tp.und = which.listed(target.und, current.und)
+  which.fn.dir = !which.listed(target.dir, current.dir)
+  which.fn.und = !which.listed(target.und, current.und)
+  which.fp.dir = !which.listed(current.dir, target.dir)
+  which.fp.und = !which.listed(current.und, target.und)
+
+  if (arcs) {
+
+    # return the arcs corresponding to each category.
+    tp = arcs.rbind(target.dir[which.tp.dir, , drop = FALSE],
+                    target.und[which.tp.und, , drop = FALSE])
+    fn = arcs.rbind(target.dir[which.fn.dir, , drop = FALSE],
+                    target.und[which.fn.und, , drop = FALSE])
+    fp = arcs.rbind(current.dir[which.fp.dir, , drop = FALSE],
+                    current.dir[which.fp.und, , drop = FALSE])
+
+  }#THEN
+  else {
+
+    # return the counts for each category.
+    tp = length(which(which.tp.dir)) + length(which(which.tp.und))/2
+    fn = length(which(which.fn.dir)) + length(which(which.fn.und))/2
+    fp = length(which(which.fp.dir)) + length(which(which.fp.und))/2
+
+  }#ELSE
+
+  return(list(tp = tp, fp = fp, fn = fn))
 
 }#COMPARE
 

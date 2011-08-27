@@ -2,7 +2,7 @@
 # passthrough for bn objects.
 predict.bn  = function(object, node, data, ..., debug = FALSE) {
 
-  predict.bn.fit(object = bn.fit(object, data), node = node, data = data, 
+  predict.bn.fit(object = bn.fit(object, data), node = node, data = data,
     ..., debug = debug)
 
 }#PREDICT.BN

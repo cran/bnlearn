@@ -27,6 +27,15 @@
 
   }
 
+  If the loss function is some form of prediction error, each element also
+  contains:
+
+  \itemize{
+
+    \item \code{predicted}: a factor, the predicted values for the test set.
+
+  }
+
   In addition, an object of class \code{bn.kcv} has the following attributes:
 
   \itemize{

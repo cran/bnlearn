@@ -122,7 +122,7 @@ void **alloc1dpointer (int length) {
 
 void **p = NULL;
 
-  p = (void **) R_alloc(length, sizeof(void *)); 
+  p = (void **) R_alloc(length, sizeof(void *));
 
   return p;
 
