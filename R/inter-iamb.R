@@ -99,7 +99,7 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
   backtracking = NULL, test, debug) {
 
   nodes = nodes[nodes != x]
-  known.good = known.bad = c()
+  culprit = known.good = known.bad = c()
   whitelisted = nodes[sapply(nodes,
           function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
   mb = c()
@@ -111,7 +111,8 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
     if (debug)
       cat("  * checking node", y, "for exclusion (shrinking phase).\n")
 
-    a = conditional.test(x, y, mb[mb != y], data = data, test = test, B)
+    a = conditional.test(x, y, mb[mb != y], data = data, test = test, B = B,
+          alpha = alpha)
 
     if (a > alpha) {
 
@@ -182,8 +183,8 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
     mb.snapshot = mb
 
     # get an association measure for each of the available nodes.
-    association = sapply(nodes[!(nodes %in% mb)], conditional.test, x, sx = mb,
-                    test = test, data = data, B = B)
+    association = sapply(nodes[!(nodes %in% c(mb, culprit))], conditional.test, x, sx = mb,
+                    test = test, data = data, B = B, alpha = alpha)
 
     # stop if there are no candidates for inclusion; the markov blanket
     # would obviously be unchanged.
@@ -228,6 +229,12 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
 
     if (any(duplicated.check)) {
 
+      # remove the node added to the markov blanket in the last iteration, and
+      # do not consider it again for inclusion.
+      duplicated.node = mb[length(mb)]
+      culprit = c(culprit, duplicated.node)
+      mb = mb[mb != duplicated.node]
+
       if (debug) {
 
         cat("  ! recurring markov blanket configuration detected (",
@@ -237,10 +244,16 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
           function(str) {
             cat("    >", paste(str, collapse = " "), "\n")
           })
+        cat("  ! removing", duplicated.node, "from the nodes to test.\n")
 
       }#THEN
 
-      stop("infinite loop detected, probably have gone on forever.")
+      # reset the state list so that no further errors are raised.
+      state[[loop.counter]] = NULL
+      # reset the loop counter to match.
+      loop.counter = loop.counter - 1
+
+      warning("prevented infinite loop in Markov blanket learning (node '", x, "').")
 
     }#THEN
 

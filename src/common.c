@@ -1,5 +1,6 @@
 #include "common.h"
 #include <R_ext/Arith.h>
+#include <R_ext/Utils.h>
 
 /* a rudimental C implementation of which.max(). */
 int which_max(double *array, int length) {
@@ -29,6 +30,28 @@ double max = R_NegInf;
   return imax + 1;
 
 }/*WHICH_MAX*/
+
+/* return all maxima in the array, modulo numeric tolerance. */
+void all_max(double *array, int length, int *maxima, int *nmax, int *indexes) {
+
+  int i = 0;
+  double tol = MACHINE_TOL;
+
+  /* sort the elements of the array. */
+  rsort_with_index(array, indexes, length);
+
+  /* count the number of maxima (considering numeric tolearnce.)*/
+  for (i = length - 1; i >= 0; i--)
+    if (array[i] < array[length - 1] - tol)
+      break;
+
+  /* set the counter for the number of maxima. */
+  *nmax = length - i - 1;
+
+  /* save the indexes of the maxima. */
+  memcpy(maxima, indexes + length - *nmax, *nmax * sizeof(int));
+
+}/*ALL_MAX*/
 
 /* get the list element named str, or return NULL. */
 SEXP getListElement(SEXP list, char *str) {

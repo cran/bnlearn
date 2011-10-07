@@ -110,7 +110,8 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
     if (debug)
       cat("  * checking node", y, "for exclusion (shrinking phase).\n")
 
-    a = conditional.test(x, y, mb[mb != y], data = data, test = test, B = B)
+    a = conditional.test(x, y, mb[mb != y], data = data, test = test, B = B,
+          alpha = alpha)
 
     if (a > alpha) {
 
@@ -183,7 +184,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
 
     # get an association measure for each of the available nodes.
     association = sapply(nodes, conditional.test, x, sx = mb,
-                    test = test, data = data, B = B)
+                    test = test, data = data, B = B, alpha = alpha)
 
     if (debug) {
 

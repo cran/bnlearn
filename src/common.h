@@ -60,6 +60,7 @@ SEXP getListElement(SEXP list, char *str);
 SEXP unique(SEXP array);
 SEXP dupe(SEXP array);
 int which_max(double *array, int length);
+void all_max(double *array, int length, int *maxima, int *nmax, int *indexes);
 SEXP finalize_arcs(SEXP arcs);
 SEXP minimal_data_frame(SEXP obj);
 SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop);
@@ -68,6 +69,7 @@ SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop);
 
 void SampleNoReplace(int k, int n, int *y, int *x);
 #define RandomPermutation(n, y, x) SampleNoReplace(n, n, y, x)
+void SampleReplace(int k, int n, int *y, int *x);
 void ProbSampleReplace(int n, double *p, int *perm, int nans, int *ans);
 
 SEXP int2fac(SEXP vector);
@@ -87,10 +89,17 @@ SEXP c_cache_partial_structure(int target, SEXP nodes, SEXP amat, int *status, S
 SEXP r_svd(SEXP matrix);
 SEXP r_det(SEXP matrix, int scale);
 double c_det(double *matrix, int *rows);
+void c_svd(double *A, double *U, double *D, double *V, int *nrows, int *ncols,
+    int *mindim, int strict, int *errcode);
 
 /* from linear.correlation.c */
 
+void c_covmat(double **data, double *mean, int *ncols, int *nrows, double *mat);
+void c_update_covmat(double **data, double *mean, int update, int *ncols,
+    int *nrows, double *mat);
 double c_fast_cor(double *xx, double *yy, int *num);
+double c_fast_pcor(double *covariance, int *ncols, double *u, double *d,
+    double *vt, int *errcode);
 SEXP fast_pcor(SEXP data, SEXP length, SEXP shrinkage);
 
 /* from shrinkage.c */

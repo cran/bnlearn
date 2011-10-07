@@ -4,8 +4,8 @@
 
 /* -------------------- function declarations --------------------------- */
 
-static void c_svd(double *A, double *U, double *D, double *V, int *nrows,
-    int *ncols, int *mindim);
+void c_svd(double *A, double *U, double *D, double *V, int *nrows,
+    int *ncols, int *mindim, int strict, int *errcode);
 double c_det(double *matrix, int *rows);
 
 /* -------------------- R level interfaces to LAPACK -------------------- */
@@ -14,7 +14,7 @@ double c_det(double *matrix, int *rows);
 SEXP r_svd(SEXP matrix) {
 
 SEXP U, D, Vt, result, elnames;
-int nr = 0, nc = 0, mindim = 0;
+int nr = 0, nc = 0, mindim = 0, errcode = 0;
 short int duplicated = 0;
 
   /* compute the dimensions of the SVD components. */
@@ -32,7 +32,8 @@ short int duplicated = 0;
     PROTECT(matrix = duplicate(matrix));
 
   /* call Lapack to do the grunt work. */
-  c_svd(REAL(matrix), REAL(U), REAL(D), REAL(Vt), &nr, &nc, &mindim);
+  c_svd(REAL(matrix), REAL(U), REAL(D), REAL(Vt), &nr, &nc, &mindim,
+    TRUE, &errcode);
 
   /* build the return value. */
   PROTECT(result = allocVector(VECSXP, 3));
@@ -88,10 +89,10 @@ SEXP result;
 /* C-level wrapper around the dgesvd() F77 routine. Note that the input
  * matrix A is overwritten by dgesvd(), so it's sensible to have a
  * backup copy in case it's needed later. */
-static void c_svd(double *A, double *U, double *D, double *V, int *nrows,
-    int *ncols, int *mindim) {
+void c_svd(double *A, double *U, double *D, double *V, int *nrows,
+    int *ncols, int *mindim, int strict, int *errcode) {
 
-int err = 0, lwork = -1, *iwork = NULL;
+int lwork = -1, *iwork = NULL;
 char jobz = 'A';
 double tmp = 0, *work = NULL;
 
@@ -99,20 +100,20 @@ double tmp = 0, *work = NULL;
 
   /* ask for the optimal size of the work array. */
   F77_CALL(dgesdd)(&jobz, nrows, ncols, A, nrows, D, U, nrows,
-                   V, mindim, &tmp, &lwork, iwork, &err);
+                   V, mindim, &tmp, &lwork, iwork, errcode);
 
   lwork = (int)tmp;
   work = (double *)Calloc(lwork, double);
 
   /* actual call */
   F77_NAME(dgesdd)(&jobz, nrows, ncols, A, nrows, D, U, nrows,
-                   V, mindim, work, &lwork, iwork, &err);
+                   V, mindim, work, &lwork, iwork, errcode);
 
   Free(work);
   Free(iwork);
 
-  if (err)
-    error("an error (%d) occurred in the call to dgesdd().\n", err);
+  if (*errcode && strict)
+    error("an error (%d) occurred in the call to dgesdd().\n", *errcode);
 
 }/*C_SVD*/
 

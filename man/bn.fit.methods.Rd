@@ -67,6 +67,13 @@
   the data specified by \code{data}.
 
 }
+\note{
+
+  Ties in prediction are broken using \emph{Bayesian tie breaking}, i.e.
+  sampling at random from the tied values. Therefore, setting the random
+  seed is required to get reproducible results.
+
+}
 \value{
 
   \code{predict} returns a numeric vector (for Gaussian networks) or a factor

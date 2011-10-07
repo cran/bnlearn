@@ -20,8 +20,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 2.6\cr
-    Date: \tab 2011-08-27\cr
+    Version: \tab 2.7\cr
+    Date: \tab 2011-10-07\cr
     License: \tab GPLv2 or later
 
   }
@@ -141,9 +141,9 @@
 
   These algorithms learn the structure of the undirected graph underlying
   the Bayesian network, which is known as the \emph{skeleton} of the
-  network or the \emph{correlation graph}. Therefore all the arcs are
-  undirected, and no attempt is made to detect their orientation. They
-  are often used in hybrid learning algorithms.
+  network or the \emph{(partial) correlation graph}. Therefore all the
+  arcs are undirected, and no attempt is made to detect their orientation.
+  They are often used in hybrid learning algorithms.
 
   \itemize{
 
@@ -152,6 +152,13 @@
       the maximization of the minimum association measure observed with
       any subset of the nodes selected in the previous iterations
       (Tsamardinos, Brown and Aliferis, 2006).
+    \item \emph{Chow-Liu} (\code{\link{chow.liu}}): an application of the
+      minimum-weight spanning tree and the information inequality. It
+      learn the tree structure closest to the true one in the probability
+      space (Chow and Liu, 1968).
+    \item \emph{ARACNE} (\code{\link{aracne}}): an improved version of
+      the Chow-Liu algorithm that is able to learn polytrees (Margolin
+      et al., 2006).
 
   }
 
@@ -173,16 +180,18 @@
         \item \emph{mutual information}: an information-theoretic
           distance measure. It's proportional to the log-likelihood ratio
           (they differ by a \eqn{2n}{2n} factor) and is related to the
-          deviance of the tested models. Both the asymptotic \eqn{\chi^2}{chi-square}
-          test (\code{mi}) and the Monte Carlo permutation test (\code{mc-mi})
+          deviance of the tested models. The asymptotic \eqn{\chi^2}{chi-square}
+          test (\code{mi}), the Monte Carlo permutation test (\code{mc-mi})
+          and the sequential Monte Carlo permutation test (\code{smc-mi})
           are implemented.
         \item \emph{shrinkage estimator} for the \emph{mutual information}
           (\code{mi-sh}): an improved asymptotic \eqn{\chi^2}{chi-square} test
           based on the James-Stein estimator for the mutual information.
         \item \emph{Pearson's \eqn{X^2}{X^2}}: the classical Pearson's
-          \eqn{X^2}{X^2} test for contingency tables. Both the asymptotic
-          \eqn{\chi^2}{chi-square} test (\code{x2}) and the Monte Carlo
-          permutation test (\code{mc-x2}) are implemented.
+          \eqn{X^2}{X^2} test for contingency tables. The asymptotic
+          \eqn{\chi^2}{chi-square} test (\code{x2}), the Monte Carlo permutation
+          test (\code{mc-x2}) and the sequential Monte Carlo permutation test
+          (\code{smc-x2}) are implemented.
         \item \emph{Akaike Information Criterion} (\code{aict}): an experimental
           AIC-based independence test, computed comparing the mutual information
           and the expected information gain.
@@ -191,19 +200,22 @@
     \item \emph{continuous case} (multivariate normal distribution)
       \itemize{
 
-        \item \emph{linear correlation}: linear correlation. Both the exact
-          Student's t test (\code{cor}) and the Monte Carlo permutation test
-          (\code{mc-cor}) are implemented.
+        \item \emph{linear correlation}: linear correlation. The exact Student's
+          t test (\code{cor}), the Monte Carlo permutation test (\code{mc-cor})
+          and the sequential Monte Carlo permutation test (\code{smc-cor}) are
+          implemented.
         \item \emph{Fisher's Z}: a transformation of the linear correlation
           with asymptotic normal distribution. Used by commercial software
           (such as TETRAD II) for the PC algorithm (an R implementation is
-          present in the \code{pcalg} package on CRAN). Both the asymptotic
-          normal (\code{zf}) and the Monte Carlo permutation test (\code{mc-zf})
+          present in the \code{pcalg} package on CRAN). The asymptotic normal
+          test (\code{zf}), the Monte Carlo permutation test (\code{mc-zf})
+          and the sequential Monte Carlo permutation test (\code{smc-zf})
           are implemented.
         \item \emph{mutual information}: an information-theoretic distance
           measure. Again it's proportional to the log-likelihood ratio (they
-          differ by a \eqn{2n}{2n} factor). Both the asymptotic \eqn{\chi^2}{chi-square}
-          test (\code{mi-g}) and the Monte Carlo permutation test (\code{mc-mi-g})
+          differ by a \eqn{2n}{2n} factor). The asymptotic \eqn{\chi^2}{chi-square}
+          test (\code{mi-g}),the Monte Carlo permutation test (\code{mc-mi-g})
+          and the sequential Monte Carlo permutation test (\code{smc-mi-g})
           are implemented.
         \item \emph{shrinkage estimator} for the \emph{mutual information}
           (\code{mi-g-sh}): an improved asymptotic \eqn{\chi^2}{chi-square} test
@@ -319,6 +331,10 @@
       Package". Journal of Statistical Software, 35(3), 1-22. URL
       http://www.jstatsoft.org/v35/i03/.
 
+  Chow CK, Liu CN (1968). "Approximating Discrete Probability Distributions
+      With Dependence Trees". IEEE Transactions on InformationTheory,
+      IT-14:462-467.
+
   Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
       Principles and Techniques}. MIT Press.
 
@@ -328,6 +344,11 @@
   Margaritis D (2003). \emph{Learning Bayesian Network Model Structure
       from Data}. Ph.D. thesis, School of Computer Science, Carnegie-Mellon
       University, Pittsburgh, PA. Available as Technical Report CMU-CS-03-153.
+
+  Margolin AA, Nemenman I, Basso K, Wiggins C, Stolovitzky G, Dalla Favera R,
+      Califano A (2006). "ARACNE: An Algorithm for the Reconstruction of
+      Gene Regulatory Networks in a Mammalian Cellular Context". \emph{BMC
+      Bioinformatics}, \strong{7}(Suppl 1):S7.
 
   Pearl J (1988). \emph{Probabilistic reasoning in intelligent systems:
       networks of plausible inference}. Morgan Kaufmann.

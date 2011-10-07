@@ -3,7 +3,7 @@ lattice.discrete.backend = function(fitted, type, xlab, ylab, main, ...) {
 
   # check whether lattice is loaded.
   if (!("lattice" %in% loadedNamespaces()))
-    stop("this function requires lattice.")
+    stop("this function requires the lattice package.")
 
   if (is(fitted, "bn.fit")) {
 

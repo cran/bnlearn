@@ -38,7 +38,7 @@ ci.test.character = function(x, y = NULL, z = NULL, data, test = NULL,
 
   # compute the network score.
   conditional.test(x = x, y = y, sx = z, data = data, test = test,
-    B = B, learning = FALSE)
+    B = B, alpha = 1, learning = FALSE)
 
 }#CI.TEST.CHARACTER
 
@@ -123,7 +123,7 @@ ci.test.numeric = function(x, y = NULL, z = NULL, test = NULL, B = NULL, debug =
   check.unused.args(list(...), character(0))
 
   res = conditional.test(x = 1L, y = 2L, sx = sx, data = data,
-    test = test, B = B, learning = FALSE)
+    test = test, B = B, alpha = 1, learning = FALSE)
 
   # rewrite the test formula.
   res$data.name = paste(deparse(substitute(x)), "~", deparse(substitute(y)),
@@ -189,7 +189,7 @@ ci.test.factor = function(x, y = NULL, z = NULL, test = NULL, B = NULL, debug = 
   check.unused.args(list(...), character(0))
 
   res = conditional.test(x = 1L, y = 2L, sx = as.integer(sx), data = data,
-    test = test, B = B, learning = FALSE)
+    test = test, B = B, alpha = 1, learning = FALSE)
 
   # rewrite the test formula.
   res$data.name = paste(deparse(substitute(x)), "~", deparse(substitute(y)),

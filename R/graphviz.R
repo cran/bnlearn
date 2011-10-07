@@ -1,4 +1,20 @@
 
+# load the Rgraphviz package, with minimal noise.
+check.Rgraphviz = function() {
+
+  # silence all warnings while looking for suggested packages.
+  warning.level  = as.numeric(options("warn"))
+  options("warn" = -1)
+
+  if (!("Rgraphviz" %in% loadedNamespaces()))
+    if (!require(Rgraphviz))
+      stop("this function requires the Rgraphviz package.")
+
+  # restore the original warning level.
+  options("warn" = warning.level)
+
+}#CHECK.RGRAPHVIZ
+
 # unified backend for the graphviz calls.
 graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
     layout = "dot", shape = "circle", main = NULL, sub = NULL) {
@@ -9,8 +25,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
   highlighting = FALSE
 
   # check whether graphviz is loaded.
-  if (!("Rgraphviz" %in% loadedNamespaces()))
-    stop("this function requires Rgraphviz.")
+  check.Rgraphviz()
 
   # sanitize the layout (to be passed to layoutGraph).
   if (!is.string(layout))
@@ -84,8 +99,8 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
   }#THEN
 
   # create the graphAM object from the bn object.
-  graph.obj = new("graphAM", adjMat = arcs2amat(arcs, nodes),
-    edgemode = 'directed')
+  graph.obj = new("graphNEL", nodes = nodes, edgeL = arcs2elist(arcs, nodes),
+                edgemode = 'directed')
 
   # dump the global graphical settings.
   graph.par.dump = graph.par()

@@ -18,7 +18,7 @@ naive.bayes(training, explanatory, data)
   \item{object}{an object of class \code{bn.naive}, either fitted or not.}
   \item{data}{a data frame containing the variables in the model.}
   \item{prior}{a numeric vector, the prior distribution for the training
-    variable.}
+    variable. It is automatically normalized if not already so.}
  \item{\dots}{extra arguments from the generic method (currently ignored).}
  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
     is printed; otherwise the function is completely silent.}
@@ -41,6 +41,10 @@ naive.bayes(training, explanatory, data)
 
   Since \pkg{bnlearn} does not support networks containing both continuous
   and discrete variables, all variables in \code{data} must be discrete.
+
+  Ties in prediction are broken using \emph{Bayesian tie breaking}, i.e.
+  sampling at random from the tied values. Therefore, setting the random
+  seed is required to get reproducible results.
 
 }
 \value{

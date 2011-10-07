@@ -1,7 +1,17 @@
 
 bnlearn (2.7)
 
-  *
+  * make .onLoad() more robust, so that it passes "R CMD check"
+      even with a broken Graphviz installation.
+  * reduced memory usage in graphviz.plot(), now using arc lists
+      instead of adjacency matrices.
+  * added tie breaking in prediction.
+  * allow inter.iamb() to break infinite loops instead of returning
+      an error.
+  * fixed a buffer overflow in discrete Monte Carlo tests.
+  * added sequential Monte Carlo permutation tests.
+  * improved performance and error handling in Gaussian Monte
+      Carlo tests.
 
 bnlearn (2.6)
 

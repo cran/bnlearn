@@ -1,6 +1,6 @@
 #include "common.h"
 
-static SEXP cov2(SEXP data, SEXP length);
+static SEXP covmat(SEXP data, SEXP length);
 
 /* Linear Correlation, to be used in C code. */
 double c_fast_cor(double *xx, double *yy, int *num) {
@@ -70,6 +70,45 @@ SEXP res;
 
 }/*FAST_COR*/
 
+double c_fast_pcor(double *covariance, int *ncols, double *u, double *d,
+    double *vt, int *errcode) {
+
+int i = 0, coord1 = 0, coord2 = 0;
+double k11 = 0, k12 = 0, k22 = 0;
+double res = 0, tol = MACHINE_TOL;
+
+  c_svd(covariance, u, d, vt, ncols, ncols, ncols, FALSE, errcode);
+
+  if (*errcode < 0)
+    return 0;
+
+  /* compute the three elements of the pseudoinverse needed
+   * for the partial correlation coefficient. */
+  for (i = 0; i < *ncols; i++) {
+
+    if (d[i] > tol) {
+
+      coord1 = CMC(0, i, *ncols);
+      coord2 = CMC(i, 1, *ncols);
+
+      k11 += u[coord1] * vt[CMC(i, 0, *ncols)] / d[i];
+      k12 += u[coord1] * vt[coord2] / d[i];
+      k22 += u[CMC(1, i, *ncols)] * vt[coord2] / d[i];
+
+    }/*THEN*/
+
+  }/*FOR*/
+
+  /* safety check against "divide by zero" errors. */
+  if (fabs(k11) < tol || fabs(k22) < tol)
+    res = 0;
+  else
+    res = -k12 / sqrt(k11 * k22);
+
+  return res;
+
+}/*C_FAST_PCOR*/
+
 /* Partial Linear Correlation. */
 SEXP fast_pcor(SEXP data, SEXP length, SEXP shrinkage) {
 
@@ -84,7 +123,7 @@ SEXP result, cov, svd;
   if (*shrink > 0)
     PROTECT(cov = cov_lambda(data, length));
   else
-    PROTECT(cov = cov2(data, length));
+    PROTECT(cov = covmat(data, length));
   /* compute the singular value decomposition of the covariance matrix. */
   PROTECT(svd = r_svd(cov));
 
@@ -140,11 +179,36 @@ SEXP result, cov, svd;
 
 }/*FAST_PCOR*/
 
-static SEXP cov2(SEXP data, SEXP length) {
+void c_covmat(double **data, double *mean, int *ncols, int *nrows,
+    double *mat) {
 
 int i = 0, j = 0, k = 0, cur = 0;
-int *n = INTEGER(length), ncols = LENGTH(data);
-double *mean = NULL, *var = NULL, **column = NULL;
+
+  /* compute the actual covariance. */
+  for (i = 0; i < *ncols; i++) {
+
+    for (j = i; j < *ncols; j++) {
+
+      cur = CMC(i, j, *ncols);
+
+      for (k = 0; k < *nrows; k++)
+        mat[cur] += (data[i][k] - mean[i]) * (data[j][k] - mean[j]);
+
+      mat[cur] /= (*nrows) - 1;
+
+      /* fill in the symmetric element of the matrix. */
+      mat[CMC(j, i, *ncols)] = mat[cur];
+
+    }/*FOR*/
+
+  }/*FOR*/
+
+}/*C_COVMAT*/
+
+static SEXP covmat(SEXP data, SEXP length) {
+
+int i = 0, j = 0, *n = INTEGER(length), ncols = LENGTH(data);
+double *var = NULL, *mean = NULL, **column = NULL;
 SEXP res;
 
   /* allocate the covariance matrix. */
@@ -152,14 +216,13 @@ SEXP res;
   var = REAL(res);
   memset(var, '\0', ncols * ncols * sizeof(double));
 
-  /* allocate an array to store the mean values. */
-  mean = Calloc(ncols, double);
-  memset(mean, '\0', sizeof(double) * ncols);
-
   /* allocate and initialize an array of pointers for the variables. */
   column = (double **) Calloc(ncols, double *);
   for (i = 0; i < ncols; i++)
     column[i] = REAL(VECTOR_ELT(data, i));
+
+  /* allocate an array to store the mean values. */
+  mean = alloc1dreal(ncols);
 
   /* compute the mean values  */
   for (i = 0; i < ncols; i++) {
@@ -171,29 +234,36 @@ SEXP res;
 
   }/*FOR*/
 
-  /* compute the actual covariance. */
-  for (i = 0; i < ncols; i++) {
-
-    for (j = i; j < ncols; j++) {
-
-      cur = CMC(i, j, ncols);
-
-      for (k = 0; k < *n; k++)
-        var[cur] += (column[i][k] - mean[i]) * (column[j][k] - mean[j]);
-
-      var[cur] /= (*n) - 1;
-
-      /* fill in the symmetric element of the matrix. */
-      var[CMC(j, i, ncols)] = var[cur];
-
-    }/*FOR*/
-
-  }/*FOR*/
+  /* call the C backend that does the actual work. */
+  c_covmat(column, mean, &ncols, n, var);
 
   Free(column);
-  Free(mean);
+
   UNPROTECT(1);
   return res;
 
-}/*COV2*/
+}/*COVMAT*/
+
+/* update only a single row/column in a covariance matrix. */
+void c_update_covmat(double **data, double *mean, int update, int *ncols, int *nrows,
+    double *mat) {
+
+int j = 0, k = 0, cur = 0;
+
+  /* compute the actual covariance. */
+  for (j = 0; j < *ncols; j++) {
+
+    cur = CMC(update, j, *ncols);
+
+    for (k = 0; k < *nrows; k++)
+      mat[cur] += (data[update][k] - mean[update]) * (data[j][k] - mean[j]);
+
+    mat[cur] /= (*nrows) - 1;
+
+    /* fill in the symmetric element of the matrix. */
+    mat[CMC(j, update, *ncols)] = mat[cur];
+
+  }/*FOR*/
+
+}/*C_COVMAT*/
 

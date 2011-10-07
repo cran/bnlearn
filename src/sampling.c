@@ -27,6 +27,21 @@ int i = 0, j = 0;
 
 }/*SAMPLENOREPLACE*/
 
+/* sampling with replacement and equal probabilties, internal copy of the
+ * SampleReplace function in src/main/random.c.
+ * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka
+ * Copyright (C) 1997--2010  The R Development Core Team
+ * Copyright (C) 2003--2008  The R Foundation
+ * licensed under "GPLv2 or later" licence. */
+void SampleReplace(int k, int n, int *y, int *x) {
+
+int i;
+
+  for (i = 0; i < k; i++)
+    y[i] = x[(int)(n * unif_rand())];
+
+}/*SAMPLEREPLACE*/
+
 /* sampling with replacement and unequal probabilties, internal copy of the
  * ProbSampleReplace function in src/main/random.c.
  * Copyright (C) 1995, 1996  Robert Gentleman and Ross Ihaka

@@ -26,8 +26,8 @@ SEXP result;
   /* compute the entropy from the joint and marginal frequencies. */
   for (i = 0; i < *llx; i++) {
 
-      if (n[i] != 0)
-        *res += (double)n[i] * log((double)n[i] / (*num));
+    if (n[i] != 0)
+      *res += (double)n[i] * log((double)n[i] / (*num));
 
   }/*FOR*/
 

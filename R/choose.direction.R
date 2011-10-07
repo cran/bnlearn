@@ -11,14 +11,12 @@ choose.direction.test = function(x, arc, data, test, alpha, B, debug) {
   # does not depend on them so they are largely irrelevant.
 
   parents1 = parents.backend(x$arcs, arc[2], undirected = TRUE)
-  a1 = conditional.test(arc[1], arc[2],
-        parents1[parents1 != arc[1]],
-        data = data, test = test, B = B)
+  a1 = conditional.test(arc[1], arc[2], parents1[parents1 != arc[1]],
+        data = data, test = test, B = B, alpha = alpha)
 
   parents2 = parents.backend(x$arcs, arc[1], undirected = TRUE)
-  a2 = conditional.test(arc[2], arc[1],
-        parents2[parents2 != arc[2]],
-        data = data, test = test, B = B)
+  a2 = conditional.test(arc[2], arc[1], parents2[parents2 != arc[2]],
+        data = data, test = test, B = B, alpha = alpha)
 
   if (debug) {
 

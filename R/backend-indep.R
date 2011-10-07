@@ -164,7 +164,8 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
           if (debug)
             cat("    > trying conditioning subset '", dsep.subsets[s,], "'.\n")
 
-          a = conditional.test(x, y, dsep.subsets[s,], data = data, test = test, B = B)
+          a = conditional.test(x, y, dsep.subsets[s,], data = data,
+                test = test, B = B, alpha = alpha)
           if (a > alpha) {
 
             if (debug)
@@ -267,7 +268,8 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test, debug) {
 
           for (s in 1:nrow(dsep.subsets)) {
 
-            a = conditional.test(y, z, c(dsep.subsets[s,], x), data = data, test = test, B = B)
+            a = conditional.test(y, z, c(dsep.subsets[s,], x), data = data,
+                  test = test, B = B, alpha = alpha)
             if (debug)
               cat("    > testing", y, "vs", z, "given", c(dsep.subsets[s,], x), "(", a, ")\n")
             max_a = max(a, max_a)

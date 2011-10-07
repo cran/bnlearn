@@ -1,10 +1,13 @@
 
 # Global variables.
-available.discrete.tests = c("mi", "aict", "mi-sh", "x2", "mc-mi", "mc-x2")
-available.continuous.tests = c("cor", "zf", "mi-g", "mi-g-sh", "mc-mi-g", "mc-cor", "mc-zf")
+available.discrete.tests = c("mi", "aict", "mi-sh", "x2", "mc-mi", "smc-mi", 
+  "mc-x2", "smc-x2")
+available.continuous.tests = c("cor", "zf", "mi-g", "mi-g-sh", "mc-mi-g",
+  "smc-mi-g", "mc-cor", "smc-cor", "mc-zf", "smc-zf")
 available.tests = c(available.discrete.tests, available.continuous.tests)
 
-resampling.tests = c("mc-mi", "mc-x2", "mc-mi-g", "mc-cor", "mc-zf")
+resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g", 
+  "mc-cor", "smc-cor", "mc-zf", "smc-zf")
 asymptotic.tests = c("mi", "mi-g", "x2", "zf")
 
 available.discrete.scores = c("loglik", "aic", "bic", "bde", "k2")
@@ -54,16 +57,21 @@ test.labels = c(
   'mi' = "Mutual Information (discrete)",
   'mi-sh' = "Mutual Information (discrete, shrinkage)",
   'mc-mi' = "Mutual Information (discrete, Monte Carlo)",
+  'smc-mi' = "Mutual Information (discrete, Sequential Monte Carlo)",
   'mi-g' = "Mutual Information (Gaussian)",
   'mi-g-sh' = "Mutual Information (Gaussian, shrinkage)",
   'mc-mi-g' = "Mutual Information (Gaussian, Monte Carlo)",
+  'smc-mi-g' = "Mutual Information (Gaussian, Sequential Monte Carlo)",
   'aict'= "AIC-like Test",
   'x2'= "Pearson's X^2",
   'mc-x2'= "Pearson's X^2 (Monte Carlo)",
+  'smc-x2'= "Pearson's X^2 (Sequential Monte Carlo)",
   'cor' = "Pearson's Linear Correlation",
   'mc-cor' = "Pearson's Linear Correlation (Monte Carlo)",
+  'smc-cor' = "Pearson's Linear Correlation (Sequential Monte Carlo)",
   'zf' = "Fisher's Z Test",
-  'mc-zf' = "Fisher's Z Test (Monte Carlo)"
+  'mc-zf' = "Fisher's Z Test (Monte Carlo)",
+  'smc-zf' = "Fisher's Z Test (Sequential Monte Carlo)"
 )
 
 score.labels = c(
@@ -165,9 +173,6 @@ mvber.labels = list(
   "nvar" = "Squared Frobenius Norm (1/4)",
   "nvark" = "Squared Frobenius Norm (k/4)"
 )
-
-graphviz.enabled = FALSE
-lattice.enabled = FALSE
 
 supported.clusters = c("MPIcluster", "PVMcluster","SOCKcluster")
 

@@ -11,10 +11,17 @@
 
 /* initialize the table of log-factorials. */
 #define allocfact(n) \
-  fact = alloc1dreal(n); \
+  fact = alloc1dreal(n + 1); \
   fact[0] = 0.; \
   for(k = 1; k <= n; k++) \
-    fact[k] = lgammafn((double) (k + 1)); \
+    fact[k] = lgammafn((double) (k + 1));
+
+#define sequential_counter_check(counter) \
+  (counter)++; \
+  if ((counter) >= enough) { \
+    (counter) = *B; \
+    break; \
+  }
 
 /* function declarations of the custom test functions. */
 static double _mi (int *n, int *nrowt, int *ncolt, int *nrows,
@@ -25,22 +32,23 @@ static double _x2 (int *n, int *nrowt, int *ncolt, int *nrows,
     int *ncols, int *length);
 static double _cx2 (int **n, int **nrowt, int **ncolt, int *ncond,
     int *nr, int *nc, int *nl);
-static double _cov(double *xx, double *yy, int *n);
+static double _cov(double *xx, double *yy, double *xm, double *ym, int *n);
 
 /* unconditional Monte Carlo simulation for discrete tests. */
 SEXP mcarlo (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP samples,
-    SEXP test) {
+    SEXP test, SEXP alpha) {
 
-double *fact = NULL, observed = 0;
+double *fact = NULL, *res = NULL, observed = 0;
 int *n = NULL, *ncolt = NULL, *nrowt = NULL, *workspace = NULL;
 int *num = INTEGER(length), *nr = INTEGER(lx), *nc = INTEGER(ly);
 int *xx = INTEGER(x), *yy = INTEGER(y), *B = INTEGER(samples);
-int k = 0;
+int i = 0, k = 0, enough = ceil(NUM(alpha) * (*B)) + 1;
 SEXP result;
 
   /* allocate and initialize the result. */
   PROTECT(result = allocVector(REALSXP, 2));
-  REAL(result)[1] = 0.;
+  res = REAL(result);
+  res[0] = res[1] = 0;
 
   /* allocate and compute the factorials needed by rcont2. */
   allocfact(*num);
@@ -56,13 +64,17 @@ SEXP result;
   ncolt = alloc1dcont(*nc);
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < *num; k++) {
-
+  for (k = 0; k < *num; k++)
     n[CMC(xx[k] - 1, yy[k] - 1, *nr)]++;
-    nrowt[xx[k] - 1]++;
-    ncolt[yy[k] - 1]++;
 
-  }/*FOR*/
+  /* compute the marginals. */
+  for (i = 0; i < *nr; i++)
+    for (k = 0; k < *nc; k++) {
+
+      nrowt[i] += n[CMC(i, k, *nr)];
+      ncolt[k] += n[CMC(i, k, *nr)];
+
+    }/*FOR*/
 
   /* initialize the random number generator. */
   GetRNGstate();
@@ -79,8 +91,11 @@ SEXP result;
 
         rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
 
-        if (_mi(n, nrowt, ncolt, nr, nc, num) > observed)
-          REAL(result)[1] += 1;
+        if (_mi(n, nrowt, ncolt, nr, nc, num) > observed) {
+
+          sequential_counter_check(res[1]);
+
+        }/*THEN*/
 
       }/*FOR*/
 
@@ -95,8 +110,11 @@ SEXP result;
 
         rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
 
-        if (_x2(n, nrowt, ncolt, nr, nc, num) > observed)
-          REAL(result)[1] += 1;
+        if (_x2(n, nrowt, ncolt, nr, nc, num) > observed) {
+
+          sequential_counter_check(res[1]);
+
+        }/*THEN*/
 
       }/*FOR*/
 
@@ -118,20 +136,20 @@ SEXP result;
 
 /* conditional Monte Carlo simulation for discrete tests. */
 SEXP cmcarlo (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
-    SEXP length, SEXP samples, SEXP test) {
+    SEXP length, SEXP samples, SEXP test, SEXP alpha) {
 
 double *fact = NULL, *res = NULL, observed = 0;
 int **n = NULL, **ncolt = NULL, **nrowt = NULL, *ncond = NULL, *workspace = NULL;
-int *num = INTEGER(length), *B = INTEGER(samples);;
+int *num = INTEGER(length), *B = INTEGER(samples);
 int *nr = INTEGER(lx), *nc = INTEGER(ly), *nl = INTEGER(lz);
 int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
-int j = 0, k = 0;
+int i = 0, j = 0, k = 0, enough = ceil(NUM(alpha) * (*B)) + 1;
 SEXP result;
 
   /* allocate and initialize the result */
   PROTECT(result = allocVector(REALSXP, 2));
   res = REAL(result);
-  res[1] = 0;
+  res[0] = res[1] = 0;
 
   /* allocate and compute the factorials needed by rcont2. */
   allocfact(*num);
@@ -148,14 +166,19 @@ SEXP result;
   ncond = alloc1dcont(*nl);
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < *num; k++) {
-
+  for (k = 0; k < *num; k++)
     n[zz[k] - 1][CMC(xx[k] - 1, yy[k] - 1, *nr)]++;
-    nrowt[zz[k] - 1][xx[k] - 1]++;
-    ncolt[zz[k] - 1][yy[k] - 1]++;
-    ncond[zz[k] - 1]++;
 
-  }/*FOR*/
+  /* compute the marginals. */
+  for (i = 0; i < *nr; i++)
+    for (j = 0; j < *nc; j++)
+      for (k = 0; k < *nl; k++) {
+
+        nrowt[k][i] += n[k][CMC(i, j, *nr)];
+        ncolt[k][j] += n[k][CMC(i, j, *nr)];
+        ncond[k] += n[k][CMC(i, j, *nr)];
+
+      }/*FOR*/
 
   /* initialize the random number generator. */
   GetRNGstate();
@@ -173,8 +196,12 @@ SEXP result;
         for (k = 0; k < *nl; k++)
           rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
 
-        if (_cmi(n, nrowt, ncolt, ncond, nr, nc, nl) > observed)
-          res[1] += 1;
+        if (_cmi(n, nrowt, ncolt, ncond, nr, nc, nl) > observed) {
+
+          sequential_counter_check(res[1]);
+
+        }/*THEN*/
+
 
       }/*FOR*/
 
@@ -190,8 +217,11 @@ SEXP result;
         for (k = 0; k < *nl; k++)
           rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
 
-        if (_cx2(n, nrowt, ncolt, ncond, nr, nc, nl) > observed)
-          res[1] += 1;
+        if (_cx2(n, nrowt, ncolt, ncond, nr, nc, nl) > observed) {
+
+          sequential_counter_check(res[1]);
+
+        }/*THEN*/
 
       }/*FOR*/
 
@@ -212,11 +242,11 @@ SEXP result;
 }/*CMCARLO*/
 
 /* unconditional Monte Carlo simulation for correlation-based tests. */
-SEXP gauss_mcarlo (SEXP x, SEXP y, SEXP samples, SEXP test) {
+SEXP gauss_mcarlo (SEXP x, SEXP y, SEXP samples, SEXP test, SEXP alpha) {
 
 int j = 0, k = 0, num = LENGTH(x), *B = INTEGER(samples);
 double *xx = REAL(x), *yy = REAL(y), *yperm = NULL, *res = NULL;
-double observed = 0;
+double observed = 0, enough = ceil(NUM(alpha) * (*B)) + 1, xm = 0, ym = 0;
 int *perm = NULL, *work = NULL;
 SEXP result;
 
@@ -226,6 +256,17 @@ SEXP result;
 
   /* allocate the array for the pemutations. */
   yperm = alloc1dreal(num);
+
+  /* cache the means of the two variables (they are invariant under permutation). */
+  for (j = 0; j < num; j++) {
+
+    xm += xx[j];
+    ym += yy[j];
+
+  }/*FOR*/
+
+  xm /= num;
+  ym /= num;
 
   /* allocate the result. */
   PROTECT(result = allocVector(REALSXP, 1));
@@ -243,7 +284,7 @@ SEXP result;
     case GAUSSIAN_MUTUAL_INFORMATION:
     case LINEAR_CORRELATION:
     case FISHER_Z:
-      observed = _cov(xx, yy, &num);
+      observed = _cov(xx, yy, &xm, &ym, &num);
 
       for (j = 0; j < *B; j++) {
 
@@ -252,8 +293,11 @@ SEXP result;
         for (k = 0; k < num; k++)
           yperm[k] = yy[perm[k]];
 
-        if (fabs(_cov(xx, yperm, &num)) > fabs(observed))
-          *res += 1;
+        if (fabs(_cov(xx, yperm, &xm, &ym, &num)) > fabs(observed)) {
+
+          sequential_counter_check(*res);
+
+        }/*THEN*/
 
       }/*FOR*/
 
@@ -273,35 +317,55 @@ SEXP result;
 }/*GAUSS_MCARLO*/
 
 /* conditional Monte Carlo simulation for correlation-based tests. */
-SEXP gauss_cmcarlo (SEXP data, SEXP length, SEXP samples, SEXP test) {
+SEXP gauss_cmcarlo (SEXP data, SEXP length, SEXP samples, SEXP test, SEXP alpha) {
 
-int j = 0, k = 0, *work = NULL, *perm = NULL;
-int *B = INTEGER(samples), *num = INTEGER(length);
-double observed = 0, *yperm = NULL, *yorig = NULL, *res = NULL;
-SEXP data2, yy, no, result;
+int j = 0, k = 0, ncols = LENGTH(data), errcode = 0, *work = NULL, *perm = NULL;
+int error_counter = 0, *B = INTEGER(samples), *num = INTEGER(length);
+double observed = 0, permuted = 0, *yperm = NULL, *yorig = NULL, *res = NULL;
+double enough = ceil(NUM(alpha) * (*B)) + 1;
+double **column = NULL, *mean = NULL, *covariance = NULL, *covariance_backup = NULL;
+double *u = NULL, *d = NULL, *vt = NULL;
+SEXP result;
+
+  /* allocate the matrices needed for the SVD decomposition. */
+  u = alloc1dreal(ncols * ncols);
+  d = alloc1dreal(ncols);
+  vt = alloc1dreal(ncols * ncols);
 
   /* allocate and initialize the result. */
   PROTECT(result = allocVector(REALSXP, 1));
   res = REAL(result);
   *res = 0;
 
-  /* allocate a FALSE logical value. */
-  PROTECT(no = allocVector(LGLSXP, 1));
-  LOGICAL(no)[0] = FALSE;
+  /* allocate and initialize an array of pointers for the variables. */
+  column = (double **) Calloc(ncols, double *);
+  for (j = 0; j < ncols; j++)
+    column[j] = REAL(VECTOR_ELT(data, j));
 
-  /* create a fake dataset which references all the columns of the original
-   * data except the second one (which created from scratch and changed at
-   * each iteration). */
-  PROTECT(data2 = allocVector(VECSXP, LENGTH(data)));
-  PROTECT(yy = allocVector(REALSXP, *num));
-  yperm = REAL(yy);
-  yorig = REAL(VECTOR_ELT(data, 1));
+  /* cache the means of the variables (they are invariant under permutation). */
+  mean = alloc1dreal(ncols);
 
-  for (j = 0; j < LENGTH(data); j++)
-    if (j != 1)
-      SET_VECTOR_ELT(data2, j, VECTOR_ELT(data, j));
-    else
-      SET_VECTOR_ELT(data2, j, yy);
+  /* compute the mean values  */
+  for (j = 0; j < ncols; j++) {
+
+    for (k = 0 ; k < *num; k++)
+      mean[j] += column[j][k];
+
+    mean[j] /= (*num);
+
+  }/*FOR*/
+
+  /* allocate and initialize the covariance matrix. */
+  covariance = alloc1dreal(ncols * ncols);
+  covariance_backup = alloc1dreal(ncols * ncols);
+  c_covmat(column, mean, &ncols, num, covariance);
+  memcpy(covariance_backup, covariance, ncols * ncols * sizeof(double));
+
+  /* substitute the original data with the fake column that will be permuted. */
+  yperm = alloc1dreal(*num);
+  yorig = column[1];
+  memcpy(yperm, yorig, *num * sizeof(double));
+  column[1] = yperm;
 
    /* allocate the arrays needed by RandomPermutation. */
   perm = alloc1dcont(*num);
@@ -318,19 +382,42 @@ SEXP data2, yy, no, result;
     case GAUSSIAN_MUTUAL_INFORMATION:
     case LINEAR_CORRELATION:
     case FISHER_Z:
-      observed = NUM(fast_pcor(data, length, no));
+      observed = c_fast_pcor(covariance, &ncols, u, d, vt, &errcode);
+
+      if (errcode)
+        error("an error (%d) occurred in the call to dgesvd().\n", errcode);
 
       for (j = 0; j < (*B); j++) {
+
+        /* reset the error flag of the SVD Fortran routine. */
+        errcode = 0;
 
         RandomPermutation(*num, perm, work);
 
         for (k = 0; k < *num; k++)
           yperm[k] = yorig[perm[k]];
 
-        if (fabs(NUM(fast_pcor(data2, length, no))) > fabs(observed))
-          *res += 1;
+        /* restore the covariance matrix from the good copy. */
+        memcpy(covariance, covariance_backup, ncols * ncols * sizeof(double));
+        /* update the relevant covariances. */
+        c_update_covmat(column, mean, 1, &ncols, num, covariance);
+
+        permuted = c_fast_pcor(covariance, &ncols, u, d, vt, &errcode);
+
+        if (errcode != 0)
+          error_counter++;
+
+        if (fabs(permuted) > fabs(observed)) {
+
+          sequential_counter_check(*res);
+
+        }/*THEN*/
 
       }/*FOR*/
+
+    if (error_counter > 0)
+      warning("unable to compute %d permutations due to errors in dgesvd().\n",
+        error_counter);
 
     break;
 
@@ -341,7 +428,9 @@ SEXP data2, yy, no, result;
   /* save the observed p-value. */
   *res /= *B;
 
-  UNPROTECT(4);
+  UNPROTECT(1);
+
+  Free(column);
 
   return result;
 
@@ -359,7 +448,8 @@ double res = 0;
 
       if (n[CMC(i, j, *nrows)] != 0)
         res += ((double)n[CMC(i, j, *nrows)]) *
-                log((double)n[CMC(i, j, *nrows)]*(*length)/(double)(nrowt[i]*ncolt[j]));
+                 ( log((double)n[CMC(i, j, *nrows)]) + log((double)(*length)) -
+                   log((double)nrowt[i]) - log((double)ncolt[j]) );
 
     }/*FOR*/
 
@@ -381,7 +471,8 @@ double res = 0;
        if (n[k][CMC(i, j, *nr)] != 0) {
 
           res += (double)n[k][CMC(i, j, *nr)] *
-            log( (double)(n[k][CMC(i, j, *nr)]*ncond[k]) / (double)(nrowt[k][i] * ncolt[k][j]) );
+                   ( log((double)n[k][CMC(i, j, *nr)]) + log((double)ncond[k]) -
+                     log((double)nrowt[k][i]) - log((double)ncolt[k][j]) );
 
         }/*THEN*/
 
@@ -438,25 +529,14 @@ double res = 0;
 }/*_CX2*/
 
 /* compute a (barebone version of) the linear correlation coefficient. */
-static double _cov(double *xx, double *yy, int *n) {
+static double _cov(double *xx, double *yy, double *xm, double *ym, int *n) {
 
 int i = 0;
-double sum = 0, xm = 0, ym = 0;
-
-  /* compute the mean values  */
-  for (i = 0; i < *n; i++) {
-
-    xm += xx[i];
-    ym += yy[i];
-
-  }/*FOR*/
-
-  xm /= *n;
-  ym /= *n;
+double sum = 0;
 
   /* compute the actual covariance. */
   for (i = 0; i < *n; i++)
-    sum += (xx[i] - xm) * (yy[i] - ym);
+    sum += (xx[i] - *xm) * (yy[i] - *ym);
 
   return sum;
 

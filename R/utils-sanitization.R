@@ -42,7 +42,8 @@ is.probability.vector = function(x) {
   is.numeric(x) &&
   all(is.finite(x)) &&
   all(x >= 0) &&
-  all(x <= 1)
+  all(x <= 1) && 
+  any(x > 0)
 
 }#IS.PROBABILITY.VECTOR
 
@@ -1621,12 +1622,10 @@ check.prior = function(prior, training) {
     }#THEN
     else {
 
-      if (!is.numeric(prior) || (length(prior) != nlevels(training)))
+      if (length(prior) != nlevels(training))
         stop("the prior distribution and the training variable have a different number of levels.")
-      if (any(prior < 0) || any(is.nan(prior)))
-        stop("prior probabilites must be non-negative numbers.")
-      if (all(prior == 0))
-        stop("at least one probability must be strictly positive.")
+      if (!is.probability.vector(prior))
+        stop("the prior distribution must be expressed as a probability vector.")
 
     }#ELSE
 
