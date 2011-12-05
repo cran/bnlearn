@@ -76,5 +76,5 @@ end:
 
   return result;
 
-}/*IS_SYMMETRIC*/
+}/*IS_CAUCHY_SCHWARZ*/
 

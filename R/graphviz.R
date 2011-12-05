@@ -58,8 +58,15 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
     if ("nodes" %in% names(highlight))
       check.nodes(highlight$nodes, graph = nodes)
 
-    if ("arcs" %in% names(highlight))
+    if ("arcs" %in% names(highlight)) {
+
       highlight$arcs = check.arcs(highlight$arcs, nodes = nodes)
+
+      # disregard empty arc sets.
+      if (nrow(highlight$arcs) == 0)
+        highlight$arcs = NULL
+
+    }#THEN
 
     if ("col" %in% names(highlight))
       check.colour(highlight$col)

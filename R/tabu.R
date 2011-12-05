@@ -1,7 +1,7 @@
 
 # unified tabu search implementation (both optimized and by spec).
 tabu.search = function(x, start, whitelist, blacklist, score,
-    extra.args, max.iter, optimized, tabu, debug) {
+    extra.args, max.iter, optimized, tabu, debug = FALSE) {
 
   # cache nodes' labels.
   nodes = names(x)

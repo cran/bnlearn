@@ -420,3 +420,127 @@ SEXP nodes, node_data, parents, result, dimnames, colnames;
   return result;
 
 }/*VSTRUCTURES*/
+
+SEXP pdag_extension(SEXP arcs, SEXP nodes, SEXP debug) {
+
+int i = 0, j = 0, k = 0, l = 0, t = 0, nnodes = LENGTH(nodes);
+int changed = 0, left = nnodes;
+int *a = NULL, *nbr = NULL, *debuglevel = LOGICAL(debug);
+short int *matched = NULL;
+SEXP amat, result;
+
+  /* build and dereference the adjacency matrix. */
+  PROTECT(amat = arcs2amat(arcs, nodes));
+  a = INTEGER(amat);
+
+  /* aqllocate and initialize the neighbours and matched vectors. */
+  nbr = alloc1dcont(nnodes);
+  matched = allocstatus(nnodes);
+
+  for (t = 0; t < nnodes; t++) {
+
+    if (*debuglevel > 0) {
+
+      Rprintf("----------------------------------------------------------------\n");
+      Rprintf("> performing pass %d.\n", t + 1);
+      Rprintf("> candidate nodes: ");
+        for (j = 0; j < nnodes; j++)
+          if (matched[j] == 0)
+            Rprintf("%s ", NODE(j));
+      Rprintf("\n");
+
+    }/*THEN*/
+
+    for (i = 0; i < nnodes; i++) {
+
+next_node:
+
+      /* if the node is already ok, skip it. */
+      if (matched[i] != 0)
+        continue;
+
+      /* check whether the current node has outgoing arcs. */
+      for (j = 0, k = 0; j < nnodes; j++) {
+
+        if (matched[j] != 0)
+          continue;
+
+        if ((a[CMC(j, i, nnodes)] == 0) && (a[CMC(i, j, nnodes)] == 1)) {
+
+          if (*debuglevel > 0)
+            Rprintf("  * node %s is not a sink.\n", NODE(i));
+
+          /* this node is not a candidate, go to the next one. */
+          i++;
+          goto next_node;
+
+        }/*THEN*/
+        else if ((a[CMC(j, i, nnodes)] == 1) && (a[CMC(i, j, nnodes)] == 1)) {
+
+          /* get the nodes which are linked to the current one by an 
+           * undirected arc. */
+          nbr[k++] = j;
+
+        }/*THEN*/
+
+      }/*FOR*/
+
+      if (*debuglevel > 0)
+        Rprintf("  * node %s is a sink.\n", NODE(i));
+
+      for (j = 0; j < k; j++) {
+
+        for (l = j + 1; l < k; l++) {
+
+          if ((a[CMC(nbr[j], nbr[l], nnodes)] == 0) &&
+              (a[CMC(nbr[l], nbr[j], nnodes)] == 0)) {
+
+            if (*debuglevel > 0)
+              Rprintf("  * not all nodes linked to %s by an undirected arc are adjacent.\n", NODE(i));
+
+            /* this node is not a candidate, go to the next one. */
+            i++;
+            goto next_node;
+
+          }/*THEN*/
+
+        }/*FOR*/
+
+      }/*FOR*/
+
+      if (*debuglevel > 0)
+        Rprintf("  * all nodes linked to %s by an undirected arc are adjacent.\n", NODE(i));
+
+      /* the current node meets all the conditions, direct all the arcs towards it. */
+      for (j = 0; j < k; j++)
+        a[CMC(i, nbr[j], nnodes)] = 0;
+
+      if (*debuglevel > 0)
+        Rprintf("  @ directing all incident arcs towards %s.\n", NODE(i));
+
+      /* set the changed flag. */
+      changed = 1;
+
+      /* exclude the node from later iterations. */
+      matched[i] = 1;
+      left--;
+
+    }/*FOR*/
+
+    /* if nothing changed in the last iteration or there are no more candidate
+     * nodes, there is nothing else to do. */
+    if ((changed == 0) || (left == 0))
+      break;
+    else
+      changed = 0;
+
+  }/*FOR*/
+
+  /* build the new arc set from the adjacency matrix. */
+  PROTECT(result = amat2arcs(amat, nodes));
+
+  UNPROTECT(2);
+
+  return result;
+
+}/*PDAG_EXTENSION*/

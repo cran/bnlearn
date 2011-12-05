@@ -19,11 +19,9 @@ score(x, data, type = NULL, ..., debug = FALSE)
   \item{data}{a data frame containing the data the Bayesian network
        was learned from.}
   \item{type}{a character string, the label of a network score.
-      If none is specified, the default score is the
-      \emph{Akaike Information Criterion} for discrete data sets
-      and the \emph{Bayesian Information Criterion} for both discrete
-      and continuous data sets. See \code{\link{bnlearn-package}}
-      for details.}
+      If none is specified, the default score is the \emph{Bayesian
+      Information Criterion} for both discrete and continuous data
+      sets. See \code{\link{bnlearn-package}} for details.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
   \item{\dots}{extra arguments from the generic method (for the \code{AIC}
@@ -40,12 +38,16 @@ score(x, data, type = NULL, ..., debug = FALSE)
   \itemize{
 
     \item \code{iss}: the imaginary sample size, used by the Bayesian
-        Dirichlet equivalent score and the Bayesian Gaussian posterior
-        density. It is also known as \dQuote{equivalent sample size}.
-        The default value is equal to the number of cells of the
-        joint contingency table (for compatibility with the \pkg{deal}
-        package) for the \code{bde} score, or to the number of
-        independent parameters for the \code{bge} score.
+        Dirichlet equivalent score (both the \code{bde} and \code{mbde})
+        and the Bayesian Gaussian posterior density. It is also known as
+        \dQuote{equivalent sample size}. The default value is equal to
+        \code{10} for both the \code{bde}/\code{mbde} scores and \code{bge}.
+
+    \item \code{exp}: a list of indexes of experimental observations (those
+        that have been artificially manipulated). Each element of the list
+        must be named after one of the nodes, and must contain a numeric
+        vector with indexes of the observations whose value has been
+        manipulated for that node.
 
     \item \code{k}: the penalty per parameter to be used by the AIC and
         BIC scores. The default value is \code{1} for AIC and
@@ -72,6 +74,11 @@ score(x, data, type = NULL, ..., debug = FALSE)
   Heckerman D, Geiger D, Chickering DM (1995). "Learning Bayesian Networks: The
       Combination of Knowledge and Statistical Data". \emph{Machine Learning},
       \strong{20}(3), 197-243. Available as Technical Report MSR-TR-94-09.
+
+  Cooper GF, Yoo C (1999). "Causal Discovery from a Mixture of Experimental
+      and Observational Data". In "UAI '99: Proceedings of the Fifteenth
+      Annual Conference on Uncertainty in Artificial Intelligence", pp. 116-125.
+      Morgann Kaufmann.
 
 }
 \value{

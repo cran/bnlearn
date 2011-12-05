@@ -17,7 +17,7 @@ SEXP nodes, node_data, parents, try, result;
   /* get the level count for each node. */
   nlevels = alloc1dreal(nnodes);
   for (i = 0; i < nnodes; i++)
-    nlevels[i] = NLEVELS(data, i);
+    nlevels[i] = NLEVELS2(data, i);
 
   /* allocate and initialize the return value. */
   PROTECT(result = allocVector(REALSXP, 1));
@@ -91,7 +91,7 @@ SEXP temp, names, result;
       /* this is a parent. */
       if (!strcmp(CHAR(STRING_ELT(names, i)), CHAR(STRING_ELT(temp, j)))) {
 
-        *nlevels *= NLEVELS(data, i);
+        *nlevels *= NLEVELS2(data, i);
 
       }/*THEN*/
 
@@ -100,7 +100,7 @@ SEXP temp, names, result;
     /* this is the node. */
     if (!strcmp(CHAR(STRING_ELT(names, i)), CHAR(STRING_ELT(node, 0)))) {
 
-      *nlevels *= NLEVELS(data, i) - 1 * (*r);
+      *nlevels *= NLEVELS2(data, i) - 1 * (*r);
 
     }/*THEN*/
 

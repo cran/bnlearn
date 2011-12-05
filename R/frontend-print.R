@@ -24,6 +24,8 @@ print.bn = function(x, ...) {
     cat("\n  Bayesian network learned via Hybrid methods\n\n")
   else if (x$learning$algo %in% mim.based.algorithms)
     cat("\n  Bayesian network learned via Pairwise Mutual Information methods\n\n")
+  else if (x$learning$algo %in% classifiers)
+    cat("\n  Bayesian network Classifier\n\n")
   else
     cat("\n  Bayesian network learned via [unknown] methods\n\n")
 
@@ -85,7 +87,7 @@ print.bn = function(x, ...) {
       wcat("  phi matrix structure:                 ", x$learning$args$phi)
     if ("k" %in% params)
       wcat("  penalization coefficient:             ", format(x$learning$args$k))
-    if (("estimator" %in% params) && (x$learning$algo %in% mim.based.algorithms))
+    if ("estimator" %in% params && (x$learning$algo %in% c(mim.based.algorithms, classifiers)))
       wcat("  mutual information estimator:         ", format(mi.estimator.labels[x$learning$args$estimator]))
 
     wcat("  tests used in the learning procedure: ", x$learning$ntests)

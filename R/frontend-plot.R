@@ -84,7 +84,7 @@ plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
 
   useless.ones = c('xlab', 'ylab', 'axes', 'type', 'col')
   sapply(names(dots),
-    function (name){
+    function(name) {
 
       if (name %in% useless.ones)
         warning("overriding the ", name, " parameter.",

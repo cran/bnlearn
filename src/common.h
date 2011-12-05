@@ -13,7 +13,8 @@
 #define NODE(i) CHAR(STRING_ELT(nodes, i))
 
 /* macro for the number of levels of the [,j] column. */
-#define NLEVELS(data, j) \
+#define NLEVELS(x) LENGTH(getAttrib(x, R_LevelsSymbol))
+#define NLEVELS2(data, j) \
   LENGTH(getAttrib(VECTOR_ELT(data, j), R_LevelsSymbol))
 
 /* coordinate systems conversion matrices */
@@ -64,6 +65,7 @@ void all_max(double *array, int length, int *maxima, int *nmax, int *indexes);
 SEXP finalize_arcs(SEXP arcs);
 SEXP minimal_data_frame(SEXP obj);
 SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop);
+SEXP int2fac(SEXP vector, int *nlevels);
 
 /* from sampling.c */
 
@@ -71,8 +73,6 @@ void SampleNoReplace(int k, int n, int *y, int *x);
 #define RandomPermutation(n, y, x) SampleNoReplace(n, n, y, x)
 void SampleReplace(int k, int n, int *y, int *x);
 void ProbSampleReplace(int n, double *p, int *perm, int nans, int *ans);
-
-SEXP int2fac(SEXP vector);
 
 /* from arcs2amat.c */
 
@@ -91,6 +91,12 @@ SEXP r_det(SEXP matrix, int scale);
 double c_det(double *matrix, int *rows);
 void c_svd(double *A, double *U, double *D, double *V, int *nrows, int *ncols,
     int *mindim, int strict, int *errcode);
+void c_ginv(double *covariance, int *ncols, double *mpinv);
+void c_finv(double *cov, int *ncols, double *mpinv);
+double c_quadratic(double *x, int *ncols, double *sigma, double *y,
+    double *workspace);
+void c_rotate(double *S1, double *S2, double *x, double *a, double *mu,
+    int *ncols, double *workspace);
 
 /* from linear.correlation.c */
 
@@ -122,7 +128,7 @@ SEXP c_amat_hash(int *amat, int *nnodes);
 
 /* from configurations.c */
 
-void cfg(SEXP parents, int *configurations);
+void cfg(SEXP parents, int *configurations, int *nlevels);
 
 /* shared between hill climbing and tabu search. */
 

@@ -40,7 +40,7 @@ void all_max(double *array, int length, int *maxima, int *nmax, int *indexes) {
   /* sort the elements of the array. */
   rsort_with_index(array, indexes, length);
 
-  /* count the number of maxima (considering numeric tolearnce.)*/
+  /* count the number of maxima (considering numeric tolerance). */
   for (i = length - 1; i >= 0; i--)
     if (array[i] < array[length - 1] - tol)
       break;
@@ -144,12 +144,25 @@ SEXP result, temp;
 }/*DUPE*/
 
 /* transform an integer vector into a factor. */
-SEXP int2fac(SEXP vector) {
+SEXP int2fac(SEXP vector, int *nlevels) {
 
+int i = 0, *l = NULL;
 SEXP result, class, levels, lvls;
 
-  /* find out which levels are needed. */
-  PROTECT(levels = unique(vector));
+  if (!nlevels) {
+
+    PROTECT(levels = unique(vector));
+
+  }/*THEN*/
+  else {
+
+    PROTECT(levels = allocVector(INTSXP, *nlevels));
+    l = INTEGER(levels);
+
+    for (i = 0; i < *nlevels; i++)
+      l[i] = i;
+
+  }/*ELSE*/
 
   /* match the elements of the vector against the levels. */
   PROTECT(result = match(levels, vector, 0));
@@ -203,6 +216,8 @@ SEXP try, result, colnames = getAttrib(dataframe, R_NamesSymbol);
 int *idx = NULL, *d = LOGICAL(drop);
 int nnames = LENGTH(name), name_type = TYPEOF(name);
 
+  if (dataframe == R_NilValue)
+    return R_NilValue;
 
   switch(name_type) {
 
@@ -244,7 +259,10 @@ int nnames = LENGTH(name), name_type = TYPEOF(name);
   }/*THEN*/
   else {
 
-    result = VECTOR_ELT(dataframe, *idx - 1);
+    if (*idx != 0)
+      result = VECTOR_ELT(dataframe, *idx - 1);
+    else
+      result = R_NilValue;
 
   }/*ELSE*/
 

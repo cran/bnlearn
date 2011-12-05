@@ -25,6 +25,15 @@ is.positive.vector = function(x) {
 
 }#IS.POSITIVE.VECTOR
 
+# is x a vector of non-negative numbers?
+is.nonnegative.vector = function(x) {
+
+  is.numeric(x) &&
+  all(is.finite(x)) &&
+  all(x >= 0)
+
+}#IS.NONNEGATIVE.VECTOR
+
 # is x a probability?
 is.probability = function(x) {
 
@@ -631,14 +640,14 @@ check.iss = function(iss, network, data) {
   if (!is.null(iss)) {
 
     # validate the imaginary sample size.
-    if (!is.positive(iss))
-      stop("the imaginary sample size must be a positive numeric value.")
+    if (!is.positive(iss) || (iss < 1))
+      stop("the imaginary sample size must be a numeric value greater than 1.")
     # if iss = 1 the bge is NaN, if iss = 2 and phi = "heckerman" the
     # computation stops with the following error:
     # Error in solve.default(phi[A, A]) :
     #   Lapack routine dgesv: system is exactly singular
     if(is.data.continuous(data) && (iss < 3))
-      stop("the imaginary sample size must be at least 3.")
+      stop("the imaginary sample size must be a numeric value greater than 3.")
 
   }#THEN
   else {
@@ -681,6 +690,75 @@ phi
 
 }#CHECK.PHI
 
+# check the experimental data list.
+check.experimental = function(exp, network, data) {
+
+  if (!is.null(exp)) {
+
+    if (!is.list(exp))
+      stop("experimental data must be specified via a list of indexes.")
+    if (!all(names(exp) %in% names(data)) || (length(names(exp)) == 0))
+      stop("unkown variables specified in the experimental data list.")
+    for (var in names(exp)) {
+
+      if (!is.positive.vector(exp[[var]]))
+        stop("indexes of experimental data must be positive integer numbers.")
+      if (any(duplicated(exp[[var]])))
+        stop("duplicated indexes for experimental data.")
+      if (any(exp[[var]] > length(data[, var])))
+        stop("out of bounds indexes for experimental data.")
+
+      # just kill empty elements.
+      if (length(exp[[var]]) == 0)
+        exp[[var]] = NULL
+      # also, convert evetything to integers to make things simpler at the 
+      # C level.
+      exp[[var]] = as.integer(exp[[var]])
+
+    }#FOR
+
+  }#THEN
+  else {
+
+    # check whether there is a list stored in the bn object; if no experimental
+    # data is specified, return an empty list (which is the same as using the
+    # plain BDe score).
+    if (!is.null(network$learning$args$exp))
+      exp = network$learning$args$exp
+    else
+      exp = structure(vector(ncol(data), mode = "list"), names = names(data))
+
+  }#ELSE
+
+  return(exp)
+
+}#CHECK.EXPERIMENTAL
+
+# check the penalty used in AIC and BIC.
+check.penalty = function(k, network, data, score) {
+
+  if (!is.null(k)) {
+
+    # validate the penalty weight.
+    if (!is.positive(k))
+      stop("the penalty weight must be a positive numeric value.")
+
+  }#THEN
+  else {
+
+    # check whether there is a penaltization coefficient stored in the bn object,
+    # use the default for the score function otherwise.
+    if (!is.null(network$learning$args$k))
+      k = network$learning$args$k
+    else
+      k = ifelse((score %in% c("aic", "aic-g")), 1, log(nrow(data))/2)
+
+  }#ELSE
+
+  return(k)
+
+}#CHECK.PENALTY
+
 # sanitize the extra arguments passed to the network scores.
 check.score.args = function(score, network, data, extra.args) {
 
@@ -691,22 +769,21 @@ check.score.args = function(score, network, data, extra.args) {
       network = network, data = data)
 
   }#THEN
+  else if (score == "mbde") {
+
+    # check the imaginary sample size.
+    extra.args$iss = check.iss(iss = extra.args$iss,
+      network = network, data = data)
+
+    # check the list of the experimental observations in the data set.
+    extra.args$exp = check.experimental(exp = extra.args$exp,
+      network = network, data = data)
+
+  }#THEN
   else if (score %in% c("aic", "bic", "aic-g", "bic-g")) {
 
-    if (!is.null(extra.args$k)) {
-
-      # validate the penalty weight.
-      if (!is.positive(extra.args$k))
-        stop("the penalty weight must be a positive numeric value.")
-
-    }#THEN
-    else {
-
-      # set the penalty according to the chosen score.
-      if (score %in% c("aic", "aic-g")) extra.args$k = 1
-      else extra.args$k = log(nrow(data))/2
-
-    }#ELSE
+    extra.args$k = check.penalty(k = extra.args$k, network = network,
+      data = data, score = score)
 
   }#THEN
   else if (score == "bge") {
@@ -1024,6 +1101,28 @@ check.discretization.args = function(method, data, breaks, extra.args) {
 
 }#CHECK.DISCRETIZATION.ARGS
 
+# sanitize the extra arguments passed to Bayesian classifiers.
+check.classifier.args = function(method, data, training, explanatory,
+    extra.args) {
+
+  if (method == "tan") {
+
+    # check the label of the mutual information estimator.
+    extra.args$estimator = check.mi.estimator(extra.args$estimator, data)
+
+    # check the node to use the root of the tree (if not specified pick the first
+    # explanatory variable assuming natural ordering).
+    if (!is.null(extra.args$root))
+      check.nodes(extra.args$root, graph = explanatory, max.nodes = 1)
+    else
+      extra.args$root = explanatory[1]
+
+  }#THEN
+
+  return(extra.args)
+
+}#CHECK.CLASSIFICATION.ARGS
+
 # warn about unused arguments.
 check.unused.args = function(dots, used.args) {
 
@@ -1164,6 +1263,7 @@ check.logical = function(bool) {
            deparse(substitute(bool))))
 
   }#THEN
+
 }#CHECK.LOGICAL
 
 # check character strings.
@@ -1176,7 +1276,7 @@ check.string = function(string) {
 
   }#THEN
 
-}#CHECK.LOGICAL
+}#CHECK.STRING
 
 # check an object of class bn.
 check.bn = function(bn) {
@@ -1434,6 +1534,37 @@ check.fit.vs.data = function(fitted, data) {
 
 }#CHECK.FIT.VS.DATA
 
+# check bn.fit.{d,g}node metadata against the data it's used with.
+check.fit.node.vs.data = function(fitted, data) {
+
+  relevant = c(fitted$node, fitted$parents)
+
+  # check whether all relevant nodes are in the data.
+  if (!all(relevant %in% names(data)))
+    stop("not all required nodes are present in the data.")
+  # data type versus network type.
+  if ((class(fitted) == "bn.fit.dnode") && is.data.continuous(data))
+      stop("continuous data and discrete network.")
+  if ((class(fitted) == "bn.fit.gnode") && is.data.discrete(data))
+    stop("discrete data and continuous network.")
+  # double-check the levels of the variables against those of the nodes.
+  if (class(fitted) == "bn.fit.dnode") {
+
+  for (node in relevant) {
+
+      data.levels = levels(data[, node])
+      node.levels = dimnames(fitted$prob)[[node]]
+
+      if(!identical(data.levels, node.levels))
+        stop("the levels of node '", node, "' do not match the levels of the ",
+             "corresponding variable in the data.")
+
+    }#FOR
+
+  }#THEN
+
+}#CHECK.FIT.NODE.VS.DATA
+
 # check a colour identifier (not necessarily a string/integer).
 check.colour = function(col) {
 
@@ -1480,6 +1611,8 @@ check.learning.algorithm = function(algorithm, class = "all", bn) {
     ok = c(ok, score.based.algorithms)
   if ("mim" %in% class)
     ok = c(ok, mim.based.algorithms)
+  if ("classifier" %in% class)
+    ok = c(ok, classifiers)
   if ("all" %in% class)
     ok = available.learning.algorithms
 
@@ -1637,4 +1770,29 @@ check.prior = function(prior, training) {
   return(prior)
 
 }#CHECK.PRIOR
+
+# check a vector of weights.
+check.weights = function(weights, len) {
+
+  if (missing(weights) || is.null(weights)) {
+
+    weights = rep(1, len)
+
+  }#THEN
+  else {
+
+    if (!is.nonnegative.vector(weights))
+      stop("missing or negative weights are not allowed.")
+
+    if (length(weights) != len)
+      stop("wrong number of weights, ", length(weights),
+        " weights while ", len, " are needed.")
+
+    weights = prop.table(weights)
+
+  }#ELSE
+
+  return(weights)
+
+}#CHECK.WEIGHTS
 

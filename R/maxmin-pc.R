@@ -1,6 +1,6 @@
 
 maxmin.pc.optimized = function(x, whitelist, blacklist, test,
-  alpha, B, strict, debug) {
+  alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
   mb = list()
@@ -30,7 +30,7 @@ maxmin.pc.optimized = function(x, whitelist, blacklist, test,
 }#MAXMIN.PC.OPTIMIZED
 
 maxmin.pc.cluster = function(x, cluster, whitelist, blacklist,
-  test, alpha, B, strict, debug) {
+  test, alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
 
@@ -54,7 +54,7 @@ maxmin.pc.cluster = function(x, cluster, whitelist, blacklist,
 }#MAXMIN.PC.CLUSTER
 
 maxmin.pc = function(x, whitelist, blacklist, test, alpha, B,
-  strict, debug) {
+  strict, debug = FALSE) {
 
   nodes = names(x)
 
@@ -78,7 +78,7 @@ maxmin.pc = function(x, whitelist, blacklist, test, alpha, B,
 }#MAXMIN.PC
 
 maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
-  blacklist, backtracking = NULL, test, optimized = TRUE, debug) {
+  blacklist, backtracking = NULL, test, optimized = TRUE, debug = FALSE) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
@@ -176,7 +176,7 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
 
 }#MAXMIN.PC.FORWARD.PHASE
 
-maxmin.pc.heuristic = function(x, y, sx, data, test, alpha, B, debug) {
+maxmin.pc.heuristic = function(x, y, sx, data, test, alpha, B, debug = FALSE) {
 
   k = 0
   min.assoc = 0
@@ -223,7 +223,7 @@ maxmin.pc.heuristic = function(x, y, sx, data, test, alpha, B, debug) {
 }#MAXMIN.PC.HEURISTIC
 
 maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B,
-    association, debug) {
+    association, debug = FALSE) {
 
   k = 0
   min.assoc = association[x]

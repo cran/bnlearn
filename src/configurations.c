@@ -3,17 +3,17 @@
 /* wrapper around the cfg() function for use in .Call(). */
 SEXP cfg2(SEXP parents, SEXP factor) {
 
-int i = 0, *res = NULL;
+int i = 0, *res = NULL, nlevels = 0;
 SEXP temp, result;
 
   /* compute the configurations. */
   PROTECT(temp = allocVector(INTSXP, LENGTH(VECTOR_ELT(parents, 0))));
-  cfg(parents, INTEGER(temp));
+  cfg(parents, INTEGER(temp), &nlevels);
 
   if (isTRUE(factor)) {
 
     /* convert the configurations from an integer array to to a factor. */
-    result = int2fac(temp);
+    result = int2fac(temp, NULL); //&nlevels);
 
   }/*THEN*/
   else {
@@ -36,7 +36,7 @@ SEXP temp, result;
 
 /* identify different configurations of factors and assign them unique integer
  * codes, computed using the general formula for the column-mayor indexing. */
-void cfg(SEXP parents, int *configurations) {
+void cfg(SEXP parents, int *configurations, int *nlevels) {
 
 int i = 0, j = 0, cfgmap = 0;
 int ncols = LENGTH(parents), nrows = LENGTH(VECTOR_ELT(parents, 0));
@@ -47,7 +47,7 @@ int **columns = NULL;
   cumlevels = alloc1dcont(ncols);
 
   /* dereference the columns of the data frame. */
-  columns = Calloc(ncols, int *);
+  columns = (int **) alloc1dpointer(ncols);
   for (i = 0; i < ncols; i++)
     columns[i] = INTEGER(VECTOR_ELT(parents, i));
 
@@ -56,7 +56,12 @@ int **columns = NULL;
 
   /* ... then compute the following ones. */
   for (j = 1; j < ncols; j++)
-    cumlevels[j] = cumlevels[j - 1] * NLEVELS(parents, j - 1);
+    cumlevels[j] = cumlevels[j - 1] * NLEVELS2(parents, j - 1);
+
+  /* if nlevels is not a NULL pointer, save there the number of possible
+   * configurations there. */
+  if (nlevels)
+    *nlevels = cumlevels[ncols - 1] * NLEVELS2(parents, ncols - 1);
 
   for (i = 0; i < nrows; i++) {
 
@@ -83,8 +88,6 @@ int **columns = NULL;
   configurations[i] = cfgmap;
 
   }/*FOR*/
-
-  Free(columns);
 
 }/*CFG*/
 

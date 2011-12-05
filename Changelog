@@ -1,4 +1,16 @@
 
+bnlearn (2.8)
+
+  * switched "cpdag" to TRUE in {boot,custom}.strength().
+  * added a "weights" argument to custom.strength().
+  * implemented the modified BDe score handling mixtures of
+      experimental and observational data (mbde).
+  * reimplemented the BGe score for speed (about 20x faster).
+  * fixed a buffer overflow in predict() for discrete networks.
+  * fixed sanitization in predict() for bn.fit.{d,g}node objects.
+  * handle partially directed graphs in bn.cv() for log-likelihood
+      loss (both discrete and Gaussian).
+
 bnlearn (2.7)
 
   * make .onLoad() more robust, so that it passes "R CMD check"

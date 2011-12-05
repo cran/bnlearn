@@ -20,8 +20,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 2.7\cr
-    Date: \tab 2011-10-07\cr
+    Version: \tab 2.8\cr
+    Date: \tab 2011-12-05\cr
     License: \tab GPLv2 or later
 
   }
@@ -243,6 +243,9 @@
           and is also known as \emph{Schwarz Information Criterion}.
         \item the logarithm of the \emph{Bayesian Dirichlet equivalent}
           score (\code{bde}), a score equivalent Dirichlet posterior density.
+        \item the logarithm of the modified \emph{Bayesian Dirichlet equivalent}
+          score (\code{mbde}) for mixtures of experimental and observational
+          data (not score equivalent).
         \item the logarithm of the \emph{K2} score (\code{k2}), a Dirichlet
           posterior density (not score equivalent).
 
@@ -382,7 +385,7 @@ res2 = iamb(learning.test)
 # plot the new network structure.
 plot(res2)
 # the network structures seem to be identical, don't they?
-compare(res, res2)
+all.equal(res, res2)
 # [1] TRUE
 # how many tests each of the two algorithms used?
 res$learning$ntests

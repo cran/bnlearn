@@ -554,6 +554,6 @@ fast.shpcor = function(x, y, sx, data, ndata) {
         shrinkage = TRUE,
         PACKAGE = "bnlearn")
 
-}#FAST.PCOR
+}#FAST.SHPCOR
 
 

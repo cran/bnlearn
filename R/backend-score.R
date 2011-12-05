@@ -46,12 +46,14 @@ score.delta = function(arc, network, data, score, score.delta,
   if (debug)
     cat("    > delta between scores for nodes", arc, "is", retval, ".\n")
 
-  return(list(bool = (retval > score.delta + sqrt(.Machine$double.eps)), delta = retval, updates = new.score))
+  return(list(bool = (retval > score.delta + sqrt(.Machine$double.eps)),
+    delta = retval, updates = new.score))
 
 }#SCORE.DELTA
 
 # create a data frame or an adjacency matrix containing the arcs to be added.
-arcs.to.be.added = function(amat, nodes, blacklist = NULL, whitelist = NULL, arcs = TRUE) {
+arcs.to.be.added = function(amat, nodes, blacklist = NULL, whitelist = NULL,
+    arcs = TRUE) {
 
   .Call("hc_to_be_added",
         arcs = amat,

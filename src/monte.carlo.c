@@ -24,18 +24,18 @@
   }
 
 /* function declarations of the custom test functions. */
-static double _mi (int *n, int *nrowt, int *ncolt, int *nrows,
+static double _mi(int *n, int *nrowt, int *ncolt, int *nrows,
     int *ncols, int *length);
-static double _cmi (int **n, int **nrowt, int **ncolt, int *ncond,
+static double _cmi(int **n, int **nrowt, int **ncolt, int *ncond,
     int *nr, int *nc, int *nl);
-static double _x2 (int *n, int *nrowt, int *ncolt, int *nrows,
+static double _x2(int *n, int *nrowt, int *ncolt, int *nrows,
     int *ncols, int *length);
-static double _cx2 (int **n, int **nrowt, int **ncolt, int *ncond,
+static double _cx2(int **n, int **nrowt, int **ncolt, int *ncond,
     int *nr, int *nc, int *nl);
 static double _cov(double *xx, double *yy, double *xm, double *ym, int *n);
 
 /* unconditional Monte Carlo simulation for discrete tests. */
-SEXP mcarlo (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP samples,
+SEXP mcarlo(SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP samples,
     SEXP test, SEXP alpha) {
 
 double *fact = NULL, *res = NULL, observed = 0;
@@ -135,7 +135,7 @@ SEXP result;
 }/*MCARLO*/
 
 /* conditional Monte Carlo simulation for discrete tests. */
-SEXP cmcarlo (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
+SEXP cmcarlo(SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
     SEXP length, SEXP samples, SEXP test, SEXP alpha) {
 
 double *fact = NULL, *res = NULL, observed = 0;
@@ -242,7 +242,7 @@ SEXP result;
 }/*CMCARLO*/
 
 /* unconditional Monte Carlo simulation for correlation-based tests. */
-SEXP gauss_mcarlo (SEXP x, SEXP y, SEXP samples, SEXP test, SEXP alpha) {
+SEXP gauss_mcarlo(SEXP x, SEXP y, SEXP samples, SEXP test, SEXP alpha) {
 
 int j = 0, k = 0, num = LENGTH(x), *B = INTEGER(samples);
 double *xx = REAL(x), *yy = REAL(y), *yperm = NULL, *res = NULL;
@@ -317,7 +317,7 @@ SEXP result;
 }/*GAUSS_MCARLO*/
 
 /* conditional Monte Carlo simulation for correlation-based tests. */
-SEXP gauss_cmcarlo (SEXP data, SEXP length, SEXP samples, SEXP test, SEXP alpha) {
+SEXP gauss_cmcarlo(SEXP data, SEXP length, SEXP samples, SEXP test, SEXP alpha) {
 
 int j = 0, k = 0, ncols = LENGTH(data), errcode = 0, *work = NULL, *perm = NULL;
 int error_counter = 0, *B = INTEGER(samples), *num = INTEGER(length);
@@ -338,7 +338,7 @@ SEXP result;
   *res = 0;
 
   /* allocate and initialize an array of pointers for the variables. */
-  column = (double **) Calloc(ncols, double *);
+  column = (double **) alloc1dpointer(ncols);
   for (j = 0; j < ncols; j++)
     column[j] = REAL(VECTOR_ELT(data, j));
 
@@ -430,14 +430,12 @@ SEXP result;
 
   UNPROTECT(1);
 
-  Free(column);
-
   return result;
 
 }/*GAUSS_CMCARLO*/
 
 /* compute the mutual information from the joint and marginal frequencies. */
-static double _mi (int *n, int *nrowt, int *ncolt, int *nrows,
+static double _mi(int *n, int *nrowt, int *ncolt, int *nrows,
     int *ncols, int *length) {
 
 int i = 0, j = 0;
@@ -458,7 +456,7 @@ double res = 0;
 }/*_MI*/
 
 /* compute the conditional mutual information from the joint and marginal frequencies. */
-static double _cmi (int **n, int **nrowt, int **ncolt, int *ncond,
+static double _cmi(int **n, int **nrowt, int **ncolt, int *ncond,
     int *nr, int *nc, int *nl) {
 
 int i = 0, j = 0, k = 0;
@@ -483,7 +481,7 @@ double res = 0;
 }/*_CMI*/
 
 /* compute Pearson's X^2 coefficient from the joint and marginal frequencies. */
-static double _x2 (int *n, int *nrowt, int *ncolt, int *nrows,
+static double _x2(int *n, int *nrowt, int *ncolt, int *nrows,
     int *ncols, int *length) {
 
 int i = 0, j = 0;
@@ -504,7 +502,7 @@ double res = 0;
 }/*_X2*/
 
 /* compute the Pearson's conditional X^2 coefficient from the joint and marginal frequencies. */
-static double _cx2 (int **n, int **nrowt, int **ncolt, int *ncond,
+static double _cx2(int **n, int **nrowt, int **ncolt, int *ncond,
     int *nr, int *nc, int *nl) {
 
 int i = 0, j = 0, k = 0;

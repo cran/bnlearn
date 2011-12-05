@@ -51,7 +51,7 @@ SEXP result;
   *res = 0;
 
   /* dereference the columns of the data frame. */
-  columns = Calloc(ncoefs, double *);
+  columns = (double **) alloc1dpointer(ncoefs);
   for (i = 0; i < ncoefs; i++)
     columns[i] = REAL(VECTOR_ELT(data, i));
 
@@ -70,8 +70,6 @@ SEXP result;
 
   /* switch to the negentropy. */
   *res /= -ndata;
-
-  Free(columns);
 
   UNPROTECT(1);
 

@@ -1,7 +1,7 @@
 #include "common.h"
 
 /* find the matching closed brace. */
-SEXP match_brace (SEXP lines, SEXP start) {
+SEXP match_brace(SEXP lines, SEXP start) {
 
 int depth = 0, open = 0, line_id = INT(start) - 1;
 const char *current = NULL;

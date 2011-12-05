@@ -16,9 +16,10 @@
 arc.strength(x, data, criterion = NULL, ..., debug = FALSE)
 # strength of all possible arcs, as learned from bootstrapped data.
 boot.strength(data, R = 200, m = nrow(data),
-  algorithm, algorithm.args = list(), cpdag = FALSE, debug = FALSE)
+  algorithm, algorithm.args = list(), cpdag = TRUE, debug = FALSE)
 # strength of all possible arcs, from a list of custom networks.
-custom.strength(networks, nodes, cpdag = FALSE, debug = FALSE)
+custom.strength(networks, nodes, weights = NULL, cpdag = TRUE,
+  debug = FALSE)
 
 # averaged network structure.
 averaged.network(strength, nodes, threshold)
@@ -43,6 +44,10 @@ averaged.network(strength, nodes, threshold)
     possibilities.}
   \item{R}{a positive integer, the number of bootstrap replicates.}
   \item{m}{a positive integer, the size of each bootstrap replicate.}
+  \item{weights}{a vector of non-negative numbers, to be used as
+    weights when averaging network structures to compute strength
+    coefficients. If \code{NULL}, weights are assumed to be
+    uniform.}
   \item{cpdag}{a boolean value. If \code{TRUE} the (PDAG of) the
     equivalence class is used instead of the network structure
     itself. It should make it easier to identify score-equivalent
@@ -130,13 +135,14 @@ arc.strength(res, learning.test)
 # 4    C  D  0.000000e+00
 # 5    F  E 3.935648e-245
 arcs = boot.strength(learning.test, algorithm = "hc")
-arcs[(arcs$strength > 0.85) & (arcs$direction > 0.5), ]
+arcs[(arcs$strength > 0.85) & (arcs$direction >= 0.5), ]
 #    from to strength direction
-# 1     A  B        1         1
-# 3     A  D        1         1
-# 9     B  E        1         1
-# 13    C  D        1         1
-# 30    F  E        1         1
+# 1     A  B        1       0.5
+# 3     A  D        1       1.0
+# 6     B  A        1       0.5
+# 9     B  E        1       1.0
+# 13    C  D        1       1.0
+# 30    F  E        1       1.0
 averaged.network(arcs)
 #
 #   Random/Generated Bayesian network
@@ -150,7 +156,7 @@ averaged.network(arcs)
 #   average markov blanket size:           2.33
 #   average neighbourhood size:            1.67
 #   average branching factor:              0.83
-
+#
 #   generation algorithm:                  Model Averaging
 #   significance threshold:                0.025
 
@@ -159,7 +165,7 @@ start = random.graph(nodes = names(learning.test), num = 50)
 netlist = lapply(start, function(net) {
   hc(learning.test, score = "bde", iss = 10, start = net) })
 arcs = custom.strength(netlist, nodes = names(learning.test))
-arcs[(arcs$strength > 0.85) & (arcs$direction > 0.5), ]
+arcs[(arcs$strength > 0.85) & (arcs$direction >= 0.5), ]
 #    from to strength direction
 # 1     A  B        1      1.00
 # 3     A  D        1      1.00

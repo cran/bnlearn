@@ -135,7 +135,8 @@ ci.test.numeric = function(x, y = NULL, z = NULL, test = NULL, B = NULL, debug =
 }#CI.TEST.NUMERIC
 
 # do a single conditional independence test (factor objects).
-ci.test.factor = function(x, y = NULL, z = NULL, test = NULL, B = NULL, debug = FALSE, ...) {
+ci.test.factor = function(x, y = NULL, z = NULL, test = NULL, B = NULL,
+    debug = FALSE, ...) {
 
   # check debug.
   check.logical(debug)

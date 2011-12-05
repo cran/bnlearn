@@ -1,7 +1,7 @@
 
 # second prinple of CI algorithms: infer arc orientation from graph structure.
 second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
-  test, alpha, B = NULL, data, strict, debug) {
+    test, alpha, B = NULL, data, strict, debug = FALSE) {
 
   nodes = names(x)
 
@@ -75,7 +75,7 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
 
 # build the neighbourhood of a node from the markov blanket.
 neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
-  backtracking = NULL, test, debug) {
+  backtracking = NULL, test, debug = FALSE) {
 
   # save a prisitine copy of the markov blanket.
   nbrhood = mb[[x]]
@@ -214,7 +214,8 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 }#NEIGHBOUR
 
 # detect v-structures in the graph.
-vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test, debug) {
+vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
+    debug = FALSE) {
 
   vstruct.centered.on = function(x, mb, data) {
 
@@ -321,7 +322,7 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test, debug) {
 }#VSTRUCT.DETECT
 
 # apply v-structures to a graph.
-vstruct.apply = function(arcs, vs, nodes, strict, debug) {
+vstruct.apply = function(arcs, vs, nodes, strict, debug = FALSE) {
 
   if (debug)
     cat("----------------------------------------------------------------\n")
@@ -368,7 +369,7 @@ vstruct.apply = function(arcs, vs, nodes, strict, debug) {
 
 # remove arcs from the graph to make it acyclic.
 orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
-    debug) {
+    debug = FALSE) {
 
   to.be.reversed = character(0)
   narcs = nrow(arcs)
@@ -579,7 +580,7 @@ cycle.counter = function(arcs, nodes, cluster, debug = FALSE) {
 }#CYCLE.COUNTER
 
 # emergency measures for markov blanket and neighbourhood recovery.
-bn.recovery = function(bn, nodes, strict, mb = FALSE, debug) {
+bn.recovery = function(bn, nodes, strict, mb = FALSE, debug = FALSE) {
 
   .Call("bn_recovery",
         bn = bn,

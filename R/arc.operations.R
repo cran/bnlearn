@@ -1,6 +1,7 @@
 
 # Parameter sanitization for arc operations.
-arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE, debug = FALSE) {
+arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE,
+    debug = FALSE) {
 
 available.ops = c("set", "drop", "reverse")
 

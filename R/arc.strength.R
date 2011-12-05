@@ -1,6 +1,6 @@
 
 # compute arcs' strength as the p-value of the test for their removal.
-arc.strength.test = function(network, data, test, alpha, B, debug) {
+arc.strength.test = function(network, data, test, alpha, B, debug = FALSE) {
 
   drop = function(arc) {
 
@@ -45,7 +45,7 @@ arc.strength.test = function(network, data, test, alpha, B, debug) {
 }#ARC.STRENGTH.TEST
 
 # compute arcs' strength as the difference in score caused by their removal.
-arc.strength.score = function(network, data, score, extra, debug) {
+arc.strength.score = function(network, data, score, extra, debug = FALSE) {
 
   drop = function(arc) {
 
@@ -99,7 +99,8 @@ arc.strength.score = function(network, data, score, extra, debug) {
 }#ARC.STRENGTH.SCORE
 
 # compute arcs' strength as the relative frequency in boostrapped networks.
-arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, cpdag, debug) {
+arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, 
+    cpdag, debug = FALSE) {
 
   # allocate and initialize an empty adjacency matrix.
   prob = matrix(0, ncol = ncol(data), nrow = ncol(data))
@@ -121,6 +122,8 @@ arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, cpdag,
     # learn the network structure from the bootstrap sample.
     net = do.call(algorithm, c(list(x = replicate), algorithm.args))
 
+    s = score(net, data = replicate, type = "bde", iss = 10)
+
     # switch to the equivalence class if asked to.
     if (cpdag)
       net = cpdag(net)
@@ -138,6 +141,7 @@ arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, cpdag,
     # BEWARE: in-place modification of prob!
     .Call("bootstrap_strength_counters",
           prob = prob,
+          weight = 1,
           arcs = net$arcs,
           nodes = nodes,
           PACKAGE = "bnlearn")
@@ -161,12 +165,15 @@ arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, cpdag,
 
 # compute arcs' strength as the relative frequency in a custom list of
 # network structures/arc sets.
-arc.strength.custom = function(custom.list, nodes, arcs, cpdag, debug) {
+arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
+    debug = FALSE) {
 
   # allocate and initialize an empty adjacency matrix.
   prob = matrix(0, ncol = length(nodes), nrow = length(nodes))
   # get the number of networks to average.
   R = length(custom.list)
+  # set the total weight mass.
+  weight.sum = sum(weights)
 
   for (r in seq_len(R)) {
 
@@ -183,6 +190,7 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, debug) {
     else
       net.arcs = custom.list[[r]]
 
+    # switch to the equivalence class if asked to.
     if (cpdag)
       net.arcs = cpdag.arc.backend(nodes, net.arcs)
 
@@ -192,6 +200,7 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, debug) {
     # BEWARE: in-place modification of prob!
     .Call("bootstrap_strength_counters",
           prob = prob,
+          weight = weights[r],
           arcs = net.arcs,
           nodes = nodes,
           PACKAGE = "bnlearn")
@@ -199,7 +208,7 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, debug) {
   }#FOR
 
   # rescale the counters to probabilities.
-  prob = prob / R
+  prob = prob / weight.sum
 
   res = .Call("bootstrap_arc_coefficients",
               prob = prob,
@@ -250,7 +259,8 @@ match.arcs.and.strengths = function(arcs, nodes, strengths, keep = FALSE) {
 }#MATCH.ARCS.AND.STRENGTH
 
 # convert an arc strength object to the corresponding line widths for plotting.
-strength2lwd = function(strength, threshold, cutpoints, mode, arcs = NULL, debug = TRUE) {
+strength2lwd = function(strength, threshold, cutpoints, mode, arcs = NULL,
+    debug = FALSE) {
 
   # sanitize user-defined cut points, if any.
   if (!missing(cutpoints)) {

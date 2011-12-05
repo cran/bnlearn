@@ -167,7 +167,7 @@ SEXP result, nodes, roots, node_depth, cpt, parents, parent_vars, false;
   GetRNGstate();
 
   /* allocate the working space for the configurations' indexes. */
-  configurations = Calloc(*num, int);
+  configurations = alloc1dcont(*num);
 
   for (i = 0; i < nnodes; i++) {
 
@@ -199,7 +199,7 @@ SEXP result, nodes, roots, node_depth, cpt, parents, parent_vars, false;
       }/*THEN*/
 
       PROTECT(parent_vars = dataframe_column(result, parents, false));
-      cfg(parent_vars, configurations);
+      cfg(parent_vars, configurations, NULL);
 
       rbn_discrete_cond(result, cur, cpt, configurations, num, &warn);
 
@@ -216,7 +216,6 @@ SEXP result, nodes, roots, node_depth, cpt, parents, parent_vars, false;
 
   }/*FOR*/
 
-  Free(configurations);
   PutRNGstate();
 
   /* add the labels to the return value. */
@@ -234,12 +233,12 @@ int np = LENGTH(cpt), *workplace = NULL;
 double *p = NULL;
 SEXP generated, class, lvls;
 
-  workplace = Calloc(np, int);
+  workplace = alloc1dcont(np);
 
   /* allocate the memory for the generated observations. */
   PROTECT(generated = allocVector(INTSXP, *num));
   /* duplicate the probability table to save the original copy from tampering. */
-  p = Calloc(np, double);
+  p = alloc1dreal(np);
   memcpy(p, REAL(cpt), np * sizeof(double));
 
   /* perform the random sampling. */
@@ -255,8 +254,6 @@ SEXP generated, class, lvls;
   SET_VECTOR_ELT(result, cur, generated);
 
   UNPROTECT(2);
-  Free(p);
-  Free(workplace);
 
 }/*RBN_DISCRETE_ROOT*/
 
@@ -272,12 +269,12 @@ SEXP generated, class, lvls;
   lvls = VECTOR_ELT(getAttrib(cpt, R_DimNamesSymbol), 0);
   nlevels = LENGTH(lvls);
 
-  workplace = Calloc(np, int);
+  workplace = alloc1dcont(np);
 
   /* allocate the memory for the generated observations. */
   PROTECT(generated = allocVector(INTSXP, *num));
   /* duplicate the probability table to save the original copy from tampering. */
-  p = Calloc(np, double);
+  p = alloc1dreal(np);
   memcpy(p, REAL(cpt), np * sizeof(double));
   /* perform the random sampling. */
   CondProbSampleReplace(nlevels, LENGTH(cpt)/nlevels, p, configurations,
@@ -292,8 +289,6 @@ SEXP generated, class, lvls;
   SET_VECTOR_ELT(result, cur, generated);
 
   UNPROTECT(2);
-  Free(workplace);
-  Free(p);
 
 }/*RBN_DISCRETE_COND*/
 

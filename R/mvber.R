@@ -60,7 +60,7 @@ mvber.moments.backend = function(data, R, m, algorithm, algorithm.args,
 
 # test the variance of a network structure under the multivariate Bernoulli
 # assumption (using the underlying undirected graph).
-mvber.var.test = function(x, method, method.string, R, B, debug) {
+mvber.var.test = function(x, method, method.string, R, B, debug = FALSE) {
 
   # compute the test statistic and the associated p-value.
   res = .Call("mvber_variance_test",

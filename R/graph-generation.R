@@ -1,5 +1,5 @@
 
-random.graph.backend = function(num, nodes, method, extra.args, debug) {
+random.graph.backend = function(num, nodes, method, extra.args, debug = FALSE) {
 
   if (method == "ordered") {
 
@@ -37,7 +37,7 @@ random.graph.backend = function(num, nodes, method, extra.args, debug) {
 }#RANDOM.GRAPH.BACKEND
 
 # generate a random directed acyclic graph.
-ordered.graph = function (num, nodes, prob) {
+ordered.graph = function(num, nodes, prob) {
 
   .Call("ordered_graph",
         nodes = nodes,
@@ -51,7 +51,7 @@ ordered.graph = function (num, nodes, prob) {
 # probability distribution over the space of connected graphs (if
 # connected = TRUE) or the space of graphs (if connected = FALSE).
 ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
-    max.out.degree, max.degree, connected, debug) {
+    max.out.degree, max.degree, connected, debug = FALSE) {
 
   .Call("ide_cozman_graph",
         nodes = nodes,

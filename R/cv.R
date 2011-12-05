@@ -76,7 +76,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args,
 }#BN.CV
 
 bn.cv.algorithm = function(test, data, algorithm, algorithm.args, loss,
-    loss.args, fit, fit.args, debug) {
+    loss.args, fit, fit.args, debug = FALSE) {
 
   if (debug)
     cat("* learning the structure of the network from the training sample.\n")
@@ -94,10 +94,21 @@ bn.cv.algorithm = function(test, data, algorithm, algorithm.args, loss,
 }#BN.CV.ALGORITHM
 
 bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
-    debug) {
+    debug = FALSE) {
 
   if (debug)
     cat("* fitting the parameters of the network from the training sample.\n")
+
+  # use score equivalence to compute log-likelihood losses when the network
+  # returned by the learning algorithm is a CPDAG; extend it to a DAG (which
+  # has the same log-likelihoos because it's in the same equivalence class)
+  # and use the result in place of the original network.
+  if ((loss %in% c("logl", "logl-g")) &&
+      !is.dag(arcs = bn$arcs, nodes = names(bn$nodes))) {
+
+    bn = cpdag.extension(cpdag.backend(bn))
+
+  }#THEN
 
   # check the extra arguments.
   fit.args = check.fitting.args(fit, bn, data[-test, ], fit.args)

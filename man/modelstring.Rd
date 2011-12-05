@@ -89,7 +89,7 @@ res2
 #
 #   generation algorithm:                  Empty
 #
-compare(res, res2)
+all.equal(res, res2)
 # [1] TRUE
 }
 \author{ Marco Scutari }

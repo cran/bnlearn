@@ -71,53 +71,6 @@ empty.graph = function(nodes, num = 1) {
 
 }#EMPTY.GRAPH
 
-# create the graph structure for a naive Bayes classifier.
-naive.bayes = function(training, explanatory, data) {
-
-  # check the training node (the center of the star-shaped graph).
-  check.nodes(training, max.nodes = 1)
-  # check the explantory variables (the points of the star-shaped graph).
-  if (missing(data)) {
-
-    check.nodes(explanatory)
-
-  }#THEN
-  else {
-
-    # warn the user that the explanatory argument will be ignored.
-    if (!missing(explanatory))
-      warning("the value of the 'explanatory' argument has been ignored.")
-    # cache the node labels.
-    nodes = names(data)
-    # check the label of the training variable.
-    check.nodes(training, graph = nodes, max.nodes = 1)
-    # get the labels of the explanatory variables.
-    explanatory = nodes[nodes != training]
-
-  }#ELSE
-
-  # check that the training node is not included among the explanatory variables.
-  if (training %in% explanatory)
-    stop("node ", training, " is included in the model both as a training and an explanatory variable.")
-  # cache the whole node set.
-  nodes = c(training, explanatory)
-
-  # create the empty graph.
-  res = empty.graph(nodes)
-  # create the set of arcs outgoing from the training variable.
-  res$arcs = matrix(c(rep(training, length(explanatory)), explanatory),
-               ncol = 2, byrow = FALSE)
-  # update the network structure.
-  res$nodes = cache.structure(nodes, arcs = res$arcs)
-  # set the learning algorithm to "naive".
-  res$learning$algo = "naive"
-  # set a second class "bn.naive" to reroute the dispatch as needed.
-  class(res) = c("bn.naive", "bn")
-
-  return(res)
-
-}#NAIVE.BAYES
-
 # perform conditional probability queries.
 cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ..., debug = FALSE) {
 

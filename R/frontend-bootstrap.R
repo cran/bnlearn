@@ -47,8 +47,8 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
 }#BNBOOT
 
 # compute arcs' strength via nonparametric bootstrap.
-boot.strength = function(data, R = 200, m = nrow(data),
-    algorithm, algorithm.args = list(), cpdag = FALSE, debug = FALSE) {
+boot.strength = function(data, R = 200, m = nrow(data), algorithm,
+    algorithm.args = list(), cpdag = TRUE, debug = FALSE) {
 
   # check the data are there.
   check.data(data)
@@ -122,7 +122,7 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
     # check the learning algorithm.
     check.learning.algorithm(bn)
     # check whether it does return a DAG or not.
-    if (!(bn %in% always.dag.result))
+    if (!(bn %in% always.dag.result) && (loss == "pred"))
       stop(paste("this learning algorithm may result in a partially directed",
         "or undirected network, which is not handled by parameter fitting."))
     # check the extra arguments for the learning algorithm.
@@ -136,7 +136,7 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
     # check whether the data agree with the bayesian network.
     check.bn.vs.data(bn, data)
     # no parameters if the network structure is only partially directed.
-    if (is.pdag(bn$arcs, nodes))
+    if (is.pdag(bn$arcs, nodes) && (loss == "pred"))
       stop("the graph is only partially directed.")
     # check bn.naive objects if any.
     if (is(bn, "bn.naive"))

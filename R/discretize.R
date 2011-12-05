@@ -61,7 +61,7 @@ interval.discretization = function(data, breaks) {
 
 }#INTERVAL.DISCRETIZATION
 
-hartemink.discretization = function(data, breaks, initial.breaks, debug) {
+hartemink.discretization = function(data, breaks, initial.breaks, debug = FALSE) {
 
   # cache some useful quantities.
   nodes = names(data)

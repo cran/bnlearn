@@ -113,7 +113,7 @@ averaged.network.backend = function(strength, nodes, threshold) {
   if ("direction" %in% names(strength))
     significant = significant & (strength$direction >= 0.5)
 
-  # nothing to, move along.
+  # nothing to see, move along.
   if (!any(significant))
     return(e)
 

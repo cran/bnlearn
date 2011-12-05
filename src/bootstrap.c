@@ -1,10 +1,10 @@
 #include "common.h"
 
 /* adjusted arc counting for boot.strength(). */
-SEXP bootstrap_strength_counters(SEXP prob, SEXP arcs, SEXP nodes) {
+SEXP bootstrap_strength_counters(SEXP prob, SEXP weight, SEXP arcs, SEXP nodes) {
 
 int i = 0, j = 0, n = LENGTH(nodes), *a = NULL;
-double *p;
+double *p = NULL, *w = NULL;
 SEXP amat;
 
   /* build the adjacency matrix for the current network. */
@@ -13,6 +13,7 @@ SEXP amat;
   /* map the contents of the SEXPs for easy access.  */
   a = INTEGER(amat);
   p = REAL(prob);
+  w = REAL(weight);
 
   for (i = 0; i < n; i++) {
 
@@ -24,9 +25,9 @@ SEXP amat;
       if (a[CMC(i, j, n)] == 1) {
 
         if (a[CMC(j, i, n)] == 1)
-          p[CMC(i, j, n)] += 0.5;
+          p[CMC(i, j, n)] += 0.5 * (*w);
         else
-          p[CMC(i, j, n)] += 1;
+          p[CMC(i, j, n)] += 1 * (*w);
 
       }/*THEN*/
 
@@ -43,7 +44,7 @@ SEXP amat;
 SEXP bootstrap_arc_coefficients(SEXP prob, SEXP nodes) {
 
 int i = 0, j = 0, k = 0, narcs = 0, nnodes = LENGTH(nodes);
-double *p = NULL, *s = NULL, *d = NULL;
+double *p = NULL, *s = NULL, *d = NULL, tol = MACHINE_TOL;;
 SEXP res, class, rownames, colnames, from, to, str, dir;
 
   /* compute the dimension of the arcs set. */
@@ -76,6 +77,11 @@ SEXP res, class, rownames, colnames, from, to, str, dir;
       /* compute arc strength and direction confidence. */
       s[k] = p[CMC(i, j, nnodes)] + p[CMC(j, i, nnodes)];
       d[k] = (s[k] == 0 ? 0 : p[CMC(i, j, nnodes)] / s[k]);
+      /* sanitize out-of-boundary values arising from floating point errors. */
+      s[k] = (s[k] < tol) ? 0 : s[k];
+      s[k] = (s[k] > 1 - tol) ? 1 : s[k];
+      d[k] = (d[k] < tol) ? 0 : d[k];
+      d[k] = (d[k] > 1 - tol) ? 1 : d[k];
 
       /* increment the arc counter. */
       k++;

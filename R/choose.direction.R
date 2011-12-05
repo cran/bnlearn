@@ -1,5 +1,5 @@
 
-choose.direction.test = function(x, arc, data, test, alpha, B, debug) {
+choose.direction.test = function(x, arc, data, test, alpha, B, debug = FALSE) {
 
   nodes = names(x$nodes)
   amat = arcs2amat(x$arcs, nodes)
@@ -102,7 +102,7 @@ choose.direction.test = function(x, arc, data, test, alpha, B, debug) {
 
 }#CHOOSE.DIRECTION.TEST
 
-choose.direction.score = function(x, data, arc, score, extra.args, debug) {
+choose.direction.score = function(x, data, arc, score, extra.args, debug = FALSE) {
 
   # do a backup copy of the network structure.
   x2 = x
@@ -221,7 +221,8 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug) {
 
 }#CHOOSE.DIRECTION.SCORE
 
-choose.direction.boot = function(x, data, arc, extra.args, algorithm, algorithm.args, debug) {
+choose.direction.boot = function(x, data, arc, extra.args, algorithm,
+    algorithm.args, debug = FALSE) {
 
   # build a separate arc set with the two directions of the arc.
   m = matrix(c(arc, rev(arc)), ncol = 2, byrow = TRUE)
@@ -343,3 +344,4 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm, algorithm.
   return(x)
 
 }#CHOOSE.DIRECTION.BOOT
+

@@ -31,15 +31,15 @@
 
 #define DEREFERENCE_DATA_FRAME() \
   if (DISCRETE_NETWORK(*est)) { \
-    columns = (void **) Calloc(ncols, int *); \
+    columns = alloc1dpointer(ncols); \
     for (i = 0; i < ncols; i++) \
       columns[i] = INTEGER(VECTOR_ELT(data, i)); \
-    nlevels = Calloc(ncols, int); \
+    nlevels = alloc1dcont(ncols); \
     for (i = 0; i < ncols; i++) \
-      nlevels[i] = NLEVELS(data, i); \
+      nlevels[i] = NLEVELS2(data, i); \
   } \
   else { \
-    columns = (void **) Calloc(ncols, double *); \
+    columns = (void **) alloc1dpointer(ncols); \
     for (i = 0; i < ncols; i++) \
       columns[i] = REAL(VECTOR_ELT(data, i)); \
   }
@@ -155,9 +155,6 @@ SEXP arcs, nodes, wlist, blist;
     }/*FOR*/
 
   }/*FOR*/
-
-  Free(columns);
-  Free(nlevels);
 
   /* add back whitelisted arcs. */
   if ((!isNull(whitelist)) && (LENGTH(whitelist) > 0)) {
@@ -392,3 +389,81 @@ SEXP arcs, nodes, wlist, blist;
 
 }/*CHOW_LIU*/
 
+/* set the directions of the arcs in a tree given the root node. */
+SEXP tree_directions(SEXP arcs, SEXP nodes, SEXP root, SEXP debug) {
+
+int i = 0, j = 0, d = 0, traversed = 1;
+int narcs = LENGTH(arcs)/2, nnodes = LENGTH(nodes);
+int *a = NULL, *depth = 0, *debuglevel = LOGICAL(debug);
+SEXP try, try2, result;
+
+  /* match the node labels in the arc set. */
+  PROTECT(try = match(nodes, arcs, 0));
+  a = INTEGER(try);
+
+  /* match the root node. */
+  PROTECT(try2 = match(nodes, root, 0));
+
+  /* allocate and initialize the statust vector. */
+  depth = alloc1dcont(nnodes);
+  depth[INT(try2) - 1] = 1;
+
+  if (*debuglevel > 0)
+    Rprintf("> root node (depth 1) is %s.\n", NODE(INT(try2) - 1));
+
+  for (d = 1; d <= nnodes; d++) {
+
+    if (*debuglevel > 0)
+      Rprintf("> considering nodes at depth %d.\n", d + 1);
+
+    for (i = 0; i < narcs; i++) {
+
+      for (j = 0; j < nnodes; j++) {
+
+        /* disregard nodes at the wrong depth. */
+        if (depth[j] != d)
+          continue;
+
+        if ((a[i + narcs] == (j + 1)) && (depth[a[i] - 1] == 0)) {
+
+          if (*debuglevel > 0)
+            Rprintf("  * found node %s.\n", NODE(a[i] - 1));
+
+          /* save the depth at which the node was found. */
+          depth[a[i] - 1] = d + 1;
+
+          /* update the counter of the traversed nodes. */
+          traversed++;
+
+        }/*THEN*/
+
+      }/*FOR*/
+
+    }/*FOR*/
+
+    /* check whether all nodes have been traversed. */
+    if (traversed == nnodes)
+      break;
+
+  }/*FOR*/
+
+  /* allocate and initialize the return value. */
+  PROTECT(result = allocMatrix(STRSXP, narcs/2, 2));
+
+  for (i = 0, j = 0; i < narcs; i++) {
+
+    if (depth[a[i] - 1] < depth[a[i + narcs] - 1]) {
+
+      SET_STRING_ELT(result, j, STRING_ELT(arcs, i));
+      SET_STRING_ELT(result, j + narcs/2, STRING_ELT(arcs, i + narcs));
+      j++;
+
+    }/*THEN*/
+
+  }/*FOR*/
+
+  UNPROTECT(3);
+
+  return result;
+
+}/*TREE_DIRECTIONS*/

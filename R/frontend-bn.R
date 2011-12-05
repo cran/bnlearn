@@ -141,5 +141,5 @@ moral = function(x, debug = FALSE) {
 
   dag2ug.backend(x = x, moral = TRUE, debug = debug)
 
-}#CPDAG
+}#MORAL
 

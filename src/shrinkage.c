@@ -5,7 +5,7 @@ static void _mi_lambda(double *n, double *lambda, double *target, int *num,
     int *llx, int *lly, int *llz);
 
 /* shrinked mutual information, to be used for the asymptotic test. */
-SEXP shmi (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
+SEXP shmi(SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
 
 int i = 0, j = 0, k = 0;
 double **n = NULL, *ni = NULL, *nj = NULL;
@@ -66,7 +66,7 @@ SEXP result;
 
 /* shrinked conditional mutual information, to be used for the asymptotic
  * test. */
-SEXP shcmi (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
+SEXP shcmi(SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
 
 int i = 0, j = 0, k = 0;
 double ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL;
@@ -294,11 +294,10 @@ SEXP res;
   memset(var, '\0', ncols * ncols * sizeof(double));
 
   /* allocate an array to store the mean values. */
-  mean = Calloc(ncols, double);
-  memset(mean, '\0', sizeof(double) * ncols);
+  mean = alloc1dreal(ncols);
 
   /* allocate and initialize an array of pointers for the variables. */
-  column = (double **) Calloc(ncols, double *);
+  column = (double **) alloc1dpointer(ncols);
   for (i = 0; i < ncols; i++)
     column[i] = REAL(VECTOR_ELT(data, i));
 
@@ -369,8 +368,6 @@ SEXP res;
       if (i != j)
         var[CMC(i, j, ncols)] *= 1 - lambda;
 
-  Free(column);
-  Free(mean);
   UNPROTECT(1);
   return res;
 

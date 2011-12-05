@@ -61,7 +61,7 @@ conditional.probability.query = function(fitted, event, evidence, method,
 
 }#CONDITIONAL.PROBABILITY.QUERY
 
-logic.sampling = function(fitted, event, evidence, n, batch, debug) {
+logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
 
   cpxe = cpe = 0L
   filtered = logical(n)
@@ -159,7 +159,7 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug) {
 
 }#LOGIC.SAMPLING
 
-logic.distribution = function(fitted, nodes, evidence, n, batch, debug) {
+logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) {
 
   filtered = logical(n)
   result = NULL

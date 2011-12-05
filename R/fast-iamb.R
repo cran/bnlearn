@@ -1,6 +1,6 @@
 
 fast.incremental.association.optimized = function(x, whitelist, blacklist,
-  test, alpha, B, strict, debug) {
+  test, alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
   mb2 = mb = list()
@@ -42,7 +42,7 @@ fast.incremental.association.optimized = function(x, whitelist, blacklist,
 }#FAST.INCREMENTAL.ASSOCIATION.OPTIMIZED
 
 fast.incremental.association.cluster = function(x, cluster, whitelist,
-  blacklist, test, alpha, B, strict, debug) {
+  blacklist, test, alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
 
@@ -69,7 +69,7 @@ fast.incremental.association.cluster = function(x, cluster, whitelist,
 }#FAST.INCREMENTAL.ASSOCIATION.CLUSTER
 
 fast.incremental.association = function(x, whitelist, blacklist, test,
-  alpha, B, strict, debug) {
+  alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
 
@@ -96,7 +96,7 @@ fast.incremental.association = function(x, whitelist, blacklist, test,
 }#FAST.INCREMENTAL.ASSOCIATION
 
 fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
-  backtracking = NULL, test, debug) {
+  backtracking = NULL, test, debug = FALSE) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
@@ -261,7 +261,6 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
     nodes = nodes[!(nodes %in% mb)]
 
   }#REPEAT
-
 
   mb
 

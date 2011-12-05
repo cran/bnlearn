@@ -10,11 +10,12 @@ resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g"
   "mc-cor", "smc-cor", "mc-zf", "smc-zf")
 asymptotic.tests = c("mi", "mi-g", "x2", "zf")
 
-available.discrete.scores = c("loglik", "aic", "bic", "bde", "k2")
+available.discrete.scores = c("loglik", "aic", "bic", "bde", "k2", "mbde")
 available.continuous.scores = c("bge", "loglik-g", "aic-g", "bic-g")
 available.scores = c(available.discrete.scores, available.continuous.scores)
 
-score.equivalent.scores = c("loglik", "aic", "bic", "bde", "bge", "loglik-g", "aic-g", "bic-g")
+score.equivalent.scores = c("loglik", "aic", "bic", "bde", "bge", "loglik-g",
+  "aic-g", "bic-g")
 
 available.discrete.mi = c("mi")
 available.continuous.mi = c("mi-g")
@@ -26,8 +27,9 @@ constraint.based.algorithms = c(markov.blanket.algorithms, local.search.algorith
 score.based.algorithms = c("hc", "tabu")
 hybrid.algorithms = c("rsmax2", "mmhc")
 mim.based.algorithms = c("chow.liu", "aracne")
+classifiers = c("naive", "tan")
 available.learning.algorithms = c(constraint.based.algorithms, score.based.algorithms,
-  hybrid.algorithms, mim.based.algorithms)
+  hybrid.algorithms, mim.based.algorithms, classifiers)
 
 always.dag.result = c(score.based.algorithms, hybrid.algorithms)
 
@@ -45,7 +47,9 @@ method.labels = c(
   'rsmax2' = "Two-Phase Restricted Maximization",
   'mmhc' = "Max-Min Hill-Climbing",
   'aracne' = "ARACNE",
-  'chow.liu' = "Chow-Liu"
+  'chow.liu' = "Chow-Liu",
+  "naive" = "Naive Bayes Classifier",
+  "tan"   = "Tree-Augmented Naive Bayes Classifier"
 )
 
 method.extra.args = list(
@@ -77,6 +81,7 @@ test.labels = c(
 score.labels = c(
   'k2' = "Cooper & Herskovits' K2",
   'bde' = "Bayesian Dirichlet (BDeu)",
+  'mbde' = "Bayesian Dirichlet (Experimental & Observational data)",
   'aic' = "Akaike Information Criterion",
   'bic' = "Bayesian Information Criterion",
   'loglik' = "Log-Likelihood",
@@ -89,6 +94,7 @@ score.labels = c(
 score.extra.args = list(
   "k2" = character(0),
   "bde" = "iss",
+  "mbde" = c("iss", "exp"),
   "aic" = "k",
   "bic" = "k",
   "bge" = c("iss", "phi"),
@@ -98,7 +104,6 @@ score.extra.args = list(
   "bic" = "k",
   "aic-g" = "k",
   "bic-g" = "k"
-
 )
 
 mi.estimator.labels = c(
@@ -111,15 +116,14 @@ mi.estimator.tests = c(
   'mi-g' = "mi-g"
 )
 
-graph.generation.algorithms = c("ordered", "ic-dag", "melancon", "empty", "averaged", "naive")
+graph.generation.algorithms = c("ordered", "ic-dag", "melancon", "empty", "averaged")
 
 graph.generation.labels = c(
   "ordered" = "Full Ordering",
   "ic-dag" = "Ide & Cozman's Multiconnected DAGs",
   "melancon" = "Melancon's Uniform Probability DAGs",
   "empty" = "Empty",
-  "averaged" = "Model Averaging",
-  "naive" = "Naive Bayes Classifier"
+  "averaged" = "Model Averaging"
 )
 
 graph.generation.extra.args = list(
@@ -189,3 +193,6 @@ discretization.extra.args = list(
   "interval" = character(0),
   "hartemink" = c("initial.breaks")
 )
+
+template.numeric = numeric(1)
+

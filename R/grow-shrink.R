@@ -1,6 +1,6 @@
 
 grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
-  B, strict, debug) {
+  B, strict, debug = FALSE) {
 
   nodes = names(x)
   mb2 = mb = list()
@@ -42,7 +42,7 @@ grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
 }#GROW.SHRINK.OPTIMIZED
 
 grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test,
-  alpha, B, strict, debug) {
+  alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
 
@@ -69,7 +69,7 @@ grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test,
 }#GROW.SHRINK.CLUSTER
 
 grow.shrink = function(x, whitelist, blacklist, test, alpha, B,
-  strict, debug) {
+  strict, debug = FALSE) {
 
   nodes = names(x)
 
@@ -96,7 +96,7 @@ grow.shrink = function(x, whitelist, blacklist, test, alpha, B,
 }#GROW.SHRINK
 
 gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
-  backtracking = NULL, test, debug) {
+  backtracking = NULL, test, debug = FALSE) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()

@@ -333,3 +333,28 @@ o2b.backend = function(nodes) {
         PACKAGE = "bnlearn")
 
 }#O2B.BACKEND
+
+cpdag.extension = function(x, debug = FALSE) {
+
+  nodes = names(x$nodes)
+
+  # update the arcs of the network.
+  x$arcs = cpdag.arc.extension(arcs = x$arcs, nodes = nodes, debug = debug) 
+  # update the network structure.
+  x$nodes = cache.structure(nodes, arcs = x$arcs, debug = debug)
+
+  return(x)
+
+}#CPDAG.EXTENSION
+
+# backend to get a DAG out of a CPDAG (still in the same equivalence class).
+cpdag.arc.extension = function(arcs, nodes, debug = FALSE) {
+
+  .Call("pdag_extension",
+        arcs = arcs,
+        nodes = nodes,
+        debug = debug,
+        PACKAGE = "bnlearn")
+
+}#CPDAG.EXTENSION
+

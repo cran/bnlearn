@@ -8,7 +8,7 @@
 ## named "subsets" and was Written by Bill Venables.
 # It's released under "LGPL 2.1".
 
-subsets = function (n, r, v = 1:n, set = TRUE, repeats.allowed = FALSE) {
+subsets = function(n, r, v = 1:n, set = TRUE, repeats.allowed = FALSE) {
 
   # allow empty subsets (i.e. subsets of empty sets).
   if ((n == 0) || (r == 0)) return(matrix(c(""), 1, 1))

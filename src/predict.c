@@ -47,7 +47,7 @@ SEXP result;
   res = REAL(result);
 
   /* dereference the columns of the data frame. */
-  columns = Calloc(ncols, double *);
+  columns = (double **) alloc1dpointer(ncols);
   for (i = 0; i < ncols; i++)
     columns[i] = REAL(VECTOR_ELT(data, i));
 
@@ -72,8 +72,6 @@ SEXP result;
     }/*THEN*/
 
   }/*FOR*/
-
-  Free(columns);
 
   UNPROTECT(1);
 
@@ -200,7 +198,7 @@ SEXP temp, result, tr_levels = getAttrib(data, R_LevelsSymbol);
       iscratch[k] = k + 1;
 
     /* find out the mode(s). */
-    all_max(dscratch + i * nrows, ncols, maxima + i * nrows,
+    all_max(dscratch + i * nrows, nrows, maxima + i * nrows,
       nmax + i, iscratch);
 
   }/*FOR*/
@@ -208,8 +206,6 @@ SEXP temp, result, tr_levels = getAttrib(data, R_LevelsSymbol);
   /* allocate and initialize the return value. */
   PROTECT(result = allocVector(INTSXP, ndata));
   res = INTEGER(result);
-
-  for (i = 0; i < ncols; i++) Rprintf("nmax %d: %d\n", i, nmax[i]);
 
   /* initialize the random seed, just in case we need it for tie breaking. */
   GetRNGstate();

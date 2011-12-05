@@ -3,11 +3,10 @@
 #include "common.h"
 
 /* posterior dirichlet probability (covers BDe and K2 scores). */
-SEXP dpost (SEXP x, SEXP lx, SEXP length, SEXP iss) {
+SEXP dpost(SEXP x, SEXP iss, SEXP exp) {
 
-int k = 0;
-int *llx = INTEGER(lx), *num = INTEGER(length), *xx = INTEGER(x);
-int *n = NULL, *imaginary = NULL;
+int i = 0, k = 0, num = LENGTH(x);
+int llx = NLEVELS(x), *xx = INTEGER(x), *n = NULL, *imaginary = NULL;
 double alpha = 0, *res = NULL;
 SEXP result;
 
@@ -19,7 +18,7 @@ SEXP result;
 
     /* this is for K2, which does not define an imaginary sample size;
      * all hyperparameters are set to 1 in the prior distribution. */
-    imaginary = llx;
+    imaginary = &llx;
     alpha = 1;
 
   }/*THEN*/
@@ -27,7 +26,7 @@ SEXP result;
 
     /* this is for the BDe score. */
     imaginary = INTEGER(iss);
-    alpha = (double) *imaginary / (double) *llx;
+    alpha = (double) *imaginary / (double) llx;
 
   }/*ELSE*/
 
@@ -37,17 +36,37 @@ SEXP result;
   *res = 0;
 
   /* initialize the contingency table. */
-  n = alloc1dcont(*llx);
+  n = alloc1dcont(llx);
 
-  /* compute the frequency table of x. */
-  for (k = 0; k < *num; k++)
-    n[xx[k] - 1]++;
+  /* compute the frequency table of x, disregarding experimental data. */
+  if (exp == R_NilValue) {
+
+    for (i = 0; i < num; i++)
+      n[xx[i] - 1]++;
+
+  }/*THEN*/
+  else {
+
+    int *e = INTEGER(exp);
+
+    for (i = 0, k = 0; i < num; i++) {
+      if (i != e[k] - 1)
+        n[xx[i] - 1]++;
+      else
+        k++;
+
+    }/*FOR*/
+
+    /* adjust the sample size to match the number of observational data. */
+   num -= LENGTH(exp);
+
+  }/*ELSE*/
 
   /* compute the posterior probability. */
-  for (k = 0; k < *llx; k++)
-    *res += lgammafn(n[k] + alpha) - lgammafn(alpha);
+  for (i = 0; i < llx; i++)
+    *res += lgammafn(n[i] + alpha) - lgammafn(alpha);
   *res += lgammafn((double)(*imaginary)) -
-            lgammafn((double)(*imaginary + *num));
+            lgammafn((double)(*imaginary + num));
 
   UNPROTECT(1);
   return result;
@@ -55,12 +74,10 @@ SEXP result;
 }/*DPOST*/
 
 /* conditional posterior dirichlet probability (covers BDe and K2 scores). */
-SEXP cdpost (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP iss,
-    SEXP nparams) {
+SEXP cdpost(SEXP x, SEXP y, SEXP iss, SEXP exp, SEXP nparams) {
 
-int j = 0, k = 0, imaginary = 0;
-int *llx = INTEGER(lx), *lly = INTEGER(ly);
-int *xx = INTEGER(x), *yy = INTEGER(y), *num = INTEGER(length);
+int i = 0, j = 0, k = 0, imaginary = 0, num = LENGTH(x);
+int llx = NLEVELS(x), lly = NLEVELS(y), *xx = INTEGER(x), *yy = INTEGER(y);
 int **n = NULL, *nj = NULL;
 double alpha = 0, *res = NULL, *p = REAL(nparams);
 SEXP result;
@@ -87,24 +104,52 @@ SEXP result;
   *res = 0;
 
   /* initialize the contingency table. */
-  n = alloc2dcont(*llx, *lly);
-  nj = alloc1dcont(*lly);
+  n = alloc2dcont(llx, lly);
+  nj = alloc1dcont(lly);
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < *num; k++) {
+  if (exp == R_NilValue) {
 
-    n[xx[k] - 1][yy[k] - 1]++;
-    nj[yy[k] - 1]++;
+    for (i = 0; i < num; i++) {
 
-  }/*FOR*/
+      n[xx[i] - 1][yy[i] - 1]++;
+      nj[yy[i] - 1]++;
+
+    }/*FOR*/
+
+  }/*THEN*/
+  else {
+
+    int *e = INTEGER(exp);
+
+    for (i = 0, k = 0; i < num; i++) {
+
+      if (i != e[k] - 1) {
+
+        n[xx[i] - 1][yy[i] - 1]++;
+        nj[yy[i] - 1]++;
+
+      }/*THEN*/
+      else {
+
+        k++;
+
+      }/*ELSE*/
+
+    }/*FOR*/
+
+    /* adjust the sample size to match the number of observational data. */
+   num -= LENGTH(exp);
+
+  }/*ELSE*/
 
   /* compute the conditional posterior probability. */
-  for (j = 0; j < *llx; j++)
-    for (k = 0; k < *lly; k++)
-      *res += lgammafn(n[j][k] + alpha) - lgammafn(alpha);
-  for (k = 0; k < *lly; k++)
-    *res += lgammafn((double)imaginary / *lly) -
-              lgammafn(nj[k] + (double)imaginary / *lly);
+  for (i = 0; i < llx; i++)
+    for (j = 0; j < lly; j++)
+      *res += lgammafn(n[i][j] + alpha) - lgammafn(alpha);
+  for (j = 0; j < lly; j++)
+    *res += lgammafn((double)imaginary / lly) -
+              lgammafn(nj[j] + (double)imaginary / lly);
 
   UNPROTECT(1);
   return result;

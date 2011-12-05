@@ -217,7 +217,7 @@ SEXP res;
   memset(var, '\0', ncols * ncols * sizeof(double));
 
   /* allocate and initialize an array of pointers for the variables. */
-  column = (double **) Calloc(ncols, double *);
+  column = (double **) alloc1dpointer(ncols);
   for (i = 0; i < ncols; i++)
     column[i] = REAL(VECTOR_ELT(data, i));
 
@@ -236,8 +236,6 @@ SEXP res;
 
   /* call the C backend that does the actual work. */
   c_covmat(column, mean, &ncols, n, var);
-
-  Free(column);
 
   UNPROTECT(1);
   return res;
@@ -265,5 +263,5 @@ int j = 0, k = 0, cur = 0;
 
   }/*FOR*/
 
-}/*C_COVMAT*/
+}/*C_UPDATE_COVMAT*/
 

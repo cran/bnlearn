@@ -33,14 +33,8 @@ loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
 
   }#THEN
 
-  if (debug) {
-
-    if (loss == "pred")
-      cat("  @ total loss is", result$loss, ".\n")
-    else
-      cat("  @ total loss is", result, ".\n")
-
-  }#THEN
+  if (debug)
+    cat("  @ total loss is", result$loss, ".\n")
 
   return(result)
 

@@ -7,12 +7,13 @@
     graphviz.enabled = lattice.enabled = FALSE
 
     # require the utils package explicitly.
-    require(utils)
+    silent.lib.load("utils")
+
     # load graohviz and set the corresponding flag.
     if ("Rgraphviz" %in% rownames(installed.packages())) {
 
-      require(grid)
-      require(graph)
+      silent.lib.load("grid")
+      silent.lib.load("graph")
 
       graphviz.enabled = TRUE
 
@@ -23,7 +24,7 @@
 
     # load lattice and set the corresponding flag.
     if ("lattice" %in% rownames(installed.packages()))
-      lattice.enabled = require(lattice)
+      lattice.enabled = silent.lib.load("lattice")
 
     packageStartupMessage("Package lattice ",
       ifelse(lattice.enabled, "loaded successfully.", "not loaded."))
@@ -36,3 +37,4 @@
 
 }#.ONLOAD
 
+silent.lib.load = require

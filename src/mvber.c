@@ -13,7 +13,7 @@ static double _nvar(double *matrix, int *n, double lambda);
 
 /* test the variance of a multivariate Bernoulli distribution against
  * its worst case value. */
-SEXP mvber_variance_test (SEXP var, SEXP replications, SEXP samples,
+SEXP mvber_variance_test(SEXP var, SEXP replications, SEXP samples,
     SEXP method, SEXP debug) {
 
 int i = 0, r = 0, k = nrows(var);

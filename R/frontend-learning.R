@@ -67,7 +67,7 @@ aracne = function(x, whitelist = NULL, blacklist = NULL, mi = NULL,
 
 }#ARACNE
 
-# Chow-Liu algorithm.
+# Chow-Liu frontend.
 chow.liu  = function(x, whitelist = NULL, blacklist = NULL, mi = NULL,
     debug = FALSE) {
 
@@ -140,3 +140,21 @@ learn.mb = function(x, node, method, whitelist = NULL, blacklist = NULL,
     optimized = optimized)
 
 }#LEARN.MB
+
+# naive Bayes frontend.
+naive.bayes = function(training, explanatory, data) {
+
+  bayesian.classifier(data, training = training, explanatory = explanatory,
+    method = "naive", whitelist = NULL, blacklist = NULL, expand = list())
+
+}#NAIVE.BAYES
+
+# tree-augmented naive Bayes frontend.
+tree.bayes = function(x, training, explanatory, whitelist = NULL, blacklist = NULL,
+    mi = NULL, root = NULL) {
+
+  bayesian.classifier(x, training = training, explanatory = explanatory,
+    method = "tan", whitelist = whitelist, blacklist = blacklist,
+    expand = list(estimator = mi, root = root))
+
+}#TAN

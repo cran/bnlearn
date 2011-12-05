@@ -1,6 +1,6 @@
 
 inter.incremental.association.optimized = function(x, whitelist, blacklist,
-  test, alpha, B, strict, debug) {
+  test, alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
   mb2 = mb = list()
@@ -42,7 +42,7 @@ inter.incremental.association.optimized = function(x, whitelist, blacklist,
 }#INTER.INCREMENTAL.ASSOCIATION.OPTIMIZED
 
 inter.incremental.association.cluster = function(x, cluster, whitelist,
-  blacklist, test, alpha, B, strict, debug) {
+  blacklist, test, alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
 
@@ -69,7 +69,7 @@ inter.incremental.association.cluster = function(x, cluster, whitelist,
 }#INTER.INCREMENTAL.ASSOCIATION.CLUSTER
 
 inter.incremental.association = function(x, whitelist, blacklist, test,
-  alpha, B, strict, debug) {
+  alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
 
@@ -96,7 +96,7 @@ inter.incremental.association = function(x, whitelist, blacklist, test,
 }#INTER.INCREMENTAL.ASSOCIATION
 
 inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
-  backtracking = NULL, test, debug) {
+  backtracking = NULL, test, debug = FALSE) {
 
   nodes = nodes[nodes != x]
   culprit = known.good = known.bad = c()

@@ -1,7 +1,7 @@
 
 #include "common.h"
 
-SEXP dlik (SEXP x, SEXP lx, SEXP length) {
+SEXP dlik(SEXP x, SEXP lx, SEXP length) {
 
 int i = 0, k = 0;
 int *n = NULL, *xx = INTEGER(x), *llx = INTEGER(lx), *num = INTEGER(length);
@@ -37,7 +37,7 @@ SEXP result;
 
 }/*DLIK*/
 
-SEXP cdlik (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
+SEXP cdlik(SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
 
 int i = 0, j = 0, k = 0;
 int **n = NULL, *nj = NULL;

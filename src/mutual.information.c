@@ -2,7 +2,7 @@
 #include "common.h"
 
 /* unconditional mutual information, to be used in C code. */
-double c_mi (int *xx, int *llx, int *yy, int *lly, int *num) {
+double c_mi(int *xx, int *llx, int *yy, int *lly, int *num) {
 
 int i = 0, j = 0, k = 0;
 int  **n = NULL, *ni = NULL, *nj = NULL;
@@ -45,7 +45,7 @@ double res = 0;
 }/*C_MI*/
 
 /* unconditional mutual information, to be used for the asymptotic test. */
-SEXP mi (SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
+SEXP mi(SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
 
 int *llx = INTEGER(lx), *lly = INTEGER(ly), *num = INTEGER(length);
 int *xx = INTEGER(x), *yy = INTEGER(y);
@@ -60,7 +60,7 @@ SEXP result;
 }/*MI*/
 
 /* conditional mutual information, to be used for the asymptotic test. */
-SEXP cmi (SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
+SEXP cmi(SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
 
 int i = 0, j = 0, k = 0, ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL;
 int *llx = INTEGER(lx), *lly = INTEGER(ly), *llz = INTEGER(lz);

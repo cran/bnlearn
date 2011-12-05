@@ -1,7 +1,7 @@
 
 # unified hill climbing implementation (both optimized and by spec).
 hill.climbing = function(x, start, whitelist, blacklist, score,
-    extra.args, restart, perturb, max.iter, optimized, debug) {
+    extra.args, restart, perturb, max.iter, optimized, debug = FALSE) {
 
   # cache nodes' labels.
   nodes = names(x)
@@ -69,7 +69,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
           extra = extra.args,
           reference = reference.score,
           equivalence = score.equivalence && optimized,
-          updated = (if (optimized) updated else seq(length(nodes))),
+          updated = (if (optimized) updated else seq(length(nodes)) - 1L),
           env = environment(),
           amat = amat,
           cache = cache,

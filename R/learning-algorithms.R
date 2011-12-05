@@ -364,10 +364,6 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
   # which will be used in the maximize phase.
   constraints = arcs.to.be.added(rst$arcs, nodes, whitelist = rst$learning$blacklist)
 
-  # store the number of tests done up to now, to be added later at the end of
-  # the maximize phase.
-  ntests = get(".test.counter", envir = .GlobalEnv)
-
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
@@ -383,7 +379,7 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
   # set the metadata of the network in one stroke.
   res$learning = list(whitelist = rst$learning$whitelist,
     blacklist = rst$learning$blacklist, test = res$learning$test,
-    ntests = res$learning$ntests + ntests, algo = method,
+    ntests = res$learning$ntests + rst$learning$ntests, algo = method,
     args = c(res$learning$args, rst$learning$args), optimized = optimized,
     restrict = restrict, rstest = rst$learning$test, maximize = maximize,
     maxscore = res$learning$test)
@@ -410,8 +406,6 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
   whitelist = build.whitelist(whitelist, nodes)
   blacklist = build.blacklist(blacklist, whitelist, nodes)
 
-  assign(".test.counter", nnodes * (nnodes - 1) / 2, envir = .GlobalEnv)
-
   if (method == "aracne") {
 
     arcs = aracne.backend(x = x, estimator = match(estimator, available.mi),
@@ -433,7 +427,7 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
   # set the metadata of the network in one stroke.
   res$learning = list(whitelist = whitelist, blacklist = blacklist,
     test = mi.estimator.tests[estimator], alpha = 0.05,
-    ntests = get(".test.counter", envir = .GlobalEnv), algo = method,
+    ntests = nnodes * (nnodes - 1) / 2, algo = method,
     args = list(estimator = estimator), optimized = NULL)
 
   invisible(res)
@@ -500,3 +494,93 @@ mb.backend = function(x, node, method, whitelist = NULL, blacklist = NULL,
   return(mb)
 
 }#MB.BACKEND
+
+# baeysian network classifiers.
+bayesian.classifier = function(data, method, training, explanatory, whitelist,
+    blacklist, expand) {
+
+  # check the learning algorithm.
+  check.learning.algorithm(method, class = "classifier")
+  # check the training node (the center of the star-shaped graph).
+  check.nodes(training, max.nodes = 1)
+  # check the data.
+  if (method != "naive") {
+
+      check.data(data)
+    if (!is.data.discrete(data))
+      stop("continuous data are not supported.")
+
+  }#THEN
+
+  # check the explantory variables (the points of the star-shaped graph).
+  if (missing(data)) {
+
+    check.nodes(explanatory)
+
+  }#THEN
+  else {
+
+    vars = names(data)
+    # check the label of the training variable.
+    check.nodes(training, graph = vars, max.nodes = 1)
+    # check the labels of the explanatory variables.
+    if (missing(explanatory))
+      explanatory = vars[vars != training]
+    else
+      check.nodes(explanatory, graph = nodes)
+
+  }#ELSE
+
+  # check that the training node is not included among the explanatory variables.
+  if (training %in% explanatory)
+    stop("node ", training, " is included in the model both as a training ",
+         "and an explanatory variable.")
+  # cache the whole node set.
+  nodes = c(training, explanatory)
+  # sanitize whitelist and blacklist, if any.
+  if (method != "naive") {
+
+    whitelist = build.whitelist(whitelist, explanatory)
+    blacklist = build.blacklist(blacklist, whitelist, explanatory)
+
+  }#THEN
+
+  # sanitize method-specific arguments.
+  extra.args = check.classifier.args(method = method, data = data, extra.args = expand,
+                 training = training, explanatory = explanatory)
+
+  if (method == "naive") {
+
+    # naive bayes requires no test.
+    ntests = 0
+    # not test statistiic involved.
+    test = "none"
+
+    res = naive.bayes.backend(data = data, training = training,
+            explanatory = explanatory)
+
+  }#THEN
+  else if (method == "tan") {
+
+    # tan gets its tests from the chow-liu algorithm.
+    ntests = length(explanatory) * (length(explanatory) - 1)/2
+    # same for the test
+    test = mi.estimator.tests[extra.args$estimator]
+
+    res = tan.backend(data = data, training = training, explanatory = explanatory,
+            whitelist = whitelist, blacklist = blacklist, mi = extra.args$estimator,
+            root = extra.args$root)
+
+  }#THEN
+
+  # set the learning algorithm.
+  res$learning$algo = method
+  # set the metadata of the network in one stroke.
+  res$learning = list(whitelist = whitelist, blacklist = blacklist,
+    test = test, ntests = ntests, algo = method, args = extra.args,
+    optimized = NULL)
+
+  invisible(res)
+
+}#BAYESIAN.CLASSIFIER
+
