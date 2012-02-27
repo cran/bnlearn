@@ -116,13 +116,27 @@ arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs,
 
     }#THEN
 
+    # perform the resampling with replacement.
+    resampling = sample(nrow(data), m, replace = TRUE)
+
+    # user-provided lists of manipulated observations for the mbde score must
+    # be remapped to match the bootstrap sample.
+    if ((algorithm.args$score == "mbde") && !is.null(algorithm.args$exp)) {
+
+      algorithm.args$exp = lapply(algorithm.args$exp, function(x) {
+
+        x = match(x, resampling)
+        x = x[!is.na(x)]
+
+      })
+
+    }#THEN
+
     # generate the r-th bootstrap sample.
-    replicate = data[sample(nrow(data), m, replace = TRUE), , drop = FALSE]
+    replicate = data[resampling, , drop = FALSE]
 
     # learn the network structure from the bootstrap sample.
     net = do.call(algorithm, c(list(x = replicate), algorithm.args))
-
-    s = score(net, data = replicate, type = "bde", iss = 10)
 
     # switch to the equivalence class if asked to.
     if (cpdag)
@@ -361,8 +375,8 @@ threshold = function(strength, method = "l1") {
 
   p0 = optimize(f = norm, interval = c(0, 1))$minimum
 
-  # double check the boundaries, it's a legal solution but optimize() does
-  # not check it.
+  # double check the boundaries, they are legal solutions but optimize() does
+  # not check them.
   if (norm(1) < norm(p0))
     p0 = 1
   if (norm(0) < norm(p0))

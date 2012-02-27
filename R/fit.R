@@ -40,7 +40,7 @@ bn.fit.backend = function(x, data, method = "mle", extra.args, debug = FALSE) {
       }#ELSE
 
       # switch from the joint probabilities to the conditional ones.
-      tab = prop.table((tab), margin = seq(length(parents) + 1)[-1])
+      tab = prop.table(tab, margin = seq(length(parents) + 1)[-1])
 
       structure(list(node = node, parents = parents, children = children,
         prob = tab), class = "bn.fit.dnode")

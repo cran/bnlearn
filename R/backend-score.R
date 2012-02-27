@@ -71,9 +71,9 @@ arcs.to.be.added = function(amat, nodes, blacklist = NULL, whitelist = NULL,
 arcs.to.be.dropped = function(arcs, whitelist) {
 
   if (!is.null(whitelist))
-    arcs[!which.listed(arcs, whitelist), , drop = FALSE]
+    return(arcs[!which.listed(arcs, whitelist), , drop = FALSE])
   else
-    arcs
+    return(arcs)
 
 }#ARCS.TO.BE.DROPPED
 
@@ -81,9 +81,9 @@ arcs.to.be.dropped = function(arcs, whitelist) {
 arcs.to.be.reversed = function(arcs, blacklist) {
 
   if (!is.null(blacklist))
-    arcs[!which.listed(arcs[, c(2, 1), drop = FALSE], blacklist), , drop = FALSE]
+    return(arcs[!which.listed(arcs[, c(2, 1), drop = FALSE], blacklist), , drop = FALSE])
   else
-    arcs
+    return(arcs)
 
 }#ARCS.TO.BE.REVERSED
 

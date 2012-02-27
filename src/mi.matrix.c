@@ -18,10 +18,10 @@
     for (j = i + 1; j < ncols; j++) { \
       if (ind[UPTRI3(i + 1, j + 1, ncols)] != drop) { \
          SET_STRING_ELT(arcs, k, STRING_ELT(nodes, i)); \
-         SET_STRING_ELT(arcs, k + 2 * narcs, STRING_ELT(nodes, j)); \
+         SET_STRING_ELT(arcs, k + (rows), STRING_ELT(nodes, j)); \
          k++; \
          SET_STRING_ELT(arcs, k, STRING_ELT(nodes, j)); \
-         SET_STRING_ELT(arcs, k + 2 * narcs, STRING_ELT(nodes, i)); \
+         SET_STRING_ELT(arcs, k + (rows), STRING_ELT(nodes, i)); \
          k++; \
       } \
     } \
@@ -240,11 +240,21 @@ SEXP arcs, nodes, wlist, blist;
 
 }/*ARACNE*/
 
+static int chow_liu_blacklist(int *blacklist, int *length, int *hash) {
+
+  for (int k = 0; k < *length; k++)
+    if (*hash == blacklist[k])
+      return TRUE;
+
+  return FALSE;
+
+}/*CHOW_LIU_BLACKLIST*/
+
 /* Chow-Liu structure learning algorithm. */
 SEXP chow_liu(SEXP data, SEXP estimator, SEXP whitelist, SEXP blacklist, SEXP debug) {
 
 int i = 0, j = 0, k = 0, debug_coord[2], ncols = LENGTH(data);
-int num = LENGTH(VECTOR_ELT(data, i)), narcs = 0;
+int num = LENGTH(VECTOR_ELT(data, i)), narcs = 0, nwl = 0, nbl = 0;
 int *nlevels = NULL, *est = INTEGER(estimator), *wl = NULL, *bl = NULL;
 int *poset = NULL, *debuglevel = LOGICAL(debug);
 void **columns = NULL;
@@ -274,8 +284,9 @@ SEXP arcs, nodes, wlist, blist;
 
     PROTECT(wlist = arc_hash(whitelist, nodes, TRUE, TRUE));
     wl = INTEGER(wlist);
+    nwl = LENGTH(wlist);
 
-    for (i = 0; i < LENGTH(wlist); i++) {
+    for (i = 0; i < nwl; i++) {
 
       if (*debuglevel > 0) {
 
@@ -284,13 +295,13 @@ SEXP arcs, nodes, wlist, blist;
         if (include[wl[i]] == 0) {
 
           Rprintf("  > arc %s - %s has been added to the graph.\n",
-            CHAR(STRING_ELT(whitelist, i)), CHAR(STRING_ELT(whitelist, i + LENGTH(wlist))));
+            CHAR(STRING_ELT(whitelist, i)), CHAR(STRING_ELT(whitelist, i + nwl)));
 
         }/*THEN*/
         else {
 
           Rprintf("  > arc %s - %s was already present in the graph.\n",
-            CHAR(STRING_ELT(whitelist, i)), CHAR(STRING_ELT(whitelist, i + LENGTH(wlist))));
+            CHAR(STRING_ELT(whitelist, i)), CHAR(STRING_ELT(whitelist, i + nwl)));
 
         }/*ELSE*/
 
@@ -313,6 +324,7 @@ SEXP arcs, nodes, wlist, blist;
 
     PROTECT(blist = arc_hash(blacklist, nodes, TRUE, TRUE));
     bl = INTEGER(blist);
+    nbl = LENGTH(blist);
 
   }/*THEN*/
 
@@ -322,7 +334,7 @@ SEXP arcs, nodes, wlist, blist;
     poset[i] = i;
   R_qsort_I(mim, poset, 1, UPTRI3_MATRIX(ncols));
 
-  for (i = UPTRI3_MATRIX(ncols) - 1, k = 0; i > 0; i--) {
+  for (i = UPTRI3_MATRIX(ncols) - 1; i > 0; i--) {
 
     /* get back the coordinates from the position in the half-matrix. */
     INV_UPTRI3(poset[i], ncols, debug_coord);
@@ -336,7 +348,7 @@ SEXP arcs, nodes, wlist, blist;
 
     if (bl) {
 
-      if (poset[i] == bl[k]) {
+      if (chow_liu_blacklist(bl, &nbl, poset + i)) {
 
         if (*debuglevel > 0) {
 
@@ -345,7 +357,6 @@ SEXP arcs, nodes, wlist, blist;
 
         }/*THEN*/
 
-        k++;
         continue;
 
       }/*THEN*/
@@ -361,7 +372,6 @@ SEXP arcs, nodes, wlist, blist;
 
       }/*THEN*/
 
-      k++;
       continue;
 
     }/*THEN*/
@@ -382,6 +392,11 @@ SEXP arcs, nodes, wlist, blist;
 
   if ((!isNull(blacklist)) && (LENGTH(blacklist) > 0))
     UNPROTECT(1);
+
+  /* sanity check for blacklist-related madnes. */
+  if (narcs != ncols - 1)
+    error("learned %d arcs instead of %d, this is not a tree spanning all the nodes.",
+      narcs, ncols - 1);
 
   CONVERT_TO_ARC_SET(include, 0, 2 * (ncols - 1));
 

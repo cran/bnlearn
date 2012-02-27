@@ -27,14 +27,6 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
-    # Akaike Information Criterion-like test (binary, no p-value!)
-    else if (test == "aict") {
-
-      statistic = mi.test(datax, datay, ndata, gsquare = FALSE) <
-               (nlevels(datax) - 1) * (nlevels(datay) - 1) / ndata
-      p.value = as.integer(statistic)
-
-    }#THEN
     # Shrinked Mutual Infomation (chi-square asymptotic distribution)
     if (test == "mi-sh") {
 
@@ -152,17 +144,6 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       statistic = cmi.test(datax, datay, config, ndata, gsquare = TRUE)
       df = (nlevels(datax) - 1) * (nlevels(datay) - 1) * nlevels(config)
       p.value = pchisq(statistic, df, lower.tail = FALSE)
-
-    }#THEN
-    # Conditional Akaike Information Criterion-like test (binary, no p-value!)
-    else if (test == "aict") {
-
-      datax = minimal.data.frame.column(data, x)
-      datay = minimal.data.frame.column(data, y)
-
-      statistic = cmi.test(datax, datay, config, ndata, gsquare = FALSE) <
-               (nlevels(datax) - 1) * (nlevels(datay) - 1) * nlevels(config) / ndata
-      p.value = as.integer(statistic)
 
     }#THEN
     # Shrinked Conditional Mutual Infomation (chi-square asymptotic distribution)
@@ -287,13 +268,6 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
 
   }#THEN
   else {
-
-    if (test %in% c("aict")) {
-
-      statistic = as.logical(statistic)
-      p.value = NA
-
-    }#THEN
 
     # build a valid object of class htest.
     result = structure(

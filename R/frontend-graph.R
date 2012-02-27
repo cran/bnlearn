@@ -126,9 +126,30 @@ ordering2blacklist = function(nodes) {
   # check the node labels.
   check.nodes(nodes, min.nodes = 3)
 
-  o2b.backend(nodes)
+  tiers.backend(nodes)
 
 }#ORDERING2BLACKLIST
+
+tiers2blacklist = function(nodes) {
+
+  # check the node labels.
+  if (is.list(nodes)) {
+
+    if (!all(sapply(nodes, is.character)))
+      stop("node labels must be character strings.")
+
+    check.nodes(unlist(nodes), min.nodes = 3)
+
+  }#THEN
+  else {
+
+    check.nodes(nodes, min.nodes = 3)
+
+  }#ELSE
+
+  tiers.backend(nodes)
+
+}#TIERS2BLACKLIST
 
 # return the skeleton of a (partially) directed graph
 skeleton = function(x) {
@@ -229,4 +250,15 @@ compare = function(target, current, arcs = FALSE) {
   return(list(tp = tp, fp = fp, fn = fn))
 
 }#COMPARE
+
+subgraph = function(x, nodes) {
+
+  # check x's class.
+  check.bn(x)
+  # check the node ordering.
+  check.nodes(nodes, graph = x, min.nodes = 3, max.nodes = length(x$nodes))
+
+  subgraph.backend(x = x, nodes = nodes)
+
+}#SUBGRAPH
 

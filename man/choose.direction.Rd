@@ -27,6 +27,17 @@ choose.direction(x, arc, data, criterion = NULL, ...,
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
 }
+\details{
+
+  If \code{criterion} is \code{bootstrap}, \code{choose.directions} accepts
+  the same arguments as \code{boot.strength}: \code{R} (the number of 
+  bootstrap replicates), \code{m} (the bootstrap sample size), \code{algorithm}
+  (the structure learning algorithm), \code{algorithm.args} (the arguments to
+  pass to the structure learning algorithm) and \code{cpdag} (whether to
+  transform the network structure to the CPDAG representation of the equivalence
+  class it belongs to).
+
+}
 \value{
 
   \code{choose.direction} returns invisibly an updated copy of \code{x}.
@@ -66,7 +77,18 @@ choose.direction(res, learning.test, arc = c("E", "A"), debug = TRUE)
 #     > p-value is 0.9818423 .
 #   > adding E -> A creates cycles!.
 #   > arc A -> E isn't good, either.
-}
+
+\dontrun{
+choose.direction(res, learning.test, arc = c("D", "E"), criterion = "bootstrap",
+  R = 100, algorithm = "iamb", algorithm.args = list(test = "x2"), cpdag = TRUE,
+  debug = TRUE)
+# * testing D - E for direction.
+#   > testing D -> E 
+#     > bootstrap probability of an arc between D and E is 0.36 .
+#     > direction confidence for arc D -> E is 0.3333333 .
+#     > direction confidence for arc E -> D is 0.6666667 .
+#   @ nothing to do, bootstrap probability is less than 0.50.
+}}
 \seealso{\code{\link{score}}, \code{\link{arc.strength}}. }
 \author{ Marco Scutari }
 \keyword{htest}

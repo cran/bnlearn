@@ -20,8 +20,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 2.8\cr
-    Date: \tab 2011-12-05\cr
+    Version: \tab 2.9\cr
+    Date: \tab 2012-02-27\cr
     License: \tab GPLv2 or later
 
   }
@@ -192,9 +192,6 @@
           \eqn{\chi^2}{chi-square} test (\code{x2}), the Monte Carlo permutation
           test (\code{mc-x2}) and the sequential Monte Carlo permutation test
           (\code{smc-x2}) are implemented.
-        \item \emph{Akaike Information Criterion} (\code{aict}): an experimental
-          AIC-based independence test, computed comparing the mutual information
-          and the expected information gain.
 
       }
     \item \emph{continuous case} (multivariate normal distribution)
@@ -284,6 +281,10 @@
 
   Any arc whitelisted and blacklisted at the same time is assumed to
   be whitelisted, and is thus removed from the blacklist.
+
+  In algorithms that learn undirected graphs, such as ARACNE and
+  Chow-Liu, an arc must be blacklisted in both directions to
+  blacklist the underlying undirected arc.
 
 }
 \section{Error detection and correction: the strict mode}{

@@ -8,6 +8,9 @@ random.graph.backend = function(num, nodes, method, extra.args, debug = FALSE) {
   }#THEN
   else if (method == "ic-dag") {
 
+    # adjust the number of graph to generate with the stepping factor.
+    num = num * extra.args$every
+
     res = ide.cozman.graph(num = num, nodes = nodes,
             burn.in = extra.args$burn.in,
             max.in.degree = extra.args$max.in.degree,
@@ -15,8 +18,18 @@ random.graph.backend = function(num, nodes, method, extra.args, debug = FALSE) {
             max.degree = extra.args$max.degree,
             connected = TRUE, debug = debug)
 
+    # keep only every k-th network.
+    if (num > 1) {
+
+      res = res[seq(from = extra.args$every, to = num, by = extra.args$every)]
+
+    }#THEN
+
   }#THEN
   else if (method == "melancon") {
+
+    # adjust the number of graph to generate with the stepping factor.
+    num = num * extra.args$every
 
     res = ide.cozman.graph(num = num, nodes = nodes,
             burn.in = extra.args$burn.in,
@@ -24,6 +37,13 @@ random.graph.backend = function(num, nodes, method, extra.args, debug = FALSE) {
             max.out.degree = extra.args$max.out.degree,
             max.degree = extra.args$max.degree,
             connected = FALSE, debug = debug)
+
+    # keep only every k-th network.
+    if (num > 1) {
+
+      res = res[seq(from = extra.args$every, to = num, by = extra.args$every)]
+
+    }#THEN
 
   }#THEN
   else if (method == "empty") {

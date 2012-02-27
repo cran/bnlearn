@@ -1,4 +1,29 @@
 
+bnlearn (2.9)
+
+  * reworked the Depends and the Suggests due to new CRAN checks;
+     as a result, some care must be exercised when loading the
+     graph package after bnlearn.
+  * removed bn.var.test() and the "aict" test.
+  * fixed wrong ISS handling in the BDe score.
+  * fixed a buffer overflow in the BGe score.
+  * added subgraph(), tiers2blacklist(), and cextend().
+  * fixed bug in boot.strength(), which failed with a spurious
+     error when a PDAG was learned.
+  * support interval discretization as the initial step in
+     Hartemink's discretization.
+  * fixed blacklist handling in chow.liu().
+  * fixed choose.direction() and arc.strength(), both of them
+     require a .test.counter and should create it as needed.
+  * added as.bn() and as.bn.fit() for "grain" objects (from the
+     the gRain package) and as.grain() for "bn.fit" objects.
+  * fixed infinte loop in choose.direction().
+  * make choose.direction(..., criterion = "bootstrap") work again.
+  * added an 'every' argument to random.graph() for the 'ic-dag'
+     and 'melancon' algorithms.
+  * shortened the optional arguments for random.graph(...,
+     method = "hartemink") to "idisc" and "ibreaks".
+
 bnlearn (2.8)
 
   * switched "cpdag" to TRUE in {boot,custom}.strength().

@@ -80,7 +80,7 @@ print.bn = function(x, ...) {
     if ("alpha" %in% params)
       wcat("  alpha threshold:                      ", format(x$learning$args$alpha))
     if ("B" %in% params)
-      wcat("  permutations/bootstrap samples:       ", format(x$learning$args$B))
+      wcat("  permutations:                         ", format(x$learning$args$B))
     if ("iss" %in% params)
       wcat("  imaginary sample size:                ", format(x$learning$args$iss))
     if ("phi" %in% params)
@@ -221,7 +221,7 @@ print.bn.kcv = function(x, ...) {
   if (a$loss == "pred")
     wcat("  training node:                        ", a$args$target)
 
-  wcat("  expected loss:                        ", a$mean)
+  wcat("  expected loss:                        ", format(a$mean))
 
   cat("\n")
 

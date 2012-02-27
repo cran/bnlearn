@@ -50,8 +50,13 @@ is.acyclic.backend = function(arcs, nodes, directed = FALSE,
 
 }#IS.ACYCLIC.BACKEND
 
-# compute the data / cells ratio.
+# compute the sample size / CPT cells ratio.
 obs.per.cell = function(x, y, z = NULL, data) {
+
+  opc = 0
+  ndata = nrow(data)
+  nlx = nlevels(data[, x])
+  nly = nlevels(data[, y])
 
   # return +Inf for continuous data to bypass countermeasures
   # thought for sparce discrete data.
@@ -60,23 +65,25 @@ obs.per.cell = function(x, y, z = NULL, data) {
 
   if (is.null(z) || (length(z) == 0)) {
 
-    nrow(data) / (nlevels(data[, x]) * nlevels(data[, y]))
+    opc = ndata / (nlx * nly)
 
   }#THEN
   else if (is.character(z)) {
 
     if (length(z) == 1)
-      nrow(data) / (nlevels(data[, x]) * nlevels(data[, y]) * nlevels(data[, z]))
+      opc = ndata / (nlx * nly * nlevels(data[, z]))
     else if (length(z) > 1)
-      nrow(data) / (nlevels(data[, x]) * nlevels(data[, y]) *
+      opc = ndata / (nlx * nly *
         prod(sapply(z, function(col) { nlevels(data[, col]) } )))
 
   }#THEN
   else if (is.factor(z)) {
 
-    nrow(data) / (nlevels(data[, x]) * nlevels(data[, y]) * nlevels(z))
+    opc = ndata / (nlx * nly * nlevels(z))
 
   }#ELSE
+
+  return(opc)
 
 }#OBS.PER.CELL
 

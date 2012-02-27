@@ -1,9 +1,9 @@
 #include "common.h"
 
 /* wrapper around the cfg() function for use in .Call(). */
-SEXP cfg2(SEXP parents, SEXP factor) {
+SEXP cfg2(SEXP parents, SEXP factor, SEXP all) {
 
-int i = 0, *res = NULL, nlevels = 0;
+int i = 0, *res = NULL, nlevels = 0, *all_levels = LOGICAL(all);
 SEXP temp, result;
 
   /* compute the configurations. */
@@ -13,7 +13,10 @@ SEXP temp, result;
   if (isTRUE(factor)) {
 
     /* convert the configurations from an integer array to to a factor. */
-    result = int2fac(temp, NULL); //&nlevels);
+    if (*all_levels)
+      result = int2fac(temp, &nlevels);
+    else
+      result = int2fac(temp, NULL);
 
   }/*THEN*/
   else {

@@ -80,11 +80,12 @@ smaller = function(a, b) {
 }#SMALLER
 
 # build an array containing the configurations of the variables.
-configurations = function(data, factor = TRUE) {
+configurations = function(data, factor = TRUE, all = TRUE) {
 
   .Call("cfg2",
         data = data,
         factor = factor,
+        all = all,
         PACKAGE = "bnlearn")
 
 }#CONFIGURATIONS

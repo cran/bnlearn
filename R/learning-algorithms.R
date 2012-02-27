@@ -414,6 +414,13 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
   }#THEN
   else if (method == "chow.liu") {
 
+    # check whether any node has all incident arcs blacklisted; if so it's
+    # simply not possible to learn a tree spanning all the nodes.
+    culprit = names(which(table(blacklist) == 2 * (ncol(x) - 1)))
+
+    if (length(culprit) > 0)
+      stop("all arcs incident on nodes '", culprit, "' are blacklisted.")
+
     arcs = chow.liu.backend(x = x, estimator = match(estimator, available.mi),
              whitelist = whitelist, blacklist = blacklist, debug = debug)
 

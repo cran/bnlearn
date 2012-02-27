@@ -1,8 +1,8 @@
 # lattice backend for plots aimed at gaussian bayesian networks.
 lattice.discrete.backend = function(fitted, type, xlab, ylab, main, ...) {
 
-  # check whether lattice is loaded.
-  if (!("lattice" %in% loadedNamespaces()))
+  # check whether lattice is loaded, and try to load if it is not.
+  if (!require(lattice))
     stop("this function requires the lattice package.")
 
   if (is(fitted, "bn.fit")) {
@@ -75,14 +75,13 @@ lattice.discrete.backend = function(fitted, type, xlab, ylab, main, ...) {
 
   }#ELSE
 
-
 }#LATTICE.DISCRETE.BACKEND
 
 # lattice backend for plots aimed at gaussian bayesian networks.
 lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
 
-  # check whether lattice is loaded.
-  if (!("lattice" %in% loadedNamespaces()))
+  # check whether lattice is loaded, and try to load if it is not.
+  if (!require(lattice))
     stop("this function requires lattice.")
 
   if (is(fitted, "bn.fit")) {

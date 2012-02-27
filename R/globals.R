@@ -1,7 +1,6 @@
 
 # Global variables.
-available.discrete.tests = c("mi", "aict", "mi-sh", "x2", "mc-mi", "smc-mi", 
-  "mc-x2", "smc-x2")
+available.discrete.tests = c("mi", "mi-sh", "x2", "mc-mi", "smc-mi", "mc-x2", "smc-x2")
 available.continuous.tests = c("cor", "zf", "mi-g", "mi-g-sh", "mc-mi-g",
   "smc-mi-g", "mc-cor", "smc-cor", "mc-zf", "smc-zf")
 available.tests = c(available.discrete.tests, available.continuous.tests)
@@ -10,7 +9,7 @@ resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g"
   "mc-cor", "smc-cor", "mc-zf", "smc-zf")
 asymptotic.tests = c("mi", "mi-g", "x2", "zf")
 
-available.discrete.scores = c("loglik", "aic", "bic", "bde", "k2", "mbde")
+available.discrete.scores = c("loglik", "aic", "bic", "bde", "bdes", "k2", "mbde")
 available.continuous.scores = c("bge", "loglik-g", "aic-g", "bic-g")
 available.scores = c(available.discrete.scores, available.continuous.scores)
 
@@ -66,7 +65,6 @@ test.labels = c(
   'mi-g-sh' = "Mutual Information (Gaussian, shrinkage)",
   'mc-mi-g' = "Mutual Information (Gaussian, Monte Carlo)",
   'smc-mi-g' = "Mutual Information (Gaussian, Sequential Monte Carlo)",
-  'aict'= "AIC-like Test",
   'x2'= "Pearson's X^2",
   'mc-x2'= "Pearson's X^2 (Monte Carlo)",
   'smc-x2'= "Pearson's X^2 (Sequential Monte Carlo)",
@@ -81,7 +79,8 @@ test.labels = c(
 score.labels = c(
   'k2' = "Cooper & Herskovits' K2",
   'bde' = "Bayesian Dirichlet (BDeu)",
-  'mbde' = "Bayesian Dirichlet (Experimental & Observational data)",
+  'bdes' = "Sparse Bayesian Dirichlet (BDes)",
+  'mbde' = "Bayesian Dirichlet (interventional data)",
   'aic' = "Akaike Information Criterion",
   'bic' = "Bayesian Information Criterion",
   'loglik' = "Log-Likelihood",
@@ -94,6 +93,7 @@ score.labels = c(
 score.extra.args = list(
   "k2" = character(0),
   "bde" = "iss",
+  "bdes" = "iss",
   "mbde" = c("iss", "exp"),
   "aic" = "k",
   "bic" = "k",
@@ -128,8 +128,8 @@ graph.generation.labels = c(
 
 graph.generation.extra.args = list(
   "ordered" = "prob",
-  "ic-dag" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree"),
-  "melancon" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree"),
+  "ic-dag" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree", "every"),
+  "melancon" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree", "every"),
   "averaged" = "threshold"
 )
 
@@ -191,7 +191,7 @@ discretization.labels = c(
 discretization.extra.args = list(
   "quantile" = character(0),
   "interval" = character(0),
-  "hartemink" = c("initial.breaks")
+  "hartemink" = c("ibreaks", "idisc")
 )
 
 template.numeric = numeric(1)

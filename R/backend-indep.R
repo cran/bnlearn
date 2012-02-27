@@ -155,7 +155,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
       repeat {
 
-        # create all the possible subsets of the markov blanket (excluding
+        # create all possible subsets of the markov blanket (excluding
         # the node to be tested for exclusion) of size k.
         dsep.subsets = subsets(length(dsep.set), k, dsep.set)
 
@@ -209,7 +209,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
   }#THEN
 
-  list (mb = mb[[x]], nbr = nbrhood)
+  return(list(mb = mb[[x]], nbr = nbrhood))
 
 }#NEIGHBOUR
 
@@ -313,7 +313,7 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
 
     }#FOR
 
-    vs
+    return(vs)
 
   }#VSTRUCT.CENTERED.ON
 
@@ -363,7 +363,7 @@ vstruct.apply = function(arcs, vs, nodes, strict, debug = FALSE) {
 
   })
 
-  arcs
+  return(arcs)
 
 }#VSTRUCT.APPLY
 
@@ -575,7 +575,9 @@ cycle.counter = function(arcs, nodes, cluster, debug = FALSE) {
   }#ELSE
 
   # return the sorted cycle counter.
-  counter[order(counter[,"cycles"], decreasing = TRUE),, drop = FALSE]
+  counter = counter[order(counter[,"cycles"], decreasing = TRUE),, drop = FALSE]
+
+  return(counter)
 
 }#CYCLE.COUNTER
 

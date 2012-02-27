@@ -1,20 +1,4 @@
 
-# return the nodes in the graph.
-nodes = function(x) {
-
-  # check x's class (beware of graphviz).
-  if (is(x, "graphAM") || is(x, "graphNEL"))
-    return(graph:::nodes(x))
-  else
-    check.bn.or.fit(x)
-
-  if (is(x, "bn"))
-    names(x$nodes)
-  else
-    names(x)
-
-}#NODES
-
 # return the markov blanket of a node.
 mb = function(x, node) {
 
@@ -213,31 +197,4 @@ out.degree = function(x, node) {
 
 }#OUT.DEGREE
 
-# get the degree of a node.
-degree = function(x, node) {
-
-  # check x's class (beware of graphviz).
-  if (is(x, "graphAM") || is(x, "graphNEL")) {
-
-    if (missing(node))
-      return(graph:::degree(x))
-    else
-      return(graph:::degree(x, node))
-
-  }#THEN
-  else {
-
-    check.bn.or.fit(x)
-
-  }#ELSE
-
-  # a valid node is needed.
-  check.nodes(nodes = node, graph = x, max.nodes = 1)
-
-  if (is(x, "bn"))
-    length(x$nodes[[node]]$nbr)
-  else
-    length(x[[node]]$parents) + length(x[[node]]$children)
-
-}#DEGREE
 

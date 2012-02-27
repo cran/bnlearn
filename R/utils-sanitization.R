@@ -130,11 +130,11 @@ check.nodes = function(nodes, graph = NULL, min.nodes = 1, max.nodes = Inf) {
   if (any(duplicated(nodes)))
      stop("node labels must be unique.")
   # no empty strings.
-  if (any(nodes == ""))
+  if (any(is.na(nodes)) || any(nodes == ""))
     stop("an empty string is not a valid node label.")
   # maximum number of nodes requirement.
   if (length(nodes) > max.nodes)
-    stop(paste("at most", min.nodes, "node(s) needed."))
+    stop(paste("at most", max.nodes, "node(s) needed."))
   # minimum number of nodes requirement (usually 1).
   if (length(nodes) < min.nodes)
     stop(paste("at least", min.nodes, "node(s) needed."))
@@ -267,7 +267,7 @@ build.whitelist = function(whitelist, nodes) {
   if (!is.acyclic(whitelist, nodes))
     stop("this whitelist does not allow an acyclic graph.")
 
-whitelist
+  return(whitelist)
 
 }#BUILD.WHITELIST
 
@@ -338,7 +338,7 @@ build.blacklist = function(blacklist, whitelist, nodes) {
 
   }#THEN
 
-blacklist
+  return(blacklist)
 
 }#BUILD.BLACKLIST
 
@@ -350,7 +350,6 @@ check.customlist = function(custom, nodes) {
     stop("networks must be a list of objects of class 'bn' or of arc sets.")
   if(!all(sapply(custom, function(x) { is(x, "bn") || is(x, "matrix") })))
     stop("x must be a list of objects of class 'bn' or of arc sets.")
-
 
   validate = function(custom, nodes) {
 
@@ -686,7 +685,7 @@ check.phi = function(phi, network, data) {
 
   }#ELSE
 
-phi
+  return(phi)
 
 }#CHECK.PHI
 
@@ -762,7 +761,7 @@ check.penalty = function(k, network, data, score) {
 # sanitize the extra arguments passed to the network scores.
 check.score.args = function(score, network, data, extra.args) {
 
-  if (score == "bde") {
+  if (score %in% c("bde", "bdes")) {
 
     # check the imaginary sample size.
     extra.args$iss = check.iss(iss = extra.args$iss,
@@ -826,6 +825,18 @@ check.graph.generation.args = function(method, nodes, extra.args) {
 
   }#THEN
   else if (method %in% c("ic-dag", "melancon")) {
+
+    if (!is.null(extra.args$every)) {
+
+      if (!is.positive(extra.args$every))
+        stop("'every' must be a positive integer number.")
+
+    }#THEN
+    else {
+
+      extra.args$every = 1
+
+    }#ELSE
 
     if (!is.null(extra.args$burn.in)) {
 
@@ -1063,32 +1074,57 @@ check.discretization.args = function(method, data, breaks, extra.args) {
 
     if (is.data.discrete(data)) {
 
-      extra.args$initial.breaks = nlevels(data[, 1])
-      warning("data are already discrete, initial.breaks is ignored.")
-
-    }#THEN
-    else if (!is.null(extra.args$initial.breaks)) {
-
-      if (!is.positive.integer(extra.args$initial.breaks))
-        stop("the number of initial breaks must be a positive integer number.")
-      if (extra.args$initial.breaks < breaks)
-        stop("insufficient number of levels, at least ", breaks, " required.")
+      extra.args$ibreaks = nlevels(data[, 1])
+      warning("data are already discrete, 'ibreaks' and 'idisc' are ignored.")
 
     }#THEN
     else {
 
-      ndata = nrow(data)
+      if (!is.null(extra.args$idisc)) {
 
-      if (ndata > 500)
-        extra.args$initial.breaks = 100
-      else if (ndata > 100)
-        extra.args$initial.breaks = 50
-      else if (ndata > 50)
-        extra.args$initial.breaks = 20
-      else if (ndata > 10)
-        extra.args$initial.breaks = 10
-      else
-        extra.args$initial.breaks = ndata
+        idisc = extra.args$idisc
+
+        # check it's a single character string.
+        check.string(idisc)
+        # check the score/test label.
+        other.methods = available.discretization.methods[available.discretization.methods != "hartemink"]
+        if (!(idisc %in% other.methods))
+          stop(paste(c("valid initial discretization methods are:\n",
+                sprintf("    %-10s %s\n", other.methods, discretization.labels[other.methods])), sep = ""))
+
+
+      }#THEN
+      else {
+
+        # default to quantile discretization as for Hartemink's recommendation.
+        extra.args$idisc = "quantile"
+
+      }#ELSE
+
+      if (!is.null(extra.args$ibreaks)) {
+
+        if (!is.positive.integer(extra.args$ibreaks))
+          stop("the number of initial breaks must be a positive integer number.")
+        if (extra.args$ibreaks < breaks)
+          stop("insufficient number of levels, at least ", breaks, " required.")
+
+      }#THEN
+      else {
+
+        ndata = nrow(data)
+
+        if (ndata > 500)
+          extra.args$ibreaks = 100
+        else if (ndata > 100)
+          extra.args$ibreaks = 50
+        else if (ndata > 50)
+          extra.args$ibreaks = 20
+        else if (ndata > 10)
+          extra.args$ibreaks = 10
+        else
+          extra.args$ibreaks = ndata
+
+      }#ELSE
 
     }#ELSE
 
@@ -1577,7 +1613,8 @@ check.colour = function(col) {
 # check the line type identifier.
 check.lty = function(lty) {
 
-lty.strings = c("blank", "solid", "dashed", "dotted", "dotdash", "longdash", "twodash")
+  lty.strings = c("blank", "solid", "dashed", "dotted", "dotdash", "longdash",
+                  "twodash")
 
   if (!(lty %in% 0:6) && !(lty %in% lty.strings))
     stop(sprintf("%s is not a valid line type identifier.",

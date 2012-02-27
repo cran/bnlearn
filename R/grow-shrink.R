@@ -152,7 +152,8 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
     for (y in nodes) {
 
-      if (debug) cat("  * checking node", y, "for inclusion.\n")
+      if (debug)
+        cat("  * checking node", y, "for inclusion.\n")
 
       a = conditional.test(x, y, mb, data = data, test = test, B = B,
             alpha = alpha)

@@ -145,36 +145,3 @@ SEXP result, labels, try, arc_id;
 
 }/*WHICH_UNDIRECTED*/
 
-/* determine which arcs are blacklisted according to the current topological
- * ordering. */
-SEXP nodes2blacklist(SEXP topord) {
-
-int i = 0, j = 0, k = 0, nnodes = LENGTH(topord), nbl = nnodes * (nnodes - 1) / 2;
-SEXP node, result;
-
-  /* allocate the return value. */
-  PROTECT(result = allocMatrix(STRSXP, nbl, 2));
-
-  for (i = 0, k = 0; i < nnodes; i++) {
-
-    node = STRING_ELT(topord, i);
-
-    for (j = i + 1; j < nnodes; j++) {
-
-      SET_STRING_ELT(result, k, STRING_ELT(topord, j));
-      SET_STRING_ELT(result, k + nbl, node);
-      k++;
-
-    }/*FOR*/
-
-  }/*FOR*/
-
-  /* allocate, initialize and set the column names. */
-  finalize_arcs(result);
-
-  UNPROTECT(1);
-
-  return result;
-
-}/*NODES2BLACKLIST*/
-

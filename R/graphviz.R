@@ -6,9 +6,8 @@ check.Rgraphviz = function() {
   warning.level  = as.numeric(options("warn"))
   options("warn" = -1)
 
-  if (!("Rgraphviz" %in% loadedNamespaces()))
-    if (!require(Rgraphviz))
-      stop("this function requires the Rgraphviz package.")
+  if (!require(Rgraphviz))
+    stop("this function requires the Rgraphviz package.")
 
   # restore the original warning level.
   options("warn" = warning.level)

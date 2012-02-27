@@ -62,7 +62,7 @@ double *mean = NULL, *mat = NULL;
 
   /* allocate mean vector and covariance matrix. */
   mean = alloc1dreal(*ncols);
-  mat = alloc1dreal(*ncols);
+  mat = alloc1dreal((*ncols) * (*ncols));
 
   /* compute the mean values.  */
   for (i = 0; i < *ncols; i++) {
@@ -126,11 +126,6 @@ SEXP result;
   /* allocate a workspace vector. */
   workspace = alloc1dreal(tau_ncols);  
 
-  /* allocate and initialize result to zero. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
-  *res = 0;
-
   /* allocate and initialize the parent configuration. */
   zi = alloc1dreal(ncols + 1);
   zi[0] = 1;
@@ -163,6 +158,11 @@ SEXP result;
   build_tau(zz, tau, &ncols, &num, iss, phic);
   memcpy(old_tau, tau, tau_ncols * tau_ncols * sizeof(double));
   c_ginv(tau, &tau_ncols, invtau);
+
+  /* allocate and initialize result to zero. */
+  PROTECT(result = allocVector(REALSXP, 1));
+  res = REAL(result);
+  *res = 0;
 
   /* for each sample... */
   for (i = 0; i < num; i++) {

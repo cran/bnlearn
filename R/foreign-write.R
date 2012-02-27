@@ -6,7 +6,7 @@ write.foreign.backend = function(fd, fitted, format = "bif") {
   if (format == "dsc")
     cat("belief network \"unknown\"\n", file = fd)
   if (format == "net")
-    cat("net { }\n", file = fd)
+    cat("net \n{ \n}\n", file = fd)
   else if (format == "bif")
     cat("network unknown {\n}\n", file = fd)
 
@@ -98,7 +98,7 @@ bif.write.probabilities = function(node, nlevels, cpt, parents, fd) {
 
 net.write.node = function(node, levels, fd) {
 
-  cat("node", node, "{\n  states = (", paste("\"", paste(levels,
+  cat("node", node, "\n{\n  states = (", paste("\"", paste(levels,
         collapse = "\" \""), "\"", sep = ""), ");\n}\n", file = fd)
 
 }#NET.WRITE.NODE
@@ -109,14 +109,14 @@ net.write.probabilities = function(node, nlevels, cpt, parents, fd) {
 
     probs = paste(format(cpt, nsmall = 1))
 
-    cat("potential (", node, ") {\n", file = fd)
+    cat("potential (", node, ") \n{\n", file = fd)
     cat("  data = (", probs, ");\n}\n", file = fd)
 
   }#THEN
   else {
 
     cat("potential (", node, "|", paste(parents, collapse = " "),
-      ") {\n  data = ", file = fd)
+      ") \n{\n  data = ", file = fd)
 
     # in NET files the "most significant" variable for the ordering is the
     # last one, not the first one.

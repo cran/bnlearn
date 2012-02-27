@@ -1,16 +1,19 @@
 \name{cpdag}
 \alias{cpdag}
+\alias{cextend}
 \alias{vstructs}
 \alias{moral}
-\title{ Find the equivalence class of a Bayesian network }
+\title{ Equivalence classes, moral graphs and consistent extenions}
 \description{
 
   Find the equivalence class and the v-structures of a Bayesian network,
-  or construct its moral graph.
+  construct its moral graph, or create a consistent extension of an
+  equivalent class.
 
 }
 \usage{
 cpdag(x, debug = FALSE)
+cextend(x, debug = FALSE)
 vstructs(x, arcs = FALSE, debug = FALSE)
 moral(x, debug = FALSE)
 }
@@ -28,6 +31,9 @@ moral(x, debug = FALSE)
   equivalence class. \code{moral} on the other hand returns the moral
   graph. See \code{\link{bn-class}} for details.
 
+  \code{cextend} returns an object of class \code{bn}, representing a DAG
+  that is the consistent extension of \code{x}.
+
   \code{vstructs} returns a matrix with either 2 or 3 columns, according
   to the value of the \code{arcs} parameter.
 
@@ -36,6 +42,10 @@ moral(x, debug = FALSE)
 
   Pearl J (2000). \emph{Causality: Models, Reasoning and Inference}.
       Cambridge University Press.
+
+  Dor D (1992). \emph{A Simple Algorithm to Construct a Consistent
+      Extension of a Partially Oriented Graph}. UCLA, Cognitive Systems
+      Laboratory. Available as Technical Report R-185. 
 
 }
 \examples{

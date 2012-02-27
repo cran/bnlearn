@@ -12,6 +12,12 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
   # initialize the bayesian network used by the paramentric bootstrap.
   if (sim == "parametric") {
 
+    # the mbde score requires knowledge of which observations have been
+    # manipulated, and this is clearly not possible when samples are
+    # generated.
+    if (algorithm.args$score == "mbde")
+      stop("the 'mbde' score is incompatible with parametric bootstrap.")
+
     if (algorithm %in% always.dag.result) {
 
       net = do.call(algorithm, c(list(x = data), algorithm.args))
@@ -44,13 +50,36 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
     }#THEN
 
     # generate the r-th bootstrap sample.
-    if (sim == "ordinary")
-      replicate = data[sample(nrow(data), m, replace = TRUE), , drop = FALSE]
-    else if (sim == "parametric")
+    if (sim == "ordinary") {
+
+      # perform the resampling with replacement.
+      resampling = sample(nrow(data), m, replace = TRUE)
+
+      # user-provided lists of manipulated observations for the mbde score must
+      # be remapped to match the bootstrap sample.
+      if ((algorithm.args$score == "mbde") && !is.null(algorithm.args$exp)) {
+
+        algorithm.args$exp = lapply(algorithm.args$exp, function(x) { 
+
+          x = match(x, resampling)
+          x = x[!is.na(x)]
+
+        })
+
+      }#THEN
+
+      # generate the bootstrap sample. 
+      replicate = data[resampling, , drop = FALSE]
+
+    }#THEN
+    else if (sim == "parametric") {
+
       if (is.data.discrete(data))
         replicate = rbn.discrete(x = net, n = m, data = data)
       else
         replicate = rbn.continuous(x = net, n = m, data = data)
+
+    }#ELSE
 
     if (debug)
       cat("* learning bayesian network structure.\n")
@@ -79,7 +108,7 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
 
     return(res)
 
-  }#BOOTSTRAP.TEST
+  }#BOOTSTRAP.STEP
 
   if (!is.null(cluster)) {
 

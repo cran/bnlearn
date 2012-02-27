@@ -529,10 +529,19 @@ next_node:
 
     /* if nothing changed in the last iteration or there are no more candidate
      * nodes, there is nothing else to do. */
-    if ((changed == 0) || (left == 0))
-      break;
-    else
+    if (changed == 0) {
+
+      if (left > 0)
+        error("unable to construct a consistent extension.");
+      else
+        break;
+
+    }/*THEN*/
+    else {
+
       changed = 0;
+
+    }/*ELSE*/
 
   }/*FOR*/
 

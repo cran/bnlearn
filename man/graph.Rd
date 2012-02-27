@@ -5,6 +5,7 @@
 \alias{path}
 \alias{skeleton}
 \alias{pdag2dag}
+\alias{subgraph}
 \title{ Utilities to manipulate graphs }
 \description{
 
@@ -21,6 +22,8 @@ path(x, from, to, direct = TRUE, underlying.graph = FALSE,
 # build the skeleton or a complete orientation of the graph.
 skeleton(x)
 pdag2dag(x, ordering)
+# build a subgraph spanning a subset of nodes.
+subgraph(x, nodes)
 }
 \arguments{
   \item{x}{an object of class \code{bn}. \code{acyclic}, \code{directed} and
@@ -36,13 +39,15 @@ pdag2dag(x, ordering)
        graph is used instead of the (directed) one from the \code{x} parameter.}
   \item{ordering}{the labels of all the nodes in the graph; their order is the
        node ordering used to set the direction of undirected arcs.}
+  \item{nodes}{the labels of the nodes that induce the subgraph.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
        printed; otherwise the function is completely silent.}
 }
 \value{
 
   \code{acyclic}, \code{path} and \code{directed} return a boolean value. \cr
-  \code{skeleton} and \code{pdag2dag} return an object of class \code{bn}.
+  \code{skeleton}, \code{pdag2dag} and \code{subgraph} return an object of
+  class \code{bn}.
 
 }
 \references{

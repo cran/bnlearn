@@ -22,42 +22,6 @@ bn.var = function(x, method) {
 
 }#BN.VAR
 
-# test the variability of a Bayesian network structure.
-bn.var.test = function(x, method, R, B, debug = FALSE) {
-
-  # check the debug parameter.
-  check.logical(debug)
-  # match the test statistic.
-  method.string = method
-  method = check.mvber.vartest(method)
-
-  if (is(x, "mvber.moments")) {
-
-    # check the number of bootstrap replicates.
-    R = check.replicates(R, default = attr(x, "R"))
-    # check the size of each bootstrap sample.
-    B = check.bootsize(B, data, default = attr(x, "m"))
-
-    mvber.var.test(x = x$covariance, method = method,
-      method.string = method.string, R = R, B = B, debug = debug)
-
-  }#THEN
-  else {
-
-    # check the number of bootstrap replicates.
-    R = check.replicates(R)
-    # check the size of each bootstrap sample.
-    B = check.bootsize(B, data)
-    # check the covariance matrix.
-    check.covariance(x)
-
-    mvber.var.test(x = x, method = method, method.string = method.string,
-      R = R, B = B, debug = debug)
-
-  }
-
-}#BN.VAR.TEST
-
 # estimate the first two moments of the  multivariate Bernoulli distribution
 # associated with a set of bootstrapped Bayesian networks.
 bn.moments = function(data, R = 200, m = nrow(data), algorithm,

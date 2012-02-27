@@ -22,7 +22,7 @@ per.node.score = function(network, data, score, nodes, extra.args,
 
    res = vapply(nodes, dirichlet.node, x = network,
            imaginary.sample.size = extra.args$iss, 
-           experimental = NULL, data = data,
+           experimental = NULL, sparse = FALSE, data = data,
            debug = debug, FUN.VALUE = template.numeric)
 
   }#THEN
@@ -30,7 +30,15 @@ per.node.score = function(network, data, score, nodes, extra.args,
 
    res = vapply(nodes, dirichlet.node, x = network,
            imaginary.sample.size = extra.args$iss, 
-           experimental = extra.args$exp, data = data,
+           experimental = extra.args$exp, sparse = FALSE,
+           data = data, debug = debug, FUN.VALUE = template.numeric)
+
+  }#THEN
+  else if (score == "bdes") {
+
+   res = vapply(nodes, dirichlet.node, x = network,
+           imaginary.sample.size = extra.args$iss,
+           experimental = NULL, sparse = TRUE, data = data,
            debug = debug, FUN.VALUE = template.numeric)
 
   }#THEN
@@ -199,7 +207,7 @@ aic.node = function(node, x, data, k = 1, debug = FALSE) {
 
 # compute the dirichlet posterior density of a node.
 dirichlet.node = function(node, x, data, imaginary.sample.size = NULL,
-    experimental = NULL, debug = FALSE) {
+    experimental = NULL, sparse = FALSE, debug = FALSE) {
 
   if (debug) {
 
@@ -226,11 +234,7 @@ dirichlet.node = function(node, x, data, imaginary.sample.size = NULL,
   }#THEN
   else {
 
-    # if there is only one parent, get it easy.
-    if (length(node.parents) == 1)
-      config = minimal.data.frame.column(data, node.parents)
-    else
-      config = configurations(minimal.data.frame.column(data, node.parents))
+    config = configurations(minimal.data.frame.column(data, node.parents, drop = FALSE), all = !sparse)
 
     node.params = nparams.discrete.node(node, x, data, real = FALSE)
 
@@ -261,8 +265,6 @@ bge.node = function(node, x, data, iss, phi = "heckerman", debug = FALSE) {
     phi.coef = (n - 1) / n * (iss - 1)
   else if (phi == "heckerman")
     phi.coef = (n - 1) / n * (iss) / (iss + 1) * (iss - 2)
-  # initialize the result.
-  result = 0
   # get the parents of the node.
   node.parents = x$nodes[[node]]$parents
 

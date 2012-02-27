@@ -1,5 +1,6 @@
 #include "common.h"
 
+/* convert an arc set to an edge list. */
 SEXP arcs2elist(SEXP arcs, SEXP nodes, SEXP id, SEXP sublist) {
 
 int i = 0, j = 0, k = 0, nnodes = LENGTH(nodes), narcs = LENGTH(arcs)/2;
@@ -93,3 +94,40 @@ SEXP try, elist, edges, temp, temp_name = R_NilValue;
 
 }/*ARCS2ELIST*/
 
+/* convert an edge list to an arc set. */
+SEXP elist2arcs(SEXP elist) {
+
+int i = 0, j = 0, k = 0, n = LENGTH(elist), narcs = 0;
+SEXP from, children, nodes, arcs;
+
+  /* count how many arcs are present in the graph. */
+  for (i = 0; i < n; i++)
+    narcs += LENGTH(VECTOR_ELT(elist, i));
+
+  /* allocate and initialize the return value. */
+  PROTECT(arcs = allocMatrix(STRSXP, narcs, 2));
+
+  nodes = getAttrib(elist, R_NamesSymbol); 
+
+  for (i = 0; i < n; i++) {
+
+     /* cache the parent node and the vector of its children. */
+     from = STRING_ELT(nodes, i);
+     children = VECTOR_ELT(elist, i);
+
+     /* fill the return value. */
+     for (j = 0; j < LENGTH(children); j++) {
+
+       SET_STRING_ELT(arcs, k, from);
+       SET_STRING_ELT(arcs, k + narcs, STRING_ELT(children, j));
+       k++;
+
+     }/*FOR*/
+
+  }/*FOR*/
+
+  UNPROTECT(1);
+
+  return arcs;
+
+}/*ELIST2ARCS*/

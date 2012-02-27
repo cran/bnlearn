@@ -26,12 +26,10 @@ export(
   "parents<-",
   "children",
   "children<-",
-  "nodes",
   "root.nodes",
   "leaf.nodes",
   "in.degree",
   "out.degree",
-  "degree",
   "amat",
   "amat<-",
   "nparams",
@@ -53,13 +51,19 @@ export(
   "score",
   "ci.test",
   "as.bn",
+  "as.bn.fit",
+  "as.grain",
+  "as.graphNEL",
+  "as.graphAM",
   "acyclic",
   "directed",
   "path",
   "node.ordering",
+  "subgraph",
   "skeleton",
   "pdag2dag",
   "ordering2blacklist",
+  "tiers2blacklist",
   "empty.graph",
   "random.graph",
   "bn.boot",
@@ -76,11 +80,11 @@ export(
   "cpquery",
   "cpdist",
   "cpdag",
+  "cextend",
   "vstructs",
   "moral",
   "discretize",
   "bn.var",
-  "bn.var.test",
   "bn.moments",
   "read.bif",
   "write.bif",
@@ -102,6 +106,15 @@ S3method(rbn, bn.fit)
 S3method(rbn, default)
 S3method(as.bn, character)
 S3method(as.character, bn)
+S3method(as.grain, bn.fit)
+S3method(as.bn, grain)
+S3method(as.bn.fit, grain)
+S3method(as.graphNEL, bn)
+S3method(as.bn, graphNEL)
+S3method(as.graphNEL, bn.fit)
+S3method(as.graphAM, bn)
+S3method(as.bn, graphAM)
+S3method(as.graphAM, bn.fit)
 S3method(ci.test, character)
 S3method(ci.test, data.frame)
 S3method(ci.test, matrix)
@@ -128,3 +141,5 @@ S3method(predict, "bn.fit.gnode")
 S3method(predict, "bn.fit.dnode")
 S3method(predict, "bn.naive")
 
+exportClasses("bn", "bn.fit")
+exportMethods(nodes, degree)

@@ -8,6 +8,8 @@
 \alias{undirected.arcs}
 \alias{narcs}
 \alias{nodes}
+\alias{nodes,bn-method}
+\alias{nodes,bn.fit-method}
 \alias{amat}
 \alias{amat<-}
 \alias{parents}
@@ -17,6 +19,8 @@
 \alias{in.degree}
 \alias{out.degree}
 \alias{degree}
+\alias{degree,bn,ANY-method}
+\alias{degree,bn.fit,ANY-method}
 \alias{root.nodes}
 \alias{leaf.nodes}
 \alias{nparams}
@@ -32,7 +36,6 @@
 }
 \usage{
 ## nodes
-nodes(x)
 mb(x, node)
 nbr(x, node)
 parents(x, node)
@@ -41,7 +44,7 @@ children(x, node)
 children(x, node, debug = FALSE) <- value
 in.degree(x, node)
 out.degree(x, node)
-degree(x, node)
+# degree(x, node)
 root.nodes(x)
 leaf.nodes(x)
 
@@ -61,12 +64,21 @@ nparams(x, data, debug = FALSE)
 ntests(x)
 whitelist(x)
 blacklist(x)
+
+# shared with the graph package.
+# these used to be a simple nodes(x) function.
+\S4method{nodes}{bn}(object)
+\S4method{nodes}{bn.fit}(object)
+# these used to be a simple degree(x, node) function.
+\S4method{degree}{bn,ANY}(object, Nodes)
+\S4method{degree}{bn.fit,ANY}(object, Nodes)
+
 }
 \arguments{
-  \item{x}{an object of class \code{bn} or \code{bn.fit}. The replacement
-       form of \code{parents}, \code{children}, \code{arcs} and \code{amat}
-       require an object of class \code{bn}.}
-  \item{node}{a character string, the label of a node.}
+  \item{x,object}{an object of class \code{bn} or \code{bn.fit}. The
+       replacement form of \code{parents}, \code{children}, \code{arcs}
+       and \code{amat} require an object of class \code{bn}.}
+  \item{node,Nodes}{a character string, the label of a node.}
   \item{value}{either a vector of character strings (for \code{parents} and
        \code{children}), an adjacency matrix (for \code{amat}) or a data
        frame with two columns (optionally labeled "from" and "to", for

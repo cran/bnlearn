@@ -294,7 +294,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
           /* if a complete "bn" object is available, we can retrieve the cached
            * information about the nodes from the structure stored in the last
            * iteration and update only the elements that really need it. */
-          temp = VECTOR_ELT(VECTOR_ELT(list, k -1), 1);
+          temp = VECTOR_ELT(VECTOR_ELT(list, k - 1), 1);
           PROTECT(cached = duplicate(temp));
 
           /* update the first sampled nodes; both of them gain/lose either

@@ -56,7 +56,7 @@ is.directed = function(arc, arcs) {
 
 }#IS.DIRECTED
 
-# set a direction for an (undirected) arc
+# set the direction of an (un)directed arc.
 set.arc.direction = function(from, to, arcs, debug = FALSE) {
 
   # the arc is there, undirected
@@ -105,7 +105,6 @@ drop.arc.backend = function(arcs, dropped, debug = FALSE) {
   if (debug)
     cat("  > dropping any arc between", dropped[1], "and", dropped[2], ".\n")
 
-  # drop the arc.
   arcs[!(is.row.equal(arcs, dropped) |
          is.row.equal(arcs, dropped[c(2, 1)])), , drop = FALSE]
 
@@ -114,7 +113,7 @@ drop.arc.backend = function(arcs, dropped, debug = FALSE) {
 # reverse the direction of an arc.
 reverse.arc.backend = function(from, to, arcs, debug = FALSE) {
 
-  # the arc is there, undirected
+  # the arc is there, undirected.
   if (is.listed(arcs, c(to, from), both = TRUE))
     stop("an undirected arc cannot be reversed.")
   # the arc is there, but reversed.
@@ -169,7 +168,7 @@ unique.arcs = function(arcs, nodes, warn = FALSE) {
 
 }#UNIQUE.ARCS
 
-# arcs of an object of class bn.fit.
+# return the arcs from an object of class bn.fit.
 fit2arcs = function(x) {
 
   .Call("fit2arcs",
@@ -178,6 +177,7 @@ fit2arcs = function(x) {
 
 }#FIT2ARCS
 
+# return the size of the arc set from an object of class bn or bn.fit.
 narcs.backend = function(x) {
 
   .Call("num_arcs",

@@ -1,7 +1,6 @@
 \name{bn.var}
 \alias{bn.moments}
 \alias{bn.var}
-\alias{bn.var.test}
 \title{ Structure variability of Bayesian networks }
 \description{
 
@@ -14,16 +13,13 @@ bn.moments(data, R = 200, m = nrow(data), algorithm,
   algorithm.args = list(), reduce = NULL, debug = FALSE)
 # descriptive statistics
 bn.var(x, method)
-# Monte Carlo test for entropy
-bn.var.test(x, method, R, B, debug = FALSE)
 }
 \arguments{
   \item{data}{a data frame containing the variables in the model.}
   \item{R}{a positive integer, the number of bootstrap replicates (in
     \code{bn.moments}) or the number of Monte Carlo samples (in
     \code{bn.var.test}).}
-  \item{m, B}{a positive integer, the size of each bootstrap (in
-    \code{bn.moments}) or Monte Carlo (in \code{bn.var.test}) replicate.}
+  \item{m}{a positive integer, the bootstrap sample size.}
   \item{algorithm}{a character string, the learning algorithm to be
     applied to the bootstrap replicates. Possible values are \code{gs},
     \code{iamb}, \code{fast.iamb}, \code{inter.iamb}, \code{mmpc},
@@ -34,12 +30,11 @@ bn.var.test(x, method, R, B, debug = FALSE)
     the learning algorithm.}
   \item{x}{a covariance matrix or an object of class \code{mvber.moments}
     (the return value of the \code{bn.moments} function).}
-  \item{method}{a character string, the label of the statistic used
-    in \code{bn.var} or \code{bn.var.test}. Possible values are
-    \code{tvar} (\emph{total variance}), \code{gvar} (\code{generalized
-    variance}), \code{nvar} (\emph{Frobenius matrix norm}, which is
-    equivalent to \emph{Nagao's test}) and \code{nvark} (another measure
-    based on the \emph{Frobenius matrix norm}).}
+  \item{method}{a character string, the label of the statistic. Possible
+    values are \code{tvar} (\emph{total variance}), \code{gvar} 
+    (\code{generalized variance}), \code{nvar} (\emph{Frobenius matrix
+    norm}, which is equivalent to \emph{Nagao's test}) and \code{nvark}
+    (another measure based on the \emph{Frobenius matrix norm}).}
   \item{reduce}{a character string, either \code{first} or \code{second}.
     If \code{first} all the arcs with first moment equal to zero are
     dropped; if if \code{second} all the arcs with zero variance
@@ -62,8 +57,6 @@ bn.var.test(x, method, R, B, debug = FALSE)
   the statistic (named \code{statistic}) and its normalized equivalent
   (named \code{normalized}).
 
-  \code{bn.var.test} returns an object of class \code{htest}.
-
 }
 \references{
 
@@ -78,13 +71,6 @@ z =  bn.moments(learning.test, algorithm = "gs", R = 100)
 bn.var(z, method = "tvar")
 #  statistic normalized
 #    1.29060    0.34416
-bn.var.test(z, method = "nvar")
-#
-# 	Squared Frobenius Norm
-#
-# data:  covariance matrix
-# nvar = 0.5471, B = 5000, R = 100, p-value < 2.2e-16
-# alternative hypothesis: true value is greater than 0
 }
 }
 \author{ Marco Scutari }

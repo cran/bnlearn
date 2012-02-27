@@ -81,6 +81,9 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
 
   }#ELSE
 
+  # set the test/score counter.
+  assign(".test.counter", 0, envir = .GlobalEnv)
+
   if (debug)
     cat("* testing", arc[1], "-", arc[2], "for direction.\n" )
 
@@ -114,9 +117,15 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
     # expand and check bootstrap-specific arguments.
     extra.args = check.bootstrap.args(list(...), network = x, data = data)
 
+    if (!is.null(extra.args$cpdag))
+      check.logical(extra.args$cpdag)
+    else
+      extra.args$cpdag = TRUE
+
     x = choose.direction.boot(x, data = data, arc = arc,
           extra.args = extra.args, algorithm = extra.args[["algorithm"]],
-          algorithm.args = extra.args[["algorithm.args"]], debug = debug)
+          algorithm.args = extra.args[["algorithm.args"]], 
+          cpdag =  extra.args[["cpdag"]], debug = debug)
 
   }#THEN
 

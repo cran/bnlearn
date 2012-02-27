@@ -183,7 +183,11 @@ char transa = 'N', transb = 'N';
   }/*THEN*/
 
   /* compute the SVD decomposition. */
-  c_svd(covariance, u, d, vt, ncols, ncols, ncols, TRUE, &errcode);
+  c_svd(covariance, u, d, vt, ncols, ncols, ncols, FALSE, &errcode);
+
+  /* if SVD fails, catch the error code and free all buffers. */
+  if (errcode)
+    goto end;
 
   /* the first multiplication, U * D^{-1} is easy. */
   for (i = 0; i < *ncols; i++)
@@ -193,6 +197,8 @@ char transa = 'N', transb = 'N';
   /* the second one, (U * D^{-1}) * Vt  is a real matrix multiplication. */
   F77_CALL(dgemm)(&transa, &transb, ncols, ncols, ncols, &one, u,
     ncols, vt, ncols, &zero, mpinv, ncols);
+
+end:
 
   if (covariance != mpinv) {
 
@@ -204,6 +210,9 @@ char transa = 'N', transb = 'N';
   Free(u);
   Free(d);
   Free(vt);
+
+  if (errcode)
+    error("an error (%d) occurred in the call to c_ginv().\n", errcode);
 
 }/*C_GINV*/
 

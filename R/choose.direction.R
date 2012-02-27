@@ -30,13 +30,15 @@ choose.direction.test = function(x, arc, data, test, alpha, B, debug = FALSE) {
 
   }#THEN
 
-  choose = function(a, b, x, arc) {
+  choose = function(a, b, x, arc, recurse = FALSE) {
 
     cycles = has.path(arc[2], arc[1], nodes, amat, exclude.direct = TRUE)
 
     if (isTRUE(all.equal(as.numeric(a), as.numeric(b)))) {
 
-      if (debug) cat("  @ nothing to do, same p-value.\n")
+      if (debug)
+        cat("  @ nothing to do, same p-value.\n")
+
       return(x)
 
     }#THEN
@@ -46,18 +48,17 @@ choose.direction.test = function(x, arc, data, test, alpha, B, debug = FALSE) {
 
         if (cycles) {
 
-          if (debug) {
-
+          if (debug)
             cat("  > adding", arc[1], "->", arc[2], "creates cycles!.\n")
 
-          }#THEN
-
           # if one arc creates cycles, try the other one.
-          if (b < alpha)
-            choose(a = b, b = a, x = x, arc = arc[c(2, 1)])
+          if ((b < alpha) && recurse)
+            choose(a = b, b = a, x = x, arc = arc[c(2, 1)], recurse = FALSE)
           else {
 
-            if (debug) cat("  > arc", arc[2], "->", arc[1], "isn't good, either.\n")
+            if (debug) 
+              cat("  > arc", arc[2], "->", arc[1], "isn't good, either.\n")
+
             return(x)
 
           }#ELSE
@@ -65,7 +66,8 @@ choose.direction.test = function(x, arc, data, test, alpha, B, debug = FALSE) {
         }#THEN
         else {
 
-          if (debug) cat("  @ arc", arc[1], "->", arc[2], "is better .\n")
+          if (debug)
+            cat("  @ arc", arc[1], "->", arc[2], "is better.\n")
 
           # update the arc set.
           x$arcs = set.arc.direction(arc[1], arc[2], x$arcs)
@@ -84,7 +86,9 @@ choose.direction.test = function(x, arc, data, test, alpha, B, debug = FALSE) {
       else {
 
         # both tests are over the alpha threshold.
-        if (debug) cat("  @ nothing to do, both p-values greater than", alpha, ".\n")
+        if (debug)
+          cat("  @ nothing to do, both p-values greater than", alpha, ".\n")
+
         return(x)
 
       }#ELSE
@@ -98,7 +102,7 @@ choose.direction.test = function(x, arc, data, test, alpha, B, debug = FALSE) {
 
   }#CHOOSE
 
-  choose(a1, a2, x, arc)
+  choose(a1, a2, x, arc, recurse = TRUE)
 
 }#CHOOSE.DIRECTION.TEST
 
@@ -149,13 +153,15 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug = FALSE
 
   }#THEN
 
-  choose = function(a, b, x, arc) {
+  choose = function(a, b, x, arc, recurse = FALSE) {
 
     cycles = has.path(arc[2], arc[1], nodes, amat, exclude.direct = TRUE)
 
     if (isTRUE(all.equal(as.numeric(better1$delta), as.numeric(better2$delta)))) {
 
-      if (debug) cat("  @ nothing to do, same score delta.\n")
+      if (debug)
+        cat("  @ nothing to do, same score delta.\n")
+
       return(x2)
 
     }#THEN
@@ -165,18 +171,17 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug = FALSE
 
         if (cycles) {
 
-          if (debug) {
-
+          if (debug)
             cat("  > adding", arc[1], "->", arc[2], "creates cycles!.\n")
 
-          }#THEN
-
           # if one arc creates cycles, try the other one.
-          if (b$bool)
-            choose(a = b, b = a, x = x, arc = arc[c(2, 1)])
+          if ((b$bool) & recurse)
+            choose(a = b, b = a, x = x, arc = arc[c(2, 1)], recurse = FALSE)
           else {
 
-            if (debug) cat("  > arc", arc[2], "->", arc[1], "isn't good, either.\n")
+            if (debug)
+              cat("  > arc", arc[2], "->", arc[1], "isn't good, either.\n")
+
             return(x2)
 
           }#ELSE
@@ -184,7 +189,8 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug = FALSE
         }#THEN
         else {
 
-          if (debug) cat("  @ arc", arc[1], "->", arc[2], "is better .\n")
+          if (debug)
+            cat("  @ arc", arc[1], "->", arc[2], "is better .\n")
 
           # update the arc set.
           x$arcs = set.arc.direction(arc[1], arc[2], x$arcs)
@@ -203,7 +209,9 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug = FALSE
       else {
 
         # both tests are over the alpha threshold.
-        if (debug) cat("  @ nothing to do, both score delta are negative.\n")
+        if (debug)
+          cat("  @ nothing to do, both score delta are negative.\n")
+
         return(x2)
 
       }#ELSE
@@ -217,20 +225,21 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug = FALSE
 
   }#CHOOSE
 
-  choose(a = better1, b = better2, x = x, arc = arc)
+  choose(a = better1, b = better2, x = x, arc = arc, recurse = TRUE)
 
 }#CHOOSE.DIRECTION.SCORE
 
 choose.direction.boot = function(x, data, arc, extra.args, algorithm,
-    algorithm.args, debug = FALSE) {
+    algorithm.args, cpdag = TRUE, debug = FALSE) {
 
   # build a separate arc set with the two directions of the arc.
-  m = matrix(c(arc, rev(arc)), ncol = 2, byrow = TRUE)
+  m = matrix(c(arc, rev(arc)), ncol = 2, byrow = TRUE, 
+        dimnames = list(c(), c("from", "to")))
 
   # compute the respective bootstrap strength/direction
   res = arc.strength.boot(data = data, R = extra.args$R, m = extra.args$m,
           algorithm = algorithm, algorithm.args = algorithm.args,
-          arcs = m, debug = FALSE)
+          arcs = m, cpdag = cpdag, debug = FALSE)
 
 
   if (debug) {
@@ -245,7 +254,7 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm,
   if (res[1, "strength"] < 0.5) {
 
     if (debug)
-       cat("  @ nothing to do, bootstrap probability less than 0.50", arc[1], "and", arc[2], ".\n")
+       cat("  @ nothing to do, bootstrap probability is less than 0.50.\n")
 
     return(x)
 
@@ -263,17 +272,20 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm,
   if (cycles1 && cycles2) {
 
     # bothe A -> B and B -> A introduce cycles (should not be here).
-    if (debug) cat("  @ nothing to do, both arc create cycles.\n")
+    if (debug)
+      cat("  @ nothing to do, both arc create cycles.\n")
 
   }#THEN
   else if (cycles1 && !cycles2) {
 
     # A -> B introduces cycles, B -> A does not.
-    if (debug) cat("  > adding", arc[1], "->", arc[2], "creates cycles!.\n")
+    if (debug)
+      cat("  > adding", arc[1], "->", arc[2], "creates cycles!.\n")
 
     if (res[2, "direction"] > res[1, "direction"]) {
 
-      if (debug) cat("  @ arc", arc[2], "->", arc[1], "is better .\n")
+      if (debug)
+        cat("  @ arc", arc[2], "->", arc[1], "is better .\n")
 
        # update the arc set.
        x$arcs = set.arc.direction(arc[2], arc[1], x$arcs)
@@ -283,7 +295,8 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm,
     }#THEN
     else {
 
-      if (debug) cat("  > arc", arc[2], "->", arc[1], "isn't good, either.\n")
+      if (debug)
+        cat("  > arc", arc[2], "->", arc[1], "isn't good, either.\n")
 
     }#ELSE
 
@@ -291,11 +304,13 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm,
   else if (cycles2 && !cycles1) {
 
     # B -> A introduces cycles, A -> B does not.
-    if (debug) cat("  > adding", arc[2], "->", arc[1], "creates cycles!.\n")
+    if (debug)
+      cat("  > adding", arc[2], "->", arc[1], "creates cycles!.\n")
 
     if (res[1, "direction"] > res[2, "direction"]) {
 
-      if (debug) cat("  @ arc", arc[1], "->", arc[2], "is better .\n")
+      if (debug)
+        cat("  @ arc", arc[1], "->", arc[2], "is better .\n")
 
        # update the arc set.
        x$arcs = set.arc.direction(arc[1], arc[2], x$arcs)
@@ -305,7 +320,8 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm,
     }#THEN
     else {
 
-      if (debug) cat("  > arc", arc[1], "->", arc[2], "isn't good, either.\n")
+      if (debug)
+        cat("  > arc", arc[1], "->", arc[2], "isn't good, either.\n")
 
     }#ELSE
 
@@ -315,7 +331,8 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm,
     # neither A -> B nor B -> A introduce cycles.
     if (res[1, "direction"] > res[2, "direction"]) {
 
-      if (debug) cat("  @ arc", arc[1], "->", arc[2], "is better .\n")
+      if (debug)
+        cat("  @ arc", arc[1], "->", arc[2], "is better .\n")
 
        # update the arc set.
        x$arcs = set.arc.direction(arc[1], arc[2], x$arcs)
@@ -325,7 +342,8 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm,
     }#THEN
     else {
 
-      if (debug) cat("  @ arc", arc[2], "->", arc[1], "is better .\n")
+      if (debug)
+        cat("  @ arc", arc[2], "->", arc[1], "is better .\n")
 
        # update the arc set.
        x$arcs = set.arc.direction(arc[2], arc[1], x$arcs)

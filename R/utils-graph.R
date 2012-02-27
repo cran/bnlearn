@@ -325,14 +325,15 @@ equal.backend = function(target, current) {
 
 }#EQUAL.BACKEND
 
-# backend for ordering-based blacklist.
-o2b.backend = function(nodes) {
+# blacklists based on tiers and orderings.
+tiers.backend = function(nodes, debug = FALSE) {
 
-  .Call("nodes2blacklist",
+  .Call("tiers",
         nodes = nodes,
+        debug = debug,
         PACKAGE = "bnlearn")
 
-}#O2B.BACKEND
+}#TIERS.BACKEND
 
 cpdag.extension = function(x, debug = FALSE) {
 
@@ -356,5 +357,20 @@ cpdag.arc.extension = function(arcs, nodes, debug = FALSE) {
         debug = debug,
         PACKAGE = "bnlearn")
 
-}#CPDAG.EXTENSION
+}#CPDAG.ARC.EXTENSION
 
+# generate a subgraph spanning a subset of nodes.
+subgraph.backend = function(x, nodes) {
+
+  # create the subgraph spanning the subset of nodes.
+  res = empty.graph(nodes)
+  # identify which arcs are part of the subgraph.
+  spanning = apply(x$arcs, 1, function(x) all(!is.na(match(x, nodes))))
+  # update the arcs of the subgraph.
+  res$arcs = x$arcs[spanning, , drop = FALSE]
+  # update the network structure.
+  res$nodes = cache.structure(nodes, arcs = res$arcs)
+
+  return(res)
+
+}#SUBGRAPH.BACKEND

@@ -7,7 +7,8 @@ discretize.backend = function(data, method, breaks, extra.args, debug = FALSE) {
     interval.discretization(data = data, breaks = breaks)
   else if (method == "hartemink")
     hartemink.discretization(data = data, breaks = breaks,
-      initial.breaks = extra.args$initial.breaks, debug = debug)
+      initial.breaks = extra.args$ibreaks,
+      initial.discretization = extra.args$idisc, debug = debug)
 
 }#DISCRETIZE.BACKEND
 
@@ -16,18 +17,19 @@ quantile.discretization = function(data, breaks) {
   discretized = lapply(seq(ncol(data)), function(x) {
 
     breaks = breaks[x]
-    x = minimal.data.frame.column(data, x)
+    y = minimal.data.frame.column(data, x)
 
     # do not touch discrete variables.
-    if (is(x, "factor"))
-      return(x)
+    if (is(y, "factor"))
+      return(y)
     # compute the quantiles for the variable.
-    quantiles = quantile(x, probs = seq(from = 0, to = breaks)/breaks)
+    quantiles = quantile(y, probs = seq(from = 0, to = breaks)/breaks)
     # check whther the quantiles are unique.
     if (any(duplicated(quantiles)))
-      stop("unable to discretize in ", breaks, " intervals, some quantiles are not unique.")
+      stop("unable to discretize ", names(data)[x], " in ", breaks, 
+           " intervals, some quantiles are not unique.")
     # cut the range using the quantiles as break points.
-    cut(x, breaks = quantiles, include.lowest = TRUE)
+    cut(y, breaks = quantiles, include.lowest = TRUE)
 
   })
   # convert the return value to a data frame.
@@ -44,13 +46,13 @@ interval.discretization = function(data, breaks) {
   discretized = lapply(seq(ncol(data)), function(x) {
 
     breaks = breaks[x]
-    x = minimal.data.frame.column(data, x)
+    y = minimal.data.frame.column(data, x)
 
     # do not touch discrete variables.
-    if (is(x, "factor"))
-      return(x)
+    if (is(y, "factor"))
+      return(y)
     # cut the range with the given number of break points.
-    cut(x, breaks = breaks)
+    cut(y, breaks = breaks, include.lowest = TRUE)
 
   })
   # convert the return value to a data frame.
@@ -61,7 +63,8 @@ interval.discretization = function(data, breaks) {
 
 }#INTERVAL.DISCRETIZATION
 
-hartemink.discretization = function(data, breaks, initial.breaks, debug = FALSE) {
+hartemink.discretization = function(data, breaks, initial.breaks, 
+    initial.discretization, debug = FALSE) {
 
   # cache some useful quantities.
   nodes = names(data)
@@ -70,8 +73,9 @@ hartemink.discretization = function(data, breaks, initial.breaks, debug = FALSE)
   # perform an initial discretization if needed.
   if (is.data.continuous(data)) {
 
-    discretized = quantile.discretization(data = data,
-                    breaks = rep(initial.breaks, ncol(data)))
+    discretized = discretize.backend(data = data, method = initial.discretization,
+                    breaks = rep(initial.breaks, ncol(data)), extra.args = list(),
+                    debug = FALSE)
 
   }#THEN
   else {

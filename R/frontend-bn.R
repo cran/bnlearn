@@ -1,11 +1,4 @@
 
-# the generic as method for class bn.
-as.bn = function(x, debug = FALSE) {
-
-  UseMethod("as.bn", x)
-
-}#AS.BN
-
 # get the number of parameters of the bayesian network.
 nparams = function(x, data, debug = FALSE) {
 
@@ -113,10 +106,27 @@ cpdag = function(x, debug = FALSE) {
   check.bn(x)
   # check debug.
   check.logical(debug)
+  # check whether the graph is acclic, to be sure to return a DAG.
+  if (!is.acyclic(x$arcs, names(x$nodes)))
+    stop("the specified network contains cycles.")
 
   cpdag.backend(x = x, debug = debug)
 
 }#CPDAG
+
+cextend = function(x, debug = FALSE) {
+
+  # check x's class.
+  check.bn(x)
+  # check debug.
+  check.logical(debug)
+  # check whether the graph is acclic, to be sure to return a DAG.
+  if (!is.acyclic(x$arcs, names(x$nodes)))
+    stop("the specified network contains cycles.")
+
+  cpdag.extension(x = x, debug = debug)
+
+}#CEXTEND
 
 # report v-structures in the network.
 vstructs = function(x, arcs = FALSE, debug = FALSE) {

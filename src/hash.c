@@ -1,6 +1,6 @@
 #include "common.h"
 
-/* compute the hash of an arc set using CMC() coordinates. */
+/* compute the hash of an arc set using CMC()/UPTRI3() coordinates. */
 SEXP arc_hash(SEXP arcs, SEXP nodes, int uptri, int sort) {
 
 int i = 0, narcs = LENGTH(arcs)/2, nnodes = LENGTH(nodes);
