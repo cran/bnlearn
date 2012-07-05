@@ -2,10 +2,10 @@ Package: bnlearn
 Type: Package
 Title: Bayesian network structure learning, parameter learning and
         inference
-Version: 2.9
-Date: 2012-02-27
+Version: 3.0
+Date: 2012-07-05
 Depends: R (>= 2.10), methods, graph
-Suggests: snow, Rgraphviz (>= 1.30.1), lattice, gRain
+Suggests: snow, Rgraphviz, lattice, gRain
 Author: Marco Scutari
 Maintainer: Marco Scutari <marco.scutari@gmail.com>
 Description: Bayesian network structure learning (via constraint-based,
@@ -14,21 +14,23 @@ Description: Bayesian network structure learning (via constraint-based,
         implements the Grow-Shrink (GS) algorithm, the Incremental
         Association (IAMB) algorithm, the Interleaved-IAMB (Inter-IAMB)
         algorithm, the Fast-IAMB (Fast-IAMB) algorithm, the Max-Min
-        Parents and Children (MMPC) algorithm, the ARACNE and Chow-Liu
-        algorithms, the Hill-Climbing (HC) greedy search algorithm, the
-        Tabu Search (TABU) algorithm, the Max-Min Hill-Climbing (MMHC)
-        algorithm and the two-stage Restricted Maximization (RSMAX2)
-        algorithm for both discrete and Gaussian networks, along with
-        many score functions and conditional independence tests.  Some
-        utility functions (model comparison and manipulation, random
-        data generation, arc orientation testing, simple and advanced
-        plots) are included, as well as support for parameter
-        estimation and inference, conditional probability queries and
-        cross-validation.
+        Parents and Children (MMPC) algorithm, the Hiton-PC algorithm,
+        the ARACNE and Chow-Liu algorithms, the Hill-Climbing (HC)
+        greedy search algorithm, the Tabu Search (TABU) algorithm, the
+        Max-Min Hill-Climbing (MMHC) algorithm and the two-stage
+        Restricted Maximization (RSMAX2) algorithm for both discrete
+        and Gaussian networks, along with many score functions and
+        conditional independence tests.  The Naive Bayes and the
+        Tree-Augmented Naive Bayes (TAN) classifiers are also
+        implemented.  Some utility functions (model comparison and
+        manipulation, random data generation, arc orientation testing,
+        simple and advanced plots) are included, as well as support for
+        parameter estimation and inference, conditional probability
+        queries and cross-validation.
 URL: http://www.bnlearn.com/
 License: GPL (>= 2)
 LazyLoad: yes
 LazyData: yes
-Packaged: 2012-03-05 17:46:18 UTC; fizban
+Packaged: 2012-07-05 11:54:35 UTC; fizban
 Repository: CRAN
-Date/Publication: 2012-03-05 19:05:53
+Date/Publication: 2012-07-05 12:57:01

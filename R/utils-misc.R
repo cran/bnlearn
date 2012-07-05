@@ -73,9 +73,9 @@ subsets = function(n, r, v = 1:n, set = TRUE, repeats.allowed = FALSE) {
 smaller = function(a, b) {
 
   if (length(a) < length(b))
-    a
+    return(a)
   else
-    b
+    return(b)
 
 }#SMALLER
 
@@ -127,3 +127,13 @@ minimal.qr.matrix = function(dataframe, column) {
         PACKAGE = "bnlearn")
 
 }#MINIMAL.QR.MATRIX
+
+# flatten 2-dimenasional 1xc tables.
+flatten.2d.table = function(x) {
+
+  x = as.table(structure(c(x), names = colnames(x)))
+  names(dimnames(x)) = ""
+
+  return(x)
+
+}#FLATTEN.2D.TABLE

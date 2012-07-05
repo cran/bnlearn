@@ -99,7 +99,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
     else if ((test == "mc-mi-g") || (test == "smc-mi-g")) {
 
       statistic = mig.test(datax, datay, ndata, gsquare = TRUE)
-      p.value = gmc.test(datax, datay, samples = B, 
+      p.value = gmc.test(datax, datay, samples = B,
                   alpha = ifelse(test == "smc-mi-g", alpha, 1), test = 3L)
 
     }#THEN
@@ -176,7 +176,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       if (df < 1)
         stop("trying to do a conditional independence test with zero degrees of freedom.")
 
-      statistic = fast.pcor(x, y, sx, data, ndata)
+      statistic = fast.pcor(x, y, sx, data, ndata, strict = !learning)
       p.value = pt(abs(statistic * sqrt(df) / sqrt(1 - statistic^2)), df, lower.tail = FALSE) * 2
 
     }#THEN
@@ -188,7 +188,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       if (df < 1)
         stop("trying to do a conditional independence test with zero degrees of freedom.")
 
-      statistic = fast.pcor(x, y, sx, data, ndata)
+      statistic = fast.pcor(x, y, sx, data, ndata, strict = !learning)
       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(df)
       p.value = pnorm(abs(statistic), lower.tail = FALSE) * 2
 
@@ -237,14 +237,14 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
     else if ((test == "mc-mi-g") || (test == "smc-mi-g")) {
 
       statistic = cmig.test(x, y, sx, data, ndata, gsquare = TRUE)
-      p.value = cgmc.test(x, y, sx, data, ndata, samples = B, 
+      p.value = cgmc.test(x, y, sx, data, ndata, samples = B,
                   alpha = ifelse(test == "smc-mi-g", alpha, 1), test = 3L)
 
     }#THEN
     # Canonical Partial Correlation (monte carlo permutation distribution)
     else if ((test == "mc-cor") || (test == "smc-cor")) {
 
-      statistic = fast.pcor(x, y, sx, data, ndata)
+      statistic = fast.pcor(x, y, sx, data, ndata, strict = !learning)
       p.value = cgmc.test(x, y, sx, data, ndata, samples = B,
                   alpha = ifelse(test == "smc-cor", alpha, 1), test = 4L)
 
@@ -253,7 +253,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
     else if ((test == "mc-zf") || (test == "smc-zf")) {
 
       df = ndata - 3 - length(sx)
-      statistic = fast.pcor(x, y, sx, data, ndata)
+      statistic = fast.pcor(x, y, sx, data, ndata, strict = !learning)
       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(df)
       p.value = cgmc.test(x, y, sx, data, ndata, samples = B,
                   alpha = ifelse(test == "smc-zf", alpha, 1), test = 5L)
@@ -415,9 +415,9 @@ shmig.test = function(x, y, ndata, gsquare = TRUE) {
 }#SHMIG.TEST
 
 # Conditional Mutual Information (gaussian data)
-cmig.test = function(x, y, z, data, ndata, gsquare = TRUE) {
+cmig.test = function(x, y, z, data, ndata, strict, gsquare = TRUE) {
 
-  s = - 0.5 * log(1 - fast.pcor(x, y, z, data, ndata)^2)
+  s = - 0.5 * log(1 - fast.pcor(x, y, z, data, ndata, strict)^2)
 
   ifelse(gsquare, 2 * ndata * s, s)
 
@@ -426,7 +426,7 @@ cmig.test = function(x, y, z, data, ndata, gsquare = TRUE) {
 # Shrinked Conditional Mutual Information (gaussian data)
 shcmig.test = function(x, y, z, data, ndata, gsquare = TRUE) {
 
-  s = - 0.5 * log(1 - fast.shpcor(x, y, z, data, ndata)^2)
+  s = - 0.5 * log(1 - fast.shpcor(x, y, z, data, ndata, strict = TRUE)^2)
 
   ifelse(gsquare, 2 * ndata * s, s)
 
@@ -498,12 +498,13 @@ fast.cor = function(x, y, ndata) {
 }#FAST.COR
 
 # Fast implementation of the partial correlation coefficient.
-fast.pcor = function(x, y, sx, data, ndata) {
+fast.pcor = function(x, y, sx, data, ndata, strict) {
 
   .Call("fast_pcor",
         data = minimal.data.frame.column(data, c(x, y, sx)),
         length = ndata,
         shrinkage = FALSE,
+        strict = strict,
         PACKAGE = "bnlearn")
 
 }#FAST.PCOR
@@ -520,12 +521,13 @@ fast.shcor = function(x, y, ndata) {
 }#FAST.SHCOR
 
 # Fast implementation of the shrinked partial correlation coefficient.
-fast.shpcor = function(x, y, sx, data, ndata) {
+fast.shpcor = function(x, y, sx, data, ndata, strict) {
 
   .Call("fast_pcor",
         data = minimal.data.frame.column(data, c(x, y, sx)),
         length = ndata,
         shrinkage = TRUE,
+        strict = strict,
         PACKAGE = "bnlearn")
 
 }#FAST.SHPCOR

@@ -59,7 +59,7 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
       # be remapped to match the bootstrap sample.
       if ((algorithm.args$score == "mbde") && !is.null(algorithm.args$exp)) {
 
-        algorithm.args$exp = lapply(algorithm.args$exp, function(x) { 
+        algorithm.args$exp = lapply(algorithm.args$exp, function(x) {
 
           x = match(x, resampling)
           x = x[!is.na(x)]
@@ -68,7 +68,7 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
 
       }#THEN
 
-      # generate the bootstrap sample. 
+      # generate the bootstrap sample.
       replicate = data[resampling, , drop = FALSE]
 
     }#THEN

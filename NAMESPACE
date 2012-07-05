@@ -4,6 +4,7 @@ export(
   "inter.iamb",
   "fast.iamb",
   "mmpc",
+  "si.hiton.pc",
   "chow.liu",
   "aracne",
   "hc",
@@ -11,7 +12,9 @@ export(
   "rsmax2",
   "mmhc",
   "learn.mb",
+  "learn.nbr",
   "naive.bayes",
+  "tree.bayes",
   "compare",
   "hamming",
   "shd",
@@ -21,6 +24,9 @@ export(
   "arcs<-",
   "directed.arcs",
   "undirected.arcs",
+  "incoming.arcs",
+  "outgoing.arcs",
+  "incident.arcs",
   "narcs",
   "parents",
   "parents<-",
@@ -71,6 +77,7 @@ export(
   "graphviz.plot",
   "strength.plot",
   "bn.fit",
+  "custom.fit",
   "bn.fit.qqplot",
   "bn.fit.histogram",
   "bn.fit.xyplot",
@@ -83,6 +90,7 @@ export(
   "cextend",
   "vstructs",
   "moral",
+  "dsep",
   "discretize",
   "bn.var",
   "bn.moments",
@@ -140,6 +148,9 @@ S3method(predict, "bn.fit")
 S3method(predict, "bn.fit.gnode")
 S3method(predict, "bn.fit.dnode")
 S3method(predict, "bn.naive")
+S3method(predict, "bn.tan")
+S3method("$<-", "bn.fit")
+S3method("[[<-", "bn.fit")
 
 exportClasses("bn", "bn.fit")
 exportMethods(nodes, degree)

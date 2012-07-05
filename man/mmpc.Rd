@@ -1,21 +1,25 @@
 \name{local discovery algorithms}
 \alias{local discovery algorithms}
 \alias{mmpc}
+\alias{si.hiton.pc}
 \alias{aracne}
 \alias{chow.liu}
 \title{ Local discovery structure learning algorithms }
 \description{
 
-  Learn the underlying structure of a directed acyclic graph (DAG)
-  from data using the Max-Min Parents and Children (MMPC)
-  constraint-based algorithm. ARACNE and Chow-Liu learn an approximation
-  of that structure using pairwise mutual information coefficients.
+  Learn the skeleton of a directed acyclic graph (DAG) from data using
+  the Max-Min Parents and Children (MMPC) and the Semi-Interleaved
+  HITON-PC constraint-based algorithms. ARACNE and Chow-Liu learn an 
+  approximation of that structure using pairwise mutual information
+  coefficients.
 
 }
 \usage{
-mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-  test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
-  optimized = TRUE, strict = FALSE)
+mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+  alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE, strict = FALSE)
+si.hiton.pc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+  alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE, strict = FALSE)
+
 aracne(x, whitelist = NULL, blacklist = NULL, mi = NULL, debug = FALSE)
 chow.liu(x, whitelist = NULL, blacklist = NULL, mi = NULL, debug = FALSE)
 }
@@ -61,13 +65,19 @@ chow.liu(x, whitelist = NULL, blacklist = NULL, mi = NULL, debug = FALSE)
 \references{
 
   Tsamardinos I, Aliferis CF, Statnikov A (2003). "Time and Sample
-     Efficient Discovery of Markov Blankets and Direct Causal Relations".
-     In "KDD '03: Proceedings of the Ninth ACM SIGKDD International
-     Conference on Knowledge Discovery and Data Mining", pp. 673-678. ACM.
+      Efficient Discovery of Markov Blankets and Direct Causal Relations".
+      In "KDD '03: Proceedings of the Ninth ACM SIGKDD International
+      Conference on Knowledge Discovery and Data Mining", pp. 673-678. ACM.
 
   Tsamardinos I, Brown LE, Aliferis CF (2006). "The Max-Min Hill-Climbing
       Bayesian Network Structure Learning Algorithm". \emph{Machine Learning},
       \strong{65}(1), 31-78.
+
+  Aliferis FC, Statnikov A, Tsamardinos I, Subramani M, Koutsoukos XD (2010).
+      "Local Causal and Markov Blanket Induction for Causal Discovery and
+      Feature Selection for Classification Part I: Algorithms and Empirical
+      Evaluation". \emph{Journal of Machine Learning Research}, \strong{11},
+      171-234.
 
   Margolin AA, Nemenman I, Basso K, Wiggins C, Stolovitzky G, Dalla Favera R,
       Califano A (2006). "ARACNE: An Algorithm for the Reconstruction of
@@ -76,8 +86,8 @@ chow.liu(x, whitelist = NULL, blacklist = NULL, mi = NULL, debug = FALSE)
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{constraint-based algorithms}}, \code{\link{score-based algorithms}},
-  \code{\link{hybrid algorithms}}. }
+\seealso{\link{constraint-based algorithms}, \link{score-based algorithms},
+  \link{hybrid algorithms}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

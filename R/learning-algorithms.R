@@ -171,6 +171,29 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     }#ELSE
 
   }#THEN
+  else if (method == "si.hiton.pc") {
+
+    if (cluster.aware) {
+
+      mb = si.hiton.pc.cluster(x = x, cluster = cluster, whitelist = whitelist,
+        blacklist = blacklist, test = test, alpha = alpha, B = B,
+        strict = strict, debug = debug)
+
+    }#THEN
+    else if (optimized) {
+
+      mb = si.hiton.pc.optimized(x = x, whitelist = whitelist, blacklist = blacklist,
+        test = test, alpha = alpha, B = B, strict = strict, debug = debug)
+
+    }#THEN
+    else {
+
+      mb = si.hiton.pc.backend(x = x, whitelist = whitelist, blacklist = blacklist,
+        test = test, alpha = alpha, B = B, strict = strict, debug = debug)
+
+    }#ELSE
+
+  }#THEN
 
   if (undirected) {
 
@@ -287,7 +310,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   if (is.pdag(start$arcs, names(start$nodes)))
     stop("the graph is only partially directed.")
   # check whether the graph is acyclic.
-  if (!is.acyclic.backend(start$arcs, names(start$nodes), directed = TRUE))
+  if (!is.acyclic(arcs = start$arcs, nodes = names(start$nodes)))
     stop("the preseeded graph contains cycles.")
 
   # sanitize score-specific arguments.
@@ -421,8 +444,9 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
     if (length(culprit) > 0)
       stop("all arcs incident on nodes '", culprit, "' are blacklisted.")
 
-    arcs = chow.liu.backend(x = x, estimator = match(estimator, available.mi),
-             whitelist = whitelist, blacklist = blacklist, debug = debug)
+    arcs = chow.liu.backend(x = x, nodes = nodes,
+             estimator = match(estimator, available.mi), whitelist = whitelist,
+             blacklist = blacklist, conditional = NULL, debug = debug)
 
   }#THEN
 
@@ -433,7 +457,7 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
   res$nodes = cache.structure(nodes, arcs = arcs)
   # set the metadata of the network in one stroke.
   res$learning = list(whitelist = whitelist, blacklist = blacklist,
-    test = mi.estimator.tests[estimator], alpha = 0.05,
+    test = as.character(mi.estimator.tests[estimator]), alpha = 0.05,
     ntests = nnodes * (nnodes - 1) / 2, algo = method,
     args = list(estimator = estimator), optimized = NULL)
 
@@ -442,8 +466,9 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
 }#MI.MATRIX
 
 # learn the markov blanket of a single node.
-mb.backend = function(x, node, method, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE) {
+mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
+    start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
+    optimized = TRUE) {
 
   assign(".test.counter", 0, envir = .GlobalEnv)
 
@@ -452,7 +477,7 @@ mb.backend = function(x, node, method, whitelist = NULL, blacklist = NULL,
   # cache the node labels.
   nodes = names(x)
   # a valid node is needed.
-  check.nodes(nodes = node, graph = nodes, max.nodes = 1)
+  check.nodes(nodes = target, graph = nodes, max.nodes = 1)
   # check the algorithm.
   check.learning.algorithm(method, class = "markov.blanket")
   # check test labels.
@@ -464,36 +489,86 @@ mb.backend = function(x, node, method, whitelist = NULL, blacklist = NULL,
   alpha = check.alpha(alpha)
   # check B (the number of bootstrap/permutation samples).
   B = check.B(B, test)
-  # sanitize whitelist and blacklist, if any.
-  whitelist = build.whitelist(whitelist, nodes)
-  blacklist = build.blacklist(blacklist, whitelist, nodes)
+
+  # check the initial status of the markov blanket.
+  if (!is.null(start)) {
+
+    # must be made up of valid node labels.
+    check.nodes(nodes = start, graph = nodes[nodes != target])
+
+  }#THEN
+  else {
+
+    start = character(0)
+
+  }#ELSE
+
+  # sanitize and rework the whitelist.
+  if (!is.null(whitelist)) {
+
+    # target variable in the whitelist does not make much sense.
+    if (target %in% whitelist)
+      warning("target variable in the whitelist.")
+    # check the labels of the whitelisted nodes.
+    check.nodes(nodes = whitelist, graph = nodes[nodes != target])
+
+    whitelist = matrix(c(rep(target, length(whitelist)), whitelist), ncol = 2)
+    whitelist = arcs.rbind(whitelist, whitelist, reverse2 = TRUE)
+
+  }#THEN
+
+  # remove whitelisted nodes from the blacklist.
+  if (!is.null(whitelist) && !is.null(blacklist)) {
+
+    blacklist = blacklist[!(blacklist %in% whitelist)]
+
+    if (length(blacklist) == 0)
+      blacklist = NULL
+
+  }#THEN
+
+  # sanitize the blacklist, and drop the variables from the data.
+  if (!is.null(blacklist)) {
+
+    # target variable in the blacklist is plainly wrong.
+    if (target %in% blacklist)
+      stop("target variable in the blacklist.")
+    # check the labels of the blacklisted nodes.
+    check.nodes(nodes = blacklist, graph = nodes[nodes != target])
+
+    nodes = nodes[!(nodes %in% blacklist)]
+    x = minimal.data.frame.column(x, nodes, drop = FALSE)
+    x = minimal.data.frame(x)
+    names(x) = nodes
+
+  }#THEN
 
   # call the right backend.
   if (method == "gs") {
 
-    mb = gs.markov.blanket(x = node, data = x, nodes = nodes,
-           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
+    mb = gs.markov.blanket(x = target, data = x, nodes = nodes, alpha = alpha,
+           B = B, whitelist = whitelist, blacklist = NULL, start = start,
            backtracking = NULL, test = test, debug = debug)
 
   }#THEN
   else if (method == "iamb") {
 
-    mb = ia.markov.blanket(x = node, data = x, nodes = nodes,
-           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
+    mb = ia.markov.blanket(x = target, data = x, nodes = nodes, alpha = alpha,
+           B = B, whitelist = whitelist, blacklist = NULL, start = start,
            backtracking = NULL, test = test, debug = debug)
 
   }#THEN
   else if (method == "fast.iamb") {
 
-    mb = fast.ia.markov.blanket(x = node, data = x, nodes = nodes,
-           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-           backtracking = NULL, test = test, debug = debug)
+    mb = fast.ia.markov.blanket(x = target, data = x, nodes = nodes,
+           alpha = alpha, B = B, whitelist = whitelist, blacklist = NULL,
+           start = start, backtracking = NULL, test = test, debug = debug)
 
   }#THEN
   else if (method == "inter.iamb") {
 
-    mb = inter.ia.markov.blanket(x = node, data = x, nodes = nodes,
-           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
+    mb = inter.ia.markov.blanket(x = target, data = x, nodes = nodes, alpha = alpha,
+           B = B, whitelist = whitelist, blacklist = NULL, start = start,
            backtracking = NULL, test = test, debug = debug)
 
   }#THEN
@@ -502,10 +577,101 @@ mb.backend = function(x, node, method, whitelist = NULL, blacklist = NULL,
 
 }#MB.BACKEND
 
+# learn the neighbourhood of a single node.
+nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
+    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE) {
+
+  assign(".test.counter", 0, envir = .GlobalEnv)
+
+  # check the data are there.
+  check.data(x)
+  # cache the node labels.
+  nodes = names(x)
+  # a valid node is needed.
+  check.nodes(nodes = target, graph = nodes, max.nodes = 1)
+  # check the algorithm.
+  check.learning.algorithm(method, class = "neighbours")
+  # check test labels.
+  test = check.test(test, x)
+  # check the logical flags (debug, optimized).
+  check.logical(debug)
+  check.logical(optimized)
+  # check alpha.
+  alpha = check.alpha(alpha)
+  # check B (the number of bootstrap/permutation samples).
+  B = check.B(B, test)
+
+  # sanitize and rework the whitelist.
+  if (!is.null(whitelist)) {
+
+    # target variable in the whitelist does not make much sense.
+    if (target %in% whitelist)
+      warning("target variable in the whitelist.")
+    # check the labels of the whitelisted nodes.
+    check.nodes(nodes = whitelist, graph = nodes[nodes != target])
+
+    whitelist = matrix(c(rep(target, length(whitelist)), whitelist), ncol = 2)
+    whitelist = arcs.rbind(whitelist, whitelist, reverse2 = TRUE)
+
+  }#THEN
+
+  # remove whitelisted nodes from the blacklist.
+  if (!is.null(whitelist) && !is.null(blacklist)) {
+
+    blacklist = blacklist[!(blacklist %in% whitelist)]
+
+    if (length(blacklist) == 0)
+      blacklist = NULL
+
+  }#THEN
+
+  # sanitize and rework the blacklist.
+  if (!is.null(blacklist)) {
+
+    # target variable in the blacklist is plainly wrong.
+    if (target %in% blacklist)
+      stop("target variable in the blacklist.")
+    # check the labels of the blacklisted nodes.
+    check.nodes(nodes = blacklist, graph = nodes[nodes != target])
+
+    nodes = nodes[!(nodes %in% blacklist)]
+    x = minimal.data.frame.column(x, nodes, drop = FALSE)
+    x = minimal.data.frame(x)
+    names(x) = nodes
+
+  }#THEN
+
+  # call the right backend, forward phase.
+  if (method == "mmpc") {
+
+    nbr = maxmin.pc.forward.phase(target, data = x, nodes = nodes, 
+           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
+           test = test, optimized = optimized, debug = debug)
+
+  }#THEN
+  else if (method == "si.hiton.pc") {
+
+    nbr = si.hiton.pc.heuristic(target, data = x, nodes = nodes, alpha = alpha,
+            B = B, whitelist = whitelist, blacklist = blacklist, test = test,
+            optimized = optimized, debug = debug) 
+
+  }#ELSE
+
+  # this is the backward phase.
+  nbr = neighbour(target, mb = structure(list(nbr), names = target), data = x, 
+          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
+          test = test, markov = FALSE, debug = debug)
+
+  return(nbr[["nbr"]])
+
+}#NBR.BACKEND
+
 # baeysian network classifiers.
 bayesian.classifier = function(data, method, training, explanatory, whitelist,
-    blacklist, expand) {
+    blacklist, expand, debug = FALSE) {
 
+  # check debug.
+  check.logical(debug)
   # check the learning algorithm.
   check.learning.algorithm(method, class = "classifier")
   # check the training node (the center of the star-shaped graph).
@@ -572,11 +738,11 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
     # tan gets its tests from the chow-liu algorithm.
     ntests = length(explanatory) * (length(explanatory) - 1)/2
     # same for the test
-    test = mi.estimator.tests[extra.args$estimator]
+    test = as.character(mi.estimator.tests[extra.args$estimator])
 
     res = tan.backend(data = data, training = training, explanatory = explanatory,
             whitelist = whitelist, blacklist = blacklist, mi = extra.args$estimator,
-            root = extra.args$root)
+            root = extra.args$root, debug = debug)
 
   }#THEN
 
@@ -586,6 +752,8 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
   res$learning = list(whitelist = whitelist, blacklist = blacklist,
     test = test, ntests = ntests, algo = method, args = extra.args,
     optimized = NULL)
+  # set the trainign variable, for use by predict() & co.
+  res$learning$args$training = training
 
   invisible(res)
 

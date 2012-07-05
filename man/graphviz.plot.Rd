@@ -47,7 +47,12 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
   \itemize{
 
     \item \code{col}: an integer or character string (the
-      highlight colour). The default value is \code{red}.
+      highlight colour for the arcs and the node frames).
+      The default value is \code{red}.
+
+    \item \code{textCol}: an integer or character string (the
+      highlight colour for the labels of the nodes). The
+      default value is \code{black}.
 
     \item \code{fill}: an integer or character string (the
       colour used as a background colour for the nodes).

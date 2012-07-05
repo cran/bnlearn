@@ -110,27 +110,55 @@ double res = 0, tol = MACHINE_TOL;
 }/*C_FAST_PCOR*/
 
 /* Partial Linear Correlation. */
-SEXP fast_pcor(SEXP data, SEXP length, SEXP shrinkage) {
+SEXP fast_pcor(SEXP data, SEXP length, SEXP shrinkage, SEXP strict) {
 
-int i = 0, ncols = LENGTH(data);
+int i = 0, ncols = LENGTH(data), errcode = 0;
 int *shrink = LOGICAL(shrinkage);
 double *u = NULL, *d = NULL, *vt = NULL, *res = NULL;
 double k11 = 0, k12 = 0, k22 = 0;
 double tol = MACHINE_TOL;
-SEXP result, cov, svd;
+SEXP result, cov;
 
   /* compute the covariance matrix. */
   if (*shrink > 0)
     PROTECT(cov = cov_lambda(data, length));
   else
     PROTECT(cov = covmat(data, length));
-  /* compute the singular value decomposition of the covariance matrix. */
-  PROTECT(svd = r_svd(cov));
 
-  /* extract the three matrices form the list. */
-  u = REAL(getListElement(svd, "u"));
-  d = REAL(getListElement(svd, "d"));
-  vt = REAL(getListElement(svd, "vt"));
+  /* allocate the matrices needed for the SVD decomposition. */
+  u = alloc1dreal(ncols * ncols);
+  d = alloc1dreal(ncols);
+  vt = alloc1dreal(ncols * ncols);
+
+  /* allocate and initialize the return value. */
+  PROTECT(result = allocVector(REALSXP, 1));
+  res = REAL(result);
+
+  /* compute the singular value decomposition of the covariance matrix. */
+  c_svd(REAL(cov), u, d, vt, &ncols, &ncols, &ncols, FALSE, &errcode);
+
+  if (errcode < 0) {
+
+    /* unprotect everything and return. */
+    UNPROTECT(2);
+
+    if (isTRUE(strict)) {
+
+      error("failed to compute the pseudoinverse of the covariance matrix.");
+
+    }/*THEN*/
+    else {
+
+      /* if computing SVD decomposition fails, assume a null correlation. */
+      *res = 0;
+      /* warn the user that something went wrong.*/
+      warning("failed to compute the pseudoinverse of the covariance matrix, assuming independence.");
+
+      return result;
+
+    }/*ELSE*/
+
+  }/*THEN*/
 
   /* compute the three elements of the pseudoinverse needed
    * for the partial correlation coefficient. */
@@ -145,10 +173,6 @@ SEXP result, cov, svd;
     }/*THEN*/
 
   }/*FOR*/
-
-  /* allocate and initialize the return value. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
 
   /* safety check against "divide by zero" errors. */
   if (fabs(k11) < tol || fabs(k22) < tol)
@@ -174,7 +198,7 @@ SEXP result, cov, svd;
 
   }/*ELSE*/
 
-  UNPROTECT(3);
+  UNPROTECT(2);
   return result;
 
 }/*FAST_PCOR*/

@@ -73,7 +73,7 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
   # count how many observations are in the last one.
   last.one = n %% batch
 
-  for (n in c(rep(batch, nbatches), last.one)) {
+  for (m in c(rep(batch, nbatches), last.one)) {
 
     # do a hard reset of generated.data, so that the memory used by the data
     # set generated in the previous iteration can be garbage-collected and
@@ -81,19 +81,19 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
     generated.data = NULL
 
     # generate random data from the bayesian network.
-    if (n > 0) {
+    if (m > 0) {
 
       if (is.fitted.discrete(fitted))
-        generated.data = rbn.discrete(x = fitted, n = n)
+        generated.data = rbn.discrete(x = fitted, n = m)
       else
-        generated.data = rbn.continuous(x = fitted, n = n)
+        generated.data = rbn.continuous(x = fitted, n = m)
 
     }#THEN
     else
       break
 
     if (debug)
-      cat("* generated", n, "samples from the bayesian network.\n")
+      cat("* generated", m, "samples from the bayesian network.\n")
 
     # evaluate the expression defining the evidence.
     r = eval(evidence, generated.data, parent.frame())
@@ -101,9 +101,9 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
     if (!is.logical(r))
       stop("evidence must evaluate to a logical vector.")
     # double check that it is of the right length.
-    if (length(r) != n)
+    if ((length(r) != 1) && (length(r) != m))
       stop("logical vector for evidence is of length ", length(r),
-        " instead of ", n, ".")
+        " instead of ", m, ".")
     # filter out the samples not matching the evidence we assume.
     filtered = r & !is.na(r)
 
@@ -113,8 +113,12 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
     if (debug) {
 
       lwfilter = length(which(filtered))
-      cat("  > evidence matches ", lwfilter, " samples out of ", n,
-        " (p = ", lwfilter/n, ").\n", sep = "")
+      if (!identical(evidence, TRUE))
+        cat("  > evidence matches ", lwfilter, " samples out of ", m,
+          " (p = ", lwfilter/m, ").\n", sep = "")
+      else
+        cat("  > evidence matches ", m, " samples out of ", m,
+          " (p = 1).\n", sep = "")
 
     }#THEN
 
@@ -124,9 +128,9 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
     if (!is.logical(r))
       stop("event must evaluate to a logical vector.")
     # double check that it is of the right length.
-    if (length(r) != n)
+    if ((length(r) != 1) && (length(r) != m))
       stop("logical vector for event is of length ", length(r),
-        " instead of ", n, ".")
+        " instead of ", m, ".")
     # filter out the samples not matching the event we are looking for.
     matching = filtered & r & !is.na(r)
 
@@ -137,8 +141,12 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
 
       lwmatch = length(which(matching))
       lwratio = ifelse(lwfilter == 0, 0, lwmatch/lwfilter)
-      cat("  > event matches ", lwmatch, " samples out of ", lwfilter,
-        " (p = ", lwratio, ").\n", sep = "")
+      if (!identical(event, TRUE))
+        cat("  > event matches ", lwmatch, " samples out of ", lwfilter,
+          " (p = ", lwratio, ").\n", sep = "")
+      else
+        cat("  > event matches ", lwfilter, " samples out of ", lwfilter,
+          " (p = 1).\n", sep = "")
 
     }#THEN
 
@@ -169,7 +177,7 @@ logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) 
   # count how many observations are in the last one.
   last.one = n %% batch
 
-  for (n in c(rep(batch, nbatches), last.one)) {
+  for (m in c(rep(batch, nbatches), last.one)) {
 
     # do a hard reset of generated.data, so that the memory used by the data
     # set generated in the previous iteration can be garbage-collected and
@@ -177,19 +185,19 @@ logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) 
     generated.data = NULL
 
     # generate random data from the bayesian network.
-    if (n > 0) {
+    if (m > 0) {
 
       if (is.fitted.discrete(fitted))
-        generated.data = rbn.discrete(x = fitted, n = n)
+        generated.data = rbn.discrete(x = fitted, n = m)
       else
-        generated.data = rbn.continuous(x = fitted, n = n)
+        generated.data = rbn.continuous(x = fitted, n = m)
 
     }#THEN
     else
       break
 
     if (debug)
-      cat("* generated", n, "samples from the bayesian network.\n")
+      cat("* generated", m, "samples from the bayesian network.\n")
 
     # evaluate the expression defining the evidence.
     r = eval(evidence, generated.data, parent.frame())
@@ -197,17 +205,21 @@ logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) 
     if (!is.logical(r))
       stop("evidence must evaluate to a logical vector.")
     # double check that it is of the right length.
-    if (length(r) != n)
+    if ((length(r) != 1) && (length(r) != m))
       stop("logical vector for evidence is of length ", length(r),
-        " instead of ", n, ".")
+        " instead of ", m, ".")
     # filter out the samples not matching the evidence we assume.
     filtered = r & !is.na(r)
 
     if (debug) {
 
       lwfilter = length(which(filtered))
-      cat("  > evidence matches ", lwfilter, " samples out of ", n,
-        " (p = ", lwfilter/n, ").\n", sep = "")
+      if (!identical(evidence, TRUE))
+        cat("  > evidence matches ", lwfilter, " samples out of ", m,
+          " (p = ", lwfilter/m, ").\n", sep = "")
+      else
+        cat("  > evidence matches ", m, " samples out of ", m,
+          " (p = 1).\n", sep = "")
 
     }#THEN
 
@@ -216,6 +228,9 @@ logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) 
 
   }#FOR
 
+  if (debug && (nbatches > 1)) 
+    cat("* generated a grand total of", n, "samples.\n")
+ 
   return(result)
 
 }#LOGIC.DISTRIBUTION

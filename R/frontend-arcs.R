@@ -63,6 +63,48 @@ undirected.arcs = function(x) {
 
 }#UNDIRECTED.ARCS
 
+# return the arcs pointing to a particular node.
+incoming.arcs = function(x, node) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  # a valid node is needed.
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
+
+  arcs = directed.arcs(x)
+
+  arcs[arcs[, "to"] == node, , drop = FALSE]
+
+}#INCOMING.ARCS
+
+# return the arcs originating from a particular node.
+outgoing.arcs = function(x, node) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  # a valid node is needed.
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
+
+  arcs = directed.arcs(x)
+
+  arcs[arcs[, "from"] == node, , drop = FALSE]
+
+}#OUTGOING.ARCS
+
+# return the arcs incident on a particular node.
+incident.arcs = function(x, node) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  # a valid node is needed.
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
+
+  arcs = arcs(x)
+
+  arcs[(arcs[, "from"] == node) | (arcs[, "to"] == node), , drop = FALSE]
+
+}#INCIDENT.ARCS
+
 # return the number of arcs in the graph.
 narcs = function(x) {
 

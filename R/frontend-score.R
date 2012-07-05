@@ -124,7 +124,7 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
 
     x = choose.direction.boot(x, data = data, arc = arc,
           extra.args = extra.args, algorithm = extra.args[["algorithm"]],
-          algorithm.args = extra.args[["algorithm.args"]], 
+          algorithm.args = extra.args[["algorithm.args"]],
           cpdag =  extra.args[["cpdag"]], debug = debug)
 
   }#THEN

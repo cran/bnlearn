@@ -46,13 +46,15 @@
 
 /* compute all the pairwise mutual information coefficients between the variables. */
 void mi_matrix(double *mim, void **columns, int dim, int *nlevels, int *num,
-    int *est) {
+    void *cond, int *clevels, int *est) {
 
 int i = 0, j = 0;
 
   switch(*est) {
 
     case DISCRETE_MAXIMUM_LIKELIHOOD:
+
+      if (cond == NULL) {
 
         for (i = 0; i < dim; i++) {
 
@@ -66,22 +68,40 @@ int i = 0, j = 0;
 
         }/*FOR*/
 
-      break;
-
-    case GAUSSIAN_MAXIMUM_LIKELIHOOD:
+      }/*THEN*/
+      else {
 
         for (i = 0; i < dim; i++) {
 
           for (j = i + 1; j < dim; j++) {
 
             mim[UPTRI3(i + 1, j + 1, dim)] =
-              c_mig(((double **)columns)[i], ((double **)columns)[j], num);
+              c_cmi(((int **)columns)[i], nlevels + i,
+                    ((int **)columns)[j], nlevels + j,
+                    (int *)cond, clevels, num);
 
           }/*FOR*/
 
         }/*FOR*/
 
+      }/*ELSE*/
+
       break;
+
+    case GAUSSIAN_MAXIMUM_LIKELIHOOD:
+
+      for (i = 0; i < dim; i++) {
+
+        for (j = i + 1; j < dim; j++) {
+
+          mim[UPTRI3(i + 1, j + 1, dim)] =
+            c_mig(((double **)columns)[i], ((double **)columns)[j], num);
+
+        }/*FOR*/
+
+      }/*FOR*/
+
+    break;
 
   }/*SWITCH*/
 
@@ -112,7 +132,7 @@ SEXP arcs, nodes, wlist, blist;
   if (*debuglevel > 0)
     Rprintf("* computing pairwise mutual information coefficients.\n");
 
-  mi_matrix(mim, columns, ncols, nlevels, &num, est);
+  mi_matrix(mim, columns, ncols, nlevels, &num, NULL, NULL, est);
 
   LIST_MUTUAL_INFORMATION_COEFS()
 
@@ -251,21 +271,29 @@ static int chow_liu_blacklist(int *blacklist, int *length, int *hash) {
 }/*CHOW_LIU_BLACKLIST*/
 
 /* Chow-Liu structure learning algorithm. */
-SEXP chow_liu(SEXP data, SEXP estimator, SEXP whitelist, SEXP blacklist, SEXP debug) {
+SEXP chow_liu(SEXP data, SEXP nodes, SEXP estimator, SEXP whitelist,
+    SEXP blacklist, SEXP conditional, SEXP debug) {
 
 int i = 0, j = 0, k = 0, debug_coord[2], ncols = LENGTH(data);
 int num = LENGTH(VECTOR_ELT(data, i)), narcs = 0, nwl = 0, nbl = 0;
-int *nlevels = NULL, *est = INTEGER(estimator), *wl = NULL, *bl = NULL;
-int *poset = NULL, *debuglevel = LOGICAL(debug);
-void **columns = NULL;
+int *nlevels = NULL, *clevels = NULL, *est = INTEGER(estimator);
+int *wl = NULL, *bl = NULL, *poset = NULL, *debuglevel = LOGICAL(debug);
+void **columns = NULL, *cond = NULL;
 short int *include = NULL;
 double *mim = NULL;
-SEXP arcs, nodes, wlist, blist;
-
-  nodes = getAttrib(data, R_NamesSymbol);
+SEXP arcs, wlist, blist;
 
   /* dereference the columns of the data frame. */
   DEREFERENCE_DATA_FRAME()
+
+  /* only TAN uses a conditional variable, so assume it's discrete and go ahead. */
+  if (conditional != R_NilValue) {
+
+    cond = (void *) INTEGER(conditional);
+    clevels = alloc1dcont(1);
+    *clevels = NLEVELS(conditional); 
+
+  }/*THEN*/
 
   /* allocate the mutual information matrix and the status vector. */
   mim = alloc1dreal(UPTRI3_MATRIX(ncols));
@@ -275,7 +303,7 @@ SEXP arcs, nodes, wlist, blist;
   if (*debuglevel > 0)
     Rprintf("* computing pairwise mutual information coefficients.\n");
 
-  mi_matrix(mim, columns, ncols, nlevels, &num, est);
+  mi_matrix(mim, columns, ncols, nlevels, &num, cond, clevels, est);
 
   LIST_MUTUAL_INFORMATION_COEFS()
 

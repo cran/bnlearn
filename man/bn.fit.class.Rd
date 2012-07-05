@@ -50,6 +50,9 @@
 
   }
 
+  Furthermore, Bayesian network classifiers store the label of the training
+  node in an additional attribute named \code{training}.
+  
 }
 \author{ Marco Scutari }
 \keyword{ classes }

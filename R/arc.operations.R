@@ -25,7 +25,7 @@ arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE,
   # add/reverse/orient the arc.
   if (op == "set") {
 
-    if (debug) 
+    if (debug)
       cat("* setting arc", from, "->", to, ".\n")
 
     x$arcs = set.arc.direction(from, to, x$arcs, debug = debug)

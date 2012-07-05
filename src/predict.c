@@ -266,21 +266,30 @@ SEXP temp, result, tr_levels = getAttrib(data, R_LevelsSymbol);
 
 }/*CDPRED*/
 
-/* predict the value of the training variable in a naive Bayes classifier. */
-SEXP naivepred(SEXP fitted, SEXP data, SEXP training, SEXP prior, SEXP debug) {
+/* predict the value of the training variable in a naive Bayes or Tree-Augmented
+ * naive Bayes classifier. */
+SEXP naivepred(SEXP fitted, SEXP data, SEXP parents, SEXP training, SEXP prior,
+    SEXP debug) {
 
 int i = 0, j = 0, k = 0, n = 0, nvars = LENGTH(fitted), nmax = 0, tr_nlevels = 0;
-int *res = NULL, *cpt_nrows = NULL, **ex = NULL, *tr_id = INTEGER(training);
-int *iscratch = NULL, *maxima = NULL, *debuglevel = LOGICAL(debug);
+int *res = NULL, **ex = NULL, *ex_nlevels = NULL;
+int idx = 0, *tr_id = INTEGER(training);
+int *iscratch = NULL, *maxima = NULL, *prn = NULL, *debuglevel = LOGICAL(debug);
 double **cpt = NULL, *pr = NULL, *scratch = NULL;
-SEXP class, temp, tr, tr_levels, result;
+SEXP class, temp, tr, tr_levels, result, nodes;
+
+  /* cache the node labels. */
+  nodes = getAttrib(fitted, R_NamesSymbol);
 
   /* cache the pointers to all the variables. */
   ex = (int **) alloc1dpointer(nvars);
+  ex_nlevels = alloc1dcont(nvars);
 
   for (i = 0; i < nvars; i++) {
 
-    ex[i] = INTEGER(VECTOR_ELT(data, i));
+    temp = VECTOR_ELT(data, i);
+    ex[i] = INTEGER(temp);
+    ex_nlevels[i] = NLEVELS(temp);
 
   }/*FOR*/
 
@@ -291,22 +300,25 @@ SEXP class, temp, tr, tr_levels, result;
   tr_nlevels = LENGTH(tr_levels);
   /* get the prior distribution. */
   pr = REAL(prior);
+
+  if (*debuglevel > 0) {
+
+    Rprintf("* the prior distribution for the target variable is:\n");
+    PrintValue(prior);
+
+  }/*THEN*/
+
   /* allocate the scratch space used to compute posterior probabilities. */
   scratch = alloc1dreal(tr_nlevels);
 
   /* cache the pointers to the conditional probability tables. */
   cpt = (double **) alloc1dpointer(nvars);
-  cpt_nrows = alloc1dcont(nvars);
 
-  for (i = 0; i < nvars; i++) {
+  for (i = 0; i < nvars; i++) 
+    cpt[i] = REAL(getListElement(VECTOR_ELT(fitted, i), "prob"));
 
-    temp = VECTOR_ELT(fitted, i);
-    temp = getListElement(temp, "prob");
-
-    cpt[i] = REAL(temp);
-    cpt_nrows[i] = LENGTH(temp) / tr_nlevels;
-
-  }/*FOR*/
+  /* dereference the parents' vector. */
+  prn = INTEGER(parents);
 
   /* create the vector of indexes. */
   iscratch = alloc1dcont(tr_nlevels);
@@ -332,20 +344,60 @@ SEXP class, temp, tr, tr_levels, result;
 
     }/*FOR*/
 
+    if (*debuglevel > 0)
+      Rprintf("* predicting the value of observation %d.\n", i + 1);
+
     /* ... and for each conditional probability table... */
     for (j = 0; j < nvars; j++) {
 
-      /* ... skip the training variable.... */
+      /* ... skip the training variable... */
       if (*tr_id == j + 1)
         continue;
 
-      /* ... and for each row of the conditional probability table... */
-      for (k = 0; k < tr_nlevels; k++) {
+      /* ... (this is the root node of the Chow-Liu tree) ... */
+      if (prn[j] == NA_INTEGER) {
 
-        /* ... update the posterior probability. */
-        scratch[k] += log(cpt[j][CMC(ex[j][i] - 1, k, cpt_nrows[j])]);
+        /* ... and for each row of the conditional probability table... */
+        for (k = 0; k < tr_nlevels; k++) {
 
-      }/*FOR*/
+          if (*debuglevel > 0) {
+
+            Rprintf("  > node %s: picking cell %d (%d, %d) from the CPT (p = %lf).\n",
+              NODE(j), CMC(ex[j][i] - 1, k, ex_nlevels[j]), ex[j][i], k + 1,
+              cpt[j][CMC(ex[j][i] - 1, k, ex_nlevels[j])]);
+
+          }/*THEN*/
+
+          /* ... update the posterior probability. */
+          scratch[k] += log(cpt[j][CMC(ex[j][i] - 1, k, ex_nlevels[j])]);
+
+        }/*FOR*/
+
+      }/*THEN*/
+      else {
+
+        /* ... and for each row of the conditional probability table... */
+        for (k = 0; k < tr_nlevels; k++) {
+
+          /* (the first dimension corresponds to the current node [X], the second
+           * to the training node [Y], the third to the only parent of the current
+           * node [Z]; CMC coordinates are computed as X + Y * NX + Z * NX * NY. */
+          idx = (ex[j][i] - 1) + k * ex_nlevels[j] + 
+                  (ex[prn[j] - 1][i] - 1) * ex_nlevels[j] * tr_nlevels;
+
+          if (*debuglevel > 0) {
+
+            Rprintf("  > node %s: picking cell %d (%d, %d, %d) from the CPT (p = %lf).\n",
+              NODE(j), idx, ex[j][i], k + 1, ex[prn[j] - 1][i], cpt[j][idx]);
+
+          }/*THEN*/
+
+          /* ... update the posterior probability. */
+          scratch[k] += log(cpt[j][idx]);
+
+        }/*FOR*/
+
+      }/*ELSE*/
 
     }/*FOR*/
 
@@ -358,7 +410,7 @@ SEXP class, temp, tr, tr_levels, result;
 
       if (*debuglevel > 0) {
 
-        Rprintf("  > prediction for observation %d is %s with (log-)posterior:\n",
+        Rprintf("  @ prediction for observation %d is %s with (log-)posterior:\n",
           i + 1, CHAR(STRING_ELT(tr_levels, res[i] - 1)));
 
         Rprintf("  ");
@@ -376,8 +428,14 @@ SEXP class, temp, tr, tr_levels, result;
 
       if (*debuglevel > 0) {
 
-        Rprintf("  > there are %d levels tied for prediction of observation %d, applying tie breaking.\n", nmax, i + 1);
-        Rprintf("  > tied levels are:");
+        Rprintf("  @ there are %d levels tied for prediction of observation %d, applying tie breaking.\n", nmax, i + 1);
+
+        Rprintf("  ");
+        for (k = 0; k < tr_nlevels; k++)
+          Rprintf("  %lf", scratch[k]);
+        Rprintf("\n");
+
+        Rprintf("  @ tied levels are:");
         for (k = 0; k < nmax; k++)
           Rprintf(" %s", CHAR(STRING_ELT(tr_levels, maxima[k] - 1)));
         Rprintf(".\n");
@@ -402,3 +460,4 @@ SEXP class, temp, tr, tr_levels, result;
   return result;
 
 }/*NAIVEPRED*/
+

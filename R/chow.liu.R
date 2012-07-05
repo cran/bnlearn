@@ -1,9 +1,8 @@
 
-chow.liu.backend = function(x, estimator, whitelist, blacklist, debug = FALSE) {
+chow.liu.backend = function(x, nodes, estimator, whitelist, blacklist,
+    conditional = NULL, debug = FALSE) {
 
   # fix the whitelist and the blacklist to keep the C side simple.
-  nodes = names(x)
-
   if (!is.null(blacklist)) {
 
     # arcs must be blacklisted in both directions, so keep only
@@ -28,9 +27,11 @@ chow.liu.backend = function(x, estimator, whitelist, blacklist, debug = FALSE) {
 
   .Call("chow_liu",
         data = x,
+        nodes = nodes,
         estimator = estimator,
         whitelist = whitelist,
         blacklist = blacklist,
+        conditional = conditional,
         debug = debug,
         PACKAGE = "bnlearn")
 

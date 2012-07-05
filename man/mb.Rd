@@ -6,10 +6,15 @@
 \alias{arcs<-}
 \alias{directed.arcs}
 \alias{undirected.arcs}
+\alias{incoming.arcs}
+\alias{outgoing.arcs}
+\alias{incident.arcs}
 \alias{narcs}
 \alias{nodes}
 \alias{nodes,bn-method}
 \alias{nodes,bn.fit-method}
+\alias{nodes,bn.naive-method}
+\alias{nodes,bn.tan-method}
 \alias{amat}
 \alias{amat<-}
 \alias{parents}
@@ -21,6 +26,8 @@
 \alias{degree}
 \alias{degree,bn,ANY-method}
 \alias{degree,bn.fit,ANY-method}
+\alias{degree,bn.naive,ANY-method}
+\alias{degree,bn.tan,ANY-method}
 \alias{root.nodes}
 \alias{leaf.nodes}
 \alias{nparams}
@@ -53,6 +60,9 @@ arcs(x)
 arcs(x, ignore.cycles = FALSE, debug = FALSE) <- value
 directed.arcs(x)
 undirected.arcs(x)
+incoming.arcs(x, node)
+outgoing.arcs(x, node)
+incident.arcs(x, node)
 narcs(x)
 
 ## adjacency matrix
@@ -103,13 +113,21 @@ blacklist(x)
 }
 \value{
 
-  \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{root.nodes}
-  and \code{leaf.nodes} return a vector of character strings. \cr
-  \code{arcs}, \code{whitelist} and \code{blacklist} return a matrix of two
-  columns of character strings. \cr
+  \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{children},
+  \code{root.nodes} and \code{leaf.nodes} return a vector of character
+  strings.
+
+  \code{arcs}, \code{directed.arcs}, \code{undirected.arcs}, 
+  \code{incoming.arcs}, \code{outgoing.arcs}, \code{incident.arcs}, \cr
+  \code{whitelist} and \code{blacklist} return a matrix of two columns of
+  character strings. 
+
   \code{narcs} returns the number of arcs in the graph.
-  \code{amat} returns a matrix of 0/1 integer values. \cr
-  \code{nparams} and \code{ntests} returns an integer. \cr
+
+  \code{amat} returns a matrix of 0/1 integer values. 
+
+  \code{degree}, \code{in.degree}, \code{out.degree}, \code{nparams} and
+  \code{ntests} return an integer. 
 
 }
 \references{

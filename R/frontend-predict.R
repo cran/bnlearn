@@ -92,7 +92,7 @@ predict.bn.naive = function(object, data, prior, ..., debug = FALSE) {
   check.unused.args(list(...), character(0))
 
   # get the response variable.
-  training = root.leaf.nodes(fitted, leaf = FALSE)
+  training = attr(fitted, "training")
   # check the prior distribution.
   prior = check.prior(prior, data[, training])
 
@@ -101,4 +101,34 @@ predict.bn.naive = function(object, data, prior, ..., debug = FALSE) {
     prior = prior, debug = debug)
 
 }#PREDICT.BN.NAIVE
+
+# estimate the predicted values for a TAN classfier.
+predict.bn.tan = function(object, data, prior, ..., debug = FALSE) {
+
+  # check the data are there.
+  check.data(data)
+  # check the bn.tan object.
+  check.bn.tan(object)
+
+  # fit the network if needed.
+  if (is(object, "bn"))
+    fitted = bn.fit(object, data)
+  else
+    fitted = object
+
+  # check the fitted model.
+  check.fit.vs.data(fitted = fitted, data = data)
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  # get the response variable.
+  training = attr(fitted, "training")
+  # check the prior distribution.
+  prior = check.prior(prior, data[, training])
+
+  # compute the predicted values.
+  naive.classifier(training = training, fitted = fitted, data = data,
+    prior = prior, debug = debug)
+
+}#PREDICT.BN.TAN
 

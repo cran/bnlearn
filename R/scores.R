@@ -21,7 +21,7 @@ per.node.score = function(network, data, score, nodes, extra.args,
   else if (score == "bde") {
 
    res = vapply(nodes, dirichlet.node, x = network,
-           imaginary.sample.size = extra.args$iss, 
+           imaginary.sample.size = extra.args$iss,
            experimental = NULL, sparse = FALSE, data = data,
            debug = debug, FUN.VALUE = template.numeric)
 
@@ -29,7 +29,7 @@ per.node.score = function(network, data, score, nodes, extra.args,
   else if (score == "mbde") {
 
    res = vapply(nodes, dirichlet.node, x = network,
-           imaginary.sample.size = extra.args$iss, 
+           imaginary.sample.size = extra.args$iss,
            experimental = extra.args$exp, sparse = FALSE,
            data = data, debug = debug, FUN.VALUE = template.numeric)
 

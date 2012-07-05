@@ -158,7 +158,7 @@ pdag2dag.backend = function(arcs, ordering) {
                PACKAGE = "bnlearn")
 
   # check that the new graph is still acyclic.
-  if (!is.acyclic.backend(arcs = arcs, nodes = ordering, directed = TRUE))
+  if (!is.acyclic(arcs = arcs, nodes = ordering))
     stop("this complete orientation of the graph is not acyclic.")
 
   return(arcs)
@@ -340,7 +340,7 @@ cpdag.extension = function(x, debug = FALSE) {
   nodes = names(x$nodes)
 
   # update the arcs of the network.
-  x$arcs = cpdag.arc.extension(arcs = x$arcs, nodes = nodes, debug = debug) 
+  x$arcs = cpdag.arc.extension(arcs = x$arcs, nodes = nodes, debug = debug)
   # update the network structure.
   x$nodes = cache.structure(nodes, arcs = x$arcs, debug = debug)
 
@@ -363,7 +363,7 @@ cpdag.arc.extension = function(arcs, nodes, debug = FALSE) {
 subgraph.backend = function(x, nodes) {
 
   # create the subgraph spanning the subset of nodes.
-  res = empty.graph(nodes)
+  res = empty.graph.backend(nodes)
   # identify which arcs are part of the subgraph.
   spanning = apply(x$arcs, 1, function(x) all(!is.na(match(x, nodes))))
   # update the arcs of the subgraph.
@@ -374,3 +374,25 @@ subgraph.backend = function(x, nodes) {
   return(res)
 
 }#SUBGRAPH.BACKEND
+
+# test d-separation.
+dseparation = function(bn, x, y, z) {
+
+  # this function implements the algorithm from Koller & Friedman's
+  # "Probabilistic Graphical Models", Sec. 4.5, pages 136-137.
+
+  # construct the upper closure of the query nodes.
+  upper.closure = schedule(bn, start = c(x, y, z), reverse = TRUE)
+  ucgraph = subgraph.backend(bn, upper.closure)
+  # get its moral graph.
+  mgraph = dag2ug.backend(ucgraph, moral = TRUE)
+  # remove z and incident arcs to block paths.
+  upper.closure = upper.closure[!(upper.closure %in% z)]
+  mgraph = subgraph.backend(mgraph, upper.closure)
+  # look for a path between x and y.
+  connected = has.path(x, y, nodes = upper.closure,
+                amat = arcs2amat(mgraph$arcs, upper.closure))
+
+  return(!connected)
+
+}#UPPER.CLOSURE

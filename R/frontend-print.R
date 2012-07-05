@@ -87,8 +87,15 @@ print.bn = function(x, ...) {
       wcat("  phi matrix structure:                 ", x$learning$args$phi)
     if ("k" %in% params)
       wcat("  penalization coefficient:             ", format(x$learning$args$k))
-    if ("estimator" %in% params && (x$learning$algo %in% c(mim.based.algorithms, classifiers)))
-      wcat("  mutual information estimator:         ", format(mi.estimator.labels[x$learning$args$estimator]))
+
+    if (x$learning$algo %in% c(mim.based.algorithms, classifiers)) {
+
+      if ("estimator" %in% params)
+        wcat("  mutual information estimator:         ", format(mi.estimator.labels[x$learning$args$estimator]))
+
+      wcat("  training node:                        ", x$learning$args$training)
+
+    }#THEN
 
     wcat("  tests used in the learning procedure: ", x$learning$ntests)
 

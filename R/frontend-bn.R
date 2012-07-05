@@ -153,3 +153,32 @@ moral = function(x, debug = FALSE) {
 
 }#MORAL
 
+# test d-separation.
+dsep = function(bn, x, y, z) {
+
+  # check x's class.
+  check.bn.or.fit(bn)
+  # check the sets of nodes.
+  check.nodes(x, graph = bn, min.nodes = 1, max.nodes = 1)
+  check.nodes(y, graph = bn, min.nodes = 1, max.nodes = 1)
+  if (missing(z))
+    z = c()
+  else
+    check.nodes(z, graph = bn, min.nodes = 0)
+
+  # check whether x and y are disjoint from z.
+  if (x %in% z)
+    stop("x must not be one of the nodes in z.")
+  if (y %in% z)
+    stop("y must not be one of the nodes in z.")
+
+  # go back to the network structure if needed.
+  if (is(bn, "bn.fit"))
+    bn = bn.net(bn)
+  # if the graph is not directed, take it as a CPDAG and extend it.
+  if (!is.dag(bn$arcs, names(bn$nodes)))
+    bn = cpdag.extension(bn)
+
+  dseparation(bn = bn, x = x, y = y, z = z)
+
+}#DSEP

@@ -96,13 +96,13 @@ incremental.association = function(x, whitelist, blacklist, test, alpha,
 }#INCREMENTAL.ASSOCIATION
 
 ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
-  backtracking = NULL, test, debug = FALSE) {
+  start = character(0), backtracking = NULL, test, debug = FALSE) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
   whitelisted = nodes[sapply(nodes,
           function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
-  mb = c()
+  mb = start
   to.add = ""
 
   # growing phase
@@ -111,12 +111,15 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
     cat("----------------------------------------------------------------\n")
     cat("* learning the markov blanket of", x, ".\n")
 
+    if (length(start) > 0)
+      cat("* initial set includes '", mb, "'.\n")
+
   }#THEN
 
   # whitelisted nodes are included by default (if there's a direct arc
   # between them of course they are in each other's markov blanket).
   # arc direction is irrelevant here.
-  mb = whitelisted
+  mb = unique(c(mb, whitelisted))
   nodes = nodes[!(nodes %in% mb)]
   # blacklist is not checked, not all nodes in a markov blanket must be
   # neighbours.
@@ -160,17 +163,16 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
     }#THEN
 
-    # get the one which maximizes the association measure.
     # stop if there are no candidates for inclusion.
     if (all(association > alpha) || length(nodes) == 0 || is.null(nodes)) break
-
+    # get the one which maximizes the association measure.
     to.add = names(which.min(association))
 
     if (debug) {
 
       cat("    @", to.add, "included in the markov blanket ( p-value:",
         association[to.add], ").\n")
-      cat("    > markov blanket now is '", c(mb, to.add), "'.\n")
+      cat("    > markov blanket (", length(mb) + 1, "nodes ) now is '", c(mb, to.add), "'.\n")
 
     }#THEN
 

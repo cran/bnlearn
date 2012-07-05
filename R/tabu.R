@@ -99,7 +99,7 @@ tabu.search = function(x, start, whitelist, blacklist, score,
           extra = extra.args,
           reference = reference.score,
           equivalence = score.equivalence && optimized,
-          updated = (if (optimized) updated else seq(length(nodes))),
+          updated = (if (optimized) updated else seq(length(nodes)) - 1L),
           env = environment(),
           amat = amat,
           cache = cache,
@@ -151,7 +151,7 @@ tabu.search = function(x, start, whitelist, blacklist, score,
       }#THEN
       else {
 
-        # increase the counter of the iteration without improvements.
+        # increase the counter of the iterations without improvements.
         loss.iter = loss.iter + 1
 
       }#ELSE
@@ -177,6 +177,23 @@ tabu.search = function(x, start, whitelist, blacklist, score,
                      baseline = -Inf,
                      debug = debug,
                      PACKAGE = "bnlearn")
+
+      # it might be that there are no more legal operations.
+      if(bestop$op == FALSE) {
+
+       if (debug) {
+         cat("----------------------------------------------------------------\n")
+         cat("* no more possible operations.\n")
+         cat("@ stopping at iteration", iter, ".\n")
+         }#THEN
+
+       # reset the return value to the best network ever found.
+       if (loss.iter > 0)
+         start = best.network
+
+       break
+
+     }#THEN
 
     }#THEN
     else {

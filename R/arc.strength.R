@@ -99,7 +99,7 @@ arc.strength.score = function(network, data, score, extra, debug = FALSE) {
 }#ARC.STRENGTH.SCORE
 
 # compute arcs' strength as the relative frequency in boostrapped networks.
-arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs, 
+arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs,
     cpdag, debug = FALSE) {
 
   # allocate and initialize an empty adjacency matrix.

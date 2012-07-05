@@ -96,13 +96,13 @@ grow.shrink = function(x, whitelist, blacklist, test, alpha, B,
 }#GROW.SHRINK
 
 gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
-  backtracking = NULL, test, debug = FALSE) {
+  start = character(0), backtracking = NULL, test, debug = FALSE) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
   whitelisted = nodes[sapply(nodes,
           function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
-  mb = c()
+  mb = start
 
   # growing phase
   if (debug) {
@@ -110,12 +110,15 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
     cat("----------------------------------------------------------------\n")
     cat("* learning the markov blanket of", x, ".\n")
 
+    if (length(start) > 0)
+      cat("* initial set includes '", mb, "'.\n")
+
   }#THEN
 
   # whitelisted nodes are included by default (if there's a direct arc
   # between them of course they are in each other's markov blanket).
   # arc direction is irrelevant here.
-  mb = whitelisted
+  mb = unique(c(mb, whitelisted))
   nodes = nodes[!(nodes %in% mb)]
   # blacklist is not checked, not all nodes in a markov blanket must be
   # neighbours.
@@ -168,7 +171,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
         if (debug) {
 
           cat("    > node", y, "included in the markov blanket ( p-value:", a, ").\n")
-          cat("    > markov blanket now is '", mb, "'.\n")
+          cat("    > markov blanket (", length(mb), "nodes ) now is '", mb, "'.\n")
           cat("    > restarting grow loop.\n")
 
         }#THEN

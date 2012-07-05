@@ -18,18 +18,8 @@ loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
   }#THEN
   else if (loss == "pred") {
 
-    if (is(fitted, "bn.naive")) {
-
-      result = naive.error(node = extra.args$target, fitted = fitted,
-                 prior = extra.args$prior, data = data, debug = debug)
-
-    }#THEN
-    else {
-
-      result = classification.error(node = extra.args$target,
-                 fitted = fitted, data = data, debug = debug)
-
-    }#ELSE
+    result = classification.error(node = extra.args$target, fitted = fitted,
+               prior = extra.args$prior, data = data, debug = debug)
 
   }#THEN
 
@@ -124,9 +114,12 @@ discrete.loss.node = function(node, fitted, data, debug = FALSE) {
 }#DISCRETE.LOSS.NODE
 
 # classification error as a loss function.
-classification.error = function(node, fitted, data, debug = FALSE) {
+classification.error = function(node, fitted, prior = NULL, data, debug = FALSE) {
 
-  pred = discrete.prediction(node, fitted, data)
+  if (is(fitted, c("bn.naive", "bn.tan")))
+    pred = naive.classifier(node, fitted, prior, data)
+  else
+    pred = discrete.prediction(node, fitted, data)
 
   l = .Call("class_err",
             reference = minimal.data.frame.column(data, node),
@@ -140,19 +133,3 @@ classification.error = function(node, fitted, data, debug = FALSE) {
 
 }#CLASSIFICATION.ERROR
 
-# classification error for naive Bayes classifiers.
-naive.error = function(node, fitted, prior, data, debug = FALSE) {
-
-  pred = naive.classifier(node, fitted, prior, data)
-
-  l = .Call("class_err",
-            reference = minimal.data.frame.column(data, node),
-            predicted = pred,
-            PACKAGE = "bnlearn")
-
-  if (debug)
-    cat("  > classification error for node", node, "is", l, ".\n")
-
-  return(list(loss = l, predicted = pred))
-
-}#NAIVE.ERROR

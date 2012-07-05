@@ -9,6 +9,16 @@ is.positive = function(x) {
 
 }#IS.POSITIVE
 
+# is x a non-negative number?
+is.non.negative = function(x) {
+
+  is.numeric(x) &&
+  (length(x) == 1) &&
+  is.finite(x) &&
+  (x >= 0)
+
+}#IS.NON.NEGATIVE
+
 # is x a positive integer?
 is.positive.integer = function(x) {
 
@@ -51,7 +61,7 @@ is.probability.vector = function(x) {
   is.numeric(x) &&
   all(is.finite(x)) &&
   all(x >= 0) &&
-  all(x <= 1) && 
+  all(x <= 1) &&
   any(x > 0)
 
 }#IS.PROBABILITY.VECTOR
@@ -64,6 +74,12 @@ is.string = function(x) {
   (x != "")
 
 }#IS.STRING
+
+is.ndmatrix = function(x) {
+
+  is(x, c("table", "matrix", "array"))
+
+}#IS.NDMATRIX
 
 # is x a symmetric matrix?
 is.symmetric = function(x) {
@@ -113,7 +129,7 @@ check.data = function(x, allow.mixed = FALSE) {
   if (is.data.discrete(x))
     for (col in names(x))
       if (nlevels(x[, col]) < 2)
-        stop("all factors must have at leat two levels.")
+        stop("all factors must have at least two levels.")
 
 }#CHECK.DATA
 
@@ -710,7 +726,7 @@ check.experimental = function(exp, network, data) {
       # just kill empty elements.
       if (length(exp[[var]]) == 0)
         exp[[var]] = NULL
-      # also, convert evetything to integers to make things simpler at the 
+      # also, convert evetything to integers to make things simpler at the
       # C level.
       exp[[var]] = as.integer(exp[[var]])
 
@@ -1025,15 +1041,25 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
     }#THEN
     else {
 
-      if (is(bn, "bn.naive"))
-        extra.args$target = root.leaf.nodes(bn, leaf = FALSE)
-      else
+      # the target node is obvious for classifiers.
+      if (is(bn, c("bn.naive", "bn.tan"))) {
+
+        if (is(bn, "bn"))
+          extra.args$target = bn$learning$args$training
+        else
+          extra.args$target = attr(bn, "training")
+
+      }#THEN
+      else {
+
         stop("missing target node for which to compute the prediction error.")
+
+      }#ELSE
 
     }#ELSE
 
     # check the prior distribution.
-    if (is(bn, "bn.naive")) {
+    if (is(bn, c("bn.naive", "bn.tan"))) {
 
       extra.args$prior = check.prior(extra.args$prior, data[, extra.args$target])
       valid.args = c(valid.args, "prior")
@@ -1262,8 +1288,11 @@ check.amat = function(amat, nodes) {
     }#THEN
 
   }#THEN
+  # make really sure the adjacency matrix is made up of integers.
+  if (storage.mode(amat) != "integer")
+    storage.mode(amat) = "integer"
   # check the elements of the matrix.
-  if (!all(amat %in% 0:1))
+  if (!all((amat == 0L) | (amat == 1L)))
     stop("all the elements of an adjacency matrix must be equal to either 0 or 1.")
   # no arcs from a node to itself.
   if(any(diag(amat) != 0))
@@ -1370,7 +1399,7 @@ check.fit = function(bn) {
 
 }#CHECK.FIT
 
-# check the structure of a naive Bayes classifier,
+# check the structure of a naive Bayes classifier.
 check.bn.naive = function(bn) {
 
   # check whether it's a valid bn/bn.fit object.
@@ -1399,6 +1428,50 @@ check.bn.naive = function(bn) {
     stop("all the explanatory variables must be children of the training variable.")
 
 }#CHECK.BN.NAIVE
+
+# check the structure of a naive Bayes classifier.
+check.bn.tan = function(bn) {
+
+  # check whether it's a valid bn/bn.fit object.
+  check.bn.or.fit(bn)
+  # there must be a single root node, check.
+  root = root.leaf.nodes(bn, leaf = FALSE)
+
+  if (length(root) != 1)
+    stop("a naive Bayes classifier can have only one root node, the training variable.")
+
+  # that root node must be the training variable, check.
+  if (is(bn, "bn")) {
+
+    # double check just in case.
+    check.nodes(bn$learning$args$training)
+
+    nodes = names(bn$nodes)
+    training = bn$learning$args$training
+
+  }#THEN
+  else {
+
+    # double check just in case.
+    check.nodes(attr(bn, "training"))
+
+    nodes = names(bn)
+    training = attr(bn, "training")
+
+  }#ELSE
+
+  if (!identical(training, root))
+    stop("the training node is not the only root node in the graph.")
+
+  # get the explanatory variables.
+  explanatory = nodes[nodes != root]
+  # all the explanatory variables save one must have exactly two parents, check.
+  nparents = sapply(explanatory, function(node) { length(parents(bn, node))  })
+
+  if (!( (length(which(nparents == 2)) == length(explanatory) - 1) && (length(which(nparents == 1)) == 1) ))
+    stop("the explanatory variables must form a tree.")
+
+}#CHECK.BN.TAN
 
 # check an object of class bn.strength.
 check.bn.strength = function(strength, nodes) {
@@ -1644,6 +1717,8 @@ check.learning.algorithm = function(algorithm, class = "all", bn) {
     ok = c(ok, constraint.based.algorithms)
   if ("markov.blanket" %in% class)
     ok = c(ok, markov.blanket.algorithms)
+  if ("neighbours" %in% class)
+    ok = c(ok, local.search.algorithms)
   if ("score" %in% class)
     ok = c(ok, score.based.algorithms)
   if ("mim" %in% class)
@@ -1786,7 +1861,7 @@ check.prior = function(prior, training) {
 
     if (missing(prior) || is.null(prior)) {
 
-      # use an emprirical prior if none is provided by the user.
+      # use an empirical prior if none is provided by the user.
       prior = summary(training)
 
     }#THEN
@@ -1832,4 +1907,204 @@ check.weights = function(weights, len) {
   return(weights)
 
 }#CHECK.WEIGHTS
+
+# check a user-specified bn.fit.gnode.
+check.fit.gnode.spec = function(x) {
+
+  components =  c("coef", "fitted", "resid", "sd")
+
+  # custom list of components.
+  if (!is.list(x) || !all(names(x) %in% components))
+    stop(paste(c("the conditional probability distribution must be a list with",
+      "at least one of the following elements:", components), collapse = " "))
+  if (!("coef" %in% names(x)) || !any(c("sd", "resid") %in% names(x)))
+    stop("at least the regression coefficients and one between the residulals ",
+      "or the residual standard deviation are required.")
+
+  # check the regression coefficients.
+  if (!is.null(x$coef)) {
+
+    if (length(x$coef) == 0)
+      stop("fitted must a vector of numeric values, ",
+        "the regression coefficients for the node given its parents.")
+    if (!is.numeric(x$coef) || !all(is.finite(x$coef)))
+      stop("fitted must a vector of numeric values, ",
+        "the regression coefficients for the node given its parents.")
+    if (!is.null(names(x$coef)))
+      if (all(names(x$coef) != "(Intercept)"))
+        stop("the intercept is missing.")
+
+  }#THEN
+
+  # check the fitted xs.
+   if (!is.null(x$fitted)) {
+
+    if (length(x$fitted) == 0)
+      stop("coef must a vector of numeric values, ",
+        "the fitted values for the node given its parents.")
+    if (!is.numeric(x$fitted) || !all(is.finite(x$fitted)))
+      stop("coef must a vector of numeric values, ",
+        "the fitted values for the node given its parents.")
+
+  }#THEN
+
+ # check the residuals.
+  if (!is.null(x$resid)) {
+
+    if (length(x$resid) == 0)
+      stop("resid must a vector of numeric values, ",
+        "the residuals for the node given its parents.")
+    if (!is.numeric(x$resid) || !all(is.finite(x$resid)))
+      stop("resid must a vector of numeric values, ",
+        "the residuals for the node given its parents.")
+
+  }#THEN
+
+  # check the standard deviation of the residuals.
+  if (!is.null(x$sd)) {
+
+    if (!is.non.negative(x$sd))
+      stop("sd must be a non-negative number, the standard deviation of the residuals.")
+
+    if (!is.null(x$resid) && !isTRUE(all.equal(x$sd, sd(x$resid))))
+      stop("the reported standard deviation of the residuals does not match the observed one.")
+
+  }#THEN
+
+  # one residual for each fitted value.
+  if (!is.null(x$resid) && !is.null(x$fitted))
+    if (length(x$resid) != length(x$fitted))
+      stop("the residuals and the fitted values have different lengths.")
+
+}#CHECK.FIT.GNODE.SPEC
+
+# check one bn.fit.gnode against another.
+check.gnode.vs.spec = function(new, old, node) {
+
+  if (is(old, "bn.fit.gnode")) {
+
+    # same number of coefficients.
+    if (length(new$coef) != length(old$coefficients))
+      stop("wrong number of coefficients for node ", old$node, ".")
+    # if the new coefficients have labels, they must match.
+    if (!is.null(names(new$coef)))
+      check.nodes(names(new$coef), graph = names(old$coefficients),
+        min.nodes = length(names(old$coefficients)))
+    # same number of residuals.
+    if (!is.null(new$resid))
+      if (length(new$resid) != length(old$residuals))
+        stop("wrong number of residuals for node ", old$node, ".")
+    # same number of fitted values.
+    if (!is.null(new$fitted))
+      if (length(new$fitted) != length(old$fitted.values))
+        stop("wrong number of fitted values for node ", old$node, ".")
+
+  }#THEN
+  else {
+
+    # add the intercept, which is obviously not among the parents of the node.
+    old = c("(Intercept)", old)
+
+    # same number of coefficients.
+    if (length(new$coef) != length(old))
+      stop("wrong number of coefficients for node ", node, ".")
+    # if the new coefficients have labels, they must match.
+    if (!is.null(names(new$coef)))
+      check.nodes(names(new$coef), graph = old, min.nodes = length(old))
+
+  }#ELSE
+
+}#CHECK.GNODE.VS.SPEC
+
+# check a user-specified bn.fit.dnode.
+check.fit.dnode.spec = function(x) {
+
+  # the CPT must be a table.
+  if (!is.ndmatrix(x))
+    stop("the conditional probability distribution must be a table, ",
+      "a matrix or a multidimensional array.")
+  # all elements must be probabilities.
+  if (!is.probability.vector(x))
+    stop("some elements of the conditional probability distributions are ",
+      "not probabilities.")
+
+  # convert the CPT into a table object.
+  x = as.table(x)
+
+  # compute the dimensions of the table
+  dims = dim(x)
+  ndims = length(dims)
+  # flatten 1xc tables into 1-dimensional ones.
+  if ((ndims == 2) && (dims[1] == 1))
+    x = flatten.2d.table(x)
+  # update dims and ndims.
+  dims = dim(x)
+  ndims = length(dims)
+
+  # normalization.
+  if (ndims == 1) {
+
+    if (sum(x) != 1)
+      stop("the probability distribution does not sum to one.")
+
+  }#THEN
+  else {
+
+    if (any(margin.table(x,  seq(from = 2, to = ndims)) != 1))
+      stop("some conditional probability distributions do not sum to one.")
+
+  }#ELSE
+
+  return(x)
+
+}#CHECK.FIT.DNODE.SPEC
+
+# check one bn.fit.dnode against another.
+check.dnode.vs.spec = function(new, old, node, cpt.levels) {
+
+  ndims = length(dim(new))
+
+  if (is(old, "bn.fit.dnode")) {
+
+    # same dimensions.
+    if (!identical(dim(new), dim(old$prob)))
+      stop("wrong dimensions for node ", old$node, ".")
+    # if the new CPT has labels, they must match.
+    if (!is.null(dimnames(new)))
+      if (!identical(dimnames(new), dimnames(old$prob)))
+        stop("wrong levels for node ", old$node, ".")
+
+  }#THEN
+  else {
+
+    # same dimensions and labels.
+    if (ndims == 1) {
+
+      if (dim(new) != length(cpt.levels[[node]]))
+        stop("wrong dimensions for node ", node, ".")
+      if (!identical(cpt.levels[[node]], names(new)))
+        stop("wrong levels for node ", node, ".")
+
+    }#THEN
+    else {
+
+      if (any(dim(new) != sapply(cpt.levels[c(node, old)], length)))
+        stop("wrong number of dimensions for node ", node, ".")
+      if (!all(names(dimnames(new)) %in% c(node, old)))
+        stop("wrong dimensions for node ", node, ".")
+      # now that we are sure that the dimensions are the right ones, reorder them
+      # to follow the ordering of the parents in the network.
+      d = names(dimnames(new))
+      new = aperm(new, c(match(node, d), match(old, d)))
+
+      if (!identical(cpt.levels[c(node, old)], dimnames(new)))
+        stop("wrong levels for node ", node, ".")
+
+    }#ELSE
+
+  }#ELSE
+
+  return(new)
+
+}#CHECK.DNODE.VS.SPEC
 

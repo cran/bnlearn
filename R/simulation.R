@@ -1,15 +1,22 @@
 # do a partial ordering of the nodes of a graph.
-schedule = function(x, debug = FALSE) {
+schedule = function(x, start = NULL, reverse = FALSE, debug = FALSE) {
 
-  nodes = root.leaf.nodes(x, leaf = FALSE)
+  if (is.null(start))
+    nodes = root.leaf.nodes(x, leaf = reverse)
+  else
+    nodes = start
 
   to.do = .Call("schedule",
                 bn = x,
                 root.nodes = nodes,
+                reverse = reverse,
                 debug = debug,
                 PACKAGE = "bnlearn")
 
-  return(names(sort(to.do)))
+  if (is.null(start))
+    return(names(sort(to.do)))
+  else
+    return(names(sort(to.do[to.do > 0])))
 
 }#SCHEDULE
 

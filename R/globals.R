@@ -5,7 +5,7 @@ available.continuous.tests = c("cor", "zf", "mi-g", "mi-g-sh", "mc-mi-g",
   "smc-mi-g", "mc-cor", "smc-cor", "mc-zf", "smc-zf")
 available.tests = c(available.discrete.tests, available.continuous.tests)
 
-resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g", 
+resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g",
   "mc-cor", "smc-cor", "mc-zf", "smc-zf")
 asymptotic.tests = c("mi", "mi-g", "x2", "zf")
 
@@ -21,7 +21,7 @@ available.continuous.mi = c("mi-g")
 available.mi = c(available.discrete.mi, available.continuous.mi)
 
 markov.blanket.algorithms = c("gs", "iamb", "fast.iamb", "inter.iamb")
-local.search.algorithms = c("mmpc")
+local.search.algorithms = c("mmpc", "si.hiton.pc")
 constraint.based.algorithms = c(markov.blanket.algorithms, local.search.algorithms)
 score.based.algorithms = c("hc", "tabu")
 hybrid.algorithms = c("rsmax2", "mmhc")
@@ -43,6 +43,7 @@ method.labels = c(
   'hc' = "Hill-Climbing",
   'tabu' = "Tabu Search",
   'mmpc' = "Max-Min Parent Children",
+  'si.hiton.pc' = "Semi-Interleaved HITON-PC",
   'rsmax2' = "Two-Phase Restricted Maximization",
   'mmhc' = "Max-Min Hill-Climbing",
   'aracne' = "ARACNE",

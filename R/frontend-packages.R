@@ -94,9 +94,9 @@ as.bn.fit.grain = function(x) {
   for (node in nodes) {
 
     prob = structure(as.table(x[["cptlist"]][[node]]), class = "table")
-    parents = names(dimnames(prob))[-1]   
+    parents = names(dimnames(prob))[-1]
 
-    fitted[[node]] = structure(list(node = node, parents = parents, prob = prob), 
+    fitted[[node]] = structure(list(node = node, parents = parents, prob = prob),
                        class = "bn.fit.dnode")
 
   }#FOR
@@ -167,7 +167,7 @@ as.graphAM.bn = function(x) {
   else{
 
     nodes = names(x)
-    arcs = fit2arcs(x) 
+    arcs = fit2arcs(x)
 
   }#ELSE
 

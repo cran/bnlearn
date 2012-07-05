@@ -58,6 +58,18 @@ mmpc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 }#MMPC
 
+# Semi-Interleaved HITON-PC.
+si.hiton.pc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE,
+    strict = FALSE) {
+
+  bnlearn(x = x, cluster = cluster, whitelist = whitelist,
+    blacklist = blacklist, test = test, alpha = alpha, B = B,
+    method = "si.hiton.pc", debug = debug, optimized = optimized,
+    strict = strict, undirected = TRUE)
+
+}#MMPC
+
 # ARACNE frontend.
 aracne = function(x, whitelist = NULL, blacklist = NULL, mi = NULL,
     debug = FALSE) {
@@ -127,34 +139,48 @@ mmhc = function(x, whitelist = NULL, blacklist = NULL, test = NULL,
 
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
     restrict = "mmpc", maximize = "hc", restrict.args = restrict.args,
-    maximize.args = maximize.args, score = score, optimized = optimized, debug = debug)
+    maximize.args = maximize.args, score = score, optimized = optimized,
+    debug = debug)
 
 }#MMHC
 
 # Frontend for the Markov blanket learning algotrithms.
 learn.mb = function(x, node, method, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE) {
+    start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
+    optimized = TRUE) {
 
-  mb.backend(x, node = node, method = method, whitelist = whitelist,
+  mb.backend(x, target = node, method = method, whitelist = whitelist,
+    blacklist = blacklist, start = start, test = test, alpha = alpha,
+    B = B, debug = debug, optimized = optimized)
+
+}#LEARN.MB
+
+# Frontend for causal discovery learning algotrithms.
+learn.nbr = function(x, node, method, whitelist = NULL, blacklist = NULL,
+    start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
+    optimized = TRUE) {
+
+  nbr.backend(x, target = node, method = method, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B, debug = debug,
     optimized = optimized)
 
-}#LEARN.MB
+}#LEARN.NBR
 
 # naive Bayes frontend.
 naive.bayes = function(training, explanatory, data) {
 
   bayesian.classifier(data, training = training, explanatory = explanatory,
-    method = "naive", whitelist = NULL, blacklist = NULL, expand = list())
+    method = "naive", whitelist = NULL, blacklist = NULL, expand = list(),
+    debug = FALSE)
 
 }#NAIVE.BAYES
 
 # tree-augmented naive Bayes frontend.
 tree.bayes = function(x, training, explanatory, whitelist = NULL, blacklist = NULL,
-    mi = NULL, root = NULL) {
+    mi = NULL, root = NULL, debug = FALSE) {
 
   bayesian.classifier(x, training = training, explanatory = explanatory,
     method = "tan", whitelist = whitelist, blacklist = blacklist,
-    expand = list(estimator = mi, root = root))
+    expand = list(estimator = mi, root = root), debug = debug)
 
 }#TAN

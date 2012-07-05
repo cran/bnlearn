@@ -3,8 +3,8 @@
 \title{ Parametric and nonparametric bootstrap of Bayesian networks }
 \description{
 
-  Apply a user-specified function to Bayesian networks learned
-  from bootstrap samples of the original data.
+  Apply a user-specified function to the Bayesian network structures
+  learned from bootstrap samples of the original data.
 
 }
 \usage{
@@ -36,6 +36,14 @@ bn.boot(data, statistic, R = 200, m = nrow(data),
       example.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
+}
+\details{
+
+  The first argument of \code{statistic} is the \code{bn} object encoding
+  the network structure learned from the bootstrap sample; the arguments
+  specified in \code{statistics.args} are extracted from the list and
+  passed to \code{statitstics} as the 2nd, 3rd, etc. arguments.
+
 }
 \value{
 

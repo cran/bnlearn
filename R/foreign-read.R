@@ -2,8 +2,6 @@
 # read a BIF file into a bn.fit object.
 read.foreign.backend = function(lines, format = "bif", filename, debug = FALSE) {
 
-  nlines = length(lines)
-
   # remove comments.
   if (format %in% c("bif", "dsc"))
     lines = sub("//.*", "", lines)
@@ -13,6 +11,19 @@ read.foreign.backend = function(lines, format = "bif", filename, debug = FALSE) 
   lines = gsub("^\\s+|\\s+$", "", lines, perl = TRUE)
   # remove empty lines.
   lines = lines[grep("^\\s*$", lines, perl = TRUE, invert = TRUE)]
+
+  if (format == "bif") {
+
+    # remove useless properties from declarations and CPTs.
+    lines = bif.preparse(lines)
+
+  }#THEN
+  else if (format == "dsc") {
+
+    # quick fix for CPT declaration splitting (thanks Genie).
+    lines = dsc.preparse(lines)
+
+  }#THEN
 
   # check the file banner.
   if (format == "bif")
@@ -145,8 +156,7 @@ read.foreign.backend = function(lines, format = "bif", filename, debug = FALSE) 
   root.nodes = nodes[!(nodes %in% nonroot.nodes)]
 
   # create the empty bn.fit object.
-  fitted = structure(vector(nnodes, mode = "list"), names = nodes,
-             class = "bn.fit")
+  fitted = structure(vector(nnodes, mode = "list"), names = nodes)
 
   # fill in the metadata for the root nodes.
   for (node in nodes) {
@@ -203,9 +213,44 @@ read.foreign.backend = function(lines, format = "bif", filename, debug = FALSE) 
 
   }#FOR
 
+  # set the class of the return value; doing it before the object has been
+  # completely initialized clashed with the "[[<-.bn.fit" replacement methods.
+  class(fitted) = "bn.fit"
+
   return(fitted)
 
 }#READ.FOREIGN.BACKEND
+
+# remove properties to avoid confusion.
+bif.preparse = function(lines) {
+
+  # remove properties.
+  lines = gsub("^\\s*property[^;]*;", "", lines)
+  # remove empty lines.
+  lines = lines[grep("^\\s*$", lines, perl = TRUE, invert = TRUE)]
+
+  return(lines)
+
+}#BIF.PREPARSE
+
+# rebuild declarations split over multiple lines.
+dsc.preparse = function(lines) {
+
+  p = grep("probability[^)]*$", lines)
+  for (l in p) {
+
+    end = match.brace(lines, start = l, open = "(", close = ")")
+    lines[l] = paste(lines[l:end], collapse = " ")
+    lines[l] = gsub(" , ", ", ", lines[l])
+    lines[(l+1):end] = ""
+
+  }
+  # remove empty lines.
+  lines = lines[grep("^\\s*$", lines, perl = TRUE, invert = TRUE)]
+
+  return(lines)
+
+}#DSC.PREPARSE
 
 # check the banner of a BIF file.
 bif.check.banner = function(banner, filename) {
@@ -372,7 +417,8 @@ bif.get.parents = function(lines, start, dummies, bogus) {
   # remove commas and empty values.
   parents = lapply(parents, function(x) {
 
-    p = sub(",", "", x[grep("^\\s*$", x, perl = TRUE, invert = TRUE)])
+    p = sub(",", "", x)
+    p = p[grep("^\\s*$", p, perl = TRUE, invert = TRUE)]
 
     # check whether there are dropped nodes among the parents.
     if (any(p %in% dummies))
@@ -403,7 +449,8 @@ dsc.get.parents = function(lines, start, dummies, bogus) {
   # remove commas and empty values.
   parents = lapply(parents, function(x) {
 
-    p = sub(",", "", x[grep("^\\s*$", x, perl = TRUE, invert = TRUE)])
+    p = sub(",", "", x)
+    p = p[grep("^\\s*$", p, perl = TRUE, invert = TRUE)]
 
     # check whether there are dropped nodes among the parents.
     if (any(p %in% dummies))
@@ -434,7 +481,8 @@ net.get.parents = function(lines, start, dummies, bogus) {
   # remove commas and empty values.
   parents = lapply(parents, function(x) {
 
-    p = sub(",", "", x[grep("^\\s*$", x, perl = TRUE, invert = TRUE)])
+    p = sub(",", "", x)
+    p = p[grep("^\\s*$", p, perl = TRUE, invert = TRUE)]
 
     # check whether there are dropped nodes among the parents.
     if (any(p %in% dummies))
@@ -463,12 +511,8 @@ bif.get.levels = function(node, start, lines) {
 
   # get the line in which the description is starting.
   start.line = start[node]
-
   # loop until the line in which the description is ending.
-  end.line = .Call("match_brace",
-                   lines = lines,
-                   start = start.line,
-                   PACKAGE = "bnlearn")
+  end.line = match.brace(lines, start.line)
 
   # get all the node's description on one line for easy handling.
   desc = paste(lines[start.line:end.line], collapse = "")
@@ -476,6 +520,9 @@ bif.get.levels = function(node, start, lines) {
   levels = sub(".+type\\s+discrete\\s*\\[\\s*\\d+\\s*\\]\\s+[=]*\\s*\\{\\s+(.+)\\s*\\}.+", "\\1", desc)
   levels = strsplit(levels, ",")[[1]]
   levels = sub("^\\s*(.+?)\\s*$", "\\1", levels)
+
+  if (any(duplicated(levels)))
+    stop("duplicated levels '", paste(levels[duplicated(levels)], collapse = "' '"), "' for node ", node, ".\n")
 
   return(levels)
 
@@ -488,19 +535,18 @@ dsc.get.levels = function(node, start, lines) {
 
   # get the line in which the description is starting.
   start.line = start[node]
-
   # loop until the line in which the description is ending.
-  end.line = .Call("match_brace",
-                   lines = lines,
-                   start = start.line,
-                   PACKAGE = "bnlearn")
+  end.line = match.brace(lines, start.line)
 
   # get all the node's description on one line for easy handling.
   desc = paste(lines[start.line:end.line], collapse = "")
   # deparse the node's level.
   levels = sub(".+type\\s*[:]{0,1}\\s*discrete\\s*\\[\\s*\\d+\\s*\\]\\s+[=]{0,1}\\s*\\{\\s*(.+)\\s*\\}.+", "\\1", desc)
-  levels = strsplit(levels, ",")[[1]]
+  levels = strsplit(levels, "\"\\s*,")[[1]]
   levels = sub("^\\s*\"*(.+?)\"*\\s*$", "\\1", levels)
+
+  if (any(duplicated(levels)))
+    stop("duplicated levels '", paste(levels[duplicated(levels)], collapse = "' '"), "' for node ", node, ".\n")
 
   return(levels)
 
@@ -513,12 +559,8 @@ net.get.levels = function(node, start, lines) {
 
   # get the line in which the description is starting.
   start.line = start[node]
-
   # loop until the line in which the description is ending.
-  end.line = .Call("match_brace",
-                   lines = lines,
-                   start = start.line,
-                   PACKAGE = "bnlearn")
+  end.line = match.brace(lines, start.line)
 
   # get all the node's description on one line for easy handling.
   desc = paste(lines[start.line:end.line], collapse = "")
@@ -526,6 +568,9 @@ net.get.levels = function(node, start, lines) {
   # deparse the node's level.
   levels = sub(".+states\\s*[=]{0,1}\\s*\\(\\s*(.+?)\\s*\\).+", "\\1", desc)
   levels = gsub("\"", "", strsplit(levels, "\"\\s*\"")[[1]])
+
+  if (any(duplicated(levels)))
+    stop("duplicated levels '", paste(levels[duplicated(levels)], collapse = "' '"), "' for node ", node, ".\n")
 
   return(levels)
 
@@ -538,12 +583,8 @@ bif.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
   # get the line in which the description is starting.
   start.line = start[node]
-
   # loop until the line in which the description is ending.
-  end.line = .Call("match_brace",
-                   lines = lines,
-                   start = start.line,
-                   PACKAGE = "bnlearn")
+  end.line = match.brace(lines, start.line)
 
   # get all the node's description on one line for easy handling.
   desc = paste(lines[start.line:end.line], collapse = "")
@@ -580,17 +621,30 @@ bif.get.probabilities = function(node, start, lines, nodes.levels, parents, root
     if (length(probs) != length(cfg))
       stop("the number of conditional distributions for node ", node,
         " do not math the number of configurations of its parents")
+    # check whether the number of configurations matches the expected number of
+    # configurations given the parents' number of levels.
+    expected.cfgs = prod(sapply(nodes.levels[parents[[node]]], length))
+    if (length(probs) != expected.cfgs)
+      stop("there should be ", expected.cfgs, " conditional probability ",
+        "distributions, but only ", length(cfg), " are present.")
     # check whether each conditional probability distribution is valid.
-    if (any(!sapply(probs, is.probability.vector)))
-      stop("one of the conditional probability ditributions of node ", node,
-        " is not a vector of probabilities.")
+    not.prob = !sapply(probs, is.probability.vector)
+    if (any(not.prob)) {
+
+      not.prob = paste(which(not.prob), collapse = ", ")
+      stop("conditional probability ditribution(s) ", not.prob, " of node ",
+        node, " is not a vector of probabilities.")
+
+    }#THEN
     # check whether each conditional probability distribution sums to one.
-    if (any(abs(sapply(probs, sum) - 1) > 0.01)) {
+    not.prob = (abs(sapply(probs, sum) - 1) > 0.011)
+    if (any(not.prob)) {
 
       # if more than 1% of probability mass, let's assume that the conditional
       # probability distribution is misspecied.
-      stop("one of the conditional probability ditributions of node ", node,
-        " does not sum to one.")
+      not.prob = paste(which(not.prob), collapse = ", ")
+      stop("conditional probability ditribution(s) ", not.prob, " of node ",
+        node, " does not sum to one.")
 
     }#THEN
     else {
@@ -628,14 +682,12 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
   end.line = 0
 
+  nlevels = length(nodes.levels[[node]])
+
   # get the line in which the description is starting.
   start.line = start[node]
-
   # loop until the line in which the description is ending.
-  end.line = .Call("match_brace",
-                   lines = lines,
-                   start = start.line,
-                   PACKAGE = "bnlearn")
+  end.line = match.brace(lines, start.line)
 
   # get all the node's description on one line for easy handling.
   desc = paste(lines[start.line:end.line], collapse = "")
@@ -646,7 +698,7 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
     probs = sub(".+\\{\\s*(.+)\\s*;\\s*\\}.*", "\\1", desc)
     probs = strsplit(probs, ",")[[1]]
 
-    if (length(probs) != length(nodes.levels[[node]]))
+    if (length(probs) != nlevels)
       stop("the dimension of the CPT of node ", node,
         " does not match the number of its levels.")
 
@@ -661,6 +713,15 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
     # extract the conditional probability distributions.
     probs = strsplit(sub(".*\\)\\s*[:]{0,1}\\s*(.+)", "\\1", row), ",")
     probs = lapply(probs, as.numeric)
+    # paper over degenerate distributions with a uniform distribution.
+    probs = lapply(probs, function(x) {
+
+      if (all(x == 0))
+        return(prop.table(rep(1, nlevels)))
+      else
+        return(x)
+
+    })
 
     # extract the configurations of the parents.
     cfg = strsplit(sub(".*\\((.+)\\).+", "\\1", row), ",")
@@ -690,17 +751,30 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
     if (length(probs) != length(cfg))
       stop("the number of conditional distributions for node ", node,
         " do not math the number of configurations of its parents")
+    # check whether the number of configurations matches the expected number of
+    # configurations given the parents' number of levels.
+    expected.cfgs = prod(sapply(nodes.levels[parents[[node]]], length))
+    if (length(probs) != expected.cfgs)
+      stop("there should be ", expected.cfgs, " conditional probability ",
+        "distributions, but only ", length(cfg), " are present.")
     # check whether each conditional probability distribution is valid.
-    if (any(!sapply(probs, is.probability.vector)))
-      stop("one of the conditional probability ditributions of node ", node,
-        " is not a vector of probabilities.")
+    not.prob = !sapply(probs, is.probability.vector)
+    if (any(not.prob)) {
+
+      not.prob = paste(which(not.prob), collapse = ", ")
+      stop("conditional probability ditribution(s) ", not.prob, " of node ",
+        node, " is not a vector of probabilities.")
+
+    }#THEN
     # check whether each conditional probability distribution sums to one.
-    if (any(abs(sapply(probs, sum) - 1) > 0.01)) {
+    not.prob = (abs(sapply(probs, sum) - 1) > 0.011)
+    if (any(not.prob)) {
 
       # if more than 1% of probability mass, let's assume that the conditional
       # probability distribution is misspecied.
-      stop("one of the conditional probability ditributions of node ", node,
-        " does not sum to one.")
+      not.prob = paste(which(not.prob), collapse = ", ")
+      stop("conditional probability ditribution(s) ", not.prob, " of node ",
+        node, " does not sum to one.")
 
     }#THEN
     else {
@@ -712,7 +786,7 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
     }#ELSE
     # check whether the conditional probability distributions have the right
     # number of elements
-    if (any(lapply(probs, function(x) length(x)) != length(nodes.levels[[node]])))
+    if (any(lapply(probs, function(x) length(x)) != nlevels))
       stop("one of the conditional probability ditributions of node ", node,
         " has the wrong number of elements.")
 
@@ -722,7 +796,7 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
     for (i in seq_along(probs)) {
 
-      node.cpt = do.call("[<-", c(list(node.cpt, 1:length(nodes.levels[[node]])),
+      node.cpt = do.call("[<-", c(list(node.cpt, 1:nlevels),
                    cfg[[i]], list(probs[[i]])))
 
     }#FOR
@@ -740,15 +814,11 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
   # get the line in which the description is starting.
   start.line = start[node]
-
   # loop until the line in which the description is ending.
-  end.line = .Call("match_brace",
-                   lines = lines,
-                   start = start.line,
-                   PACKAGE = "bnlearn")
+  end.line = match.brace(lines, start.line)
 
   # get all the node's description on one line for easy handling.
-  desc = paste(lines[start.line:end.line], collapse = "")
+  desc = paste(lines[start.line:end.line], collapse = " ")
 
   # check bogus potential entries
   if (length(grep("model_data\\s+=", desc)) == 1)
@@ -786,16 +856,23 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
     probs = matrix(as.numeric(probs), byrow = TRUE, nrow = nconfigs)
 
     # check whether each conditional probability distribution is valid.
-    if (any(!apply(probs, 1, is.probability.vector)))
-      stop("one of the conditional probability ditributions of node ", node,
-           " is not a vector of probabilities.")
+    not.prob = !apply(probs, 1, is.probability.vector)
+    if (any(not.prob)) {
+
+      not.prob = paste(which(not.prob), collapse = ", ")
+      stop("conditional probability ditribution(s) ", not.prob, " of node ",
+        node, " is not a vector of probabilities.")
+
+    }#THEN
     # check whether each conditional probability distribution sums to one.
-    if (any(abs(apply(probs, 1, sum) - 1) > 0.01)) {
+    not.prob = (abs(apply(probs, 1, sum) - 1) > 0.011)
+    if (any(not.prob)) {
 
       # if more than 1% of probability mass, let's assume that the conditional
       # probability distribution is misspecied.
-      stop("one of the conditional probability ditributions of node ", node,
-           " does not sum to one.")
+      not.prob = paste(which(not.prob), collapse = ", ")
+      stop("conditional probability ditribution(s) ", not.prob, " of node ",
+        node, " does not sum to one.")
 
     }#THEN
     else {
@@ -832,3 +909,14 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
 }#NET.GET.PROBABILITIES
 
+# match braces to delimit blocks.
+match.brace = function(lines, start, open = "{", close = "}") {
+
+  .Call("match_brace",
+        lines = lines,
+        start = start,
+        open = open,
+        close = close,
+        PACKAGE = "bnlearn")
+
+}#MATCH.BRACE

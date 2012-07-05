@@ -32,7 +32,7 @@ write.bif = function(file, fitted) {
 # read a DSC file into a bn.fit object.
 read.dsc = function(file, debug = FALSE) {
 
-  # load the BIF file into memory.
+  # load the DSC file into memory.
   lines = readLines(file)
 
   read.foreign.backend(lines, format = "dsc", filename = file, debug = debug)
@@ -59,10 +59,10 @@ write.dsc = function(file, fitted) {
 
 }#WRITE.DSC
 
-# read a DSC file into a bn.fit object.
+# read a NET file into a bn.fit object.
 read.net = function(file, debug = FALSE) {
 
-  # load the BIF file into memory.
+  # load the NET file into memory.
   lines = readLines(file)
 
   read.foreign.backend(lines, format = "net", filename = file, debug = debug)

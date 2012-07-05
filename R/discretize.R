@@ -26,7 +26,7 @@ quantile.discretization = function(data, breaks) {
     quantiles = quantile(y, probs = seq(from = 0, to = breaks)/breaks)
     # check whther the quantiles are unique.
     if (any(duplicated(quantiles)))
-      stop("unable to discretize ", names(data)[x], " in ", breaks, 
+      stop("unable to discretize ", names(data)[x], " in ", breaks,
            " intervals, some quantiles are not unique.")
     # cut the range using the quantiles as break points.
     cut(y, breaks = quantiles, include.lowest = TRUE)
@@ -63,7 +63,7 @@ interval.discretization = function(data, breaks) {
 
 }#INTERVAL.DISCRETIZATION
 
-hartemink.discretization = function(data, breaks, initial.breaks, 
+hartemink.discretization = function(data, breaks, initial.breaks,
     initial.discretization, debug = FALSE) {
 
   # cache some useful quantities.

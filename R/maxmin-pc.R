@@ -18,7 +18,7 @@ maxmin.pc.optimized = function(x, whitelist, blacklist, test,
     # 2. [Backward Phase (II)]
     mb[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
          B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, debug = debug)
+         backtracking = backtracking, test = test, markov = FALSE, debug = debug)
 
   }#FOR
 
@@ -43,7 +43,7 @@ maxmin.pc.cluster = function(x, cluster, whitelist, blacklist,
   # 2. [Backward Phase (II)]
   mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, debug = debug)
+         test = test, markov = FALSE, debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -67,7 +67,7 @@ maxmin.pc = function(x, whitelist, blacklist, test, alpha, B,
   # 2. [Backward Phase (II)]
   mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
          B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-         debug = debug)
+         markov = FALSE, debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -149,10 +149,9 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
 
     }#ELSE
 
-    # get the one which maximizes the association measure.
     # stop if there are no candidates for inclusion.
     if (all(association > alpha) || length(nodes) == 0 || is.null(nodes)) break
-
+    # get the one which maximizes the association measure.
     to.add = names(which.min(association))
 
     if (debug) {
@@ -172,7 +171,7 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
 
   }#REPEAT
 
-  cpc
+  return(cpc)
 
 }#MAXMIN.PC.FORWARD.PHASE
 

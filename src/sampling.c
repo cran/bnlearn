@@ -143,7 +143,7 @@ SEXP result, nodes, roots, node_depth, cpt, parents, parent_vars, false;
 
   /* order the nodes according to their depth in the graph. */
   PROTECT(roots = root_nodes(fitted, false));
-  PROTECT(node_depth = schedule(fitted, roots, false));
+  PROTECT(node_depth = schedule(fitted, roots, false, false));
   poset = alloc1dcont(nnodes);
   for (i = 0; i < nnodes; i++)
     poset[i] = i;

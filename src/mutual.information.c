@@ -31,14 +31,8 @@ double res = 0;
 
   /* compute the mutual information from the joint and marginal frequencies. */
   for (i = 0; i < *llx; i++)
-    for (j = 0; j < *lly; j++) {
-
-      if (n[i][j] != 0)
-        res += ((double)n[i][j]) *
-           ( log((double)n[i][j]) + log((double)(*num)) -
-             log((double)ni[i]) - log((double)nj[j]) );
-
-    }/*FOR*/
+    for (j = 0; j < *lly; j++) 
+      res += MI_PART(n[i][j], ni[i], nj[j], *num);
 
   return (res)/(*num);
 
@@ -59,20 +53,12 @@ SEXP result;
 
 }/*MI*/
 
-/* conditional mutual information, to be used for the asymptotic test. */
-SEXP cmi(SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
+/* conditional mutual information, to be used in C code. */
+double c_cmi(int *xx, int *llx, int *yy, int *lly, int *zz, int *llz, int *num) {
 
-int i = 0, j = 0, k = 0, ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL;
-int *llx = INTEGER(lx), *lly = INTEGER(ly), *llz = INTEGER(lz);
-int *num = INTEGER(length);
-int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
-double *res = NULL;
-SEXP result;
-
-  /* allocate and initialize result to zero. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
-  *res = 0;
+int i = 0, j = 0, k = 0; 
+int ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL;
+double res = 0;
 
   /* initialize the contingency table and the marginal frequencies. */
   n = alloc3dcont(*llx, *lly, *llz);
@@ -102,20 +88,26 @@ SEXP result;
      marginal frequencies. */
   for (i = 0; i < *llx; i++)
     for (j = 0; j < *lly; j++)
-      for (k = 0; k < *llz; k++) {
+      for (k = 0; k < *llz; k++) 
+        res += MI_PART(n[i][j][k], ni[i][k], nj[j][k], nk[k]);
 
-       if (n[i][j][k] != 0) {
+  res = res/(*num);
 
-          *res += (double)n[i][j][k] *
-            ( log((double)n[i][j][k]) + log((double)nk[k]) -
-              log((double)ni[i][k]) - log((double)nj[j][k]) );
+  return res;
 
-        }/*THEN*/
+}/*C_CMI*/
 
-      }/*FOR*/
+/* conditional mutual information, to be used for the asymptotic test. */
+SEXP cmi(SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
 
-  *res = (*res)/(*num);
+int *llx = INTEGER(lx), *lly = INTEGER(ly), *llz = INTEGER(lz);
+int *num = INTEGER(length);
+int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
+SEXP result;
 
+  /* allocate and initialize result to zero. */
+  PROTECT(result = allocVector(REALSXP, 1));
+  NUM(result) = c_cmi(xx, llx, yy, lly, zz, llz, num);
   UNPROTECT(1);
 
   return result;

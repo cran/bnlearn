@@ -20,7 +20,7 @@ leaf.nodes = function(x) {
 }#LEAF.NODES
 
 # check if a graph is acyclic.
-acyclic = function(x, directed, debug = FALSE) {
+acyclic = function(x, debug = FALSE) {
 
   # check x's class.
   check.bn.or.fit(x)
@@ -31,20 +31,7 @@ acyclic = function(x, directed, debug = FALSE) {
   if (is(x, "bn.fit"))
     return(TRUE)
 
-  if (missing(directed)) {
-
-    is.acyclic(x$arcs, names(x$nodes), debug = debug)
-
-  }#THEN
-  else {
-
-    # check directed.
-    check.logical(directed)
-
-    is.acyclic.backend(arcs = x$arcs, nodes = names(x$nodes),
-      directed = directed, debug = debug)
-
-  }#ELSE
+  is.acyclic(arcs = x$arcs, nodes = names(x$nodes), debug = debug)
 
 }#ACYCLIC
 
@@ -251,11 +238,15 @@ compare = function(target, current, arcs = FALSE) {
 
 }#COMPARE
 
+# create a subgraph spanning a subset of nodes.
 subgraph = function(x, nodes) {
 
   # check x's class.
-  check.bn(x)
-  # check the node ordering.
+  check.bn.or.fit(x)
+  # get the network structure out of a bn.fit object.
+  if (is(x, "bn.fit"))
+    x = bn.net(x) 
+  # check the nodes of the subgraph.
   check.nodes(nodes, graph = x, min.nodes = 3, max.nodes = length(x$nodes))
 
   subgraph.backend(x = x, nodes = nodes)

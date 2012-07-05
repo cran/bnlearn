@@ -20,8 +20,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 2.9\cr
-    Date: \tab 2012-02-27\cr
+    Version: \tab 3.0\cr
+    Date: \tab 2012-07-05\cr
     License: \tab GPLv2 or later
 
   }
@@ -152,6 +152,11 @@
       the maximization of the minimum association measure observed with
       any subset of the nodes selected in the previous iterations
       (Tsamardinos, Brown and Aliferis, 2006).
+    \item \emph{Hiton Parents and Children} (\code{\link{si.hiton.pc}}):
+      a fast forward selection technique for neighbourhood detection
+      designed to exclude nodes early based on the marginal association.
+      The implementation follows the Semi-Interleaved variant of the
+      algorithm described in Aliferis et al. (2010).
     \item \emph{Chow-Liu} (\code{\link{chow.liu}}): an application of the
       minimum-weight spanning tree and the information inequality. It
       learn the tree structure closest to the true one in the probability
@@ -164,6 +169,24 @@
 
   All these algorithms have three implementations (unoptimized,
   optimized and cluster-aware) like other constraint-based algorithms.
+
+}
+\section{Bayesian Network classifiers}{
+
+  The algorithms are aimed at classification, and favour predictive power
+  over the ability to recover the correct network structure. The implementation
+  in \pkg{bnlearn} assumes that all variables, including the classifiers,
+  are discrete.
+
+  \itemize{
+
+    \item \emph{Naive Bayes} (\code{\link{naive.bayes}}): a very simple 
+      algorithm assuming that all classifiers are independent and using
+      the posterior probability of the target variable for classification.
+    \item \emph{Tree-Augmented Naive Bayes} (\code{\link{tree.bayes}}):
+      a improvement over naive Bayes, this algorithms uses Chow-Liu to
+      approximate the dependence structure of the classifiers.
+  }
 
 }
 \section{Available (conditional) independence tests}{
@@ -289,40 +312,39 @@
 }
 \section{Error detection and correction: the strict mode}{
 
-  Optimized implementations of constraint-based algorithms rely
-  heavily on backtracking to reduce the number of tests needed by
-  the learning procedure. This approach may hide errors either
-  in the Markov blanket or the neighbourhood detection phase in
-  some particular cases, such as when hidden variables are present
-  or there are external (logical) constraints on the interactions
-  between the variables.
+  Optimized implementations of constraint-based algorithms rely heavily
+  on backtracking to reduce the number of tests needed by the learning 
+  algorithm. This approach may sometimes hide errors either in the Markov
+  blanket or the neighbourhood detection steps, such as when hidden 
+  variables are present or there are external (logical) constraints on
+  the interactions between the variables.
 
-  On the other hand in the unoptimized implementations the Markov
-  blanket and neighbour detection of each node is completely
-  independent from the rest of the learning process. Thus it may
-  happen that the Markov blanket or the neighbourhoods are not
-  symmetric (i.e. A is in the Markov blanket of B but not vice versa),
-  or that some arc directions conflict with each other.
+  On the other hand, in the unoptimized implementations of constraint-based
+  algorithms the learning of the Markov blanket and neighbourhood of each
+  node is completely independent from the rest of the learning process.
+  Thus it may happen that the Markov blanket or the neighbourhoods are not
+  symmetric (i.e. A is in the Markov blanket of B but not vice versa), or
+  that some arc directions conflict with each other.
 
-  The \code{strict} parameter enables some measure of error
-  correction, which may help to retrieve a good model
-  even when the learning process would otherwise fail:
+  The \code{strict} parameter enables some measure of error correction for
+  such inconsistencies, which may help to retrieve a good model when the
+  learning process would otherwise fail:
 
   \itemize{
-    \item if \code{strict} is set to \code{TRUE}, every error
-      stops the learning process and results in an error message.
+    \item if \code{strict} is set to \code{TRUE}, every error stops the
+      learning process and results in an error message.
     \item if \code{strict} is set to \code{FALSE}:
     \enumerate{
-      \item v-structures are applied to the network structure
-        in lowest-p.value order; if any arc is already oriented
-        in the opposite direction, the v-structure is discarded.
-      \item nodes which cause asymmetries in any Markov blanket
-        are removed from that Markov blanket; they are treated
-        as false positives.
-      \item nodes which cause asymmetries in any neighbourhood
-        are removed from that neighbourhood; again they are treated
-        as false positives (see Tsamardinos, Brown and Aliferis, 2006).
+      \item v-structures are applied to the network structure in
+        lowest-p.value order; if any arc is already oriented in the
+        opposite direction, the v-structure is discarded.
+      \item nodes which cause asymmetries in any Markov blanket are removed
+        from that Markov blanket; they are treated as false positives.
+      \item nodes which cause asymmetries in any neighbourhood are removed
+        from that neighbourhood; again they are treated as false positives
+        (see Tsamardinos, Brown and Aliferis, 2006).
     }
+    Each correction results in a warning.
   }
 
 }
@@ -332,12 +354,21 @@
   is present in the \file{bibtex} directory of this package)
 
   Scutari M (2010). "Learning Bayesian Networks with the bnlearn R
-      Package". Journal of Statistical Software, 35(3), 1-22. URL
+      Package". Journal of Statistical Software, \strong{35}(3), 1-22. URL
       http://www.jstatsoft.org/v35/i03/.
+
+  Aliferis FC, Statnikov A, Tsamardinos I, Subramani M, Koutsoukos XD (2010).
+      "Local Causal and Markov Blanket Induction for Causal Discovery and
+      Feature Selection for Classification Part I: Algorithms and Empirical
+      Evaluation". \emph{Journal of Machine Learning Research}, \strong{11},
+      171-234.
 
   Chow CK, Liu CN (1968). "Approximating Discrete Probability Distributions
       With Dependence Trees". IEEE Transactions on InformationTheory,
       IT-14:462-467.
+
+  Friedman N, Geiger D, Goldszmidt M (1997). "Bayesian Network Classifiers".
+      \emph{Machine Learning}, \strong{29}(2--3), 131--163. 
 
   Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
       Principles and Techniques}. MIT Press.

@@ -86,7 +86,7 @@ SEXP c_cache_partial_structure(int target, SEXP nodes, SEXP amat, int *status, S
 
 /* from linear.algebra.c */
 
-SEXP r_svd(SEXP matrix);
+SEXP r_svd(SEXP matrix, SEXP strict);
 SEXP r_det(SEXP matrix, int scale);
 double c_det(double *matrix, int *rows);
 void c_svd(double *A, double *U, double *D, double *V, int *nrows, int *ncols,
@@ -106,7 +106,7 @@ void c_update_covmat(double **data, double *mean, int update, int *ncols,
 double c_fast_cor(double *xx, double *yy, int *num);
 double c_fast_pcor(double *covariance, int *ncols, double *u, double *d,
     double *vt, int *errcode);
-SEXP fast_pcor(SEXP data, SEXP length, SEXP shrinkage);
+SEXP fast_pcor(SEXP data, SEXP length, SEXP shrinkage, SEXP strict);
 
 /* from shrinkage.c */
 
@@ -144,11 +144,17 @@ SEXP root_nodes(SEXP bn, SEXP leaves);
 
 /* from simulation.c */
 
-SEXP schedule(SEXP bn, SEXP root_nodes, SEXP debug);
+SEXP schedule(SEXP bn, SEXP root_nodes, SEXP reverse, SEXP debug);
 
 /* from mutual.information.c */
 
+#define MI_PART(cell, xmarg, ymarg, zmarg) \
+  ((cell) == 0 ? 0 : \
+    ((double)(cell)) * log(((double)(cell)) * ((double)(zmarg)) / \
+    (((double)(xmarg)) * ((double)(ymarg)))))
+
 double c_mi(int *xx, int *llx, int *yy, int *lly, int *num);
+double c_cmi(int *xx, int *llx, int *yy, int *lly, int *zz, int *llz, int *num);
 double c_mig(double *xx, double *yy, int *num);
 
 /* memory allocation functions */

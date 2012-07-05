@@ -42,7 +42,7 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
            pass = 2)
 
   # do a last sanity check, just in case.
-  if (!is.acyclic.backend(arcs = arcs, nodes = nodes, directed = FALSE)) {
+  if (!is.acyclic(arcs = arcs, nodes = nodes)) {
 
     if (strict)
       stop("there are still cycles in the graph, aborting.")
@@ -53,7 +53,7 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
              blacklist = blacklist, cluster = cluster, debug = debug,
              pass = 3)
 
-    if (!is.acyclic.backend(arcs = arcs, nodes = nodes, directed = FALSE))
+    if (!is.acyclic(arcs = arcs, nodes = nodes))
       stop("the graph still contains cycles.")
 
   }#THEN
@@ -75,7 +75,7 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
 
 # build the neighbourhood of a node from the markov blanket.
 neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
-  backtracking = NULL, test, debug = FALSE) {
+  backtracking = NULL, test, empty.dsep = TRUE, markov = TRUE, debug = FALSE) {
 
   # save a prisitine copy of the markov blanket.
   nbrhood = mb[[x]]
@@ -138,76 +138,81 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
   }#THEN
 
-  if (length(nbrhood) > 1) {
+  # nothing much to do, just return.
+  if (length(nbrhood) <= 1)
+    return(list(mb = mb[[x]], nbr = nbrhood))
 
-    nbr = function(y, x, mb, test) {
+  # define the backward selection heuristic.
+  nbr = function(y, x, mb, test) {
 
-      k = 0
-      a = 0
+    k = ifelse(empty.dsep, 0, 1)
+    a = 0
 
-      if (debug)
-        cat("  * checking node", y, "for neighbourhood.\n")
+    if (debug)
+      cat("  * checking node", y, "for neighbourhood.\n")
 
-      # choose the smaller set of possible d-separating nodes.
+    # choose the smaller set of possible d-separating nodes. 
+    if (markov)
       dsep.set = smaller(mb[[x]][mb[[x]] != y], mb[[y]][mb[[y]] != x])
-      if (debug)
-        cat("    > dsep.set = '", dsep.set, "'\n")
+    else
+      dsep.set = mb[[x]][mb[[x]] != y]
 
-      repeat {
+    if (debug)
+      cat("    > dsep.set = '", dsep.set, "'\n")
 
-        # create all possible subsets of the markov blanket (excluding
-        # the node to be tested for exclusion) of size k.
-        dsep.subsets = subsets(length(dsep.set), k, dsep.set)
+    repeat {
 
-        for (s in 1:nrow(dsep.subsets)) {
+      # create all possible subsets of the markov blanket (excluding
+      # the node to be tested for exclusion) of size k.
+      dsep.subsets = subsets(length(dsep.set), k, dsep.set)
+
+      for (s in 1:nrow(dsep.subsets)) {
+
+        if (debug)
+          cat("    > trying conditioning subset '", dsep.subsets[s,], "'.\n")
+
+        a = conditional.test(x, y, dsep.subsets[s,], data = data,
+              test = test, B = B, alpha = alpha)
+        if (a > alpha) {
 
           if (debug)
-            cat("    > trying conditioning subset '", dsep.subsets[s,], "'.\n")
+            cat("    > node", y, "is not a neighbour of", x, ". ( p-value:", a, ")\n")
 
-          a = conditional.test(x, y, dsep.subsets[s,], data = data,
-                test = test, B = B, alpha = alpha)
-          if (a > alpha) {
-
-            if (debug)
-              cat("    > node", y, "is not a neighbour of", x, ". ( p-value:", a, ")\n")
-
-            # update the neighbourhood.
-            assign("nbrhood", nbrhood[nbrhood != y], envir = sys.frame(-3) )
-
-            break
-
-          }#THEN
-          else if (debug) {
-
-              cat("    > node", y, "is still a neighbour of", x, ". ( p-value:", a, ")\n")
-
-          }#THEN
-
-        }#FOR
-
-        # if the node was not removed from the markov blanket, increase
-        # the size of the conditioning set and try again (if the size of
-        # the markov blanket itself allows it).
-        if ((a <= alpha) && (k < length(dsep.set))) {
-
-          k = k+1
-
-        }#THEN
-        else {
+          # update the neighbourhood.
+          assign("nbrhood", nbrhood[nbrhood != y], envir = sys.frame(-3) )
 
           break
 
-        }#ELSE
+        }#THEN
+        else if (debug) {
 
-      }#REPEAT
+            cat("    > node", y, "is still a neighbour of", x, ". ( p-value:", a, ")\n")
 
-    }#NBR
+        }#THEN
 
-    # do not even try to remove whitelisted and backtracked (good) nodes.
-    sapply(nbrhood[!(nbrhood %in% unique(c(whitelisted, known.good)))],
-             nbr, x = x, mb = mb, test = test)
+      }#FOR
 
-  }#THEN
+      # if the node was not removed from the markov blanket, increase
+      # the size of the conditioning set and try again (if the size of
+      # the markov blanket itself allows it).
+      if ((a <= alpha) && (k < length(dsep.set))) {
+
+        k = k + 1
+
+      }#THEN
+      else {
+
+        break
+
+      }#ELSE
+
+    }#REPEAT
+
+  }#NBR
+
+  # do not even try to remove whitelisted and backtracked (good) nodes.
+  sapply(nbrhood[!(nbrhood %in% unique(c(whitelisted, known.good)))],
+           nbr, x = x, mb = mb, test = test)
 
   return(list(mb = mb[[x]], nbr = nbrhood))
 
@@ -409,7 +414,7 @@ orient.edges = function(arcs, nodes, whitelist, blacklist, pass, cluster,
       stop("too many iterations, probably would have gone on forever.")
 
     # check arcs between nodes which are both part of at least one cycle.
-    in.cycles = is.acyclic.backend(arcs, nodes, directed = FALSE, return.nodes = TRUE)
+    in.cycles = is.acyclic(arcs = arcs, nodes = nodes, return.nodes = TRUE)
     to.be.checked = (arcs[, "from"] %in% in.cycles) & (arcs[, "to"] %in% in.cycles)
 
     if (debug) {

@@ -4,7 +4,6 @@
 \alias{iamb}
 \alias{fast.iamb}
 \alias{inter.iamb}
-\alias{learn.mb}
 \title{ Constraint-based structure learning algorithms }
 \description{
 
@@ -29,10 +28,6 @@ fast.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
   optimized = TRUE, strict = FALSE, undirected = FALSE)
-
-learn.mb(x, node, method, whitelist = NULL, blacklist = NULL,
-  test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
-  optimized = TRUE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
@@ -65,12 +60,6 @@ learn.mb(x, node, method, whitelist = NULL, blacklist = NULL,
   \item{undirected}{a boolean value. If \code{TRUE} no attempt will be made
      to determine the orientation of the arcs; the returned (undirected)
      graph will represent the underlying structure of the Bayesian network.}
-  \item{node}{a character string, the label of a node.}
-  \item{method}{a character string, the label of a constraint-based algorithm.
-     Possible values are \code{gs}, \code{iamb}, \code{fast.iamb},
-     \code{inter.iamb}. See \code{\link{bnlearn-package}} and the
-     documentation of each algorithm for details.}
-
 }
 \value{
 
@@ -102,8 +91,8 @@ learn.mb(x, node, method, whitelist = NULL, blacklist = NULL,
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{local discovery algorithms}},
-  \code{\link{score-based algorithms}}, \code{\link{hybrid algorithms}}. }
+\seealso{\link{local discovery algorithms},
+  \link{score-based algorithms}, \link{hybrid algorithms}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

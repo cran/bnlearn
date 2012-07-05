@@ -20,7 +20,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
 
   graphviz.layouts = c("dot", "neato", "twopi", "circo", "fdp")
   node.shapes = c("ellipse", "circle")
-  highlight.params = c("nodes", "arcs", "col", "fill", "lwd", "lty")
+  highlight.params = c("nodes", "arcs", "col", "fill", "lwd", "lty", "textCol")
   highlighting = FALSE
 
   # check whether graphviz is loaded.
@@ -102,6 +102,17 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
 
     }#THEN
 
+    if ("textCol" %in% names(highlight)) {
+
+      if (!("nodes" %in% names(highlight)))
+        warning("no node to apply the 'textColor' color to, ignoring.")
+
+      check.colour(highlight$textCol)
+
+    }#THEN
+    else
+      highlight$textCol = "black"
+
   }#THEN
 
   # create the graphAM object from the bn object.
@@ -165,6 +176,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
 
       nodeRenderInfo(graph.plot)[["col"]][highlight$nodes] = highlight$col
       nodeRenderInfo(graph.plot)[["fill"]][highlight$nodes] = highlight$fill
+      nodeRenderInfo(graph.plot)[["textCol"]][highlight$nodes] = highlight$textCol
 
     }#THEN
 

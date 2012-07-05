@@ -13,8 +13,8 @@ arcs2amat = function(arcs, nodes) {
 amat2arcs = function(a, nodes) {
 
   .Call("amat2arcs",
-        amat = as.integer(a),
-        nodes = as.character(nodes),
+        amat = a,
+        nodes = nodes,
         PACKAGE = "bnlearn")
 
 }#AMAT2ARCS

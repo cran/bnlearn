@@ -56,7 +56,7 @@ choose.direction.test = function(x, arc, data, test, alpha, B, debug = FALSE) {
             choose(a = b, b = a, x = x, arc = arc[c(2, 1)], recurse = FALSE)
           else {
 
-            if (debug) 
+            if (debug)
               cat("  > arc", arc[2], "->", arc[1], "isn't good, either.\n")
 
             return(x)
@@ -233,7 +233,7 @@ choose.direction.boot = function(x, data, arc, extra.args, algorithm,
     algorithm.args, cpdag = TRUE, debug = FALSE) {
 
   # build a separate arc set with the two directions of the arc.
-  m = matrix(c(arc, rev(arc)), ncol = 2, byrow = TRUE, 
+  m = matrix(c(arc, rev(arc)), ncol = 2, byrow = TRUE,
         dimnames = list(c(), c("from", "to")))
 
   # compute the respective bootstrap strength/direction

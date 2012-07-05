@@ -49,6 +49,12 @@ cpdist(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
 
    }
 
+   Note that the number of observations returned by \code{cpdist} is always 
+   smaller than \code{n}, because logic sampling is a form of rejection 
+   sampling. Therefore, conly the obervations matching \code{evidence} (out
+   of the \code{n} that are generated) are returned, and their number depends
+   on the probability of \code{evidence}.
+
 }
 \value{
 
@@ -72,7 +78,19 @@ cpdist(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
 fitted = bn.fit(hc(learning.test), learning.test)
 # the result should be around 0.025.
 cpquery(fitted, (B == "b"), (A == "a"))
-
+# for a single observation, predict the value of a single
+# variable conditional on the others.
+var = names(learning.test)
+obs = 2
+str = paste("(", names(learning.test)[-3], "=='",
+        sapply(learning.test[obs,-3], as.character), "')", 
+        sep = "", collapse = " & ")
+str
+str2 = paste("(", names(learning.test)[3], "=='",
+         as.character(learning.test[obs, 3]), "')", sep = "")
+str2
+cpquery(fitted, eval(parse(text = str2)), eval(parse(text = str)))
+# conditional distribution of A given C == "c". 
 table(cpdist(fitted, "A", (C == "c")))
 }
 \author{ Marco Scutari }

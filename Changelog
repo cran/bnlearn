@@ -1,9 +1,28 @@
+bnlearn (3.0)
+
+  * added dsep() to test d-separation.
+  * implemented Tree-Augmented Naive Bayes (TAN) in tree.bayes().
+  * implemented Semi-Interleaved HITON-PC in si.hiton.pc().
+  * improved parsing in read.{bif,dsc,net}().
+  * fixed an indexing error in Gaussian permutation tests.
+  * added a "textCol" highlight option to graphviz.plot().
+  * added {incoming,outgoing,incident}.arcs().
+  * fixed two hard-tohit bugs in TABU search (thanks Maxime Gasse).
+  * added custom.fit() for expert parameter specification.
+  * added support for Markov blanket preseeding in learn.mb().
+  * assume independence instead of returning an error when a
+     partial correlation test fails due to errors in the
+     computation of the pseudoinverse of the covariance matrix.
+  * fixed an incorrect optimization in the backward phase of mmpc().
+  * fixed a floating point rounding problem in the mutual
+     information tests (64bit OSes only, thanks Maxime Gasse).
+  * fixed cp{query,dist}() handling of TRUE (thanks Maxime Gasse).
+  * added learn.nbr() to complement learn.mb().
 
 bnlearn (2.9)
 
-  * reworked the Depends and the Suggests due to new CRAN checks;
-     as a result, some care must be exercised when loading the
-     graph package after bnlearn.
+  * integrate with the graph package and provide import/export
+     functions for the graphNEL and graphAM classes.
   * removed bn.var.test() and the "aict" test.
   * fixed wrong ISS handling in the BDe score.
   * fixed a buffer overflow in the BGe score.

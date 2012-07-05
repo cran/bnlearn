@@ -1,24 +1,44 @@
 \name{naive.bayes}
 \alias{naive.bayes}
+\alias{tree.bayes}
 \alias{predict.bn.naive}
-\title{ Discrete naive Bayes classifiers }
+\alias{predict.bn.tan}
+\title{ Naive Bayes classifiers }
 \description{
 
-  Create, fit and perform predictions with naive Bayes classifiers.
+  Create, fit and perform predictions with naive Bayes and 
+  Tree-Augmented naive Bayes (TAN) classifiers.
 
 }
 \usage{
 naive.bayes(training, explanatory, data)
 \method{predict}{bn.naive}(object, data, prior, ..., debug = FALSE)
+
+tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
+  mi = NULL, root = NULL, debug = FALSE)
+\method{predict}{bn.tan}(object, data, prior, ..., debug = FALSE)
 }
 \arguments{
   \item{training}{a character string, the label of the training variable.}
   \item{explanatory}{a vector of character strings, the labels of the
     explanatory variables.}
   \item{object}{an object of class \code{bn.naive}, either fitted or not.}
-  \item{data}{a data frame containing the variables in the model.}
+  \item{x, data}{a data frame containing the variables in the model, which
+    must all be factors.}
   \item{prior}{a numeric vector, the prior distribution for the training
     variable. It is automatically normalized if not already so.}
+  \item{whitelist}{a data frame with two columns (optionally labeled
+    "from" and "to"), containing a set of arcs to be included in the
+     graph. }
+  \item{blacklist}{a data frame with two columns (optionally labeled
+    "from" and "to"), containing a set of arcs not to be included in
+     the graph. }
+  \item{mi}{a character string, the estimator used for the mutual
+     information coefficients for the Chow-Liu algorithm in TAN. Possible
+     values are \code{mi} (discrete mutual information) and \code{mi-g}
+     (Gaussian mutual information).}
+ \item{root}{a character string, the label of the explanatory variable to
+     bre used as the root of the tree in the TAN classifier.}
  \item{\dots}{extra arguments from the generic method (currently ignored).}
  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
     is printed; otherwise the function is completely silent.}
@@ -51,6 +71,9 @@ naive.bayes(training, explanatory, data)
 
   \code{naive.bayes} returns an object of class \code{c("bn.naive", "bn")},
   which behaves like a normal \code{bn} object unless passed to \code{predict}.
+  \code{tree.bayes} returns an object of class \code{c("bn.tan", "bn")},
+  which again behaves like a normal \code{bn} object unless passed to 
+  \code{predict}.
 
   \code{predict} returns a factor with the same levels as the \code{training}
   variable from \code{data}.
@@ -62,27 +85,29 @@ naive.bayes(training, explanatory, data)
       Representations for Learning, Reasoning and Data Mining}.
       Wiley, 2nd edition.
 
+  Friedman N, Geiger D, Goldszmidt M (1997). "Bayesian Network Classifiers".
+      \emph{Machine Learning}, \strong{29}(2--3), 131--163. 
+
 }
 \examples{
 data(learning.test)
 bn = naive.bayes("A", LETTERS[2:6])
 pred = predict(bn, learning.test)
 table(pred, learning.test[, "A"])
-#
 # pred    a    b    c
 #    a 1286  310  178
 #    b  192  977  203
 #    c  190  383 1281
-#
-fitted = bn.fit(bn, learning.test, method = "bayes")
+
+tan = tree.bayes(learning.test, "A")
+
+fitted = bn.fit(tan, learning.test, method = "bayes")
 pred = predict(fitted, learning.test)
 table(pred, learning.test[, "A"])
-#
 # pred    a    b    c
-#    a 1286  310  178
-#    b  192  977  203
-#    c  190  383 1281
-#
+#    a 1300  180  184
+#    b  206 1342  239
+#    c  162  148 1239
 }
 \author{ Marco Scutari }
 \keyword{multivariate}

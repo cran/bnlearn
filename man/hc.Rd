@@ -72,8 +72,8 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{constraint-based algorithms}}, \code{\link{hybrid algorithms}}, \cr
-  \code{\link{local discovery algorithms}}. }
+\seealso{\link{constraint-based algorithms}, \link{hybrid algorithms}, \cr
+  \link{local discovery algorithms}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

@@ -93,8 +93,8 @@ mmhc(x, whitelist = NULL, blacklist = NULL, test = NULL,
 
 }
 \author{ Marco Scutari }
-\seealso{\code{\link{local discovery algorithms}},
-  \code{\link{score-based algorithms}}, \code{\link{constraint-based algorithms}}. }
+\seealso{\link{local discovery algorithms},
+  \link{score-based algorithms}, \link{constraint-based algorithms}. }
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

@@ -14,7 +14,7 @@
 }
 \usage{
 # check whether the graph is acyclic/completely directed.
-acyclic(x, directed, debug = FALSE)
+acyclic(x, debug = FALSE)
 directed(x)
 # check whether there is a path between two nodes.
 path(x, from, to, direct = TRUE, underlying.graph = FALSE,
@@ -32,9 +32,6 @@ subgraph(x, nodes)
   \item{to}{a character string, the label of a node (different from \code{from}).}
   \item{direct}{a boolean value. If \code{FALSE} ignore any arc between \code{from}
        and \code{to} when looking for a path.}
-  \item{directed}{a boolean value. If \code{TRUE} the graph is assumed to be
-       completely directed (no undirected arcs), and a faster cycle detection
-       algorithm is used.}
   \item{underlying.graph}{a boolean value. If \code{TRUE} the underlying undirected
        graph is used instead of the (directed) one from the \code{x} parameter.}
   \item{ordering}{the labels of all the nodes in the graph; their order is the

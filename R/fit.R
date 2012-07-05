@@ -93,18 +93,24 @@ bn.fit.backend = function(x, data, method = "mle", extra.args, debug = FALSE) {
           coefficients = c(coefs), residuals = resid,
           fitted.values = fitted, sd = sd), class = "bn.fit.gnode")
 
-
       }#ELSE
 
     }#FIT
 
   }#ELSE
 
+  # fit the parameters of each node.
+  fitted = sapply(names(x$nodes), fit, simplify = FALSE)
   # preserve any additional class of the original bn object.
   orig.class = class(x)
   class = c(orig.class[orig.class != "bn"], "bn.fit")
+  # preserve the training node label from Bayesian network classifiers.
+  if (x$learning$algo %in% classifiers)
+    fitted = structure(fitted, class = class, training = x$learning$args$training)
+  else
+    fitted = structure(fitted, class = class)
 
-  # fit the parameters of each node.
-  structure(sapply(names(x$nodes), fit, simplify = FALSE), class = class)
+  return(fitted)
 
 }#BN.FIT.BACKEND
+
