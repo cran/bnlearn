@@ -66,6 +66,7 @@ parents.backend = function(arcs, node, undirected = FALSE) {
 
 }#PARENTS.BACKEND
 
+# backend of mb() for bn.fit objects.
 mb.fitted = function(x, node) {
 
   .Call("fitted_mb",
@@ -166,13 +167,14 @@ pdag2dag.backend = function(arcs, ordering) {
 }#PDAG2DAG.BACKEND
 
 # reconstruct the equivalence class of a network.
-cpdag.backend = function(x, debug = FALSE) {
+cpdag.backend = function(x, moral = TRUE, debug = FALSE) {
 
   nodes = names(x$nodes)
 
   amat = .Call("cpdag",
                arcs = x$arcs,
                nodes = nodes,
+               moral = moral,
                debug = debug,
                PACKAGE = "bnlearn")
 
@@ -180,18 +182,19 @@ cpdag.backend = function(x, debug = FALSE) {
   x$arcs = amat2arcs(amat, nodes)
 
   # update the network structure.
-  x$nodes = cache.structure(nodes, amat = amat, debug = debug)
+  x$nodes = cache.structure(nodes, amat = amat)
 
   return(x)
 
 }#CPDAG.BACKEND
 
 # reconstruct the arc set of the equivalence class of a network.
-cpdag.arc.backend = function(nodes, arcs, debug = FALSE) {
+cpdag.arc.backend = function(nodes, arcs, moral = FALSE, debug = FALSE) {
 
   amat = .Call("cpdag",
                arcs = arcs,
                nodes = nodes,
+               moral = moral,
                debug = debug,
                PACKAGE = "bnlearn")
 
@@ -305,11 +308,13 @@ hamming.distance = function(learned, true, debug = FALSE) {
 }#HAMMING.DISTANCE
 
 # backend for extracting v-structures from a network.
-vstructures = function(x, arcs, debug = FALSE) {
+vstructures = function(x, arcs, moral = FALSE, debug = FALSE) {
 
   .Call("vstructures",
-        x = x,
-        arcs = arcs,
+        arcs = x$arcs,
+        nodes = names(x$nodes),
+        return.arcs = arcs,
+        moral = moral,
         debug = debug,
         PACKAGE = "bnlearn")
 
@@ -381,6 +386,10 @@ dseparation = function(bn, x, y, z) {
   # this function implements the algorithm from Koller & Friedman's
   # "Probabilistic Graphical Models", Sec. 4.5, pages 136-137.
 
+  # if either x or y are in z, conditional independence is satisfied.
+  if ((x %in% z) || (y %in% z))
+    return(TRUE)
+
   # construct the upper closure of the query nodes.
   upper.closure = schedule(bn, start = c(x, y, z), reverse = TRUE)
   ucgraph = subgraph.backend(bn, upper.closure)
@@ -395,4 +404,4 @@ dseparation = function(bn, x, y, z) {
 
   return(!connected)
 
-}#UPPER.CLOSURE
+}#DSEPARATION

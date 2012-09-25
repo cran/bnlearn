@@ -1,12 +1,12 @@
 
 # Global variables.
-available.discrete.tests = c("mi", "mi-sh", "x2", "mc-mi", "smc-mi", "mc-x2", "smc-x2")
+available.discrete.tests = c("mi", "mi-sh", "x2", "mc-mi", "smc-mi", "mc-x2", "smc-x2", "sp-mi", "sp-x2")
 available.continuous.tests = c("cor", "zf", "mi-g", "mi-g-sh", "mc-mi-g",
   "smc-mi-g", "mc-cor", "smc-cor", "mc-zf", "smc-zf")
 available.tests = c(available.discrete.tests, available.continuous.tests)
 
 resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g",
-  "mc-cor", "smc-cor", "mc-zf", "smc-zf")
+  "mc-cor", "smc-cor", "mc-zf", "smc-zf", "sp-mi", "sp-x2")
 asymptotic.tests = c("mi", "mi-g", "x2", "zf")
 
 available.discrete.scores = c("loglik", "aic", "bic", "bde", "bdes", "k2", "mbde")
@@ -62,6 +62,7 @@ test.labels = c(
   'mi-sh' = "Mutual Information (discrete, shrinkage)",
   'mc-mi' = "Mutual Information (discrete, Monte Carlo)",
   'smc-mi' = "Mutual Information (discrete, Sequential Monte Carlo)",
+  'sp-mi' = "Mutual Information (discrete, semiparametric)",
   'mi-g' = "Mutual Information (Gaussian)",
   'mi-g-sh' = "Mutual Information (Gaussian, shrinkage)",
   'mc-mi-g' = "Mutual Information (Gaussian, Monte Carlo)",
@@ -69,6 +70,7 @@ test.labels = c(
   'x2'= "Pearson's X^2",
   'mc-x2'= "Pearson's X^2 (Monte Carlo)",
   'smc-x2'= "Pearson's X^2 (Sequential Monte Carlo)",
+  'sp-x2'= "Pearson's X^2 (semiparametric)",
   'cor' = "Pearson's Linear Correlation",
   'mc-cor' = "Pearson's Linear Correlation (Monte Carlo)",
   'smc-cor' = "Pearson's Linear Correlation (Sequential Monte Carlo)",

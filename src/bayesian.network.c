@@ -266,7 +266,8 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash, result;
   /* second check: node sets must contain the same node labels.  */
   PROTECT(cmatch = match(tnodes, cnodes, 0));
   c = INTEGER(cmatch);
-  R_isort(c, narcs);
+  /* sorting takes care of different node orderings. */
+  R_isort(c, nnodes);
 
   /* check that every node in the first network is also present in the
    * second one; this is enough because the node sets have the same size
@@ -308,12 +309,16 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash, result;
   /* fourth check:  arcs sets must contain the same arcs. */
   if (narcs > 0) {
 
-    /* compute the numeric hash of the arcs and sort them. */
+    /* compute the numeric hashes of both arc sets (against the same
+     * node set to make comparisons meaningful) and sort them. */
     PROTECT(thash = arc_hash(tarcs, tnodes, FALSE, TRUE));
-    PROTECT(chash = arc_hash(carcs, cnodes, FALSE, TRUE));
+    PROTECT(chash = arc_hash(carcs, tnodes, FALSE, TRUE));
     /* dereference the resulting integer vectors. */
     t = INTEGER(thash);
     c = INTEGER(chash);
+    /* sorting takes care of different arc orderings. */
+    R_isort(t, narcs);
+    R_isort(c, narcs);
 
     /* compare the integer vectors as generic memory areas. */
     if (memcmp(t, c, narcs * sizeof(int))) {

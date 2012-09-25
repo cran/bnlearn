@@ -12,11 +12,11 @@
 }
 \usage{
 naive.bayes(training, explanatory, data)
-\method{predict}{bn.naive}(object, data, prior, ..., debug = FALSE)
+\method{predict}{bn.naive}(object, data, prior, ..., prob = FALSE, debug = FALSE)
 
 tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   mi = NULL, root = NULL, debug = FALSE)
-\method{predict}{bn.tan}(object, data, prior, ..., debug = FALSE)
+\method{predict}{bn.tan}(object, data, prior, ..., prob = FALSE, debug = FALSE)
 }
 \arguments{
   \item{training}{a character string, the label of the training variable.}
@@ -40,8 +40,11 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
  \item{root}{a character string, the label of the explanatory variable to
      bre used as the root of the tree in the TAN classifier.}
  \item{\dots}{extra arguments from the generic method (currently ignored).}
+ \item{prob}{a boolean value. If \code{TRUE} the posterior probabilities
+     used for prediction are attached to the predicted values as an attribute
+     called \code{prob}.}
  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-    is printed; otherwise the function is completely silent.}
+     is printed; otherwise the function is completely silent.}
 }
 \details{
 
@@ -76,7 +79,9 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   \code{predict}.
 
   \code{predict} returns a factor with the same levels as the \code{training}
-  variable from \code{data}.
+  variable from \code{data}. If \code{prob = TRUE}, the posterior probabilities
+  used for prediction are attached to the predicted values as an attribute 
+  called \code{prob}.
 
 }
 \references{

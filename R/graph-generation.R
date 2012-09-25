@@ -73,6 +73,55 @@ ordered.graph = function(num, nodes, prob) {
 ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
     max.out.degree, max.degree, connected, debug = FALSE) {
 
+  nnodes = length(nodes) 
+
+  if (nnodes == 1) {
+
+    # with one node the is only one possible graph, the empty one.
+    empty = empty.graph.backend(nodes)
+
+    if (num == 1)
+      return(empty)
+    else
+      return(rep(list(empty), num))
+
+  }#THEN
+  else if (nnodes == 2) {
+
+    if (connected) {
+
+      # there are only two graphs, A -> B and B -> A.
+      e = empty.graph.backend(nodes)
+      graphs = list(
+        set.arc(e, from = nodes[1], to = nodes[2]),
+        set.arc(e, from = nodes[2], to = nodes[1])
+      )
+
+      if (num == 1)
+        return(graphs[[sample(1:2, size = 1)]])
+      else
+        return(graphs[sample(1:2, size = num, replace = TRUE)])
+
+    }#THEN
+    else {
+
+      # there are three graphs, A -> B, B -> A and the empty graph.
+      empty = empty.graph.backend(nodes)
+      graphs = list(
+        set.arc(empty, from = nodes[1], to = nodes[2]),
+        set.arc(empty, from = nodes[2], to = nodes[1]),
+        empty
+      )
+
+      if (num == 1)
+        return(graphs[[sample(1:3, size = 1)]])
+      else
+        return(graphs[sample(1:3, size = num, replace = TRUE)])
+
+    }#ELSE
+
+  }#THEN
+
   .Call("ide_cozman_graph",
         nodes = nodes,
         num = as.integer(num),

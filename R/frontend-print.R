@@ -129,14 +129,27 @@ print.bn = function(x, ...) {
 }#PRINT.BN
 
 # print method for class bn.fit.
-"print.bn.fit" = function(x, ...) {
+"print.bn.fit" = function(x, order, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
+  # set the order in which the modes are to be printed.
+  if (missing(order)) {
+
+    # print the nodes in the order in which they are stored.
+    order = seq_along(x)
+
+  }#THEN
+  else {
+
+    # check the node ordering.
+    check.nodes(order, graph = x, min.nodes = length(x), max.nodes = length(x))
+
+  }#ELSE    
 
   cat("\n  Bayesian network parameters\n")
 
-  for (i in seq(length(x)))
+  for (i in order)
     print(x[[i]])
 
   cat("\n")

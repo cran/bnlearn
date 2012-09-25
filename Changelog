@@ -1,3 +1,19 @@
+bnlearn (3.1)
+
+  * fixed all.equal(), it did not work as expected on networks
+     that were idetical save for the order of nodes or arcs.
+  * added a "moral" argument to cpdag() and vstructs() to make
+     those functions follow the different definitions of v-structure.
+  * added support for graphs with 1 and 2 nodes.
+  * fixed cpquery() handling of TRUE (this time for real).
+  * handle more corner cases in dsep().
+  * added a BIC method for bn and bn.fit objects.
+  * added the semiparametric tests from Tsamardinos & Borboudakis
+     (thanks Maxime Gasse).
+  * added posterior probabilities to the predictions for
+     {naive,tree}.bayes() models.
+  * fixed buffer overflow in rbn() for discrete data.
+
 bnlearn (3.0)
 
   * added dsep() to test d-separation.
@@ -7,7 +23,7 @@ bnlearn (3.0)
   * fixed an indexing error in Gaussian permutation tests.
   * added a "textCol" highlight option to graphviz.plot().
   * added {incoming,outgoing,incident}.arcs().
-  * fixed two hard-tohit bugs in TABU search (thanks Maxime Gasse).
+  * fixed two hard-to hit bugs in TABU search (thanks Maxime Gasse).
   * added custom.fit() for expert parameter specification.
   * added support for Markov blanket preseeding in learn.mb().
   * assume independence instead of returning an error when a

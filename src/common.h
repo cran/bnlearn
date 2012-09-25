@@ -61,7 +61,8 @@ SEXP getListElement(SEXP list, char *str);
 SEXP unique(SEXP array);
 SEXP dupe(SEXP array);
 int which_max(double *array, int length);
-void all_max(double *array, int length, int *maxima, int *nmax, int *indexes);
+void all_max(double *array, int length, int *maxima, int *nmax, int *indexes,
+    double *buf);
 SEXP finalize_arcs(SEXP arcs);
 SEXP minimal_data_frame(SEXP obj);
 SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop);

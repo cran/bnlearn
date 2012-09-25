@@ -12,9 +12,9 @@
 
 }
 \usage{
-cpdag(x, debug = FALSE)
+cpdag(x, moral = FALSE, debug = FALSE)
 cextend(x, debug = FALSE)
-vstructs(x, arcs = FALSE, debug = FALSE)
+vstructs(x, arcs = FALSE, moral = FALSE, debug = FALSE)
 moral(x, debug = FALSE)
 }
 \arguments{
@@ -22,8 +22,28 @@ moral(x, debug = FALSE)
   \item{arcs}{a boolean value. If \code{TRUE} the arcs that are part
     of at least one v-structure are returned instead of the v-structures
     themselves.}
+  \item{moral}{a boolean value. If \code{TRUE} we define a v-structure as
+    in Pearl (2000); if \code{FALSE}, as in Koller and Friedman (2009).
+    See below.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-       is printed; otherwise the function is completely silent.}
+    is printed; otherwise the function is completely silent.}
+}
+\details{
+
+  What kind of arc configuration is called a v-structure is not uniquely
+  defined in literature. The original definition from Pearl (2000), which
+  is still followed by most texts and papers, states that the two parents
+  in the v-structure must not be connected by an arc. However, Koller and
+  Friedman (2009) call that a \emph{immoral v-structure} and call a
+  \emph{moral v-structure} a v-structure in which the parents are linked
+  by an arc. This mirrors the \emph{unshielded} versus \emph{shielded
+  collider} naming convention, but is confusing.
+
+  Setting \code{moral} to \code{TRUE} in \code{cpdag} and \code{vstructs}
+  makes those functions follow the definition from Koller and Friedman
+  (2009); the default value of \code{FALSE}, on the other hand, makes
+  those functions follow the definition from Pearl (2000).
+
 }
 \value{
 
@@ -40,12 +60,15 @@ moral(x, debug = FALSE)
 }
 \references{
 
-  Pearl J (2000). \emph{Causality: Models, Reasoning and Inference}.
-      Cambridge University Press.
-
   Dor D (1992). \emph{A Simple Algorithm to Construct a Consistent
       Extension of a Partially Oriented Graph}. UCLA, Cognitive Systems
       Laboratory. Available as Technical Report R-185. 
+
+  Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
+      Principles and Techniques}. MIT Press.
+
+  Pearl J (2000). \emph{Causality: Models, Reasoning and Inference}.
+      Cambridge University Press.
 
 }
 \examples{

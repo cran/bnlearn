@@ -103,8 +103,17 @@ double rU = 0;
   /* compute the sample. */
   for (i = 0; i < nans; i++) {
 
-    /* handle configurations which are not observed in the original data. */
-    if (ISNAN(p[CMC(0, conf[i], r)]) || (conf[i] == NA_INTEGER)) {
+    /* check whether the parents' configuration is missing. */
+    if (conf[i] == NA_INTEGER) {
+
+      ans[i] = NA_INTEGER;
+      *warn = TRUE;
+      continue;
+
+    }/*THEN*/
+
+    /* check whether the conditional distribution is missing. */
+    if (ISNAN(p[CMC(0, conf[i], r)])) {
 
       ans[i] = NA_INTEGER;
       *warn = TRUE;

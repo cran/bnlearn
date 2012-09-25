@@ -164,7 +164,8 @@ averaged.network(arcs)
 start = random.graph(nodes = names(learning.test), num = 50)
 netlist = lapply(start, function(net) {
   hc(learning.test, score = "bde", iss = 10, start = net) })
-arcs = custom.strength(netlist, nodes = names(learning.test))
+arcs = custom.strength(netlist, nodes = names(learning.test),
+         cpdag = FALSE)
 arcs[(arcs$strength > 0.85) & (arcs$direction >= 0.5), ]
 #    from to strength direction
 # 1     A  B        1      1.00

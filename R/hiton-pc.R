@@ -205,7 +205,7 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
 }#SI.HITON.PC.HEURISTIC
 
-# detect v-structures in the graph.
+# backward stage of HITON-PC. 
 si.hiton.pc.backward = function(target, candidate, cpc, data, test, alpha, B, debug) {
 
   k = 1 # marginal associations are alwas significant.

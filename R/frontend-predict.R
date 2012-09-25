@@ -73,12 +73,19 @@ predict.bn.fit.dnode = function(object, data, ..., debug = FALSE) {
 }#PREDICT.BN.FIT.DNODE
 
 # estimate the predicted values for a naive Bayes classfier.
-predict.bn.naive = function(object, data, prior, ..., debug = FALSE) {
+predict.bn.naive = function(object, data, prior, ..., prob = FALSE, debug = FALSE) {
 
   # check the data are there.
   check.data(data)
-  # check the bn.naive object.
-  check.bn.naive(object)
+  # check the bn.{naive,tan} object.
+  if (is(object, "bn.naive"))
+    check.bn.naive(object)
+  else
+    check.bn.tan(object)
+
+  # check debug and prob
+  check.logical(debug)
+  check.logical(prob)
 
   # fit the network if needed.
   if (is(object, "bn"))
@@ -98,37 +105,10 @@ predict.bn.naive = function(object, data, prior, ..., debug = FALSE) {
 
   # compute the predicted values.
   naive.classifier(training = training, fitted = fitted, data = data,
-    prior = prior, debug = debug)
+    prior = prior, prob = prob, debug = debug)
 
 }#PREDICT.BN.NAIVE
 
 # estimate the predicted values for a TAN classfier.
-predict.bn.tan = function(object, data, prior, ..., debug = FALSE) {
-
-  # check the data are there.
-  check.data(data)
-  # check the bn.tan object.
-  check.bn.tan(object)
-
-  # fit the network if needed.
-  if (is(object, "bn"))
-    fitted = bn.fit(object, data)
-  else
-    fitted = object
-
-  # check the fitted model.
-  check.fit.vs.data(fitted = fitted, data = data)
-  # warn about unused arguments.
-  check.unused.args(list(...), character(0))
-
-  # get the response variable.
-  training = attr(fitted, "training")
-  # check the prior distribution.
-  prior = check.prior(prior, data[, training])
-
-  # compute the predicted values.
-  naive.classifier(training = training, fitted = fitted, data = data,
-    prior = prior, debug = debug)
-
-}#PREDICT.BN.TAN
+predict.bn.tan = predict.bn.naive
 

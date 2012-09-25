@@ -8,6 +8,8 @@
 #define GAUSSIAN_MUTUAL_INFORMATION    3
 #define LINEAR_CORRELATION             4
 #define FISHER_Z                       5
+#define SP_MUTUAL_INFORMATION          6
+#define SP_PEARSON_X2                  7
 
 /* initialize the table of log-factorials. */
 #define allocfact(n) \
@@ -34,7 +36,7 @@ static double _cx2(int **n, int **nrowt, int **ncolt, int *ncond,
     int *nr, int *nc, int *nl);
 static double _cov(double *xx, double *yy, double *xm, double *ym, int *n);
 
-/* unconditional Monte Carlo simulation for discrete tests. */
+/* unconditional Monte Carlo and semiparametric discrete tests. */
 SEXP mcarlo(SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP samples,
     SEXP test, SEXP alpha) {
 
@@ -120,13 +122,42 @@ SEXP result;
 
       break;
 
+    case SP_MUTUAL_INFORMATION:
+      observed = _mi(n, nrowt, ncolt, nr, nc, num);
+
+      for (k = 0; k < *B; k++) {
+
+        rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
+        res[1] += _mi(n, nrowt, ncolt, nr, nc, num);
+
+      }/*FOR*/
+
+      observed = 2 * observed;
+      res[1] = 2 * res[1];
+
+      break;
+
+    case SP_PEARSON_X2:
+      observed = _x2(n, nrowt, ncolt, nr, nc, num);
+
+      for (k = 0; k < *B; k++) {
+
+        rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
+        res[1] += _x2(n, nrowt, ncolt, nr, nc, num);
+
+      }/*FOR*/
+
+      break;
+
   }/*SWITCH*/
 
   PutRNGstate();
 
-  /* save the observed value of the statistic and the corresponding p-value. */
-  NUM(result) =  observed;
-  REAL(result)[1] =  REAL(result)[1] / (*B);
+  /* save the observed value of the statistic. */
+  res[0] = observed;
+  /* save the p-value (for nonparametric tests) or the degrees of freedon (for
+   * semiparametric tests). */
+  res[1] = res[1] / (*B);
 
   UNPROTECT(1);
 
@@ -134,7 +165,7 @@ SEXP result;
 
 }/*MCARLO*/
 
-/* conditional Monte Carlo simulation for discrete tests. */
+/* conditional Monte Carlo and semiparametric discrete tests. */
 SEXP cmcarlo(SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
     SEXP length, SEXP samples, SEXP test, SEXP alpha) {
 
@@ -227,12 +258,45 @@ SEXP result;
 
       break;
 
+    case SP_MUTUAL_INFORMATION:
+      observed = _cmi(n, nrowt, ncolt, ncond, nr, nc, nl);
+
+      for (j = 0; j < *B; j++) {
+
+        for (k = 0; k < *nl; k++)
+          rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
+
+        res[1] += _cmi(n, nrowt, ncolt, ncond, nr, nc, nl);
+
+      }/*FOR*/
+
+      observed = 2 * observed;
+      res[1] = 2 * res[1];
+
+      break;
+
+    case SP_PEARSON_X2:
+      observed = _cx2(n, nrowt, ncolt, ncond, nr, nc, nl);
+
+      for (j = 0; j < *B; j++) {
+
+        for (k = 0; k < *nl; k++)
+          rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
+
+        res[1] += _cx2(n, nrowt, ncolt, ncond, nr, nc, nl);
+
+      }/*FOR*/
+
+      break;
+
   }/*SWITCH*/
 
   PutRNGstate();
 
-  /* save the observed value of the statistic and the corresponding p-value. */
+  /* save the observed value of the statistic. */
   res[0] = observed;
+  /* save the p-value (for nonparametric tests) or the degrees of freedon (for
+   * semiparametric tests). */
   res[1] /= *B;
 
   UNPROTECT(1);

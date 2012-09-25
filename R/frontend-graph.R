@@ -111,7 +111,7 @@ ordering2blacklist = function(nodes) {
   }#THEN
 
   # check the node labels.
-  check.nodes(nodes, min.nodes = 3)
+  check.nodes(nodes)
 
   tiers.backend(nodes)
 
@@ -125,12 +125,12 @@ tiers2blacklist = function(nodes) {
     if (!all(sapply(nodes, is.character)))
       stop("node labels must be character strings.")
 
-    check.nodes(unlist(nodes), min.nodes = 3)
+    check.nodes(unlist(nodes))
 
   }#THEN
   else {
 
-    check.nodes(nodes, min.nodes = 3)
+    check.nodes(nodes)
 
   }#ELSE
 
@@ -247,7 +247,7 @@ subgraph = function(x, nodes) {
   if (is(x, "bn.fit"))
     x = bn.net(x) 
   # check the nodes of the subgraph.
-  check.nodes(nodes, graph = x, min.nodes = 3, max.nodes = length(x$nodes))
+  check.nodes(nodes, graph = x, max.nodes = length(x$nodes))
 
   subgraph.backend(x = x, nodes = nodes)
 

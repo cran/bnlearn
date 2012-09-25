@@ -102,11 +102,15 @@ export(
   "write.net"
 )
 
+importFrom(stats, logLik, AIC, BIC, residuals, fitted, coef, predict)
+
 S3method(all.equal, bn)
 S3method(print, bn)
 S3method(plot, bn)
 S3method(AIC, bn)
 S3method(AIC, bn.fit)
+S3method(BIC, bn)
+S3method(BIC, bn.fit)
 S3method(logLik, bn)
 S3method(logLik, bn.fit)
 S3method(rbn, bn)

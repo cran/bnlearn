@@ -32,17 +32,21 @@ double max = R_NegInf;
 }/*WHICH_MAX*/
 
 /* return all maxima in the array, modulo numeric tolerance. */
-void all_max(double *array, int length, int *maxima, int *nmax, int *indexes) {
+void all_max(double *array, int length, int *maxima, int *nmax, int *indexes,
+    double *buf) {
 
   int i = 0;
   double tol = MACHINE_TOL;
 
+  /* make a safety copy of the array. */
+  memcpy(buf, array, length * sizeof(double));
+
   /* sort the elements of the array. */
-  rsort_with_index(array, indexes, length);
+  rsort_with_index(buf, indexes, length);
 
   /* count the number of maxima (considering numeric tolerance). */
   for (i = length - 1; i >= 0; i--)
-    if (array[i] < array[length - 1] - tol)
+    if (buf[i] < buf[length - 1] - tol)
       break;
 
   /* set the counter for the number of maxima. */

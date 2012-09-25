@@ -159,6 +159,13 @@ AIC.bn.fit = function(object, data, ..., k = 1) {
 
 }#AIC.BN.FIT
 
+# BIC method for class 'bn.fit'.
+BIC.bn.fit = function(object, data, ...) {
+
+  logLik(object, data) - log(nrow(data))/2 * nparams(object)
+
+}#BIC.BN.FIT
+
 # replace one conditional probability distribution in a bn.fit object.
 "[[<-.bn.fit" = function(x, name, value) {
 
@@ -171,7 +178,7 @@ AIC.bn.fit = function(object, data, ..., k = 1) {
   if (is(to.replace, "bn.fit.dnode")) {
 
     # check the consistency of the new conditional distribution.
-    value = check.fit.dnode.spec(value)
+    value = check.fit.dnode.spec(value, node = name)
     # sanity check the new obejct by comparing it to the old one.
     value = check.dnode.vs.spec(value, to.replace)
     # replace the conditional probability table.
@@ -190,7 +197,7 @@ AIC.bn.fit = function(object, data, ..., k = 1) {
     else {
 
       # check the consistency of the new conditional distribution.
-      check.fit.gnode.spec(value)
+      check.fit.gnode.spec(value, node = name)
 
     }#ELSE
 
@@ -269,7 +276,7 @@ custom.fit = function(x, dist) {
 
     # check the consistency of the conditional probability distributions.
     for (cpd in names(dist))
-      dist[[cpd]] = check.fit.dnode.spec(dist[[cpd]])
+      dist[[cpd]] = check.fit.dnode.spec(dist[[cpd]], node = cpd)
 
     # cross-check the levels of each node across all CPTs.
     cpt.levels = lapply(dist, function(x) dimnames(x)[[1]])
@@ -323,7 +330,7 @@ custom.fit = function(x, dist) {
     for (cpd in names(dist)) {
 
       # check the consistency of the conditional probability distribution.
-      check.fit.gnode.spec(dist[[cpd]])
+      check.fit.gnode.spec(dist[[cpd]], node = cpd)
       # sanity check the new object by comparing it to the old one.
       check.gnode.vs.spec(dist[[cpd]], old = fitted[[cpd]]$parents,
         node = cpd)

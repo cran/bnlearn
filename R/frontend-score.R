@@ -37,6 +37,17 @@ AIC.bn = function(object, data, ..., k = 1) {
 
 }#AIC.BN
 
+# BIC method for class 'bn', an alias of score(..., type = "bic")
+BIC.bn = function(object, data, ...) {
+
+  # parameter sanitization done in the score() function.
+  if (is.data.discrete(data))
+    score(object, data = data, type = "bic", ...)
+  else
+    score(object, data = data, type = "bic-g", ...)
+
+}#BIC.BN
+
 # logLik method for class 'bn', an alias of score(..., type = "loglik")
 logLik.bn = function(object, data, ...) {
 

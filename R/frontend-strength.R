@@ -91,7 +91,14 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
   }#THEN
 
-  return(structure(res, row.names = seq(nrow(res)), class = c("bn.strength", class(res))))
+  # set the class of the return value.
+  res = structure(res, class = c("bn.strength", class(res)))
+
+  # reset the row names if there are rows.
+  if (nrow(res) > 0)
+    res  = structure(res, row.names = seq(nrow(res)))
+
+  return(res)
 
 }#ARC.STRENGTH
 
@@ -104,7 +111,7 @@ custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE, debug 
   # check cpdag.
   check.logical(cpdag)
   # check the node labels.
-  check.nodes(nodes, min.nodes = 3)
+  check.nodes(nodes)
   # check networks.
   check.customlist(networks, nodes = nodes)
   # check the weights.
@@ -142,7 +149,7 @@ averaged.network = function(strength, nodes, threshold) {
   else {
 
     # sanitize the node set.
-    check.nodes(nodes = nodes, min.nodes = 3)
+    check.nodes(nodes = nodes)
     # double-check whther the bn.strength object agrees with the node set.
     check.bn.strength(strength, nodes = nodes)
 

@@ -75,6 +75,7 @@ cpdist(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
 
 }
 \examples{
+## discrete Bayesian network.
 fitted = bn.fit(hc(learning.test), learning.test)
 # the result should be around 0.025.
 cpquery(fitted, (B == "b"), (A == "a"))
@@ -92,6 +93,14 @@ str2
 cpquery(fitted, eval(parse(text = str2)), eval(parse(text = str)))
 # conditional distribution of A given C == "c". 
 table(cpdist(fitted, "A", (C == "c")))
+
+## Gaussian Bayesian network.
+fitted = bn.fit(hc(gaussian.test), gaussian.test)
+# the result should be around 0.04.
+cpquery(fitted, 
+  event = ((A >= 0) & (A <= 1)) & ((B >= 0) & (B <= 3)),
+  evidence = (C + D < 10))
+
 }
 \author{ Marco Scutari }
 \keyword{multivariate}

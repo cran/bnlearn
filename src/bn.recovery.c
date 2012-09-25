@@ -1,11 +1,11 @@
 #include "common.h"
 
 /* check neighbourhood sets and markov blanets for consistency.. */
-SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP debug) {
+SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP filter, SEXP debug) {
 
 int i = 0, j = 0, k = 0, n = 0, counter = 0;
 short int *checklist = NULL, err = 0;
-int *debuglevel = NULL, *checkmb = NULL;
+int *debuglevel = NULL, *checkmb = NULL, *flt = INTEGER(filter);
 SEXP temp, temp2, nodes, elnames = NULL, fixed;
 
   /* get the names of the nodes. */
@@ -142,7 +142,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
 
     /* rescan the checklist. */
     for (j = 0; j < n; j++)
-      if (checklist[UPTRI(i + 1, j + 1, n)] == 2)
+      if (checklist[UPTRI(i + 1, j + 1, n)] >= *flt)
         if (i != j)
           counter++;
 

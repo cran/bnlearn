@@ -65,7 +65,8 @@ discrete.prediction = function(node, fitted, data, debug = FALSE) {
 }#DISCRETE.PREDICTION
 
 # Naive Bayes and Tree-Augmented naive Bayes classifiers for discrete networks.
-naive.classifier = function(training, fitted, prior, data, debug = FALSE) {
+naive.classifier = function(training, fitted, prior, data, prob = FALSE,
+    debug = FALSE) {
 
   # get the labels of the explanatory variables.
   nodes = names(fitted)
@@ -83,6 +84,7 @@ naive.classifier = function(training, fitted, prior, data, debug = FALSE) {
         parents = match(parents, nodes),
         training = which(nodes == training),
         prior = prior,
+        prob = prob,
         debug = debug,
         PACKAGE = "bnlearn")
 

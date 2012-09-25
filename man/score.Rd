@@ -2,6 +2,7 @@
 \alias{score}
 \alias{logLik.bn}
 \alias{AIC.bn}
+\alias{BIC.bn}
 \title{ Score of the Bayesian network }
 \description{
 
@@ -13,6 +14,7 @@ score(x, data, type = NULL, ..., debug = FALSE)
 
 \method{logLik}{bn}(object, data, ...)
 \method{AIC}{bn}(object, data, ..., k = 1)
+\method{BIC}{bn}(object, data, ...)
 }
 \arguments{
   \item{x, object}{an object of class \code{bn}.}

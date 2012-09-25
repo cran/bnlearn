@@ -1909,30 +1909,31 @@ check.weights = function(weights, len) {
 }#CHECK.WEIGHTS
 
 # check a user-specified bn.fit.gnode.
-check.fit.gnode.spec = function(x) {
+check.fit.gnode.spec = function(x, node) {
 
   components =  c("coef", "fitted", "resid", "sd")
 
   # custom list of components.
   if (!is.list(x) || !all(names(x) %in% components))
-    stop(paste(c("the conditional probability distribution must be a list with",
-      "at least one of the following elements:", components), collapse = " "))
+    stop(paste(c("the conditional probability distribution for node ", node,
+      "must be a list with at least one of the following elements:", components),
+      collapse = " "))
   if (!("coef" %in% names(x)) || !any(c("sd", "resid") %in% names(x)))
-    stop("at least the regression coefficients and one between the residulals ",
-      "or the residual standard deviation are required.")
+    stop("at least the regression coefficients and either the residuals or ",
+      "the residual standard deviation are required for node ", node, ".")
 
   # check the regression coefficients.
   if (!is.null(x$coef)) {
 
     if (length(x$coef) == 0)
-      stop("fitted must a vector of numeric values, ",
-        "the regression coefficients for the node given its parents.")
+      stop("fitted must a vector of numeric values, the regression ",
+        "coefficients for node ", node, " given its parents.")
     if (!is.numeric(x$coef) || !all(is.finite(x$coef)))
-      stop("fitted must a vector of numeric values, ",
-        "the regression coefficients for the node given its parents.")
+      stop("fitted must a vector of numeric values, the regression ",
+        "coefficients for node ", node, " given its parents.")
     if (!is.null(names(x$coef)))
       if (all(names(x$coef) != "(Intercept)"))
-        stop("the intercept is missing.")
+        stop("the intercept is missing for node ", node, ".")
 
   }#THEN
 
@@ -1940,11 +1941,11 @@ check.fit.gnode.spec = function(x) {
    if (!is.null(x$fitted)) {
 
     if (length(x$fitted) == 0)
-      stop("coef must a vector of numeric values, ",
-        "the fitted values for the node given its parents.")
+      stop("coef must a vector of numeric values, the fitted values for ",
+        "node ", node, " given its parents.")
     if (!is.numeric(x$fitted) || !all(is.finite(x$fitted)))
-      stop("coef must a vector of numeric values, ",
-        "the fitted values for the node given its parents.")
+      stop("coef must a vector of numeric values, the fitted values for ",
+        "node ", node, " given its parents.")
 
   }#THEN
 
@@ -1952,11 +1953,11 @@ check.fit.gnode.spec = function(x) {
   if (!is.null(x$resid)) {
 
     if (length(x$resid) == 0)
-      stop("resid must a vector of numeric values, ",
-        "the residuals for the node given its parents.")
+      stop("resid must a vector of numeric values, the residuals for node ",
+        node, " given its parents.")
     if (!is.numeric(x$resid) || !all(is.finite(x$resid)))
-      stop("resid must a vector of numeric values, ",
-        "the residuals for the node given its parents.")
+      stop("resid must a vector of numeric values, the residuals for node ",
+        node, " given its parents.")
 
   }#THEN
 
@@ -1964,17 +1965,20 @@ check.fit.gnode.spec = function(x) {
   if (!is.null(x$sd)) {
 
     if (!is.non.negative(x$sd))
-      stop("sd must be a non-negative number, the standard deviation of the residuals.")
+      stop("sd must be a non-negative number, the standard deviation of the ",
+        "residuals of node ", node, ".")
 
     if (!is.null(x$resid) && !isTRUE(all.equal(x$sd, sd(x$resid))))
-      stop("the reported standard deviation of the residuals does not match the observed one.")
+      stop("the reported standard deviation of the residuals of node ", node,
+        " does not match the observed one.")
 
   }#THEN
 
   # one residual for each fitted value.
   if (!is.null(x$resid) && !is.null(x$fitted))
     if (length(x$resid) != length(x$fitted))
-      stop("the residuals and the fitted values have different lengths.")
+      stop("the residuals and the fitted values of node ", node, 
+        " have different lengths.")
 
 }#CHECK.FIT.GNODE.SPEC
 
@@ -2017,16 +2021,16 @@ check.gnode.vs.spec = function(new, old, node) {
 }#CHECK.GNODE.VS.SPEC
 
 # check a user-specified bn.fit.dnode.
-check.fit.dnode.spec = function(x) {
+check.fit.dnode.spec = function(x, node) {
 
   # the CPT must be a table.
   if (!is.ndmatrix(x))
-    stop("the conditional probability distribution must be a table, ",
-      "a matrix or a multidimensional array.")
+    stop("the conditional probability distribution of node ", node,
+      " must be a table, a matrix or a multidimensional array.")
   # all elements must be probabilities.
   if (!is.probability.vector(x))
-    stop("some elements of the conditional probability distributions are ",
-      "not probabilities.")
+    stop("some elements of the conditional probability distributions of node ",
+      node, " are not probabilities.")
 
   # convert the CPT into a table object.
   x = as.table(x)
@@ -2045,13 +2049,13 @@ check.fit.dnode.spec = function(x) {
   if (ndims == 1) {
 
     if (sum(x) != 1)
-      stop("the probability distribution does not sum to one.")
+      stop("the probability distribution of node ", node, " does not sum to one.")
 
   }#THEN
   else {
 
     if (any(margin.table(x,  seq(from = 2, to = ndims)) != 1))
-      stop("some conditional probability distributions do not sum to one.")
+      stop("some conditional probability distributions of node ", node, " do not sum to one.")
 
   }#ELSE
 

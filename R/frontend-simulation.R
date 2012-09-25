@@ -50,7 +50,7 @@ random.graph = function(nodes, num = 1, method = "ordered", ..., debug = FALSE) 
     stop(paste("valid generation methods are:",
            paste(graph.generation.algorithms, collapse = " ")))
   # check the node labels.
-  check.nodes(nodes, min.nodes = 3)
+  check.nodes(nodes)
   # check the number of graph to generate.
   if (!is.positive.integer(num))
     stop(" the number of graphs to generate must be a positive integer number.")
@@ -128,7 +128,7 @@ cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ..., d
   # check fitted's class.
   check.fit(fitted)
   # check the node labels.
-  check.nodes(nodes, graph = fitted, min.nodes = 1)
+  check.nodes(nodes, graph = fitted)
   # check debug.
   check.logical(debug)
   if (missing(evidence))

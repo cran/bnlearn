@@ -86,6 +86,16 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       p.value = perm.test[2]
 
     }#THEN
+    # Mutual Infomation (semiparametric)
+    else if (test == "sp-mi") {
+
+      perm.test = mc.test(datax, datay, ndata, samples = B,
+                    alpha = ifelse(test == "smc-mi", alpha, 1), test = 6L)
+      statistic = perm.test[1]
+      df = perm.test[2]
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
+
+    }#THEN
     # Pearson's X^2 test (monte carlo permutation distribution)
     else if ((test == "mc-x2") || (test == "smc-x2")) {
 
@@ -93,6 +103,16 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
                     alpha = ifelse(test == "smc-x2", alpha, 1), test = 2L)
       statistic = perm.test[1]
       p.value = perm.test[2]
+
+    }#THEN
+    # Pearson's X^2 test (semiparametric)
+    else if (test == "sp-x2") {
+
+      perm.test = mc.test(datax, datay, ndata, samples = B,
+                    alpha = ifelse(test == "smc-mi", alpha, 1), test = 7L)
+      statistic = perm.test[1]
+      df = perm.test[2]
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Mutual Information for Gaussian Data (monte carlo permutation distribution)
@@ -221,6 +241,19 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       p.value = perm.test[2]
 
     }#THEN
+    # Mutual Infomation (semiparametric)
+    else if (test == "sp-mi") {
+
+      datax = minimal.data.frame.column(data, x)
+      datay = minimal.data.frame.column(data, y)
+
+      perm.test = cmc.test(datax, datay, config, ndata, samples = B,
+                    alpha = ifelse(test == "smc-mi", alpha, 1), test = 6L)
+      statistic = perm.test[1]
+      df = perm.test[2]
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
+
+    }#THEN
     # Pearson's X^2 test (monte carlo permutation distribution)
     else if ((test == "mc-x2") || (test == "smc-x2")) {
 
@@ -231,6 +264,19 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
                     alpha = ifelse(test == "smc-x2", alpha, 1), test = 2L)
       statistic = perm.test[1]
       p.value = perm.test[2]
+
+    }#THEN
+    # Pearson's X^2 test (semiparametric)
+    else if (test == "sp-x2") {
+
+      datax = minimal.data.frame.column(data, x)
+      datay = minimal.data.frame.column(data, y)
+
+      perm.test = cmc.test(datax, datay, config, ndata, samples = B,
+                    alpha = ifelse(test == "smc-x2", alpha, 1), test = 7L)
+      statistic = perm.test[1]
+      df = perm.test[2]
+      p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Mutual Information for Gaussian Data (monte carlo permutation distribution)
@@ -286,7 +332,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       result$parameter = structure(df, names = "df")
 
     if (!is.null(B))
-      result$parameter = structure(B, names = "Monte Carlo samples")
+      result$parameter = c(result$parameter, structure(B, names = "Monte Carlo samples"))
 
     return(result)
 

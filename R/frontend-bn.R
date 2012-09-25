@@ -100,17 +100,18 @@ blacklist = function(x) {
 }#BLACKLIST
 
 # reconstruct the equivalence class of a network.
-cpdag = function(x, debug = FALSE) {
+cpdag = function(x, moral = FALSE, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
-  # check debug.
+  # check moral and debug.
+  check.logical(moral)
   check.logical(debug)
   # check whether the graph is acclic, to be sure to return a DAG.
   if (!is.acyclic(x$arcs, names(x$nodes)))
     stop("the specified network contains cycles.")
 
-  cpdag.backend(x = x, debug = debug)
+  cpdag.backend(x = x, moral = moral, debug = debug)
 
 }#CPDAG
 
@@ -129,15 +130,16 @@ cextend = function(x, debug = FALSE) {
 }#CEXTEND
 
 # report v-structures in the network.
-vstructs = function(x, arcs = FALSE, debug = FALSE) {
+vstructs = function(x, arcs = FALSE, moral = FALSE, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
-  # check debug and arcs.
+  # check debug, moral and arcs.
   check.logical(arcs)
+  check.logical(moral)
   check.logical(debug)
 
-  vstructures(x = x, arcs = arcs, debug = debug)
+  vstructures(x = x, arcs = arcs, moral = moral, debug = debug)
 
 }#VSTRUCTS
 
@@ -159,18 +161,12 @@ dsep = function(bn, x, y, z) {
   # check x's class.
   check.bn.or.fit(bn)
   # check the sets of nodes.
-  check.nodes(x, graph = bn, min.nodes = 1, max.nodes = 1)
-  check.nodes(y, graph = bn, min.nodes = 1, max.nodes = 1)
+  check.nodes(x, graph = bn, max.nodes = 1)
+  check.nodes(y, graph = bn, max.nodes = 1)
   if (missing(z))
     z = c()
   else
     check.nodes(z, graph = bn, min.nodes = 0)
-
-  # check whether x and y are disjoint from z.
-  if (x %in% z)
-    stop("x must not be one of the nodes in z.")
-  if (y %in% z)
-    stop("y must not be one of the nodes in z.")
 
   # go back to the network structure if needed.
   if (is(bn, "bn.fit"))

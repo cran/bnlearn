@@ -587,12 +587,14 @@ cycle.counter = function(arcs, nodes, cluster, debug = FALSE) {
 }#CYCLE.COUNTER
 
 # emergency measures for markov blanket and neighbourhood recovery.
-bn.recovery = function(bn, nodes, strict, mb = FALSE, debug = FALSE) {
+bn.recovery = function(bn, nodes, strict, filter = "AND", mb = FALSE,
+    debug = FALSE) {
 
   .Call("bn_recovery",
         bn = bn,
         strict = strict,
         mb = mb,
+        filter = match(filter, c("OR", "AND")),
         debug = debug,
         PACKAGE = "bnlearn")
 

@@ -37,8 +37,18 @@ arc.strength.test = function(network, data, test, alpha, B, debug = FALSE) {
   }#THEN
 
   # populate the strength data frame.
-  strength = data.frame(network$arcs, strength = apply(network$arcs, 1, drop),
-               stringsAsFactors = FALSE)
+  if (nrow(network$arcs) == 0) {
+
+    strength = as.data.frame(list(from = character(0), to = character(0),
+                 strength = numeric(0)), stringsAsFactors = FALSE)
+
+  }#THEN
+  else {
+
+    strength = data.frame(network$arcs, strength = apply(network$arcs, 1, drop),
+                 stringsAsFactors = FALSE)
+
+  }#ELSE
 
   return(strength)
 
@@ -91,8 +101,18 @@ arc.strength.score = function(network, data, score, extra, debug = FALSE) {
   }#THEN
 
   # populate the strength data frame.
-  strength = data.frame(network$arcs, strength = apply(network$arcs, 1, drop),
-               stringsAsFactors = FALSE)
+  if (nrow(network$arcs) == 0) {
+
+    strength = as.data.frame(list(from = character(0), to = character(0),
+                 strength = numeric(0)), stringsAsFactors = FALSE)
+
+  }#THEN
+  else {
+
+    strength = data.frame(network$arcs, strength = apply(network$arcs, 1, drop),
+                 stringsAsFactors = FALSE)
+
+  }#ELSE
 
   return(strength)
 
@@ -361,7 +381,12 @@ strength2lwd = function(strength, threshold, cutpoints, mode, arcs = NULL,
 
 }#STRENGTH2LWD
 
+# compute the significance threshold for Friedman's confidence.
 threshold = function(strength, method = "l1") {
+
+  # do not blow up with graphs with only 1 node.
+  if (nrow(strength) == 0)
+    return(0)
 
   e = ecdf(strength$strength)
   u = knots(e)

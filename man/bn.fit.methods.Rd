@@ -6,6 +6,7 @@
 \alias{predict.bn.fit}
 \alias{logLik.bn.fit}
 \alias{AIC.bn.fit}
+\alias{BIC.bn.fit}
 \alias{fitted.bn.fit.gnode}
 \alias{coef.bn.fit.gnode}
 \alias{residuals.bn.fit.gnode}
@@ -30,6 +31,7 @@
 \method{predict}{bn.fit}(object, node, data, ..., debug = FALSE)
 \method{logLik}{bn.fit}(object, data, ...)
 \method{AIC}{bn.fit}(object, data, ..., k = 1)
+\method{BIC}{bn.fit}(object, data, ...)
 
 ## methods available for "bn.fit.dnode"
 \method{coef}{bn.fit.dnode}(object, ...)

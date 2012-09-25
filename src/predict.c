@@ -84,7 +84,7 @@ SEXP dpred(SEXP fitted, SEXP data, SEXP debug) {
 
 int i = 0, nmax = 0, ndata = LENGTH(data), length = 0;
 int *res = NULL, *debuglevel = LOGICAL(debug), *iscratch = NULL, *maxima = NULL;
-double *prob = NULL, *dscratch = NULL;
+double *prob = NULL, *dscratch = NULL, *buf = NULL;
 SEXP ptab, result, tr_levels = getAttrib(data, R_LevelsSymbol);
 
   /* get the probabilities of the multinomial distribution. */
@@ -98,6 +98,7 @@ SEXP ptab, result, tr_levels = getAttrib(data, R_LevelsSymbol);
     iscratch[i] = i + 1;
 
   /* create a scratch copy of the array. */
+  buf = alloc1dreal(length);
   dscratch = alloc1dreal(length);
   memcpy(dscratch, prob, length * sizeof(double));
 
@@ -105,7 +106,7 @@ SEXP ptab, result, tr_levels = getAttrib(data, R_LevelsSymbol);
   maxima = alloc1dcont(length);
 
   /* find out the mode(s). */
-  all_max(dscratch, length, maxima, &nmax, iscratch);
+  all_max(dscratch, length, maxima, &nmax, iscratch, buf);
 
   /* allocate and initialize the return value. */
   PROTECT(result = allocVector(INTSXP, ndata));
@@ -122,7 +123,7 @@ SEXP ptab, result, tr_levels = getAttrib(data, R_LevelsSymbol);
       if (res[0] == NA_INTEGER)
         Rprintf("  > prediction for all observations is NA with probabilities:\n");
       else
-        Rprintf("  > prediction for all observations is %s with probabilities:\n",
+        Rprintf("  > prediction for all observations is '%s' with probabilities:\n",
           CHAR(STRING_ELT(tr_levels, res[0] - 1)));
 
       Rprintf("  ");
@@ -168,7 +169,7 @@ SEXP cdpred(SEXP fitted, SEXP data, SEXP parents, SEXP debug) {
 int i = 0, k = 0, ndata = LENGTH(data), nrows = 0, ncols = 0;
 int *configs = INTEGER(parents), *debuglevel = LOGICAL(debug);
 int *iscratch = NULL, *maxima = NULL, *nmax = NULL, *res = NULL;
-double *prob = NULL, *dscratch = NULL;
+double *prob = NULL, *dscratch = NULL, *buf = NULL;
 SEXP temp, result, tr_levels = getAttrib(data, R_LevelsSymbol);
 
   /* get the probabilities of the multinomial distribution. */
@@ -181,6 +182,7 @@ SEXP temp, result, tr_levels = getAttrib(data, R_LevelsSymbol);
   iscratch = alloc1dcont(nrows);
 
   /* create a scratch copy of the array. */
+  buf = alloc1dreal(nrows);
   dscratch = alloc1dreal(nrows * ncols);
   memcpy(dscratch, prob, nrows * ncols * sizeof(double));
 
@@ -199,7 +201,7 @@ SEXP temp, result, tr_levels = getAttrib(data, R_LevelsSymbol);
 
     /* find out the mode(s). */
     all_max(dscratch + i * nrows, nrows, maxima + i * nrows,
-      nmax + i, iscratch);
+      nmax + i, iscratch, buf);
 
   }/*FOR*/
 
@@ -222,7 +224,7 @@ SEXP temp, result, tr_levels = getAttrib(data, R_LevelsSymbol);
         if (res[i] == NA_INTEGER)
           Rprintf("  > prediction for observation %d is NA with probabilities:\n");
         else
-          Rprintf("  > prediction for observation %d is %s with probabilities:\n",
+          Rprintf("  > prediction for observation %d is '%s' with probabilities:\n",
             i + 1, CHAR(STRING_ELT(tr_levels, res[i] - 1)));
 
         Rprintf("  ");
@@ -269,14 +271,16 @@ SEXP temp, result, tr_levels = getAttrib(data, R_LevelsSymbol);
 /* predict the value of the training variable in a naive Bayes or Tree-Augmented
  * naive Bayes classifier. */
 SEXP naivepred(SEXP fitted, SEXP data, SEXP parents, SEXP training, SEXP prior,
-    SEXP debug) {
+    SEXP prob, SEXP debug) {
 
 int i = 0, j = 0, k = 0, n = 0, nvars = LENGTH(fitted), nmax = 0, tr_nlevels = 0;
 int *res = NULL, **ex = NULL, *ex_nlevels = NULL;
 int idx = 0, *tr_id = INTEGER(training);
 int *iscratch = NULL, *maxima = NULL, *prn = NULL, *debuglevel = LOGICAL(debug);
-double **cpt = NULL, *pr = NULL, *scratch = NULL;
-SEXP class, temp, tr, tr_levels, result, nodes;
+int *include_prob = LOGICAL(prob);
+double **cpt = NULL, *pr = NULL, *scratch = NULL, *buf = NULL, *pt = NULL;
+double sum = 0;
+SEXP class, temp, tr, tr_levels, result, nodes, probtab, dimnames;
 
   /* cache the node labels. */
   nodes = getAttrib(fitted, R_NamesSymbol);
@@ -310,6 +314,7 @@ SEXP class, temp, tr, tr_levels, result, nodes;
 
   /* allocate the scratch space used to compute posterior probabilities. */
   scratch = alloc1dreal(tr_nlevels);
+  buf = alloc1dreal(tr_nlevels);
 
   /* cache the pointers to the conditional probability tables. */
   cpt = (double **) alloc1dpointer(nvars);
@@ -329,6 +334,15 @@ SEXP class, temp, tr, tr_levels, result, nodes;
   /* allocate the return value. */
   PROTECT(result = allocVector(INTSXP, n));
   res = INTEGER(result);
+
+  /* allocate and initialize the table of the posterior probabilities. */
+  if (*include_prob > 0) {
+
+    PROTECT(probtab = allocMatrix(REALSXP, tr_nlevels, n));
+    pt = REAL(probtab);
+    memset(pt, '\0', n * tr_nlevels * sizeof(double));
+
+  }/*THEN*/
 
   /* initialize the random seed, just in case we need it for tie breaking. */
   GetRNGstate();
@@ -402,7 +416,24 @@ SEXP class, temp, tr, tr_levels, result, nodes;
     }/*FOR*/
 
     /* find out the mode(s). */
-    all_max(scratch, tr_nlevels, maxima, &nmax, iscratch);
+    all_max(scratch, tr_nlevels, maxima, &nmax, iscratch, buf);
+
+    /* compute the posterior probabilities on the right scale, to attach them
+     * to the return value. */
+    if (*include_prob) {
+
+      /* copy the log-probabilities from scratch. */
+      memcpy(pt + i * tr_nlevels, scratch, tr_nlevels * sizeof(double));
+
+      /* transform log-probabilitiees into plain probabilities. */
+      for (k = 0, sum = 0; k < tr_nlevels; k++)
+        sum += pt[i * tr_nlevels + k] = exp(pt[i * tr_nlevels + k] - scratch[maxima[0] - 1]);
+
+      /* rescale them to sum up to 1. */
+      for (k = 0; k < tr_nlevels; k++)
+        pt[i * tr_nlevels + k] /= sum;
+
+    }/*THEN*/
 
     if (nmax == 1) {
 
@@ -410,7 +441,7 @@ SEXP class, temp, tr, tr_levels, result, nodes;
 
       if (*debuglevel > 0) {
 
-        Rprintf("  @ prediction for observation %d is %s with (log-)posterior:\n",
+        Rprintf("  @ prediction for observation %d is '%s' with (log-)posterior:\n",
           i + 1, CHAR(STRING_ELT(tr_levels, res[i] - 1)));
 
         Rprintf("  ");
@@ -455,7 +486,23 @@ SEXP class, temp, tr, tr_levels, result, nodes;
   setAttrib(result, R_LevelsSymbol, tr_levels);
   setAttrib(result, R_ClassSymbol, class);
 
-  UNPROTECT(2);
+  if (*include_prob > 0) {
+
+    /* set the levels of the taregt variable as rownames. */
+    PROTECT(dimnames = allocVector(VECSXP, 2));
+    SET_VECTOR_ELT(dimnames, 0, tr_levels);
+    setAttrib(probtab, R_DimNamesSymbol, dimnames);
+    /* add the posterior probabilities to the return value. */
+    setAttrib(result, install("prob"), probtab);
+
+    UNPROTECT(4);
+
+  }/*THEN*/
+  else {
+
+    UNPROTECT(2);
+
+  }/*ELSE*/
 
   return result;
 
