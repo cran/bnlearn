@@ -13,7 +13,7 @@ data(gaussian.test)
 }
 \format{
 
-  The \code{gaussian.test} data set contains the seven normal
+  The \code{gaussian.test} data set contains seven normal
   (Gaussian) variables.
 
 }

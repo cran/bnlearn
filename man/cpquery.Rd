@@ -51,7 +51,7 @@ cpdist(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
 
    Note that the number of observations returned by \code{cpdist} is always 
    smaller than \code{n}, because logic sampling is a form of rejection 
-   sampling. Therefore, conly the obervations matching \code{evidence} (out
+   sampling. Therefore, only the obervations matching \code{evidence} (out
    of the \code{n} that are generated) are returned, and their number depends
    on the probability of \code{evidence}.
 

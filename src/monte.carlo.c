@@ -91,7 +91,7 @@ SEXP result;
 
       for (k = 0; k < *B; k++) {
 
-        rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
+        _rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
 
         if (_mi(n, nrowt, ncolt, nr, nc, num) > observed) {
 
@@ -110,7 +110,7 @@ SEXP result;
 
       for (k = 0; k < *B; k++) {
 
-        rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
+        _rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
 
         if (_x2(n, nrowt, ncolt, nr, nc, num) > observed) {
 
@@ -127,7 +127,7 @@ SEXP result;
 
       for (k = 0; k < *B; k++) {
 
-        rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
+        _rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
         res[1] += _mi(n, nrowt, ncolt, nr, nc, num);
 
       }/*FOR*/
@@ -142,7 +142,7 @@ SEXP result;
 
       for (k = 0; k < *B; k++) {
 
-        rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
+        _rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
         res[1] += _x2(n, nrowt, ncolt, nr, nc, num);
 
       }/*FOR*/
@@ -225,7 +225,7 @@ SEXP result;
       for (j = 0; j < *B; j++) {
 
         for (k = 0; k < *nl; k++)
-          rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
+          _rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
 
         if (_cmi(n, nrowt, ncolt, ncond, nr, nc, nl) > observed) {
 
@@ -246,7 +246,7 @@ SEXP result;
       for (j = 0; j < *B; j++) {
 
         for (k = 0; k < *nl; k++)
-          rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
+          _rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
 
         if (_cx2(n, nrowt, ncolt, ncond, nr, nc, nl) > observed) {
 
@@ -264,7 +264,7 @@ SEXP result;
       for (j = 0; j < *B; j++) {
 
         for (k = 0; k < *nl; k++)
-          rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
+          _rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
 
         res[1] += _cmi(n, nrowt, ncolt, ncond, nr, nc, nl);
 
@@ -281,7 +281,7 @@ SEXP result;
       for (j = 0; j < *B; j++) {
 
         for (k = 0; k < *nl; k++)
-          rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
+          _rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
 
         res[1] += _cx2(n, nrowt, ncolt, ncond, nr, nc, nl);
 

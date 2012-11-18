@@ -5,8 +5,9 @@ available.continuous.tests = c("cor", "zf", "mi-g", "mi-g-sh", "mc-mi-g",
   "smc-mi-g", "mc-cor", "smc-cor", "mc-zf", "smc-zf")
 available.tests = c(available.discrete.tests, available.continuous.tests)
 
+semiparametric.tests = c("sp-mi", "sp-x2")
 resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g",
-  "mc-cor", "smc-cor", "mc-zf", "smc-zf", "sp-mi", "sp-x2")
+  "mc-cor", "smc-cor", "mc-zf", "smc-zf", semiparametric.tests)
 asymptotic.tests = c("mi", "mi-g", "x2", "zf")
 
 available.discrete.scores = c("loglik", "aic", "bic", "bde", "bdes", "k2", "mbde")

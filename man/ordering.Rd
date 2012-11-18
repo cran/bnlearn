@@ -41,11 +41,12 @@ tiers2blacklist(nodes)
 }
 \value{
 
-  \code{node.ordering} return a vector of character strings, an ordered
+  \code{node.ordering} returns a vector of character strings, an ordered
   set of node labels.
 
-  \code{ordering2blacklist} returns a sanitized \code{blacklist} (a
-  two-column matrix, whose columns are labeled \code{from} and \code{to}).
+  \code{ordering2blacklist} and \code{tiers2blacklist} return a sanitized
+  \code{blacklist} (a two-column matrix, whose columns are labeled 
+  \code{from} and \code{to}).
 
 }
 \note{

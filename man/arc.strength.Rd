@@ -134,6 +134,8 @@ arc.strength(res, learning.test)
 # 3    B  E 1.024198e-320
 # 4    C  D  0.000000e+00
 # 5    F  E 3.935648e-245
+
+\dontrun{
 arcs = boot.strength(learning.test, algorithm = "hc")
 arcs[(arcs$strength > 0.85) & (arcs$direction >= 0.5), ]
 #    from to strength direction
@@ -160,7 +162,6 @@ averaged.network(arcs)
 #   generation algorithm:                  Model Averaging
 #   significance threshold:                0.025
 
-\dontrun{
 start = random.graph(nodes = names(learning.test), num = 50)
 netlist = lapply(start, function(net) {
   hc(learning.test, score = "bde", iss = 10, start = net) })

@@ -137,7 +137,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       statistic = fast.cor(datax, datay, ndata)
       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(ndata -3)
       p.value = gmc.test(datax, datay, samples = B,
-                  alpha = ifelse(test == "smc-xf", alpha, 1), test = 5L)
+                  alpha = ifelse(test == "smc-zf", alpha, 1), test = 5L)
 
     }#THEN
 

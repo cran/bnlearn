@@ -1236,7 +1236,10 @@ check.B = function(B, criterion) {
     }#THEN
     else {
 
-      B = 5000L
+      if (criterion %in% semiparametric.tests)
+        B = 100L
+      else
+        B = 5000L
 
     }#ELSE
 

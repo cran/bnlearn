@@ -1,3 +1,16 @@
+bnlearn (3.2)
+
+  * fixed outstanding typo affecting the sequential Monte Carlo
+     implementation of Pearson's X^2 (thanks Maxime Gasse).
+  * switch from Margaritis' set of rules to the more standard
+     Meek/Sprites set of rules, which are implemented in cpdag().
+     Now the networks returned by constraint-based algorithms are
+     guaranteed to be CPDAGs, which was not necessarily the case
+     until now.
+  * semiparametric tests now default to 100 permutations, not 5000.
+  * make a local copy of rcont2() to make bnlearn compatible with
+     both older and newer R versions.
+
 bnlearn (3.1)
 
   * fixed all.equal(), it did not work as expected on networks

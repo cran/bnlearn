@@ -1,6 +1,10 @@
 #include <R.h>
 #include <Rinternals.h>
 
+
+void _rcont2(int *nrow, int *ncol, int *nrowt, int *ncolt, int *ntotal, 
+    double *fact, int *jwork, int *matrix);
+
 /* numerical constants */
 
 #define MACHINE_TOL sqrt(DOUBLE_EPS)
