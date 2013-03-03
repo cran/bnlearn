@@ -61,7 +61,7 @@ maxmin.pc = function(x, whitelist, blacklist, test, alpha, B,
   # 1. [Forward Phase (I)]
   mb = lapply(as.list(nodes), maxmin.pc.forward.phase, data = x, nodes = nodes,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, optimized = FALSE, debug = debug)
+         test = test, optimized = TRUE, debug = debug)
   names(mb) = nodes
 
   # 2. [Backward Phase (II)]

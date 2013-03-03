@@ -37,7 +37,7 @@ cpdist(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
    If either parameter is equal to \code{TRUE} an unconditional probability
    query is performed.
 
-   Two tuning parameters are available:
+   Three tuning parameters are available:
 
    \itemize{
 
@@ -46,6 +46,14 @@ cpdist(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
 
      \item \code{batch}: a positive integer number, the size of each batch
        of random observations. Defaults to \code{10^4}.
+
+     \item \code{query.nodes}: a a vector of character strings, the labels of
+       the nodes involved in \code{event} and \code{evidence}. Simple queries
+       do not require to generate observations from all the nodes in the 
+       network, so \code{cpquery} and \code{cpdist} try to identify which
+       nodes are used in \code{event} and \code{evidence} and reduce the
+       network to their upper closure. \code{query.nodes} may be used to
+       manually specify these nodes when automatic identification fails.
 
    }
 

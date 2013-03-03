@@ -429,7 +429,7 @@ check.score = function(score, data) {
 # check test labels.
 check.test = function(test, data) {
 
-  if (!is.null(test)) {
+  if (!missing(test) && !is.null(test)) {
 
     # check it's a single character string.
     check.string(test)
@@ -1017,6 +1017,12 @@ check.cpq.args = function(fitted, extra.args, method) {
 
     }#ELSE
 
+    if (!is.null(extra.args$query.nodes)) {
+
+      check.nodes(extra.args$query.nodes, graph = fitted)
+
+    }#THEN
+
   }#THEN
 
   # warn about unused arguments.
@@ -1199,7 +1205,7 @@ check.unused.args = function(dots, used.args) {
 check.alpha = function(alpha, network = NULL) {
 
   # check the the target nominal type I error rate
-  if (!is.null(alpha)) {
+  if (!missing(alpha) && !is.null(alpha)) {
 
     # validate alpha.
     if (!is.probability(alpha))
@@ -1226,7 +1232,7 @@ check.B = function(B, criterion) {
 
   if (criterion %in% resampling.tests) {
 
-    if (!is.null(B)) {
+    if (!missing(B) && !is.null(B)) {
 
       if (!is.positive.integer(B))
         stop("the number of permutations/bootstrap replications must be a positive integer number.")
@@ -1246,7 +1252,7 @@ check.B = function(B, criterion) {
   }#THEN
   else {
 
-    if (!is.null(B))
+    if (!missing(B) && !is.null(B))
       warning("this test does not require any permutations/bootstrap resampling, ignoring B.\n")
 
     B = NULL
@@ -2051,13 +2057,16 @@ check.fit.dnode.spec = function(x, node) {
   # normalization.
   if (ndims == 1) {
 
-    if (sum(x) != 1)
+    if (!isTRUE(all.equal(sum(x), 1)))
       stop("the probability distribution of node ", node, " does not sum to one.")
 
   }#THEN
   else {
 
-    if (any(margin.table(x,  seq(from = 2, to = ndims)) != 1))
+    check.sum = sapply(margin.table(x,  seq(from = 2, to = ndims)), 
+                  function(x) !isTRUE(all.equal(x, 1)))
+
+    if (any(check.sum))
       stop("some conditional probability distributions of node ", node, " do not sum to one.")
 
   }#ELSE

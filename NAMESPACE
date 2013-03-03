@@ -92,6 +92,7 @@ export(
   "moral",
   "dsep",
   "discretize",
+  "relevant",
   "bn.var",
   "bn.moments",
   "read.bif",

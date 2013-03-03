@@ -17,20 +17,6 @@ has.path = function(from, to, nodes, amat, exclude.direct = FALSE,
 
 }#HAS.PATH
 
-# count the cycles the arc is part of (even in a partially directed graph).
-how.many.cycles = function(arc, nodes, amat, debug = FALSE) {
-
-  .Call("how_many_cycles",
-        from = which(nodes == arc[2]),
-        to = which(nodes == arc[1]),
-        amat = amat,
-        nrows = nrow(amat),
-        nodes = nodes,
-        debug = debug,
-        PACKAGE = "bnlearn")
-
-}#HOW.MANY.CYCLES
-
 # convert a set of neighbourhoods into the corresponding arc set.
 mb2arcs = function(mb, nodes) {
 
@@ -175,6 +161,7 @@ cpdag.backend = function(x, moral = TRUE, debug = FALSE) {
                arcs = x$arcs,
                nodes = nodes,
                moral = moral,
+               fix = FALSE,
                debug = debug,
                PACKAGE = "bnlearn")
 
@@ -189,12 +176,14 @@ cpdag.backend = function(x, moral = TRUE, debug = FALSE) {
 }#CPDAG.BACKEND
 
 # reconstruct the arc set of the equivalence class of a network.
-cpdag.arc.backend = function(nodes, arcs, moral = FALSE, debug = FALSE) {
+cpdag.arc.backend = function(nodes, arcs, moral = FALSE, fix.directed = FALSE,
+    debug = FALSE) {
 
   amat = .Call("cpdag",
                arcs = arcs,
                nodes = nodes,
                moral = moral,
+               fix = fix.directed,
                debug = debug,
                PACKAGE = "bnlearn")
 
@@ -300,8 +289,8 @@ structural.hamming.distance = function(learned, true, debug = FALSE) {
 hamming.distance = function(learned, true, debug = FALSE) {
 
   .Call("shd",
-        learned = skeleton(learned),
-        golden = skeleton(true),
+        learned = dag2ug.backend(learned),
+        golden = dag2ug.backend(true),
         debug = debug,
         PACKAGE = "bnlearn")
 

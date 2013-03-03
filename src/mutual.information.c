@@ -39,14 +39,22 @@ double res = 0;
 }/*C_MI*/
 
 /* unconditional mutual information, to be used for the asymptotic test. */
-SEXP mi(SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
+SEXP mi(SEXP x, SEXP y, SEXP gsquare) {
 
-int *llx = INTEGER(lx), *lly = INTEGER(ly), *num = INTEGER(length);
+int llx = NLEVELS(x), lly = NLEVELS(y), num = LENGTH(x);
 int *xx = INTEGER(x), *yy = INTEGER(y);
+double *res = NULL;
 SEXP result;
 
-  PROTECT(result = allocVector(REALSXP, 1));
-  NUM(result) = c_mi(xx, llx, yy, lly, num);
+  PROTECT(result = allocVector(REALSXP, 2));
+  res = REAL(result);
+  res[0] = c_mi(xx, &llx, yy, &lly, &num);
+  res[1] = (llx - 1) * (lly - 1);
+
+  /* rescale to match the G^2 test. */
+  if (isTRUE(gsquare))
+    res[0] *= 2 * num;
+
   UNPROTECT(1);
 
   return result;
@@ -98,16 +106,24 @@ double res = 0;
 }/*C_CMI*/
 
 /* conditional mutual information, to be used for the asymptotic test. */
-SEXP cmi(SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz, SEXP length) {
+SEXP cmi(SEXP x, SEXP y, SEXP z, SEXP gsquare) {
 
-int *llx = INTEGER(lx), *lly = INTEGER(ly), *llz = INTEGER(lz);
-int *num = INTEGER(length);
+int llx = NLEVELS(x), lly = NLEVELS(y), llz = NLEVELS(z);
+int num = LENGTH(x);
 int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
+double *res = NULL;
 SEXP result;
 
   /* allocate and initialize result to zero. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  NUM(result) = c_cmi(xx, llx, yy, lly, zz, llz, num);
+  PROTECT(result = allocVector(REALSXP, 2));
+  res = REAL(result);
+  res[0] = c_cmi(xx, &llx, yy, &lly, zz, &llz, &num);
+  res[1] = (llx - 1) * (lly - 1) * llz;
+
+  /* rescale to match the G^2 test. */
+  if (isTRUE(gsquare))
+    res[0] *= 2 * num;
+
   UNPROTECT(1);
 
   return result;

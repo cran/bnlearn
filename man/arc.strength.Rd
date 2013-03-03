@@ -113,7 +113,7 @@ averaged.network(strength, nodes, threshold)
   Friedman N, Goldszmidt M, Wyner A (1999). "Data Analysis with Bayesian
       Networks: A Bootstrap Approach". In "UAI '99: Proceedings of the
       15th Annual Conference on Uncertainty in Artificial Intelligence",
-      pp. 196-20. Morgan Kaufmann.
+      pp. 196-201. Morgan Kaufmann.
 
   \bold{for the computation of the strength (confidence) significance threshold:}
 

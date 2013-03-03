@@ -355,3 +355,39 @@ int c = 0, r = 0, cn = n - 1;
 
 }/*INV_UPTRI3*/
 
+/* normalize a conditional probability table. */
+SEXP normalize_cpt(SEXP cpt) {
+
+int i = 0, j = 0, nrows = 0, cells = LENGTH(cpt);
+short int duplicated = 0;
+double psum = 0;
+double *c = NULL;
+
+  /* duplicate the (conditional) probability table if needed... */
+  if ((duplicated = NAMED(cpt)) > 0)
+    PROTECT(cpt = duplicate(cpt));
+  /* ... and dereference it. */
+  c = REAL(cpt);
+
+  nrows = INT(getAttrib(cpt, R_DimSymbol));
+
+  for (j = 0; j < (cells/nrows); j++) {
+
+    /* reset column total counter. */
+    psum = 0;
+    /* compute the new column total. */
+    for (i = 0; i < nrows; i++)
+      psum += c[CMC(i, j, nrows)];
+    /* divide by the new column total. */
+    for (i = 0; i < nrows; i++)
+      c[CMC(i, j, nrows)] /= psum;
+
+  }/*FOR*/
+
+  if (duplicated > 0)
+    UNPROTECT(1);
+
+  return cpt;
+
+}/*NORMALIZE_CPT*/
+

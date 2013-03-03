@@ -37,12 +37,11 @@ static double _cx2(int **n, int **nrowt, int **ncolt, int *ncond,
 static double _cov(double *xx, double *yy, double *xm, double *ym, int *n);
 
 /* unconditional Monte Carlo and semiparametric discrete tests. */
-SEXP mcarlo(SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length, SEXP samples,
-    SEXP test, SEXP alpha) {
+SEXP mcarlo(SEXP x, SEXP y, SEXP samples, SEXP test, SEXP alpha) {
 
 double *fact = NULL, *res = NULL, observed = 0;
 int *n = NULL, *ncolt = NULL, *nrowt = NULL, *workspace = NULL;
-int *num = INTEGER(length), *nr = INTEGER(lx), *nc = INTEGER(ly);
+int num = LENGTH(x), nr = NLEVELS(x), nc = NLEVELS(y);
 int *xx = INTEGER(x), *yy = INTEGER(y), *B = INTEGER(samples);
 int i = 0, k = 0, enough = ceil(NUM(alpha) * (*B)) + 1;
 SEXP result;
@@ -53,28 +52,28 @@ SEXP result;
   res[0] = res[1] = 0;
 
   /* allocate and compute the factorials needed by rcont2. */
-  allocfact(*num);
+  allocfact(num);
 
   /* allocate and initialize the workspace for rcont2. */
-  workspace = alloc1dcont(*nc);
+  workspace = alloc1dcont(nc);
 
   /* initialize the contingency table. */
-  n = alloc1dcont(*nr * (*nc));
+  n = alloc1dcont(nr * nc);
 
   /* initialize the marginal frequencies. */
-  nrowt = alloc1dcont(*nr);
-  ncolt = alloc1dcont(*nc);
+  nrowt = alloc1dcont(nr);
+  ncolt = alloc1dcont(nc);
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < *num; k++)
-    n[CMC(xx[k] - 1, yy[k] - 1, *nr)]++;
+  for (k = 0; k < num; k++)
+    n[CMC(xx[k] - 1, yy[k] - 1, nr)]++;
 
   /* compute the marginals. */
-  for (i = 0; i < *nr; i++)
-    for (k = 0; k < *nc; k++) {
+  for (i = 0; i < nr; i++)
+    for (k = 0; k < nc; k++) {
 
-      nrowt[i] += n[CMC(i, k, *nr)];
-      ncolt[k] += n[CMC(i, k, *nr)];
+      nrowt[i] += n[CMC(i, k, nr)];
+      ncolt[k] += n[CMC(i, k, nr)];
 
     }/*FOR*/
 
@@ -87,13 +86,13 @@ SEXP result;
   switch(INT(test)) {
 
     case MUTUAL_INFORMATION:
-      observed = _mi(n, nrowt, ncolt, nr, nc, num);
+      observed = _mi(n, nrowt, ncolt, &nr, &nc, &num);
 
       for (k = 0; k < *B; k++) {
 
-        _rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
+        _rcont2(&nr, &nc, nrowt, ncolt, &num, fact, workspace, n);
 
-        if (_mi(n, nrowt, ncolt, nr, nc, num) > observed) {
+        if (_mi(n, nrowt, ncolt, &nr, &nc, &num) > observed) {
 
           sequential_counter_check(res[1]);
 
@@ -106,13 +105,13 @@ SEXP result;
       break;
 
     case PEARSON_X2:
-      observed = _x2(n, nrowt, ncolt, nr, nc, num);
+      observed = _x2(n, nrowt, ncolt, &nr, &nc, &num);
 
       for (k = 0; k < *B; k++) {
 
-        _rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
+        _rcont2(&nr, &nc, nrowt, ncolt, &num, fact, workspace, n);
 
-        if (_x2(n, nrowt, ncolt, nr, nc, num) > observed) {
+        if (_x2(n, nrowt, ncolt, &nr, &nc, &num) > observed) {
 
           sequential_counter_check(res[1]);
 
@@ -123,12 +122,12 @@ SEXP result;
       break;
 
     case SP_MUTUAL_INFORMATION:
-      observed = _mi(n, nrowt, ncolt, nr, nc, num);
+      observed = _mi(n, nrowt, ncolt, &nr, &nc, &num);
 
       for (k = 0; k < *B; k++) {
 
-        _rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
-        res[1] += _mi(n, nrowt, ncolt, nr, nc, num);
+        _rcont2(&nr, &nc, nrowt, ncolt, &num, fact, workspace, n);
+        res[1] += _mi(n, nrowt, ncolt, &nr, &nc, &num);
 
       }/*FOR*/
 
@@ -138,12 +137,12 @@ SEXP result;
       break;
 
     case SP_PEARSON_X2:
-      observed = _x2(n, nrowt, ncolt, nr, nc, num);
+      observed = _x2(n, nrowt, ncolt, &nr, &nc, &num);
 
       for (k = 0; k < *B; k++) {
 
-        _rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
-        res[1] += _x2(n, nrowt, ncolt, nr, nc, num);
+        _rcont2(&nr, &nc, nrowt, ncolt, &num, fact, workspace, n);
+        res[1] += _x2(n, nrowt, ncolt, &nr, &nc, &num);
 
       }/*FOR*/
 
@@ -166,13 +165,12 @@ SEXP result;
 }/*MCARLO*/
 
 /* conditional Monte Carlo and semiparametric discrete tests. */
-SEXP cmcarlo(SEXP x, SEXP y, SEXP z, SEXP lx, SEXP ly, SEXP lz,
-    SEXP length, SEXP samples, SEXP test, SEXP alpha) {
+SEXP cmcarlo(SEXP x, SEXP y, SEXP z, SEXP samples, SEXP test, SEXP alpha) {
 
 double *fact = NULL, *res = NULL, observed = 0;
 int **n = NULL, **ncolt = NULL, **nrowt = NULL, *ncond = NULL, *workspace = NULL;
-int *num = INTEGER(length), *B = INTEGER(samples);
-int *nr = INTEGER(lx), *nc = INTEGER(ly), *nl = INTEGER(lz);
+int num = LENGTH(x), *B = INTEGER(samples);
+int nr = NLEVELS(x), nc = NLEVELS(y), nl = NLEVELS(z);
 int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
 int i = 0, j = 0, k = 0, enough = ceil(NUM(alpha) * (*B)) + 1;
 SEXP result;
@@ -183,31 +181,31 @@ SEXP result;
   res[0] = res[1] = 0;
 
   /* allocate and compute the factorials needed by rcont2. */
-  allocfact(*num);
+  allocfact(num);
 
   /* allocate and initialize the workspace for rcont2. */
-  workspace = alloc1dcont(*nc);
+  workspace = alloc1dcont(nc);
 
   /* initialize the contingency table. */
-  n = alloc2dcont(*nl, (*nr) * (*nc));
+  n = alloc2dcont(nl, nr * nc);
 
   /* initialize the marginal frequencies. */
-  nrowt = alloc2dcont(*nl, *nr);
-  ncolt = alloc2dcont(*nl, *nc);
-  ncond = alloc1dcont(*nl);
+  nrowt = alloc2dcont(nl, nr);
+  ncolt = alloc2dcont(nl, nc);
+  ncond = alloc1dcont(nl);
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < *num; k++)
-    n[zz[k] - 1][CMC(xx[k] - 1, yy[k] - 1, *nr)]++;
+  for (k = 0; k < num; k++)
+    n[zz[k] - 1][CMC(xx[k] - 1, yy[k] - 1, nr)]++;
 
   /* compute the marginals. */
-  for (i = 0; i < *nr; i++)
-    for (j = 0; j < *nc; j++)
-      for (k = 0; k < *nl; k++) {
+  for (i = 0; i < nr; i++)
+    for (j = 0; j < nc; j++)
+      for (k = 0; k < nl; k++) {
 
-        nrowt[k][i] += n[k][CMC(i, j, *nr)];
-        ncolt[k][j] += n[k][CMC(i, j, *nr)];
-        ncond[k] += n[k][CMC(i, j, *nr)];
+        nrowt[k][i] += n[k][CMC(i, j, nr)];
+        ncolt[k][j] += n[k][CMC(i, j, nr)];
+        ncond[k] += n[k][CMC(i, j, nr)];
 
       }/*FOR*/
 
@@ -220,14 +218,14 @@ SEXP result;
   switch(INT(test)) {
 
     case MUTUAL_INFORMATION:
-      observed = _cmi(n, nrowt, ncolt, ncond, nr, nc, nl);
+      observed = _cmi(n, nrowt, ncolt, ncond, &nr, &nc, &nl);
 
       for (j = 0; j < *B; j++) {
 
-        for (k = 0; k < *nl; k++)
-          _rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
+        for (k = 0; k < nl; k++)
+          _rcont2(&nr, &nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
 
-        if (_cmi(n, nrowt, ncolt, ncond, nr, nc, nl) > observed) {
+        if (_cmi(n, nrowt, ncolt, ncond, &nr, &nc, &nl) > observed) {
 
           sequential_counter_check(res[1]);
 
@@ -241,14 +239,14 @@ SEXP result;
       break;
 
     case PEARSON_X2:
-      observed = _cx2(n, nrowt, ncolt, ncond, nr, nc, nl);
+      observed = _cx2(n, nrowt, ncolt, ncond, &nr, &nc, &nl);
 
       for (j = 0; j < *B; j++) {
 
-        for (k = 0; k < *nl; k++)
-          _rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
+        for (k = 0; k < nl; k++)
+          _rcont2(&nr, &nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
 
-        if (_cx2(n, nrowt, ncolt, ncond, nr, nc, nl) > observed) {
+        if (_cx2(n, nrowt, ncolt, ncond, &nr, &nc, &nl) > observed) {
 
           sequential_counter_check(res[1]);
 
@@ -259,14 +257,14 @@ SEXP result;
       break;
 
     case SP_MUTUAL_INFORMATION:
-      observed = _cmi(n, nrowt, ncolt, ncond, nr, nc, nl);
+      observed = _cmi(n, nrowt, ncolt, ncond, &nr, &nc, &nl);
 
       for (j = 0; j < *B; j++) {
 
-        for (k = 0; k < *nl; k++)
-          _rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
+        for (k = 0; k < nl; k++)
+          _rcont2(&nr, &nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
 
-        res[1] += _cmi(n, nrowt, ncolt, ncond, nr, nc, nl);
+        res[1] += _cmi(n, nrowt, ncolt, ncond, &nr, &nc, &nl);
 
       }/*FOR*/
 
@@ -276,14 +274,14 @@ SEXP result;
       break;
 
     case SP_PEARSON_X2:
-      observed = _cx2(n, nrowt, ncolt, ncond, nr, nc, nl);
+      observed = _cx2(n, nrowt, ncolt, ncond, &nr, &nc, &nl);
 
       for (j = 0; j < *B; j++) {
 
-        for (k = 0; k < *nl; k++)
-          _rcont2(nr, nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
+        for (k = 0; k < nl; k++)
+          _rcont2(&nr, &nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
 
-        res[1] += _cx2(n, nrowt, ncolt, ncond, nr, nc, nl);
+        res[1] += _cx2(n, nrowt, ncolt, ncond, &nr, &nc, &nl);
 
       }/*FOR*/
 

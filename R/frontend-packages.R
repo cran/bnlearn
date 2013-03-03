@@ -18,7 +18,7 @@ as.bn.fit = function(x) {
 
   UseMethod("as.bn.fit", x)
 
-}#AS.GRAIN
+}#AS.BN.FIT
 
 as.graphNEL = function(x) {
 
@@ -58,8 +58,14 @@ as.grain.bn.fit = function(x) {
     levels = dimnames(values)[[1]]
 
     # gRain requires completely specified CPTs, while bnlearn does not.
-    if (any(is.na(values)))
-      stop("NaN conditional probabilities are not supported by gRain.")
+    if (any(is.na(values))) {
+
+      warning("NaN conditional probabilities in ", node,
+        ", replaced with a uniform distribution.")
+
+      values[is.na(values)] <- 1/dim(values)[1]
+
+    }#THEN
 
     cpt[[node]] = cptable(formula(f), values = values, levels = levels)
 
@@ -129,6 +135,10 @@ as.bn.grain = function(x) {
 # convert a bn or bn.fit object into a graphNEL one.
 as.graphNEL.bn = function(x) {
 
+  # check whether graph is loaded.
+  if (!require(graph))
+    stop("this function requires the graph package.")
+
   # check x's class.
   check.bn.or.fit(x)
 
@@ -155,6 +165,10 @@ as.graphNEL.bn.fit = as.graphNEL.bn
 # convert a bn or bn.fit object into a graphAM one.
 as.graphAM.bn = function(x) {
 
+  # check whether graph is loaded.
+  if (!require(graph))
+    stop("this function requires the graph package.")
+
   # check x's class.
   check.bn.or.fit(x)
 
@@ -180,6 +194,10 @@ as.graphAM.bn.fit = as.graphAM.bn
 # convert a graphAM object to a bn one.
 as.bn.graphAM = function(x) {
 
+  # check whether graph is loaded.
+  if (!require(graph))
+    stop("this function requires the graph package.")
+
   nodes = nodes(x)
   arcs = amat2arcs(x@adjMat, nodes)
 
@@ -193,6 +211,10 @@ as.bn.graphAM = function(x) {
 
 # convert a graphNEL object to a bn one.
 as.bn.graphNEL = function(x) {
+
+  # check whether graph is loaded.
+  if (!require(graph))
+    stop("this function requires the graph package.")
 
   nodes = nodes(x)
   arcs = elist2arcs(edges(x))

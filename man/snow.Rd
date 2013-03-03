@@ -1,14 +1,15 @@
 \name{snow integration}
 \alias{snow integration}
+\alias{parallel integration}
 \title{
 
-  bnlearn - snow package integration
+  bnlearn - snow/parallel package integration
 
 }
 \description{
 
   How to use the \pkg{bnlearn} package with the parallel computing
-  environment provided by the \pkg{snow} package.
+  environment provided by the \pkg{snow} or \pkg{parallel} packages.
 
 }
 \section{Parallel computing for constraint-based algorithms}{
@@ -16,7 +17,7 @@
 # load snow, bnlearn and rsprng (for parallel random number
 # generation, just in case it's needed); start LAM/MPI via
 # lamboot if using an MPI cluster.
-> library(snow)
+> library(snow) # or library(parallel)
 > library(bnlearn)
 > library(rsprng)
 # initialize the cluster ("socket" and "PVM" clusters are fine, too).

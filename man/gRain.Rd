@@ -22,10 +22,13 @@
 
   Conditional probability tables in \code{grain} objects must be completely
   specified; on the other hand, \code{bn.fit} allows \code{NaN} values for
-  unobserved parents' configurations. Such \code{bn.fit} objects cannot be
-  converted to \code{grain} objects as they are. A simple solution to this
-  problem is to fit another \code{bn.fit} with \code{method = "bayes"} and
-  a low \code{iss} value, using the same data and network structure.
+  unobserved parents' configurations. Such \code{bn.fit} objects will be
+  converted to \code{grain} objects by replacing the missing conditional
+  probability distributions with uniform distributions. 
+
+  Another solution to this problem is to fit another \code{bn.fit} with 
+  \code{method = "bayes"} and a low \code{iss} value, using the same data
+  and network structure.
 
 }
 \value{

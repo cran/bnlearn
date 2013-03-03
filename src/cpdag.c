@@ -7,6 +7,7 @@
 #define UNCHANGED  0
 #define CHANGED    1
 
+static void fix_all_directed(int *a, int *nnodes);
 static void scan_graph(int *a, SEXP nodes, int *nnodes,
     short int *collider, int *debuglevel);
 static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
@@ -19,6 +20,9 @@ static int prevent_additional_vstructures(int *a, SEXP nodes,
     int *nnodes, short int *collider, int *debuglevel);
 static void renormalize_amat(int *a, int *nnodes);
 static SEXP amat2vstructs(int *a, SEXP nodes, int *nnodes, short int *collider);
+static void is_a_sink(int *a, int node, int *k, int nnodes, int *nbr,
+    short int *matched);
+static int all_adjacent(int *a, int node, int k, int nnodes, int *nbr);
 
 /* return the v-structures present in the graph. */
 SEXP vstructures(SEXP arcs, SEXP nodes, SEXP return_arcs, SEXP moral, SEXP debug) {
@@ -132,11 +136,11 @@ SEXP result, dimnames, colnames;
 
 }/*AMAT2VSTRUCTS*/
 
-SEXP cpdag(SEXP arcs, SEXP nodes, SEXP moral, SEXP debug) {
+SEXP cpdag(SEXP arcs, SEXP nodes, SEXP moral, SEXP fix, SEXP debug) {
 
 int i = 0, changed = 0, nnodes = LENGTH(nodes);
 short int *collider = NULL;
-int *a = NULL, *all_vstructs = LOGICAL(moral), *debuglevel = LOGICAL(debug);
+int *a = NULL, *debuglevel = LOGICAL(debug);
 SEXP amat;
 
   /* build the adjacency matrix and dereference it. */
@@ -149,12 +153,25 @@ SEXP amat;
   /* STEP 1: scan the graph. */
   scan_graph(a, nodes, &nnodes, collider, debuglevel);
 
-  /* STEP 2: all the arcs not part of a v-structure are now undirected. */
-  mark_vstructures(a, nodes, &nnodes, collider, debuglevel);
+  if (isTRUE(fix)) {
 
-  /* decide whether or not to keep moral v-structures (i.e. shielded colliders). */
-  if (*all_vstructs == 0)
-    unmark_shielded(a, nodes, &nnodes, collider, debuglevel);
+    /* skipping STEP 2, just propagate the directions from the arcs that are
+     * diredcted (this is for learning algorithms, to preserve whitelisted and
+     * blacklisted arcs). */
+
+    fix_all_directed(a, &nnodes);
+
+  }/*THEN*/
+  else {
+
+    /* STEP 2: all the arcs not part of a v-structure are now undirected. */
+    mark_vstructures(a, nodes, &nnodes, collider, debuglevel);
+
+    /* decide whether or not to keep moral v-structures (i.e. shielded colliders). */
+    if (isTRUE(moral))
+      unmark_shielded(a, nodes, &nnodes, collider, debuglevel);
+
+  }/*ELSE*/
 
   /* STEP 3: orient some more edges without introducing cycles or new
    * v-structures in the graph. */
@@ -193,6 +210,25 @@ SEXP amat;
   return amat;
 
 }/*CPDAG*/
+
+static void fix_all_directed(int *a, int *nnodes) {
+
+int i = 0, j = 0;
+
+  for (i = 0; i < *nnodes; i++) {
+
+    for (j = 0; j < *nnodes; j++) {
+
+      if ((a[CMC(i, j, *nnodes)] == PRESENT) && (a[CMC(j, i, *nnodes)] == ABSENT))
+        a[CMC(i, j, *nnodes)] = FIXED;
+      if ((a[CMC(i, j, *nnodes)] == ABSENT) && (a[CMC(j, i, *nnodes)] == PRESENT))
+        a[CMC(j, i, *nnodes)] = FIXED;
+
+    }/*FOR*/
+
+  }/*FOR*/
+
+}/*FIX_ALL_DIRECTED*/
 
 static void scan_graph(int *a, SEXP nodes, int *nnodes,
     short int *collider, int *debuglevel) {
@@ -393,7 +429,7 @@ int i = 0, j = 0, changed = UNCHANGED, n = *nnodes;
         a[CMC(j, i, n)] = ABSENT;
 
         if (*debuglevel)
-            Rprintf("  > fixing arc %s -> %s due to directed path (step 3a).\n", NODE(j), NODE(i));
+            Rprintf("  > fixing arc %s -> %s due to directed path (step 3a).\n", NODE(i), NODE(j));
 
         changed = CHANGED;
 
@@ -404,7 +440,7 @@ int i = 0, j = 0, changed = UNCHANGED, n = *nnodes;
         a[CMC(j, i, n)] = FIXED;
 
         if (*debuglevel)
-            Rprintf("  > fixing arc %s -> %s due to directed path (step 3a).\n", NODE(i), NODE(j));
+            Rprintf("  > fixing arc %s -> %s due to directed path (step 3a).\n", NODE(j), NODE(i));
 
         changed = CHANGED;
 
@@ -499,9 +535,10 @@ static void renormalize_amat(int *a, int *nnodes) {
 
 }/*RENORMALIZE_AMAT*/
 
+/* construct a consistent DAG extension of a CPDAG. */
 SEXP pdag_extension(SEXP arcs, SEXP nodes, SEXP debug) {
 
-int i = 0, j = 0, k = 0, l = 0, t = 0, nnodes = LENGTH(nodes);
+int i = 0, j = 0, k = 0, t = 0, nnodes = LENGTH(nodes);
 int changed = 0, left = nnodes;
 int *a = NULL, *nbr = NULL, *debuglevel = LOGICAL(debug);
 short int *matched = NULL;
@@ -531,70 +568,66 @@ SEXP amat, result;
 
     for (i = 0; i < nnodes; i++) {
 
-next_node:
-
       /* if the node is already ok, skip it. */
       if (matched[i] != 0)
         continue;
 
-      /* check whether the current node has outgoing arcs. */
-      for (j = 0, k = 0; j < nnodes; j++) {
+      /* check whether the node is a sink. */
+      is_a_sink(a, i, &k, nnodes, nbr, matched);
 
-        if (matched[j] != 0)
-          continue;
+      /* if the node is not a sink move on. */
+      if (k == -1) {
 
-        if ((a[CMC(j, i, nnodes)] == 0) && (a[CMC(i, j, nnodes)] == 1)) {
+        if (*debuglevel > 0)
+          Rprintf("  * node %s is not a sink.\n", NODE(i));
 
-          if (*debuglevel > 0)
-            Rprintf("  * node %s is not a sink.\n", NODE(i));
+        continue;
 
-          /* this node is not a candidate, go to the next one. */
-          i++;
-          goto next_node;
+      }/*THEN*/
+      else {
+
+        if (*debuglevel > 0)
+          Rprintf("  * node %s is a sink.\n", NODE(i));
+
+      }/*ELSE*/
+
+      if (!all_adjacent(a, i, k, nnodes, nbr)) {
+
+        if (*debuglevel > 0)
+          Rprintf("  * not all nodes linked to %s by an undirected arc are adjacent.\n", NODE(i));
+
+        continue;
+
+      }/*THEN*/
+      else {
+
+        if (*debuglevel > 0) {
+
+          if (k == 0)
+            Rprintf("  * no node is linked to %s by an undirected arc.\n", NODE(i));
+          else
+            Rprintf("  * all nodes linked to %s by an undirected arc are adjacent.\n", NODE(i));
 
         }/*THEN*/
-        else if ((a[CMC(j, i, nnodes)] == 1) && (a[CMC(i, j, nnodes)] == 1)) {
 
-          /* get the nodes which are linked to the current one by an 
-           * undirected arc. */
-          nbr[k++] = j;
-
-        }/*THEN*/
-
-      }/*FOR*/
-
-      if (*debuglevel > 0)
-        Rprintf("  * node %s is a sink.\n", NODE(i));
-
-      for (j = 0; j < k; j++) {
-
-        for (l = j + 1; l < k; l++) {
-
-          if ((a[CMC(nbr[j], nbr[l], nnodes)] == 0) &&
-              (a[CMC(nbr[l], nbr[j], nnodes)] == 0)) {
-
-            if (*debuglevel > 0)
-              Rprintf("  * not all nodes linked to %s by an undirected arc are adjacent.\n", NODE(i));
-
-            /* this node is not a candidate, go to the next one. */
-            i++;
-            goto next_node;
-
-          }/*THEN*/
-
-        }/*FOR*/
-
-      }/*FOR*/
-
-      if (*debuglevel > 0)
-        Rprintf("  * all nodes linked to %s by an undirected arc are adjacent.\n", NODE(i));
+      }/*ELSE*/
 
       /* the current node meets all the conditions, direct all the arcs towards it. */
-      for (j = 0; j < k; j++)
-        a[CMC(i, nbr[j], nnodes)] = 0;
+      if (k == 0) {
 
-      if (*debuglevel > 0)
-        Rprintf("  @ directing all incident arcs towards %s.\n", NODE(i));
+        if (*debuglevel > 0)
+          Rprintf("  @ no undirected arc to direct towards %s.\n", NODE(i));
+
+      }/*THEN*/
+      else {
+
+        for (j = 0; j < k; j++)
+          a[CMC(i, nbr[j], nnodes)] = 0;
+
+        if (*debuglevel > 0)
+          Rprintf("  @ directing all incident undirected arcs towards %s.\n", NODE(i));
+
+      }/*ELSE*/
 
       /* set the changed flag. */
       changed = 1;
@@ -607,19 +640,10 @@ next_node:
 
     /* if nothing changed in the last iteration or there are no more candidate
      * nodes, there is nothing else to do. */
-    if (changed == 0) {
-
-      if (left > 0)
-        error("unable to construct a consistent extension.");
-      else
-        break;
-
-    }/*THEN*/
-    else {
-
+    if ((changed == 0) || (left == 0))
+      break;
+    else
       changed = 0;
-
-    }/*ELSE*/
 
   }/*FOR*/
 
@@ -631,3 +655,60 @@ next_node:
   return result;
 
 }/*PDAG_EXTENSION*/
+
+static void is_a_sink(int *a, int node, int *k, int nnodes, int *nbr,
+    short int *matched) {
+
+int j = 0;
+
+  /* check whether the current node has outgoing arcs. */
+  for (j = 0, *k = 0; j < nnodes; j++) {
+
+    if (matched[j] != 0)
+      continue;
+
+    if ((a[CMC(j, node, nnodes)] == 0) && (a[CMC(node, j, nnodes)] == 1)) {
+
+      /* this node is not a candidate, go to the next one. */
+      *k = -1;
+
+      break;
+
+    }/*THEN*/
+    else if ((a[CMC(j, node, nnodes)] == 1) && (a[CMC(node, j, nnodes)] == 1)) {
+
+      /* get the nodes which are linked to the current one by an 
+       * undirected arc. */
+      nbr[(*k)++] = j;
+
+    }/*THEN*/
+
+  }/*FOR*/
+
+}/*IS_A_SINK*/
+
+static int all_adjacent(int *a, int node, int k, int nnodes, int *nbr) {
+
+int j = 0, l = 0;
+
+  for (j = 0; j < k; j++) {
+
+    for (l = j + 1; l < k; l++) {
+
+      if ((a[CMC(nbr[j], nbr[l], nnodes)] == 0) &&
+          (a[CMC(nbr[l], nbr[j], nnodes)] == 0)) {
+
+        /* this node is not a candidate, go to the next one. */
+        return FALSE;
+
+      }/*THEN*/
+
+    }/*FOR*/
+
+  }/*FOR*/
+
+  return TRUE;
+
+}/*ALL_ADJACENT*/
+
+

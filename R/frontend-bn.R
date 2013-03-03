@@ -108,24 +108,36 @@ cpdag = function(x, moral = FALSE, debug = FALSE) {
   check.logical(moral)
   check.logical(debug)
   # check whether the graph is acclic, to be sure to return a DAG.
-  if (!is.acyclic(x$arcs, names(x$nodes)))
+  if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
     stop("the specified network contains cycles.")
 
   cpdag.backend(x = x, moral = moral, debug = debug)
 
 }#CPDAG
 
-cextend = function(x, debug = FALSE) {
+# contruct a consistent DAG extension of a PDAG.
+cextend = function(x, strict = TRUE, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
   # check debug.
   check.logical(debug)
+  # check strict.
+  check.logical(strict)
   # check whether the graph is acclic, to be sure to return a DAG.
-  if (!is.acyclic(x$arcs, names(x$nodes)))
+  if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
     stop("the specified network contains cycles.")
 
-  cpdag.extension(x = x, debug = debug)
+  cpdag = cpdag.extension(x = x, debug = debug)
+
+  # if the graph is not completely directed, the extension was not successful.
+  if (is.pdag(cpdag$arcs, names(cpdag$nodes)))
+    if (strict)
+      stop("no consistent extension of ", deparse(substitute(x)), " is possible.")
+    else
+      warning("no consistent extension of ", deparse(substitute(x)), " is possible.")
+
+  return(cpdag)
 
 }#CEXTEND
 

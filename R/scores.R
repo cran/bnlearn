@@ -147,8 +147,6 @@ loglik.node = function(node, x, data, debug = FALSE) {
 
   # get the parents of the node.
   node.parents = x$nodes[[node]]$parents
-  # cache the sample size.
-  ndata = nrow(data)
   # extract the node's column from the data frame.
   datax = minimal.data.frame.column(data, node)
 
@@ -157,8 +155,6 @@ loglik.node = function(node, x, data, debug = FALSE) {
 
     node.loglik = .Call("dlik",
        x = datax,
-       lx = nlevels(datax),
-       length = ndata,
        PACKAGE = "bnlearn")
 
   }#THEN
@@ -174,9 +170,6 @@ loglik.node = function(node, x, data, debug = FALSE) {
     node.loglik = .Call("cdlik",
        x = datax,
        y = config,
-       lx = nlevels(datax),
-       ly = nlevels(config),
-       length = ndata,
        PACKAGE = "bnlearn")
 
   }#ELSE

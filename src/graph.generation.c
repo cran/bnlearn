@@ -3,6 +3,12 @@
 static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached,
     double _ntests, char *_test, char *_algo);
 
+static SEXP ic_2nodes(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
+    SEXP max_out_degree, SEXP max_degree, SEXP connected, SEXP debug);
+
+static SEXP c_ide_cozman(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
+    SEXP max_out_degree, SEXP max_degree, SEXP connected, SEXP debug);
+
 static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     int *degree, double *max, int *in_degree, double *max_in, int *out_degree,
     double *max_out, int *cozman, int *debuglevel);
@@ -170,6 +176,171 @@ SEXP list, res, args, argnames, amat, arcs, cached, debug2, null, temp;
 /* generate a connected graph with uniform probability, subject to some
  * constraints on the degree of the nodes. */
 SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
+    SEXP max_out_degree, SEXP max_degree, SEXP connected, SEXP debug) {
+
+SEXP graphlist;
+
+  switch(LENGTH(nodes)) {
+
+    case 1:
+
+      /* there is only one graph with 1 node, and it's empty. */
+      graphlist = empty_graph(nodes, num);
+      break;
+
+    case 2:
+      /* Ide-Cozman has no mixing with only 2 nodes, work around with i.i.d.
+       * sampling.*/
+      if (isTRUE(connected)) {
+
+        graphlist = ic_2nodes(nodes, num, burn_in, max_in_degree,
+                      max_out_degree, max_degree, connected, debug);
+        break;
+
+      }/*THEN*/
+
+    default:
+
+      graphlist = c_ide_cozman(nodes, num, burn_in, max_in_degree,
+                    max_out_degree, max_degree, connected, debug);
+
+  }/*SWITCH*/
+
+  return graphlist;
+
+}/*IDE_COZMAN_GRAPH*/
+
+/* an Ide-Cozman alternative for 2-nodes graphs. */
+static SEXP ic_2nodes(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
+    SEXP max_out_degree, SEXP max_degree, SEXP connected, SEXP debug) {
+
+int i = 0, *n = INTEGER(num), *a = NULL;
+int *debuglevel = LOGICAL(debug);
+double u = 0;
+SEXP list, resA, resB, arcsA, arcsB, cachedA, cachedB;
+SEXP amatA, amatB, args, argnames, false;
+
+  /* the list of optional arguments. */
+  PROTECT(argnames = allocVector(STRSXP, 4));
+  SET_STRING_ELT(argnames, 0, mkChar("burn.in"));
+  SET_STRING_ELT(argnames, 1, mkChar("max.in.degree"));
+  SET_STRING_ELT(argnames, 2, mkChar("max.out.degree"));
+  SET_STRING_ELT(argnames, 3, mkChar("max.degree"));
+
+  PROTECT(args = allocVector(VECSXP, 4));
+  setAttrib(args, R_NamesSymbol, argnames);
+  SET_VECTOR_ELT(args, 0, burn_in);
+  SET_VECTOR_ELT(args, 1, max_in_degree);
+  SET_VECTOR_ELT(args, 2, max_out_degree);
+  SET_VECTOR_ELT(args, 3, max_degree);
+
+  /* allocate a FALSE variable. */
+  PROTECT(false = allocVector(LGLSXP, 1));
+  LOGICAL(false)[0] = FALSE;
+
+  /* allocate and initialize the tow adjacency matrices. */
+  PROTECT(amatA = allocMatrix(INTSXP, 2, 2));
+  a = INTEGER(amatA);
+  memset(a, '\0', sizeof(int) * 4);
+  a[2] = 1;
+  PROTECT(amatB = allocMatrix(INTSXP, 2, 2));
+  a = INTEGER(amatB);
+  memset(a, '\0', sizeof(int) * 4);
+  a[1] = 1;
+  /* generates the arc sets. */
+  PROTECT(arcsA = amat2arcs(amatA, nodes));
+  PROTECT(arcsB = amat2arcs(amatB, nodes));
+  /* generate the cached node information. */
+  PROTECT(cachedA = cache_structure(nodes, amatA, false));
+  PROTECT(cachedB = cache_structure(nodes, amatB, false));
+  /* generate the two "bn" structures. */
+  PROTECT(resA = bn_base_structure(nodes, args, arcsA, cachedA, 0, "none", "empty"));
+  PROTECT(resB = bn_base_structure(nodes, args, arcsB, cachedB, 0, "none", "empty"));
+
+  if (*debuglevel > 0)
+    Rprintf("* no burn-in required.\n");
+
+  GetRNGstate();
+
+  /* return a list if more than one bn is generated. */
+  if (*n > 1) {
+
+    PROTECT(list = allocVector(VECSXP, *n));
+    for (i = 0; i < *n; i++) {
+
+      if (*debuglevel > 0)
+        Rprintf("* current model (%d):\n", i + 1);
+
+      /* sample which graph to return. */
+      u = unif_rand();
+
+      if (u <= 0.5) {
+
+        /* pick the graph with A -> B. */
+        SET_VECTOR_ELT(list, i, resA);
+
+        /* print the model string to allow a sane debugging experience. */
+        if (*debuglevel > 0)
+          print_modelstring(resA);
+
+      }/*THEN*/
+      else {
+
+        /* pick the graph with B -> A. */
+        SET_VECTOR_ELT(list, i, resB);
+
+        /* print the model string to allow a sane debugging experience. */
+        if (*debuglevel > 0)
+          print_modelstring(resB);
+
+      }/*ELSE*/
+
+    }/*FOR*/
+
+    PutRNGstate();
+
+    UNPROTECT(12);
+    return list;
+
+  }/*THEN*/
+  else {
+
+    if (*debuglevel > 0)
+      Rprintf("* current model (1):\n");
+
+    /* sample which graph to return. */
+    u = unif_rand();
+
+    PutRNGstate();
+
+    UNPROTECT(11);
+
+    if (u <= 0.5) {
+
+      /* print the model string to allow a sane debugging experience. */
+      if (*debuglevel > 0)
+        print_modelstring(resA);
+
+      /* return the graph with A -> B. */
+      return resA;
+
+    }/*THEN*/
+    else {
+
+      /* print the model string to allow a sane debugging experience. */
+      if (*debuglevel > 0)
+        print_modelstring(resB);
+
+      /* return the graph with B -> A. */
+      return resB;
+
+    }/*ELSE*/
+
+  }/*ELSE*/
+
+}/*IC_2NODES*/
+
+static SEXP c_ide_cozman(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
     SEXP max_out_degree, SEXP max_degree, SEXP connected, SEXP debug) {
 
 int i = 0, k = 0, nnodes = LENGTH(nodes), *n = INTEGER(num);
@@ -380,7 +551,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
 
   }/*ELSE*/
 
-}/*IDE_COZMAN_GRAPH*/
+}/*C_IDE_COZMAN*/
 
 /* helper function which does the dirty work. */
 static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached,

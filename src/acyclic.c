@@ -12,7 +12,8 @@ static SEXP build_return_array(SEXP nodes, short int *status,
  * Bang-Jensen and Gutin, page 13.
  */
 
-SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, SEXP debug) {
+SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, 
+    SEXP directed, SEXP debug) {
 
 int i = 0, j = 0, z = 0;
 int nrows = LENGTH(nodes);
@@ -31,6 +32,19 @@ SEXP amat;
 
   PROTECT(amat = arcs2amat(arcs, nodes));
   a = INTEGER(amat);
+
+  /* should we consider only directed arcs? */
+  if (isTRUE(directed)) {
+
+    /* removing undirected arcs, so that only cycles made only of directed
+     * arcs will make the function return TRUE. */
+
+    for (i = 0; i < nrows; i++)
+      for (j = 0; j < nrows; j++)
+        if ((a[CMC(i, j, nrows)] == 1) && (a[CMC(j, i, nrows)] == 1))
+          a[CMC(i, j, nrows)] = a[CMC(j, i, nrows)] = 0;
+
+  }/*THEN*/
 
   /* initialize the status, {row,col}sums and crossprod arrays. */
   status = allocstatus(nrows);

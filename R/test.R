@@ -1,13 +1,9 @@
 
 conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE) {
 
-  if (learning) {
-
-    # update the test counter.
-    assign(".test.counter", get(".test.counter", envir = .GlobalEnv) + 1,
-      envir = .GlobalEnv)
-
-  }#THEN
+  # update the test counter when performing structure learning.
+  if (learning) 
+    increment.test.counter()
 
   sx = sx[sx != ""]
   ndata = nrow(data)
@@ -22,24 +18,27 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
     # Mutual Infomation (chi-square asymptotic distribution)
     if (test == "mi") {
 
-      statistic = mi.test(datax, datay, ndata, gsquare = TRUE)
-      df = (nlevels(datax) - 1) * (nlevels(datay) - 1)
+      par.test = mi.test(datax, datay, ndata, gsquare = TRUE)
+      statistic = par.test[1]
+      df = par.test[2]
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Shrinked Mutual Infomation (chi-square asymptotic distribution)
     if (test == "mi-sh") {
 
-      statistic = shmi.test(datax, datay, ndata, gsquare = TRUE)
-      df = (nlevels(datax) - 1) * (nlevels(datay) - 1)
+      par.test = shmi.test(datax, datay, gsquare = TRUE)
+      statistic = par.test[1]
+      df = par.test[2]
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
     # Pearson's X^2 test (chi-square asymptotic distribution)
     else if (test == "x2") {
 
-      statistic = x2.test(datax, datay, ndata)
-      df = (nlevels(datax) - 1) * (nlevels(datay) - 1)
+      par.test = x2.test(datax, datay)
+      statistic = par.test[1]
+      df = par.test[2]
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
@@ -80,7 +79,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
     # Mutual Infomation (monte carlo permutation distribution)
     else if ((test == "mc-mi") || (test == "smc-mi")) {
 
-      perm.test = mc.test(datax, datay, ndata, samples = B,
+      perm.test = mc.test(datax, datay, samples = B,
                     alpha = ifelse(test == "smc-mi", alpha, 1), test = 1L)
       statistic = perm.test[1]
       p.value = perm.test[2]
@@ -89,7 +88,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
     # Mutual Infomation (semiparametric)
     else if (test == "sp-mi") {
 
-      perm.test = mc.test(datax, datay, ndata, samples = B,
+      perm.test = mc.test(datax, datay, samples = B,
                     alpha = ifelse(test == "smc-mi", alpha, 1), test = 6L)
       statistic = perm.test[1]
       df = perm.test[2]
@@ -99,7 +98,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
     # Pearson's X^2 test (monte carlo permutation distribution)
     else if ((test == "mc-x2") || (test == "smc-x2")) {
 
-      perm.test = mc.test(datax, datay, ndata, samples = B,
+      perm.test = mc.test(datax, datay, samples = B,
                     alpha = ifelse(test == "smc-x2", alpha, 1), test = 2L)
       statistic = perm.test[1]
       p.value = perm.test[2]
@@ -108,7 +107,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
     # Pearson's X^2 test (semiparametric)
     else if (test == "sp-x2") {
 
-      perm.test = mc.test(datax, datay, ndata, samples = B,
+      perm.test = mc.test(datax, datay, samples = B,
                     alpha = ifelse(test == "smc-mi", alpha, 1), test = 7L)
       statistic = perm.test[1]
       df = perm.test[2]
@@ -161,8 +160,9 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       datax = minimal.data.frame.column(data, x)
       datay = minimal.data.frame.column(data, y)
 
-      statistic = cmi.test(datax, datay, config, ndata, gsquare = TRUE)
-      df = (nlevels(datax) - 1) * (nlevels(datay) - 1) * nlevels(config)
+      par.test = cmi.test(datax, datay, config, ndata, gsquare = TRUE)
+      statistic = par.test[1]
+      df = par.test[2]
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
@@ -172,8 +172,9 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       datax = minimal.data.frame.column(data, x)
       datay = minimal.data.frame.column(data, y)
 
-      statistic = shcmi.test(datax, datay, config, ndata, gsquare = TRUE)
-      df = (nlevels(datax) - 1) * (nlevels(datay) - 1) * nlevels(config)
+      par.test = shcmi.test(datax, datay, config, gsquare = TRUE)
+      statistic = par.test[1]
+      df = par.test[2]
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
@@ -183,8 +184,9 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       datax = minimal.data.frame.column(data, x)
       datay = minimal.data.frame.column(data, y)
 
-      statistic = cx2.test(datax, datay, config, ndata)
-      df = (nlevels(datax) - 1) * (nlevels(datay) - 1) * nlevels(config)
+      par.test = cx2.test(datax, datay, config)
+      statistic = par.test[1]
+      df = par.test[2]
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
@@ -216,7 +218,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
     # Mutual Information for Gaussian Data (chi-square asymptotic distribution)
     else if (test == "mi-g") {
 
-      statistic = cmig.test(x, y, sx, data, ndata, gsquare = TRUE)
+      statistic = cmig.test(x, y, sx, data, ndata, strict = !learning, gsquare = TRUE)
       df = 1
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
@@ -235,7 +237,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       datax = minimal.data.frame.column(data, x)
       datay = minimal.data.frame.column(data, y)
 
-      perm.test = cmc.test(datax, datay, config, ndata, samples = B,
+      perm.test = cmc.test(datax, datay, config, samples = B,
                     alpha = ifelse(test == "smc-mi", alpha, 1), test = 1L)
       statistic = perm.test[1]
       p.value = perm.test[2]
@@ -247,7 +249,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       datax = minimal.data.frame.column(data, x)
       datay = minimal.data.frame.column(data, y)
 
-      perm.test = cmc.test(datax, datay, config, ndata, samples = B,
+      perm.test = cmc.test(datax, datay, config, samples = B,
                     alpha = ifelse(test == "smc-mi", alpha, 1), test = 6L)
       statistic = perm.test[1]
       df = perm.test[2]
@@ -260,7 +262,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       datax = minimal.data.frame.column(data, x)
       datay = minimal.data.frame.column(data, y)
 
-      perm.test = cmc.test(datax, datay, config, ndata, samples = B,
+      perm.test = cmc.test(datax, datay, config, samples = B,
                     alpha = ifelse(test == "smc-x2", alpha, 1), test = 2L)
       statistic = perm.test[1]
       p.value = perm.test[2]
@@ -272,7 +274,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       datax = minimal.data.frame.column(data, x)
       datay = minimal.data.frame.column(data, y)
 
-      perm.test = cmc.test(datax, datay, config, ndata, samples = B,
+      perm.test = cmc.test(datax, datay, config, samples = B,
                     alpha = ifelse(test == "smc-x2", alpha, 1), test = 7L)
       statistic = perm.test[1]
       df = perm.test[2]
@@ -282,7 +284,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
     # Mutual Information for Gaussian Data (monte carlo permutation distribution)
     else if ((test == "mc-mi-g") || (test == "smc-mi-g")) {
 
-      statistic = cmig.test(x, y, sx, data, ndata, gsquare = TRUE)
+      statistic = cmig.test(x, y, sx, data, ndata, strict = !learning, gsquare = TRUE)
       p.value = cgmc.test(x, y, sx, data, ndata, samples = B,
                   alpha = ifelse(test == "smc-mi-g", alpha, 1), test = 3L)
 
@@ -346,39 +348,28 @@ mi.test = function(x, y, ndata, gsquare = TRUE) {
   s = .Call("mi",
       x = x,
       y = y,
-      lx = nlevels(x),
-      ly = nlevels(y),
-      length = ndata,
+      gsquare = gsquare,
       PACKAGE = "bnlearn")
-
-  ifelse(gsquare, 2 * ndata * s, s)
 
 }#MI.TEST
 
 # Shrinked Mutual Information (discrete data)
-shmi.test = function(x, y, ndata, gsquare = TRUE) {
+shmi.test = function(x, y, gsquare = TRUE) {
 
   s = .Call("shmi",
       x = x,
       y = y,
-      lx = nlevels(x),
-      ly = nlevels(y),
-      length = ndata,
+      gsquare = gsquare,
       PACKAGE = "bnlearn")
-
-  ifelse(gsquare, 2 * ndata * s, s)
 
 }#SHMI.TEST
 
 # Monte Carlo (discrete data)
-mc.test = function(x, y, ndata, samples, alpha, test) {
+mc.test = function(x, y, samples, alpha, test) {
 
   .Call("mcarlo",
         x = x,
         y = y,
-        lx = nlevels(x),
-        ly = nlevels(y),
-        length = ndata,
         samples = samples,
         test = test,
         alpha = alpha,
@@ -393,44 +384,30 @@ cmi.test = function(x, y, z, ndata, gsquare = TRUE) {
       x = x,
       y = y,
       z = z,
-      lx = nlevels(x),
-      ly = nlevels(y),
-      lz = nlevels(z),
-      length = ndata,
+      gsquare = gsquare,
       PACKAGE = "bnlearn")
-
-  ifelse(gsquare, 2 * ndata * s, s)
 
 }#CMI.TEST
 
 # Shrinked Conditional Mutual Information (discrete data)
-shcmi.test = function(x, y, z, ndata, gsquare = TRUE) {
+shcmi.test = function(x, y, z, gsquare = TRUE) {
 
   s = .Call("shcmi",
       x = x,
       y = y,
       z = z,
-      lx = nlevels(x),
-      ly = nlevels(y),
-      lz = nlevels(z),
-      length = ndata,
+      gsquare = gsquare,
       PACKAGE = "bnlearn")
-
-  ifelse(gsquare, 2 * ndata * s, s)
 
 }#SHCMI.TEST
 
 # Conditional Monte Carlo (discrete data)
-cmc.test = function(x, y, z, ndata, samples, alpha, test) {
+cmc.test = function(x, y, z, samples, alpha, test) {
 
   .Call("cmcarlo",
         x = x,
         y = y,
         z = z,
-        lx = nlevels(x),
-        ly = nlevels(y),
-        lz = nlevels(z),
-        length = ndata,
         samples = samples,
         test = test,
         alpha = alpha,
@@ -505,29 +482,22 @@ cgmc.test = function(x, y, sx, data, ndata, samples, alpha, test) {
 }#CGMC.TEST
 
 # Pearson's X^2 test (discrete data)
-x2.test = function(x, y, ndata) {
+x2.test = function(x, y) {
 
   .Call("x2",
       x = x,
       y = y,
-      lx = nlevels(x),
-      ly = nlevels(y),
-      length = ndata,
       PACKAGE = "bnlearn")
 
 }#X2.TEST
 
 # Pearson's Conditional X^2 test (discrete data)
-cx2.test = function(x, y, z, ndata) {
+cx2.test = function(x, y, z) {
 
   .Call("cx2",
       x = x,
       y = y,
       z = z,
-      lx = nlevels(x),
-      ly = nlevels(y),
-      lz = nlevels(z),
-      length = ndata,
       PACKAGE = "bnlearn")
 
 }#CX2.TEST

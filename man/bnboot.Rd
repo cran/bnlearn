@@ -55,7 +55,7 @@ bn.boot(data, statistic, R = 200, m = nrow(data),
   Friedman N, Goldszmidt M, Wyner A (1999). "Data Analysis with Bayesian
       Networks: A Bootstrap Approach". In "UAI '99: Proceedings of the
       15th Annual Conference on Uncertainty in Artificial Intelligence",
-      pp. 196-20. Morgan Kaufmann.
+      pp. 196-201. Morgan Kaufmann.
 
 }
 \examples{

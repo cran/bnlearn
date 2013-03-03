@@ -1,3 +1,28 @@
+bnlearn (3.3)
+
+  * fixed cpdag() and cextend(), which returned an error about
+     the input graph being cyclic when it included the CPDAG of
+     a shielded collider (thanks Jean-Baptiste Denis).
+  * do not generate observations from redundant variables (those
+     not in the upper closure of event and evidence) in cpdag()
+     and cpquery().
+  * added Pena's relevant() nodes identification.
+  * make custom.fit() robust against floating point errors
+     (thanks Jean-Baptiste Denis).
+  * check v-structures do not introduce directed cycles in the
+     graph when applying them (thanks Jean-Baptiste Denis).
+  * fixed a buffer overflow in cextend() (thanks Jean-Baptiste
+     Denis).
+  * added a "strict" argument to cextend().
+  * removed Depends on the graph package, which is in Suggests
+     once more.
+  * prefer the parallel package to snow, if it is available.
+  * replace NaNs in bn.fit objects with uniform conditional
+     probabilities when calling as.grain(), with a warning
+     instead of an error.
+  * remove reserved characters from levels in write.{dsc,bif,net}().
+  * fix the Gaussian mutual information test (thanks Alex Lenkoski).
+
 bnlearn (3.2)
 
   * fixed outstanding typo affecting the sequential Monte Carlo
@@ -14,7 +39,7 @@ bnlearn (3.2)
 bnlearn (3.1)
 
   * fixed all.equal(), it did not work as expected on networks
-     that were idetical save for the order of nodes or arcs.
+     that were identical save for the order of nodes or arcs.
   * added a "moral" argument to cpdag() and vstructs() to make
      those functions follow the different definitions of v-structure.
   * added support for graphs with 1 and 2 nodes.

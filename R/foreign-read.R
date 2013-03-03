@@ -829,7 +829,7 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
     probs = sub(".+\\{\\s*data\\s*=\\s*\\(\\s*(.+?)\\s*\\);\\s*\\}.*", "\\1", desc)
     probs = gsub("\\s*\\(\\s*|\\s*\\)\\s*", "", probs)
-    probs = strsplit(probs, " ")[[1]]
+    probs = strsplit(probs, "\\s+")[[1]]
 
     if (length(probs) != length(nodes.levels[[node]]))
       stop("the dimension of the CPT of node ", node,

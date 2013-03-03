@@ -25,6 +25,11 @@ setClass("bn.tan")
 
 }#.NODES
 
+
+# if no generic is present, create it.
+if (!isGeneric("nodes"))
+  setGeneric("nodes", function(object, ...) standardGeneric("nodes"))
+
 setMethod("nodes", "bn", function(object) .nodes(object))
 setMethod("nodes", "bn.fit", function(object) .nodes(object))
 setMethod("nodes", "bn.naive", function(object) .nodes(object))
@@ -45,24 +50,12 @@ setMethod("nodes", "bn.tan", function(object) .nodes(object))
 
 }#.DEGREE
 
+# if no generic is present, create it.
+if (!isGeneric("degree"))
+  setGeneric("degree", function(object, Nodes, ...) standardGeneric("degree"))
+
 setMethod("degree", "bn", function(object, Nodes) .degree(object, Nodes))
 setMethod("degree", "bn.fit", function(object, Nodes) .degree(object, Nodes))
 setMethod("degree", "bn.naive", function(object, Nodes) .degree(object, Nodes))
 setMethod("degree", "bn.tan", function(object, Nodes) .degree(object, Nodes))
-
-# convert a bn or bn.fit object into a graphNEL one.
-setAs(from = "bn", to = "graphNEL", function(from, to) as.graphNEL.bn(from))
-setAs(from = "bn.fit", to = "graphNEL", function(from, to) as.graphNEL.bn.fit(from))
-setAs(from = "bn.naive", to = "graphNEL", function(from, to) as.graphNEL(from))
-setAs(from = "bn.tan", to = "graphNEL", function(from, to) as.graphNEL(from))
-
-# convert a bn or bn.fit object into a graphAM one.
-setAs(from = "bn", to = "graphAM", function(from, to) as.graphAM.bn(from))
-setAs(from = "bn.fit", to = "graphAM", function(from, to) as.graphAM.bn.fit(from))
-setAs(from = "bn.naive", to = "graphAM", function(from, to) as.graphAM(from))
-setAs(from = "bn.tan", to = "graphAM", function(from, to) as.graphAM(from))
-
-# covert graph objects back to bn objects.
-setAs(from = "graphNEL", to = "bn", function(from, to) as.bn.graphNEL(from))
-setAs(from = "graphAM", to = "bn", function(from, to) as.bn.graphAM(from))
 

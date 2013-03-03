@@ -128,7 +128,7 @@ minimal.qr.matrix = function(dataframe, column) {
 
 }#MINIMAL.QR.MATRIX
 
-# flatten 2-dimenasional 1xc tables.
+# flatten 2-dimensional 1xc tables.
 flatten.2d.table = function(x) {
 
   x = as.table(structure(c(x), names = colnames(x)))
@@ -137,3 +137,31 @@ flatten.2d.table = function(x) {
   return(x)
 
 }#FLATTEN.2D.TABLE
+
+# explode an unevaluated expression into a character vector.
+explode = function(x) {
+
+  # l = as.list(substitute(x))
+  l = as.list(x)
+
+  repeat {
+
+    if(!any(sapply(l, is.recursive)))
+      break
+    else
+      l = unlist(lapply(l, as.list))
+
+  }#REPEAT
+
+  return(sapply(l, as.character))
+
+}#EXPLODE
+
+# normalize a conditional probability table.
+normalize.cpt = function(x) {
+
+  .Call("normalize_cpt",
+        cpt = x,
+        PACKAGE = "bnlearn")
+
+}#NORMALIZE.CPT

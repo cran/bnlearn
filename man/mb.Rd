@@ -24,10 +24,10 @@
 \alias{in.degree}
 \alias{out.degree}
 \alias{degree}
-\alias{degree,bn,ANY-method}
-\alias{degree,bn.fit,ANY-method}
-\alias{degree,bn.naive,ANY-method}
-\alias{degree,bn.tan,ANY-method}
+\alias{degree,bn-method}
+\alias{degree,bn.fit-method}
+\alias{degree,bn.naive-method}
+\alias{degree,bn.tan-method}
 \alias{root.nodes}
 \alias{leaf.nodes}
 \alias{nparams}
@@ -80,8 +80,8 @@ blacklist(x)
 \S4method{nodes}{bn}(object)
 \S4method{nodes}{bn.fit}(object)
 # these used to be a simple degree(x, node) function.
-\S4method{degree}{bn,ANY}(object, Nodes)
-\S4method{degree}{bn.fit,ANY}(object, Nodes)
+\S4method{degree}{bn}(object, Nodes)
+\S4method{degree}{bn.fit}(object, Nodes)
 
 }
 \arguments{

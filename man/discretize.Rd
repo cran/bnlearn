@@ -10,7 +10,7 @@
   discretize(x, method, breaks = 3, ..., debug = FALSE)
 }
 \arguments{
-  \item{x}{a data frame containing with numeric and factor columns.}
+  \item{x}{a data frame containing either numeric or factor columns.}
   \item{method}{a character string, either \code{interval} for \emph{interval
     discretization}, \code{quantile} for \emph{quantile discretization} 
     (the default) or \code{hartemink} for \emph{Hartemink's pairwise mutual

@@ -30,8 +30,8 @@ bn.net(x, debug = FALSE)
 \details{
 
   \code{bn.fit} fits the parameters of a Bayesian network given its
-  structure and a data set; \code{bn.net} returns the network structure
-  underlying a fitted network.
+  structure and a data set; \code{bn.net} returns the structure underlying
+  a fitted Bayesian network.
 
   An in-place replacement method is available to change the parameters of
   each node in a \code{bn.fit} object; see the examples for both discrete
@@ -89,6 +89,8 @@ new.cpt = matrix(c(0.1, 0.2, 0.3, 0.2, 0.5, 0.6, 0.7, 0.3, 0.1),
             byrow = TRUE, ncol = 3, 
             dimnames = list(B = c("a", "b", "c"), A = c("a", "b", "c")))
 fitted$B = as.table(new.cpt)
+# the network structure is still the same.
+all.equal(res, bn.net(fitted))
 
 # learn the network structure.
 res = hc(gaussian.test)

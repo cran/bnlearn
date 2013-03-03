@@ -144,7 +144,7 @@ cpq.labels = c(
 )
 
 cpq.extra.args = list(
-  "ls" = c("n", "batch")
+  "ls" = c("n", "batch", "query.nodes")
 )
 
 discrete.loss.functions = c("logl", "pred")
@@ -199,4 +199,35 @@ discretization.extra.args = list(
 )
 
 template.numeric = numeric(1)
+
+# global test counter.
+.test.counter = local({
+
+   val = 0
+
+   function(new)
+     if(missing(new)) 
+       val 
+     else 
+       val <<- val + new
+
+})
+
+reset.test.counter = function() {
+
+  .test.counter(-.test.counter())
+
+}#RESET.TEST.COUNTER
+
+increment.test.counter = function(i = 1) {
+
+  .test.counter(i)
+
+}#INCREMENT.TEST.COUNTER
+
+test.counter = function() {
+
+  .test.counter()
+
+}#TEST.COUNTER
 

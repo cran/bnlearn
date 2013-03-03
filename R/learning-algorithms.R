@@ -4,7 +4,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = "mi", alpha = 0.05, B = NULL, method = "gs", debug = FALSE,
     optimized = TRUE, strict = TRUE, undirected = FALSE) {
 
-  assign(".test.counter", 0, envir = .GlobalEnv)
+  reset.test.counter()
 
   res = NULL
   cluster.aware = FALSE
@@ -32,8 +32,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     # enter in cluster-aware mode.
     cluster.aware = TRUE
-    # set the test counter in all the cluster nodes.
-    clusterEvalQ(cluster, assign(".test.counter", 0, envir = .GlobalEnv))
+    # set up the slave processes.
+    slaves.setup(cluster)
     # disable debugging, the slaves do not cat() here.
     if (debug) {
 
@@ -201,7 +201,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     arcs = nbr2arcs(mb)
     learning = list(whitelist = whitelist, blacklist = blacklist,
       test = test, args = list(alpha = alpha), optimized = optimized,
-      ntests = get(".test.counter", envir = .GlobalEnv))
+      ntests = test.counter())
 
     # include also the number of permutations/bootstrap samples
     # if it makes sense.
@@ -224,7 +224,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   # add tests performed by the slaves to the test counter.
   if (cluster.aware)
     res$learning$ntests = res$learning$ntests +
-      sum(unlist(clusterEvalQ(cluster, get(".test.counter", envir = .GlobalEnv))))
+      sum(unlist(clusterEvalQ(cluster, test.counter())))
   # save the learning method used.
   res$learning$algo = method
   # save the 'optimized' flag.
@@ -317,8 +317,8 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   extra.args = check.score.args(score = score, network = start,
                  data = x, extra.args = extra.args)
 
-  # create the test counter in .GlobalEnv.
-  assign(".test.counter", 0, envir = .GlobalEnv)
+  # reset the test counter.
+  reset.test.counter()
 
   # call the right backend.
   if (heuristic == "hc") {
@@ -340,7 +340,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
   # set the metadata of the network in one stroke.
   res$learning = list(whitelist = whitelist, blacklist = blacklist,
-    test = score, ntests = get(".test.counter", envir = .GlobalEnv),
+    test = score, ntests = test.counter(),
     algo = heuristic, args = extra.args, optimized = optimized)
 
   invisible(res)
@@ -470,7 +470,7 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
     start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
     optimized = TRUE) {
 
-  assign(".test.counter", 0, envir = .GlobalEnv)
+  reset.test.counter()
 
   # check the data are there.
   check.data(x)
@@ -581,7 +581,7 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE) {
 
-  assign(".test.counter", 0, envir = .GlobalEnv)
+  reset.test.counter()
 
   # check the data are there.
   check.data(x)

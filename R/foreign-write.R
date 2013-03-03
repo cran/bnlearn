@@ -13,6 +13,8 @@ write.foreign.backend = function(fd, fitted, format = "bif") {
   # get the levels and the parents of each node.
   levels = sapply(names(fitted), function(x) dimnames(fitted[[x]]$prob)[[1]],
              simplify = FALSE)
+  levels = sanitize.levels(levels)
+
   parents = lapply(fitted, "[[", "parents")
 
   # print the variable decalarations, describing the number and the labels of
@@ -47,6 +49,17 @@ write.foreign.backend = function(fd, fitted, format = "bif") {
   }#FOR
 
 }#WRITE.BIF.BACKEND
+
+sanitize.levels = function(levels) {
+
+  levels = lapply(levels, gsub, pattern = "[,{}()#%]", replacement = "_")
+
+  if (any(sapply(levels, anyDuplicated) > 0))
+    stop("duplicated levels after sanitization.")
+
+  return(levels)
+
+}#SANITIZE.LEVELS
 
 bif.write.node = function(node, levels, fd) {
 

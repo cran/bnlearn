@@ -13,7 +13,7 @@
 }
 \usage{
 cpdag(x, moral = FALSE, debug = FALSE)
-cextend(x, debug = FALSE)
+cextend(x, strict = TRUE, debug = FALSE)
 vstructs(x, arcs = FALSE, moral = FALSE, debug = FALSE)
 moral(x, debug = FALSE)
 }
@@ -25,6 +25,9 @@ moral(x, debug = FALSE)
   \item{moral}{a boolean value. If \code{TRUE} we define a v-structure as
     in Pearl (2000); if \code{FALSE}, as in Koller and Friedman (2009).
     See below.}
+  \item{strict}{a boolean value. If no consistent extension is possible
+    and \code{strict} is \code{TRUE}, an error is generated; otherwise
+    a partially extended graph is returned with a warning.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
     is printed; otherwise the function is completely silent.}
 }

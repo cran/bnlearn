@@ -16,12 +16,14 @@ is.dag = function(arcs, nodes) {
 is.pdag = function(arcs, nodes) !is.dag(arcs, nodes)
 
 # generic is.acyclic backend (calls the right one for the graph at hand).
-is.acyclic = function(arcs, nodes, return.nodes = FALSE, debug = FALSE) {
+is.acyclic = function(arcs, nodes, return.nodes = FALSE, directed = FALSE,
+    debug = FALSE) {
 
   .Call("is_pdag_acyclic",
         arcs = arcs,
         nodes = nodes,
         return_nodes = return.nodes,
+        directed = directed,
         debug = debug,
         PACKAGE = "bnlearn")
 

@@ -36,7 +36,7 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
   }#ELSE
 
   # set the test/score counter.
-  assign(".test.counter", 0, envir = .GlobalEnv)
+  reset.test.counter()
 
   # expand and sanitize score-specific arguments and the alpha threshold.
   if (criterion %in% available.tests) {

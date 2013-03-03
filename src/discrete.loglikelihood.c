@@ -1,10 +1,10 @@
 
 #include "common.h"
 
-SEXP dlik(SEXP x, SEXP lx, SEXP length) {
+SEXP dlik(SEXP x) {
 
 int i = 0, k = 0;
-int *n = NULL, *xx = INTEGER(x), *llx = INTEGER(lx), *num = INTEGER(length);
+int *n = NULL, *xx = INTEGER(x), llx = NLEVELS(x), num = LENGTH(x);
 double *res = NULL;
 SEXP result;
 
@@ -14,20 +14,20 @@ SEXP result;
   *res = 0;
 
   /* initialize the contingency table. */
-  n = alloc1dcont(*llx);
+  n = alloc1dcont(llx);
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < *num; k++) {
+  for (k = 0; k < num; k++) {
 
     n[xx[k] - 1]++;
 
   }/*FOR*/
 
   /* compute the entropy from the joint and marginal frequencies. */
-  for (i = 0; i < *llx; i++) {
+  for (i = 0; i < llx; i++) {
 
     if (n[i] != 0)
-      *res += (double)n[i] * log((double)n[i] / (*num));
+      *res += (double)n[i] * log((double)n[i] / num);
 
   }/*FOR*/
 
@@ -37,11 +37,11 @@ SEXP result;
 
 }/*DLIK*/
 
-SEXP cdlik(SEXP x, SEXP y, SEXP lx, SEXP ly, SEXP length) {
+SEXP cdlik(SEXP x, SEXP y) {
 
 int i = 0, j = 0, k = 0;
 int **n = NULL, *nj = NULL;
-int *llx = INTEGER(lx), *lly = INTEGER(ly), *num = INTEGER(length);
+int llx = NLEVELS(x), lly = NLEVELS(y), num = LENGTH(x);
 int *xx = INTEGER(x), *yy = INTEGER(y);
 double *res = NULL;
 SEXP result;
@@ -52,19 +52,19 @@ SEXP result;
   *res = 0;
 
   /* initialize the contingency table and the marginal frequencies. */
-  n = alloc2dcont(*llx, *lly);
-  nj = alloc1dcont(*lly);
+  n = alloc2dcont(llx, lly);
+  nj = alloc1dcont(lly);
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < *num; k++) {
+  for (k = 0; k < num; k++) {
 
     n[xx[k] - 1][yy[k] - 1]++;
 
   }/*FOR*/
 
   /* compute the marginals. */
-  for (i = 0; i < *llx; i++)
-    for (j = 0; j < *lly; j++) {
+  for (i = 0; i < llx; i++)
+    for (j = 0; j < lly; j++) {
 
       nj[j] += n[i][j];
 
@@ -72,8 +72,8 @@ SEXP result;
 
   /* compute the conditional entropy from the joint and marginal
        frequencies. */
-  for (i = 0; i < *llx; i++)
-    for (j = 0; j < *lly; j++) {
+  for (i = 0; i < llx; i++)
+    for (j = 0; j < lly; j++) {
 
       if (n[i][j] != 0)
         *res += (double)n[i][j] * log((double)n[i][j] / (double)nj[j]);

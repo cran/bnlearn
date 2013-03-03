@@ -287,7 +287,7 @@ custom.fit = function(x, dist) {
       dist[[cpd]] = check.dnode.vs.spec(dist[[cpd]], old = fitted[[cpd]]$parents,
                       node = cpd, cpt.levels = cpt.levels)
       # store the new CPT in the bn.fit object.
-      fitted[[cpd]]$prob = dist[[cpd]]
+      fitted[[cpd]]$prob = normalize.cpt(dist[[cpd]])
       # set the correct class for methods' dispatch.
       class(fitted[[cpd]]) = "bn.fit.dnode"
 

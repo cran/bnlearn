@@ -30,12 +30,13 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
 
   }#THEN
 
-  arcs = cpdag.arc.backend(nodes = nodes, arcs = arcs, moral = TRUE, debug = debug)
+  # 4. propagate directions.
+  arcs = cpdag.arc.backend(nodes = nodes, arcs = arcs, moral = FALSE,
+           fix.directed = TRUE, debug = debug)
 
   # save the status of the learning algorithm.
   learning = list(whitelist = whitelist, blacklist = blacklist,
-    test = test, args = list(alpha = alpha),
-    ntests = get(".test.counter", envir = .GlobalEnv))
+    test = test, args = list(alpha = alpha), ntests = test.counter())
 
   # include also the number of permutations/bootstrap samples
   # if it makes sense.
@@ -333,6 +334,28 @@ vstruct.apply = function(arcs, vs, nodes, strict, debug = FALSE) {
     # save the updates arc set.
     temp = set.arc.direction(v["y"], v["x"], arcs)
     temp = set.arc.direction(v["z"], v["x"], temp)
+
+    if(!is.acyclic(temp, nodes, directed = TRUE)) {
+
+      if (debug) {
+
+        cat("* not applying v-structure", v["y"], "->", v["x"], "<-", v["z"],
+              "(", v["max_a"], ")\n")
+
+      }#THEN
+
+      if (strict)
+        stop(paste("vstructure", v["y"], "->", v["x"], "<-", v["z"],
+          "is not applicable, because one or both arcs introduce cycles",
+          "in the graph."))
+      else
+        warning(paste("vstructure", v["y"], "->", v["x"], "<-", v["z"],
+          "is not applicable, because one or both arcs introduce cycles",
+          "in the graph."))
+
+      return(NULL)
+
+    }#THEN
 
     if (debug)
       cat("* applying v-structure", v["y"], "->", v["x"], "<-", v["z"],

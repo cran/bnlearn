@@ -5,6 +5,11 @@ conditional.probability.query = function(fitted, event, evidence, method,
 
   if (method == "ls") {
 
+    # consider only the upper closure of event and evidence to reduce the number
+    # of variables in the Monte Carlo simulation.
+    fitted = reduce.fitted(fitted = fitted, event = event, evidence = evidence,
+               nodes = extra$query.nodes, debug = debug)
+
     if (!is.null(cluster)) {
 
       # get the number of slaves.
@@ -60,6 +65,70 @@ conditional.probability.query = function(fitted, event, evidence, method,
   }#THEN
 
 }#CONDITIONAL.PROBABILITY.QUERY
+
+reduce.fitted = function(fitted, event, evidence, nodes, debug) {
+
+  if (is.null(nodes)) {
+
+    # find out which nodes are involved in the event and the evidence.
+    nodes = names(fitted)
+    nodes.event = nodes[nodes %in% explode(event)]
+    nodes.evidence = nodes[nodes %in% explode(evidence)]
+    # construct the upper closure of the query nodes.
+    upper.closure = schedule(fitted, start = union(nodes.event, nodes.evidence),
+                      reverse = TRUE)
+
+    if (debug) {
+
+      cat("* checking which nodes are needed.\n")
+      cat("  > event involves the following nodes:", nodes.event, "\n")
+      cat("  > evidence involves the following nodes:", nodes.evidence, "\n")
+      cat("  > upper closure is '", upper.closure, "'\n")
+      cat("  > generating observations from", length(upper.closure), "/", 
+        length(fitted), "nodes.\n")
+
+    }#THEN
+
+  }#THEN
+  else {
+
+    # construct the upper closure of the query nodes.
+    upper.closure = schedule(fitted, start = nodes, reverse = TRUE)
+
+    if (debug) {
+
+      cat("* using specified query nodes.\n")
+      cat("  > upper closure is '", upper.closure, "'\n")
+      cat("  > generating observations from", length(upper.closure), "/", 
+        length(fitted), "nodes.\n")
+
+    }#THEN
+
+  }#ELSE
+
+  # check whether the upper closure is correct: tricky expressions are not
+  # always handled correctly by explode().
+  dummy = as.data.frame(rep(list(character(0)), length(upper.closure)))
+  colnames(dummy) = upper.closure
+  try.event = try(eval(event, dummy), silent = TRUE)
+  try.evidence = try(eval(evidence, dummy), silent = TRUE)
+
+  # create the subgraph corresponding to the upper closure.
+  if (is.logical(try.event) && is.logical(try.evidence)) {
+
+    fitted = fitted[upper.closure]
+
+  }#THEN
+  else {
+
+    if (debug)
+      cat("  > unable use the upper closure, using the whole network.\n")
+
+  }#ELSE
+
+  return(fitted)
+
+}#REDUCE.FITTED
 
 logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
 

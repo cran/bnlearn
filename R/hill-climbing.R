@@ -220,7 +220,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 
       # update the test counter of the network; very useful to check how many
       # score comparison has been done up to now.
-      start$learning$ntests = get(".test.counter", envir = .GlobalEnv)
+      start$learning$ntests = test.counter()
 
       cat("----------------------------------------------------------------\n")
       cat("* best operation was: ")

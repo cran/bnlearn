@@ -120,7 +120,7 @@ hartemink.discretization = function(data, breaks, initial.breaks,
 
             mi.test(x = collapsed,
                     y = minimal.data.frame.column(discretized, node),
-                    ndata = ndata)
+                    ndata = ndata)[1]
 
           }))
 

@@ -63,3 +63,37 @@ discretize = function(x, method, breaks = 3, ..., debug = FALSE) {
 
 }#DISCRETIZE
 
+# Pena's relevant nodes feature selection.
+relevant = function(target, context, data, test, alpha, B, debug = FALSE) {
+
+  # check the data.
+  check.data(data)
+  # a valid node is needed.
+  check.nodes(nodes = target, graph = data, max.nodes = 1)
+  # an optional valid node is needed.
+  if (!missing(context)) {
+
+    check.nodes(nodes = context, graph = data)
+
+    if (length(intersect(target, context)) > 0)
+      stop("target and context nodes must be disjoint sets.")
+
+  }#THEN
+  else {
+
+    context = NULL
+
+  }#ELSE
+  # check the test label.
+  test = check.test(test, data)
+  # check B (the number of eprmutations).
+  B = check.B(B, test)  
+  # check alpha.
+  alpha = check.alpha(alpha)
+  # check debug.
+  check.logical(debug)
+
+  pena.backend(target = target, context = context, data = data, test = test,
+    alpha = alpha, debug = debug)
+
+}#RELEVANT
