@@ -1,14 +1,17 @@
 
 # Global variables.
-available.discrete.tests = c("mi", "mi-sh", "x2", "mc-mi", "smc-mi", "mc-x2", "smc-x2", "sp-mi", "sp-x2")
+available.discrete.tests = c("mi", "mi-sh", "x2", "mc-mi", "smc-mi", "mc-x2", 
+  "smc-x2", "sp-mi", "sp-x2")
+available.ordinal.tests = c("jt", "mc-jt", "smc-jt")
 available.continuous.tests = c("cor", "zf", "mi-g", "mi-g-sh", "mc-mi-g",
   "smc-mi-g", "mc-cor", "smc-cor", "mc-zf", "smc-zf")
-available.tests = c(available.discrete.tests, available.continuous.tests)
+available.tests = c(available.discrete.tests, available.ordinal.tests, 
+  available.continuous.tests)
 
 semiparametric.tests = c("sp-mi", "sp-x2")
 resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g",
-  "mc-cor", "smc-cor", "mc-zf", "smc-zf", semiparametric.tests)
-asymptotic.tests = c("mi", "mi-g", "x2", "zf")
+  "mc-cor", "smc-cor", "mc-zf", "smc-zf", "mc-jt", "smc-jt", semiparametric.tests)
+asymptotic.tests = c("mi", "mi-g", "x2", "zf", "jt")
 
 available.discrete.scores = c("loglik", "aic", "bic", "bde", "bdes", "k2", "mbde")
 available.continuous.scores = c("bge", "loglik-g", "aic-g", "bic-g")
@@ -37,9 +40,9 @@ available.mvber.vartests = c("tvar", "gvar", "nvar", "nvark")
 
 method.labels = c(
   'gs' = "Grow-Shrink",
-  'iamb' = "Incremental Association",
-  'fast.iamb' = "Fast Incremental Association",
-  'inter.iamb' = "Interleaved Incremental Association",
+  'iamb' = "IAMB",
+  'fast.iamb' = "Fast-IAMB",
+  'inter.iamb' = "Inter-IAMB",
   'rnd' = "random/generated",
   'hc' = "Hill-Climbing",
   'tabu' = "Tabu Search",
@@ -50,7 +53,7 @@ method.labels = c(
   'aracne' = "ARACNE",
   'chow.liu' = "Chow-Liu",
   "naive" = "Naive Bayes Classifier",
-  "tan"   = "Tree-Augmented Naive Bayes Classifier"
+  "tan"   = "TAN Bayes Classifier"
 )
 
 method.extra.args = list(
@@ -59,25 +62,28 @@ method.extra.args = list(
 )
 
 test.labels = c(
-  'mi' = "Mutual Information (discrete)",
-  'mi-sh' = "Mutual Information (discrete, shrinkage)",
-  'mc-mi' = "Mutual Information (discrete, Monte Carlo)",
-  'smc-mi' = "Mutual Information (discrete, Sequential Monte Carlo)",
-  'sp-mi' = "Mutual Information (discrete, semiparametric)",
-  'mi-g' = "Mutual Information (Gaussian)",
-  'mi-g-sh' = "Mutual Information (Gaussian, shrinkage)",
-  'mc-mi-g' = "Mutual Information (Gaussian, Monte Carlo)",
-  'smc-mi-g' = "Mutual Information (Gaussian, Sequential Monte Carlo)",
+  'mi' = "Mutual Information (disc.)",
+  'mi-sh' = "Mutual Information (disc., shrink.)",
+  'mc-mi' = "Mutual Information (disc., MC)",
+  'smc-mi' = "Mutual Information (disc., Seq. MC)",
+  'sp-mi' = "Mutual Information (disc., semipar.)",
+  'mi-g' = "Mutual Information (Gauss.)",
+  'mi-g-sh' = "Mutual Information (Gauss., shrink.)",
+  'mc-mi-g' = "Mutual Information (Gauss., MC)",
+  'smc-mi-g' = "Mutual Information (Gauss., Seq. MC)",
   'x2'= "Pearson's X^2",
-  'mc-x2'= "Pearson's X^2 (Monte Carlo)",
-  'smc-x2'= "Pearson's X^2 (Sequential Monte Carlo)",
-  'sp-x2'= "Pearson's X^2 (semiparametric)",
-  'cor' = "Pearson's Linear Correlation",
-  'mc-cor' = "Pearson's Linear Correlation (Monte Carlo)",
-  'smc-cor' = "Pearson's Linear Correlation (Sequential Monte Carlo)",
-  'zf' = "Fisher's Z Test",
-  'mc-zf' = "Fisher's Z Test (Monte Carlo)",
-  'smc-zf' = "Fisher's Z Test (Sequential Monte Carlo)"
+  'mc-x2'= "Pearson's X^2 (MC)",
+  'smc-x2'= "Pearson's X^2 (Seq. MC)",
+  'sp-x2'= "Pearson's X^2 (semipar.)",
+  'jt' = "Jonckheere-Terpstra",
+  'mc-jt' = "Jonckheere-Terpstra (MC)",
+  'smc-jt' = "Jonckheere-Terpstra (Seq. MC)",
+  'cor' = "Pearson's Correlation",
+  'mc-cor' = "Pearson's Correlation (MC)",
+  'smc-cor' = "Pearson's Correlation (Seq. MC)",
+  'zf' = "Fisher's Z",
+  'mc-zf' = "Fisher's Z (MC)",
+  'smc-zf' = "Fisher's Z (Seq. MC)"
 )
 
 score.labels = c(
@@ -85,13 +91,13 @@ score.labels = c(
   'bde' = "Bayesian Dirichlet (BDeu)",
   'bdes' = "Sparse Bayesian Dirichlet (BDes)",
   'mbde' = "Bayesian Dirichlet (interventional data)",
-  'aic' = "Akaike Information Criterion",
-  'bic' = "Bayesian Information Criterion",
-  'loglik' = "Log-Likelihood",
+  'aic' = "AIC (disc.)",
+  'bic' = "BIC (disc.)",
+  'loglik' = "Log-Likelihood (disc.)",
   'bge' = "Bayesian Gaussian (BGe)",
-  'loglik-g' = "Log-Likelihood",
-  'aic-g' = "Akaike Information Criterion (Gaussian)",
-  'bic-g' = "Bayesian Information Criterion (Gaussian)"
+  'loglik-g' = "Log-Likelihood (Gauss.)",
+  'aic-g' = "AIC (Gauss.)",
+  'bic-g' = "BIC (Gauss.)"
 )
 
 score.extra.args = list(
@@ -111,8 +117,8 @@ score.extra.args = list(
 )
 
 mi.estimator.labels = c(
-  'mi' = "Maximum Likelihood (discrete)",
-  'mi-g' = "Maximum Likelihood (Gaussian)"
+  'mi' = "Maximum Likelihood (disc.)",
+  'mi-g' = "Maximum Likelihood (Gauss.)"
 )
 
 mi.estimator.tests = c(
@@ -137,30 +143,36 @@ graph.generation.extra.args = list(
   "averaged" = "threshold"
 )
 
-cpq.algorithms = c("ls")
+cpq.algorithms = c("ls", "lw")
 
 cpq.labels = c(
-  "ls" = "Logic/Forward Sampling"
+  "ls" = "Logic/Forward Sampling",
+  "lw" = "Likelihood Weighting"
 )
 
 cpq.extra.args = list(
-  "ls" = c("n", "batch", "query.nodes")
+  "ls" = c("n", "batch", "query.nodes"),
+  "lw" = c("n", "batch", "query.nodes")
 )
 
 discrete.loss.functions = c("logl", "pred")
-continuous.loss.functions = c("logl-g")
+continuous.loss.functions = c("logl-g", "cor", "mse")
 loss.functions = c(discrete.loss.functions, continuous.loss.functions)
 
 loss.labels = c(
-  "logl" = "Log-Likelihood Loss (discrete)",
+  "logl" = "Log-Likelihood Loss (disc.)",
   "pred" = "Classification Error",
-  "logl-g" = "Log-Likelihood Loss (Gaussian)"
+  "logl-g" = "Log-Likelihood Loss (Gauss.)",
+  "cor" = "Predictive Correlation",
+  "mse" = "Mean Squared Error"
 )
 
 loss.extra.args = list(
   "logl" = character(0),
   "pred" = "target",
-  "logl-g" = character(0)
+  "logl-g" = character(0),
+  "cor" = "target",
+  "mse" = "target"
 )
 
 available.fitting.methods = c("mle", "bayes")

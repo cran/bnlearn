@@ -12,13 +12,10 @@
 
 }
 \usage{
-\method{ci.test}{character}(x, y = NULL, z = NULL, data, test = NULL,
-  B = NULL, debug = FALSE, ...)
+\method{ci.test}{character}(x, y = NULL, z = NULL, data, test = NULL, B = NULL, debug = FALSE, ...)
 \method{ci.test}{data.frame}(x, test = NULL, B = NULL, debug = FALSE, ...)
-\method{ci.test}{numeric}(x, y = NULL, z = NULL, test = NULL,
-  B = NULL, debug = FALSE, ...)
-\method{ci.test}{factor}(x, y = NULL, z = NULL, test = NULL,
-  B = NULL, debug = FALSE, ...)
+\method{ci.test}{numeric}(x, y = NULL, z = NULL, test = NULL, B = NULL, debug = FALSE, ...)
+\method{ci.test}{factor}(x, y = NULL, z = NULL, test = NULL, B = NULL, debug = FALSE, ...)
 \method{ci.test}{default}(x, ...)
 }
 \arguments{
@@ -33,8 +30,9 @@
   \item{test}{a character string, the label of the conditional
       independence test to be used in the algorithm. If none is
       specified, the default test statistic is the \emph{mutual information}
-      for discrete data sets and the \emph{linear correlation} for
-      continuous ones. See \code{\link{bnlearn-package}} for details.}
+      for categorical variables, the Jonckheere-Terpstra test for 
+      ordered factors and the \emph{linear correlation} for continuous
+      variables. See \code{\link{bnlearn-package}} for details.}
   \item{B}{a positive integer, the number of permutations considered
       for each permutation test. It will be ignored with a warning if
       the conditional independence test specified by the \code{test}
@@ -65,8 +63,12 @@
 }
 \references{
 
+  \bold{for parametric and discrete permutation tests:}
+
   Edwards DI (2000). \emph{Introduction to Graphical Modelling}.
       Springer, 2nd edition.
+
+  \bold{for shrinkage tests:}
 
   Hausser J, Strimmer K (2009). "Entropy inference and the James-Stein
       estimator, with application to nonlinear gene association networks".
@@ -77,9 +79,13 @@
       of Stock Returns with an Application to Portfolio Selection".
       \emph{Journal of Empirical Finance}, \strong{10}, 603-621.
 
+  \bold{for continuous permutation tests:}
+
   Legendre P (2000). "Comparison of Permutation Methods for the Partial
       Correlation and Partial Mantel Tests". \emph{Journal of Statistical
       Computation and Simulation}, \strong{67}, 37-73.
+
+  \bold{for semiparametric discrete tests:}
 
   Tsamardinos I, Borboudakis G (2010). "Permutation Testing Improves Bayesian
       Network Learning". In "Machine Learning and Knowledge Discovery in
@@ -92,31 +98,11 @@ data(learning.test)
 
 # using a data frame and column labels.
 ci.test(x = "F" , y = "B", z = c("C", "D"), data = gaussian.test)
-#
-#	 Pearson's Linear Correlation
-#
-# data:  F ~ B | C + D
-# cor = -0.1275, df = 4996, p-value < 2.2e-16
-# alternative hypothesis: true value is not equal to 0
-
 # using a data frame.
 ci.test(gaussian.test)
-#
-#	 Pearson's Linear Correlation
-#
-# data:  A ~ B | C + D + E + F + G
-# cor = -0.5654, df = 4993, p-value < 2.2e-16
-# alternative hypothesis: true value is not equal to 0
-
 # using factor objects.
 attach(learning.test)
 ci.test(x = F , y = B, z = data.frame(C, D))
-#
-# 	Mutual Information (discrete)
-#
-# data:  F ~ B | data.frame(C, D)
-# mi = 25.2664, df = 18, p-value = 0.1178
-# alternative hypothesis: true value is greater than 0
 }
 \seealso{\code{\link{choose.direction}}, \code{\link{arc.strength}}. }
 \author{ Marco Scutari }

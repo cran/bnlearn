@@ -1,4 +1,13 @@
 
+# is x a real number?
+is.real.number = function(x) {
+
+  is.numeric(x) &&
+  (length(x) == 1) &&
+  is.finite(x)
+
+}#IS.REAL
+
 # is x a positive number?
 is.positive = function(x) {
 
@@ -71,7 +80,8 @@ is.string = function(x) {
 
   is.character(x) &&
   (length(x) == 1) &&
-  (x != "")
+  !any(is.na(x)) &&
+  any(x != "")
 
 }#IS.STRING
 
@@ -417,6 +427,10 @@ check.score = function(score, data) {
   }#THEN
   else {
 
+    # warn about ordinal data modelled as unordered categorical ones.
+    if (is.data.ordinal(data))
+      warning("no score is available for ordinal data, disregarding the ordering of the levels.")
+
     if (is.data.discrete(data))
       return("bic")
     else
@@ -438,6 +452,8 @@ check.test = function(test, data) {
       stop(paste(c("valid tests are:\n",
              sprintf("    %-10s %s\n", names(test.labels), test.labels)), sep = ""))
     # check if it's the right test for the data (discrete, continuous).
+    if (!is.data.ordinal(data) && (test %in% available.ordinal.tests))
+      stop(paste("test '", test, "' may be used with ordinal data only.", sep = ""))
     if (!is.data.discrete(data) && (test %in% available.discrete.tests))
       stop(paste("test '", test, "' may be used with discrete data only.", sep = ""))
     if (!is.data.continuous(data) && (test %in% available.continuous.tests))
@@ -448,7 +464,9 @@ check.test = function(test, data) {
   }#THEN
   else {
 
-    if (is.data.discrete(data))
+    if (is.data.ordinal(data))
+      return("jt")
+    else if (is.data.discrete(data))
       return("mi")
     else
       return("cor")
@@ -559,7 +577,7 @@ check.discretization.method = function(method) {
 # check the estimator for the mutual information.
 check.mi.estimator = function(estimator, data) {
 
-   if (!is.null(estimator)) {
+  if (!is.null(estimator)) {
 
     # check it's a single character string.
     check.string(estimator)
@@ -587,60 +605,43 @@ check.mi.estimator = function(estimator, data) {
 
 }#CHECK.MI.ESTIMATOR
 
+# is the fitted bayesian network of a prarticular type?
+is.fitted.type = function(fitted, type) {
+
+  for (i in 1:length(fitted))
+    if (!is(fitted[[i]], type))
+      return(FALSE)
+
+  return(TRUE)
+
+}#IS.FITTED.TYPE
+
 # is the fitted bayesian network a discrete one?
-is.fitted.discrete = function(fitted) {
-
-  for (i in 1:length(fitted))
-    if (class(fitted[[i]]) != "bn.fit.dnode")
-      return(FALSE)
-
-  return(TRUE)
-
-}#IS.FITTED.DISCRETE
-
+is.fitted.discrete = function(fitted) is.fitted.type(fitted, "bn.fit.dnode")
+# is the fitted bayesian network an ordinal one?
+is.fitted.ordinal = function(fitted) is.fitted.type(fitted, "bn.fit.onode")
 # is the fitted bayesian network a continuous one?
-is.fitted.continuous = function(fitted) {
+is.fitted.continuous = function(fitted) is.fitted.type(fitted, "bn.fit.gnode")
 
-  for (i in 1:length(fitted))
-    if (class(fitted[[i]]) != "bn.fit.gnode")
+# is the data of a particular type?
+is.data.type = function(data, type) {
+
+  for (i in 1:ncol(data))
+    if (!is(data[, i], type))
       return(FALSE)
 
   return(TRUE)
 
-}#IS.FITTED.CONTINUOUS
+}#IS.DATA.TYPE
 
 # will the bayesian network be a discrete one?
-is.data.discrete = function(data) {
-
-  for (i in 1:ncol(data))
-    if (!is(data[, i], "factor"))
-      return(FALSE)
-
-  return(TRUE)
-
-}#IS.DATA.DISCRETE
-
+is.data.discrete = function(data) is.data.type(data, "factor")
+# will the bayesian network be an ordinal one?
+is.data.ordinal = function(data) is.data.type(data, "ordered")
 # will the bayesian network be a continuous one?
-is.data.continuous = function(data) {
-
-  for (i in 1:ncol(data))
-    if (!is.double(data[, i]))
-      return(FALSE)
-
-  return(TRUE)
-
-}#IS.DATA.CONTINUOUS
-
+is.data.continuous = function(data) is.data.type(data, "double")
 # does the data include coth discrete and continuous variables?
-is.data.mixed = function(data) {
-
-  for (i in 1:ncol(data))
-    if (!is.double(data[, i]) && !is(data[, i], "factor"))
-      return(FALSE)
-
-  return(TRUE)
-
-}#IS.DATA.MIXED
+is.data.mixed = function(data) is.data.type(data, c("factor", "double"))
 
 # there are missing data?
 missing.data = function(data) {
@@ -981,7 +982,7 @@ check.bootstrap.args = function(extra.args, network, data) {
 # sanitize the extra arguments passed to the conditional probability algorithms.
 check.cpq.args = function(fitted, extra.args, method) {
 
-  if (method %in% c("ls")) {
+  if (method %in% c("ls", "lw")) {
 
     if (!is.null(extra.args$n)) {
 
@@ -1037,7 +1038,7 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
 
   valid.args = loss.extra.args[[loss]]
 
-  if (loss == "pred") {
+  if (loss %in% c("pred", "cor", "mse")) {
 
     if (!is.null(extra.args$target)) {
 
@@ -1200,6 +1201,21 @@ check.unused.args = function(dots, used.args) {
               sep = "", collapse = " ")))
 
 }#CHECK.UNUSED.ARGS
+
+# take care of meaningless dots arguments in plot functions.
+sanitize.plot.dots = function(dots, meaningless) {
+
+  # warn about them.
+  if (any(names(dots) %in% meaningless))
+    warning("arguments ", paste(meaningless, collapse = ", "),
+      " will be silently ignored.")
+  # nuke them from orbit.
+  for (m in meaningless)
+    dots[[m]] = NULL
+
+  return(dots)
+
+}#PROCESS.PLOT.DOTS
 
 # check the the target nominal type I error rate
 check.alpha = function(alpha, network = NULL) {
@@ -2080,12 +2096,12 @@ check.dnode.vs.spec = function(new, old, node, cpt.levels) {
 
   ndims = length(dim(new))
 
-  if (is(old, "bn.fit.dnode")) {
+  if (is(old, c("bn.fit.dnode", "bn.fit.onode"))) {
 
     # same dimensions.
     if (!identical(dim(new), dim(old$prob)))
       stop("wrong dimensions for node ", old$node, ".")
-    # if the new CPT has labels, they must match.
+    # if the new CPT has labels, they must match (and be in the same order too).
     if (!is.null(dimnames(new)))
       if (!identical(dimnames(new), dimnames(old$prob)))
         stop("wrong levels for node ", old$node, ".")
@@ -2123,4 +2139,61 @@ check.dnode.vs.spec = function(new, old, node, cpt.levels) {
   return(new)
 
 }#CHECK.DNODE.VS.SPEC
+
+# check evidence in list format for mutilated networks.
+check.mutilated.evidence = function(evidence, graph) {
+
+  # check whether evidence is there.
+  if (missing(evidence))
+    stop("evidence must be a list with elements named after the nodes in the graph.")
+  # if evindence is TRUE there's nothing to check.
+  if (identical(evidence, TRUE))
+    return(TRUE)
+  # check whether evidence is a named list.
+  if(!is(evidence, "list"))
+    stop("evidence must be a list with elements named after the nodes in the graph.")
+  # check the node labels in evidence.
+  check.nodes(names(evidence), graph = graph)
+
+  if (is(graph, "bn")) {
+
+    # check the network is completely directed.
+    if (!is.dag(graph$arcs, names(graph$nodes)))
+      stop("the graph is only partially directed.")
+
+  }#THEN
+  else {
+
+     # check the evidence is appropriate for the nodes.
+     for (fixed in names(evidence)) {
+
+       # extract the node.
+       cur = graph[[fixed]]
+
+       if (is(cur, c("bn.fit.dnode", "bn.fit.onode"))) {
+
+         if (is.factor(evidence[[fixed]]) && (length(evidence[[fixed]]) == 1))
+           evidence[[fixed]] = as.character(evidence[[fixed]])
+
+         if (!is.string(evidence[[fixed]]) ||
+             !(evidence[[fixed]] %in% dimnames(cur$prob)[[1]]))
+           stop("the evidence for node ", fixed, " must be a valid level.")
+
+       }#THEN
+       else if (is(cur, "bn.fit.gnode")) {
+
+         # for continuous nodes evidence must be real numbers.
+         if (!is.real.number(evidence[[fixed]]))
+           stop("the evidence ", fixed, " must be a real number.")
+         storage.mode(evidence[[fixed]]) = "double"
+
+       }#THEN
+
+     }#FOR
+
+  }#THEN
+
+  return(evidence)
+
+}#CHECK.MUTILATED.EVIDENCE
 

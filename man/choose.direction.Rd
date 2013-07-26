@@ -9,8 +9,7 @@
 
 }
 \usage{
-choose.direction(x, arc, data, criterion = NULL, ...,
-  debug = FALSE)
+choose.direction(x, arc, data, criterion = NULL, ..., debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
@@ -49,45 +48,20 @@ res = gs(learning.test)
 
 ## the arc A - B has no direction.
 choose.direction(res, learning.test, arc = c("A", "B"), debug = TRUE)
-# * testing A - B for direction.
-#   > testing A -> B with conditioning set '  '.
-#     > p-value is 0 .
-#   > testing B -> A with conditioning set '  '.
-#     > p-value is 0 .
-#   @ nothing to do, same p-value.
 
 ## let's see score equivalence in action.
 choose.direction(res, learning.test, criterion = "aic",
   arc = c("A", "B"), debug = TRUE)
-# * testing A - B for direction.
-#   > initial score for node A is -5495.051 .
-#   > initial score for node B is -4834.284 .
-#   > score delta for arc A -> B is 1166.914 .
-#   > score delta for arc B -> A is 1166.914 .
-#   @ nothing to do, same score delta.
 
 ## arcs which introduce cycles are handled correctly.
 res = set.arc(res, "A", "B")
 # now A -> B -> E -> A is a cycle.
 choose.direction(res, learning.test, arc = c("E", "A"), debug = TRUE)
-# * testing E - A for direction.
-#   > testing E -> A with conditioning set '  '.
-#     > p-value is 1.426725e-99 .
-#   > testing A -> E with conditioning set ' B F '.
-#     > p-value is 0.9818423 .
-#   > adding E -> A creates cycles!.
-#   > arc A -> E isn't good, either.
 
 \dontrun{
 choose.direction(res, learning.test, arc = c("D", "E"), criterion = "bootstrap",
   R = 100, algorithm = "iamb", algorithm.args = list(test = "x2"), cpdag = TRUE,
   debug = TRUE)
-# * testing D - E for direction.
-#   > testing D -> E 
-#     > bootstrap probability of an arc between D and E is 0.36 .
-#     > direction confidence for arc D -> E is 0.3333333 .
-#     > direction confidence for arc E -> D is 0.6666667 .
-#   @ nothing to do, bootstrap probability is less than 0.50.
 }}
 \seealso{\code{\link{score}}, \code{\link{arc.strength}}. }
 \author{ Marco Scutari }

@@ -198,7 +198,7 @@ as.bn.graphAM = function(x) {
   if (!require(graph))
     stop("this function requires the graph package.")
 
-  nodes = nodes(x)
+  nodes = x@nodes
   arcs = amat2arcs(x@adjMat, nodes)
 
   res = empty.graph(nodes)
@@ -216,7 +216,7 @@ as.bn.graphNEL = function(x) {
   if (!require(graph))
     stop("this function requires the graph package.")
 
-  nodes = nodes(x)
+  nodes = x@nodes
   arcs = elist2arcs(edges(x))
 
   res = empty.graph(nodes)

@@ -27,11 +27,8 @@ rbn.bn.fit = function(x, n = 1, ..., debug = FALSE) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  # call the right backend.
-  if (is.fitted.discrete(x))
-    rbn.discrete(x = x, n = n, data = NULL, debug = debug)
-  else
-    rbn.continuous(x = x, n = n, data = NULL, debug = debug)
+  # call the backend.
+  rbn.backend(x = x, n = n, data = NULL, debug = debug)
 
 }#RBN.BN.FIT
 
@@ -105,16 +102,34 @@ cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ..., 
   extra.args = check.cpq.args(fitted = fitted, extra.args = list(...),
                  method = method)
 
-  # deparse both event and evidence expressions before passing them to
+  # deparse the expression for the event before passing it to
   # the backend and beyond.
   event = substitute(event)
-  evidence = substitute(evidence)
 
   # recheck event and evidence expression after deparsing.
   if (!(is.language(event) || identical(event, TRUE)))
     stop("event must be an unevaluated expression or TRUE.")
-  if (!(is.language(evidence) || identical(evidence, TRUE)))
-    stop("evidence must be an unevaluated expression or TRUE.")
+  if (method == "ls") {
+
+    if (missing(evidence))
+      stop("the expression describing the evidence is missing.")
+
+    # deparse evidence expression before passing it to the backend and beyond.
+    evidence = substitute(evidence)
+    # recheck event and evidence expression after deparsing.
+    if (!(is.language(evidence) || identical(evidence, TRUE)))
+      stop("evidence must be an unevaluated expression or TRUE.")
+
+  }#THEN
+  else if (method == "lw") {
+
+    evidence = check.mutilated.evidence(evidence, fitted)
+
+  }#THEN
+
+  # special-case pointless queries.
+  if (isTRUE(event))
+    return(1)
 
   conditional.probability.query(fitted = fitted, event = event,
     evidence = evidence, method = method, extra = extra.args,
@@ -131,8 +146,6 @@ cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ..., d
   check.nodes(nodes, graph = fitted)
   # check debug.
   check.logical(debug)
-  if (missing(evidence))
-    stop("the expression describing the evidence is missing.")
   # check the generation method.
   if (!(method %in% cpq.algorithms))
     stop(paste(c("valid conditional probability query methods are:\n",
@@ -155,11 +168,23 @@ cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ..., d
   extra.args = check.cpq.args(fitted = fitted, extra.args = list(...),
                  method = method)
 
-  # deparse evidence expression before passing it to the backend and beyond.
-  evidence = substitute(evidence)
-  # recheck event and evidence expression after deparsing.
-  if (!(is.language(evidence) || identical(evidence, TRUE)))
-    stop("evidence must be an unevaluated expression or TRUE.")
+  if (method == "ls") {
+
+    if (missing(evidence))
+      stop("the expression describing the evidence is missing.")
+
+    # deparse evidence expression before passing it to the backend and beyond.
+    evidence = substitute(evidence)
+    # recheck event and evidence expression after deparsing.
+    if (!(is.language(evidence) || identical(evidence, TRUE)))
+      stop("evidence must be an unevaluated expression or TRUE.")
+
+  }#THEN
+  else if (method == "lw") {
+
+    evidence = check.mutilated.evidence(evidence, fitted)
+
+  }#THEN
 
   # pass the nodes we are querying as the event of interest.
   conditional.probability.query(fitted = fitted, event = nodes,

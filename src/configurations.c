@@ -43,11 +43,12 @@ void cfg(SEXP parents, int *configurations, int *nlevels) {
 
 int i = 0, j = 0, cfgmap = 0;
 int ncols = LENGTH(parents), nrows = LENGTH(VECTOR_ELT(parents, 0));
-int *cumlevels = NULL;
+long long *cumlevels = NULL, nl = 0;
 int **columns = NULL;
 
   /* create the cumulative products of the number of levels. */
-  cumlevels = alloc1dcont(ncols);
+  cumlevels = (long long *) R_alloc(ncols, sizeof(long long));
+  memset(cumlevels, '\0', sizeof(long long) * ncols); 
 
   /* dereference the columns of the data frame. */
   columns = (int **) alloc1dpointer(ncols);
@@ -61,10 +62,22 @@ int **columns = NULL;
   for (j = 1; j < ncols; j++)
     cumlevels[j] = cumlevels[j - 1] * NLEVELS2(parents, j - 1);
 
-  /* if nlevels is not a NULL pointer, save there the number of possible
-   * configurations there. */
-  if (nlevels)
-    *nlevels = cumlevels[ncols - 1] * NLEVELS2(parents, ncols - 1);
+  /* compute the number of possible configurations. */
+  nl = cumlevels[ncols - 1] * NLEVELS2(parents, ncols - 1);
+
+  if (nl >= INT_MAX) {
+
+    error("attempting to create a factor with more than INT_MAX levels.");
+
+  }/*THEN*/
+  else {
+
+    /* if nlevels is not a NULL pointer, save the number of possible
+      * configurations. */
+    if (nlevels)
+      *nlevels = nl;
+
+  }/*ELSE*/
 
   for (i = 0; i < nrows; i++) {
 

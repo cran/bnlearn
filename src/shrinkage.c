@@ -19,7 +19,7 @@ SEXP result;
   PROTECT(result = allocVector(REALSXP, 2));
   res = REAL(result);
   res[0] = 0;
-  res[1] = (llx - 1) * (lly - 1);
+  res[1] = (double)(llx - 1) * (double)(lly - 1);
 
   /* initialize the contingency table and the marginal frequencies. */
   n = alloc2dreal(llx, lly);
@@ -86,7 +86,7 @@ SEXP result;
   PROTECT(result = allocVector(REALSXP, 2));
   res = REAL(result);
   res[0] = 0;
-  res[1] = (llx - 1) * (lly - 1) * llz;
+  res[1] = (double)(llx - 1) * (double)(lly - 1) * (double)llz;
 
   /* initialize the contingency table and the marginal frequencies. */
   n = alloc3dreal(llx, lly, llz);

@@ -58,29 +58,26 @@ data(insurance)
 }
 \note{
 
-  The R script to generate data from this network is shipped in the
-  \file{network.scripts} directory of this package.
+  The complete BN can be downloaded from \url{http://www.bnlearn.com/bnrepository}.
 
 }
 \examples{
 # load the data and build the correct network from the model string.
 data(insurance)
 res = empty.graph(names(insurance))
-modelstring(res) = paste("[Age][Mileage][SocioEcon|Age]",
-  "[GoodStudent|Age:SocioEcon][RiskAversion|Age:SocioEcon]",
-  "[OtherCar|SocioEcon][VehicleYear|SocioEcon:RiskAversion]",
+modelstring(res) = paste("[Age][Mileage][SocioEcon|Age][GoodStudent|Age:SocioEcon]",
+  "[RiskAversion|Age:SocioEcon][OtherCar|SocioEcon][VehicleYear|SocioEcon:RiskAversion]",
   "[MakeModel|SocioEcon:RiskAversion][SeniorTrain|Age:RiskAversion]",
   "[HomeBase|SocioEcon:RiskAversion][AntiTheft|SocioEcon:RiskAversion]",
   "[RuggedAuto|VehicleYear:MakeModel][Antilock|VehicleYear:MakeModel]",
   "[DrivingSkill|Age:SeniorTrain][CarValue|VehicleYear:MakeModel:Mileage]",
   "[Airbag|VehicleYear:MakeModel][DrivQuality|RiskAversion:DrivingSkill]",
   "[Theft|CarValue:HomeBase:AntiTheft][Cushioning|RuggedAuto:Airbag]",
-  "[DrivHist|RiskAversion:DrivingSkill]",
-  "[Accident|DrivQuality:Mileage:Antilock]",
+  "[DrivHist|RiskAversion:DrivingSkill][Accident|DrivQuality:Mileage:Antilock]",
   "[ThisCarDam|RuggedAuto:Accident][OtherCarCost|RuggedAuto:Accident]",
   "[MedCost|Age:Accident:Cushioning][ILiCost|Accident]",
-  "[ThisCarCost|ThisCarDam:Theft:CarValue]",
-  "[PropCost|ThisCarCost:OtherCarCost]", sep = "")
+  "[ThisCarCost|ThisCarDam:Theft:CarValue][PropCost|ThisCarCost:OtherCarCost]", 
+  sep = "")
 \dontrun{
 # there are too many nodes for plot(), use graphviz.plot().
 graphviz.plot(res)}}

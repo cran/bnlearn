@@ -105,6 +105,36 @@ incident.arcs = function(x, node) {
 
 }#INCIDENT.ARCS
 
+# return compelled arcs.
+compelled.arcs = function(x) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+
+  if (is(x, "bn.fit"))
+    x = cpdag(bn.net(x))
+  else
+    x = cpdag(x)
+
+  return(directed.arcs(x))
+
+}#COMPELLED.ARCS
+
+# return reversible arcs.
+reversible.arcs = function(x) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+
+  if (is(x, "bn.fit"))
+    cp = cpdag(bn.net(x))
+  else
+    cp = cpdag(x)
+
+  return(x$arcs[which.listed(x$arcs, undirected.arcs(cp)), ])
+
+}#COMPELLED.ARCS
+
 # return the number of arcs in the graph.
 narcs = function(x) {
 

@@ -72,6 +72,9 @@ predict.bn.fit.dnode = function(object, data, ..., debug = FALSE) {
 
 }#PREDICT.BN.FIT.DNODE
 
+# it's the same for an ordinal node.
+predict.bn.fit.onode = predict.bn.fit.dnode
+
 # estimate the predicted values for a naive Bayes classfier.
 predict.bn.naive = function(object, data, prior, ..., prob = FALSE, debug = FALSE) {
 

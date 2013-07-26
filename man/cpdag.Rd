@@ -3,7 +3,7 @@
 \alias{cextend}
 \alias{vstructs}
 \alias{moral}
-\title{ Equivalence classes, moral graphs and consistent extenions}
+\title{ Equivalence classes, moral graphs and consistent extensions}
 \description{
 
   Find the equivalence class and the v-structures of a Bayesian network,
@@ -70,37 +70,15 @@ moral(x, debug = FALSE)
   Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
       Principles and Techniques}. MIT Press.
 
-  Pearl J (2000). \emph{Causality: Models, Reasoning and Inference}.
-      Cambridge University Press.
+  Pearl J (2009). \emph{Causality: Models, Reasoning and Inference}
+      Cambridge University Press, 2nd edition.
 
 }
 \examples{
 data(learning.test)
 res = gs(learning.test)
 cpdag(res)
-#
-#   Bayesian network learned via Constraint-based methods
-#
-#   model:
-#     [partially directed graph]
-#   nodes:                                 6
-#   arcs:                                  5
-#     undirected arcs:                     1
-#     directed arcs:                       4
-#   average markov blanket size:           2.33
-#   average neighbourhood size:            1.67
-#   average branching factor:              0.67
-#
-#   learning algorithm:                    Grow-Shrink
-#   conditional independence test:         Mutual Information (discrete)
-#   alpha threshold:                       0.05
-#   tests used in the learning procedure:  43
-#   optimized:                             TRUE
-#
 vstructs(res)
-#      X   Z   Y
-# [1,] "A" "D" "C"
-# [2,] "B" "E" "F"
 }
 \author{ Marco Scutari }
 \keyword{graphs}

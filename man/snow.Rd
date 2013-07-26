@@ -33,14 +33,14 @@ Loading required package: Rmpi
 > res = gs(learning.test, cluster = cl)
 # note that the number of test is evenly divided between
 # the two nodes of the cluster.
-> clusterEvalQ(cl, .test.counter)
+> clusterEvalQ(cl, bnlearn:::.test.counter())
 [[1]]
 [1] 47
 
 [[2]]
 [1] 42
 # a few tests are still executed by this process.
-> .test.counter
+> bnlearn:::.test.counter()
 [1] 4
 # stop the cluster.
 > stopCluster(cl)

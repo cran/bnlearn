@@ -15,7 +15,7 @@ lattice.discrete.backend = function(fitted, type, xlab, ylab, main, ...) {
     stop("only plots of single nodes are implemented.")
 
   }#THEN
-  else if (class(fitted) == "bn.fit.dnode") {
+  else if (class(fitted) %in% c("bn.fit.dnode", "bn.fit.onode")) {
 
     # print the equivalent plot for a single node.
 
@@ -71,7 +71,7 @@ lattice.discrete.backend = function(fitted, type, xlab, ylab, main, ...) {
   }#THEN
   else {
 
-    stop("fitted must be an object of class 'bn.fit.dnode'.")
+    stop("fitted must be an object of class 'bn.fit.dnode' or 'bn.fit.onode'.")
 
   }#ELSE
 
@@ -87,9 +87,11 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
   if (is(fitted, "bn.fit")) {
 
     # plot a panel for each node in the bayesian network.
-
     if (!is.fitted.continuous(fitted))
       stop("this plot is limited to Gaussian bayesian networks.")
+    # check whether the residuals are there.
+    if (any(!sapply(fitted, function(x) "residuals" %in% names(x))))
+      stop("no residuals present in the bn.fit object.")
 
     nodes = names(fitted)
     nrows = length(fitted[[1]]$residuals)
@@ -142,6 +144,10 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
     }#THEN
     else if (type == "fitted") {
 
+      # check whether the residuals are there.
+      if (any(!sapply(fitted, function(x) "fitted.values" %in% names(x))))
+        stop("no fitted values present in the bn.fit object.")
+
       xyplot(resid ~ fitted | node, data = temp,
         xlab = xlab, ylab = ylab, main = main,
         panel = function(x, ...) {
@@ -154,8 +160,11 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
   }#THEN
   else if (class(fitted) == "bn.fit.gnode") {
 
-    # print the equivalent plot for a single node.
+    # check whether the residuals are there.
+    if (!("residuals" %in% names(fitted)))
+      stop("no residuals present in the bn.fit.gnode object.")
 
+    # print the equivalent plot for a single node.
     if (type == "qqplot") {
 
       qqmath(~ residuals , data = fitted,
@@ -184,6 +193,10 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
 
     }#THEN
     else if (type == "fitted") {
+
+      # check whether the fitted values are there.
+      if (!("fitted.values" %in% names(fitted)))
+        stop("no fitted values present in the bn.fit.gnode object.")
 
       xyplot(residuals ~ fitted.values, data = fitted,
         xlab = xlab, ylab = ylab, main = main,

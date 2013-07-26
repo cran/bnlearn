@@ -114,7 +114,7 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
     known.bad = names(backtracking[!backtracking])
 
     # both are not to be checked for inclusion/exclusion.
-    nodes = nodes[!(nodes %in% names(backtracking))]
+    nodes = nodes[!(nodes %in% cpc)]
 
     if (debug) {
 
@@ -123,6 +123,40 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
       cat("    * nodes still to be tested for inclusion: '", nodes, "'.\n")
 
     }#THEN
+
+    # check whether known.good nodes are false positives by running an ad-hoc
+    # backward step.
+    for (cpn in known.good) {
+
+      candidate = si.hiton.pc.backward(target = x, candidate = cpn,
+                    cpc = cpc[cpc != cpn], data = data, test = test,
+                    alpha = alpha, B = B, debug = debug)
+
+      if (candidate) {
+
+        if (debug) {
+
+          cat("  @", cpn, "accepted as a parent/children candidate.\n")
+          cat("  > current candidates are '", cpc, "'.\n")
+
+        }#THEN
+
+      }#THEN
+      else {
+
+        # drop this node, it's apparently a false positive.
+        cpc = cpc[cpc != cpn]
+
+        if (debug) {
+
+          cat("  @", cpn, "rejected as a parent/children candidate.\n")
+          cat("  > current candidates are '", cpc, "'.\n")
+
+        }#THEN
+
+      }#ELSE
+
+    }#FOR
 
   }#THEN
 
@@ -165,7 +199,7 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
   # stop if there are no candidates for inclusion.
   if (all(association > alpha)) 
-    return(character(0))
+    return(cpc)
 
   # phase I (stepwise forward selection)
   repeat {

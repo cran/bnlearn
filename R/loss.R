@@ -4,15 +4,9 @@ loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
   result = 0
   nodes = names(fitted)
 
-  if (loss == "logl") {
+  if (loss %in% c("logl", "logl-g")) {
 
-    result = discrete.loss(nodes = nodes, fitted = fitted, data = data,
-               debug = debug)
-
-  }#THEN
-  else if (loss == "logl-g") {
-
-    result = gaussian.loss(nodes = nodes, fitted = fitted, data = data,
+    result = entropy.loss(nodes = nodes, fitted = fitted, data = data,
                debug = debug)
 
   }#THEN
@@ -20,6 +14,18 @@ loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
 
     result = classification.error(node = extra.args$target, fitted = fitted,
                prior = extra.args$prior, data = data, debug = debug)
+
+  }#THEN
+  else if (loss == "cor") {
+
+    result = predictive.correlation(node = extra.args$target, fitted = fitted,
+               data = data, debug = debug)
+
+  }#THEN
+  else if (loss == "mse") {
+
+    result = mean.square.error(node = extra.args$target, fitted = fitted,
+               data = data, debug = debug)
 
   }#THEN
 
@@ -30,88 +36,75 @@ loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
 
 }#LOSS.FUNCTION
 
-# log-likelihood loss function for gaussian networks.
-gaussian.loss = function(nodes, fitted, data, debug = FALSE) {
+# how to aggregate loss functions across the folds of cross-validation.
+kfold.loss.postprocess = function(kcv, kcv.length, loss, extra.args, data) {
 
-  list(loss = sum(sapply(nodes, gaussian.loss.node, fitted = fitted,
-    data = data, debug = debug)))
+  if (loss == "cor") {
 
-}#GAUSSIAN.LOSS
+    if (all(is.na(unlist(sapply(kcv, "[", "loss"))))) {
 
-# log-likelihood loss function for nodes in a gaussian network.
-gaussian.loss.node = function(node, fitted, data, debug = FALSE) {
+      # this happens for root nodes, whose predictions are just the mean of
+      # the response over the test set; propagate the NAs to the CV estimate.
+      mean = NA
 
-  parents = fitted[[node]]$parents
+    }#THEN
+    else {
 
-  if (length(parents) == 0) {
+      # match predicted and observed values.
+      pred = unlist(lapply(kcv, "[[", "predicted"))
+      obs = unlist(lapply(kcv, "[[", "observed"))
+      # compute the predictive correlation.
+      mean = cor(obs, pred)
 
-    l = .Call("gloss",
-              fitted = fitted[[node]],
-              data = minimal.data.frame.column(data, node),
-              PACKAGE = "bnlearn")
-
-  }#THEN
-  else {
-
-    l = .Call("cgloss",
-              fitted = fitted[[node]],
-              data = minimal.data.frame.column(data, c(node, parents)),
-              PACKAGE = "bnlearn")
-
-  }#ELSE
-
-  if (debug)
-    cat("  > log-likelihood loss for node", node, "is", l, ".\n")
-
-  return(l)
-
-}#GAUSSIAN.LOSS.NODE
-
-# log-likelihood loss function for discrete networks.
-discrete.loss = function(nodes, fitted, data, debug = FALSE) {
-
-  list(loss = sum(sapply(nodes, discrete.loss.node, fitted = fitted,
-    data = data, debug = debug)))
-
-}#DISCRETE.LOSS
-
-# log-likelihood loss function for nodes in a discrete network.
-discrete.loss.node = function(node, fitted, data, debug = FALSE) {
-
-  parents = fitted[[node]]$parents
-
-  if (length(parents) == 0) {
-
-    l = .Call("dloss",
-              fitted = fitted[[node]],
-              data = minimal.data.frame.column(data, node),
-              node = node,
-              PACKAGE = "bnlearn")
+    }#ELSE
 
   }#THEN
   else {
 
-    # if there is only one parent, get it easy.
-    if (length(parents) == 1)
-      config = minimal.data.frame.column(data, parents)
-    else
-      config = configurations(minimal.data.frame.column(data, parents), factor = FALSE)
-
-    l = .Call("cdloss",
-              fitted = fitted[[node]],
-              data = minimal.data.frame.column(data, node),
-              parents = config,
-              node = node,
-              PACKAGE = "bnlearn")
+    # compute the mean of the observed values of the loss function, weighted
+    # to account for unequal-length splits.
+    mean = weighted.mean(unlist(sapply(kcv, '[', 'loss')), kcv.length)
 
   }#ELSE
 
-  if (debug)
-    cat("  > log-likelihood loss for node", node, "is", l, ".\n")
+  return(mean)
 
-  return(l)
+}#LOSS.POSTPROCESS
 
-}#DISCRETE.LOSS.NODE
+# predictive mean square error for gaussian networks.
+mean.square.error = function(node, fitted, data, debug = FALSE) {
+
+  pred = gaussian.prediction(node, fitted, data)
+
+  return(list(loss = mean((data[, node] - pred)^2), predicted = pred,
+    observed = data[, node]))
+
+}#MEAN.SQUARE.ERROR
+
+# predictive correlation for gaussian networks.
+predictive.correlation = function(node, fitted, data, debug = FALSE) {
+
+  pred = gaussian.prediction(node, fitted, data)
+
+  if (length(fitted[[node]]$parents) == 0)
+    return(list(loss = NA, predictions = pred, observed = data[, node]))
+  else
+    return(list(loss = cor(data[, node], pred), predicted = pred,
+      observed = data[, node]))
+
+}#PREDICTIVE.CORRELATION
+
+# log-likelihood loss function for gaussian and discrete networks.
+entropy.loss = function(nodes, fitted, data, debug = FALSE) {
+
+  list(loss = .Call("entropy_loss",
+                    fitted = fitted,
+                    data = data,
+                    by.sample = FALSE,
+                    debug = debug,
+                    PACKAGE = "bnlearn"))
+
+}#ENTROPY.LOSS
 
 # classification error as a loss function.
 classification.error = function(node, fitted, prior = NULL, data, debug = FALSE) {
@@ -129,7 +122,7 @@ classification.error = function(node, fitted, prior = NULL, data, debug = FALSE)
   if (debug)
     cat("  > classification error for node", node, "is", l, ".\n")
 
-  return(list(loss = l, predicted = pred))
+  return(list(loss = l, predicted = pred, observed = data[, node]))
 
 }#CLASSIFICATION.ERROR
 

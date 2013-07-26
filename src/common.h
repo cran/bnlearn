@@ -1,10 +1,6 @@
 #include <R.h>
 #include <Rinternals.h>
 
-
-void _rcont2(int *nrow, int *ncol, int *nrowt, int *ncolt, int *ntotal, 
-    double *fact, int *jwork, int *matrix);
-
 /* numerical constants */
 
 #define MACHINE_TOL sqrt(DOUBLE_EPS)
@@ -70,6 +66,7 @@ void all_max(double *array, int length, int *maxima, int *nmax, int *indexes,
 SEXP finalize_arcs(SEXP arcs);
 SEXP minimal_data_frame(SEXP obj);
 SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop);
+SEXP c_dataframe_column(SEXP dataframe, SEXP name, int drop);
 SEXP int2fac(SEXP vector, int *nlevels);
 
 /* from sampling.c */
@@ -173,3 +170,14 @@ double **alloc2dreal(int length, int width);
 double ***alloc3dreal(int length, int width, int depth);
 void **alloc1dpointer (int length);
 char **alloc1dstring (int length);
+
+/* from jonckheere.c */
+
+double c_jt_mean(int *num, int *ni, int *llx);
+double c_jt_var(int *num, int *ni, int *llx, int *nj, int *lly);
+
+/* used to be in R core... */
+
+void _rcont2(int *nrow, int *ncol, int *nrowt, int *ncolt, int *ntotal, 
+    double *fact, int *jwork, int *matrix);
+

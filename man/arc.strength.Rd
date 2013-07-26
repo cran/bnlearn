@@ -18,8 +18,7 @@ arc.strength(x, data, criterion = NULL, ..., debug = FALSE)
 boot.strength(data, R = 200, m = nrow(data),
   algorithm, algorithm.args = list(), cpdag = TRUE, debug = FALSE)
 # strength of all possible arcs, from a list of custom networks.
-custom.strength(networks, nodes, weights = NULL, cpdag = TRUE,
-  debug = FALSE)
+custom.strength(networks, nodes, weights = NULL, cpdag = TRUE, debug = FALSE)
 
 # averaged network structure.
 averaged.network(strength, nodes, threshold)
@@ -128,39 +127,11 @@ data(learning.test)
 res = gs(learning.test)
 res = set.arc(res, "A", "B")
 arc.strength(res, learning.test)
-#   from to      strength
-# 1    A  B  0.000000e+00
-# 2    A  D  0.000000e+00
-# 3    B  E 1.024198e-320
-# 4    C  D  0.000000e+00
-# 5    F  E 3.935648e-245
 
 \dontrun{
 arcs = boot.strength(learning.test, algorithm = "hc")
 arcs[(arcs$strength > 0.85) & (arcs$direction >= 0.5), ]
-#    from to strength direction
-# 1     A  B        1       0.5
-# 3     A  D        1       1.0
-# 6     B  A        1       0.5
-# 9     B  E        1       1.0
-# 13    C  D        1       1.0
-# 30    F  E        1       1.0
 averaged.network(arcs)
-#
-#   Random/Generated Bayesian network
-#
-#   model:
-#    [A][C][F][B|A][D|A:C][E|B:F]
-#   nodes:                                 6
-#   arcs:                                  5
-#     undirected arcs:                     0
-#     directed arcs:                       5
-#   average markov blanket size:           2.33
-#   average neighbourhood size:            1.67
-#   average branching factor:              0.83
-#
-#   generation algorithm:                  Model Averaging
-#   significance threshold:                0.025
 
 start = random.graph(nodes = names(learning.test), num = 50)
 netlist = lapply(start, function(net) {
@@ -168,14 +139,7 @@ netlist = lapply(start, function(net) {
 arcs = custom.strength(netlist, nodes = names(learning.test),
          cpdag = FALSE)
 arcs[(arcs$strength > 0.85) & (arcs$direction >= 0.5), ]
-#    from to strength direction
-# 1     A  B        1      1.00
-# 3     A  D        1      1.00
-# 9     B  E        1      0.98
-# 13    C  D        1      0.96
-# 30    F  E        1      0.66
 modelstring(averaged.network(arcs))
-# [1] "[A][C][F][B|A][D|A:C][E|B:F]"
 }
 }
 \seealso{\code{\link{strength.plot}}, \code{\link{choose.direction}},

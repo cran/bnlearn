@@ -9,6 +9,8 @@
 \alias{incoming.arcs}
 \alias{outgoing.arcs}
 \alias{incident.arcs}
+\alias{compelled.arcs}
+\alias{reversible.arcs}
 \alias{narcs}
 \alias{nodes}
 \alias{nodes,bn-method}
@@ -63,6 +65,8 @@ undirected.arcs(x)
 incoming.arcs(x, node)
 outgoing.arcs(x, node)
 incident.arcs(x, node)
+compelled.arcs(x)
+reversible.arcs(x)
 narcs(x)
 
 ## adjacency matrix
@@ -119,8 +123,8 @@ blacklist(x)
 
   \code{arcs}, \code{directed.arcs}, \code{undirected.arcs}, 
   \code{incoming.arcs}, \code{outgoing.arcs}, \code{incident.arcs}, \cr
-  \code{whitelist} and \code{blacklist} return a matrix of two columns of
-  character strings. 
+  \code{compelled.arcs}, \code{reversible.arcs}, \code{whitelist} and
+  \code{blacklist} return a matrix of two columns of character strings. 
 
   \code{narcs} returns the number of arcs in the graph.
 
@@ -146,47 +150,25 @@ res = gs(learning.test)
 
 ##  the Markov blanket of A.
 mb(res, "A")
-# [1] "B" "D" "C"
 ## the neighbourhood of F.
 nbr(res, "F")
-# [1] "E"
 ## the arcs in the graph.
 arcs(res)
-#      from to
-# [1,] "A"  "B"
-# [2,] "A"  "D"
-# [3,] "B"  "A"
-# [4,] "B"  "E"
-# [5,] "C"  "D"
-# [6,] "F"  "E"
 ## the nodes of the graph.
 nodes(res)
-# [1] "A" "B" "C" "D" "E" "F"
 ## the adjacency matrix for the nodes of the graph.
 amat(res)
-#   A B C D E F
-# A 0 1 0 1 0 0
-# B 1 0 0 0 1 0
-# C 0 0 0 1 0 0
-# D 0 0 0 0 0 0
-# E 0 0 0 0 0 0
-# F 0 0 0 0 1 0
 ## the parents of D.
 parents(res, "D")
-# [1] "A" "C"
 ## the children of A.
 children(res, "A")
-# [1] "D"
 ## the root nodes of the graph.
 root.nodes(res)
-# [1] "C" "F"
 ## the leaf nodes of the graph.
 leaf.nodes(res)
-# [1] "D" "E"
 ## number of parameters of the Bayesian network.
 res = set.arc(res, "A", "B")
 nparams(res, learning.test)
-# [1] 41
 }
 \author{ Marco Scutari }
 \keyword{utilities}

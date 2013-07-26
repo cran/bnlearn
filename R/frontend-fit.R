@@ -68,6 +68,9 @@ residuals.bn.fit.dnode = function(object, ...) {
 
 }#RESIDUALS.BN.FIT.DNODE
 
+# same here ...
+residuals.bn.fit.onode = residuals.bn.fit.dnode
+
 # extract fitted values for continuous bayesian networks.
 fitted.bn.fit = function(object, ...) {
 
@@ -101,6 +104,9 @@ fitted.bn.fit.dnode = function(object, ...) {
 
 }#FITTED.BN.FIT.DNODE
 
+# same here ...
+fitted.bn.fit.onode = fitted.bn.fit.dnode
+
 # extract parameters from any bayesian network.
 coef.bn.fit = function(object, ...) {
 
@@ -131,6 +137,9 @@ coef.bn.fit.dnode = function(object, ...) {
 
 }#COEF.BN.FIT.DNODE
 
+# it's the same for ordinal nodes.
+coef.bn.fit.onode = coef.bn.fit.dnode
+
 # logLik method for class 'bn.fit'.
 logLik.bn.fit = function(object, data, ...) {
 
@@ -144,11 +153,7 @@ logLik.bn.fit = function(object, data, ...) {
   nodes = names(object)
   ndata = nrow(data)
 
-  # parameter sanitization done in the score() function.
-  if (is.data.discrete(data))
-    - ndata * discrete.loss(nodes = nodes, fitted = object, data = data)$loss
-  else
-    - ndata * gaussian.loss(nodes = nodes, fitted = object, data = data)$loss
+  - ndata * entropy.loss(nodes = nodes, fitted = object, data = data)$loss
 
 }#LOGLIK.BN.FIT
 
@@ -175,7 +180,7 @@ BIC.bn.fit = function(object, data, ...) {
   to.replace = x[[name]]
   new = to.replace
 
-  if (is(to.replace, "bn.fit.dnode")) {
+  if (is(to.replace, c("bn.fit.dnode", "bn.fit.onode"))) {
 
     # check the consistency of the new conditional distribution.
     value = check.fit.dnode.spec(value, node = name)
@@ -243,7 +248,7 @@ BIC.bn.fit = function(object, data, ...) {
 
 }#$<-.BN.FIT
 
-custom.fit = function(x, dist) {
+custom.fit = function(x, dist, ordinal = FALSE) {
 
   # check x's class.
   check.bn(x)
@@ -261,6 +266,11 @@ custom.fit = function(x, dist) {
   # if all the conditional probability distributions are tables (tables, 
   # matrices and multidimensional are fine), it's a discrete BN.
   discrete = all(sapply(dist, is.ndmatrix))
+
+  # check ordinal.
+  check.logical(ordinal)
+  if (ordinal && !discrete)
+    warning("ordinal is only meaningful for discrete data, disregarding.")
 
   # create a dummy bn.fit object from the bn one.
   fitted = structure(vector(nnodes, mode = "list"), names = nodes)
@@ -289,7 +299,7 @@ custom.fit = function(x, dist) {
       # store the new CPT in the bn.fit object.
       fitted[[cpd]]$prob = normalize.cpt(dist[[cpd]])
       # set the correct class for methods' dispatch.
-      class(fitted[[cpd]]) = "bn.fit.dnode"
+      class(fitted[[cpd]]) = ifelse(ordinal, "bn.fit.onode", "bn.fit.dnode")
 
     }#FOR
 

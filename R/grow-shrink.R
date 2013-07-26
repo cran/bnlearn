@@ -127,15 +127,17 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   if (!is.null(backtracking)) {
 
     # nodes whose markov blanket includes this node are included, because
-    # X \in MB(Y) <=> Y \in MB(X)
+    # X \in MB(Y) <=> Y \in MB(X); they can be removed in the backward phase
+    # later on if they are false positives.
     known.good = names(backtracking[backtracking])
     mb = unique(c(mb, known.good))
 
+    # known.good nodes are not to be checked for inclusion, and "mb" is used
+    # for the shrinking phase instead of "nodes", we can just remove them.
+    nodes = nodes[!(nodes %in% known.good)]
+
     # and vice versa X \not\in MB(Y) <=> Y \not\in MB(X)
     known.bad = names(backtracking[!backtracking])
-
-    # both are not to be checked for inclusion/exclusion.
-    nodes = nodes[!(nodes %in% names(backtracking))]
 
     if (debug) {
 
@@ -193,11 +195,11 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   }#REPEAT
 
   # whitelisted nodes are neighbours, they cannot be removed from the
-  # markov blanket; known.good nodes from backtracking are not to be
-  # removed, either.
-  nodes = mb[!(mb %in% c(known.good, whitelisted))]
+  # markov blanket; on the other hand, known.good nodes from backtracking
+  # should be checked to remove false positives.
+  nodes = mb[!(mb %in% whitelisted)]
 
-  # shrink phase.
+  # shrinking phase.
   repeat {
 
     # store the current size of the Markov Blanket.
@@ -242,7 +244,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
   }#REPEAT
 
-  mb
+  return(mb)
 
 }#GS.MARKOV.BLANKET
 

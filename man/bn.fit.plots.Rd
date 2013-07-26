@@ -22,7 +22,7 @@ bn.fit.histogram(fitted, density = TRUE, xlab = "Residuals",
   main = "Histogram of the residuals", ...)
 bn.fit.xyplot(fitted, xlab = "Fitted values",
   ylab = "Residuals", main = "Residuals vs Fitted", ...)
-## for discrete Bayesian networks
+## for discrete (multinomial and ordinal) Bayesian networks.
 bn.fit.barchart(fitted, xlab = "Probabilities",
   ylab = "Levels", main = "Conditional Probabilities", ...)
 bn.fit.dotplot(fitted, xlab = "Probabilities",

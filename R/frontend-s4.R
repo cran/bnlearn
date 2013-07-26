@@ -2,6 +2,11 @@
 # this is to keep the old S3 behaviour inside the NAMESPACE.
 is = function(x, class) {
 
+  if (identical(class, "double"))
+    is.double(x)
+  else if ("double" %in% class)
+    any(class(x) %in% class) || is.double(x)
+  else
     any(class(x) %in% class)
 
 }#IS

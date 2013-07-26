@@ -1,3 +1,33 @@
+bnlearn (3.4)
+
+  * move the test counter into bnlearn's namespace.
+  * include Tsamardinos' optimizations in mmpc(..., optimized = FALSE),
+     but not backtracking, to make it comparable with other learning
+     algorithms.
+  * check whether the residuals and the fitted values are present before
+     trying to plot a bn.fit{,.gnode} object.
+  * fixed two integer overflows in factors' levels and degrees of freedom
+     in large networks.
+  * added {compelled,reversible}.arcs().
+  * added the MSE and predictive correlation loss functions to bn.cv().
+  * use the unbiased estimate of residual variance to compute the standard
+     error in bn.fit(..., method = "mle") (thanks Jean-Baptiste Denis).
+  * revised optimizations in constraint-based algorithms, removing most
+     false positives by sacrificing speed.
+  * fixed warning in cp{dist,query}().
+  * added support for ordered factors.
+  * implemented the Jonckheere-Terpstra test to support ordered factors
+     in constraint-based structure learning.
+  * added a plot() method for bn.strength objects containing bootstrapped
+     confidence estimates; it prints their ECDF and the estimated 
+     significance threshold.
+  * fixed dimension reduction in cpdist().
+  * reimplemented Gaussian rbn() in C, it's now twice as fast.
+  * improve precision and robustness of (partial) correlations.
+  * remove the old network scripts for network that are now available from
+     www.bnlearn.com/bnrepository.
+  * implemented likelihood weighting in cp{dist,query}().
+
 bnlearn (3.3)
 
   * fixed cpdag() and cextend(), which returned an error about

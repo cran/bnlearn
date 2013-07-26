@@ -92,25 +92,20 @@ score(x, data, type = NULL, ..., debug = FALSE)
 data(learning.test)
 res = set.arc(gs(learning.test), "A", "B")
 score(res, learning.test, type = "bde")
-# [1] -23967.65
+
 ## let's see score equivalence in action!
 res2 = set.arc(gs(learning.test), "B", "A")
 score(res2, learning.test, type = "bde")
-# [1] -23967.65
 
 ## k2 score on the other hand is not score equivalent.
 score(res, learning.test, type = "k2")
-# [1] -23958.70
 score(res2, learning.test, type = "k2")
-# [1] -23957.68
 
 ## equivalent to logLik(res, learning.test)
 score(res, learning.test, type = "loglik")
-# [1] -23832.13
 
 ## equivalent to AIC(res, learning.test)
 score(res, learning.test, type = "aic")
-# [1] -23873.13
 }
 \seealso{\code{\link{choose.direction}}, \code{\link{arc.strength}}. }
 \author{ Marco Scutari }

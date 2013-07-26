@@ -102,14 +102,6 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
       error("neighbourhood sets are not symmetric.\n");
 
   }/*THEN*/
-  else {
-
-    if (*checkmb)
-      warning("markov blankets are not symmetric.\n");
-    else
-      warning("neighbourhood sets are not symmetric.\n");
-
-  }/*ELSE*/
 
   /* build a correct structure to return. */
   PROTECT(fixed = allocVector(VECSXP, n));

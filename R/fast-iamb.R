@@ -159,21 +159,20 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
   if (!is.null(backtracking)) {
 
     # nodes whose markov blanket includes this node are included, because
-    # X \in MB(Y) <=> Y \in MB(X)
+    # X \in MB(Y) <=> Y \in MB(X); they can be removed in the backward phase
+    # later on if they are false positives.
     known.good = names(backtracking[backtracking])
     mb = unique(c(mb, known.good))
 
     # and vice versa X \not\in MB(Y) <=> Y \not\in MB(X)
     known.bad = names(backtracking[!backtracking])
 
-    # both are not to be checked for inclusion/exclusion.
-    nodes = nodes[!(nodes %in% names(backtracking))]
-
     if (debug) {
 
       cat("    * known good (backtracking): '", known.good, "'.\n")
       cat("    * known bad (backtracking): '", known.bad, "'.\n")
-      cat("    * nodes still to be tested for inclusion: '", nodes, "'.\n")
+      cat("    * nodes still to be tested for inclusion: '", 
+        nodes[!(nodes %in% mb)], "'.\n")
 
     }#THEN
 
@@ -186,7 +185,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
     insufficient.data = FALSE
 
     # get an association measure for each of the available nodes.
-    association = sapply(nodes, conditional.test, x, sx = mb,
+    association = sapply(nodes[!(nodes %in% mb)], conditional.test, x, sx = mb,
                     test = test, data = data, B = B, alpha = alpha)
 
     if (debug) {
@@ -250,11 +249,10 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
     mb.old.length = length(mb)
 
     # whitelisted nodes are neighbours, they cannot be removed from the
-    # markov blanket; speculatively adding nodes prevents further
-    # optimizations.
-    # known.good nodes from backtracking are not to be removed, either.
+    # markov blanket; on the other hand, known.good nodes from backtracking
+    # should be checked to remove false positives.
     if (length(mb) > 1)
-      sapply(mb[!(mb %in% c(known.good, whitelisted))], del.node, x = x, test = test)
+      sapply(mb[!(mb %in% whitelisted)], del.node, x = x, test = test)
 
     # if there are not enough observations and no new node has been included
     # in the markov blanket, stop iterating.
@@ -265,7 +263,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
 
   }#REPEAT
 
-  mb
+  return(mb)
 
 }#FAST.IA.MARKOV.BLANKET
 

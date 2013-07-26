@@ -99,20 +99,12 @@ data(learning.test)
 bn = naive.bayes("A", LETTERS[2:6])
 pred = predict(bn, learning.test)
 table(pred, learning.test[, "A"])
-# pred    a    b    c
-#    a 1286  310  178
-#    b  192  977  203
-#    c  190  383 1281
 
 tan = tree.bayes(learning.test, "A")
 
 fitted = bn.fit(tan, learning.test, method = "bayes")
 pred = predict(fitted, learning.test)
 table(pred, learning.test[, "A"])
-# pred    a    b    c
-#    a 1300  180  184
-#    b  206 1342  239
-#    c  162  148 1239
 }
 \author{ Marco Scutari }
 \keyword{multivariate}

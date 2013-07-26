@@ -42,7 +42,6 @@ data(marks)
 
 }
 \examples{
-
 # This is the undirected graphical model from Edwards (2000).
 data(marks)
 ug = empty.graph(names(marks))
@@ -52,6 +51,5 @@ arcs(ug, ignore.cycles = TRUE) = matrix(
     "ANL",  "ALG", "ANL",  "STAT", "STAT", "ALG", "STAT", "ANL"),
   ncol = 2, byrow = TRUE,
   dimnames = list(c(), c("from", "to")))
-
 }
 \keyword{datasets}

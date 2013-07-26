@@ -29,7 +29,7 @@ quantile.discretization = function(data, breaks) {
       stop("unable to discretize ", names(data)[x], " in ", breaks,
            " intervals, some quantiles are not unique.")
     # cut the range using the quantiles as break points.
-    cut(y, breaks = quantiles, include.lowest = TRUE)
+    cut(y, breaks = quantiles, include.lowest = TRUE, ordered = TRUE)
 
   })
   # convert the return value to a data frame.
@@ -52,7 +52,7 @@ interval.discretization = function(data, breaks) {
     if (is(y, "factor"))
       return(y)
     # cut the range with the given number of break points.
-    cut(y, breaks = breaks, include.lowest = TRUE)
+    cut(y, breaks = breaks, include.lowest = TRUE, ordered = TRUE)
 
   })
   # convert the return value to a data frame.

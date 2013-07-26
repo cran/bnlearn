@@ -8,7 +8,7 @@
 }
 \description{
 
-  The structure of an object of the \code{bn.kcv} S3 class.
+  The structure of an object of S3 class \code{bn.kcv}.
 
 }
 \details{
@@ -27,12 +27,15 @@
 
   }
 
-  If the loss function is some form of prediction error, each element also
-  contains:
+  If the loss function rquires to predict values from the test sets, each 
+  element also contains:
 
   \itemize{
 
-    \item \code{predicted}: a factor, the predicted values for the test set.
+    \item \code{predicted}: a factor or a numeric vector, the predicted values 
+      for the target node in the test set.
+    \item \code{observed}: a factor or a numeric vector, the observed values 
+      for the target node in the test set.
 
   }
 

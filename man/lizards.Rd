@@ -51,42 +51,13 @@ data(lizards)
 res = empty.graph(names(lizards))
 modelstring(res) = "[Species][Diameter|Species][Height|Species]"
 plot(res)
-
 table(lizards[, c(3,2,1)])
-# , , Species = Sagrei
-#
-#       Diameter
-# Height narrow wide
-#   high     86   35
-#   low      32   11
-#
-# , , Species = Distichus
-#
-#       Diameter
-# Height narrow wide
-#   high     73   70
-#   low      61   41
 
 \dontrun{
 # This data set is useful as it offers nominal values for
 # the conditional mutual information and X^2 tests.
-
-attach(lizards)
-ci.test(Height, Diameter, Species, test = "mi")
-#
-# 	Mutual Information (discrete)
-#
-# data:  Height ~ Diameter | Species
-# mi = 2.0256, df = 2, p-value = 0.3632
-# alternative hypothesis: true value is greater than 0
-ci.test(Height, Diameter, Species, test = "x2")
-#
-# 	Pearson's X^2
-#
-# data:  Height ~ Diameter | Species
-# x2 = 2.0174, df = 2, p-value = 0.3647
-# alternative hypothesis: true value is greater than 0
+ci.test("Height", "Diameter", "Species", test = "mi", data = lizards)
+ci.test("Height", "Diameter", "Species", test = "x2", data = lizards)
 }
-
 }
 \keyword{datasets}

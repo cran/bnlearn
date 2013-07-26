@@ -11,7 +11,7 @@
 }
 \usage{
 bn.fit(x, data, method = "mle", \dots, debug = FALSE)
-custom.fit(x, dist)
+custom.fit(x, dist, ordinal = FALSE)
 bn.net(x, debug = FALSE)
 }
 \arguments{
@@ -24,6 +24,9 @@ bn.net(x, debug = FALSE)
     parameter estimation} (currently implemented only for discrete data).}
   \item{...}{additional arguments for the parameter estimation prcoedure,
     see below.}
+  \item{ordinal}{a boolean value. If \code{TRUE}, discrete nodes saved as 
+    ordinal random variables (\code{bn.fit.onode}) instead of unordered
+    factors (\code{bn.fit.dnode}).}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
     is printed; otherwise the function is completely silent.}
 }
@@ -107,14 +110,17 @@ cptA = matrix(c(0.4, 0.6), ncol = 2, dimnames = list(NULL, c("LOW", "HIGH")))
 cptB = matrix(c(0.8, 0.2), ncol = 2, dimnames = list(NULL, c("GOOD", "BAD")))
 cptC = c(0.5, 0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8)
 dim(cptC) = c(2, 2, 2)
-dimnames(cptC) = list("C" = c("TRUE", "FALSE"), "A" =  c("LOW", "HIGH"), "B" = c("GOOD", "BAD"))
-custom.fit(net, dist = list(A = cptA, B = cptB, C = cptC))
+dimnames(cptC) = list("C" = c("TRUE", "FALSE"), "A" =  c("LOW", "HIGH"), 
+                   "B" = c("GOOD", "BAD"))
+cfit = custom.fit(net, dist = list(A = cptA, B = cptB, C = cptC))
+# for ordinal nodes it's nearly the same.
+cfit = custom.fit(net, dist = list(A = cptA, B = cptB, C = cptC), ordinal = TRUE)
 
 # Gaussian Bayesian network from expert knowledge.
 distA = list(coef = c("(Intercept)" = 2), sd = 1)
 distB = list(coef = c("(Intercept)" = 1), sd = 1.5)
 distC = list(coef = c("(Intercept)" = 0.5, "A" = 0.75, "B" = 1.32), sd = 04)
-custom.fit(net, dist = list(A = distA, B = distB, C = distC))
+cfit = custom.fit(net, dist = list(A = distA, B = distB, C = distC))
 }
 \author{ Marco Scutari }
 \keyword{multivariate}

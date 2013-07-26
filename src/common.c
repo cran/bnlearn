@@ -216,9 +216,14 @@ SEXP classname, rownames;
 /* efficient column extraction from data frames. */
 SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop) {
 
+  return c_dataframe_column(dataframe, name, LOGICAL(drop)[0]);
+
+}/*DATAFRAME_COLUMN*/
+
+SEXP c_dataframe_column(SEXP dataframe, SEXP name, int drop) {
+
 SEXP try, result, colnames = getAttrib(dataframe, R_NamesSymbol);
-int *idx = NULL, *d = LOGICAL(drop);
-int nnames = LENGTH(name), name_type = TYPEOF(name);
+int *idx = NULL, nnames = LENGTH(name), name_type = TYPEOF(name);
 
   if (dataframe == R_NilValue)
     return R_NilValue;
@@ -251,7 +256,7 @@ int nnames = LENGTH(name), name_type = TYPEOF(name);
 
   }/*SWITCH*/
 
-  if ((nnames > 1) || (*d == 0)) {
+  if ((nnames > 1) || (drop == 0)) {
 
     PROTECT(result = allocVector(VECSXP, nnames));
 
@@ -275,7 +280,7 @@ int nnames = LENGTH(name), name_type = TYPEOF(name);
 
   return result;
 
-}/*DATAFRAME_COLUMN*/
+}/*C_DATAFRAME_COLUMN*/
 
 /* efficient copying of data from the data frame to a matrix for the QR decomposition. */
 SEXP qr_matrix(SEXP dataframe, SEXP name) {

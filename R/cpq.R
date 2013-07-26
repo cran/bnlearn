@@ -3,12 +3,12 @@
 conditional.probability.query = function(fitted, event, evidence, method,
     extra, probability = TRUE, cluster = NULL, debug = FALSE) {
 
-  if (method == "ls") {
+  # consider only the upper closure of event and evidence to reduce the number
+  # of variables in the Monte Carlo simulation.
+  fitted = reduce.fitted(fitted = fitted, event = event, evidence = evidence,
+             nodes = extra$query.nodes, method = method, debug = debug)
 
-    # consider only the upper closure of event and evidence to reduce the number
-    # of variables in the Monte Carlo simulation.
-    fitted = reduce.fitted(fitted = fitted, event = event, evidence = evidence,
-               nodes = extra$query.nodes, debug = debug)
+  if (method == "ls") {
 
     if (!is.null(cluster)) {
 
@@ -63,19 +63,95 @@ conditional.probability.query = function(fitted, event, evidence, method,
     }#ELSE
 
   }#THEN
+  else if (method == "lw") {
+
+    if (!is.null(cluster)) {
+
+      # get the number of slaves.
+      s = nSlaves(cluster)
+      # divide the number of particles among the slaves.
+      batch = n = ceiling(extra$n / s)
+
+      if (probability) {
+
+        results = parSapply(cluster, seq(s),
+          function(x) {
+
+            weighting.sampling(fitted = fitted, event = event,
+              evidence = evidence, n = n, batch = batch, debug = debug)
+
+          })
+
+        return(mean(results))
+
+      }#THEN
+      else {
+
+        results = parLapply(cluster, seq(s),
+          function(x) {
+
+            weighting.distribution(fitted = fitted, nodes = event,
+              evidence = evidence, n = n, batch = batch, debug = debug)
+
+          })
+
+        return(do.call(rbind, results))
+
+      }#ELSE
+
+    }#THEN
+    else {
+
+      if (probability) {
+
+        weighting.sampling(fitted = fitted, event = event, evidence = evidence,
+          n = extra$n, batch = extra$batch, debug = debug)
+
+      }#THEN
+      else {
+
+        weighting.distribution(fitted = fitted, nodes = event,
+          evidence = evidence, n = extra$n, batch = extra$batch, debug = debug)
+
+      }#ELSE
+
+    }#ELSE
+
+  }#THEN
 
 }#CONDITIONAL.PROBABILITY.QUERY
 
-reduce.fitted = function(fitted, event, evidence, nodes, debug) {
+# create an empty data frame from a bn.fit object.
+fit.dummy.df = function(fitted, nodes) {
+
+  dummy = sapply(nodes, function(x) {
+
+    node = fitted[[x]]
+
+    if (is(node, "bn.fit.dnode"))
+      return(factor(character(0), levels = dimnames(node$prob)[[1]]))
+    else if (is(node, "bn.fit.onode"))
+      return(ordered(character(0), levels = dimnames(node$prob)[[1]]))
+    else if (is(node, "bn.fit.gnode"))
+      return(numeric(0))
+
+  })
+
+  return(minimal.data.frame(dummy))
+
+}#FIT.DUMMY.DF
+
+# reduce a bn.fit object to the upper closure of event and evidence nodes.
+reduce.fitted = function(fitted, event, evidence, nodes, method, debug) {
 
   if (is.null(nodes)) {
 
-    # find out which nodes are involved in the event and the evidence.
+    # find out which nodes are involved in the event and the evidence and
+    # construct their upper closure.
     nodes = names(fitted)
     nodes.event = nodes[nodes %in% explode(event)]
     nodes.evidence = nodes[nodes %in% explode(evidence)]
-    # construct the upper closure of the query nodes.
-    upper.closure = schedule(fitted, start = union(nodes.event, nodes.evidence),
+    upper.closure = schedule(fitted, start = union(nodes.evidence, nodes.event),
                       reverse = TRUE)
 
     if (debug) {
@@ -84,8 +160,6 @@ reduce.fitted = function(fitted, event, evidence, nodes, debug) {
       cat("  > event involves the following nodes:", nodes.event, "\n")
       cat("  > evidence involves the following nodes:", nodes.evidence, "\n")
       cat("  > upper closure is '", upper.closure, "'\n")
-      cat("  > generating observations from", length(upper.closure), "/", 
-        length(fitted), "nodes.\n")
 
     }#THEN
 
@@ -99,8 +173,6 @@ reduce.fitted = function(fitted, event, evidence, nodes, debug) {
 
       cat("* using specified query nodes.\n")
       cat("  > upper closure is '", upper.closure, "'\n")
-      cat("  > generating observations from", length(upper.closure), "/", 
-        length(fitted), "nodes.\n")
 
     }#THEN
 
@@ -108,15 +180,28 @@ reduce.fitted = function(fitted, event, evidence, nodes, debug) {
 
   # check whether the upper closure is correct: tricky expressions are not
   # always handled correctly by explode().
-  dummy = as.data.frame(rep(list(character(0)), length(upper.closure)))
-  colnames(dummy) = upper.closure
-  try.event = try(eval(event, dummy), silent = TRUE)
-  try.evidence = try(eval(evidence, dummy), silent = TRUE)
+  dummy = fit.dummy.df(fitted, upper.closure)
+  # testing evidence (TRUE or an expression in LS, a list in LW).
+  if (!(is.language(evidence) || identical(evidence, TRUE)))
+    try.evidence = TRUE
+  else
+    try.evidence = try(eval(evidence, dummy), silent = TRUE)
+  # testing event (it's the label nodes in cpdist; TRUE or an expression 
+  # in cpquery).
+  if (!(is.language(event) || identical(event, TRUE)))
+    try.event = TRUE
+  else
+    try.event = try(eval(event, dummy), silent = TRUE)
 
   # create the subgraph corresponding to the upper closure.
   if (is.logical(try.event) && is.logical(try.evidence)) {
 
+    if (debug)
+      cat("  > generating observations from", length(upper.closure), "/", 
+        length(fitted), "nodes.\n")
+
     fitted = fitted[upper.closure]
+    class(fitted) = "bn.fit"
 
   }#THEN
   else {
@@ -130,6 +215,7 @@ reduce.fitted = function(fitted, event, evidence, nodes, debug) {
 
 }#REDUCE.FITTED
 
+# compute conditional probabilities with forward/logic sampling.
 logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
 
   cpxe = cpe = 0L
@@ -152,10 +238,7 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
     # generate random data from the bayesian network.
     if (m > 0) {
 
-      if (is.fitted.discrete(fitted))
-        generated.data = rbn.discrete(x = fitted, n = m)
-      else
-        generated.data = rbn.continuous(x = fitted, n = m)
+      generated.data = rbn.backend(x = fitted, n = m)
 
     }#THEN
     else
@@ -242,6 +325,8 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
 
 }#LOGIC.SAMPLING
 
+# generate random observations from conditional distributions with forward/logic
+# sampling.
 logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) {
 
   filtered = logical(n)
@@ -260,14 +345,8 @@ logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) 
     generated.data = NULL
 
     # generate random data from the bayesian network.
-    if (m > 0) {
-
-      if (is.fitted.discrete(fitted))
-        generated.data = rbn.discrete(x = fitted, n = m)
-      else
-        generated.data = rbn.continuous(x = fitted, n = m)
-
-    }#THEN
+    if (m > 0)
+      generated.data = rbn.backend(x = fitted, n = m)
     else
       break
 
@@ -312,3 +391,124 @@ logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) 
   return(result)
 
 }#LOGIC.DISTRIBUTION
+
+# compute conditional probabilities with likelihood weighting.
+weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
+
+  cpxe = cpe = 0
+  matching = logical(n)
+  r = logical(n)
+
+  # count how many complete batches we have to generate.
+  nbatches = n %/% batch
+  # count how many observations are in the last one.
+  last.one = n %% batch
+
+  weights = function(data) {
+
+    if (isTRUE(evidence))
+      return(rep(1, nrow(data)))
+    else 
+      exp(.Call("entropy_loss", 
+                fitted = fitted[names(evidence)],
+                data = data,
+                by.sample = TRUE, 
+                debug = FALSE, 
+                PACKAGE = "bnlearn"))
+
+  }#WEIGHTS
+
+  for (m in c(rep(batch, nbatches), last.one)) {
+
+    # do a hard reset of generated.data, so that the memory used by the data
+    # set generated in the previous iteration can be garbage-collected and
+    # reused _before_ rbn() returns.
+    generated.data = NULL
+
+    # generate random data from the bayesian network.
+    if (m > 0)
+      generated.data = rbn.backend(x = fitted, fix = evidence, n = m)
+    else
+      break
+
+    if (debug)
+      cat("* generated", m, "samples from the bayesian network.\n")
+
+    # evaluate the expression defining the event.
+    if (identical(event, TRUE))
+      r = rep(TRUE, m)
+    else
+      r = eval(event, generated.data, parent.frame())
+    # double check that this is a logical vector.
+    if (!is.logical(r))
+      stop("event must evaluate to a logical vector.")
+    # double check that it is of the right length.
+    if (length(r) != m)
+      stop("logical vector for event is of length ", length(r),
+        " instead of ", m, ".")
+    # filter out the samples not matching the event we are looking for.
+    matching = r & !is.na(r)
+
+    # compute the probabilities and use them as weigths.
+    w = weights(generated.data) 
+    cpe = cpe + sum(w)
+    cpxe = cpxe + sum(w[matching]) 
+
+    if (debug)
+      cat("  > event has a probability mass of ", cpxe, " out of ", cpe, ".\n", sep = "")
+
+  }#FOR
+
+  # compute the conditional probability.
+  result = cpxe / cpe
+
+  if (debug && (nbatches > 1)) {
+
+    cat("* generated a grand total of", n, "samples.\n")
+    cat("  > event has a probability mass of ", cpxe, " out of ", cpe, 
+        " (p = ", result, ").\n", sep = "")
+
+  }#THEN
+
+  return(result)
+
+}#WEIGHTING.SAMPLING
+
+# generate random observations from conditional distributions with likelihood
+# weighting.
+weighting.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) {
+
+  result = NULL
+
+  # count how many complete batches we have to generate.
+  nbatches = n %/% batch
+  # count how many observations are in the last one.
+  last.one = n %% batch
+
+  for (m in c(rep(batch, nbatches), last.one)) {
+
+    # do a hard reset of generated.data, so that the memory used by the data
+    # set generated in the previous iteration can be garbage-collected and
+    # reused _before_ rbn() returns.
+    generated.data = NULL
+
+    # generate random data from the bayesian network.
+    if (m > 0)
+      generated.data = rbn.backend(x = fitted, fix = evidence, n = m)
+    else
+      break
+
+    if (debug)
+      cat("* generated", m, "samples from the bayesian network.\n")
+
+    # update the return value.
+    result = rbind(result, generated.data[, nodes, drop = FALSE])
+
+  }#FOR
+
+  if (debug && (nbatches > 1)) 
+    cat("* generated a grand total of", n, "samples.\n")
+ 
+  return(result)
+
+}#WEIGHTING.DISTRIBUTION

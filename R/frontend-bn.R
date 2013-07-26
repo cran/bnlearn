@@ -167,6 +167,21 @@ moral = function(x, debug = FALSE) {
 
 }#MORAL
 
+# mutilated network used in likelihood weighting.
+mutilated = function(x, evidence) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  # check the evidence.
+  evidence = check.mutilated.evidence(evidence, graph = x)
+
+  if (is(x, "bn"))
+    return(mutilated.backend.bn(x, evidence))
+  else
+    return(mutilated.backend.fitted(x, evidence))
+
+}#MUTILATED
+
 # test d-separation.
 dsep = function(bn, x, y, z) {
 

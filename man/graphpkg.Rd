@@ -44,8 +44,7 @@
 library(graph)
 a = bn.fit(hc(learning.test), learning.test)
 b = as.graphNEL(a)
-c = as.bn(b)
-identical(as.graphNEL(a), as(a, "graphNEL"))}}
+c = as.bn(b)}}
 \author{ Marco Scutari }
 \keyword{utilities}
 \keyword{multivariate}

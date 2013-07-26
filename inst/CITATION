@@ -1,5 +1,20 @@
 citHeader("To cite bnlearn in publications use:")
 
+citEntry(entry = "Book",
+         title = "Bayesian Networks in R with Applications in Systems Biology",
+         author = personList(as.person("Radhakrishnan Nagarajan"), as.person("Marco Scutari"), as.person("Sophie Lebre")),
+	 publisher = "Springer",
+         address      = "New York",
+         year         = 2013,
+         note         = "ISBN 978-1461464457",
+
+ textVersion = 
+ paste("Radhakrishnan Nagarajan, Marco Scutari, Sophie Lebre. (2013)", 
+       "Bayesian Networks in R with Applications in Systems Biology.",
+       "Springer, New York. ISBN 978-1461464457.")
+
+)
+
 citEntry(entry = "Article",
   title        = "Learning Bayesian Networks with the {bnlearn} {R} Package",
   author       = personList(as.person("Marco Scutari")),

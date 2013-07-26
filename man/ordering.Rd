@@ -58,29 +58,16 @@ tiers2blacklist(nodes)
 \examples{
 data(learning.test)
 res = gs(learning.test, optimized = TRUE)
-res$learning$ntests
-# [1] 43
+ntests(res)
 res = set.arc(res, "A", "B")
 ord = node.ordering(res)
 ord
-# [1] "A" "C" "F" "B" "D" "E"
 
 ## partial node ordering saves us two tests in the v-structure
 ## detection step of the algorithm.
-gs(learning.test, blacklist = ordering2blacklist(ord))$learning$ntests
-# [1] 41
+ntests(gs(learning.test, blacklist = ordering2blacklist(ord)))
 
 tiers2blacklist(list(LETTERS[1:3], LETTERS[4:6]))
-#       from to 
-#  [1,] "D"  "A"
-#  [2,] "E"  "A"
-#  [3,] "F"  "A"
-#  [4,] "D"  "B"
-#  [5,] "E"  "B"
-#  [6,] "F"  "B"
-#  [7,] "D"  "C"
-#  [8,] "E"  "C"
-#  [9,] "F"  "C"
 }
 \author{ Marco Scutari }
 \keyword{utilities}

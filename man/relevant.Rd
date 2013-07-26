@@ -17,10 +17,11 @@
     which to condition the independence tests.}
   \item{data}{a data frame containing either numeric or factor columns.}
   \item{test}{a character string, the label of the conditional
-      independence test to be used in the algorithm. If none is
-      specified, the default test statistic is the \emph{mutual information}
-      for discrete data sets and the \emph{linear correlation} for
-      continuous ones. See \code{\link{bnlearn-package}} for details.}
+      independence test to be used in the algorithm. 
+      If none is specified, the default test statistic is the \emph{mutual
+      information} for categorical variables, the Jonckheere-Terpstra test
+      for ordered factors and the \emph{linear correlation} for continuous
+      variables. See \code{\link{bnlearn-package}} for details.}
   \item{alpha}{a numeric value, the target nominal type I error rate. If
       none is specified, the default value is \code{0.05}.}
   \item{B}{a positive integer, the number of permutations considered
@@ -50,9 +51,7 @@
 data(learning.test)
 X = as.factor(sample(c("x1", "x2"), nrow(learning.test), replace = TRUE))
 relevant("A", data = cbind(learning.test, X))
-# [1] "B" "D" "E" "C" "F"
 relevant("A", context = "B", data = learning.test,)
-# [1] "D" "C"
 }
 \references{
 

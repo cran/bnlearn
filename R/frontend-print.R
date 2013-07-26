@@ -129,7 +129,7 @@ print.bn = function(x, ...) {
 }#PRINT.BN
 
 # print method for class bn.fit.
-"print.bn.fit" = function(x, order, ...) {
+print.bn.fit = function(x, order, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -156,15 +156,18 @@ print.bn = function(x, ...) {
 
   invisible(x)
 
-}#PRINT.BN-FIT
+}#PRINT.BN.FIT
 
 # print method for class bn.fit.dnode.
-"print.bn.fit.dnode" = function(x, ...) {
+print.bn.fit.dnode = function(x, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  cat("\n  Parameters of node", x$node, "(multinomial distribution)\n")
+  if (is(x, "bn.fit.dnode"))
+    cat("\n  Parameters of node", x$node, "(multinomial distribution)\n")
+  else if (is(x, "bn.fit.onode"))
+    cat("\n  Parameters of node", x$node, "(ordinal distribution)\n")
 
   cat("\nConditional probability table:\n", ifelse(length(x$parents) > 0, "\n", ""))
   print(x$prob)
@@ -173,8 +176,11 @@ print.bn = function(x, ...) {
 
 }#PRINT.BN.FIT.DNODE
 
+# print method for class bn.fit.onode.
+print.bn.fit.onode = print.bn.fit.dnode
+
 # print method for class bn.fit.gnode.
-"print.bn.fit.gnode" = function(x, ...) {
+print.bn.fit.gnode = function(x, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -238,7 +244,7 @@ print.bn.kcv = function(x, ...) {
   wcat("  number of subsets:                    ", length(x))
   wcat("  loss function:                        ", loss.labels[a$loss])
 
-  if (a$loss == "pred")
+  if ("target" %in% loss.extra.args[[a$loss]])
     wcat("  training node:                        ", a$args$target)
 
   wcat("  expected loss:                        ", format(a$mean))

@@ -20,8 +20,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 3.3\cr
-    Date: \tab 2013-03-03\cr
+    Version: \tab 3.4\cr
+    Date: \tab 2013-07-26\cr
     License: \tab GPLv2 or later
 
   }
@@ -66,19 +66,17 @@
 
     \item \emph{Grow-Shrink} (\code{\link{gs}}): based on the \emph{Grow-Shrink
       Markov Blanket}, the first (and simplest) Markov blanket detection algorithm
-      (Margaritis, 2003) used in a structure learning algorithm.
+      used in a structure learning algorithm.
     \item \emph{Incremental Association} (\code{\link{iamb}}): based on the
-      Markov blanket detection algorithm of the same name (Tsamardinos et
-      al., 2003), which is based on a two-phase selection scheme (a forward
-      selection followed by an attempt to remove false positives).
+      Markov blanket detection algorithm of the same name, which is based on
+      a two-phase selection scheme (a forward selection followed by an attempt
+      to remove false positives).
     \item \emph{Fast Incremental Association} (\code{\link{fast.iamb}}): a
       variant of IAMB which uses speculative stepwise forward selection to
-      reduce the number of conditional independence tests (Yaramakala and
-      Margaritis, 2005).
+      reduce the number of conditional independence tests.
     \item \emph{Interleaved Incremental Association} (\code{\link{inter.iamb}}):
-      another variant of IAMB which uses forward stepwise selection (Tsamardinos
-      et al., 2003) to avoid false positives in the Markov blanket detection
-      phase.
+      another variant of IAMB which uses forward stepwise selection to avoid
+      false positives in the Markov blanket detection phase.
 
   }
 
@@ -87,8 +85,8 @@
   \itemize{
 
     \item an optimized implementation (used when the \code{optimized}
-      parameter is set to \code{TRUE}), which uses backtracking to roughly
-      halve the number of independence tests.
+      parameter is set to \code{TRUE}), which uses backtracking to initialize
+      the learning process of each node.
     \item an unoptimized implementation (used when the \code{optimized}
       parameter is set to \code{FALSE}) which is better at uncovering
       possible erratic behaviour of the statistical tests.
@@ -150,20 +148,18 @@
     \item \emph{Max-Min Parents and Children} (\code{\link{mmpc}}): a
       forward selection technique for neighbourhood detection based on
       the maximization of the minimum association measure observed with
-      any subset of the nodes selected in the previous iterations
-      (Tsamardinos, Brown and Aliferis, 2006).
+      any subset of the nodes selected in the previous iterations.
     \item \emph{Hiton Parents and Children} (\code{\link{si.hiton.pc}}):
       a fast forward selection technique for neighbourhood detection
       designed to exclude nodes early based on the marginal association.
       The implementation follows the Semi-Interleaved variant of the
-      algorithm described in Aliferis et al. (2010).
+      algorithm.
     \item \emph{Chow-Liu} (\code{\link{chow.liu}}): an application of the
       minimum-weight spanning tree and the information inequality. It
       learn the tree structure closest to the true one in the probability
-      space (Chow and Liu, 1968).
+      space.
     \item \emph{ARACNE} (\code{\link{aracne}}): an improved version of
-      the Chow-Liu algorithm that is able to learn polytrees (Margolin
-      et al., 2006).
+      the Chow-Liu algorithm that is able to learn polytrees.
 
   }
 
@@ -197,7 +193,7 @@
 
   \itemize{
 
-    \item \emph{discrete case} (multinomial distribution)
+    \item \emph{discrete case} (categorical variables)
       \itemize{
 
         \item \emph{mutual information}: an information-theoretic
@@ -217,13 +213,22 @@
           (\code{smc-x2}) and semiparametric test (\code{sp-x2}) are implemented.
 
       }
-    \item \emph{continuous case} (multivariate normal distribution)
+    \item \emph{discrete case} (ordered factors)
       \itemize{
 
-        \item \emph{linear correlation}: linear correlation. The exact Student's
-          t test (\code{cor}), the Monte Carlo permutation test (\code{mc-cor})
-          and the sequential Monte Carlo permutation test (\code{smc-cor}) are
-          implemented.
+        \item \emph{Jonckheere-Terpstra}: a trend test for ordinal variables.
+          The asymptotic normal test (\code{jt}), the Monte Carlo permutation
+          test (\code{mc-jt}) and the sequential Monte Carlo permutation test 
+          (\code{smc-jt}) are implemented.
+
+      }
+    \item \emph{continuous case} (normal variables)
+      \itemize{
+
+        \item \emph{linear correlation}: Pearson's linear correlation. The exact
+          Student's t test (\code{cor}), the Monte Carlo permutation test 
+          (\code{mc-cor}) and the sequential Monte Carlo permutation test 
+          (\code{smc-cor}) are implemented.
         \item \emph{Fisher's Z}: a transformation of the linear correlation
           with asymptotic normal distribution. Used by commercial software
           (such as TETRAD II) for the PC algorithm (an R implementation is
@@ -252,7 +257,7 @@
 
   \itemize{
 
-    \item \emph{discrete case} (multinomial distribution)
+    \item \emph{discrete case} (categorical variables)
       \itemize{
 
         \item the multinomial \emph{log-likelihood} (\code{loglik}) score,
@@ -271,7 +276,7 @@
 
       }
 
-    \item \emph{continuous case} (multivariate normal distribution)
+    \item \emph{continuous case} (normal variables)
       \itemize{
 
         \item the multivariate Gaussian \emph{log-likelihood} (\code{loglik-g})
@@ -353,22 +358,12 @@
   (a BibTeX file with all the references cited throughout this manual
   is present in the \file{bibtex} directory of this package)
 
+  Nagarajan R, Scutari M, Lebre S (2013). "Bayesian Networks in R with 
+      Applications in Systems Biology". Springer.
+
   Scutari M (2010). "Learning Bayesian Networks with the bnlearn R
       Package". Journal of Statistical Software, \strong{35}(3), 1-22. URL
       http://www.jstatsoft.org/v35/i03/.
-
-  Aliferis FC, Statnikov A, Tsamardinos I, Subramani M, Koutsoukos XD (2010).
-      "Local Causal and Markov Blanket Induction for Causal Discovery and
-      Feature Selection for Classification Part I: Algorithms and Empirical
-      Evaluation". \emph{Journal of Machine Learning Research}, \strong{11},
-      171-234.
-
-  Chow CK, Liu CN (1968). "Approximating Discrete Probability Distributions
-      With Dependence Trees". IEEE Transactions on InformationTheory,
-      IT-14:462-467.
-
-  Friedman N, Geiger D, Goldszmidt M (1997). "Bayesian Network Classifiers".
-      \emph{Machine Learning}, \strong{29}(2--3), 131--163. 
 
   Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
       Principles and Techniques}. MIT Press.
@@ -376,31 +371,8 @@
   Korb K, Nicholson AE (2010). \emph{Bayesian Artificial Intelligence}.
       Chapman & Hall/CRC, 2nd edition.
 
-  Margaritis D (2003). \emph{Learning Bayesian Network Model Structure
-      from Data}. Ph.D. thesis, School of Computer Science, Carnegie-Mellon
-      University, Pittsburgh, PA. Available as Technical Report CMU-CS-03-153.
-
-  Margolin AA, Nemenman I, Basso K, Wiggins C, Stolovitzky G, Dalla Favera R,
-      Califano A (2006). "ARACNE: An Algorithm for the Reconstruction of
-      Gene Regulatory Networks in a Mammalian Cellular Context". \emph{BMC
-      Bioinformatics}, \strong{7}(Suppl 1):S7.
-
   Pearl J (1988). \emph{Probabilistic reasoning in intelligent systems:
       networks of plausible inference}. Morgan Kaufmann.
-
-  Tsamardinos I, Aliferis CF, Statnikov A (2003). "Algorithms for Large
-      Scale Markov Blanket Discovery". In "Proceedings of the Sixteenth
-      International Florida Artificial Intelligence Research Society
-      Conference", pp. 376-381. AAAI Press.
-
-  Tsamardinos I, Brown LE, Aliferis CF (2006). "The Max-Min Hill-Climbing
-      Bayesian Network Structure Learning Algorithm". Machine Learning,
-      65(1), 31-78.
-
-  Yaramakala S, Margaritis D (2005). "Speculative Markov Blanket Discovery
-      for Optimal Feature Selection". In "ICDM '05: Proceedings of the Fifth
-      IEEE International Conference on Data Mining", pp. 809-812. IEEE
-      Computer Society.
 
 }
 \examples{
@@ -418,17 +390,12 @@ res2 = iamb(learning.test)
 plot(res2)
 # the network structures seem to be identical, don't they?
 all.equal(res, res2)
-# [1] TRUE
 # how many tests each of the two algorithms used?
-res$learning$ntests
-# [1] 43
-res2$learning$ntests
-# [1] 50
+ntests(res)
+ntests(res2)
 # and the unoptimized implementation of these algorithms?
-\dontrun{gs(learning.test, optimized = FALSE)$learning$ntests}
-# [1] 93
-\dontrun{iamb(learning.test, optimized = FALSE)$learning$ntests}
-# [1] 116
+\dontrun{ntests(gs(learning.test, optimized = FALSE))}
+\dontrun{ntests(iamb(learning.test, optimized = FALSE))}
 
 ## Greedy search
 res = hc(learning.test)
@@ -444,16 +411,11 @@ plot(res)
 # the arc B - F should not be there?
 blacklist = data.frame(from = c("B", "F"), to = c("F", "B"))
 blacklist
-#   from to
-# 1    B  F
-# 2    F  B
 res3 = gs(learning.test, blacklist = blacklist)
 plot(res3)
 # force E - F direction (E -> F).
 whitelist = data.frame(from = c("E"), to = c("F"))
 whitelist
-#   from to
-# 1    E  F
 res4 = gs(learning.test, whitelist = whitelist)
 plot(res4)
 # use both blacklist and whitelist.
@@ -470,16 +432,10 @@ res = hc(learning.test, debug = TRUE)
 sink(file = "learning-log.txt")
 res = gs(learning.test, debug = TRUE)
 sink()
-}
 # if something seems wrong, try the unoptimized version
 # in strict mode (inconsistencies trigger errors):
-\dontrun{
 res = gs(learning.test, optimized = FALSE, strict = TRUE, debug = TRUE)
-}
 # or disable strict mode to let the algorithm fix errors on the fly:
-\dontrun{
 res = gs(learning.test, optimized = FALSE, strict = FALSE, debug = TRUE)
-}
-
-}
+}}
 \keyword{ package }

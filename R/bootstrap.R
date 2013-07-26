@@ -74,10 +74,7 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
     }#THEN
     else if (sim == "parametric") {
 
-      if (is.data.discrete(data))
-        replicate = rbn.discrete(x = net, n = m, data = data)
-      else
-        replicate = rbn.continuous(x = net, n = m, data = data)
+      replicate = rbn.backend(x = net, n = m, data = data)
 
     }#ELSE
 

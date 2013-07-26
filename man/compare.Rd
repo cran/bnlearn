@@ -48,32 +48,8 @@ data(learning.test)
 e1 = model2network("[A][B][C|A:B][D|B][E|C][F|A:E]")
 e2 = model2network("[A][B][C|A:B][D|B][E|C:F][F|A]")
 shd(e2, e1, debug = TRUE)
-# * arcs between A and F do not match.
-#   > the learned network contains A - F.
-#   > the true network contains A -> F.
-# * arcs between E and F do not match.
-#   > the learned network contains F -> E.
-#   > the true network contains E -> F.
-# [1] 2
 unlist(compare(e1,e2))
-# tp fp fn
-#  5  1  1
 compare(target = e1, current = e2, arcs = TRUE)
-# $tp
-#      from to
-# [1,] "A"  "C"
-# [2,] "B"  "C"
-# [3,] "B"  "D"
-# [4,] "C"  "E"
-# [5,] "A"  "F"
-#
-# $fp
-#      from to
-# [1,] "F"  "E"
-#
-# $fn
-#      from to
-# [1,] "E"  "F"
 }
 \references{
 

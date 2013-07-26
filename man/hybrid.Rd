@@ -11,14 +11,12 @@
 
 }
 \usage{
-rsmax2(x, whitelist = NULL, blacklist = NULL, restrict,
-  maximize = "hc", test = NULL, score = NULL, alpha = 0.05,
-  B = NULL, ..., maximize.args = list(), optimized = TRUE,
-  strict = FALSE, debug = FALSE)
-mmhc(x, whitelist = NULL, blacklist = NULL, test = NULL,
-  score = NULL, alpha = 0.05, B = NULL, ..., restart = 0,
-  perturb = 1, max.iter = Inf, optimized = TRUE,
-  strict = FALSE, debug = FALSE)
+rsmax2(x, whitelist = NULL, blacklist = NULL, restrict, maximize = "hc",
+  test = NULL, score = NULL, alpha = 0.05, B = NULL, ..., 
+  maximize.args = list(), optimized = TRUE, strict = FALSE, debug = FALSE)
+mmhc(x, whitelist = NULL, blacklist = NULL, test = NULL, score = NULL, 
+  alpha = 0.05, B = NULL, ..., restart = 0, perturb = 1, max.iter = Inf,
+  optimized = TRUE, strict = FALSE, debug = FALSE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
@@ -39,10 +37,10 @@ mmhc(x, whitelist = NULL, blacklist = NULL, test = NULL,
      details.}
   \item{test}{a character string, the label of the conditional
      independence test to be used by the constraint-based algorithm.
-     If none is specified, the default test statistic is the
-     \emph{mutual information} for discrete data sets and the
-     \emph{linear correlation} for continuous ones. See
-     \code{\link{bnlearn-package}} for details.}
+     If none is specified, the default test statistic is the \emph{mutual
+     information} for categorical variables, the Jonckheere-Terpstra test
+     for ordered factors and the \emph{linear correlation} for continuous
+     variables. See \code{\link{bnlearn-package}} for details.}
   \item{score}{a character string, the label of the network score to
       be used in the score-based algorithm. If none is specified, the
       default score is the \emph{Bayesian Information Criterion} for

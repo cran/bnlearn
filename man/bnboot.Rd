@@ -8,9 +8,9 @@
 
 }
 \usage{
-bn.boot(data, statistic, R = 200, m = nrow(data),
-  sim = "ordinary", algorithm, algorithm.args = list(),
-  statistic.args = list(), cluster = NULL, debug = FALSE)
+bn.boot(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
+  algorithm, algorithm.args = list(), statistic.args = list(), 
+  cluster = NULL, debug = FALSE)
 }
 \arguments{
   \item{data}{a data frame containing the variables in the model.}
@@ -63,13 +63,6 @@ bn.boot(data, statistic, R = 200, m = nrow(data),
 data(learning.test)
 bn.boot(data = learning.test, R = 2, m = 500, algorithm = "gs",
   statistic = arcs)
-# [[1]]
-#      from to
-# <arcs for the first replicate>
-#
-# [[2]]
-#      from to
-# <arcs for the second replicate>
 }
 }
 \author{ Marco Scutari }

@@ -42,8 +42,11 @@ bn.fit.backend = function(x, data, method = "mle", extra.args, debug = FALSE) {
       # switch from the joint probabilities to the conditional ones.
       tab = prop.table(tab, margin = seq(length(parents) + 1)[-1])
 
+      # this is to preserve the ordering of the factor.
+      class = ifelse(is(data[, node], "ordered"), "bn.fit.onode", "bn.fit.dnode")
+
       structure(list(node = node, parents = parents, children = children,
-        prob = tab), class = "bn.fit.dnode")
+        prob = tab), class = class)
 
     }#FIT
 
@@ -87,7 +90,7 @@ bn.fit.backend = function(x, data, method = "mle", extra.args, debug = FALSE) {
         coefs = structure(qr.coef(qr.x, data[, node]), names = c("(Intercept)", parents))
         fitted = qr.fitted(qr.x, data[, node])
         resid = qr.resid(qr.x, data[, node])
-        sd = sd(resid)
+        sd = sd(resid) * sqrt((n - 1) / (n - length(parents) - 1))
 
         structure(list(node = node, parents = parents, children = children,
           coefficients = c(coefs), residuals = resid,

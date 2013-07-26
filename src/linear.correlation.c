@@ -6,7 +6,8 @@ static SEXP covmat(SEXP data, SEXP length);
 double c_fast_cor(double *xx, double *yy, int *num) {
 
 int i = 0;
-double xm = 0, ym = 0, xsd = 0, ysd = 0, sum = 0;
+double xm = 0, ym = 0;
+long double xsd = 0, ysd = 0, sum = 0;
 double tol = MACHINE_TOL;
 
   /* compute the mean values.  */
@@ -30,10 +31,10 @@ double tol = MACHINE_TOL;
   }/*FOR*/
 
   /* safety check against "divide by zero" errors. */
-  if (fabs(xsd) < tol || fabs(ysd) < tol)
+  if ((xsd < tol) || (ysd < tol))
     sum = 0;
   else
-    sum /= sqrt(xsd) * sqrt(ysd);
+    sum /= sqrt(xsd * ysd);
 
   /* double check that the coefficient is in the [-1, 1] range. */
   if (sum > 1) {
@@ -51,7 +52,7 @@ double tol = MACHINE_TOL;
 
   }/*ELSE*/
 
-  return sum;
+  return (double)sum;
 
 }/*C_FAST_COR*/
 
@@ -75,18 +76,21 @@ double c_fast_pcor(double *covariance, int *ncols, double *u, double *d,
 
 int i = 0, coord1 = 0, coord2 = 0;
 double k11 = 0, k12 = 0, k22 = 0;
-double res = 0, tol = MACHINE_TOL;
+double res = 0, tol = MACHINE_TOL, sv_tol = 0;
 
   c_svd(covariance, u, d, vt, ncols, ncols, ncols, FALSE, errcode);
 
-  if (*errcode < 0)
+  if (*errcode != 0)
     return 0;
+
+  /* set the threshold for the singular values as in corpcor. */
+  sv_tol = (*ncols) * d[0] * tol * tol;
 
   /* compute the three elements of the pseudoinverse needed
    * for the partial correlation coefficient. */
   for (i = 0; i < *ncols; i++) {
 
-    if (d[i] > tol) {
+    if (d[i] > sv_tol) {
 
       coord1 = CMC(0, i, *ncols);
       coord2 = CMC(i, 1, *ncols);
@@ -100,7 +104,7 @@ double res = 0, tol = MACHINE_TOL;
   }/*FOR*/
 
   /* safety check against "divide by zero" errors. */
-  if (fabs(k11) < tol || fabs(k22) < tol)
+  if ((k11 < tol) || (k22 < tol))
     res = 0;
   else
     res = -k12 / sqrt(k11 * k22);
@@ -116,7 +120,7 @@ int i = 0, ncols = LENGTH(data), errcode = 0;
 int *shrink = LOGICAL(shrinkage);
 double *u = NULL, *d = NULL, *vt = NULL, *res = NULL;
 double k11 = 0, k12 = 0, k22 = 0;
-double tol = MACHINE_TOL;
+double tol = MACHINE_TOL, sv_tol = 0;
 SEXP result, cov;
 
   /* compute the covariance matrix. */
@@ -137,7 +141,7 @@ SEXP result, cov;
   /* compute the singular value decomposition of the covariance matrix. */
   c_svd(REAL(cov), u, d, vt, &ncols, &ncols, &ncols, FALSE, &errcode);
 
-  if (errcode < 0) {
+  if (errcode != 0) {
 
     /* unprotect everything and return. */
     UNPROTECT(2);
@@ -160,11 +164,14 @@ SEXP result, cov;
 
   }/*THEN*/
 
+  /* set the threshold for the singular values as in corpcor. */
+  sv_tol = ncols * d[0] * tol * tol;
+
   /* compute the three elements of the pseudoinverse needed
    * for the partial correlation coefficient. */
   for (i = 0; i < ncols; i++) {
 
-    if (d[i] > tol) {
+    if (d[i] > sv_tol) {
 
       k11 += u[CMC(0, i, ncols)] * vt[CMC(i, 0, ncols)] / d[i];
       k12 += u[CMC(0, i, ncols)] * vt[CMC(i, 1, ncols)] / d[i];
@@ -174,8 +181,8 @@ SEXP result, cov;
 
   }/*FOR*/
 
-  /* safety check against "divide by zero" errors. */
-  if (fabs(k11) < tol || fabs(k22) < tol)
+  /* safety check against "divide by zero" errors and negative variances. */
+  if ((k11 < tol) || (k22 < tol))
     *res = 0;
   else
     *res = -k12 / sqrt(k11 * k22);
@@ -206,22 +213,20 @@ SEXP result, cov;
 void c_covmat(double **data, double *mean, int *ncols, int *nrows,
     double *mat) {
 
-int i = 0, j = 0, k = 0, cur = 0;
+int i = 0, j = 0, k = 0;
+long double temp = 0;
 
   /* compute the actual covariance. */
   for (i = 0; i < *ncols; i++) {
 
     for (j = i; j < *ncols; j++) {
 
-      cur = CMC(i, j, *ncols);
-
-      for (k = 0; k < *nrows; k++)
-        mat[cur] += (data[i][k] - mean[i]) * (data[j][k] - mean[j]);
-
-      mat[cur] /= (*nrows) - 1;
+      for (k = 0, temp = 0; k < *nrows; k++)
+        temp += (data[i][k] - mean[i]) * (data[j][k] - mean[j]);
 
       /* fill in the symmetric element of the matrix. */
-      mat[CMC(j, i, *ncols)] = mat[cur];
+      mat[CMC(j, i, *ncols)] = mat[CMC(i, j, *ncols)] =
+        (double)(temp / (*nrows - 1));
 
     }/*FOR*/
 
@@ -267,23 +272,21 @@ SEXP res;
 }/*COVMAT*/
 
 /* update only a single row/column in a covariance matrix. */
-void c_update_covmat(double **data, double *mean, int update, int *ncols, int *nrows,
-    double *mat) {
+void c_update_covmat(double **data, double *mean, int update, int *ncols,
+    int *nrows, double *mat) {
 
-int j = 0, k = 0, cur = 0;
+int j = 0, k = 0;
+long double temp = 0;
 
   /* compute the actual covariance. */
   for (j = 0; j < *ncols; j++) {
 
-    cur = CMC(update, j, *ncols);
+    for (k = 0, temp = 0; k < *nrows; k++)
+      temp += (data[update][k] - mean[update]) * (data[j][k] - mean[j]);
 
-    for (k = 0; k < *nrows; k++)
-      mat[cur] += (data[update][k] - mean[update]) * (data[j][k] - mean[j]);
-
-    mat[cur] /= (*nrows) - 1;
-
-    /* fill in the symmetric element of the matrix. */
-    mat[CMC(j, update, *ncols)] = mat[cur];
+    /* fill the symmetric elements of the matrix. */
+    mat[CMC(j, update, *ncols)] = mat[CMC(update, j, *ncols)] = 
+      (double)(temp / (*nrows - 1));
 
   }/*FOR*/
 

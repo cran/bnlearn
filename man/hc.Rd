@@ -10,12 +10,10 @@
 
 }
 \usage{
-hc(x, start = NULL, whitelist = NULL, blacklist = NULL,
-  score = NULL, ..., debug = FALSE, restart = 0,
-  perturb = 1, max.iter = Inf, optimized = TRUE)
-tabu(x, start = NULL, whitelist = NULL, blacklist = NULL,
-  score = NULL, ..., debug = FALSE, tabu = 10, max.tabu = tabu,
-  max.iter = Inf, optimized = TRUE)
+hc(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ..., 
+  debug = FALSE, restart = 0, perturb = 1, max.iter = Inf, optimized = TRUE)
+tabu(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ...,
+  debug = FALSE, tabu = 10, max.tabu = tabu, max.iter = Inf, optimized = TRUE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}

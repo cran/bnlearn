@@ -61,9 +61,8 @@ crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args,
 
   }#THEN
 
-  # compute the mean of the observed values of the loss function, weighted
-  # to account for unequal-length splits.
-  mean = weighted.mean(unlist(sapply(kcv, '[', 'loss')), kcv.length)
+  # aggregate the loss functions computed over the k folds.
+  mean = kfold.loss.postprocess(kcv, kcv.length, loss, loss.args, data)
 
   # reset the names of the elements of the return value.
   names(kcv) = NULL

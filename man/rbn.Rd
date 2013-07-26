@@ -28,7 +28,10 @@
 \value{
 
   A data frame with the same structure (column names and data types)
-  of the \code{data} parameter.
+  of the \code{data} parameter (if \code{x} is an object of class \code{bn})
+  or with the same structure as the data originally used to to fit the
+  parameters of the Bayesian network (if \code{x} is an object of class
+  \code{bn.fit}).
 
 }
 \references{

@@ -71,7 +71,7 @@ reverse.arc(x, from, to, check.cycles = TRUE, debug = FALSE)
 data(learning.test)
 res = gs(learning.test)
 
-## use debug = TRUE for more information
+## use debug = TRUE to get more information.
 \dontrun{
 set.arc(res, "A", "B", debug = TRUE)
 drop.arc(res, "A", "B", debug = TRUE)

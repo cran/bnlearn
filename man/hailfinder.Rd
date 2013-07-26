@@ -89,40 +89,31 @@ data(hailfinder)
 }
 \note{
 
-  The R script to generate data from this network is shipped in the
-  \file{network.scripts} directory of this package.
+  The complete BN can be downloaded from \url{http://www.bnlearn.com/bnrepository}.
 
 }
 \examples{
 # load the data and build the correct network from the model string.
 data(hailfinder)
 res = empty.graph(names(hailfinder))
-modelstring(res) = paste("[N07muVerMo][SubjVertMo][QGVertMotion]",
-  "[SatContMoist][RaoContMoist][VISCloudCov][IRCloudCover][AMInstabMt]",
-  "[WndHodograph][MorningBound][LoLevMoistAd][Date][MorningCIN]",
-  "[LIfr12ZDENSd][AMDewptCalPl][LatestCIN][LLIW]",
-  "[CombVerMo|N07muVerMo:SubjVertMo:QGVertMotion]",
-  "[CombMoisture|SatContMoist:RaoContMoist]",
-  "[CombClouds|VISCloudCov:IRCloudCover][Scenario|Date]",
-  "[CurPropConv|LatestCIN:LLIW][AreaMesoALS|CombVerMo]",
-  "[ScenRelAMCIN|Scenario][ScenRelAMIns|Scenario][ScenRel34|Scenario]",
-  "[ScnRelPlFcst|Scenario][Dewpoints|Scenario][LowLLapse|Scenario]",
-  "[MeanRH|Scenario][MidLLapse|Scenario][MvmtFeatures|Scenario]",
-  "[RHRatio|Scenario][SfcWndShfDis|Scenario][SynForcng|Scenario]",
-  "[TempDis|Scenario][WindAloft|Scenario][WindFieldMt|Scenario]",
+modelstring(res) = paste("[N07muVerMo][SubjVertMo][QGVertMotion][SatContMoist][RaoContMoist]",
+  "[VISCloudCov][IRCloudCover][AMInstabMt][WndHodograph][MorningBound][LoLevMoistAd][Date]",
+  "[MorningCIN][LIfr12ZDENSd][AMDewptCalPl][LatestCIN][LLIW]",
+  "[CombVerMo|N07muVerMo:SubjVertMo:QGVertMotion][CombMoisture|SatContMoist:RaoContMoist]",
+  "[CombClouds|VISCloudCov:IRCloudCover][Scenario|Date][CurPropConv|LatestCIN:LLIW]",
+  "[AreaMesoALS|CombVerMo][ScenRelAMCIN|Scenario][ScenRelAMIns|Scenario][ScenRel34|Scenario]",
+  "[ScnRelPlFcst|Scenario][Dewpoints|Scenario][LowLLapse|Scenario][MeanRH|Scenario]",
+  "[MidLLapse|Scenario][MvmtFeatures|Scenario][RHRatio|Scenario][SfcWndShfDis|Scenario]",
+  "[SynForcng|Scenario][TempDis|Scenario][WindAloft|Scenario][WindFieldMt|Scenario]",
   "[WindFieldPln|Scenario][AreaMoDryAir|AreaMesoALS:CombMoisture]",
-  "[AMCINInScen|ScenRelAMCIN:MorningCIN]",
-  "[AMInsWliScen|ScenRelAMIns:LIfr12ZDENSd:AMDewptCalPl]",
-  "[CldShadeOth|AreaMesoALS:AreaMoDryAir:CombClouds]",
-  "[InsInMt|CldShadeOth:AMInstabMt][OutflowFrMt|InsInMt:WndHodograph]",
-  "[CldShadeConv|InsInMt:WndHodograph][MountainFcst|InsInMt]",
-  "[Boundaries|WndHodograph:OutflowFrMt:MorningBound]",
-  "[CompPlFcst|AreaMesoALS:CldShadeOth:Boundaries:CldShadeConv]",
-  "[CapChange|CompPlFcst][InsChange|CompPlFcst:LoLevMoistAd]",
-  "[CapInScen|CapChange:AMCINInScen]",
-  "[InsSclInScen|InsChange:AMInsWliScen]",
+  "[AMCINInScen|ScenRelAMCIN:MorningCIN][AMInsWliScen|ScenRelAMIns:LIfr12ZDENSd:AMDewptCalPl]",
+  "[CldShadeOth|AreaMesoALS:AreaMoDryAir:CombClouds][InsInMt|CldShadeOth:AMInstabMt]",
+  "[OutflowFrMt|InsInMt:WndHodograph][CldShadeConv|InsInMt:WndHodograph][MountainFcst|InsInMt]",
+  "[Boundaries|WndHodograph:OutflowFrMt:MorningBound][N34StarFcst|ScenRel34:PlainsFcst]",
+  "[CompPlFcst|AreaMesoALS:CldShadeOth:Boundaries:CldShadeConv][CapChange|CompPlFcst]",
+  "[InsChange|CompPlFcst:LoLevMoistAd][CapInScen|CapChange:AMCINInScen]",
+  "[InsSclInScen|InsChange:AMInsWliScen][R5Fcst|MountainFcst:N34StarFcst]",
   "[PlainsFcst|CapInScen:InsSclInScen:CurPropConv:ScnRelPlFcst]",
-  "[N34StarFcst|ScenRel34:PlainsFcst][R5Fcst|MountainFcst:N34StarFcst]",
   sep = "")
 \dontrun{
 # there are too many nodes for plot(), use graphviz.plot().

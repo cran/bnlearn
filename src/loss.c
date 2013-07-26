@@ -1,165 +1,219 @@
 #include "common.h"
 #include <Rmath.h>
 
-/* gaussian loss of a node without parents. */
-SEXP gloss(SEXP fitted, SEXP data) {
+double c_gloss(int *cur, SEXP cur_parents, double *coefs, double *sd,
+    double **columns, SEXP nodes, int ndata, double *per_sample);
+double c_dloss(int *cur, SEXP cur_parents, int *configs, double *prob,
+    SEXP data, SEXP nodes, int ndata, int nlevels, double *per_sample);
 
-int i = 0, ndata = LENGTH(data);
-double *mean = NULL, *sd = NULL, *res = NULL, *x = REAL(data);
-SEXP result;
+#define DISCRETE 0
+#define GAUSSIAN 1
 
-  /* get the coefficient of the linear regression and the standard deviation
-   * of the residuals. */
-  mean = REAL(getListElement(fitted, "coefficients"));
-  sd = REAL(getListElement(fitted, "sd"));
+SEXP entropy_loss(SEXP fitted, SEXP data, SEXP by_sample, SEXP debug) {
 
-  /* allocate and initialize the return value. */
+int i = 0, ndata = 0, nnodes = LENGTH(fitted), nlevels = 0, type = 0;
+int *configs = NULL, *debuglevel = LOGICAL(debug), *by = LOGICAL(by_sample);
+double *res = 0, *res_sample = NULL, **columns = 0, cur_loss = 0;
+const char *class = NULL;
+SEXP cur_node, nodes, result, result_sample, coefs, sd, parents;
+
+  /* get the sample size. */
+  ndata = LENGTH(VECTOR_ELT(data, 0));
+  /* get the node labels. */ 
+  nodes = getAttrib(fitted, R_NamesSymbol);
+  /* allocate the return value. */
   PROTECT(result = allocVector(REALSXP, 1));
   res = REAL(result);
-  *res = 0;
+  /* allocate the sample's contributions if needed. */
+  if (*by > 0) {
 
-  /* compute the log-likelihood of the data. */
-  for (i = 0; i < ndata; i++)
-    *res += dnorm(x[i], *mean, *sd, TRUE);
+    PROTECT(result_sample = allocVector(REALSXP, ndata));
+    res_sample = REAL(result_sample);
+    memset(res_sample, '\0', ndata * sizeof(double));
 
-  /* switch to the negentropy. */
-  *res /= -ndata;
+  }/*THEN*/
 
-  UNPROTECT(1);
+  /* determine the class of the fitted network. */
+  class = CHAR(STRING_ELT(getAttrib(VECTOR_ELT(fitted, 0), R_ClassSymbol), 0));
 
-  return result;
+  if (strcmp(class, "bn.fit.gnode") == 0) {
 
-}/*GLOSS*/
+    /* dereference the data set's columns. */
+    columns = (double **) alloc1dpointer(nnodes);
+    for (i = 0; i < nnodes; i++)
+      columns[i] = REAL(VECTOR_ELT(data, i));
 
-/* gaussian loss of a node with one or more parents. */
-SEXP cgloss(SEXP fitted, SEXP data)  {
+    type = GAUSSIAN;
 
-int i = 0, j = 0, ndata = LENGTH(VECTOR_ELT(data, 0)), ncoefs = LENGTH(data);
-double mean = 0;
-double *res = NULL, *coefs = NULL, *sd = NULL;
-double **columns = NULL;
-SEXP result;
+  }/*THEN*/
+  else if ((strcmp(class, "bn.fit.dnode") == 0) || (strcmp(class, "bn.fit.onode") == 0)) {
 
-  /* get the coefficient of the linear regression and the standard deviation
-   * of the residuals. */
-  coefs = REAL(getListElement(fitted, "coefficients"));
-  sd = REAL(getListElement(fitted, "sd"));
+    /* allocate an array for parents' configurations. */
+    configs = alloc1dcont(ndata);
 
-  /* allocate and initialize the return value. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
-  *res = 0;
+    type = DISCRETE;
 
-  /* dereference the columns of the data frame. */
-  columns = (double **) alloc1dpointer(ncoefs);
-  for (i = 0; i < ncoefs; i++)
-    columns[i] = REAL(VECTOR_ELT(data, i));
+  }/*THEN*/
+
+  /* iterate over the nodes. */
+  for (i = 0; i < nnodes; i++) {
+
+    /* get the current node. */
+    cur_node = VECTOR_ELT(fitted, i);
+    /* get the parents of the node. */
+    parents = getListElement(cur_node, "parents");
+    /* get the parameters (regression coefficients and residuals' standard
+     * deviation for Gaussian nodes, conditional probabilities for discrete
+     * nodes), and compute the loss. */
+    switch(type)  {   
+
+      case GAUSSIAN:
+
+        coefs = getListElement(cur_node, "coefficients");
+        sd = getListElement(cur_node, "sd");
+
+        cur_loss = c_gloss(&i, parents, REAL(coefs), REAL(sd), columns, nodes,
+                     ndata, res_sample);
+        break;
+
+      case DISCRETE:
+
+        coefs = getListElement(cur_node, "prob");
+        nlevels = INT(getAttrib(coefs, R_DimSymbol));
+
+        cur_loss = c_dloss(&i, parents, configs, REAL(coefs), data, nodes, 
+                     ndata, nlevels, res_sample);
+        break;
+
+    }/*SWITCH*/
+
+    if (*debuglevel > 0)
+      Rprintf("  > log-likelihood loss for node %s is %lf.\n", NODE(i), cur_loss);
+
+    /* add the node contribution to the return value. */
+    *res += cur_loss; 
+
+  }/*FOR*/
+
+  if (*by > 0) {
+
+    UNPROTECT(2);
+    return result_sample;
+
+  }/*THEN*/
+  else {
+
+    UNPROTECT(1);
+    return result;
+
+  }/*ELSE*/
+
+}/*ENTROPY_LOSS*/
+
+/* Gaussian loss for a single node. */
+double c_gloss(int *cur, SEXP cur_parents, double *coefs, double *sd, 
+    double **columns, SEXP nodes, int ndata, double *per_sample) {
+
+int i = 0, j = 0, *p = NULL, nparents = LENGTH(cur_parents);
+double mean = 0, logprob = 0, result = 0;
+SEXP try;
+
+  if (nparents > 0) {
+
+    PROTECT(try = match(nodes, cur_parents, 0));
+    p = INTEGER(try);
+
+  }/*THEN*/
 
   for (i = 0; i < ndata; i++) {
 
     /* compute the mean value for this observation. */
     mean = coefs[0];
 
-    for (j = 1; j < ncoefs; j++)
-      mean += columns[j][i] * coefs[j];
+    for (j = 0; j < nparents; j++)
+      mean += columns[p[j] - 1][i] * coefs[j + 1];
 
     /* compute the log-likelihood of this observation. */
-    *res += dnorm(columns[0][i], mean, *sd, TRUE);
+    logprob = dnorm(columns[*cur][i], mean, *sd, TRUE);
+
+    result += logprob;
+
+    if (per_sample)
+      per_sample[i] += logprob;
 
   }/*FOR*/
 
-  /* switch to the negentropy. */
-  *res /= -ndata;
+  if (nparents > 0)
+    UNPROTECT(1);
 
-  UNPROTECT(1);
+  /* switch to the negentropy. */
+  result /= -ndata;
 
   return result;
 
-}/*CGLOSS*/
+}/*C_GLOSS*/
 
-/* multinomial loss of a node without parents. */
-SEXP dloss(SEXP fitted, SEXP data, SEXP node) {
+/* multinomial loss for a single node. */
+double c_dloss(int *cur, SEXP cur_parents, int *configs, double *prob,
+    SEXP data, SEXP nodes, int ndata, int nlevels, double *per_sample) {
 
-int i = 0, ndata = LENGTH(data), dropped = 0;
-int *x = INTEGER(data);
-double *prob = NULL, *res = NULL;
-double logprob = 0;
-SEXP result;
+int i = 0, dropped = 0, *obs = NULL;
+double logprob = 0, result = 0;
+SEXP temp_df;
 
-  /* get the probabilities of the multinomial distribution. */
-  prob = REAL(getListElement(fitted, "prob"));
+  /* get the target variable. */
+  obs = INTEGER(VECTOR_ELT(data, *cur));
+  /* get the parents' configurations. */
+  if (LENGTH(cur_parents) > 0) {
 
-  /* allocate and initialize the return value. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
-  *res = 0;
+    PROTECT(temp_df = c_dataframe_column(data, cur_parents, FALSE));
+    cfg(temp_df, configs, NULL); 
 
-  for (i = 0; i < ndata; i++) {
+    for (i = 0; i < ndata; i++) {
 
-    logprob = log(prob[x[i] - 1]);
+      logprob = log(prob[CMC(obs[i] - 1, configs[i], nlevels)]);
 
-    if (!R_FINITE(logprob) || ISNAN(logprob))
-      dropped++;
-    else
-      *res += logprob;
+      if (!R_FINITE(logprob) || ISNAN(logprob))
+        dropped++;
+      else
+        result += logprob;
 
-  }/*FOR*/
+      if (per_sample)
+        per_sample[i] += logprob;
+
+    }/*FOR*/
+
+    UNPROTECT(1);
+
+  }/*THEN*/
+  else {
+
+    for (i = 0; i < ndata; i++) {
+
+      logprob = log(prob[obs[i] - 1]);
+
+      if (!R_FINITE(logprob) || ISNAN(logprob))
+        dropped++;
+      else
+        result += logprob;
+
+      if (per_sample)
+        per_sample[i] += logprob;
+
+    }/*FOR*/
+
+  }/*ELSE*/
 
   /* switch to the negentropy. */
-  *res /= -(ndata - dropped);
+  result /= -(ndata - dropped);
 
   /* print a warning if data were dropped. */
   if (dropped > 0)
-    warning("%d observations were dropped because the corresponding probabilities for node %s were 0 or NaN.", dropped, CHAR(STRING_ELT(node, 0)));
-
-  UNPROTECT(1);
+    warning("%d observations were dropped because the corresponding probabilities for node %s were 0 or NaN.", dropped, NODE(*cur));
 
   return result;
 
-}/*DLOSS*/
-
-/* multinomial loss of a node with one or more parents. */
-SEXP cdloss(SEXP fitted, SEXP data, SEXP parents, SEXP node) {
-
-int i = 0, ndata = LENGTH(data), nrows = 0, dropped = 0;
-int *x = INTEGER(data), *configs = INTEGER(parents);
-double *prob = NULL, *res = NULL;
-double logprob = 0;
-SEXP temp, result;
-
-  /* get the probabilities of the multinomial distribution. */
-  temp = getListElement(fitted, "prob");
-  nrows = INT(getAttrib(temp, R_DimSymbol));
-  prob = REAL(temp);
-
-  /* allocate and initialize the return value. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
-  *res = 0;
-
-  for (i = 0; i < ndata; i++) {
-
-    logprob = log(prob[CMC(x[i] - 1, configs[i] - 1, nrows)]);
-
-    if (!R_FINITE(logprob) || ISNAN(logprob))
-      dropped++;
-    else
-      *res += logprob;
-
-  }/*FOR*/
-
-  /* switch to the negentropy. */
-  *res /= -(ndata - dropped);
-
-  /* print a warning if data were dropped. */
-  if (dropped > 0)
-    warning("%d observations were dropped because the corresponding probabilities for node %s were 0 or NaN.", dropped, CHAR(STRING_ELT(node, 0)));
-
-  UNPROTECT(1);
-
-  return result;
-
-}/*CDLOSS*/
+}/*C_DLOSS*/
 
 /* classification error of a single node as a loss function. */
 SEXP class_err(SEXP reference, SEXP predicted) {

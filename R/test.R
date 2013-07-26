@@ -42,6 +42,13 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       p.value = pchisq(statistic, df, lower.tail = FALSE)
 
     }#THEN
+    # Jonckheere-Terpstra Test (asymptotic normal distribution)
+    else if (test == "jt") {
+
+      statistic = jt(datax, datay)
+      p.value = 2 * pnorm(abs(statistic), lower.tail = FALSE)
+
+    }#THEN
     # Canonical (Linear) Correlation (Student's t distribution)
     else if (test == "cor") {
 
@@ -56,8 +63,7 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
 
       statistic = fast.cor(datax, datay, ndata)
       statistic = log((1 + statistic)/(1 - statistic))/2 * sqrt(ndata -3)
-      p.value = pnorm(abs(statistic),
-                  lower.tail = FALSE) * 2
+      p.value = pnorm(abs(statistic), lower.tail = FALSE) * 2
 
     }#THEN
     # Mutual Information for Gaussian Data (chi-square asymptotic distribution)
@@ -139,12 +145,21 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
                   alpha = ifelse(test == "smc-zf", alpha, 1), test = 5L)
 
     }#THEN
+    # Jonckheere-Terpstra test (monte carlo permutation distribution)
+    else if ((test == "mc-jt") || (test == "smc-jt")) {
+
+      perm.test = mc.test(datax, datay, samples = B,
+                    alpha = ifelse(test == "smc-jt", alpha, 1), test = 8L)
+      statistic = perm.test[1]
+      p.value = perm.test[2]
+
+    }#THEN
 
   }#THEN
   else {
 
     # build the contingency table only for discrete data.
-    if (test %in% available.discrete.tests) {
+    if (test %in% c(available.discrete.tests, available.ordinal.tests)) {
 
       # if there is only one parent, get it easy.
       if (length(sx) == 1)
@@ -188,6 +203,16 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
       statistic = par.test[1]
       df = par.test[2]
       p.value = pchisq(statistic, df, lower.tail = FALSE)
+
+    }#THEN
+    # Jonckheere-Terpstra Test (asymptotic normal distribution)
+    else if (test == "jt") {
+
+      datax = minimal.data.frame.column(data, x)
+      datay = minimal.data.frame.column(data, y)
+
+      statistic = cjt(datax, datay, config)
+      p.value = 2 * pnorm(abs(statistic), lower.tail = FALSE)
 
     }#THEN
     # Canonical Partial Correlation (Student's t distribution)
@@ -307,6 +332,18 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
                   alpha = ifelse(test == "smc-zf", alpha, 1), test = 5L)
 
     }#THEN
+    # Jonckheere-Terpstra test (monte carlo permutation distribution)
+    else if ((test == "mc-jt") || (test == "smc-jt")) {
+
+      datax = minimal.data.frame.column(data, x)
+      datay = minimal.data.frame.column(data, y)
+
+      perm.test = cmc.test(datax, datay, config, samples = B,
+                    alpha = ifelse(test == "smc-jt", alpha, 1), test = 8L)
+      statistic = perm.test[1]
+      p.value = perm.test[2]
+
+    }#THEN
 
   }#ELSE
 
@@ -330,9 +367,10 @@ conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE)
                paste(sx, collapse = " + "))
         ), class = "htest")
 
+    # degrees of freedom.
     if (!is.null(df))
       result$parameter = structure(df, names = "df")
-
+    # number of permutations.
     if (!is.null(B))
       result$parameter = c(result$parameter, structure(B, names = "Monte Carlo samples"))
 
@@ -548,4 +586,23 @@ fast.shpcor = function(x, y, sx, data, ndata, strict) {
 
 }#FAST.SHPCOR
 
+# Jonckheere-Terpstra test.
+jt = function(x, y) {
 
+  .Call("jt", 
+        x = x, 
+        y = y, 
+        PACKAGE = "bnlearn")
+
+}#JT
+
+# Conditional Jonckheere-Terpstra test.
+cjt = function(x, y, z) {
+ 
+  .Call("cjt", 
+        x = x, 
+        y = y, 
+        z = z, 
+        PACKAGE = "bnlearn")
+
+}#CJT

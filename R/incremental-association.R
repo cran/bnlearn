@@ -128,15 +128,17 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   if (!is.null(backtracking)) {
 
     # nodes whose markov blanket includes this node are included, because
-    # X \in MB(Y) <=> Y \in MB(X)
+    # X \in MB(Y) <=> Y \in MB(X); they can be removed in the backward phase
+    # later on if they are false positives.
     known.good = names(backtracking[backtracking])
     mb = unique(c(mb, known.good))
 
     # and vice versa X \not\in MB(Y) <=> Y \not\in MB(X)
     known.bad = names(backtracking[!backtracking])
 
-    # both are not to be checked for inclusion/exclusion.
-    nodes = nodes[!(nodes %in% names(backtracking))]
+    # known.good nodes are not to be checked for inclusion, and the "nodes"
+    # is resetted below so we can just remove them.
+    nodes = nodes[!(nodes %in% known.good)]
 
     if (debug) {
 
@@ -217,14 +219,14 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
   }#DEL.NODE
 
-  # whitelisted nodes are neighbours, they cannot be removed from the
-  # markov blanket; the last node added in phase I will never be removed,
-  # because the tests for inclusion and removal are identical.
-  # known.good nodes from backtracking are not to be removed, either.
+  # whitelisted nodes are neighbours, they cannot be removed from the markov
+  # blanket; the last node added in phase I will never be removed, because
+  # the tests for inclusion and removal are identical; on the other hand,
+  # known.good nodes should be checked to remove false positives.
   if (length(mb) > 1)
-    sapply(mb[!(mb %in% c(known.good, to.add, whitelisted))], del.node, x = x, test = test)
+    sapply(mb[!(mb %in% c(to.add, whitelisted))], del.node, x = x, test = test)
 
-  mb
+  return(mb)
 
 }#IA.MARKOV.BLANKET
 

@@ -153,7 +153,8 @@ SEXP ptab, result, tr_levels = getAttrib(data, R_LevelsSymbol);
 
   }/*ELSE*/
 
-  /* copy the labels and the class from the input data. */
+  /* copy the labels and the class from the input data, so that ordered
+   * factors stay ordered and unordered factors stay unordered. */
   setAttrib(result, R_LevelsSymbol, tr_levels);
   setAttrib(result, R_ClassSymbol, getAttrib(data, R_ClassSymbol));
 
@@ -258,7 +259,8 @@ SEXP temp, result, tr_levels = getAttrib(data, R_LevelsSymbol);
   /* save the state of the random number generator. */
   PutRNGstate();
 
-  /* copy the labels and the class from the input data. */
+  /* copy the labels and the class from the input data, so that ordered
+   * factors stay ordered and unordered factors stay unordered. */
   setAttrib(result, R_LevelsSymbol, tr_levels);
   setAttrib(result, R_ClassSymbol, getAttrib(data, R_ClassSymbol));
 
@@ -280,7 +282,7 @@ int *iscratch = NULL, *maxima = NULL, *prn = NULL, *debuglevel = LOGICAL(debug);
 int *include_prob = LOGICAL(prob);
 double **cpt = NULL, *pr = NULL, *scratch = NULL, *buf = NULL, *pt = NULL;
 double sum = 0;
-SEXP class, temp, tr, tr_levels, result, nodes, probtab, dimnames;
+SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab, dimnames;
 
   /* cache the node labels. */
   nodes = getAttrib(fitted, R_NamesSymbol);
@@ -301,6 +303,7 @@ SEXP class, temp, tr, tr_levels, result, nodes, probtab, dimnames;
   n = LENGTH(VECTOR_ELT(data, 0));
   tr = getListElement(VECTOR_ELT(fitted, *tr_id - 1), "prob");
   tr_levels = VECTOR_ELT(getAttrib(tr, R_DimNamesSymbol), 0);
+  tr_class = getAttrib(VECTOR_ELT(data, *tr_id - 1), R_ClassSymbol);
   tr_nlevels = LENGTH(tr_levels);
   /* get the prior distribution. */
   pr = REAL(prior);
@@ -481,10 +484,8 @@ SEXP class, temp, tr, tr_levels, result, nodes, probtab, dimnames;
   PutRNGstate();
 
   /* add back the attributes and the class to the return value. */
-  PROTECT(class = allocVector(STRSXP, 1));
-  SET_STRING_ELT(class, 0, mkChar("factor"));
   setAttrib(result, R_LevelsSymbol, tr_levels);
-  setAttrib(result, R_ClassSymbol, class);
+  setAttrib(result, R_ClassSymbol, tr_class);
 
   if (*include_prob > 0) {
 
@@ -495,12 +496,12 @@ SEXP class, temp, tr, tr_levels, result, nodes, probtab, dimnames;
     /* add the posterior probabilities to the return value. */
     setAttrib(result, install("prob"), probtab);
 
-    UNPROTECT(4);
+    UNPROTECT(3);
 
   }/*THEN*/
   else {
 
-    UNPROTECT(2);
+    UNPROTECT(1);
 
   }/*ELSE*/
 

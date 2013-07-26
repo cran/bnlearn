@@ -9,7 +9,7 @@
 }
 \description{
 
-  The structure of an object of the \code{bn.strength} S3 class.
+  The structure of an object of S3 class \code{bn.strength}.
 
 }
 \details{
@@ -39,12 +39,11 @@
 
   }
 
-  An optional column called \code{direction} may also be present,
-  giving the probability of the direction of an arc given its
-  presence in the graph.
+  An optional column called \code{direction} may also be present, giving the
+  probability of the direction of an arc given its presence in the graph.
 
-  No method is defined for this class; therefore it can be manipulated
-  as a standard data frame.
+  Only the \code{plot} method is defined for this class; therefore, it can 
+  be manipulated as a standard data frame.
 
 }
 \author{ Marco Scutari }

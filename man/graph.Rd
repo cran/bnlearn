@@ -17,8 +17,7 @@
 acyclic(x, debug = FALSE)
 directed(x)
 # check whether there is a path between two nodes.
-path(x, from, to, direct = TRUE, underlying.graph = FALSE,
-  debug = FALSE)
+path(x, from, to, direct = TRUE, underlying.graph = FALSE, debug = FALSE)
 # build the skeleton or a complete orientation of the graph.
 skeleton(x)
 pdag2dag(x, ordering)
@@ -58,52 +57,11 @@ data(learning.test)
 res = gs(learning.test)
 
 acyclic(res)
-# [1] TRUE
 directed(res)
-# [1] FALSE
 res = pdag2dag(res, ordering = LETTERS[1:6])
 res
-#
-#   Bayesian network learned via Constraint-based methods
-#
-#   model:
-#     [A][C][F][B|A][D|A:C][E|B:F]
-#   nodes:                                 6
-#   arcs:                                  5
-#     undirected arcs:                     0
-#     directed arcs:                       5
-#   average markov blanket size:           2.33
-#   average neighbourhood size:            1.67
-#   average branching factor:              0.83
-#
-#   learning algorithm:                    Grow-Shrink
-#   conditional independence test:         Mutual Information (discrete)
-#   alpha threshold:                       0.05
-#   tests used in the learning procedure:  43
-#   optimized:                             TRUE
-#
 directed(res)
-# [1] TRUE
 skeleton(res)
-#
-#   Bayesian network learned via Constraint-based methods
-#
-#   model:
-#     [partially directed graph]
-#   nodes:                                 6
-#   arcs:                                  5
-#     undirected arcs:                     5
-#     directed arcs:                       0
-#   average markov blanket size:           1.67
-#   average neighbourhood size:            1.67
-#   average branching factor:              0.00
-#
-#   learning algorithm:                    Grow-Shrink
-#   conditional independence test:         Mutual Information (discrete)
-#   alpha threshold:                       0.05
-#   tests used in the learning procedure:  43
-#   optimized:                             TRUE
-#
 }
 \author{ Marco Scutari }
 \keyword{utilities}

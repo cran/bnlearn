@@ -27,6 +27,8 @@ export(
   "incoming.arcs",
   "outgoing.arcs",
   "incident.arcs",
+  "compelled.arcs",
+  "reversible.arcs",
   "narcs",
   "parents",
   "parents<-",
@@ -90,6 +92,7 @@ export(
   "cextend",
   "vstructs",
   "moral",
+  "mutilated",
   "dsep",
   "discretize",
   "relevant",
@@ -136,22 +139,28 @@ S3method(ci.test, factor)
 S3method(ci.test, default)
 S3method(print, "bn.fit")
 S3method(print, "bn.fit.dnode")
+S3method(print, "bn.fit.onode")
 S3method(print, "bn.fit.gnode")
 S3method(residuals, "bn.fit")
 S3method(residuals, "bn.fit.dnode")
+S3method(residuals, "bn.fit.onode")
 S3method(residuals, "bn.fit.gnode")
 S3method(fitted, "bn.fit")
 S3method(fitted, "bn.fit.dnode")
+S3method(fitted, "bn.fit.onode")
 S3method(fitted, "bn.fit.gnode")
 S3method(coef, "bn.fit")
 S3method(coef, "bn.fit.dnode")
+S3method(coef, "bn.fit.onode")
 S3method(coef, "bn.fit.gnode")
 S3method(print, "mvber.moments")
 S3method(print, "bn.kcv")
+S3method(plot, "bn.strength")
 S3method(predict, "bn")
 S3method(predict, "bn.fit")
-S3method(predict, "bn.fit.gnode")
 S3method(predict, "bn.fit.dnode")
+S3method(predict, "bn.fit.onode")
+S3method(predict, "bn.fit.gnode")
 S3method(predict, "bn.naive")
 S3method(predict, "bn.tan")
 S3method("$<-", "bn.fit")

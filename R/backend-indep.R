@@ -52,7 +52,7 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
 neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
   backtracking = NULL, test, empty.dsep = TRUE, markov = TRUE, debug = FALSE) {
 
-  # save a prisitine copy of the markov blanket.
+  # save a pristine copy of the markov blanket.
   nbrhood = mb[[x]]
 
   # if the markov blanket is empty there's nothing to do.
@@ -185,9 +185,9 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
   }#NBR
 
-  # do not even try to remove whitelisted and backtracked (good) nodes.
-  sapply(nbrhood[!(nbrhood %in% unique(c(whitelisted, known.good)))],
-           nbr, x = x, mb = mb, test = test)
+  # do not even try to remove whitelisted nodes; on the other hand, known.good
+  # nodes from backtracking should be checked to remove false positives.
+  sapply(nbrhood[!(nbrhood %in% whitelisted)], nbr, x = x, mb = mb, test = test)
 
   return(list(mb = mb[[x]], nbr = nbrhood))
 
@@ -386,7 +386,7 @@ bn.recovery = function(bn, nodes, strict, filter = "AND", mb = FALSE,
 # explore the structure of the network using its arc set.
 cache.structure = function(nodes, arcs, amat = NULL, debug = FALSE) {
 
-  # rebuild the adjacency matrix only if it's not available
+  # rebuild the adjacency matrix only if it's not available.
   if (is.null(amat))
     amat = arcs2amat(arcs, nodes)
 
@@ -402,7 +402,7 @@ cache.structure = function(nodes, arcs, amat = NULL, debug = FALSE) {
 cache.partial.structure = function(nodes, target, arcs, amat = NULL,
     debug = FALSE) {
 
-  # rebuild the adjacency matrix only if it's not available
+  # rebuild the adjacency matrix only if it's not available.
   if (is.null(amat))
     amat = arcs2amat(arcs, nodes)
 

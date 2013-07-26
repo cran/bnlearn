@@ -69,7 +69,7 @@ read.net = function(file, debug = FALSE) {
 
 }#READ.NET
 
-# dump a bn.fit object into a DSC file.
+# dump a bn.fit object into a NET file.
 write.net = function(file, fitted) {
 
   # check fitted's class.

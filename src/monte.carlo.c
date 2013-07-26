@@ -10,6 +10,7 @@
 #define FISHER_Z                       5
 #define SP_MUTUAL_INFORMATION          6
 #define SP_PEARSON_X2                  7
+#define JT                             8
 
 /* initialize the table of log-factorials. */
 #define allocfact(n) \
@@ -34,6 +35,11 @@ static double _x2(int *n, int *nrowt, int *ncolt, int *nrows,
     int *ncols, int *length);
 static double _cx2(int **n, int **nrowt, int **ncolt, int *ncond,
     int *nr, int *nc, int *nl);
+static double _jt(int *n, int *nrowt, int *nrows, int *ncols, int *length);
+static double _cjt(int **n, int **nrowt, int *ncond, int *nr, 
+    int *nc, int *nl);
+static double _cvjt(int **nrowt, int **ncolt, int *ncond, int *nr, 
+    int *nc, int *nl);
 static double _cov(double *xx, double *yy, double *xm, double *ym, int *n);
 
 /* unconditional Monte Carlo and semiparametric discrete tests. */
@@ -148,6 +154,26 @@ SEXP result;
 
       break;
 
+    case JT:
+      observed = _jt(n, nrowt, &nr, &nc, &num);
+
+      for (k = 0; k < *B; k++) {
+
+        _rcont2(&nr, &nc, nrowt, ncolt, &num, fact, workspace, n);
+
+        if (fabs(_jt(n, nrowt, &nr, &nc, &num)) >= fabs(observed)) {
+
+          sequential_counter_check(res[1]);
+
+        }/*THEN*/
+
+      }/*FOR*/
+
+      /* standardize to match the parametric test. */
+      observed /= sqrt(c_jt_var(&num, nrowt, &nr, ncolt, &nc));
+
+      break;
+
   }/*SWITCH*/
 
   PutRNGstate();
@@ -194,7 +220,7 @@ SEXP result;
   ncolt = alloc2dcont(nl, nc);
   ncond = alloc1dcont(nl);
 
-  /* compute the joint frequency of x and y. */
+  /* compute the joint frequency of x, y and z. */
   for (k = 0; k < num; k++)
     n[zz[k] - 1][CMC(xx[k] - 1, yy[k] - 1, nr)]++;
 
@@ -284,6 +310,27 @@ SEXP result;
         res[1] += _cx2(n, nrowt, ncolt, ncond, &nr, &nc, &nl);
 
       }/*FOR*/
+
+      break;
+
+    case JT:
+      observed = _cjt(n, nrowt, ncond, &nr, &nc, &nl);
+
+      for (j = 0; j < *B; j++) {
+
+        for (k = 0; k < nl; k++)
+          _rcont2(&nr, &nc, nrowt[k], ncolt[k], &(ncond[k]), fact, workspace, n[k]);
+
+        if (fabs(_cjt(n, nrowt, ncond, &nr, &nc, &nl)) >= fabs(observed)) {
+
+          sequential_counter_check(res[1]);
+
+        }/*THEN*/
+
+      }/*FOR*/
+
+      /* standardize to match the parametric test. */
+      observed /= sqrt(_cvjt(nrowt, ncolt, ncond, &nr, &nc, &nl));
 
       break;
 
@@ -587,3 +634,73 @@ double sum = 0;
 
 }/*_COV*/
 
+/* unconditional Jonckheere-Terpstra test statistic. */
+static double _jt(int *n, int *nrowt, int *nrows, int *ncols, int *length) {
+
+int i = 0, j = 0, s = 0, t = 0;
+double res = 0, nrt2 = 0, wi = 0, w = 0;
+double mean = c_jt_mean(length, nrowt, nrows);
+
+  for (i = 1; i < *nrows; i++) {
+
+    nrt2 = (double)(nrowt[i]) * ((double)(nrowt[i]) + 1)/2;
+
+    for (j = 0; j < i; j++) {
+
+      for (s = 0, w = 0; s < *ncols; s++) {
+
+        for (t = 0, wi = 0; t < s; t++)
+          wi += n[CMC(i, t, *nrows)] + n[CMC(j, t, *nrows)];
+
+        w += (wi + ((double)(n[CMC(i, s, *nrows)]) + (double)(n[CMC(j, s, *nrows)]) + 1)/2) * 
+               (double)(n[CMC(i, s, *nrows)]);
+
+      }/*FOR*/
+
+      res += w - nrt2;
+
+    }/*FOR*/
+
+  }/*FOR*/
+
+  return res - mean;
+
+}/*C_JT_STAT*/
+
+static double _cjt(int **n, int **nrowt, int *ncond, int *nr, int *nc, int *nl) {
+
+int k = 0;
+double res = 0;
+
+  /* sum up over the parents' configurations. */
+  for (k = 0; k < *nl; k++) {
+
+    /* this one is never observed, skip. */
+    if (ncond[k] == 0)
+      continue;
+
+    res += _jt(n[k], nrowt[k], nr, nc, &(ncond[k]));
+
+  }/*FOR*/
+
+  return res;
+
+}/*_CJT*/
+
+static double _cvjt(int **nrowt, int **ncolt, int *ncond, int *nr, int *nc,
+    int *nl) {
+
+int k = 0;
+double res = 0, var = 0;
+
+  for (k = 0; k < *nl; k++) {
+
+    var = c_jt_var(&(ncond[k]), nrowt[k], nr, ncolt[k], nc);
+    if (!ISNAN(var))
+      res += var;
+
+  }/*FOR*/
+
+  return res;
+
+}/*_CVJT*/

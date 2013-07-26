@@ -69,8 +69,6 @@ bn.var(x, method)
 \dontrun{
 z =  bn.moments(learning.test, algorithm = "gs", R = 100)
 bn.var(z, method = "tvar")
-#  statistic normalized
-#    1.29060    0.34416
 }
 }
 \author{ Marco Scutari }

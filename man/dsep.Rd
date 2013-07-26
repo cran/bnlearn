@@ -30,10 +30,8 @@ dsep(bn, x, y, z)
 \examples{
 bn = model2network("[A][C|A][B|C]")
 dsep(bn, "A", "B", "C")
-# [1] TRUE
 bn = model2network("[A][C][B|A:C]")
 dsep(bn, "A", "B", "C")
-# [1] FALSE
 }
 \author{ Marco Scutari }
 \keyword{graphs}

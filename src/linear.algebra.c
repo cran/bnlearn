@@ -41,8 +41,8 @@ SEXP result;
 
 /* -------------------- C level interfaces to LAPACK -------------------- */
 
-/* C-level wrapper around the dgesvd() F77 routine. Note that the input
- * matrix A is overwritten by dgesvd(), so it's sensible to have a
+/* C-level wrapper around the dgesdd() F77 routine. Note that the input
+ * matrix A is overwritten by dgesdd(), so it's sensible to have a
  * backup copy in case it's needed later. */
 void c_svd(double *A, double *U, double *D, double *V, int *nrows,
     int *ncols, int *mindim, int strict, int *errcode) {
@@ -120,7 +120,7 @@ void c_ginv(double *covariance, int *ncols, double *mpinv) {
 
 int i = 0, j = 0, errcode = 0;
 double *u = NULL, *d = NULL, *vt = NULL, *backup = NULL;
-double tol = MACHINE_TOL, zero = 0, one = 1;
+double sv_tol = 0, zero = 0, one = 1;
 char transa = 'N', transb = 'N';
 
   u = Calloc((*ncols) * (*ncols), double);
@@ -141,19 +141,21 @@ char transa = 'N', transb = 'N';
   c_svd(covariance, u, d, vt, ncols, ncols, ncols, FALSE, &errcode);
 
   /* if SVD fails, catch the error code and free all buffers. */
-  if (errcode)
-    goto end;
+  if (errcode == 0) {
 
-  /* the first multiplication, U * D^{-1} is easy. */
-  for (i = 0; i < *ncols; i++)
-    for (j = 0; j < *ncols; j++)
-      u[CMC(i, j, *ncols)] = u[CMC(i, j, *ncols)] * ((d[j] > tol) ? 1/d[j] : 0);
+    /* set the threshold for the singular values as in corpcor. */
+    sv_tol = (*ncols) * d[0] * MACHINE_TOL * MACHINE_TOL;
 
-  /* the second one, (U * D^{-1}) * Vt  is a real matrix multiplication. */
-  F77_CALL(dgemm)(&transa, &transb, ncols, ncols, ncols, &one, u,
-    ncols, vt, ncols, &zero, mpinv, ncols);
+    /* the first multiplication, U * D^{-1} is easy. */
+    for (i = 0; i < *ncols; i++)
+      for (j = 0; j < *ncols; j++)
+        u[CMC(i, j, *ncols)] = u[CMC(i, j, *ncols)] * ((d[j] > sv_tol) ? 1/d[j] : 0);
 
-end:
+    /* the second one, (U * D^{-1}) * Vt  is a real matrix multiplication. */
+    F77_CALL(dgemm)(&transa, &transb, ncols, ncols, ncols, &one, u,
+      ncols, vt, ncols, &zero, mpinv, ncols);
+
+  }/*THEN*/
 
   if (covariance != mpinv) {
 

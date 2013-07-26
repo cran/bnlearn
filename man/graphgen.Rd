@@ -8,8 +8,7 @@
 }
 \usage{
 empty.graph(nodes, num = 1)
-random.graph(nodes, num = 1, method = "ordered", ...,
-  debug = FALSE)
+random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
 }
 \arguments{
   \item{nodes}{a vector of character strings, the labels of the nodes.}
@@ -113,23 +112,7 @@ random.graph(nodes, num = 1, method = "ordered", ...,
 }
 \examples{
 empty.graph(LETTERS[1:8])
-#
-#  Random/Generated Bayesian network
-#
-#  model:
-#    [A][B][C][D][E][F][G][H]
-#  nodes:                                 8
-#  arcs:                                  0
-#    undirected arcs:                     0
-#    directed arcs:                       0
-#  average markov blanket size:           0.00
-#  average neighbourhood size:            0.00
-#  average branching factor:              0.00
-#
-#  generation algorithm:                  Empty
-#
 random.graph(LETTERS[1:8])
-# <insert the description of a random graph here>
 plot(random.graph(LETTERS[1:8], method = "ic-dag", max.in.degree = 2))
 plot(random.graph(LETTERS[1:8]))
 plot(random.graph(LETTERS[1:8], prob = 0.2))

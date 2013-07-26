@@ -8,7 +8,7 @@
 }
 \description{
 
-  The structure of an object of the \code{bn} S3 class.
+  The structure of an object of S3 class \code{bn}.
 
 }
 \details{
@@ -82,6 +82,9 @@
 
            \item \code{training}: a character string, the label of the training
              node in a Bayesian network classifier.
+
+           \item \code{threshold}: the threshold used to determine which arcs 
+             are significant when averaging network structures.
 
         }
 

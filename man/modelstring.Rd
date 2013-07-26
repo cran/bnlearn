@@ -52,45 +52,10 @@ model2network(string, ordering = NULL, debug = FALSE)
 data(learning.test)
 res = set.arc(gs(learning.test), "A", "B")
 res
-#
-#   Bayesian network learned via Constraint-based methods
-#
-#   model:
-#     [A][C][F][B|A][D|A:C][E|B:F]
-#   nodes:                                 6
-#   arcs:                                  5
-#     undirected arcs:                     0
-#     directed arcs:                       5
-#   average markov blanket size:           2.33
-#   average neighbourhood size:            1.67
-#   average branching factor:              0.83
-#
-#   learning algorithm:                    Grow-Shrink
-#   conditional independence test:         Mutual Information (discrete)
-#   alpha threshold:                       0.05
-#   tests used in the learning procedure:  43
-#
 modelstring(res)
-# [1] "[A][C][F][B|A][D|A:C][E|B:F]"
 res2 = model2network(modelstring(res))
 res2
-#
-#   Random/Generated Bayesian network
-#
-#   model:
-#     [A][C][F][B|A][D|A:C][E|B:F]
-#   nodes:                                 6
-#   arcs:                                  5
-#     undirected arcs:                     0
-#     directed arcs:                       5
-#   average markov blanket size:           2.33
-#   average neighbourhood size:            1.67
-#   average branching factor:              0.83
-#
-#   generation algorithm:                  Empty
-#
 all.equal(res, res2)
-# [1] TRUE
 }
 \author{ Marco Scutari }
 \keyword{utilities}

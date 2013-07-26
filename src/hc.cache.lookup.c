@@ -40,7 +40,7 @@ SEXP arc, callenv, params, delta, op, dummy, temp;
   /* allocate a two-slot character vector. */
   PROTECT(arc = allocVector(STRSXP, 2));
 
-  /* allocate the call environment fro the call to score.delta. */
+  /* allocate the call environment from the call to score.delta. */
   PROTECT(params = callenv = allocList(10));
   SET_TYPEOF(callenv, LANGSXP);
 

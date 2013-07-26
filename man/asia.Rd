@@ -54,8 +54,7 @@ data(asia)
   Carlo tests seems to behvae better than their parametric
   counterparts.
 
-  The R script to generate data from this network is shipped in the
-  \file{network.scripts} directory of this package.
+  The complete BN can be downloaded from \url{http://www.bnlearn.com/bnrepository}.
 
 }
 \source{

@@ -141,8 +141,12 @@ flatten.2d.table = function(x) {
 # explode an unevaluated expression into a character vector.
 explode = function(x) {
 
-  # l = as.list(substitute(x))
-  l = as.list(x)
+  if (is.list(x))
+    return(names(x))
+  else if (identical(x, TRUE))
+    return(character(0))
+  else
+    l = as.list(x)
 
   repeat {
 

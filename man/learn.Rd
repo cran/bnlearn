@@ -33,10 +33,11 @@ learn.mb(x, node, method, whitelist = NULL, blacklist = NULL, start = NULL,
       from the Markov blanket by the learning algorithm, unlike the nodes
       included due to whitelisting.}
   \item{test}{a character string, the label of the conditional
-      independence test to be used in the algorithm. If none is
-      specified, the default test statistic is the \emph{mutual information}
-      for discrete data sets and the \emph{linear correlation} for
-      continuous ones. See \code{\link{bnlearn-package}} for details.}
+      independence test to be used in the algorithm. 
+      If none is specified, the default test statistic is the \emph{mutual
+      information} for categorical variables, the Jonckheere-Terpstra test
+      for ordered factors and the \emph{linear correlation} for continuous
+      variables. See \code{\link{bnlearn-package}} for details.}
   \item{alpha}{a numeric value, the target nominal type I error rate.}
   \item{B}{a positive integer, the number of permutations considered
       for each permutation test. It will be ignored with a warning if

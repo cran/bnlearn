@@ -54,6 +54,16 @@ bn.cv(data, bn, loss = NULL, k = 10, algorithm.args = list(),
       for a single node (specified by the \code{target} parameter in \code{loss.args})
       in a discrete network.
 
+    \item \emph{Predictive Correlation} (\code{cor}): the \emph{correlation}
+      between the observed and the predicted values for a single node
+      (specified by the \code{target} parameter in \code{loss.args}) in a
+      Gaussian Bayesian network.
+
+    \item \emph{Mean Squared Error} (\code{mse}): the \emph{mean squared error}
+      between the observed and the predicted values for a single node
+      (specified by the \code{target} parameter in \code{loss.args}) in a
+      Gaussian Bayesian network.
+
   }
 
 }
@@ -72,23 +82,8 @@ bn.cv(data, bn, loss = NULL, k = 10, algorithm.args = list(),
 }
 \examples{
 bn.cv(learning.test, 'hc', loss = "pred", loss.args = list(target = "F"))
-#
-#  k-fold cross-validation for Bayesian networks
-#
-#  target learning algorithm:             Hill-Climbing
-#  number of subsets:                     10
-#  loss function:                         Classification Error
-#  expected loss:                         0.509
-#
+
 bn.cv(gaussian.test, 'mmhc')
-#
-#  k-fold cross-validation for Bayesian networks
-#
-#  target learning algorithm:             Max-Min Hill Climbing
-#  number of subsets:                     10
-#  loss function:                         Log-Likelihood Loss (Gaussian)
-#  expected loss:                         10.63062
-#
 }
 \keyword{nonparametric}
 \keyword{multivariate}

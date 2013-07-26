@@ -10,16 +10,15 @@
 }
 \description{
 
-  The structure of an object of the \code{bn.fit} S3 class.
+  The structure of an object of S3 class \code{bn.fit}.
 
 }
 \details{
 
-  An object of class \code{bn.fit} is a list whose elements
-  correspond to the nodes of the Bayesian network. If the latter
-  is discrete (i.e. the nodes are multinomial random variables)
-  each node has class \code{bn.fit.dnode} and contains the
-  following elements:
+  An object of class \code{bn.fit} is a list whose elements correspond to
+  the nodes of the Bayesian network. If the latter is discrete (i.e. the
+  nodes are multinomial random variables) each node has class 
+  \code{bn.fit.dnode} and contains the following elements:
 
   \itemize{
 
@@ -30,6 +29,10 @@
       given its parents.
 
   }
+
+  Nodes encoding ordinal variables (i.e. ordered factors) have class
+  \code{bn.fit.onode} and contain the same elements as \code{bn.fit.dnode}
+  nodes.
 
   If on the other hand the network is continuous (i.e. the nodes
   are Gaussian random variables) each node has class \code{bn.fit.gnode}
@@ -46,7 +49,8 @@
       that is response minus fitted values.
     \item \code{fitted.values}: the fitted mean values of the linear
       regression.
-    \item \code{sd}: the standard deviation of the residuals.
+    \item \code{sd}: the standard deviation of the residuals (i.e. the
+      standard error).
 
   }
 

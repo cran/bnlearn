@@ -113,8 +113,7 @@ data(alarm)
 }
 \note{
 
-  The R script to generate data from this network is shipped in the
-  \file{network.scripts} directory of this package.
+  The complete BN can be downloaded from \url{http://www.bnlearn.com/bnrepository}.
 
 }
 \examples{

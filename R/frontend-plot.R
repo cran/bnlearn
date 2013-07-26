@@ -54,12 +54,6 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
 plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
   highlight = NULL, color = "red", ...) {
 
-  meaningless.arguments = c("xlab", "ylab", "axes")
-
-  if (any(names(alist(...))) %in% meaningless.arguments)
-    warning("arguments ", paste(meaningless.arguments, collapse = ", "),
-      "will be silently ignored.")
-
   # check x's class.
   check.bn(x)
 
@@ -79,28 +73,16 @@ plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
 
   }#ELSE
 
-  # match the arguments and drop meaningless ones
-  dots = eval(list(...))
-
-  useless.ones = c('xlab', 'ylab', 'axes', 'type', 'col')
-  sapply(names(dots),
-    function(name) {
-
-      if (name %in% useless.ones)
-        warning("overriding the ", name, " parameter.",
-          call. = FALSE)
-
-    })
-
+  # match the arguments and drop meaningless ones.
+  dots = sanitize.plot.dots(eval(list(...)), 
+           meaningless = c("xlab", "ylab", "axes", "type", "col"))
+  # set a few defaults.
   dots[['xlab']] = dots[['ylab']] = ""
   dots[['axes']] = FALSE
   dots[['type']] = "n"
   dots[['col']] = "black"
 
   # create an empty plot.
-  # par(oma = rep(0, 4), mar = rep(0, 4), mai = rep(0, 4),
-  #   plt = c(0.06, 0.94, 0.12, 0.88))
-
   do.call(plot, c(list(x = 0, y = 0, xlim = xlim, ylim = ylim), dots))
 
   # set the stepping (in radiants) and the center of the plot.
@@ -114,8 +96,7 @@ plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
                   dimnames = list(names(x$nodes), c("x" , "y")),
                   ncol = 2, byrow = FALSE)
 
-  # draw arcs.
-
+  # draw the arcs.
   if (nrow(x$arcs) > 0) apply (x$arcs, 1,
     function(a) {
 
@@ -172,4 +153,33 @@ plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
 
 }#PLOT.BN
 
+# ECDF plot for 'bn.strength' objects.
+plot.bn.strength = function(x, draw.threshold = TRUE, main = NULL, 
+    xlab = "arc strengths", ylab = "CDF(arc strengths)", ...) {
 
+  # check the draw.threshold flag.
+  check.logical(draw.threshold)
+  # check the arcs strengths.
+  if (missing(x))
+    stop("an object of class 'bn.strength' is required.")
+  if (!is(x, "bn.strength"))
+    stop("x must be a 'bn.strength' object.")
+  # only arc strengths computed as confidence through bootstrap are supported.
+  if (attr(x, "mode") != "bootstrap")
+    stop("only arc strengths obtained through bootstrap are supported.")
+
+  # match the dots arguments.
+  dots = sanitize.plot.dots(eval(list(...)), meaningless = c("xlim", "ylim"))
+
+  # handle the title.
+  if (is.null(main))
+    main = paste("threshold = ", attr(x, "threshold"))
+
+  # draw the plot.
+  do.call(plot, c(list(x = ecdf(x$strength), xlim = c(-0.1, 1.1), ylim = c(0, 1),
+    xlab = xlab, ylab = ylab, main = main), dots))
+
+  if (draw.threshold)
+    abline(v = attr(x, "threshold"), lty = 2)
+
+}#PLOT.BN.STRENGTH
