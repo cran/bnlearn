@@ -77,6 +77,13 @@ print.bn = function(x, ...) {
 
     }#THEN
 
+    if ("prior" %in% params)
+      wcat("  graph prior:                          ", prior.labels[x$learning$args$prior])
+    if ("beta" %in% params)
+      if (x$learning$args$prior != "cs")
+        wcat("  beta sparsity parameter:              ", format(x$learning$args$beta))
+      else
+        wcat("  beta sparsity parameter:              ", "Completed Prior over Arcs")
     if ("alpha" %in% params)
       wcat("  alpha threshold:                      ", format(x$learning$args$alpha))
     if ("B" %in% params)
@@ -87,6 +94,8 @@ print.bn = function(x, ...) {
       wcat("  phi matrix structure:                 ", x$learning$args$phi)
     if ("k" %in% params)
       wcat("  penalization coefficient:             ", format(x$learning$args$k))
+    if ("maxp" %in% params)
+      wcat("  maximum parents:                      ", format(x$learning$args$maxp))
 
     if (x$learning$algo %in% c(mim.based.algorithms, classifiers)) {
 
@@ -145,7 +154,7 @@ print.bn.fit = function(x, order, ...) {
     # check the node ordering.
     check.nodes(order, graph = x, min.nodes = length(x), max.nodes = length(x))
 
-  }#ELSE    
+  }#ELSE
 
   cat("\n  Bayesian network parameters\n")
 

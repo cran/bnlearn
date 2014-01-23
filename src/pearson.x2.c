@@ -4,7 +4,7 @@
 SEXP x2 (SEXP x, SEXP y) {
 
 int i = 0, j = 0, k = 0, **n = NULL, *ni = NULL, *nj = NULL;
-int llx = NLEVELS(x), lly = NLEVELS(y), num = LENGTH(x);
+int llx = NLEVELS(x), lly = NLEVELS(y), num = length(x);
 int *xx = INTEGER(x), *yy = INTEGER(y);
 double *res = NULL;
 SEXP result;
@@ -56,7 +56,7 @@ SEXP result;
 SEXP cx2 (SEXP x, SEXP y, SEXP z) {
 
 int i = 0, j = 0, k = 0, ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL;
-int llx = NLEVELS(x), lly = NLEVELS(y), llz = NLEVELS(z), num = LENGTH(x);
+int llx = NLEVELS(x), lly = NLEVELS(y), llz = NLEVELS(z), num = length(x);
 int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
 double *res = NULL;
 SEXP result;

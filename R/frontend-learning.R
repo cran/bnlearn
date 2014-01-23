@@ -91,24 +91,24 @@ chow.liu  = function(x, whitelist = NULL, blacklist = NULL, mi = NULL,
 # Hill Climbing greedy search frontend.
 hc = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     score = NULL, ..., debug = FALSE, restart = 0, perturb = 1,
-    max.iter = Inf, optimized = TRUE) {
+    max.iter = Inf, maxp = Inf, optimized = TRUE) {
 
   greedy.search(x = x, start = start, whitelist = whitelist,
-    blacklist = blacklist, score = score, heuristic = "hc",
-    debug = debug, expand = c(list(...), restart = restart,
-    perturb = perturb, max.iter = max.iter), optimized = optimized)
+    blacklist = blacklist, score = score, heuristic = "hc", debug = debug,
+    expand = c(list(...), restart = restart, perturb = perturb,
+    max.iter = max.iter, maxp = maxp), optimized = optimized)
 
 }#HC
 
 # TABU list greedy search frontend.
 tabu = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     score = NULL, ..., debug = FALSE, tabu = 10, max.tabu = tabu,
-    max.iter = Inf, optimized = TRUE) {
+    max.iter = Inf, maxp = Inf, optimized = TRUE) {
 
   greedy.search(x = x, start = start, whitelist = whitelist,
-    blacklist = blacklist, score = score, heuristic = "tabu",
-    debug = debug, expand = c(list(...), max.iter = max.iter,
-    tabu = tabu, max.tabu = max.tabu), optimized = optimized)
+    blacklist = blacklist, score = score, heuristic = "tabu", debug = debug,
+    expand = c(list(...), max.iter = max.iter, tabu = tabu, max.tabu = max.tabu,
+    maxp = maxp), optimized = optimized)
 
 }#TABU
 
@@ -144,7 +144,7 @@ mmhc = function(x, whitelist = NULL, blacklist = NULL, test = NULL,
 
 }#MMHC
 
-# Frontend for the Markov blanket learning algotrithms.
+# Frontend for the Markov blanket learning algorithms.
 learn.mb = function(x, node, method, whitelist = NULL, blacklist = NULL,
     start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
     optimized = TRUE) {
@@ -155,7 +155,7 @@ learn.mb = function(x, node, method, whitelist = NULL, blacklist = NULL,
 
 }#LEARN.MB
 
-# Frontend for causal discovery learning algotrithms.
+# Frontend for causal discovery learning algorithms.
 learn.nbr = function(x, node, method, whitelist = NULL, blacklist = NULL,
     start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
     optimized = TRUE) {
@@ -167,10 +167,10 @@ learn.nbr = function(x, node, method, whitelist = NULL, blacklist = NULL,
 }#LEARN.NBR
 
 # naive Bayes frontend.
-naive.bayes = function(training, explanatory, data) {
+naive.bayes = function(x, training, explanatory) {
 
-  bayesian.classifier(data, training = training, explanatory = explanatory,
-    method = "naive", whitelist = NULL, blacklist = NULL, expand = list(),
+  bayesian.classifier(x, training = training, explanatory = explanatory,
+    method = "naive.bayes", whitelist = NULL, blacklist = NULL, expand = list(),
     debug = FALSE)
 
 }#NAIVE.BAYES
@@ -180,7 +180,7 @@ tree.bayes = function(x, training, explanatory, whitelist = NULL, blacklist = NU
     mi = NULL, root = NULL, debug = FALSE) {
 
   bayesian.classifier(x, training = training, explanatory = explanatory,
-    method = "tan", whitelist = whitelist, blacklist = blacklist,
+    method = "tree.bayes", whitelist = whitelist, blacklist = blacklist,
     expand = list(estimator = mi, root = root), debug = debug)
 
 }#TAN

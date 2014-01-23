@@ -2,7 +2,7 @@
 
 SEXP tiers(SEXP nodes, SEXP debug) {
 
-int i = 0, j = 0, k = 0, narcs = 0, nnodes = 0, ntiers = LENGTH(nodes);
+int i = 0, j = 0, k = 0, narcs = 0, nnodes = 0, ntiers = length(nodes);
 int *tier_size = NULL, *debuglevel = LOGICAL(debug), tier_start = 0, cur = 0;
 SEXP flattened, blacklist, temp;
 
@@ -15,7 +15,7 @@ SEXP flattened, blacklist, temp;
     for (i = ntiers - 1; i >= 0; i--) {
 
       temp = VECTOR_ELT(nodes, i);
-      tier_size[i] = LENGTH(temp);  
+      tier_size[i] = length(temp);
       nnodes += tier_size[i];
       narcs += (nnodes - tier_size[i]) * tier_size[i];
 
@@ -38,8 +38,8 @@ SEXP flattened, blacklist, temp;
 
     /* "node" is a character vector, which means that each node is in its own tier
      * and that there is no need to flatted it. */
-    flattened = nodes; 
-    nnodes = LENGTH(nodes);
+    flattened = nodes;
+    nnodes = length(nodes);
     for (i = 0; i < ntiers; i++)
       tier_size[i] = 1;
 
@@ -82,7 +82,7 @@ SEXP flattened, blacklist, temp;
 
   if (!isString(nodes))
     UNPROTECT(2);
-  else 
+  else
     UNPROTECT(1);
 
   return blacklist;

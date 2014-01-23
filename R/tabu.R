@@ -1,7 +1,7 @@
 
 # unified tabu search implementation (both optimized and by spec).
-tabu.search = function(x, start, whitelist, blacklist, score,
-    extra.args, max.iter, optimized, tabu, debug = FALSE) {
+tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
+    max.iter, maxp, optimized, tabu, debug = FALSE) {
 
   # cache nodes' labels.
   nodes = names(x)
@@ -10,7 +10,9 @@ tabu.search = function(x, start, whitelist, blacklist, score,
   # set the iteration counter.
   iter = 1
   # check whether the score is score-equivalent.
-  score.equivalence = score %in% score.equivalent.scores
+  score.equivalence = is.score.equivalent(score, nodes, extra.args)
+  # check whether the score is decomposable.
+  score.decomposability = is.score.decomposable(score, nodes, extra.args)
   # allocate the cache matrix.
   cache = matrix(0, nrow = n.nodes, ncol = n.nodes)
   # nodes to be updated (all of them in the first iteration).
@@ -22,12 +24,12 @@ tabu.search = function(x, start, whitelist, blacklist, score,
   max.loss.iter = tabu
   # set the counter for suc iterations.
   loss.iter = 0
-  #
+  # keep track of the best score value.
   best.score = -Inf
 
   # set the reference score.
   reference.score = per.node.score(network = start, score = score,
-                      nodes = nodes, extra.args = extra.args, data = x)
+                      targets = nodes, extra.args = extra.args, data = x)
 
   # convert the blacklist to an adjacency matrix for easy use.
   if (!is.null(blacklist))
@@ -80,6 +82,8 @@ tabu.search = function(x, start, whitelist, blacklist, score,
 
     # build the adjacency matrix of the current network structure.
     amat = arcs2amat(start$arcs, nodes)
+    # compute the number of parents of each node.
+    nparents = colSums(amat)
 
     # add the hash of the network into the tabu list for future reference.
     # (BEWARE: in place modification of tabu.list!)
@@ -87,11 +91,10 @@ tabu.search = function(x, start, whitelist, blacklist, score,
           amat = amat,
           nodes = nodes,
           tabu.list = tabu.list,
-          current = current,
-          PACKAGE = "bnlearn")
+          current = current)
 
     # set up the score cache (BEWARE: in place modification!).
-    .Call("hc_cache_fill",
+    .Call("score_cache_fill",
           nodes = nodes,
           data = x,
           network = start,
@@ -99,18 +102,19 @@ tabu.search = function(x, start, whitelist, blacklist, score,
           extra = extra.args,
           reference = reference.score,
           equivalence = score.equivalence && optimized,
+          decomposability = score.decomposability,
           updated = (if (optimized) updated else seq(length(nodes)) - 1L),
           env = environment(),
           amat = amat,
           cache = cache,
           blmat = blmat,
-          debug = debug,
-          PACKAGE = "bnlearn")
+          debug = debug)
 
     # select which arcs should be tested for inclusion in the graph (hybrid
     # learning algorithms should hook the restrict phase here).
     to.be.added = arcs.to.be.added(amat = amat, nodes = nodes,
-                    blacklist = blmat, whitelist = NULL, arcs = FALSE)
+                    blacklist = blmat, whitelist = NULL, nparents = nparents,
+                    maxp = maxp, arcs = FALSE)
 
     # get the best arc addition/removal/reversal.
     bestop = .Call("tabu_step",
@@ -124,8 +128,9 @@ tabu.search = function(x, start, whitelist, blacklist, score,
                    tabu.list = tabu.list,
                    current = current,
                    baseline = 0,
-                   debug = debug,
-                   PACKAGE = "bnlearn")
+                   nparents = nparents,
+                   maxp = maxp,
+                   debug = debug)
 
     # the value FALSE is the canary value in bestop$op meaning "no operation
     # improved the network score"; reconsider prevously discarded solutions
@@ -175,8 +180,9 @@ tabu.search = function(x, start, whitelist, blacklist, score,
                      tabu.list = tabu.list,
                      current = current,
                      baseline = -Inf,
-                     debug = debug,
-                     PACKAGE = "bnlearn")
+                     nparents = nparents,
+                     maxp = maxp,
+                     debug = debug)
 
       # it might be that there are no more legal operations.
       if(bestop$op == FALSE) {

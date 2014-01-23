@@ -6,12 +6,12 @@
 \title{ Naive Bayes classifiers }
 \description{
 
-  Create, fit and perform predictions with naive Bayes and 
+  Create, fit and perform predictions with naive Bayes and
   Tree-Augmented naive Bayes (TAN) classifiers.
 
 }
 \usage{
-naive.bayes(training, explanatory, data)
+naive.bayes(x, training, explanatory)
 \method{predict}{bn.naive}(object, data, prior, ..., prob = FALSE, debug = FALSE)
 
 tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
@@ -26,7 +26,8 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   \item{x, data}{a data frame containing the variables in the model, which
     must all be factors.}
   \item{prior}{a numeric vector, the prior distribution for the training
-    variable. It is automatically normalized if not already so.}
+    variable. It is automatically normalized if not already so. The default
+    prior is an improper flat prior with all elements equal to \code{1}. }
   \item{whitelist}{a data frame with two columns (optionally labeled
     "from" and "to"), containing a set of arcs to be included in the
      graph. }
@@ -75,12 +76,12 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   \code{naive.bayes} returns an object of class \code{c("bn.naive", "bn")},
   which behaves like a normal \code{bn} object unless passed to \code{predict}.
   \code{tree.bayes} returns an object of class \code{c("bn.tan", "bn")},
-  which again behaves like a normal \code{bn} object unless passed to 
+  which again behaves like a normal \code{bn} object unless passed to
   \code{predict}.
 
   \code{predict} returns a factor with the same levels as the \code{training}
   variable from \code{data}. If \code{prob = TRUE}, the posterior probabilities
-  used for prediction are attached to the predicted values as an attribute 
+  used for prediction are attached to the predicted values as an attribute
   called \code{prob}.
 
 }
@@ -91,12 +92,12 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
       Wiley, 2nd edition.
 
   Friedman N, Geiger D, Goldszmidt M (1997). "Bayesian Network Classifiers".
-      \emph{Machine Learning}, \strong{29}(2--3), 131--163. 
+      \emph{Machine Learning}, \strong{29}(2--3), 131--163.
 
 }
 \examples{
 data(learning.test)
-bn = naive.bayes("A", LETTERS[2:6])
+bn = naive.bayes(learning.test, "A")
 pred = predict(bn, learning.test)
 table(pred, learning.test[, "A"])
 

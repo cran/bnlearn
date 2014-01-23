@@ -1,14 +1,14 @@
 #include "common.h"
 
-SEXP hc_cache_fill(SEXP nodes, SEXP data, SEXP network, SEXP score, SEXP extra,
-    SEXP reference, SEXP equivalence, SEXP updated, SEXP env, SEXP amat,
-    SEXP cache, SEXP blmat, SEXP debug) {
+SEXP score_cache_fill(SEXP nodes, SEXP data, SEXP network, SEXP score,
+    SEXP extra, SEXP reference, SEXP equivalence, SEXP decomposability,
+    SEXP updated, SEXP env, SEXP amat, SEXP cache, SEXP blmat, SEXP debug) {
 
-int *colsum = NULL, nnodes = LENGTH(nodes), lupd = LENGTH(updated);
+int *colsum = NULL, nnodes = length(nodes), lupd = length(updated);
 int *a = NULL, *upd = NULL, *b = NULL, *debuglevel = NULL;
 int i = 0, j = 0, k = 0;
 double *cache_value = NULL;
-SEXP arc, callenv, params, delta, op, dummy, temp;
+SEXP arc, callenv, params, delta, op, temp;
 
   /* dereference the debug parameter. */
   debuglevel = LOGICAL(debug);
@@ -52,12 +52,8 @@ SEXP arc, callenv, params, delta, op, dummy, temp;
   PROTECT(op = allocVector(STRSXP, 1));
   SET_STRING_ELT(op, 0, mkChar("set"));
 
-  /* allocate and initialize the debug parameter. */
-  PROTECT(dummy = allocVector(LGLSXP, 1));
-  LOGICAL(dummy)[0] = FALSE;
-
   /* set up the call to score.delta(). */
-  SETCAR(params, install("score.delta"));
+  SETCAR(params, BN_ScoreDeltaSymbol);
   params = CDR(params);
   SETCAR(params, arc);
   params = CDR(params);
@@ -75,7 +71,7 @@ SEXP arc, callenv, params, delta, op, dummy, temp;
   params = CDR(params);
   SETCAR(params, extra);
   params = CDR(params);
-  SETCAR(params, dummy);
+  SETCAR(params, decomposability);
 
   for (i = 0; i < nnodes; i++) {
 
@@ -149,19 +145,20 @@ there:
 
   }/*FOR*/
 
-  UNPROTECT(5);
+  UNPROTECT(4);
   return cache;
 
 }/*HC_CACHE_FILL*/
 
 /* a single step of the optimized hill climbing (one arc addition/removal/reversal). */
 SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
-    SEXP wlmat, SEXP blmat, SEXP debug) {
+    SEXP wlmat, SEXP blmat, SEXP nparents, SEXP maxp, SEXP debug) {
 
-int nnodes = LENGTH(nodes), i = 0, j = 0;
+int nnodes = length(nodes), i = 0, j = 0;
 int *am = NULL, *ad = NULL, *w = NULL, *b = NULL, *debuglevel = NULL;
 int counter = 0, update = 1, from = 0, to = 0;
 double *cache_value = NULL, temp = 0, max = 0, tol = MACHINE_TOL;
+double *mp = REAL(maxp), *np = REAL(nparents);
 SEXP false, bestop, names;
 
   /* allocate and initialize the return value (use FALSE as a canary value). */
@@ -327,6 +324,11 @@ SEXP false, bestop, names;
       if (b[CMC(j, i, nnodes)] == 1)
         continue;
 
+      /* do not reverse an arc if that means violating the limit on the
+       * maximum number of parents. */
+      if (np[i] >= *mp)
+        continue;
+
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, nnodes)] + cache_value[CMC(j, i, nnodes)];
 
@@ -399,11 +401,12 @@ SEXP temp;
 
 }/*BESTOP_UPDATE*/
 
-SEXP hc_to_be_added(SEXP arcs, SEXP blacklist, SEXP whitelist, SEXP nodes,
-    SEXP convert) {
+SEXP hc_to_be_added(SEXP arcs, SEXP blacklist, SEXP whitelist, SEXP nparents,
+    SEXP maxp, SEXP nodes, SEXP convert) {
 
-int i = 0, j = 0, narcs = 0, dims = LENGTH(nodes);
+int i = 0, j = 0, narcs = 0, dims = length(nodes);
 int *a = NULL, *coords = NULL;
+double *mp = REAL(maxp), *np = NULL;
 short int duplicated = 0;
 SEXP try, result = R_NilValue, result2;
 
@@ -423,6 +426,21 @@ SEXP try, result = R_NilValue, result2;
   /* dereference the adjacency matrix once and for all. */
   a = INTEGER(result);
 
+  /* compute the number the parents of each node, unless provided. */
+  if (nparents == R_NilValue) {
+
+    np = alloc1dreal(dims);
+    for (i = 0; i < dims; i++)
+      for (j = 0; j < dims; j++)
+        np[j] = a[CMC(i, j, dims)];
+
+  }/*THEN*/
+  else {
+
+    np = REAL(nparents);
+
+  }/*ELSE*/
+
   /* flip all the nondiagonal cells. */
   for (j = 0; j < dims; j++) {
 
@@ -438,18 +456,25 @@ SEXP try, result = R_NilValue, result2;
 
   }/*FOR*/
 
-  /* if an arc cannot be added in one direction, it cannot be added in the
-   * opposite one either; flip them off the adjacency matrix. */
+  /* if an arc is present in the graph in one direction, you cannot add it in
+   * the other direction (it would be a reversal); flip both in the adjacency
+   * matrix. */
   for (j = 0; j < dims; j++)
     for (i = j + 1; i < dims; i++)
       a[CMC(j, i, dims)] = a[CMC(i, j, dims)] = a[CMC(i, j, dims)] * a[CMC(j, i, dims)];
+
+  /* if a node has already reached its maximum number parents, do not add
+   * more arcs pointing to that node. */
+  for (j = 0; j < dims; j++)
+    if (np[j] >= *mp)
+      memset(a + j * dims, '\0', dims * sizeof(int));
 
 #define FLIP_FROM_LIST(list, value) \
   if (!isNull(list)) { \
     if (!isInteger(list)) { \
       PROTECT(try = match(nodes, list, 0)); \
       coords = INTEGER(try); \
-      narcs = LENGTH(try)/2; \
+      narcs = length(try)/2; \
       for (i = 0; i < narcs; i++)  \
         a[CMC(coords[i] - 1, coords[i + narcs] - 1, dims)] = value; \
       UNPROTECT(1); \

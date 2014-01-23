@@ -19,7 +19,7 @@ predict.bn.fit = function(object, node, data, ..., debug = FALSE) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  if (is.fitted.discrete(object))
+  if (is.fitted.discrete(object) || is.fitted.ordinal(object))
     discrete.prediction(node = node, fitted = object, data = data, debug = debug)
   else
     gaussian.prediction(node = node, fitted = object, data = data, debug = debug)
@@ -104,7 +104,7 @@ predict.bn.naive = function(object, data, prior, ..., prob = FALSE, debug = FALS
   # get the response variable.
   training = attr(fitted, "training")
   # check the prior distribution.
-  prior = check.prior(prior, data[, training])
+  prior = check.classifier.prior(prior, data[, training])
 
   # compute the predicted values.
   naive.classifier(training = training, fitted = fitted, data = data,

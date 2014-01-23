@@ -3,7 +3,7 @@
 /* convert an arc set to an adjacency matrix. */
 SEXP arcs2amat(SEXP arcs, SEXP nodes) {
 
-int k = 0, nrows = LENGTH(arcs) / 2, dims = LENGTH(nodes);
+int k = 0, nrows = length(arcs) / 2, dims = length(nodes);
 int *res = NULL, *coords = NULL;
 SEXP result, dimnames, try;
 
@@ -43,7 +43,7 @@ SEXP result, dimnames, try;
 /* convert an adjacency matrix to an arc set. */
 SEXP amat2arcs(SEXP amat, SEXP nodes) {
 
-int i = 0, j = 0, k = 0, nrows = LENGTH(nodes), narcs = 0;
+int i = 0, j = 0, k = 0, nrows = length(nodes), narcs = 0;
 int *a = INTEGER(amat);
 SEXP arcs;
 

@@ -3,7 +3,7 @@
 arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE,
     debug = FALSE) {
 
-  available.ops = c("set", "drop", "reverse")
+  available.ops = c("set", "drop", "reverse", "seted", "droped")
 
   # check x's class.
   check.bn(x)
@@ -45,6 +45,22 @@ arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE,
       cat("* reversing any arc between ", from, "and", to, ".\n")
 
     x$arcs = reverse.arc.backend(from, to, x$arcs, debug = debug)
+
+  }#THEN
+  else if (op == "seted") {
+
+    if (debug)
+      cat("* setting undirected arc", from, "-", to, ".\n")
+
+    x$arcs = set.edge.backend(from, to, x$arcs, debug = debug)
+
+  }#THEN
+  else if (op == "droped") {
+
+    if (debug)
+      cat("* dropping undirected arc", from, "-", to, ".\n")
+
+    x$arcs = drop.edge.backend(x$arcs, c(from, to), debug = debug)
 
   }#THEN
 

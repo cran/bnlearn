@@ -52,12 +52,15 @@ write.foreign.backend = function(fd, fitted, format = "bif") {
 
 sanitize.levels = function(levels) {
 
-  levels = lapply(levels, gsub, pattern = "[,{}()#%]", replacement = "_")
+  clean = lapply(levels, gsub, pattern = "[,{}()#%]", replacement = "_")
 
-  if (any(sapply(levels, anyDuplicated) > 0))
+  # preserve names, which is useful when the input comes from dimnames().
+  names(clean) = names(levels)
+
+  if (any(sapply(clean, anyDuplicated) > 0))
     stop("duplicated levels after sanitization.")
 
-  return(levels)
+  return(clean)
 
 }#SANITIZE.LEVELS
 
@@ -83,7 +86,8 @@ bif.write.probabilities = function(node, nlevels, cpt, parents, fd) {
   }#THEN
   else {
 
-    configs = expand.grid(dimnames(cpt)[-1], stringsAsFactors = FALSE)
+    configs = sanitize.levels(dimnames(cpt)[-1])
+    configs = expand.grid(configs, stringsAsFactors = FALSE)
     configs = apply(configs, 1, function(x) paste("(",
                 paste(x, collapse = ", "), ")", sep = "") )
 
@@ -133,7 +137,8 @@ net.write.probabilities = function(node, nlevels, cpt, parents, fd) {
 
     # in NET files the "most significant" variable for the ordering is the
     # last one, not the first one.
-    configs = expand.grid(dimnames(cpt)[1+rev(1:length(parents))])
+    configs = sanitize.levels(dimnames(cpt))
+    configs = expand.grid(configs[1+rev(1:length(parents))])
     configs = configs[rev(1:ncol(configs))]
     indexes = configurations(configs, factor = FALSE)
 

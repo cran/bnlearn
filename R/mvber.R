@@ -43,8 +43,7 @@ mvber.moments.backend = function(data, R, m, algorithm, algorithm.args,
           arcs = net$arcs,
           nodes = nodes,
           joint = joint,
-          debug = debug,
-          PACKAGE = "bnlearn")
+          debug = debug)
 
   }#FOR
 
@@ -53,8 +52,7 @@ mvber.moments.backend = function(data, R, m, algorithm, algorithm.args,
   .Call("mvber_moments",
         joint = joint,
         R = R,
-        labels = labels,
-        PACKAGE = "bnlearn")
+        labels = labels)
 
 }#MVBER.MOMENTS.BACKEND
 
@@ -63,8 +61,7 @@ mvber.var.backend = function(x, method) {
 
   res = .Call("mvber_variance",
               var = x,
-              method = method,
-              PACKAGE = "bnlearn")
+              method = method)
 
   return(structure(res, names = c("statistic", "normalized")))
 

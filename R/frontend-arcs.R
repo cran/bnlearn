@@ -169,3 +169,19 @@ reverse.arc = function(x, from, to, check.cycles = TRUE, debug = FALSE) {
 
 }#REVERSE.ARC
 
+# set an undirected arc.
+set.edge = function(x, from, to, check.cycles = TRUE, debug = FALSE) {
+
+  arc.operations(x = x, from = from, to = to, op = "seted",
+    check.cycles = check.cycles, debug = debug)
+
+}#SET.EDGE
+
+# remove an arc from the graph.
+drop.edge = function(x, from, to, debug = FALSE) {
+
+  arc.operations(x = x, from = from, to = to, op = "droped",
+    check.cycles = FALSE, debug = debug)
+
+}#DROP.EDGE
+

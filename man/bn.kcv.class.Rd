@@ -27,14 +27,14 @@
 
   }
 
-  If the loss function rquires to predict values from the test sets, each 
+  If the loss function requires to predict values from the test sets, each
   element also contains:
 
   \itemize{
 
-    \item \code{predicted}: a factor or a numeric vector, the predicted values 
+    \item \code{predicted}: a factor or a numeric vector, the predicted values
       for the target node in the test set.
-    \item \code{observed}: a factor or a numeric vector, the observed values 
+    \item \code{observed}: a factor or a numeric vector, the observed values
       for the target node in the test set.
 
   }

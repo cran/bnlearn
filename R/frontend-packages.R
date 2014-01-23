@@ -41,6 +41,9 @@ as.grain.bn.fit = function(x) {
 
   # check x's class.
   check.fit(x)
+  # check whether x is a dsicrete fitted network.
+  if (!is.fitted.discrete(x))
+    stop("the gRain package only supports discrete Bayesian networks.")
 
   cpt = vector(length(x), mode = "list")
   names(cpt) = names(x)

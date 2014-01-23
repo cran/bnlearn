@@ -74,7 +74,7 @@ plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
   }#ELSE
 
   # match the arguments and drop meaningless ones.
-  dots = sanitize.plot.dots(eval(list(...)), 
+  dots = sanitize.plot.dots(eval(list(...)),
            meaningless = c("xlab", "ylab", "axes", "type", "col"))
   # set a few defaults.
   dots[['xlab']] = dots[['ylab']] = ""
@@ -154,7 +154,7 @@ plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
 }#PLOT.BN
 
 # ECDF plot for 'bn.strength' objects.
-plot.bn.strength = function(x, draw.threshold = TRUE, main = NULL, 
+plot.bn.strength = function(x, draw.threshold = TRUE, main = NULL,
     xlab = "arc strengths", ylab = "CDF(arc strengths)", ...) {
 
   # check the draw.threshold flag.

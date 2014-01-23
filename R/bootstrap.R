@@ -157,8 +157,7 @@ averaged.network.backend = function(strength, nodes, threshold) {
     e$arcs = .Call("smart_network_averaging",
                    arcs = candidate.arcs,
                    nodes = nodes,
-                   weights = strength$strength[significant],
-                   PACKAGE = "bnlearn")
+                   weights = strength$strength[significant])
 
   }#ELSE
 

@@ -3,19 +3,13 @@
 #include "common.h"
 
 /* posterior wishart probability for the BGe score. */
-SEXP wpost(SEXP x, SEXP imaginary, SEXP phi_coef) {
+double wpost(SEXP x, SEXP imaginary, double *phic) {
 
-int i = 0, n = LENGTH(x);
+int i = 0, n = length(x);
 double mu = 0, phi = 0, tau = 0, rho = 0;
 double oldtau = 0, oldmu = 0, logk = 0, logscale = 0, mscore = 0;
-double *res = NULL, *xx = REAL(x), *c = REAL(phi_coef);
+double res = 0, *xx = REAL(x);
 int *iss = INTEGER(imaginary);
-SEXP result;
-
-  /* allocate and initialize result to zero. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
-  *res = 0;
 
   /* compute the mean and the variance of the data. */
   for (i = 0; i < n; i++)
@@ -24,7 +18,7 @@ SEXP result;
 
   for (i = 0; i < n; i++)
     phi += (xx[i] - mu) * (xx[i] - mu);
-  phi = phi / (n - 1) * (*c) ;
+  phi = phi / (n - 1) * (*phic) ;
 
   /* set tau and rho. */
   tau = rho = *iss;
@@ -35,7 +29,7 @@ SEXP result;
     logk = lgammafn(0.5 * (1.0 + rho)) - lgammafn(rho * 0.5);
     logk -= 0.5 * (logscale + log(M_PI));
     mscore = logk - 0.5 * (rho + 1) * log1p( (xx[i] - mu) * (xx[i] - mu) / exp(logscale) );
-    *res += mscore;
+    res += mscore;
 
     oldtau = tau;
     oldmu  = mu;
@@ -47,11 +41,9 @@ SEXP result;
 
   }/*FOR*/
 
-  UNPROTECT(1);
+  return res;
 
-  return result;
-
-}/*WPOST*/ 
+}/*WPOST*/
 
 void build_tau(double **data, double *tau, int *ncols, int *nrows,
     int *imaginary, double *phi) {
@@ -112,19 +104,18 @@ double *mean = NULL, *mat = NULL;
 
 }/*BUILD_TAU*/
 
-SEXP cwpost(SEXP x, SEXP z, SEXP imaginary, SEXP phi_coef) {
+double cwpost(SEXP x, SEXP z, SEXP imaginary, double *phic) {
 
 int i = 0, j = 0, k = 0;
-int ncols = LENGTH(z), num = LENGTH(x), tau_ncols = LENGTH(z) + 1;
+int ncols = length(z), num = length(x), tau_ncols = length(z) + 1;
 int *iss = INTEGER(imaginary), rho = *iss + ncols;
 double logscale = 0, logk = 0, xprod = 0, var_x = 0, zi_mu = 0, phi = 0;
-double *xx = REAL(x), *phic = REAL(phi_coef), *workspace = NULL;
-double *res = NULL, **zz = NULL, *zi = NULL, *mu = NULL, *delta_mu = NULL;
+double *xx = REAL(x), *workspace = NULL;
+double res = 0, **zz = NULL, *zi = NULL, *mu = NULL, *delta_mu = NULL;
 double *tau = NULL, *invtau = NULL, *old_tau = NULL, *old_mu = NULL;
-SEXP result;
 
   /* allocate a workspace vector. */
-  workspace = alloc1dreal(tau_ncols);  
+  workspace = alloc1dreal(tau_ncols);
 
   /* allocate and initialize the parent configuration. */
   zi = alloc1dreal(ncols + 1);
@@ -152,17 +143,12 @@ SEXP result;
     zz[j] = REAL(VECTOR_ELT(z, j));
 
   /* allocate and initialize tau. */
-  tau = alloc1dreal(tau_ncols * tau_ncols);  
-  old_tau = alloc1dreal(tau_ncols * tau_ncols);  
-  invtau = alloc1dreal(tau_ncols * tau_ncols);  
+  tau = alloc1dreal(tau_ncols * tau_ncols);
+  old_tau = alloc1dreal(tau_ncols * tau_ncols);
+  invtau = alloc1dreal(tau_ncols * tau_ncols);
   build_tau(zz, tau, &ncols, &num, iss, phic);
   memcpy(old_tau, tau, tau_ncols * tau_ncols * sizeof(double));
   c_ginv(tau, &tau_ncols, invtau);
-
-  /* allocate and initialize result to zero. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
-  *res = 0;
 
   /* for each sample... */
   for (i = 0; i < num; i++) {
@@ -183,7 +169,7 @@ SEXP result;
     for (j = 0, zi_mu = 0; j < tau_ncols; j++)
       zi_mu += zi[j] * mu[j];
 
-    *res += logk - 0.5 * (1 + rho) * 
+    res += logk - 0.5 * (1 + rho) *
              log1p((xx[i] - zi_mu) * (xx[i] - zi_mu) / exp(logscale));
 
     /* For the next iteration, update the tau matrix ... */
@@ -191,7 +177,7 @@ SEXP result;
 
     for (j = 0; j < tau_ncols; j++)
       for (k = j; k < tau_ncols; k++)
-        tau[CMC(j, k, tau_ncols)] = tau[CMC(k, j, tau_ncols)] = 
+        tau[CMC(j, k, tau_ncols)] = tau[CMC(k, j, tau_ncols)] =
           tau[CMC(j, k, tau_ncols)] + zi[j] * zi[k];
 
     /* ... its inverse  ... */
@@ -211,12 +197,73 @@ SEXP result;
       zi_mu += zi[j] * mu[j];
 
     phi += (xx[i] - zi_mu) * xx[i] +
-             c_quadratic(delta_mu, &tau_ncols, old_tau, old_mu, workspace); 
+             c_quadratic(delta_mu, &tau_ncols, old_tau, old_mu, workspace);
 
   }/*FOR*/
 
-  UNPROTECT(1);
-  return result;
+  return res;
 
 }/*CWPOST*/
 
+double wishart_node(SEXP target, SEXP x, SEXP data, SEXP iss, SEXP phi, SEXP prior,
+    SEXP beta, int debuglevel) {
+
+int *imaginary = INTEGER(iss);
+int n = length(VECTOR_ELT(data, 0));
+char *phi_str = (char *)CHAR(STRING_ELT(phi, 0));
+char *t = (char *)CHAR(STRING_ELT(target, 0));
+double prob = 0, prior_prob = 0, phi_coef = 0;
+SEXP nodes, node_t, parents, parent_vars, data_t;
+
+  /* compute the phi multiplier. */
+  if (strcmp(phi_str, "bottcher") == 0)
+    phi_coef = (double)(n - 1) / (double)(n) * (double)(*imaginary - 1);
+  else
+    phi_coef = (double)(n - 1) / (double)n * (double)(*imaginary) /
+                 (double) (*imaginary + 1) * (double)(*imaginary - 2);
+
+  if (debuglevel > 0) {
+
+    Rprintf("----------------------------------------------------------------\n");
+    Rprintf("* processing node %s.\n", t);
+
+  }/*THEN*/
+
+  /* get the node cached information. */
+  nodes = getListElement(x, "nodes");
+  node_t = getListElement(nodes, t);
+  /* get the parents of the node. */
+  parents = getListElement(node_t, "parents");
+  /* extract the node's column from the data frame. */
+  data_t = c_dataframe_column(data, target, TRUE, FALSE);
+  /* compute the prior probability component for the node. */
+  prior_prob = graph_prior_prob(prior, target, node_t, beta, debuglevel);
+
+  if (length(parents) == 0) {
+
+    prob = wpost(data_t, iss, &phi_coef);
+
+  }/*THEN*/
+  else {
+
+    PROTECT(parent_vars = c_dataframe_column(data, parents, FALSE, FALSE));
+    /* compute the marginal likelihood. */
+    prob = cwpost(data_t, parent_vars, iss, &phi_coef);
+
+    UNPROTECT(1);
+
+  }/*ELSE*/
+
+  if (debuglevel > 0) {
+
+    Rprintf("  > (log)prior probability is %lf.\n", prior_prob);
+    Rprintf("  > (log)posterior density is %lf.\n", prob);
+
+  }/*THEN*/
+
+  /* add the (log)prior to the marginal (log)likelihood to get the (log)posterior. */
+  prob += prior_prob;
+
+  return prob;
+
+}/*WISHART_NODE*/

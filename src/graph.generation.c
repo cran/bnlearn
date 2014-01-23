@@ -18,7 +18,7 @@ static void print_modelstring(SEXP bn);
 /* generate an empty graph. */
 SEXP empty_graph(SEXP nodes, SEXP num) {
 
-int i = 0, nnodes = LENGTH(nodes), *n = INTEGER(num);
+int i = 0, nnodes = length(nodes), *n = INTEGER(num);
 SEXP list, res, args, arcs, cached;
 SEXP dimnames, colnames, elnames, base, base2;
 
@@ -82,7 +82,7 @@ SEXP dimnames, colnames, elnames, base, base2;
 /* generate a graph with given node ordering and arc probability. */
 SEXP ordered_graph(SEXP nodes, SEXP num, SEXP prob) {
 
-int i = 0, j = 0, k = 0, nnodes = LENGTH(nodes), *a = NULL, *n = INTEGER(num);
+int i = 0, j = 0, k = 0, nnodes = length(nodes), *a = NULL, *n = INTEGER(num);
 double *p = REAL(prob);
 SEXP list, res, args, argnames, amat, arcs, cached, debug2, null, temp;
 
@@ -180,7 +180,7 @@ SEXP ide_cozman_graph(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
 
 SEXP graphlist;
 
-  switch(LENGTH(nodes)) {
+  switch(length(nodes)) {
 
     case 1:
 
@@ -343,7 +343,7 @@ SEXP amatA, amatB, args, argnames, false;
 static SEXP c_ide_cozman(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
     SEXP max_out_degree, SEXP max_degree, SEXP connected, SEXP debug) {
 
-int i = 0, k = 0, nnodes = LENGTH(nodes), *n = INTEGER(num);
+int i = 0, k = 0, nnodes = length(nodes), *n = INTEGER(num);
 int changed = 0, *work = NULL, *arc = NULL, *a = NULL, *burn = INTEGER(burn_in);
 int *degree = NULL, *in_degree = NULL, *out_degree = NULL;
 int *debuglevel = LOGICAL(debug), *cozman = LOGICAL(connected);
@@ -756,7 +756,7 @@ SEXP s, t;
   PROTECT(t = s = allocList(2));
   SET_TYPEOF(s, LANGSXP);
   /* first slot, the function name. */
-  SETCAR(t, install("modelstring"));
+  SETCAR(t, BN_ModelstringSymbol);
   t = CDR(t);
   /* second slot, the bayesian network (the only argument). */
   SETCAR(t,  bn);

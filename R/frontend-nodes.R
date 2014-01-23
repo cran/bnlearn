@@ -79,7 +79,7 @@ parents = function(x, node) {
   for (p in to.be.dropped) {
 
     x = arc.operations(x = x, from = p, to = node, op = "drop",
-      check.cycles = FALSE, update = FALSE, debug = debug)
+          check.cycles = FALSE, update = FALSE, debug = debug)
 
   }#FOR
 
@@ -87,14 +87,14 @@ parents = function(x, node) {
   for (p in to.be.added) {
 
     x = arc.operations(x = x, from = p, to = node, op = "set",
-      check.cycles = TRUE, update = FALSE, debug = debug)
+          check.cycles = TRUE, update = FALSE, debug = debug)
 
   }#FOR
 
   # update the network structure.
   x$nodes = cache.structure(names(x$nodes), arcs = x$arcs, debug = debug)
 
-  x
+  return(x)
 
 }#PARENTS<-
 
@@ -148,7 +148,7 @@ children = function(x, node) {
   for (child in to.be.dropped) {
 
     x = arc.operations(x = x, from = node, to = child, op = "drop",
-      check.cycles = FALSE, update = FALSE, debug = debug)
+          check.cycles = FALSE, update = FALSE, debug = debug)
 
   }#FOR
 
@@ -156,14 +156,14 @@ children = function(x, node) {
   for (child in to.be.added) {
 
     x = arc.operations(x = x, from = node, to = child, op = "set",
-      check.cycles = TRUE, update = FALSE, debug = debug)
+          check.cycles = TRUE, update = FALSE, debug = debug)
 
   }#FOR
 
   # update the network structure.
   x$nodes = cache.structure(names(x$nodes), arcs = x$arcs, debug = debug)
 
-  x
+  return(x)
 
 }#CHILDREN<-
 
@@ -196,5 +196,4 @@ out.degree = function(x, node) {
     length(x[[node]]$children)
 
 }#OUT.DEGREE
-
 

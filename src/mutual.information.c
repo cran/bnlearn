@@ -31,7 +31,7 @@ double res = 0;
 
   /* compute the mutual information from the joint and marginal frequencies. */
   for (i = 0; i < *llx; i++)
-    for (j = 0; j < *lly; j++) 
+    for (j = 0; j < *lly; j++)
       res += MI_PART(n[i][j], ni[i], nj[j], *num);
 
   return (res)/(*num);
@@ -41,7 +41,7 @@ double res = 0;
 /* unconditional mutual information, to be used for the asymptotic test. */
 SEXP mi(SEXP x, SEXP y, SEXP gsquare) {
 
-int llx = NLEVELS(x), lly = NLEVELS(y), num = LENGTH(x);
+int llx = NLEVELS(x), lly = NLEVELS(y), num = length(x);
 int *xx = INTEGER(x), *yy = INTEGER(y);
 double *res = NULL;
 SEXP result;
@@ -64,7 +64,7 @@ SEXP result;
 /* conditional mutual information, to be used in C code. */
 double c_cmi(int *xx, int *llx, int *yy, int *lly, int *zz, int *llz, int *num) {
 
-int i = 0, j = 0, k = 0; 
+int i = 0, j = 0, k = 0;
 int ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL;
 double res = 0;
 
@@ -96,7 +96,7 @@ double res = 0;
      marginal frequencies. */
   for (i = 0; i < *llx; i++)
     for (j = 0; j < *lly; j++)
-      for (k = 0; k < *llz; k++) 
+      for (k = 0; k < *llz; k++)
         res += MI_PART(n[i][j][k], ni[i][k], nj[j][k], nk[k]);
 
   res = res/(*num);
@@ -109,7 +109,7 @@ double res = 0;
 SEXP cmi(SEXP x, SEXP y, SEXP z, SEXP gsquare) {
 
 int llx = NLEVELS(x), lly = NLEVELS(y), llz = NLEVELS(z);
-int num = LENGTH(x);
+int num = length(x);
 int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
 double *res = NULL;
 SEXP result;

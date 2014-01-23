@@ -21,7 +21,7 @@ SEXP nodes_data, nodes, try, children, ordering;
 
   /* get and count the node labels. */
   nodes = getAttrib(nodes_data, R_NamesSymbol);
-  nnodes = LENGTH(nodes);
+  nnodes = length(nodes);
 
   /* allocate a status vector to trak the ordering of the nodes. */
   PROTECT(ordering = allocVector(INTSXP, nnodes));
@@ -35,7 +35,7 @@ SEXP nodes_data, nodes, try, children, ordering;
   PROTECT(try = match(nodes, root_nodes, 0));
   matched = INTEGER(try);
 
-  for (i = 0; i < LENGTH(try); i++) {
+  for (i = 0; i < length(try); i++) {
 
     if (*debuglevel > 0)
       Rprintf("  > got node %s.\n", NODE(matched[i] - 1));
@@ -64,7 +64,7 @@ SEXP nodes_data, nodes, try, children, ordering;
       children = getListElement(VECTOR_ELT(nodes_data, i), direction);
 
       /* this node is a leaf, nothing to do, move along. */
-      if (LENGTH(children) == 0)
+      if (length(children) == 0)
         continue;
 
       /* set the changed flag. */
@@ -74,7 +74,7 @@ SEXP nodes_data, nodes, try, children, ordering;
       matched = INTEGER(try);
 
       /* set the correct depth to the children of this node. */
-      for (j = 0; j < LENGTH(try); j++) {
+      for (j = 0; j < length(try); j++) {
 
         if (*debuglevel > 0)
           Rprintf("  > got node %s from %s.\n",

@@ -18,24 +18,26 @@ bn.cv(data, bn, loss = NULL, k = 10, algorithm.args = list(),
     algorithm to be applied to the training data in each iteration)
     or an object of class \code{bn} (a fixed network structure).}
   \item{loss}{a character string, the label of a loss function.
-    If none is specified, the default loss function is the
-    \emph{Log-Likelihood Loss} for both discrete and continuous
-    data sets. See below for additional details.}
+    If none is specified, the default loss function is the 
+    \emph{Classification Error} for Bayesian networks classifiers;
+    otherwise, the \emph{Log-Likelihood Loss} for both discrete
+    and continuous data sets. See below for additional details.}
   \item{k}{a positive integer number, the number of groups into
     which the data will be split.}
   \item{algorithm.args}{a list of extra arguments to be passed to
     the learning algorithm.}
   \item{loss.args}{a list of extra arguments to be passed to
     the loss function specified by \code{loss}.}
-  \item{fit}{a character string, the label of the method used to fit the
-    parameters of the newtork. See \code{\link{bn.fit}} for details.}
-  \item{fit.args}{additional arguments for the parameter estimation prcoedure,
-    see again \code{\link{bn.fit}} for details..}
-  \item{cluster}{an optional cluster object from package \pkg{snow}.
-      See \code{\link{snow integration}} for details and a simple
-      example.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-    is printed; otherwise the function is completely silent.}
+  \item{fit}{a character string, the label of the method used to
+    fit the parameters of the newtork. See \code{\link{bn.fit}}
+    for details.}
+  \item{fit.args}{additional arguments for the parameter estimation
+    prcoedure, see again \code{\link{bn.fit}} for details..}
+  \item{cluster}{an optional cluster object from package \pkg{parallel}.
+    See \code{\link{parallel integration}} for details and a simple
+    example.}
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging
+    output is printed; otherwise the function is completely silent.}
 }
 \details{
 
@@ -44,7 +46,7 @@ bn.cv(data, bn, loss = NULL, k = 10, algorithm.args = list(),
   \itemize{
 
     \item \emph{Log-Likelihood Loss} (\code{logl}): also known as \emph{negative
-      entropy} or \emph{negentropy}, it's the negated expected log-likelihood
+      entropy} or \emph{negentropy}, it is the negated expected log-likelihood
       of the test set for the Bayesian network fitted from the training set.
 
     \item \emph{Gaussian Log-Likelihood Loss} (\code{logl-g}): the negated expected

@@ -126,7 +126,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
     if (debug)
       cat("  * checking node", y, "for neighbourhood.\n")
 
-    # choose the smaller set of possible d-separating nodes. 
+    # choose the smaller set of possible d-separating nodes.
     if (markov)
       dsep.set = smaller(mb[[x]][mb[[x]] != y], mb[[y]][mb[[y]] != x])
     else
@@ -378,8 +378,7 @@ bn.recovery = function(bn, nodes, strict, filter = "AND", mb = FALSE,
         strict = strict,
         mb = mb,
         filter = match(filter, c("OR", "AND")),
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#BN.RECOVERY
 
@@ -393,8 +392,7 @@ cache.structure = function(nodes, arcs, amat = NULL, debug = FALSE) {
   .Call("cache_structure",
         nodes = nodes,
         amat = amat,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#CACHE.STRUCTURE
 
@@ -410,7 +408,6 @@ cache.partial.structure = function(nodes, target, arcs, amat = NULL,
         nodes = nodes,
         target = target,
         amat = amat,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#CACHE.PARTIAL.STRUCTURE

@@ -8,63 +8,21 @@ conditional.probability.query = function(fitted, event, evidence, method,
   fitted = reduce.fitted(fitted = fitted, event = event, evidence = evidence,
              nodes = extra$query.nodes, method = method, debug = debug)
 
-  if (method == "ls") {
+  if (method %in% c("ls", "lw")) {
 
-    if (!is.null(cluster)) {
+    if (method == "ls") {
 
-      # get the number of slaves.
-      s = nSlaves(cluster)
-      # divide the number of particles among the slaves.
-      batch = n = ceiling(extra$n / s)
-
-      if (probability) {
-
-        results = parSapply(cluster, seq(s),
-          function(x) {
-
-            logic.sampling(fitted = fitted, event = event,
-              evidence = evidence, n = n, batch = batch, debug = debug)
-
-          })
-
-        return(mean(results))
-
-      }#THEN
-      else {
-
-        results = parLapply(cluster, seq(s),
-          function(x) {
-
-            logic.distribution(fitted = fitted, nodes = event,
-              evidence = evidence, n = n, batch = batch, debug = debug)
-
-          })
-
-        return(do.call(rbind, results))
-
-      }#ELSE
+      sampling = logic.sampling
+      distribution = logic.distribution
 
     }#THEN
-    else {
+    else if (method == "lw") {
 
-      if (probability) {
-
-        logic.sampling(fitted = fitted, event = event, evidence = evidence,
-          n = extra$n, batch = extra$batch, debug = debug)
-
-      }#THEN
-      else {
-
-        logic.distribution(fitted = fitted, nodes = event, evidence = evidence,
-          n = extra$n, batch = extra$batch, debug = debug)
-
-      }#ELSE
+      sampling = weighting.sampling
+      distribution = weighting.distribution
 
     }#ELSE
 
-  }#THEN
-  else if (method == "lw") {
-
     if (!is.null(cluster)) {
 
       # get the number of slaves.
@@ -77,8 +35,8 @@ conditional.probability.query = function(fitted, event, evidence, method,
         results = parSapply(cluster, seq(s),
           function(x) {
 
-            weighting.sampling(fitted = fitted, event = event,
-              evidence = evidence, n = n, batch = batch, debug = debug)
+            sampling(fitted = fitted, event = event, evidence = evidence,
+             n = n, batch = batch, debug = debug)
 
           })
 
@@ -90,8 +48,8 @@ conditional.probability.query = function(fitted, event, evidence, method,
         results = parLapply(cluster, seq(s),
           function(x) {
 
-            weighting.distribution(fitted = fitted, nodes = event,
-              evidence = evidence, n = n, batch = batch, debug = debug)
+            distribution(fitted = fitted, nodes = event, evidence = evidence,
+              n = n, batch = batch, debug = debug)
 
           })
 
@@ -104,14 +62,14 @@ conditional.probability.query = function(fitted, event, evidence, method,
 
       if (probability) {
 
-        weighting.sampling(fitted = fitted, event = event, evidence = evidence,
+        sampling(fitted = fitted, event = event, evidence = evidence,
           n = extra$n, batch = extra$batch, debug = debug)
 
       }#THEN
       else {
 
-        weighting.distribution(fitted = fitted, nodes = event,
-          evidence = evidence, n = extra$n, batch = extra$batch, debug = debug)
+        distribution(fitted = fitted, nodes = event, evidence = evidence,
+          n = extra$n, batch = extra$batch, debug = debug)
 
       }#ELSE
 
@@ -154,14 +112,36 @@ reduce.fitted = function(fitted, event, evidence, nodes, method, debug) {
     upper.closure = schedule(fitted, start = union(nodes.evidence, nodes.event),
                       reverse = TRUE)
 
-    if (debug) {
+    # check whether something went horribly wrong in getting the node labels
+    # and the upper closure.
+    if (((length(upper.closure) == 0) || !all(upper.closure %in% nodes)) ||
+        (!identical(evidence, TRUE) && (length(nodes.evidence) == 0)) ||
+        (!identical(event, TRUE) && (length(nodes.event) == 0))) {
 
-      cat("* checking which nodes are needed.\n")
-      cat("  > event involves the following nodes:", nodes.event, "\n")
-      cat("  > evidence involves the following nodes:", nodes.evidence, "\n")
-      cat("  > upper closure is '", upper.closure, "'\n")
+      # use all the nodes when in doubt.
+      event = evidence = TRUE
+      upper.closure = nodes
+
+      if (debug) {
+
+        cat("* checking which nodes are needed.\n")
+        cat("  > unable to identify query nodes.\n")
+
+      }#THEN
 
     }#THEN
+    else {
+
+      if (debug) {
+
+        cat("* checking which nodes are needed.\n")
+        cat("  > event involves the following nodes:", nodes.event, "\n")
+        cat("  > evidence involves the following nodes:", nodes.evidence, "\n")
+        cat("  > upper closure is '", upper.closure, "'\n")
+
+      }#THEN
+
+    }#ELSE
 
   }#THEN
   else {
@@ -186,7 +166,7 @@ reduce.fitted = function(fitted, event, evidence, nodes, method, debug) {
     try.evidence = TRUE
   else
     try.evidence = try(eval(evidence, dummy), silent = TRUE)
-  # testing event (it's the label nodes in cpdist; TRUE or an expression 
+  # testing event (it's the label nodes in cpdist; TRUE or an expression
   # in cpquery).
   if (!(is.language(event) || identical(event, TRUE)))
     try.event = TRUE
@@ -197,7 +177,7 @@ reduce.fitted = function(fitted, event, evidence, nodes, method, debug) {
   if (is.logical(try.event) && is.logical(try.evidence)) {
 
     if (debug)
-      cat("  > generating observations from", length(upper.closure), "/", 
+      cat("  > generating observations from", length(upper.closure), "/",
         length(fitted), "nodes.\n")
 
     fitted = fitted[upper.closure]
@@ -385,9 +365,9 @@ logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) 
   # reset the row names.
   rownames(result) = NULL
 
-  if (debug && (nbatches > 1)) 
+  if (debug && (nbatches > 1))
     cat("* generated a grand total of", n, "samples.\n")
- 
+
   return(result)
 
 }#LOGIC.DISTRIBUTION
@@ -408,13 +388,13 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
 
     if (isTRUE(evidence))
       return(rep(1, nrow(data)))
-    else 
-      exp(.Call("entropy_loss", 
-                fitted = fitted[names(evidence)],
-                data = data,
-                by.sample = TRUE, 
-                debug = FALSE, 
-                PACKAGE = "bnlearn"))
+    else
+      .Call("lw_weights",
+            fitted = fitted,
+            data = data,
+            by.sample = TRUE,
+            keep = names(evidence),
+            debug = debug)
 
   }#WEIGHTS
 
@@ -450,9 +430,9 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
     matching = r & !is.na(r)
 
     # compute the probabilities and use them as weigths.
-    w = weights(generated.data) 
+    w = weights(generated.data)
     cpe = cpe + sum(w)
-    cpxe = cpxe + sum(w[matching]) 
+    cpxe = cpxe + sum(w[matching])
 
     if (debug)
       cat("  > event has a probability mass of ", cpxe, " out of ", cpe, ".\n", sep = "")
@@ -465,7 +445,7 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
   if (debug && (nbatches > 1)) {
 
     cat("* generated a grand total of", n, "samples.\n")
-    cat("  > event has a probability mass of ", cpxe, " out of ", cpe, 
+    cat("  > event has a probability mass of ", cpxe, " out of ", cpe,
         " (p = ", result, ").\n", sep = "")
 
   }#THEN
@@ -506,9 +486,9 @@ weighting.distribution = function(fitted, nodes, evidence, n, batch, debug = FAL
 
   }#FOR
 
-  if (debug && (nbatches > 1)) 
+  if (debug && (nbatches > 1))
     cat("* generated a grand total of", n, "samples.\n")
- 
+
   return(result)
 
 }#WEIGHTING.DISTRIBUTION

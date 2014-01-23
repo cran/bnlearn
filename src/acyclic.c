@@ -12,11 +12,11 @@ static SEXP build_return_array(SEXP nodes, short int *status,
  * Bang-Jensen and Gutin, page 13.
  */
 
-SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes, 
+SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes,
     SEXP directed, SEXP debug) {
 
 int i = 0, j = 0, z = 0;
-int nrows = LENGTH(nodes);
+int nrows = length(nodes);
 int check_status = nrows, check_status_old = nrows;
 int *rowsums = NULL, *colsums = NULL, *crossprod = NULL, *a = NULL;
 int *debuglevel = NULL;

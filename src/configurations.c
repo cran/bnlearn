@@ -3,17 +3,24 @@
 /* wrapper around the cfg() function for use in .Call(). */
 SEXP cfg2(SEXP parents, SEXP factor, SEXP all) {
 
-int i = 0, *res = NULL, nlevels = 0, *all_levels = LOGICAL(all);
+  return c_cfg2(parents, isTRUE(factor), isTRUE(all));
+
+}/*CFG2*/
+
+/* wrapper around the cfg() function for use in C code. */
+SEXP c_cfg2(SEXP parents, int factor, int all_levels) {
+
+int i = 0, *res = NULL, nlevels = 0;
 SEXP temp, result;
 
   /* compute the configurations. */
-  PROTECT(temp = allocVector(INTSXP, LENGTH(VECTOR_ELT(parents, 0))));
+  PROTECT(temp = allocVector(INTSXP, length(VECTOR_ELT(parents, 0))));
   cfg(parents, INTEGER(temp), &nlevels);
 
-  if (isTRUE(factor)) {
+  if (factor) {
 
     /* convert the configurations from an integer array to to a factor. */
-    if (*all_levels)
+    if (all_levels)
       result = int2fac(temp, &nlevels);
     else
       result = int2fac(temp, NULL);
@@ -26,7 +33,7 @@ SEXP temp, result;
     result = temp;
     res = INTEGER(result);
 
-    for (i = 0; i < LENGTH(result); i++)
+    for (i = 0; i < length(result); i++)
       res[i]++;
 
   }/*ELSE*/
@@ -35,20 +42,20 @@ SEXP temp, result;
 
   return result;
 
-}/*CFG2*/
+}/*C_CFG2*/
 
 /* identify different configurations of factors and assign them unique integer
  * codes, computed using the general formula for the column-mayor indexing. */
 void cfg(SEXP parents, int *configurations, int *nlevels) {
 
 int i = 0, j = 0, cfgmap = 0;
-int ncols = LENGTH(parents), nrows = LENGTH(VECTOR_ELT(parents, 0));
+int ncols = length(parents), nrows = length(VECTOR_ELT(parents, 0));
 long long *cumlevels = NULL, nl = 0;
 int **columns = NULL;
 
   /* create the cumulative products of the number of levels. */
   cumlevels = (long long *) R_alloc(ncols, sizeof(long long));
-  memset(cumlevels, '\0', sizeof(long long) * ncols); 
+  memset(cumlevels, '\0', sizeof(long long) * ncols);
 
   /* dereference the columns of the data frame. */
   columns = (int **) alloc1dpointer(ncols);

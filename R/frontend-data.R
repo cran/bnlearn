@@ -87,7 +87,7 @@ relevant = function(target, context, data, test, alpha, B, debug = FALSE) {
   # check the test label.
   test = check.test(test, data)
   # check B (the number of eprmutations).
-  B = check.B(B, test)  
+  B = check.B(B, test)
   # check alpha.
   alpha = check.alpha(alpha)
   # check debug.

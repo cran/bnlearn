@@ -5,7 +5,7 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
   # check x's class.
   check.bn(x)
   # arc strength is undefined in partially directed graphs.
-  if (is.pdag(x$arcs, names(x$nodes)) && !identical(criterion, "bootstrap"))
+  if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
   # check the data are there.
   check.data(data)
@@ -22,11 +22,6 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
       criterion = check.test(criterion, data)
     else
       criterion = x$learning$test
-
-  }#THEN
-  else if (identical(criterion, "bootstrap")) {
-
-    # nothing to do, move along.
 
   }#THEN
   else  {
@@ -68,26 +63,6 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
     # add extra information for strength.plot().
     res = structure(res, mode = "score", threshold = 0)
-
-  }#THEN
-  else if (criterion == "bootstrap") {
-
-    # expand and check bootstrap-specific arguments.
-    extra.args = check.bootstrap.args(list(...), network = x, data = data)
-
-    res = arc.strength.boot(data = data, R = extra.args$R,
-            m = extra.args$m, algorithm = extra.args[["algorithm"]],
-            algorithm.args = extra.args[["algorithm.args"]], arcs = NULL,
-            cpdag = FALSE, debug = debug)
-
-    # compute the confidence threshold before subsetting.
-    t = threshold(res)
-    # extract the subset of arcs of interest.
-    res = match.arcs.and.strengths(x$arcs, names(x$nodes), res, keep = TRUE)
-
-    # add extra information for strength.plot(), and drop the column
-    # with the direction confidence.
-    res = structure(res[, 1:3], mode = "bootstrap", threshold = t)
 
   }#THEN
 

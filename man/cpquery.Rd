@@ -22,8 +22,8 @@ mutilated(x, evidence)
   \item{event, evidence}{see below.}
   \item{nodes}{a vector of character strings, the labels of the nodes whose
     conditional distribution we are interested in.}
-  \item{cluster}{an optional cluster object from package \pkg{snow}.
-      See \code{\link{snow integration}} for details and a simple
+  \item{cluster}{an optional cluster object from package \pkg{parallel}.
+      See \code{\link{parallel integration}} for details and a simple
       example.}
   \item{method}{a character string, the method used to perform the conditional
     probability query. Currently only \emph{logic sampling} (\code{ls}, the
@@ -37,7 +37,7 @@ mutilated(x, evidence)
   \code{cpquery} estimates the conditional probability of \code{event} given
   \code{evidence} using the method specified in the \code{method} argument.
 
-  \code{cpdist} generates random observations conditional on the 
+  \code{cpdist} generates random observations conditional on the
   \code{evidence} using the method specified in the \code{method} argument.
 
   \code{mutilated} constructs the mutilated network used for sampling
@@ -51,7 +51,7 @@ mutilated(x, evidence)
   format such that, if we denote with \code{data} the data set the network
   was learned from, \code{data[evidence, ]} and \code{data[event, ]}
   return the correct observations.
-  If either \code{event} or \code{evidence} is set to \code{TRUE} an 
+  If either \code{event} or \code{evidence} is set to \code{TRUE} an
   unconditional probability query is performed with respect to that argument.
 
   Three tuning parameters are available:
@@ -66,16 +66,17 @@ mutilated(x, evidence)
 
     \item \code{query.nodes}: a a vector of character strings, the labels of
       the nodes involved in \code{event} and \code{evidence}. Simple queries
-      do not require to generate observations from all the nodes in the 
+      do not require to generate observations from all the nodes in the
       network, so \code{cpquery} and \code{cpdist} try to identify which
       nodes are used in \code{event} and \code{evidence} and reduce the
       network to their upper closure. \code{query.nodes} may be used to
-      manually specify these nodes when automatic identification fails.
+      manually specify these nodes when automatic identification fails; there
+      is no reason to use it otherwise.
 
   }
 
-  Note that the number of observations returned by \code{cpdist} is always 
-  smaller than \code{n}, because logic sampling is a form of rejection 
+  Note that the number of observations returned by \code{cpdist} is always
+  smaller than \code{n}, because logic sampling is a form of rejection
   sampling. Therefore, only the obervations matching \code{evidence} (out
   of the \code{n} that are generated) are returned, and their number depends
   on the probability of \code{evidence}.
@@ -83,15 +84,21 @@ mutilated(x, evidence)
 }
 \section{Likelihood Weighting}{
 
-  The \code{event} argument must be an expression describing the event of 
+  The \code{event} argument must be an expression describing the event of
   interest, as in logic sampling. The \code{evidence} argument must be a
   named list; each element corresponds to one node in the network and must
   contain the value that node will be set to when sampling.
-  If either \code{event} or \code{evidence} is set to \code{TRUE} an 
+  If either \code{event} or \code{evidence} is set to \code{TRUE} an
   unconditional probability query is performed with respect to that argument.
 
   Tuning parameters are the same as for logic sampling: \code{n}, \code{batch}
   and \code{query.nodes}.
+
+  Note that the observations returned by \code{cpdist} are generated from
+  the mutilated network, and need to be weighted appropriately when computing
+  summary statistics (for more details, see the references below).
+  \code{cpquery} does that automatically when computing the final conditional
+  probability.
 
 }
 \value{
@@ -116,7 +123,7 @@ mutilated(x, evidence)
 
 }
 \examples{
-## discrete Bayesian network (it's the same with ordinal nodes).
+## discrete Bayesian network (it is the same with ordinal nodes).
 data(learning.test)
 fitted = bn.fit(hc(learning.test), learning.test)
 # the result should be around 0.025.
@@ -126,7 +133,7 @@ cpquery(fitted, (B == "b"), (A == "a"))
 var = names(learning.test)
 obs = 2
 str = paste("(", names(learning.test)[-3], "=='",
-        sapply(learning.test[obs,-3], as.character), "')", 
+        sapply(learning.test[obs,-3], as.character), "')",
         sep = "", collapse = " & ")
 str
 str2 = paste("(", names(learning.test)[3], "=='",
@@ -134,16 +141,16 @@ str2 = paste("(", names(learning.test)[3], "=='",
 str2
 cpquery(fitted, eval(parse(text = str2)), eval(parse(text = str)))
 # do the same with likelihood weighting
-cpquery(fitted, event = eval(parse(text = str2)), 
+cpquery(fitted, event = eval(parse(text = str2)),
   evidence = as.list(learning.test[2, -3]), method = "lw")
-# conditional distribution of A given C == "c". 
+# conditional distribution of A given C == "c".
 table(cpdist(fitted, "A", (C == "c")))
 
 ## Gaussian Bayesian network.
 data(gaussian.test)
 fitted = bn.fit(hc(gaussian.test), gaussian.test)
 # the result should be around 0.04.
-cpquery(fitted, 
+cpquery(fitted,
   event = ((A >= 0) & (A <= 1)) & ((B >= 0) & (B <= 3)),
   evidence = (C + D < 10))
 }

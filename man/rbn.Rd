@@ -2,10 +2,10 @@
 \alias{rbn}
 \alias{rbn.bn}
 \alias{rbn.bn.fit}
-\title{ Generate random data from a given Bayesian network }
+\title{ Simulate random data from a given Bayesian network }
 \description{
 
-  Generate random data from a given Bayesian network.
+  Simulate random data from a given Bayesian network.
 
 }
 \usage{

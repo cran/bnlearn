@@ -10,7 +10,7 @@ SEXP unique_arcs(SEXP arcs, SEXP nodes, SEXP warn) {
 /* C-level interface to unique_arcs. */
 SEXP c_unique_arcs(SEXP arcs, SEXP nodes, int warnlevel) {
 
-int i = 0, j = 0, k = 0, nrows = 0, uniq_rows = 0, n = LENGTH(nodes);
+int i = 0, j = 0, k = 0, nrows = 0, uniq_rows = 0, n = length(nodes);
 int *checklist = NULL;
 SEXP result, try, node, dup;
 
@@ -39,7 +39,7 @@ SEXP result, try, node, dup;
     }/*FOR*/
 
   }/*THEN*/
-  else if (LENGTH(arcs) == 0) {
+  else if (length(arcs) == 0) {
 
     /* the arc set is empty, nothing to do. */
     return arcs;
@@ -48,7 +48,7 @@ SEXP result, try, node, dup;
   else {
 
     /* there really is a non-empty arc set, process it. */
-    nrows = LENGTH(arcs)/2;
+    nrows = length(arcs)/2;
 
     /* match the node labels in the arc set. */
     PROTECT(try = arc_hash(arcs, nodes, FALSE, FALSE));
@@ -109,7 +109,7 @@ SEXP result, try, node, dup;
 /* determine which arcs are undirected. */
 SEXP which_undirected(SEXP arcs, SEXP nodes) {
 
-int i = 0, nrows = LENGTH(arcs)/2, nlvls = 0;
+int i = 0, nrows = length(arcs)/2, nlvls = 0;
 int *coords = NULL, *id = NULL;
 SEXP result, labels, try, arc_id;
 
@@ -119,7 +119,7 @@ SEXP result, labels, try, arc_id;
   else
     labels = nodes;
 
-  nlvls = LENGTH(labels);
+  nlvls = length(labels);
 
   /* match the node labels in the arc set. */
   PROTECT(try = match(labels, arcs, 0));

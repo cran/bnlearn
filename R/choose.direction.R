@@ -131,18 +131,20 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug = FALSE
 
   # compute the initial score of the nodes involved.
   reference.score = per.node.score(network = x, score = score,
-                      nodes = arc, extra.args = extra.args, data = data)
+                      targets = arc, extra.args = extra.args, data = data)
+  # check whether the score is decomposable.
+  decomp = is.score.decomposable(score, nodes, extra.args)
 
   # compare the scores of the two networks.
   better1 = score.delta(arc = arc, network = x, data = data,
               score = score, score.delta = 0,
               reference.score = reference.score, op = "set",
-              extra = extra.args)
+              extra = extra.args, decomposable = decomp)
 
   better2 = score.delta(arc = arc[c(2, 1)], network = x, data = data,
               score = score, score.delta = 0,
               reference.score = reference.score, op = "set",
-              extra = extra.args)
+              extra = extra.args, decomposable = decomp)
 
   if (debug) {
 

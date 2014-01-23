@@ -69,7 +69,7 @@ arc.strength.score = function(network, data, score, extra, debug = FALSE) {
     better = score.delta(arc = arc, network = network, data = data,
                score = score, score.delta = 0,
                reference.score = reference.score, op = "drop",
-               extra = extra)
+               extra = extra, decomposable = decomp)
 
     if (debug) {
 
@@ -86,7 +86,9 @@ arc.strength.score = function(network, data, score, extra, debug = FALSE) {
   nodes = names(data)
   # set the reference score.
   reference.score = per.node.score(network = network, score = score,
-                      nodes = nodes, extra.args = extra, data = data)
+                      targets = nodes, extra.args = extra, data = data)
+  # check whether the score is decomposable.
+  decomp = is.score.decomposable(score, nodes, extra)
 
   if (debug) {
 
@@ -119,81 +121,105 @@ arc.strength.score = function(network, data, score, extra, debug = FALSE) {
 }#ARC.STRENGTH.SCORE
 
 # compute arcs' strength as the relative frequency in boostrapped networks.
-arc.strength.boot = function(data, R, m, algorithm, algorithm.args, arcs,
-    cpdag, debug = FALSE) {
+arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
+    algorithm.args, arcs, cpdag, debug = FALSE) {
 
-  # allocate and initialize an empty adjacency matrix.
-  prob = matrix(0, ncol = ncol(data), nrow = ncol(data))
-  # get the names of the variables in the data set.
-  nodes = names(data)
+  bootstrap.batch = function(data, R, m, algorithm, algorithm.args, arcs,
+    cpdag, debug) {
 
-  for (r in seq_len(R)) {
+    # allocate and initialize an empty adjacency matrix.
+    prob = matrix(0, ncol = ncol(data), nrow = ncol(data))
+    # get the names of the variables in the data set.
+    nodes = names(data)
 
-    if (debug) {
+    for (r in seq_len(R)) {
 
-      cat("----------------------------------------------------------------\n")
-      cat("* bootstrap replicate", r, ".\n")
+      if (debug) {
 
-    }#THEN
+        cat("----------------------------------------------------------------\n")
+        cat("* bootstrap replicate", r, ".\n")
 
-    # perform the resampling with replacement.
-    resampling = sample(nrow(data), m, replace = TRUE)
+      }#THEN
 
-    # user-provided lists of manipulated observations for the mbde score must
-    # be remapped to match the bootstrap sample.
-    if ((algorithm.args$score == "mbde") && !is.null(algorithm.args$exp)) {
+      # perform the resampling with replacement.
+      resampling = sample(nrow(data), m, replace = TRUE)
 
-      algorithm.args$exp = lapply(algorithm.args$exp, function(x) {
+      # user-provided lists of manipulated observations for the mbde score must
+      # be remapped to match the bootstrap sample.
+      if ((algorithm.args$score == "mbde") && !is.null(algorithm.args$exp)) {
 
-        x = match(x, resampling)
-        x = x[!is.na(x)]
+        algorithm.args$exp = lapply(algorithm.args$exp, function(x) {
 
-      })
+          x = match(x, resampling)
+          x = x[!is.na(x)]
 
-    }#THEN
+        })
 
-    # generate the r-th bootstrap sample.
-    replicate = data[resampling, , drop = FALSE]
+      }#THEN
 
-    # learn the network structure from the bootstrap sample.
-    net = do.call(algorithm, c(list(x = replicate), algorithm.args))
+      # generate the r-th bootstrap sample.
+      replicate = data[resampling, , drop = FALSE]
 
-    # switch to the equivalence class if asked to.
-    if (cpdag)
-      net = cpdag(net)
+      # learn the network structure from the bootstrap sample.
+      net = do.call(algorithm, c(list(x = replicate), algorithm.args))
 
-    if (debug) {
+      # switch to the equivalence class if asked to.
+      if (cpdag)
+        net = cpdag.backend(net, moral = TRUE, debug = FALSE)
 
-      cat("* learning bayesian network structure.\n")
-      print(net)
+      if (debug) {
 
-    }#THEN
+        cat("* learning bayesian network structure.\n")
+        print(net)
 
-    # update the counters in the matrix: undirected arcs are counted half
-    # for each direction, so that when summing up strength and direction
-    # they get counted once instead of twice.
-    # BEWARE: in-place modification of prob!
-    .Call("bootstrap_strength_counters",
-          prob = prob,
-          weight = 1,
-          arcs = net$arcs,
-          nodes = nodes,
-          PACKAGE = "bnlearn")
+      }#THEN
 
-  }#FOR
+      # update the counters in the matrix: undirected arcs are counted half
+      # for each direction, so that when summing up strength and direction
+      # they get counted once instead of twice.
+      # BEWARE: in-place modification of prob!
+      .Call("bootstrap_strength_counters",
+            prob = prob,
+            weight = 1,
+            arcs = net$arcs,
+            nodes = nodes)
 
-  # rescale the counters to probabilities.
-  prob = prob / R
+    }#FOR
 
-  res = .Call("bootstrap_arc_coefficients",
-              prob = prob,
-              nodes = nodes,
-              PACKAGE = "bnlearn")
+    # rescale the counters to probabilities.
+    prob = prob / R
 
-  if (!is.null(arcs))
-    return(match.arcs.and.strengths(arcs, nodes, res, keep = TRUE))
-  else
-    return(res)
+    res = .Call("bootstrap_arc_coefficients",
+                prob = prob,
+                nodes = nodes)
+
+    if (!is.null(arcs))
+      return(match.arcs.and.strengths(arcs, nodes, res, keep = TRUE))
+    else
+      return(res)
+
+  }#BOOTSTRAP.BATCH
+
+  if (!is.null(cluster)) {
+
+    # get the number of slaves.
+    s = nSlaves(cluster)
+
+    res = parLapply(cluster, rep(ceiling(R / s), s), bootstrap.batch,
+            data = data, m = m, arcs = arcs, algorithm = algorithm,
+            algorithm.args = algorithm.args, cpdag = cpdag, debug = debug)
+
+    .Call("bootstrap_reduce",
+          x = res)
+
+  }#THEN
+  else {
+
+    bootstrap.batch(data = data, R = R, m = m, algorithm = algorithm,
+      algorithm.args = algorithm.args, arcs = arcs, cpdag = cpdag,
+      debug = debug)
+
+  }#THEN
 
 }#ARC.STRENGTH.BOOT
 
@@ -226,7 +252,7 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
 
     # switch to the equivalence class if asked to.
     if (cpdag)
-      net.arcs = cpdag.arc.backend(nodes, net.arcs)
+      net.arcs = cpdag.arc.backend(nodes, net.arcs, moral = TRUE)
 
     # update the counters in the matrix: undirected arcs are counted half
     # for each direction, so that when summing up strength and direction
@@ -236,8 +262,7 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
           prob = prob,
           weight = weights[r],
           arcs = net.arcs,
-          nodes = nodes,
-          PACKAGE = "bnlearn")
+          nodes = nodes)
 
   }#FOR
 
@@ -246,8 +271,7 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
 
   res = .Call("bootstrap_arc_coefficients",
               prob = prob,
-              nodes = nodes,
-              PACKAGE = "bnlearn")
+              nodes = nodes)
 
   if (!is.null(arcs))
     return(match.arcs.and.strengths(arcs, nodes, res, keep = TRUE))

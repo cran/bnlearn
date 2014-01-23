@@ -29,7 +29,7 @@ choose.direction(x, arc, data, criterion = NULL, ..., debug = FALSE)
 \details{
 
   If \code{criterion} is \code{bootstrap}, \code{choose.directions} accepts
-  the same arguments as \code{boot.strength}: \code{R} (the number of 
+  the same arguments as \code{boot.strength}: \code{R} (the number of
   bootstrap replicates), \code{m} (the bootstrap sample size), \code{algorithm}
   (the structure learning algorithm), \code{algorithm.args} (the arguments to
   pass to the structure learning algorithm) and \code{cpdag} (whether to

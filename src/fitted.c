@@ -16,9 +16,9 @@ SEXP temp, temp2, nodes, node_data, labels, result;
   /* get the nodes' labels. */
   labels = getAttrib(nodes, R_NamesSymbol);
   /* allocate and initialize a status vector. */
-  status = allocstatus(LENGTH(nodes));
+  status = allocstatus(length(nodes));
 
-  for (i = 0; i < LENGTH(nodes); i++) {
+  for (i = 0; i < length(nodes); i++) {
 
     /* get the parents/children of this node. */
     node_data = VECTOR_ELT(nodes, i);
@@ -29,7 +29,7 @@ SEXP temp, temp2, nodes, node_data, labels, result;
       temp = getListElement(node_data, "children");
 
     /* this is not a root/leaf node, go on. */
-    if (LENGTH(temp) != 0)
+    if (length(temp) != 0)
       continue;
 
     /* this takes care of dubious neighbours in "bn" objects. */
@@ -45,7 +45,7 @@ SEXP temp, temp2, nodes, node_data, labels, result;
       /* in partially directed graphs not all neighbours can be classified as
        * parents or children due to undirected arcs; return only nodes which
        * are not incident on any undirected arc. */
-      if (LENGTH(temp) != LENGTH(temp2))
+      if (length(temp) != length(temp2))
         continue;
 
     }/*THEN*/
@@ -60,7 +60,7 @@ SEXP temp, temp2, nodes, node_data, labels, result;
   /* allocate and initialize the result. */
   PROTECT(result = allocVector(STRSXP, counter));
 
-  for (i = 0; i < LENGTH(nodes); i++)
+  for (i = 0; i < length(nodes); i++)
     if (status[i] == 1)
       SET_STRING_ELT(result, k++, STRING_ELT(labels, i));
 
@@ -80,12 +80,12 @@ SEXP labels, node_data, children, result;
   labels = getAttrib(bn, R_NamesSymbol);
 
   /* first pass: count the number of arcs. */
-  for (i = 0; i <  LENGTH(bn); i++) {
+  for (i = 0; i <  length(bn); i++) {
 
     /* get the node's data. */
     node_data = VECTOR_ELT(bn, i);
     /* count its children. */
-    narcs += LENGTH(getListElement(node_data, "children"));
+    narcs += length(getListElement(node_data, "children"));
 
   }/*FOR*/
 
@@ -95,14 +95,14 @@ SEXP labels, node_data, children, result;
   finalize_arcs(result);
 
   /* second pass: initialize the return value. */
-  for (i = 0; i <  LENGTH(bn); i++) {
+  for (i = 0; i <  length(bn); i++) {
 
     /* get the node's data. */
     node_data = VECTOR_ELT(bn, i);
     /* get its children. */
     children = getListElement(node_data, "children");
 
-    for (j = 0; j < LENGTH(children); j++) {
+    for (j = 0; j < length(children); j++) {
 
       /* set the labels of the nodes incident on the arc. */
       SET_STRING_ELT(result, k, STRING_ELT(labels, i));
@@ -123,7 +123,7 @@ SEXP labels, node_data, children, result;
 /* compute the number of parameters of the model. */
 SEXP fitted_nparams(SEXP bn, SEXP debug) {
 
-int i = 0, j = 0, node_params = 0, nnodes = LENGTH(bn);
+int i = 0, j = 0, node_params = 0, nnodes = length(bn);
 int *res = NULL, *debuglevel = LOGICAL(debug);
 SEXP result, nodes = R_NilValue, node_data, temp;
 
@@ -149,7 +149,7 @@ SEXP result, nodes = R_NilValue, node_data, temp;
       /* get the dimensions of the conditional probability table. */
       temp = getAttrib(temp, R_DimSymbol);
       /* compute the number of parameters. */
-      for (j = 1; j < LENGTH(temp); j++)
+      for (j = 1; j < length(temp); j++)
         node_params *= INTEGER(temp)[j];
 
       node_params *= INTEGER(temp)[0] - 1;
@@ -158,7 +158,7 @@ SEXP result, nodes = R_NilValue, node_data, temp;
     else {
 
       /* this is a continuous node, so it's a lot easier. */
-      node_params = LENGTH(getListElement(node_data, "coefficients"));
+      node_params = length(getListElement(node_data, "coefficients"));
 
     }/*ELSE*/
 
@@ -181,7 +181,7 @@ SEXP result, nodes = R_NilValue, node_data, temp;
   PROTECT(try = match(labels, temp, 0));       \
   matched = INTEGER(try);                      \
                                                \
-  for (i = 0; i < LENGTH(try); i++)            \
+  for (i = 0; i < length(try); i++)            \
     if (status[matched[i] - 1] == 0) {         \
                                                \
       status[matched[i] - 1] = value;          \
@@ -207,7 +207,7 @@ SEXP mb, labels, try, temp, node_data;
 
   /* get the nodes' labels. */
   labels = getAttrib(bn, R_NamesSymbol);
-  nnodes = LENGTH(labels);
+  nnodes = length(labels);
   /* allocate and initialize a status vector. */
   status = allocstatus(nnodes);
 
@@ -280,14 +280,14 @@ SEXP nodes, node_data, temp, result;
   res = INTEGER(result);
   *res = 0;
 
-  for (i = 0; i < LENGTH(nodes); i++) {
+  for (i = 0; i < length(nodes); i++) {
 
     /* get the parents/children of this node. */
     node_data = VECTOR_ELT(nodes, i);
 
     temp = getListElement(node_data, element);
 
-    *res += LENGTH(temp);
+    *res += length(temp);
 
   }/*FOR*/
 

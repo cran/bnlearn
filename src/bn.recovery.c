@@ -10,7 +10,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
 
   /* get the names of the nodes. */
   nodes = getAttrib(bn, R_NamesSymbol);
-  n = LENGTH(nodes);
+  n = length(nodes);
 
   /* allocate and initialize the checklist. */
   checklist = allocstatus(UPTRI_MATRIX(n));
@@ -44,7 +44,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
 
     /* check each element of the array and identify which variable it
        corresponds to. */
-    for (j = 0; j < LENGTH(temp); j++) {
+    for (j = 0; j < length(temp); j++) {
 
       for (k = 0; k < n; k++) {
 
@@ -142,7 +142,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
     PROTECT(temp2 = allocVector(STRSXP, counter));
 
     for (j = 0; j < n; j++)
-      if (checklist[UPTRI(i + 1, j + 1, n)] == 2)
+      if (checklist[UPTRI(i + 1, j + 1, n)] == *flt)
         if (i != j)
           SET_STRING_ELT(temp2, --counter, STRING_ELT(nodes, j));
 

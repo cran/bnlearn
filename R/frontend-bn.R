@@ -100,7 +100,7 @@ blacklist = function(x) {
 }#BLACKLIST
 
 # reconstruct the equivalence class of a network.
-cpdag = function(x, moral = FALSE, debug = FALSE) {
+cpdag = function(x, moral = TRUE, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
@@ -142,7 +142,7 @@ cextend = function(x, strict = TRUE, debug = FALSE) {
 }#CEXTEND
 
 # report v-structures in the network.
-vstructs = function(x, arcs = FALSE, moral = FALSE, debug = FALSE) {
+vstructs = function(x, arcs = FALSE, moral = TRUE, debug = FALSE) {
 
   # check x's class.
   check.bn(x)

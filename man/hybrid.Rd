@@ -12,9 +12,9 @@
 }
 \usage{
 rsmax2(x, whitelist = NULL, blacklist = NULL, restrict, maximize = "hc",
-  test = NULL, score = NULL, alpha = 0.05, B = NULL, ..., 
+  test = NULL, score = NULL, alpha = 0.05, B = NULL, ...,
   maximize.args = list(), optimized = TRUE, strict = FALSE, debug = FALSE)
-mmhc(x, whitelist = NULL, blacklist = NULL, test = NULL, score = NULL, 
+mmhc(x, whitelist = NULL, blacklist = NULL, test = NULL, score = NULL,
   alpha = 0.05, B = NULL, ..., restart = 0, perturb = 1, max.iter = Inf,
   optimized = TRUE, strict = FALSE, debug = FALSE)
 }

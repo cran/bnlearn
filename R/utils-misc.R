@@ -1,3 +1,15 @@
+# this is to keep the old S3 behaviour inside the NAMESPACE.
+is = function(x, class) {
+
+  if (identical(class, "double"))
+    is.double(x)
+  else if ("double" %in% class)
+    any(class(x) %in% class) || is.double(x)
+  else
+    any(class(x) %in% class)
+
+}#IS
+
 # get all the subsets of a given size, even if either the initial set
 # or the subset are empty (i.e. of size zero).
 # Slightly modified version of the combinations() function from
@@ -7,7 +19,6 @@
 ## Alex Ahgarin <datamanagement@email.com>.  Original version was
 ## named "subsets" and was Written by Bill Venables.
 # It's released under "LGPL 2.1".
-
 subsets = function(n, r, v = 1:n, set = TRUE, repeats.allowed = FALSE) {
 
   # allow empty subsets (i.e. subsets of empty sets).
@@ -85,8 +96,7 @@ configurations = function(data, factor = TRUE, all = TRUE) {
   .Call("cfg2",
         data = data,
         factor = factor,
-        all = all,
-        PACKAGE = "bnlearn")
+        all = all)
 
 }#CONFIGURATIONS
 
@@ -96,16 +106,14 @@ arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
   .Call("arcs_rbind1",
         matrix1 = matrix1,
         matrix2 = matrix2,
-        reverse2 = reverse2,
-        PACKAGE = "bnlearn")
+        reverse2 = reverse2)
 
 }#ARCS.RBIND
 
 minimal.data.frame = function(lst) {
 
   .Call("minimal_data_frame",
-        obj = lst,
-        PACKAGE = "bnlearn")
+        obj = lst)
 
 }#MINIMAL.DATA.FRAME
 
@@ -114,8 +122,7 @@ minimal.data.frame.column = function(dataframe, column, drop = TRUE) {
   .Call("dataframe_column",
         dataframe = dataframe,
         column = column,
-        drop = drop,
-        PACKAGE = "bnlearn")
+        drop = drop)
 
 }#MINIMAL.DATA.FRAME.COLUMN
 
@@ -123,8 +130,7 @@ minimal.qr.matrix = function(dataframe, column) {
 
   .Call("qr_matrix",
         dataframe = dataframe,
-        column = column,
-        PACKAGE = "bnlearn")
+        column = column)
 
 }#MINIMAL.QR.MATRIX
 
@@ -165,7 +171,6 @@ explode = function(x) {
 normalize.cpt = function(x) {
 
   .Call("normalize_cpt",
-        cpt = x,
-        PACKAGE = "bnlearn")
+        cpt = x)
 
 }#NORMALIZE.CPT

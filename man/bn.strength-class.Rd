@@ -42,7 +42,7 @@
   An optional column called \code{direction} may also be present, giving the
   probability of the direction of an arc given its presence in the graph.
 
-  Only the \code{plot} method is defined for this class; therefore, it can 
+  Only the \code{plot} method is defined for this class; therefore, it can
   be manipulated as a standard data frame.
 
 }

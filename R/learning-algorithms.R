@@ -252,8 +252,10 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   extra.args = expand[names(expand) %in% score.extra.args[[score]]]
   check.unused.args(expand, c(method.extra.args[[heuristic]], score.extra.args[[score]]))
 
-  # expand and check the max.iter parameter (common to all algorithm)
+  # expand and check the max.iter parameter (common to all algorithms).
   max.iter = check.max.iter(misc.args$max.iter)
+  # expand and check the maxp parameter (common to all algorithms).
+  maxp = check.maxp(misc.args$maxp, data = x)
 
   if (heuristic == "hc") {
 
@@ -284,6 +286,11 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     check.bn(start)
     # check the preseeded network against the data set.
     check.bn.vs.data(start, x)
+    # check the preseeded network against the maximum number of parents.
+    nparents = sapply(start$nodes, function(x) length(x$parents))
+    if (any(nparents > maxp))
+      stop("nodes ", paste(names(which(nparents > maxp)), collapse = " "),
+        " have more than 'maxp' parents.")
 
   }#ELSE
 
@@ -326,7 +333,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     res = hill.climbing(x = x, start = start, whitelist = whitelist,
       blacklist = blacklist, score = score, extra.args = extra.args,
       restart = restart, perturb = perturb, max.iter = max.iter,
-      optimized = optimized, debug = debug)
+      maxp = maxp, optimized = optimized, debug = debug)
 
   }#THEN
   else if (heuristic == "tabu"){
@@ -334,7 +341,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     res = tabu.search(x = x, start = start, whitelist = whitelist,
       blacklist = blacklist, score = score, extra.args = extra.args,
       max.iter = max.iter, optimized = optimized, tabu = tabu,
-      debug = debug)
+      maxp = maxp, debug = debug)
 
   }#THEN
 
@@ -644,7 +651,7 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   # call the right backend, forward phase.
   if (method == "mmpc") {
 
-    nbr = maxmin.pc.forward.phase(target, data = x, nodes = nodes, 
+    nbr = maxmin.pc.forward.phase(target, data = x, nodes = nodes,
            alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
            test = test, optimized = optimized, debug = debug)
 
@@ -653,12 +660,12 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 
     nbr = si.hiton.pc.heuristic(target, data = x, nodes = nodes, alpha = alpha,
             B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-            optimized = optimized, debug = debug) 
+            optimized = optimized, debug = debug)
 
   }#ELSE
 
   # this is the backward phase.
-  nbr = neighbour(target, mb = structure(list(nbr), names = target), data = x, 
+  nbr = neighbour(target, mb = structure(list(nbr), names = target), data = x,
           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
           test = test, markov = FALSE, debug = debug)
 
@@ -676,16 +683,16 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
   check.learning.algorithm(method, class = "classifier")
   # check the training node (the center of the star-shaped graph).
   check.nodes(training, max.nodes = 1)
-  # check the data.
-  if (method != "naive") {
+  # check the data (which are not really used in naive bayes).
+  if (method != "naive.bayes") {
 
-      check.data(data)
+    check.data(data)
     if (!is.data.discrete(data))
       stop("continuous data are not supported.")
 
   }#THEN
 
-  # check the explantory variables (the points of the star-shaped graph).
+  # check the explantory variables.
   if (missing(data)) {
 
     check.nodes(explanatory)
@@ -711,7 +718,7 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
   # cache the whole node set.
   nodes = c(training, explanatory)
   # sanitize whitelist and blacklist, if any.
-  if (method != "naive") {
+  if (method != "naive.bayes") {
 
     whitelist = build.whitelist(whitelist, explanatory)
     blacklist = build.blacklist(blacklist, whitelist, explanatory)
@@ -722,7 +729,7 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
   extra.args = check.classifier.args(method = method, data = data, extra.args = expand,
                  training = training, explanatory = explanatory)
 
-  if (method == "naive") {
+  if (method == "naive.bayes") {
 
     # naive bayes requires no test.
     ntests = 0
@@ -733,7 +740,7 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
             explanatory = explanatory)
 
   }#THEN
-  else if (method == "tan") {
+  else if (method == "tree.bayes") {
 
     # tan gets its tests from the chow-liu algorithm.
     ntests = length(explanatory) * (length(explanatory) - 1)/2

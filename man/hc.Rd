@@ -10,10 +10,10 @@
 
 }
 \usage{
-hc(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ..., 
-  debug = FALSE, restart = 0, perturb = 1, max.iter = Inf, optimized = TRUE)
+hc(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ...,
+  debug = FALSE, restart = 0, perturb = 1, max.iter = Inf, maxp = Inf, optimized = TRUE)
 tabu(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ...,
-  debug = FALSE, tabu = 10, max.tabu = tabu, max.iter = Inf, optimized = TRUE)
+  debug = FALSE, tabu = 10, max.tabu = tabu, max.iter = Inf, maxp = Inf, optimized = TRUE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
@@ -28,7 +28,7 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ...,
       the graph. }
   \item{score}{a character string, the label of the network score to
       be used in the algorithm. If none is specified, the default
-      score is the\emph{Bayesian Information Criterion} for both
+      score is the \emph{Bayesian Information Criterion} for both
       discrete and continuous data sets. See \code{\link{bnlearn-package}}
       for details.}
   \item{\dots}{additional tuning parameters for the network score.
@@ -43,6 +43,8 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ...,
   \item{perturb}{an integer, the number of attempts to randomly
       insert/remove/reverse an arc on every random restart.}
   \item{max.iter}{an integer, the maximum number of iterations.}
+  \item{maxp}{the maximum number of parents for a node. The default
+      value is \code{Inf}.}
   \item{optimized}{a boolean value. See \code{\link{bnlearn-package}}
       for details.}
 }

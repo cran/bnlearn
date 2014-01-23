@@ -12,8 +12,7 @@ has.path = function(from, to, nodes, amat, exclude.direct = FALSE,
         nodes = nodes,
         underlying = underlying.graph,
         exclude.direct = exclude.direct,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#HAS.PATH
 
@@ -37,8 +36,7 @@ root.leaf.nodes = function(x, leaf = FALSE) {
 
   .Call("root_nodes",
         bn = x,
-        check = as.integer(leaf),
-        PACKAGE = "bnlearn")
+        check = as.integer(leaf))
 
 }#ROOT.NODES.BACKEND
 
@@ -57,8 +55,7 @@ mb.fitted = function(x, node) {
 
   .Call("fitted_mb",
         bn = x,
-        target = node,
-        PACKAGE = "bnlearn")
+        target = node)
 
 }#MB.FITTED
 
@@ -74,8 +71,7 @@ nparams.discrete = function(x, data, real = FALSE, debug = FALSE) {
         graph = x,
         data = data,
         real = real,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#NPARAMS.DISCRETE
 
@@ -85,8 +81,7 @@ nparams.discrete.node = function(node, x, data, real) {
         graph = x,
         node = node,
         data = data,
-        real = real,
-        PACKAGE = "bnlearn")
+        real = real)
 
 }#NPARAMS.DISCRETE.NODE
 
@@ -94,8 +89,7 @@ nparams.gaussian = function(x, debug = FALSE) {
 
   .Call("nparams_gnet",
         graph = x,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#NPARAMS.GAUSSIAN
 
@@ -103,8 +97,7 @@ nparams.gaussian.node = function(node, x) {
 
   .Call("nparams_gnode",
         graph = x,
-        node = node,
-        PACKAGE = "bnlearn")
+        node = node)
 
 }#NPARAMS.GAUSSIAN.NODE
 
@@ -112,8 +105,7 @@ nparams.fitted = function(x, debug = FALSE) {
 
   .Call("fitted_nparams",
         bn = x,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#NPARAMS.FITTED
 
@@ -125,8 +117,7 @@ dag2ug.backend = function(x, moral = FALSE, debug = FALSE) {
   arcs = .Call("dag2ug",
                bn = x,
                moral = moral,
-               debug = debug,
-               PACKAGE = "bnlearn")
+               debug = debug)
 
   # update the arcs of the network.
   x$arcs = arcs
@@ -142,8 +133,7 @@ pdag2dag.backend = function(arcs, ordering) {
 
   arcs = .Call("pdag2dag",
                arcs = arcs,
-               nodes = ordering,
-               PACKAGE = "bnlearn")
+               nodes = ordering)
 
   # check that the new graph is still acyclic.
   if (!is.acyclic(arcs = arcs, nodes = ordering))
@@ -163,8 +153,7 @@ cpdag.backend = function(x, moral = TRUE, debug = FALSE) {
                nodes = nodes,
                moral = moral,
                fix = FALSE,
-               debug = debug,
-               PACKAGE = "bnlearn")
+               debug = debug)
 
   # update the arcs of the network.
   x$arcs = amat2arcs(amat, nodes)
@@ -177,7 +166,7 @@ cpdag.backend = function(x, moral = TRUE, debug = FALSE) {
 }#CPDAG.BACKEND
 
 # reconstruct the arc set of the equivalence class of a network.
-cpdag.arc.backend = function(nodes, arcs, moral = FALSE, fix.directed = FALSE,
+cpdag.arc.backend = function(nodes, arcs, moral = TRUE, fix.directed = FALSE,
     debug = FALSE) {
 
   amat = .Call("cpdag",
@@ -185,8 +174,7 @@ cpdag.arc.backend = function(nodes, arcs, moral = FALSE, fix.directed = FALSE,
                nodes = nodes,
                moral = moral,
                fix = fix.directed,
-               debug = debug,
-               PACKAGE = "bnlearn")
+               debug = debug)
 
   return(amat2arcs(amat, nodes))
 
@@ -197,12 +185,12 @@ mutilated.backend.bn = function(x, evidence) {
 
   # this is basically a NOP.
   if (identical(evidence, TRUE))
-    return(x) 
+    return(x)
 
   # only the node names are used here.
   fixed = names(evidence)
   nodes = names(x$nodes)
-  # remove all parents of nodes in the evidence.    
+  # remove all parents of nodes in the evidence.
   x$arcs = x$arcs[!(x$arcs[, "to"] %in% fixed), ]
   # update the cached information for the fixed nodes.
   amat = arcs2amat(x$arcs, nodes)
@@ -219,12 +207,12 @@ mutilated.backend.fitted = function(x, evidence) {
 
   # this is basically a NOP.
   if (identical(evidence, TRUE))
-    return(x) 
+    return(x)
 
   # extract the names of the nodes.
   fixed = names(evidence)
   nodes = names(x)
-      
+
   for (node in fixed) {
 
     # cache the node information.
@@ -246,7 +234,7 @@ mutilated.backend.fitted = function(x, evidence) {
     else if(is(cur, c("bn.fit.dnode", "bn.fit.onode"))) {
 
       # reset the conditional distribution.
-      cur$prob = as.table(structure((dimnames(cur$prob)[[1]] == fix) + 0, 
+      cur$prob = as.table(structure((dimnames(cur$prob)[[1]] == fix) + 0,
                    names = dimnames(cur$prob)[[1]]))
 
     }#THEN
@@ -273,7 +261,7 @@ mutilated.backend.fitted = function(x, evidence) {
 
 # apply random arc operators to the graph.
 perturb.backend = function(network, iter, nodes, amat, whitelist,
-    blacklist, debug = FALSE) {
+    maxp = Inf, blacklist, debug = FALSE) {
 
   # use a safety copy of the graph.
   new = network
@@ -284,9 +272,13 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
   # infinite loops (due to the lack of legal operations).
   for (i in seq_len(3 * iter)) {
 
-    to.be.added = arcs.to.be.added(amat, nodes, blacklist)
+    # count the parents of each node.
+    nparents = colSums(amat)
+
+    to.be.added = arcs.to.be.added(amat, nodes, blacklist = blacklist,
+                    nparents = nparents, maxp = maxp)
     to.be.dropped = arcs.to.be.dropped(new$arcs, whitelist)
-    to.be.reversed = arcs.to.be.reversed(new$arcs, blacklist)
+    to.be.reversed = arcs.to.be.reversed(new$arcs, blacklist, nparents, maxp)
 
     # no more operation to do.
     if (iter == 0) break
@@ -360,8 +352,7 @@ structural.hamming.distance = function(learned, true, debug = FALSE) {
   .Call("shd",
         learned = cpdag.backend(learned),
         golden = cpdag.backend(true),
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#STRUCTURAL.HAMMING.DISTANCE
 
@@ -371,21 +362,19 @@ hamming.distance = function(learned, true, debug = FALSE) {
   .Call("shd",
         learned = dag2ug.backend(learned),
         golden = dag2ug.backend(true),
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#HAMMING.DISTANCE
 
 # backend for extracting v-structures from a network.
-vstructures = function(x, arcs, moral = FALSE, debug = FALSE) {
+vstructures = function(x, arcs, moral = TRUE, debug = FALSE) {
 
   .Call("vstructures",
         arcs = x$arcs,
         nodes = names(x$nodes),
         return.arcs = arcs,
         moral = moral,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#VSTRUCTURES
 
@@ -394,8 +383,7 @@ equal.backend = function(target, current) {
 
   .Call("all_equal",
         target = target,
-        current = current,
-        PACKAGE = "bnlearn")
+        current = current)
 
 }#EQUAL.BACKEND
 
@@ -404,8 +392,7 @@ tiers.backend = function(nodes, debug = FALSE) {
 
   .Call("tiers",
         nodes = nodes,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#TIERS.BACKEND
 
@@ -428,8 +415,7 @@ cpdag.arc.extension = function(arcs, nodes, debug = FALSE) {
   .Call("pdag_extension",
         arcs = arcs,
         nodes = nodes,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#CPDAG.ARC.EXTENSION
 

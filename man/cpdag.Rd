@@ -12,9 +12,9 @@
 
 }
 \usage{
-cpdag(x, moral = FALSE, debug = FALSE)
+cpdag(x, moral = TRUE, debug = FALSE)
 cextend(x, strict = TRUE, debug = FALSE)
-vstructs(x, arcs = FALSE, moral = FALSE, debug = FALSE)
+vstructs(x, arcs = FALSE, moral = TRUE, debug = FALSE)
 moral(x, debug = FALSE)
 }
 \arguments{
@@ -65,7 +65,7 @@ moral(x, debug = FALSE)
 
   Dor D (1992). \emph{A Simple Algorithm to Construct a Consistent
       Extension of a Partially Oriented Graph}. UCLA, Cognitive Systems
-      Laboratory. Available as Technical Report R-185. 
+      Laboratory. Available as Technical Report R-185.
 
   Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
       Principles and Techniques}. MIT Press.

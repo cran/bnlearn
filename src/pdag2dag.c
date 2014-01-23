@@ -4,7 +4,7 @@
   * the node ordering). */
 SEXP pdag2dag(SEXP arcs, SEXP nodes) {
 
-int i = 0, j = 0, n = LENGTH(nodes);
+int i = 0, j = 0, n = length(nodes);
 int *a = NULL;
 SEXP amat, res;
 
@@ -46,7 +46,7 @@ SEXP node_data, current, nodes, result, temp;
 
   /* get the nodes' data. */
   node_data = getListElement(bn, "nodes");
-  nnodes = LENGTH(node_data);
+  nnodes = length(node_data);
   nodes = getAttrib(node_data, R_NamesSymbol);
 
   /* allocate and initialize parents' and neighbours' counters. */
@@ -59,14 +59,14 @@ SEXP node_data, current, nodes, result, temp;
 
     /* get the number of neighbours.  */
     current = VECTOR_ELT(node_data, i);
-    nnbr[i] = LENGTH(getListElement(current, "nbr"));
+    nnbr[i] = length(getListElement(current, "nbr"));
 
     /* update the number of arcs to be returned. */
     if (*moralize > 0) {
 
       /* get also the number of parents, needed to account for the arcs added
        * for their moraliztion. */
-      nparents[i] = LENGTH(getListElement(current, "parents"));
+      nparents[i] = length(getListElement(current, "parents"));
       narcs += nnbr[i] + nparents[i] * (nparents[i] - 1);
 
     }/*THEN*/

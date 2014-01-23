@@ -2,12 +2,10 @@
 loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
 
   result = 0
-  nodes = names(fitted)
 
   if (loss %in% c("logl", "logl-g")) {
 
-    result = entropy.loss(nodes = nodes, fitted = fitted, data = data,
-               debug = debug)
+    result = entropy.loss(fitted = fitted, data = data, debug = debug)
 
   }#THEN
   else if (loss == "pred") {
@@ -95,14 +93,15 @@ predictive.correlation = function(node, fitted, data, debug = FALSE) {
 }#PREDICTIVE.CORRELATION
 
 # log-likelihood loss function for gaussian and discrete networks.
-entropy.loss = function(nodes, fitted, data, debug = FALSE) {
+entropy.loss = function(fitted, data, keep = names(fitted), by.sample = FALSE,
+    debug = FALSE) {
 
   list(loss = .Call("entropy_loss",
                     fitted = fitted,
                     data = data,
-                    by.sample = FALSE,
-                    debug = debug,
-                    PACKAGE = "bnlearn"))
+                    by.sample = by.sample,
+                    keep = keep,
+                    debug = debug))
 
 }#ENTROPY.LOSS
 
@@ -116,8 +115,7 @@ classification.error = function(node, fitted, prior = NULL, data, debug = FALSE)
 
   l = .Call("class_err",
             reference = minimal.data.frame.column(data, node),
-            predicted = pred,
-            PACKAGE = "bnlearn")
+            predicted = pred)
 
   if (debug)
     cat("  > classification error for node", node, "is", l, ".\n")

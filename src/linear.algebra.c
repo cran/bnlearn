@@ -1,6 +1,8 @@
 #include "common.h"
 #include <Rmath.h>
+#include <R_ext/Applic.h>
 #include <R_ext/Lapack.h>
+#include <R_ext/Linpack.h>
 
 /* -------------------- function declarations --------------------------- */
 
@@ -328,4 +330,46 @@ int i_one = 1;
   memcpy(mu, workspace, *ncols * sizeof(double));
 
 }/*C_ROTATE*/
+
+/* C-level function to perform OLS via QR decomposition. */
+void c_qr_ols (double *qr, double *y, int *nrow, int *ncol, double *fitted,
+    long double *sd) {
+
+int i = 0, job = 1, rank = 0, info = 0, *pivot = NULL;
+double tol = MACHINE_TOL, *qraux = NULL, *work = NULL;
+
+  /* allocate the working space. */
+  qraux = (double *)Calloc(*ncol, double);
+  memset(qraux, '\0', *ncol * sizeof(double));
+  work = (double *)Calloc(2 * (*ncol), double);
+  memset(work, '\0', 2 * (*ncol) * sizeof(double));
+  pivot = (int *)Calloc(*ncol, int);
+  for (i = 0; i < *ncol; i++)
+    pivot[i] = i + 1;
+
+  /* perform the QR decomposition. */
+  F77_CALL(dqrdc2)(qr, nrow, nrow, ncol, &tol, &rank, qraux, pivot, work);
+
+  /* operate on a backup copy of the response variable. */
+  memcpy(fitted, y, (*nrow) * sizeof(double));
+
+  /* compute the fitted values. */
+  /*       dqrsl( x,  ldx,  n,    k,     qraux, y,      qy,     qty, */
+  F77_CALL(dqrsl)(qr, nrow, nrow, &rank, qraux, fitted, NULL,   fitted,
+  /*  b,      rsd,    xb,     job,  info) */
+      NULL,   NULL,   fitted, &job, &info);
+
+  if (info != 0)
+    error("an error (%d) occurred in the call to dqrsl().\n", &info);
+
+  /* compute the standard deviation of the residuals. */
+  for (i = 0; i < *nrow; i++)
+    *sd += (y[i] - fitted[i]) * (y[i] - fitted[i]);
+  *sd = sqrt(*sd / (*nrow - 1));
+
+  Free(pivot);
+  Free(work);
+  Free(qraux);
+
+}/*C_QR_OLS*/
 

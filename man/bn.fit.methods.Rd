@@ -22,7 +22,7 @@
 \description{
 
  Assign, extract or compute various quantities of interest from an object
- of class \code{bn.fit}, \code{bn.fit.dnode}, \code{bn.fit.gnode} or 
+ of class \code{bn.fit}, \code{bn.fit.dnode}, \code{bn.fit.gnode} or
  \code{bn.fit.onode}.
 
 }
@@ -32,7 +32,7 @@
 \method{coef}{bn.fit}(object, ...)
 \method{residuals}{bn.fit}(object, ...)
 \method{predict}{bn.fit}(object, node, data, ..., debug = FALSE)
-\method{logLik}{bn.fit}(object, data, ...)
+\method{logLik}{bn.fit}(object, data, nodes, by.sample = FALSE, ...)
 \method{AIC}{bn.fit}(object, data, ..., k = 1)
 \method{BIC}{bn.fit}(object, data, ...)
 
@@ -54,10 +54,16 @@
   \item{object}{an object of class \code{bn.fit}, \code{bn.fit.dnode}
     or \code{bn.fit.gnode}.}
   \item{node}{a character string, the label of a node.}
+  \item{nodes}{a vector of character strings, the label of a nodes whose
+        loglikelihood components are to be computed.}
   \item{data}{a data frame containing the variables in the model.}
   \item{\dots}{additional arguments (currently ignored).}
   \item{k}{a numeric value, the penalty per parameter to be used; the
        default \code{k = 1} gives the expression used to compute AIC.}
+  \item{by.sample}{a boolean value. If \code{TRUE}, \code{logLik} returns
+       a vector containing the the log-likelihood of each observations in
+       the sample. If \code{FALSE}, \code{logLik} returns a single value,
+       the likelihood of the whole sample.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
 
@@ -90,6 +96,10 @@
 
   \code{predict} returns a numeric vector (for Gaussian networks) or a factor
   (for discrete networks).
+
+  \code{logLik} returns a numeric vector or a single numeric value, depending
+  on the value of \code{by.sample}. \code{AIC} and \code{BIC} always return
+  a single numeric value.
 
   All the other functions return a list with an element for each node in
   the network (if \code{object} has class \code{bn.fit}) or a numeric

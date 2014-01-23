@@ -20,8 +20,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 3.4\cr
-    Date: \tab 2013-07-26\cr
+    Version: \tab 3.5\cr
+    Date: \tab 2014-01-23\cr
     License: \tab GPLv2 or later
 
   }
@@ -91,8 +91,8 @@
       parameter is set to \code{FALSE}) which is better at uncovering
       possible erratic behaviour of the statistical tests.
     \item a cluster-aware implementation, which requires a running cluster
-      set up with the \code{makeCluster} function from the \pkg{snow}
-      package. See \link{snow integration} for a sample usage.
+      set up with the \code{makeCluster} function from the \pkg{parallel}
+      package. See \link{parallel integration} for a sample usage.
 
   }
 
@@ -176,7 +176,7 @@
 
   \itemize{
 
-    \item \emph{Naive Bayes} (\code{\link{naive.bayes}}): a very simple 
+    \item \emph{Naive Bayes} (\code{\link{naive.bayes}}): a very simple
       algorithm assuming that all classifiers are independent and using
       the posterior probability of the target variable for classification.
     \item \emph{Tree-Augmented Naive Bayes} (\code{\link{tree.bayes}}):
@@ -218,7 +218,7 @@
 
         \item \emph{Jonckheere-Terpstra}: a trend test for ordinal variables.
           The asymptotic normal test (\code{jt}), the Monte Carlo permutation
-          test (\code{mc-jt}) and the sequential Monte Carlo permutation test 
+          test (\code{mc-jt}) and the sequential Monte Carlo permutation test
           (\code{smc-jt}) are implemented.
 
       }
@@ -226,8 +226,8 @@
       \itemize{
 
         \item \emph{linear correlation}: Pearson's linear correlation. The exact
-          Student's t test (\code{cor}), the Monte Carlo permutation test 
-          (\code{mc-cor}) and the sequential Monte Carlo permutation test 
+          Student's t test (\code{cor}), the Monte Carlo permutation test
+          (\code{mc-cor}) and the sequential Monte Carlo permutation test
           (\code{smc-cor}) are implemented.
         \item \emph{Fisher's Z}: a transformation of the linear correlation
           with asymptotic normal distribution. Used by commercial software
@@ -237,7 +237,7 @@
           and the sequential Monte Carlo permutation test (\code{smc-zf})
           are implemented.
         \item \emph{mutual information}: an information-theoretic distance
-          measure. Again it's proportional to the log-likelihood ratio (they
+          measure. Again it is proportional to the log-likelihood ratio (they
           differ by a \eqn{2n}{2n} factor). The asymptotic \eqn{\chi^2}{chi-square}
           test (\code{mi-g}),the Monte Carlo permutation test (\code{mc-mi-g})
           and the sequential Monte Carlo permutation test (\code{smc-mi-g})
@@ -318,9 +318,9 @@
 \section{Error detection and correction: the strict mode}{
 
   Optimized implementations of constraint-based algorithms rely heavily
-  on backtracking to reduce the number of tests needed by the learning 
+  on backtracking to reduce the number of tests needed by the learning
   algorithm. This approach may sometimes hide errors either in the Markov
-  blanket or the neighbourhood detection steps, such as when hidden 
+  blanket or the neighbourhood detection steps, such as when hidden
   variables are present or there are external (logical) constraints on
   the interactions between the variables.
 
@@ -358,7 +358,7 @@
   (a BibTeX file with all the references cited throughout this manual
   is present in the \file{bibtex} directory of this package)
 
-  Nagarajan R, Scutari M, Lebre S (2013). "Bayesian Networks in R with 
+  Nagarajan R, Scutari M, Lebre S (2013). "Bayesian Networks in R with
       Applications in Systems Biology". Springer.
 
   Scutari M (2010). "Learning Bayesian Networks with the bnlearn R

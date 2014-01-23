@@ -8,13 +8,13 @@ void tabu_del(double *cache_value, int *w, int *am, SEXP bestop, SEXP nodes,
     int *narcs, int *debuglevel);
 void tabu_rev(double *cache_value, int *b, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, int *update, SEXP tabu_list,
-    int *cur, int *narcs, int *debuglevel);
+    int *cur, int *narcs, double *mp, double *np, int *debuglevel);
 
 /* create a numerical compact representation of a network structure (akin to
  * a hash, but not quite) to allow fast comparison and low memory usage. */
 SEXP tabu_hash(SEXP amat, SEXP nodes, SEXP list, SEXP current) {
 
-int *a = INTEGER(amat), nnodes = LENGTH(nodes);
+int *a = INTEGER(amat), nnodes = length(nodes);
 SEXP hash;
 
   /* compute the hash. */
@@ -33,7 +33,7 @@ SEXP hash;
 int tabu_match(SEXP tabu_list, int *cur, int *amat, int *narcs, int *nnodes,
     int *debuglevel) {
 
-int i = 0, j = 0, ntabu = LENGTH(tabu_list);
+int i = 0, j = 0, ntabu = length(tabu_list);
 int *matches = NULL, *target = NULL;
 SEXP tabu_network, hash;
 
@@ -50,7 +50,7 @@ SEXP tabu_network, hash;
       continue;
 
     /* if it has a different number of arcs it can't be the same network, skip. */
-    if (LENGTH(tabu_network) != *narcs)
+    if (length(tabu_network) != *narcs)
       continue;
 
     /* it seems we really need to compare the two networks, so be it. */
@@ -86,12 +86,13 @@ there:
  * lookup in the tabu list). */
 SEXP tabu_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
     SEXP wlmat, SEXP blmat, SEXP tabu_list, SEXP current, SEXP baseline,
-    SEXP debug) {
+    SEXP nparents, SEXP maxp, SEXP debug) {
 
-int nnodes = LENGTH(nodes), narcs = 0, i = 0, j = 0;
+int nnodes = length(nodes), narcs = 0, i = 0, j = 0;
 int *am = NULL, *ad = NULL, *w = NULL, *b = NULL, *debuglevel = NULL;
 int *cur = NULL, counter = 0, update = 1, from = 0, to = 0;
 double *cache_value = NULL, max = NUM(baseline);
+double *mp = REAL(maxp), *np = REAL(nparents);
 SEXP false, bestop, names;
 
   /* allocate and initialize the return value (use FALSE as a canary value). */
@@ -167,7 +168,7 @@ SEXP false, bestop, names;
 
   /* test neighbours by arc reversal. */
   tabu_rev(cache_value, b, am, bestop, nodes, &nnodes, &from, &to, &max,
-    &update, tabu_list, cur, &narcs, debuglevel);
+    &update, tabu_list, cur, &narcs, mp, np, debuglevel);
 
   /* update the reference scores. */
   REAL(reference)[to] += cache_value[CMC(from, to, nnodes)];
@@ -337,7 +338,7 @@ double temp = 0, tol = MACHINE_TOL;
 /* try to reverse an arc in the current network, minding the tabu list. */
 void tabu_rev(double *cache_value, int *b, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, int *update, SEXP tabu_list,
-    int *cur, int *narcs, int *debuglevel) {
+    int *cur, int *narcs, double *mp, double *np, int *debuglevel) {
 
 int i = 0, j = 0, idx = 0;
 double temp = 0, tol = MACHINE_TOL;
@@ -353,6 +354,11 @@ double temp = 0, tol = MACHINE_TOL;
       /* don't reverse an arc if the one in the opposite direction is
        * blacklisted, ever. */
       if (b[CMC(j, i, *nnodes)] == 1)
+        continue;
+
+      /* do not reverse an arc if that means violating the limit on the
+       * maximum number of parents. */
+      if (np[i] >= *mp)
         continue;
 
       /* retrieve the score delta from the cache. */

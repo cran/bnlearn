@@ -12,7 +12,7 @@
 \arguments{
   \item{x}{a data frame containing either numeric or factor columns.}
   \item{method}{a character string, either \code{interval} for \emph{interval
-    discretization}, \code{quantile} for \emph{quantile discretization} 
+    discretization}, \code{quantile} for \emph{quantile discretization}
     (the default) or \code{hartemink} for \emph{Hartemink's pairwise mutual
     information} method.}
   \item{breaks}{if \code{method} is set to \code{hartemink}, an integer number,

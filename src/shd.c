@@ -9,7 +9,7 @@ int *lrn = NULL, *ref = NULL, *shd = NULL, *debuglevel = LOGICAL(debug);
   /* get the labels of the nodes. */
   temp = getListElement(learned, "nodes");
   nodes = getAttrib(temp, R_NamesSymbol);
-  nnodes = LENGTH(nodes);
+  nnodes = length(nodes);
 
   /* get the arcs of the learned network. */
   temp = getListElement(learned, "arcs");

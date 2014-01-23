@@ -26,8 +26,7 @@ aracne.backend = function(x, estimator, whitelist, blacklist, debug = FALSE) {
         estimator = estimator,
         whitelist = whitelist,
         blacklist = blacklist,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#ARACNE.BACKEND
 

@@ -9,7 +9,7 @@ SEXP shmi(SEXP x, SEXP y, SEXP gsquare) {
 
 int i = 0, j = 0, k = 0;
 double **n = NULL, *ni = NULL, *nj = NULL;
-int llx = NLEVELS(x), lly = NLEVELS(y), num = LENGTH(x);
+int llx = NLEVELS(x), lly = NLEVELS(y), num = length(x);
 int *xx = INTEGER(x), *yy = INTEGER(y);
 double lambda = 0, target = 1/(double)(llx * lly);
 double *res = NULL;
@@ -76,7 +76,7 @@ SEXP shcmi(SEXP x, SEXP y, SEXP z, SEXP gsquare) {
 int i = 0, j = 0, k = 0;
 double ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL;
 int llx = NLEVELS(x), lly = NLEVELS(y), llz = NLEVELS(z);
-int num = LENGTH(x);
+int num = length(x);
 int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
 double lambda = 0, target = 1/(double)(llx * lly * llz);
 double *res = NULL;
@@ -293,7 +293,7 @@ SEXP res;
 SEXP cov_lambda(SEXP data, SEXP length) {
 
 int i = 0, j = 0, k = 0, cur = 0;
-int *n = INTEGER(length), ncols = LENGTH(data);
+int *n = INTEGER(length), ncols = length(data);
 double *mean = NULL, *var = NULL, **column = NULL;
 double lambda = 0, sumcors = 0, sumvars = 0;
 SEXP res;

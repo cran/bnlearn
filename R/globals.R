@@ -1,11 +1,11 @@
 
 # Global variables.
-available.discrete.tests = c("mi", "mi-sh", "x2", "mc-mi", "smc-mi", "mc-x2", 
+available.discrete.tests = c("mi", "mi-sh", "x2", "mc-mi", "smc-mi", "mc-x2",
   "smc-x2", "sp-mi", "sp-x2")
 available.ordinal.tests = c("jt", "mc-jt", "smc-jt")
 available.continuous.tests = c("cor", "zf", "mi-g", "mi-g-sh", "mc-mi-g",
   "smc-mi-g", "mc-cor", "smc-cor", "mc-zf", "smc-zf")
-available.tests = c(available.discrete.tests, available.ordinal.tests, 
+available.tests = c(available.discrete.tests, available.ordinal.tests,
   available.continuous.tests)
 
 semiparametric.tests = c("sp-mi", "sp-x2")
@@ -17,9 +17,6 @@ available.discrete.scores = c("loglik", "aic", "bic", "bde", "bdes", "k2", "mbde
 available.continuous.scores = c("bge", "loglik-g", "aic-g", "bic-g")
 available.scores = c(available.discrete.scores, available.continuous.scores)
 
-score.equivalent.scores = c("loglik", "aic", "bic", "bde", "bge", "loglik-g",
-  "aic-g", "bic-g")
-
 available.discrete.mi = c("mi")
 available.continuous.mi = c("mi-g")
 available.mi = c(available.discrete.mi, available.continuous.mi)
@@ -30,11 +27,11 @@ constraint.based.algorithms = c(markov.blanket.algorithms, local.search.algorith
 score.based.algorithms = c("hc", "tabu")
 hybrid.algorithms = c("rsmax2", "mmhc")
 mim.based.algorithms = c("chow.liu", "aracne")
-classifiers = c("naive", "tan")
+classifiers = c("naive.bayes", "tree.bayes")
 available.learning.algorithms = c(constraint.based.algorithms, score.based.algorithms,
   hybrid.algorithms, mim.based.algorithms, classifiers)
 
-always.dag.result = c(score.based.algorithms, hybrid.algorithms)
+always.dag.result = c(score.based.algorithms, hybrid.algorithms, classifiers)
 
 available.mvber.vartests = c("tvar", "gvar", "nvar", "nvark")
 
@@ -52,13 +49,13 @@ method.labels = c(
   'mmhc' = "Max-Min Hill-Climbing",
   'aracne' = "ARACNE",
   'chow.liu' = "Chow-Liu",
-  "naive" = "Naive Bayes Classifier",
-  "tan"   = "TAN Bayes Classifier"
+  "naive.bayes" = "Naive Bayes Classifier",
+  "tree.bayes"   = "TAN Bayes Classifier"
 )
 
 method.extra.args = list(
-  'hc' = c("max.iter", "restart", "perturb"),
-  'tabu' = c("max.iter", "tabu", "max.tabu")
+  'hc' = c("max.iter", "maxp", "restart", "perturb"),
+  'tabu' = c("max.iter", "maxp", "tabu", "max.tabu")
 )
 
 test.labels = c(
@@ -88,7 +85,7 @@ test.labels = c(
 
 score.labels = c(
   'k2' = "Cooper & Herskovits' K2",
-  'bde' = "Bayesian Dirichlet (BDeu)",
+  'bde' = "Bayesian Dirichlet (BDe)",
   'bdes' = "Sparse Bayesian Dirichlet (BDes)",
   'mbde' = "Bayesian Dirichlet (interventional data)",
   'aic' = "AIC (disc.)",
@@ -102,18 +99,16 @@ score.labels = c(
 
 score.extra.args = list(
   "k2" = character(0),
-  "bde" = "iss",
+  "bde" = c("prior", "beta", "iss"),
   "bdes" = "iss",
   "mbde" = c("iss", "exp"),
-  "aic" = "k",
-  "bic" = "k",
-  "bge" = c("iss", "phi"),
+  "aic" = c("k"),
+  "bic" = c("k"),
+  "bge" = c("prior", "beta", "iss", "phi"),
   "loglik" = character(0),
   "loglik-g" = character(0),
-  "aic" = "k",
-  "bic" = "k",
-  "aic-g" = "k",
-  "bic-g" = "k"
+  "aic-g" = c("k"),
+  "bic-g" = c("k")
 )
 
 mi.estimator.labels = c(
@@ -141,6 +136,14 @@ graph.generation.extra.args = list(
   "ic-dag" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree", "every"),
   "melancon" = c("burn.in", "max.degree", "max.in.degree", "max.out.degree", "every"),
   "averaged" = "threshold"
+)
+
+prior.distributions = c("uniform", "vsp", "cs")
+
+prior.labels = c(
+  "uniform" = "Uniform",
+  "vsp" = "Variable Selection",
+  "cs" = "Castelo & Siebes"
 )
 
 cpq.algorithms = c("ls", "lw")
@@ -210,36 +213,25 @@ discretization.extra.args = list(
   "hartemink" = c("ibreaks", "idisc")
 )
 
-template.numeric = numeric(1)
-
 # global test counter.
-.test.counter = local({
-
-   val = 0
-
-   function(new)
-     if(missing(new)) 
-       val 
-     else 
-       val <<- val + new
-
-})
-
 reset.test.counter = function() {
 
-  .test.counter(-.test.counter())
+  invisible(.Call("reset_test_counter"))
 
 }#RESET.TEST.COUNTER
 
 increment.test.counter = function(i = 1) {
 
-  .test.counter(i)
+  if (!is.real.number(i))
+    stop("the increment must be a single real number.")
+
+  invisible(.Call("increment_test_counter", i))
 
 }#INCREMENT.TEST.COUNTER
 
 test.counter = function() {
 
-  .test.counter()
+  invisible(.Call("get_test_counter"))
 
 }#TEST.COUNTER
 

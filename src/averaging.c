@@ -2,7 +2,7 @@
 
 SEXP smart_network_averaging(SEXP arcs, SEXP nodes, SEXP weights) {
 
-int k = 0, from = 0, to = 0, nrows = LENGTH(arcs) / 2, dims = LENGTH(nodes);
+int k = 0, from = 0, to = 0, nrows = length(arcs) / 2, dims = length(nodes);
 int *a = NULL, *coords = NULL, *poset = NULL;
 double *w = NULL;
 SEXP weights2, amat, try, acyclic;

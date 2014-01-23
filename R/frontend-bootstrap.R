@@ -47,8 +47,8 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
 }#BNBOOT
 
 # compute arcs' strength via nonparametric bootstrap.
-boot.strength = function(data, R = 200, m = nrow(data), algorithm,
-    algorithm.args = list(), cpdag = TRUE, debug = FALSE) {
+boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
+    algorithm, algorithm.args = list(), cpdag = TRUE, debug = FALSE) {
 
   # check the data are there.
   check.data(data)
@@ -65,9 +65,28 @@ boot.strength = function(data, R = 200, m = nrow(data), algorithm,
   # check the extra arguments for the learning algorithm.
   algorithm.args = check.learning.algorithm.args(algorithm.args)
 
-  res = arc.strength.boot(data = data, R = R, m = m, algorithm = algorithm,
-          algorithm.args = algorithm.args, arcs = NULL, cpdag = cpdag,
-          debug = debug)
+  # check the cluster.
+  if (!is.null(cluster)) {
+
+    check.cluster(cluster)
+
+    # enter in cluster-aware mode.
+    cluster.aware = TRUE
+    # set up the slave processes.
+    slaves.setup(cluster)
+    # disable debugging, the slaves do not cat() here.
+    if (debug) {
+
+      warning("disabling debugging output in cluster-aware mode.")
+      debug = FALSE
+
+    }#THEN
+
+  }#THEN
+
+  res = arc.strength.boot(data = data, cluster = cluster, R = R, m = m,
+          algorithm = algorithm, algorithm.args = algorithm.args, arcs = NULL,
+          cpdag = cpdag, debug = debug)
 
   # add extra information for strength.plot().
   res = structure(res, mode = "bootstrap", threshold = threshold(res),
@@ -96,10 +115,6 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
   if (n < k)
     stop("insufficient sample size for ", k, " subsets.")
 
-  # check the loss function.
-  loss = check.loss(loss, data)
-  # check the extra arguments passed down to the loss function.
-  loss.args = check.loss.args(loss, bn, nodes, data, loss.args)
   # check the fitting method (maximum likelihood, bayesian, etc.)
   check.fitting.method(fit, data)
   # check the cluster.
@@ -127,6 +142,14 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
         "or undirected network, which is not handled by parameter fitting."))
     # check the extra arguments for the learning algorithm.
     algorithm.args = check.learning.algorithm.args(algorithm.args)
+    # check the loss function.
+    loss = check.loss(loss, data, bn)
+    # since we have no other way to guess, copy the label of the target
+    # variable from the parameters of the classifier.
+    if ((loss == "pred") && (is.null(loss.args$target)) && (bn %in% classifiers))
+      loss.args$target = algorithm.args$training
+    # check the extra arguments passed down to the loss function.
+    loss.args = check.loss.args(loss, bn, nodes, data, loss.args)
 
   }#THEN
   else if (is(bn, "bn")) {
@@ -141,11 +164,15 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
     # check bn.naive objects if any.
     if (is(bn, "bn.naive"))
       check.bn.naive(bn)
+    # check the loss function.
+    loss = check.loss(loss, data, bn)
+    # check the extra arguments passed down to the loss function.
+    loss.args = check.loss.args(loss, bn, nodes, data, loss.args)
 
   }#THEN
   else {
 
-    stop("bn must be the either label of a learning algorithm or a bn object.")
+    stop("bn must be either the label of a learning algorithm or a bn object.")
 
   }#ELSE
 

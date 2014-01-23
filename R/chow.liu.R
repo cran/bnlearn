@@ -32,8 +32,7 @@ chow.liu.backend = function(x, nodes, estimator, whitelist, blacklist,
         whitelist = whitelist,
         blacklist = blacklist,
         conditional = conditional,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#CHOW.LIU.BACKEND
 

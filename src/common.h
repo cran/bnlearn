@@ -1,6 +1,13 @@
 #include <R.h>
 #include <Rinternals.h>
 
+/* the global test counter, now living in C-land, and other symbols. */
+extern double test_counter;
+extern SEXP BN_ModelstringSymbol;
+extern SEXP BN_NodesSymbol;
+extern SEXP BN_ProbSymbol;
+extern SEXP BN_ScoreDeltaSymbol;
+
 /* numerical constants */
 
 #define MACHINE_TOL sqrt(DOUBLE_EPS)
@@ -13,9 +20,9 @@
 #define NODE(i) CHAR(STRING_ELT(nodes, i))
 
 /* macro for the number of levels of the [,j] column. */
-#define NLEVELS(x) LENGTH(getAttrib(x, R_LevelsSymbol))
+#define NLEVELS(x) length(getAttrib(x, R_LevelsSymbol))
 #define NLEVELS2(data, j) \
-  LENGTH(getAttrib(VECTOR_ELT(data, j), R_LevelsSymbol))
+  length(getAttrib(VECTOR_ELT(data, j), R_LevelsSymbol))
 
 /* coordinate systems conversion matrices */
 
@@ -66,8 +73,9 @@ void all_max(double *array, int length, int *maxima, int *nmax, int *indexes,
 SEXP finalize_arcs(SEXP arcs);
 SEXP minimal_data_frame(SEXP obj);
 SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop);
-SEXP c_dataframe_column(SEXP dataframe, SEXP name, int drop);
+SEXP c_dataframe_column(SEXP dataframe, SEXP name, int drop, int keep_names);
 SEXP int2fac(SEXP vector, int *nlevels);
+SEXP qr_matrix(SEXP dataframe, SEXP name);
 
 /* from sampling.c */
 
@@ -99,6 +107,8 @@ double c_quadratic(double *x, int *ncols, double *sigma, double *y,
     double *workspace);
 void c_rotate(double *S1, double *S2, double *x, double *a, double *mu,
     int *ncols, double *workspace);
+void c_qr_ols (double *qr, double *y, int *nrow, int *ncol, double *fitted,
+    long double *sd);
 
 /* from linear.correlation.c */
 
@@ -109,6 +119,10 @@ double c_fast_cor(double *xx, double *yy, int *num);
 double c_fast_pcor(double *covariance, int *ncols, double *u, double *d,
     double *vt, int *errcode);
 SEXP fast_pcor(SEXP data, SEXP length, SEXP shrinkage, SEXP strict);
+
+/* from loss.c */
+SEXP entropy_loss(SEXP fitted, SEXP orig_data, SEXP by_sample, SEXP keep,
+    SEXP debug);
 
 /* from shrinkage.c */
 
@@ -126,11 +140,14 @@ int c_uptri3_path(short int *uptri, int from, int to, int nnodes,
 /* from hash.c */
 
 SEXP arc_hash(SEXP arcs, SEXP nodes, int uptri, int sort);
+void c_arc_hash(int *narcs, int *nnodes, int *from, int *to, int *uptri,
+  int *cmc, int sort);
 SEXP c_amat_hash(int *amat, int *nnodes);
 
 /* from configurations.c */
 
 void cfg(SEXP parents, int *configurations, int *nlevels);
+SEXP c_cfg2(SEXP parents, int factor, int all_levels);
 
 /* shared between hill climbing and tabu search. */
 
@@ -159,6 +176,16 @@ double c_mi(int *xx, int *llx, int *yy, int *lly, int *num);
 double c_cmi(int *xx, int *llx, int *yy, int *lly, int *zz, int *llz, int *num);
 double c_mig(double *xx, double *yy, int *num);
 
+/* from graph.priors.c */
+double graph_prior_prob(SEXP prior, SEXP target, SEXP cache, SEXP beta,
+    int debuglevel);
+
+/* from per.node.score.c */
+SEXP per_node_score(SEXP network, SEXP data, SEXP score, SEXP targets,
+    SEXP extra_args, SEXP debug);
+void c_per_node_score(SEXP network, SEXP data, SEXP score, SEXP targets,
+    SEXP extra_args, int debuglevel, double *res);
+
 /* memory allocation functions */
 
 int *alloc1dcont(int length);
@@ -180,4 +207,12 @@ double c_jt_var(int *num, int *ni, int *llx, int *nj, int *lly);
 
 void _rcont2(int *nrow, int *ncol, int *nrowt, int *ncolt, int *ntotal, 
     double *fact, int *jwork, int *matrix);
+
+/* score functions exported to per.node.score.c */
+double loglik_dnode(SEXP target, SEXP x, SEXP data, double *nparams, int debuglevel);
+double loglik_gnode(SEXP target, SEXP x, SEXP data, double *nparams, int debuglevel);
+double dirichlet_node(SEXP target, SEXP x, SEXP data, SEXP iss, SEXP prior,
+    SEXP beta, SEXP experimental, int sparse, int debuglevel);
+double wishart_node(SEXP target, SEXP x, SEXP data, SEXP iss, SEXP phi,
+    SEXP prior, SEXP beta, int debuglevel);
 

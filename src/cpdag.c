@@ -27,7 +27,7 @@ static int all_adjacent(int *a, int node, int k, int nnodes, int *nbr);
 /* return the v-structures present in the graph. */
 SEXP vstructures(SEXP arcs, SEXP nodes, SEXP return_arcs, SEXP moral, SEXP debug) {
 
-int i = 0, nnodes = LENGTH(nodes);
+int i = 0, nnodes = length(nodes);
 int *a = NULL, *ret_arcs = LOGICAL(return_arcs), *debuglevel = LOGICAL(debug);
 int *all_vstructs = LOGICAL(moral);
 short int *collider = NULL;
@@ -138,7 +138,7 @@ SEXP result, dimnames, colnames;
 
 SEXP cpdag(SEXP arcs, SEXP nodes, SEXP moral, SEXP fix, SEXP debug) {
 
-int i = 0, changed = 0, nnodes = LENGTH(nodes);
+int i = 0, changed = 0, nnodes = length(nodes);
 short int *collider = NULL;
 int *a = NULL, *debuglevel = LOGICAL(debug);
 SEXP amat;
@@ -538,7 +538,7 @@ static void renormalize_amat(int *a, int *nnodes) {
 /* construct a consistent DAG extension of a CPDAG. */
 SEXP pdag_extension(SEXP arcs, SEXP nodes, SEXP debug) {
 
-int i = 0, j = 0, k = 0, t = 0, nnodes = LENGTH(nodes);
+int i = 0, j = 0, k = 0, t = 0, nnodes = length(nodes);
 int changed = 0, left = nnodes;
 int *a = NULL, *nbr = NULL, *debuglevel = LOGICAL(debug);
 short int *matched = NULL;
@@ -677,7 +677,7 @@ int j = 0;
     }/*THEN*/
     else if ((a[CMC(j, node, nnodes)] == 1) && (a[CMC(node, j, nnodes)] == 1)) {
 
-      /* get the nodes which are linked to the current one by an 
+      /* get the nodes which are linked to the current one by an
        * undirected arc. */
       nbr[(*k)++] = j;
 

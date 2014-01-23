@@ -9,7 +9,7 @@
 }
 \usage{
 bn.boot(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
-  algorithm, algorithm.args = list(), statistic.args = list(), 
+  algorithm, algorithm.args = list(), statistic.args = list(),
   cluster = NULL, debug = FALSE)
 }
 \arguments{
@@ -31,8 +31,8 @@ bn.boot(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
     the learning algorithm.}
   \item{statistic.args}{a list of extra arguments to be passed to
     the function specified by \code{statistic}.}
-  \item{cluster}{an optional cluster object from package \pkg{snow}.
-      See \code{\link{snow integration}} for details and a simple
+  \item{cluster}{an optional cluster object from package \pkg{parallel}.
+      See \code{\link{parallel integration}} for details and a simple
       example.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}

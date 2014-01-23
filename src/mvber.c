@@ -14,7 +14,7 @@ static double _nvar(double *matrix, int *n, double lambda);
 SEXP mvber_joint_counters(SEXP arcs, SEXP nodes, SEXP joint, SEXP debug) {
 
 int i = 0, j = 0, k = 0, *coords = NULL;
-int nnodes = LENGTH(nodes), narcs = LENGTH(arcs)/2, jsize = nrows(joint);
+int nnodes = length(nodes), narcs = length(arcs)/2, jsize = nrows(joint);
 int bufsize = UPTRI3_MATRIX(nnodes);
 short int *buffer = NULL;
 double *p = REAL(joint);

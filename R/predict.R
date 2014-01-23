@@ -12,8 +12,7 @@ gaussian.prediction = function(node, fitted, data, debug = FALSE) {
     .Call("gpred",
           fitted = fitted[[node]],
           data = nrow(data),
-          debug = debug,
-          PACKAGE = "bnlearn")
+          debug = debug)
 
   }#THEN
   else {
@@ -21,8 +20,7 @@ gaussian.prediction = function(node, fitted, data, debug = FALSE) {
     .Call("cgpred",
           fitted = fitted[[node]],
           data = minimal.data.frame.column(data, parents, drop = FALSE),
-          debug = debug,
-          PACKAGE = "bnlearn")
+          debug = debug)
 
   }#ELSE
 
@@ -41,8 +39,7 @@ discrete.prediction = function(node, fitted, data, debug = FALSE) {
     .Call("dpred",
           fitted = fitted[[node]],
           data = minimal.data.frame.column(data, node),
-          debug = debug,
-          PACKAGE = "bnlearn")
+          debug = debug)
 
   }#THEN
   else {
@@ -57,8 +54,7 @@ discrete.prediction = function(node, fitted, data, debug = FALSE) {
           fitted = fitted[[node]],
           data = minimal.data.frame.column(data, node),
           parents = config,
-          debug = debug,
-          PACKAGE = "bnlearn")
+          debug = debug)
 
   }#ELSE
 
@@ -85,8 +81,7 @@ naive.classifier = function(training, fitted, prior, data, prob = FALSE,
         training = which(nodes == training),
         prior = prior,
         prob = prob,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#NAIVE.CLASSIFIER
 

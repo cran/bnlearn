@@ -30,7 +30,7 @@ pena.backend  = function(target, context, data, test, alpha, debug = TRUE) {
       }#THEN
 
       # compute the marginal associations.
-      association = sapply(setdiff(nodes, relevant), conditional.test, y = node, 
+      association = sapply(setdiff(nodes, relevant), conditional.test, y = node,
                     sx = context, data = data, test = test)
 
      if (debug) {

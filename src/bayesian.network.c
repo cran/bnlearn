@@ -12,7 +12,7 @@ SEXP nodes, node_data, parents, try, result;
   /* get nodes' number and data. */
   node_data = getListElement(graph, "nodes");
   nodes = getAttrib(node_data, R_NamesSymbol);
-  nnodes = LENGTH(node_data);
+  nnodes = length(node_data);
 
   /* get the level count for each node. */
   nlevels = alloc1dreal(nnodes);
@@ -36,7 +36,7 @@ SEXP nodes, node_data, parents, try, result;
     index = INTEGER(try);
 
     /* compute the number of configurations. */
-    for (j = 0; j < LENGTH(try); j++)
+    for (j = 0; j < length(try); j++)
       node_params *= nlevels[index[j] - 1];
 
     UNPROTECT(1);
@@ -76,7 +76,7 @@ SEXP temp, names, result;
   /* get the column names from the data set and the length of the
        relevant vectors. */
   names = getAttrib(data, R_NamesSymbol);
-  length_nodes = LENGTH(temp);
+  length_nodes = length(temp);
 
   /* allocate and initialize the result. */
   PROTECT(result = allocVector(REALSXP, 1));
@@ -84,7 +84,7 @@ SEXP temp, names, result;
   *nlevels = 1;
 
   /* sum (multiply, actually) up the levels. */
-  for (i = 0; i < LENGTH(names); i++) {
+  for (i = 0; i < length(names); i++) {
 
     for (j = 0; j < length_nodes; j++) {
 
@@ -128,9 +128,9 @@ SEXP result, nodes = R_NilValue, temp = getListElement(graph, "nodes");
 
   /* add one parameter for each regressor, which means one for each
    * parent for each node plus the intercept. */
-  for (i = 0; i < LENGTH(temp); i++) {
+  for (i = 0; i < length(temp); i++) {
 
-    node_params = LENGTH(getListElement(VECTOR_ELT(temp, i), "parents")) + 1;
+    node_params = length(getListElement(VECTOR_ELT(temp, i), "parents")) + 1;
 
     if (*debuglevel > 0)
       Rprintf("* node %s has %d parameter(s).\n", NODE(i), node_params);
@@ -157,7 +157,7 @@ SEXP temp, result;
   temp = getListElement(temp, "parents");
 
   PROTECT(result = allocVector(INTSXP, 1));
-  INT(result) = LENGTH(temp) + 1;
+  INT(result) = length(temp) + 1;
   UNPROTECT(1);
 
   return result;
@@ -173,7 +173,7 @@ SEXP arcs, dimnames, colnames, temp, names;
 
   /* get the names of the nodes. */
   names = getAttrib(nbr, R_NamesSymbol);
-  length_names = LENGTH(names);
+  length_names = length(names);
 
   /* scan the structure to determine the number of arcs.  */
   for (i = 0; i < length_names; i++) {
@@ -182,7 +182,7 @@ SEXP arcs, dimnames, colnames, temp, names;
     temp = getListElement(nbr, (char *)CHAR(STRING_ELT(names, i)));
     temp = getListElement(temp, "nbr");
 
-    narcs += LENGTH(temp);
+    narcs += length(temp);
 
   }/*FOR*/
 
@@ -222,7 +222,7 @@ SEXP arcs, dimnames, colnames, temp, names;
     temp = getListElement(nbr, (char *)CHAR(STRING_ELT(names, i)));
     temp = getListElement(temp, "nbr");
 
-    for (j = 0; j < LENGTH(temp); j++) {
+    for (j = 0; j < length(temp); j++) {
 
       SET_STRING_ELT(arcs, k, STRING_ELT(names, i));
       SET_STRING_ELT(arcs, k + 1 * narcs , STRING_ELT(temp, j));
@@ -250,7 +250,7 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash, result;
   cnodes = getAttrib(getListElement(current, "nodes"), R_NamesSymbol);
 
   /* first check: node sets must have the same size. */
-  if (LENGTH(tnodes) != LENGTH(cnodes)) {
+  if (length(tnodes) != length(cnodes)) {
 
     PROTECT(result = allocVector(STRSXP, 1));
     SET_STRING_ELT(result, 0, mkChar("Different number of nodes"));
@@ -261,7 +261,7 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash, result;
   }/*THEN*/
 
   /* store for future use. */
-  nnodes = LENGTH(tnodes);
+  nnodes = length(tnodes);
 
   /* second check: node sets must contain the same node labels.  */
   PROTECT(cmatch = match(tnodes, cnodes, 0));
@@ -293,7 +293,7 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash, result;
   carcs = getListElement(current, "arcs");
 
   /* third check: arc sets must have the same size. */
-  if (LENGTH(tarcs) != LENGTH(carcs)) {
+  if (length(tarcs) != length(carcs)) {
 
     PROTECT(result = allocVector(STRSXP, 1));
     SET_STRING_ELT(result, 0, mkChar("Different number of directed/undirected arcs"));
@@ -304,7 +304,7 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash, result;
   }/*THEN*/
 
   /* store for future use. */
-  narcs = LENGTH(tarcs)/2;
+  narcs = length(tarcs)/2;
 
   /* fourth check:  arcs sets must contain the same arcs. */
   if (narcs > 0) {

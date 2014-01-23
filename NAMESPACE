@@ -36,6 +36,7 @@ export(
   "children<-",
   "root.nodes",
   "leaf.nodes",
+  "nnodes",
   "in.degree",
   "out.degree",
   "amat",
@@ -50,6 +51,8 @@ export(
   "set.arc",
   "drop.arc",
   "reverse.arc",
+  "set.edge",
+  "drop.edge",
   "choose.direction",
   "arc.strength",
   "boot.strength",
@@ -103,9 +106,15 @@ export(
   "read.dsc",
   "write.dsc",
   "read.net",
-  "write.net"
+  "write.net",
+  "test.counter",
+  "increment.test.counter",
+  "reset.test.counter"
 )
 
+useDynLib(bnlearn)
+
+importFrom(methods, setClass, setGeneric, setMethod)
 importFrom(stats, logLik, AIC, BIC)
 
 S3method(all.equal, bn)
@@ -167,4 +176,4 @@ S3method("$<-", "bn.fit")
 S3method("[[<-", "bn.fit")
 
 exportClasses("bn", "bn.fit")
-exportMethods(nodes, degree)
+exportMethods("nodes", "nodes<-", "degree")

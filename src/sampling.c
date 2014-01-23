@@ -1,6 +1,6 @@
 #include "common.h"
 
-void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int *num, int ordinal, 
+void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int *num, int ordinal,
     SEXP fixed);
 void rbn_discrete_cond(SEXP result, SEXP nodes, int cur, SEXP parents, SEXP cpt,
     int *num, int ordinal, SEXP fixed);
@@ -154,7 +154,7 @@ SEXP result, fixed_nodes, try;
   PROTECT(result = allocVector(VECSXP, *nnodes));
   setAttrib(result, R_NamesSymbol, nodes);
 
-  for (i = 0; i < LENGTH(fixed_nodes); i++)
+  for (i = 0; i < length(fixed_nodes); i++)
     SET_VECTOR_ELT(result, f[i] - 1, VECTOR_ELT(fix, i));
 
   UNPROTECT(2);
@@ -167,7 +167,7 @@ SEXP rbn_master(SEXP fitted, SEXP n, SEXP fix, SEXP debug) {
 
 int *num = INTEGER(n), *poset = NULL, *debuglevel = LOGICAL(debug), type = 0;
 int has_fixed = (TYPEOF(fix) != LGLSXP);
-int i = 0, k = 0, cur = 0, nnodes = LENGTH(fitted), nparents = 0;
+int i = 0, k = 0, cur = 0, nnodes = length(fitted), nparents = 0;
 const char *cur_class = NULL;
 SEXP result, nodes, roots, node_depth, cpt, coefs, sd, parents, parent_vars, false;
 SEXP cur_node, cur_fixed;
@@ -218,9 +218,9 @@ SEXP cur_node, cur_fixed;
     cur_node = VECTOR_ELT(fitted, cur);
     cur_class = CHAR(STRING_ELT(getAttrib(cur_node, R_ClassSymbol), 0));
     parents = getListElement(cur_node, "parents");
-    nparents = LENGTH(parents);
+    nparents = length(parents);
 
-    /* check whether the value of the node is fixed, and if so retrieve it from 
+    /* check whether the value of the node is fixed, and if so retrieve it from
      * the list. */
     if (has_fixed)
       cur_fixed = VECTOR_ELT(fix, cur);
@@ -336,7 +336,7 @@ SEXP cur_node, cur_fixed;
 void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int *num, int ordinal,
     SEXP fixed) {
 
-int np = LENGTH(cpt), *gen = NULL, *workplace = NULL;
+int np = length(cpt), *gen = NULL, *workplace = NULL;
 double *p = NULL;
 SEXP generated, class, lvls;
 
@@ -395,14 +395,14 @@ SEXP generated, class, lvls;
 void rbn_discrete_cond(SEXP result, SEXP nodes, int cur, SEXP parents, SEXP cpt,
     int *num, int ordinal, SEXP fixed) {
 
-int np = LENGTH(cpt), nlevels = 0, warn = 0;
+int np = length(cpt), nlevels = 0, warn = 0;
 int *workplace = NULL, *configurations = NULL, *gen = NULL;
 double *p = NULL;
 SEXP generated, class, lvls;
 
   /* get the number of levels of the curent variable .*/
   lvls = VECTOR_ELT(getAttrib(cpt, R_DimNamesSymbol), 0);
-  nlevels = LENGTH(lvls);
+  nlevels = length(lvls);
   /* allocate the memory for the generated observations. */
   PROTECT(generated = allocVector(INTSXP, *num));
   gen = INTEGER(generated);
@@ -427,7 +427,7 @@ SEXP generated, class, lvls;
     p = alloc1dreal(np);
     memcpy(p, REAL(cpt), np * sizeof(double));
     /* perform the random sampling. */
-    CondProbSampleReplace(nlevels, LENGTH(cpt)/nlevels, p, configurations,
+    CondProbSampleReplace(nlevels, length(cpt)/nlevels, p, configurations,
       workplace, *num, gen, &warn);
 
   }/*ELSE*/
@@ -465,7 +465,7 @@ SEXP generated, class, lvls;
 void rbn_gaussian(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
     int *num, SEXP fixed) {
 
-int i = 0, j = 0, p = LENGTH(coefs);
+int i = 0, j = 0, p = length(coefs);
 double *beta = REAL(coefs), *sd = REAL(sigma), *gen = NULL, *Xj = NULL;
 SEXP generated;
 
@@ -492,7 +492,7 @@ SEXP generated;
 
       Xj = REAL(VECTOR_ELT(parents, j - 1));
 
-      for (i = 0; i < *num; i++) 
+      for (i = 0; i < *num; i++)
         gen[i] += Xj[i] * beta[j];
 
     }/*FOR*/

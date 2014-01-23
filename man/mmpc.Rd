@@ -9,7 +9,7 @@
 
   Learn the skeleton of a directed acyclic graph (DAG) from data using
   the Max-Min Parents and Children (MMPC) and the Semi-Interleaved
-  HITON-PC constraint-based algorithms. ARACNE and Chow-Liu learn an 
+  HITON-PC constraint-based algorithms. ARACNE and Chow-Liu learn an
   approximation of that structure using pairwise mutual information
   coefficients.
 
@@ -25,8 +25,8 @@ chow.liu(x, whitelist = NULL, blacklist = NULL, mi = NULL, debug = FALSE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
-  \item{cluster}{an optional cluster object from package \pkg{snow}.
-      See \code{\link{snow integration}} for details and a simple
+  \item{cluster}{an optional cluster object from package \pkg{parallel}.
+      See \code{\link{parallel integration}} for details and a simple
       example.}
   \item{whitelist}{a data frame with two columns (optionally labeled
      "from" and "to"), containing a set of arcs to be included in the
@@ -39,7 +39,7 @@ chow.liu(x, whitelist = NULL, blacklist = NULL, mi = NULL, debug = FALSE)
       and Chow-Liu algorithms. Possible values are \code{mi} (discrete
       mutual information) and \code{mi-g} (Gaussian mutual information).}
   \item{test}{a character string, the label of the conditional
-      independence test to be used in the algorithm. 
+      independence test to be used in the algorithm.
       If none is specified, the default test statistic is the \emph{mutual
       information} for categorical variables, the Jonckheere-Terpstra test
       for ordered factors and the \emph{linear correlation} for continuous

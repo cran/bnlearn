@@ -45,7 +45,7 @@ tiers2blacklist(nodes)
   set of node labels.
 
   \code{ordering2blacklist} and \code{tiers2blacklist} return a sanitized
-  \code{blacklist} (a two-column matrix, whose columns are labeled 
+  \code{blacklist} (a two-column matrix, whose columns are labeled
   \code{from} and \code{to}).
 
 }

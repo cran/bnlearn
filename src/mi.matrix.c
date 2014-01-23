@@ -110,8 +110,8 @@ int i = 0, j = 0;
 /* ARACNE structure learning algorithm. */
 SEXP aracne(SEXP data, SEXP estimator, SEXP whitelist, SEXP blacklist, SEXP debug) {
 
-int i = 0, j = 0, k = 0, coord = 0, ncols = LENGTH(data);
-int num = LENGTH(VECTOR_ELT(data, i)), narcs = ncols * (ncols - 1) / 2;
+int i = 0, j = 0, k = 0, coord = 0, ncols = length(data);
+int num = length(VECTOR_ELT(data, i)), narcs = ncols * (ncols - 1) / 2;
 int *nlevels = NULL, *est = INTEGER(estimator), *wl = NULL, *bl = NULL;
 int *debuglevel = LOGICAL(debug);
 void **columns = NULL;
@@ -177,12 +177,12 @@ SEXP arcs, nodes, wlist, blist;
   }/*FOR*/
 
   /* add back whitelisted arcs. */
-  if ((!isNull(whitelist)) && (LENGTH(whitelist) > 0)) {
+  if ((!isNull(whitelist)) && (length(whitelist) > 0)) {
 
     PROTECT(wlist = arc_hash(whitelist, nodes, TRUE, TRUE));
     wl = INTEGER(wlist);
 
-    for (i = 0; i < LENGTH(wlist); i++) {
+    for (i = 0; i < length(wlist); i++) {
 
       if (*debuglevel > 0) {
 
@@ -191,13 +191,13 @@ SEXP arcs, nodes, wlist, blist;
         if (exclude[wl[i]] == 1) {
 
           Rprintf("  > arc %s - %s has been added to the graph.\n",
-            CHAR(STRING_ELT(whitelist, i)), CHAR(STRING_ELT(whitelist, i + LENGTH(wlist))));
+            CHAR(STRING_ELT(whitelist, i)), CHAR(STRING_ELT(whitelist, i + length(wlist))));
 
         }/*THEN*/
         else {
 
           Rprintf("  > arc %s - %s was already present in the graph.\n",
-            CHAR(STRING_ELT(whitelist, i)), CHAR(STRING_ELT(whitelist, i + LENGTH(wlist))));
+            CHAR(STRING_ELT(whitelist, i)), CHAR(STRING_ELT(whitelist, i + length(wlist))));
 
         }/*ELSE*/
 
@@ -216,12 +216,12 @@ SEXP arcs, nodes, wlist, blist;
   }/*THEN*/
 
   /* remove blacklisted arcs. */
-  if ((!isNull(blacklist)) && (LENGTH(blacklist) > 0)) {
+  if ((!isNull(blacklist)) && (length(blacklist) > 0)) {
 
     PROTECT(blist = arc_hash(blacklist, nodes, TRUE, TRUE));
     bl = INTEGER(blist);
 
-    for (i = 0; i < LENGTH(blist); i++) {
+    for (i = 0; i < length(blist); i++) {
 
       if (*debuglevel > 0) {
 
@@ -230,13 +230,13 @@ SEXP arcs, nodes, wlist, blist;
         if (exclude[bl[i]] == 0) {
 
           Rprintf("  > arc %s - %s has been dropped from the graph.\n",
-            CHAR(STRING_ELT(blacklist, i)), CHAR(STRING_ELT(blacklist, i + LENGTH(blist))));
+            CHAR(STRING_ELT(blacklist, i)), CHAR(STRING_ELT(blacklist, i + length(blist))));
 
         }/*THEN*/
         else {
 
           Rprintf("  > arc %s - %s was not present in the graph.\n",
-            CHAR(STRING_ELT(blacklist, i)), CHAR(STRING_ELT(blacklist, i + LENGTH(blist))));
+            CHAR(STRING_ELT(blacklist, i)), CHAR(STRING_ELT(blacklist, i + length(blist))));
 
         }/*ELSE*/
 
@@ -274,8 +274,8 @@ static int chow_liu_blacklist(int *blacklist, int *length, int *hash) {
 SEXP chow_liu(SEXP data, SEXP nodes, SEXP estimator, SEXP whitelist,
     SEXP blacklist, SEXP conditional, SEXP debug) {
 
-int i = 0, j = 0, k = 0, debug_coord[2], ncols = LENGTH(data);
-int num = LENGTH(VECTOR_ELT(data, i)), narcs = 0, nwl = 0, nbl = 0;
+int i = 0, j = 0, k = 0, debug_coord[2], ncols = length(data);
+int num = length(VECTOR_ELT(data, i)), narcs = 0, nwl = 0, nbl = 0;
 int *nlevels = NULL, *clevels = NULL, *est = INTEGER(estimator);
 int *wl = NULL, *bl = NULL, *poset = NULL, *debuglevel = LOGICAL(debug);
 void **columns = NULL, *cond = NULL;
@@ -291,7 +291,7 @@ SEXP arcs, wlist, blist;
 
     cond = (void *) INTEGER(conditional);
     clevels = alloc1dcont(1);
-    *clevels = NLEVELS(conditional); 
+    *clevels = NLEVELS(conditional);
 
   }/*THEN*/
 
@@ -308,11 +308,11 @@ SEXP arcs, wlist, blist;
   LIST_MUTUAL_INFORMATION_COEFS()
 
   /* add whitelisted arcs first. */
-  if ((!isNull(whitelist)) && (LENGTH(whitelist) > 0)) {
+  if ((!isNull(whitelist)) && (length(whitelist) > 0)) {
 
     PROTECT(wlist = arc_hash(whitelist, nodes, TRUE, TRUE));
     wl = INTEGER(wlist);
-    nwl = LENGTH(wlist);
+    nwl = length(wlist);
 
     for (i = 0; i < nwl; i++) {
 
@@ -348,11 +348,11 @@ SEXP arcs, wlist, blist;
   }/*THEN*/
 
   /* cache blacklisted arcs. */
-  if ((!isNull(blacklist)) && (LENGTH(blacklist) > 0)) {
+  if ((!isNull(blacklist)) && (length(blacklist) > 0)) {
 
     PROTECT(blist = arc_hash(blacklist, nodes, TRUE, TRUE));
     bl = INTEGER(blist);
-    nbl = LENGTH(blist);
+    nbl = length(blist);
 
   }/*THEN*/
 
@@ -418,7 +418,7 @@ SEXP arcs, wlist, blist;
 
   }/*FOR*/
 
-  if ((!isNull(blacklist)) && (LENGTH(blacklist) > 0))
+  if ((!isNull(blacklist)) && (length(blacklist) > 0))
     UNPROTECT(1);
 
   /* sanity check for blacklist-related madnes. */
@@ -436,7 +436,7 @@ SEXP arcs, wlist, blist;
 SEXP tree_directions(SEXP arcs, SEXP nodes, SEXP root, SEXP debug) {
 
 int i = 0, j = 0, d = 0, traversed = 1;
-int narcs = LENGTH(arcs)/2, nnodes = LENGTH(nodes);
+int narcs = length(arcs)/2, nnodes = length(nodes);
 int *a = NULL, *depth = 0, *debuglevel = LOGICAL(debug);
 SEXP try, try2, result;
 

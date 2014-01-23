@@ -116,7 +116,7 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
 
     # from empirical observations, MMPC has very few false negatives and
     # therefore it is fairly safe not to test known.bad nodes.
-    nodes  = nodes[!(nodes %in% known.bad)] 
+    nodes  = nodes[!(nodes %in% known.bad)]
 
     if (debug) {
 

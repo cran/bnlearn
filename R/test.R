@@ -2,7 +2,7 @@
 conditional.test = function(x, y, sx, data, test, B, alpha = 1, learning = TRUE) {
 
   # update the test counter when performing structure learning.
-  if (learning) 
+  if (learning)
     increment.test.counter()
 
   sx = sx[sx != ""]
@@ -386,8 +386,7 @@ mi.test = function(x, y, ndata, gsquare = TRUE) {
   s = .Call("mi",
       x = x,
       y = y,
-      gsquare = gsquare,
-      PACKAGE = "bnlearn")
+      gsquare = gsquare)
 
 }#MI.TEST
 
@@ -397,8 +396,7 @@ shmi.test = function(x, y, gsquare = TRUE) {
   s = .Call("shmi",
       x = x,
       y = y,
-      gsquare = gsquare,
-      PACKAGE = "bnlearn")
+      gsquare = gsquare)
 
 }#SHMI.TEST
 
@@ -410,8 +408,7 @@ mc.test = function(x, y, samples, alpha, test) {
         y = y,
         samples = samples,
         test = test,
-        alpha = alpha,
-        PACKAGE = "bnlearn")
+        alpha = alpha)
 
 }#MC.TEST
 
@@ -422,8 +419,7 @@ cmi.test = function(x, y, z, ndata, gsquare = TRUE) {
       x = x,
       y = y,
       z = z,
-      gsquare = gsquare,
-      PACKAGE = "bnlearn")
+      gsquare = gsquare)
 
 }#CMI.TEST
 
@@ -434,8 +430,7 @@ shcmi.test = function(x, y, z, gsquare = TRUE) {
       x = x,
       y = y,
       z = z,
-      gsquare = gsquare,
-      PACKAGE = "bnlearn")
+      gsquare = gsquare)
 
 }#SHCMI.TEST
 
@@ -448,8 +443,7 @@ cmc.test = function(x, y, z, samples, alpha, test) {
         z = z,
         samples = samples,
         test = test,
-        alpha = alpha,
-        PACKAGE = "bnlearn")
+        alpha = alpha)
 
 }#CMC.TEST
 
@@ -459,8 +453,7 @@ mig.test = function(x, y, ndata, gsquare = TRUE) {
   s = .Call("mig",
       x = x,
       y = y,
-      length = ndata,
-      PACKAGE = "bnlearn")
+      length = ndata)
 
   ifelse(gsquare, 2 * ndata * s, s)
 
@@ -501,8 +494,7 @@ gmc.test = function(x, y, samples, alpha, test) {
         y = y,
         samples = samples,
         test = test,
-        alpha = alpha,
-        PACKAGE = "bnlearn")
+        alpha = alpha)
 
 }#GMC.TEST
 
@@ -514,8 +506,7 @@ cgmc.test = function(x, y, sx, data, ndata, samples, alpha, test) {
         length = ndata,
         samples = samples,
         test = test,
-        alpha = alpha,
-        PACKAGE = "bnlearn")
+        alpha = alpha)
 
 }#CGMC.TEST
 
@@ -524,8 +515,7 @@ x2.test = function(x, y) {
 
   .Call("x2",
       x = x,
-      y = y,
-      PACKAGE = "bnlearn")
+      y = y)
 
 }#X2.TEST
 
@@ -535,8 +525,7 @@ cx2.test = function(x, y, z) {
   .Call("cx2",
       x = x,
       y = y,
-      z = z,
-      PACKAGE = "bnlearn")
+      z = z)
 
 }#CX2.TEST
 
@@ -546,8 +535,7 @@ fast.cor = function(x, y, ndata) {
   .Call("fast_cor",
         x = x,
         y = y,
-        length = ndata,
-        PACKAGE = "bnlearn")
+        length = ndata)
 
 }#FAST.COR
 
@@ -558,8 +546,7 @@ fast.pcor = function(x, y, sx, data, ndata, strict) {
         data = minimal.data.frame.column(data, c(x, y, sx)),
         length = ndata,
         shrinkage = FALSE,
-        strict = strict,
-        PACKAGE = "bnlearn")
+        strict = strict)
 
 }#FAST.PCOR
 
@@ -569,8 +556,7 @@ fast.shcor = function(x, y, ndata) {
   .Call("fast_shcor",
         x = x,
         y = y,
-        length = ndata,
-        PACKAGE = "bnlearn")
+        length = ndata)
 
 }#FAST.SHCOR
 
@@ -581,28 +567,25 @@ fast.shpcor = function(x, y, sx, data, ndata, strict) {
         data = minimal.data.frame.column(data, c(x, y, sx)),
         length = ndata,
         shrinkage = TRUE,
-        strict = strict,
-        PACKAGE = "bnlearn")
+        strict = strict)
 
 }#FAST.SHPCOR
 
 # Jonckheere-Terpstra test.
 jt = function(x, y) {
 
-  .Call("jt", 
-        x = x, 
-        y = y, 
-        PACKAGE = "bnlearn")
+  .Call("jt",
+        x = x,
+        y = y)
 
 }#JT
 
 # Conditional Jonckheere-Terpstra test.
 cjt = function(x, y, z) {
- 
-  .Call("cjt", 
-        x = x, 
-        y = y, 
-        z = z, 
-        PACKAGE = "bnlearn")
+
+  .Call("cjt",
+        x = x,
+        y = y,
+        z = z)
 
 }#CJT

@@ -81,7 +81,7 @@ return elmt;
 /* return the unique elements from an input vector.*/
 SEXP unique(SEXP array) {
 
-int *d = NULL, i = 0, k = 0, dup_counter = 0, n = LENGTH(array);
+int *d = NULL, i = 0, k = 0, dup_counter = 0, n = length(array);
 SEXP dup, result = R_NilValue;
 
   PROTECT(dup = duplicated(array, FALSE));
@@ -129,7 +129,7 @@ SEXP dup, result = R_NilValue;
 /* determine which elements are dupes. */
 SEXP dupe(SEXP array) {
 
-int i = 0, n = LENGTH(array);
+int i = 0, n = length(array);
 int *res = NULL, *tmp = NULL;
 SEXP result, temp;
 
@@ -189,7 +189,7 @@ SEXP result, class, levels, lvls;
 /* in-place conversion an list into a data frame. */
 SEXP minimal_data_frame(SEXP obj) {
 
-int n = LENGTH(VECTOR_ELT(obj, 0));
+int n = length(VECTOR_ELT(obj, 0));
 int *row = NULL;
 SEXP classname, rownames;
 
@@ -216,14 +216,14 @@ SEXP classname, rownames;
 /* efficient column extraction from data frames. */
 SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop) {
 
-  return c_dataframe_column(dataframe, name, LOGICAL(drop)[0]);
+  return c_dataframe_column(dataframe, name, LOGICAL(drop)[0], FALSE);
 
 }/*DATAFRAME_COLUMN*/
 
-SEXP c_dataframe_column(SEXP dataframe, SEXP name, int drop) {
+SEXP c_dataframe_column(SEXP dataframe, SEXP name, int drop, int keep_names) {
 
 SEXP try, result, colnames = getAttrib(dataframe, R_NamesSymbol);
-int *idx = NULL, nnames = LENGTH(name), name_type = TYPEOF(name);
+int *idx = NULL, nnames = length(name), name_type = TYPEOF(name);
 
   if (dataframe == R_NilValue)
     return R_NilValue;
@@ -260,8 +260,11 @@ int *idx = NULL, nnames = LENGTH(name), name_type = TYPEOF(name);
 
     PROTECT(result = allocVector(VECSXP, nnames));
 
-    for (int i = 0, k = 0; i < nnames; i++)
-      SET_VECTOR_ELT(result, k++, VECTOR_ELT(dataframe, idx[i] -1));
+    for (int i = 0; i < nnames; i++)
+      SET_VECTOR_ELT(result, i, VECTOR_ELT(dataframe, idx[i] -1));
+
+    if (keep_names)
+      setAttrib(result, R_NamesSymbol, name);
 
     UNPROTECT(1);
 
@@ -286,7 +289,7 @@ int *idx = NULL, nnames = LENGTH(name), name_type = TYPEOF(name);
 SEXP qr_matrix(SEXP dataframe, SEXP name) {
 
 SEXP try, result, colnames = getAttrib(dataframe, R_NamesSymbol);
-int i = 0, ncols = LENGTH(name), nrows = LENGTH(VECTOR_ELT(dataframe, 0));
+int i = 0, ncols = length(name), nrows = length(VECTOR_ELT(dataframe, 0));
 int *idx = NULL;
 double *res = NULL, *source = NULL;
 
@@ -363,7 +366,7 @@ int c = 0, r = 0, cn = n - 1;
 /* normalize a conditional probability table. */
 SEXP normalize_cpt(SEXP cpt) {
 
-int i = 0, j = 0, nrows = 0, cells = LENGTH(cpt);
+int i = 0, j = 0, nrows = 0, cells = length(cpt);
 short int duplicated = 0;
 double psum = 0;
 double *c = NULL;

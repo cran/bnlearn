@@ -2,32 +2,54 @@
 # load suggested packages and initialize global variables.
 .onLoad = function(lib, pkg) {
 
+  bnlearn.classes = c("bn", "bn.fit", "bn.naive", "bn.tan")
+
   setHook(packageEvent("graph", "attach"), action = "append",
     function(...) {
 
       # re-register S4 methods.
-      setMethod("nodes", "bn", where = topenv(parent.frame()),  
-        function(object) .nodes(object))
-      setMethod("nodes", "bn.fit", where = topenv(parent.frame()),
-        function(object) .nodes(object))
-      setMethod("nodes", "bn.naive", where = topenv(parent.frame()),
-        function(object) .nodes(object))
-      setMethod("nodes", "bn.tan", where = topenv(parent.frame()),
-        function(object) .nodes(object))
+      for (cl in bnlearn.classes) {
 
-      setMethod("degree", "bn", where = topenv(parent.frame()), 
-        function(object, Nodes) .degree(object, Nodes))
-      setMethod("degree", "bn.fit", where = topenv(parent.frame()), 
-        function(object, Nodes) .degree(object, Nodes))
-      setMethod("degree", "bn.naive", where = topenv(parent.frame()), 
-        function(object, Nodes) .degree(object, Nodes))
-      setMethod("degree", "bn.tan", where = topenv(parent.frame()), 
-        function(object, Nodes) .degree(object, Nodes))
+        setMethod("nodes", cl, where = topenv(parent.frame()),
+          function(object) .nodes(object))
+        setMethod("nodes<-", cl, where = topenv(parent.frame()),
+          function(object, value) .relabel(object, value))
+        setMethod("degree", cl, where = topenv(parent.frame()),
+          function(object, Nodes) .degree(object, Nodes))
+
+      }#FOR
 
   })
 
+  # make bnlearn's classes known to S4.
+  setClass("bn")
+  setClass("bn.fit")
+  setClass("bn.naive")
+  setClass("bn.tan")
+
+  # if no generic is present, create it.
+  if (!("graph" %in% loadedNamespaces())) {
+
+    setGeneric("nodes", function(object, ...) standardGeneric("nodes"))
+    setGeneric("nodes<-", function(object, value) standardGeneric("nodes<-"))
+    setGeneric("degree", function(object, Nodes, ...) standardGeneric("degree"))
+
+  }#THEN
+
+  # add the methods.
+  for (cl in bnlearn.classes) {
+
+    setMethod("nodes", cl, function(object) .nodes(object))
+    setMethod("nodes<-", cl, function(object, value) .relabel(object, value))
+    setMethod("degree", cl, function(object, Nodes) .degree(object, Nodes))
+
+  }#FOR
+
   # load the shared library.
   library.dynam("bnlearn", package = pkg, lib.loc = lib)
+
+  # initialize stuff at the C level
+  .Call("c_onLoad")
 
 }#.ONLOAD
 

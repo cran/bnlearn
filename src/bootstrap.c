@@ -3,7 +3,7 @@
 /* adjusted arc counting for boot.strength(). */
 SEXP bootstrap_strength_counters(SEXP prob, SEXP weight, SEXP arcs, SEXP nodes) {
 
-int i = 0, j = 0, n = LENGTH(nodes), *a = NULL;
+int i = 0, j = 0, n = length(nodes), *a = NULL;
 double *p = NULL, *w = NULL;
 SEXP amat;
 
@@ -43,7 +43,7 @@ SEXP amat;
 /* arc strength (confidence) and direction coefficients. */
 SEXP bootstrap_arc_coefficients(SEXP prob, SEXP nodes) {
 
-int i = 0, j = 0, k = 0, narcs = 0, nnodes = LENGTH(nodes);
+int i = 0, j = 0, k = 0, narcs = 0, nnodes = length(nodes);
 double *p = NULL, *s = NULL, *d = NULL, tol = MACHINE_TOL;;
 SEXP res, class, rownames, colnames, from, to, str, dir;
 
@@ -122,4 +122,67 @@ SEXP res, class, rownames, colnames, from, to, str, dir;
   return res;
 
 }/*BOOTSTRAP_ARC_COEFFICIENTS*/
+
+/* reduce multiple boostrap strength R objects. */
+SEXP bootstrap_reduce(SEXP x) {
+
+int i = 0, j = 0, reps = length(x), nrows = 0;
+double *str = NULL, *dir = NULL, *temp = NULL;
+SEXP result, df, strength, direction;
+
+  /* allocate return value. */
+  PROTECT(result = allocVector(VECSXP, 4));
+
+  /* extract the first data frame from the list. */
+  df = VECTOR_ELT(x, 0);
+  /* copy data frame column names. */
+  setAttrib(result, R_NamesSymbol, getAttrib(df, R_NamesSymbol));
+  /* copy the first two columns. */
+  SET_VECTOR_ELT(result, 0, VECTOR_ELT(df, 0));
+  SET_VECTOR_ELT(result, 1, VECTOR_ELT(df, 1));
+  /* get the number of rows. */
+  nrows = length(VECTOR_ELT(df, 0));
+  /* allocate the remaining two columns. */
+  PROTECT(strength = allocVector(REALSXP, nrows));
+  str = REAL(strength);
+  PROTECT(direction = allocVector(REALSXP, nrows));
+  dir = REAL(direction);
+  /* just copy over strength and direction. */
+  memcpy(str, REAL(VECTOR_ELT(df, 2)), nrows * sizeof(double));
+  memcpy(dir, REAL(VECTOR_ELT(df, 3)), nrows * sizeof(double));
+
+  for (i = 1; i < reps; i++) {
+
+    /* extract the data frame from the list. */
+    df = VECTOR_ELT(x, i);
+    /* accumulate strength. */
+    temp = REAL(VECTOR_ELT(df, 2));
+    for (j = 0; j < nrows; j++)
+      str[j] += temp[j];
+    /* accumulate direction. */
+    temp = REAL(VECTOR_ELT(df, 3));
+    for (j = 0; j < nrows; j++)
+      dir[j] += temp[j];
+
+  }/*FOR*/
+
+  /* normalize dividing by the number of data frames. */
+  for (j = 0; j < nrows; j++) {
+
+    str[j] /= reps;
+    dir[j] /= reps;
+
+  }/*FOR*/
+
+  /* set the last two columns. */
+  SET_VECTOR_ELT(result, 2, strength);
+  SET_VECTOR_ELT(result, 3, direction);
+  /* make the return value a real data frame. */
+  minimal_data_frame(result);
+
+  UNPROTECT(3);
+
+  return result;
+
+}/*BOOTSTRAP_REDUCE*/
 

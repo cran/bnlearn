@@ -7,8 +7,7 @@ is.dag = function(arcs, nodes) {
 
   .Call("is_dag",
         arcs = factor(arcs),
-        nnodes = length(nodes),
-        PACKAGE = "bnlearn")
+        nnodes = length(nodes))
 
 }#IS.DAG
 
@@ -24,8 +23,7 @@ is.acyclic = function(arcs, nodes, return.nodes = FALSE, directed = FALSE,
         nodes = nodes,
         return_nodes = return.nodes,
         directed = directed,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#IS.ACYCLIC.BACKEND
 

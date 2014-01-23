@@ -1,7 +1,7 @@
 
 # unified hill climbing implementation (both optimized and by spec).
-hill.climbing = function(x, start, whitelist, blacklist, score,
-    extra.args, restart, perturb, max.iter, optimized, debug = FALSE) {
+hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
+    restart, perturb, max.iter, maxp, optimized, debug = FALSE) {
 
   # cache nodes' labels.
   nodes = names(x)
@@ -10,7 +10,9 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
   # set the iteration counter.
   iter = 1
   # check whether the score is score-equivalent.
-  score.equivalence = score %in% score.equivalent.scores
+  score.equivalence = is.score.equivalent(score, nodes, extra.args)
+  # check whether the score is decomposable.
+  score.decomposability = is.score.decomposable(score, nodes, extra.args)
   # allocate the cache matrix.
   cache = matrix(0, nrow = n.nodes, ncol = n.nodes)
   # nodes to be updated (all of them in the first iteration).
@@ -20,7 +22,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 
   # set the reference score.
   reference.score = per.node.score(network = start, score = score,
-                      nodes = nodes, extra.args = extra.args, data = x)
+                      targets = nodes, extra.args = extra.args, data = x)
 
   # convert the blacklist to an adjacency matrix for easy use.
   if (!is.null(blacklist))
@@ -59,9 +61,11 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 
     # build the adjacency matrix of the current network structure.
     amat = arcs2amat(start$arcs, nodes)
+    # compute the number of parents of each node.
+    nparents = colSums(amat)
 
     # set up the score cache (BEWARE: in place modification!).
-    .Call("hc_cache_fill",
+    .Call("score_cache_fill",
           nodes = nodes,
           data = x,
           network = start,
@@ -69,18 +73,19 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
           extra = extra.args,
           reference = reference.score,
           equivalence = score.equivalence && optimized,
+          decomposability = score.decomposability,
           updated = (if (optimized) updated else seq(length(nodes)) - 1L),
           env = environment(),
           amat = amat,
           cache = cache,
           blmat = blmat,
-          debug = debug,
-          PACKAGE = "bnlearn")
+          debug = debug)
 
     # select which arcs should be tested for inclusion in the graph (hybrid
     # learning algorithms should hook the restrict phase here).
     to.be.added = arcs.to.be.added(amat = amat, nodes = nodes,
-                    blacklist = blmat, whitelist = NULL, arcs = FALSE)
+                    blacklist = blmat, whitelist = NULL, nparents = nparents,
+                    maxp = maxp, arcs = FALSE)
 
     # get the best arc addition/removal/reversal.
     bestop = .Call("hc_opt_step",
@@ -91,8 +96,9 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
                    reference = reference.score,
                    wlmat = wlmat,
                    blmat = blmat,
-                   debug = debug,
-                   PACKAGE = "bnlearn")
+                   nparents = nparents,
+                   maxp = maxp,
+                   debug = debug)
 
     # the value FALSE is the canary value in bestop$op meaning "no operation
     # improved the network score"; break the loop.
@@ -165,8 +171,8 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 
         # perturb the network.
         start = perturb.backend(network = start, iter = perturb, nodes = nodes,
-                amat = amat, whitelist = whitelist, blacklist = blacklist,
-                debug = debug)
+                  amat = amat, whitelist = whitelist, blacklist = blacklist,
+                  maxp = maxp, debug = debug)
 
         # update the cached values of the end network.
         start$nodes = cache.structure(nodes, arcs = start$arcs)
@@ -178,7 +184,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
           # resulted from the random restart is discarded and the old network
           # is perturbed.
           reference.score = per.node.score(network = start, score = score,
-                          nodes = nodes, extra.args = extra.args, data = x)
+                          targets = nodes, extra.args = extra.args, data = x)
 
           updated = which(nodes %in% nodes) - 1L
 
@@ -187,7 +193,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score,
 
           # the scores whose nodes' parents changed must be updated.
           reference.score[names(start$updates)] =
-            per.node.score(network = start, score = score, nodes = names(start$updates),
+            per.node.score(network = start, score = score, targets = names(start$updates),
                extra.args = extra.args, data = x)
 
           updated = which(nodes %in% names(start$updates)) - 1L

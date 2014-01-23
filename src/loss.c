@@ -9,21 +9,26 @@ double c_dloss(int *cur, SEXP cur_parents, int *configs, double *prob,
 #define DISCRETE 0
 #define GAUSSIAN 1
 
-SEXP entropy_loss(SEXP fitted, SEXP data, SEXP by_sample, SEXP debug) {
+SEXP entropy_loss(SEXP fitted, SEXP orig_data, SEXP by_sample, SEXP keep,
+    SEXP debug) {
 
-int i = 0, ndata = 0, nnodes = LENGTH(fitted), nlevels = 0, type = 0;
+int i = 0, k = 0, ndata = 0, nnodes = length(fitted), nlevels = 0, type = 0;
 int *configs = NULL, *debuglevel = LOGICAL(debug), *by = LOGICAL(by_sample);
+int *to_keep = NULL;
 double *res = 0, *res_sample = NULL, **columns = 0, cur_loss = 0;
 const char *class = NULL;
-SEXP cur_node, nodes, result, result_sample, coefs, sd, parents;
+SEXP data, cur_node, nodes, result, result_sample, coefs, sd, parents, try;
 
-  /* get the sample size. */
-  ndata = LENGTH(VECTOR_ELT(data, 0));
-  /* get the node labels. */ 
+  /* get the node labels. */
   nodes = getAttrib(fitted, R_NamesSymbol);
-  /* allocate the return value. */
+  /* rearrange the columns of the data to match the network. */
+  PROTECT(data = c_dataframe_column(orig_data, nodes, FALSE, TRUE));
+  /* get the sample size. */
+  ndata = length(VECTOR_ELT(data, 0));
+  /* allocate and initialize the return value. */
   PROTECT(result = allocVector(REALSXP, 1));
   res = REAL(result);
+  *res = 0;
   /* allocate the sample's contributions if needed. */
   if (*by > 0) {
 
@@ -32,6 +37,11 @@ SEXP cur_node, nodes, result, result_sample, coefs, sd, parents;
     memset(res_sample, '\0', ndata * sizeof(double));
 
   }/*THEN*/
+
+  /* find out which nodes to use in computing the entropy loss. */
+  PROTECT(try = match(nodes, keep, 0));
+  to_keep = INTEGER(try);
+  R_isort(to_keep, length(try));
 
   /* determine the class of the fitted network. */
   class = CHAR(STRING_ELT(getAttrib(VECTOR_ELT(fitted, 0), R_ClassSymbol), 0));
@@ -58,6 +68,20 @@ SEXP cur_node, nodes, result, result_sample, coefs, sd, parents;
   /* iterate over the nodes. */
   for (i = 0; i < nnodes; i++) {
 
+    if (i == to_keep[k] - 1) {
+
+      k++;
+
+    }/*THEN*/
+    else {
+
+      if (*debuglevel > 0)
+        Rprintf("  > skipping node %s.\n", NODE(i));
+
+      continue;
+
+    }/*ELSE*/
+
     /* get the current node. */
     cur_node = VECTOR_ELT(fitted, i);
     /* get the parents of the node. */
@@ -65,7 +89,7 @@ SEXP cur_node, nodes, result, result_sample, coefs, sd, parents;
     /* get the parameters (regression coefficients and residuals' standard
      * deviation for Gaussian nodes, conditional probabilities for discrete
      * nodes), and compute the loss. */
-    switch(type)  {   
+    switch(type)  {
 
       case GAUSSIAN:
 
@@ -81,7 +105,7 @@ SEXP cur_node, nodes, result, result_sample, coefs, sd, parents;
         coefs = getListElement(cur_node, "prob");
         nlevels = INT(getAttrib(coefs, R_DimSymbol));
 
-        cur_loss = c_dloss(&i, parents, configs, REAL(coefs), data, nodes, 
+        cur_loss = c_dloss(&i, parents, configs, REAL(coefs), data, nodes,
                      ndata, nlevels, res_sample);
         break;
 
@@ -91,19 +115,19 @@ SEXP cur_node, nodes, result, result_sample, coefs, sd, parents;
       Rprintf("  > log-likelihood loss for node %s is %lf.\n", NODE(i), cur_loss);
 
     /* add the node contribution to the return value. */
-    *res += cur_loss; 
+    *res += cur_loss;
 
   }/*FOR*/
 
   if (*by > 0) {
 
-    UNPROTECT(2);
+    UNPROTECT(4);
     return result_sample;
 
   }/*THEN*/
   else {
 
-    UNPROTECT(1);
+    UNPROTECT(3);
     return result;
 
   }/*ELSE*/
@@ -111,10 +135,10 @@ SEXP cur_node, nodes, result, result_sample, coefs, sd, parents;
 }/*ENTROPY_LOSS*/
 
 /* Gaussian loss for a single node. */
-double c_gloss(int *cur, SEXP cur_parents, double *coefs, double *sd, 
+double c_gloss(int *cur, SEXP cur_parents, double *coefs, double *sd,
     double **columns, SEXP nodes, int ndata, double *per_sample) {
 
-int i = 0, j = 0, *p = NULL, nparents = LENGTH(cur_parents);
+int i = 0, j = 0, *p = NULL, nparents = length(cur_parents);
 double mean = 0, logprob = 0, result = 0;
 SEXP try;
 
@@ -164,10 +188,10 @@ SEXP temp_df;
   /* get the target variable. */
   obs = INTEGER(VECTOR_ELT(data, *cur));
   /* get the parents' configurations. */
-  if (LENGTH(cur_parents) > 0) {
+  if (length(cur_parents) > 0) {
 
-    PROTECT(temp_df = c_dataframe_column(data, cur_parents, FALSE));
-    cfg(temp_df, configs, NULL); 
+    PROTECT(temp_df = c_dataframe_column(data, cur_parents, FALSE, FALSE));
+    cfg(temp_df, configs, NULL);
 
     for (i = 0; i < ndata; i++) {
 
@@ -218,7 +242,7 @@ SEXP temp_df;
 /* classification error of a single node as a loss function. */
 SEXP class_err(SEXP reference, SEXP predicted) {
 
-int i = 0, dropped = 0, ndata = LENGTH(reference);
+int i = 0, dropped = 0, ndata = length(reference);
 int *r = INTEGER(reference), *p = INTEGER(predicted);
 double *res = NULL;
 SEXP result;

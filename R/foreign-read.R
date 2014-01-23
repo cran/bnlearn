@@ -615,6 +615,7 @@ bif.get.probabilities = function(node, start, lines, nodes.levels, parents, root
     cfg = strsplit(sub(".*\\((.+)\\).+", "\\1", row), ",")
     cfg = lapply(cfg, sub, pattern = "^\\s*(.+?)\\s*$", replacement = "\\1")
     dims = lapply(c(node, parents[[node]]), function(x) nodes.levels[[x]])
+    names(dims) = c(node, parents[[node]])
 
     # check whether the number of conditional probability distributions matches
     # the number of configurations.
@@ -727,6 +728,7 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
     cfg = strsplit(sub(".*\\((.+)\\).+", "\\1", row), ",")
     cfg = lapply(cfg, sub, pattern = "^\\s*(.+?)\\s*$", replacement = "\\1")
     dims = lapply(c(node, parents[[node]]), function(x) nodes.levels[[x]])
+    names(dims) = c(node, parents[[node]])
 
     # DSC files use numeric coordinates instead of levels; Genie does not write
     # them down, it fills them up with zeroes. Use my best guess of the right
@@ -845,6 +847,7 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
     # extract the conditional probability distributions.
     dims = lapply(c(node, parents[[node]]), function(x) nodes.levels[[x]])
+    names(dims) = c(node, parents[[node]])
     nconfigs = prod(sapply(dims[-1], length))
     probs = strsplit(sub("^\\s+", "", row), "\\s+")[[1]]
 
@@ -916,7 +919,6 @@ match.brace = function(lines, start, open = "{", close = "}") {
         lines = lines,
         start = start,
         open = open,
-        close = close,
-        PACKAGE = "bnlearn")
+        close = close)
 
 }#MATCH.BRACE

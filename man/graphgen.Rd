@@ -64,7 +64,7 @@ random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
         (and uniform) probability distribution. The default value is
         \code{6 * length(nodes)^2}.
 
-    \item \code{every}: return only one graph \code{every} number of 
+    \item \code{every}: return only one graph \code{every} number of
       steps instead of all the graphs generated with \code{ic-dag} and
       \code{melancon}. Since both algorithms are based on Markov Chain
       Monte Carlo approaches, high values of \code{every} result in a

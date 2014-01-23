@@ -1,31 +1,64 @@
+
+bnlearn (3.5)
+
+  * fixed (again) function name collisions with the graph packages
+     (thanks Carsten Krueger).
+  * fixed some variable indexing issues in likelihood weighting.
+  * removed bootstrap support from arc.strength(), use boot.strength()
+     instead.
+  * added set.edge() and drop.edge() to work with undirected arcs.
+  * boot.strength() now has a parallelized implementation.
+  * added support for non-uniform graph priors (Bayesian variable
+     selection, Castelo & Siebes).
+  * added a threshold for the maximum number of parents in hc() and tabu().
+  * changed the default value of "moral" from FALSE to TRUE in cpdag()
+     and vstructs() to ensure sensible results in model averaging.
+  * added more sanity checks in cp{query,dist}() expression parsing
+     (thanks Ofer Mendelevitch).
+  * added 'nodes' and 'by.sample' arguments to logLik() for bn.fit objects.
+  * support {naive,tree}.bayes() in bn.cv() (thanks Xin Zhou).
+  * fixed predict() for ordinal networks (thanks Vitalie Spinu).
+  * fixed zero variance handling in unconditional Jonckheere-Terpstra
+     tests due to empty rows/columns (thanks Vitalie Spinu).
+  * in bn.cv(), the default loss for classifiers is now classification
+     error.
+  * added a nodes<-() function to re-label nodes in bn and bn.fit object
+     (based on a proof of concept by Vitalie Spinu).
+  * replaced all calls to LENGTH() with length() in C code (thanks Brian
+     Ripley).
+  * default to an improper flat prior in predict() for classifiers for
+     consistency (thanks Xin Zhou).
+  * suggest the parallel package instead of snow (which still works fine).
+
 bnlearn (3.4)
 
   * move the test counter into bnlearn's namespace.
   * include Tsamardinos' optimizations in mmpc(..., optimized = FALSE),
      but not backtracking, to make it comparable with other learning
      algorithms.
-  * check whether the residuals and the fitted values are present before
-     trying to plot a bn.fit{,.gnode} object.
-  * fixed two integer overflows in factors' levels and degrees of freedom
-     in large networks.
+  * check whether the residuals and the fitted values are present
+     before trying to plot a bn.fit{,.gnode} object.
+  * fixed two integer overflows in factors' levels and degrees of
+     freedom in large networks.
   * added {compelled,reversible}.arcs().
   * added the MSE and predictive correlation loss functions to bn.cv().
-  * use the unbiased estimate of residual variance to compute the standard
-     error in bn.fit(..., method = "mle") (thanks Jean-Baptiste Denis).
-  * revised optimizations in constraint-based algorithms, removing most
-     false positives by sacrificing speed.
+  * use the unbiased estimate of residual variance to compute the 
+     standard error in bn.fit(..., method = "mle") (thanks 
+     Jean-Baptiste Denis).
+  * revised optimizations in constraint-based algorithms, removing
+     most false positives by sacrificing speed.
   * fixed warning in cp{dist,query}().
   * added support for ordered factors.
-  * implemented the Jonckheere-Terpstra test to support ordered factors
-     in constraint-based structure learning.
-  * added a plot() method for bn.strength objects containing bootstrapped
-     confidence estimates; it prints their ECDF and the estimated 
-     significance threshold.
+  * implemented the Jonckheere-Terpstra test to support ordered
+     factors in constraint-based structure learning.
+  * added a plot() method for bn.strength objects containing
+     bootstrapped confidence estimates; it prints their ECDF and
+     the estimated significance threshold.
   * fixed dimension reduction in cpdist().
   * reimplemented Gaussian rbn() in C, it's now twice as fast.
   * improve precision and robustness of (partial) correlations.
-  * remove the old network scripts for network that are now available from
-     www.bnlearn.com/bnrepository.
+  * remove the old network scripts for network that are now available
+     from www.bnlearn.com/bnrepository.
   * implemented likelihood weighting in cp{dist,query}().
 
 bnlearn (3.3)

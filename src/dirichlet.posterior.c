@@ -2,13 +2,12 @@
 #include <Rmath.h>
 #include "common.h"
 
-/* posterior dirichlet probability (covers BDe and K2 scores). */
-SEXP dpost(SEXP x, SEXP iss, SEXP exp) {
+/* posterior Dirichlet probability (covers BDe and K2 scores). */
+double dpost(SEXP x, SEXP iss, SEXP exp) {
 
-int i = 0, k = 0, num = LENGTH(x);
+int i = 0, k = 0, num = length(x);
 int llx = NLEVELS(x), *xx = INTEGER(x), *n = NULL, *imaginary = NULL;
-double alpha = 0, *res = NULL;
-SEXP result;
+double alpha = 0, res = 0;
 
   /* the correct vaules for the hyperparameters alpha are documented in
    * "Learning Bayesian Networks: The Combination of Knowledge and Statistical
@@ -29,11 +28,6 @@ SEXP result;
     alpha = (double) *imaginary / (double) llx;
 
   }/*ELSE*/
-
-  /* allocate and initialize result to zero. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
-  *res = 0;
 
   /* initialize the contingency table. */
   n = alloc1dcont(llx);
@@ -58,35 +52,33 @@ SEXP result;
     }/*FOR*/
 
     /* adjust the sample size to match the number of observational data. */
-   num -= LENGTH(exp);
+   num -= length(exp);
 
   }/*ELSE*/
 
   /* compute the posterior probability. */
   for (i = 0; i < llx; i++)
-    *res += lgammafn(n[i] + alpha) - lgammafn(alpha);
-  *res += lgammafn((double)(*imaginary)) -
+    res += lgammafn(n[i] + alpha) - lgammafn(alpha);
+  res += lgammafn((double)(*imaginary)) -
             lgammafn((double)(*imaginary + num));
 
-  UNPROTECT(1);
-  return result;
+  return res;
 
 }/*DPOST*/
 
-/* conditional posterior dirichlet probability (covers BDe and K2 scores). */
-SEXP cdpost(SEXP x, SEXP y, SEXP iss, SEXP exp, SEXP nparams) {
+/* conditional posterior Dirichlet probability (covers BDe and K2 scores). */
+double cdpost(SEXP x, SEXP y, SEXP iss, SEXP exp) {
 
-int i = 0, j = 0, k = 0, imaginary = 0, num = LENGTH(x);
-int llx = NLEVELS(x), lly = NLEVELS(y), *xx = INTEGER(x), *yy = INTEGER(y);
-int **n = NULL, *nj = NULL;
-double alpha = 0, *res = NULL, *p = REAL(nparams);
-SEXP result;
+int i = 0, j = 0, k = 0, imaginary = 0, num = length(x);
+int llx = NLEVELS(x), lly = NLEVELS(y), p = llx * lly;
+int *xx = INTEGER(x), *yy = INTEGER(y), **n = NULL, *nj = NULL;
+double alpha = 0, res = 0;
 
   if (isNull(iss)) {
 
     /* this is for K2, which does not define an imaginary sample size;
      * all hyperparameters are set to 1 in the prior distribution. */
-    imaginary = (int) *p;
+    imaginary = p;
     alpha = 1;
 
   }/*THEN*/
@@ -94,14 +86,9 @@ SEXP result;
 
     /* this is for the BDe score. */
     imaginary = INT(iss);
-    alpha = (double) imaginary / *p;
+    alpha = ((double) imaginary) / ((double) p);
 
   }/*ELSE*/
-
-  /* allocate and initialize result to zero. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
-  *res = 0;
 
   /* initialize the contingency table. */
   n = alloc2dcont(llx, lly);
@@ -139,19 +126,77 @@ SEXP result;
     }/*FOR*/
 
     /* adjust the sample size to match the number of observational data. */
-   num -= LENGTH(exp);
+   num -= length(exp);
 
   }/*ELSE*/
 
   /* compute the conditional posterior probability. */
   for (i = 0; i < llx; i++)
     for (j = 0; j < lly; j++)
-      *res += lgammafn(n[i][j] + alpha) - lgammafn(alpha);
+      res += lgammafn(n[i][j] + alpha) - lgammafn(alpha);
   for (j = 0; j < lly; j++)
-    *res += lgammafn((double)imaginary / lly) -
+    res += lgammafn((double)imaginary / lly) -
               lgammafn(nj[j] + (double)imaginary / lly);
 
-  UNPROTECT(1);
-  return result;
+  return res;
 
 }/*CDPOST*/
+
+/* Dirichlet posterior probabilities (covers BDe and K2 scores). */
+double dirichlet_node(SEXP target, SEXP x, SEXP data, SEXP iss, SEXP prior,
+    SEXP beta, SEXP experimental, int sparse, int debuglevel) {
+
+char *t = (char *)CHAR(STRING_ELT(target, 0));
+double prob = 0, prior_prob = 0;
+SEXP nodes, node_t, data_t, exp_data, parents, parent_vars, config;
+
+  if (debuglevel > 0) {
+
+    Rprintf("----------------------------------------------------------------\n");
+    Rprintf("* processing node %s.\n", t);
+
+  }/*THEN*/
+
+  /* get the node cached information. */
+  nodes = getListElement(x, "nodes");
+  node_t = getListElement(nodes, t);
+  /* get the parents of the node. */
+  parents = getListElement(node_t, "parents");
+  /* extract the node's column from the data frame. */
+  data_t = c_dataframe_column(data, target, TRUE, FALSE);
+  /* extract the list of eperimental data. */
+  exp_data = c_dataframe_column(experimental, target, TRUE, FALSE);
+  /* compute the prior probability component for the node. */
+  prior_prob = graph_prior_prob(prior, target, node_t, beta, debuglevel);
+
+  if (length(parents) == 0) {
+
+    prob = dpost(data_t, iss, exp_data);
+
+  }/*THEN*/
+  else {
+
+    /* generate the configurations of the parents. */
+    PROTECT(parent_vars = c_dataframe_column(data, parents, FALSE, FALSE));
+    PROTECT(config = c_cfg2(parent_vars, TRUE, !sparse));
+    /* compute the marginal likelihood. */
+    prob = cdpost(data_t, config, iss, exp_data);
+
+    UNPROTECT(2);
+
+  }/*ELSE*/
+
+  if (debuglevel > 0) {
+
+    Rprintf("  > (log)prior probability is %lf.\n", prior_prob);
+    Rprintf("  > (log)posterior density is %lf.\n", prob);
+
+  }/*THEN*/
+
+  /* add the (log)prior to the marginal (log)likelihood to get the (log)posterior. */
+  prob += prior_prob;
+
+  return prob;
+
+}/*DIRICHLET_NODE*/
+

@@ -83,7 +83,7 @@
            \item \code{training}: a character string, the label of the training
              node in a Bayesian network classifier.
 
-           \item \code{threshold}: the threshold used to determine which arcs 
+           \item \code{threshold}: the threshold used to determine which arcs
              are significant when averaging network structures.
 
         }

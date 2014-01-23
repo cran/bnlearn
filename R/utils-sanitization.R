@@ -95,16 +95,14 @@ is.ndmatrix = function(x) {
 is.symmetric = function(x) {
 
   .Call("is_symmetric",
-        matrix = x,
-        PACKAGE = "bnlearn")
+        matrix = x)
 
 }#IS.SYMMETRIC
 
 is.cauchy.schwarz = function(x) {
 
   .Call("is_cauchy_schwarz",
-        matrix = x,
-        PACKAGE = "bnlearn")
+        matrix = x)
 
 }#Is.CAUCHY.SCHWARZ
 
@@ -134,12 +132,33 @@ check.data = function(x, allow.mixed = FALSE) {
       stop("variables must be either all real numbers or all factors.")
 
   }
-  # check the number of levels of discrete variables, to guarantee that
-  # the degrees of freedom of the tests are positive.
-  if (is.data.discrete(x))
-    for (col in names(x))
+
+  # checks specific to a particular data type.
+  if (is.data.discrete(x)) {
+
+    for (col in names(x)) {
+
+      # check the number of levels of discrete variables, to guarantee that
+      # the degrees of freedom of the tests are positive.
       if (nlevels(x[, col]) < 2)
-        stop("all factors must have at least two levels.")
+        stop("variable ", col, " must have at least two levels.")
+
+      # warn about levels with zero frequencies, it's not necessarily wrong
+      # (data frame subsetting) but sure is fishy.
+      if (any(table(x[, col]) == 0))
+        warning("variable ", col, " has levels that are not observed in the data.")
+
+    }#FOR
+
+  }#THEN
+  else if (is.data.continuous(x)) {
+
+    # all values must be finite to have finite mean and variance.
+    for (col in names(x))
+      if (any(is.infinite(x[, col])))
+        stop("variable ", col, " contains non-finite values.")
+
+  }#THEN
 
 }#CHECK.DATA
 
@@ -415,7 +434,7 @@ check.score = function(score, data) {
     # check the score/test label.
     if (!(score %in% available.scores))
       stop(paste(c("valid scores are:\n",
-             sprintf("    %-10s %s\n", names(score.labels), score.labels)), sep = ""))
+             sprintf("    %-15s %s\n", names(score.labels), score.labels)), sep = ""))
     # check if it's the right score for the data (discrete, continuous).
     if (!is.data.discrete(data) && (score %in% available.discrete.scores))
       stop(paste("score '", score, "' may be used with discrete data only.", sep = ""))
@@ -440,6 +459,36 @@ check.score = function(score, data) {
 
 }#CHECK.SCORE
 
+# check whether a score is score equivalent.
+is.score.equivalent = function(score, nodes, extra) {
+
+  # log-likelihood is always score equivalent.
+  if (score %in% c("loglik", "loglik-g"))
+    return(TRUE)
+  # same with AIC and BIC.
+  if (score %in% c("aic", "aic-g", "bic", "bic-g"))
+    return(TRUE)
+  # BDe and BGe are score equivalent if they have uniform priors (e.g. BDeu and BGeu).
+  else if ((score %in% c("bde", "bge")) && (extra$prior == "uniform"))
+      return(TRUE)
+
+  # a conservative default.
+  return(FALSE)
+
+}#IS.SCORE.EQUIVALENT
+
+# check whether a score is decomposable.
+is.score.decomposable = function(score, nodes, extra) {
+
+  # Castelo & Siebes prior is not decomposable.
+  if ((score %in% c("bde", "bge")) && (extra$prior == "cs"))
+    return(FALSE)
+
+  # a sensible default.
+  return(TRUE)
+
+}#IS.SCORE.DECOMPOSABLE
+
 # check test labels.
 check.test = function(test, data) {
 
@@ -450,7 +499,7 @@ check.test = function(test, data) {
     # check the score/test label.
     if (!(test %in% available.tests))
       stop(paste(c("valid tests are:\n",
-             sprintf("    %-10s %s\n", names(test.labels), test.labels)), sep = ""))
+             sprintf("    %-15s %s\n", names(test.labels), test.labels)), sep = ""))
     # check if it's the right test for the data (discrete, continuous).
     if (!is.data.ordinal(data) && (test %in% available.ordinal.tests))
       stop(paste("test '", test, "' may be used with ordinal data only.", sep = ""))
@@ -486,9 +535,9 @@ check.criterion = function(criterion, data) {
     criterion = check.score(criterion, data)
   else
     stop(paste(c("valid tests are:\n",
-      sprintf("    %-10s %s\n", names(test.labels), test.labels),
+      sprintf("    %-15s %s\n", names(test.labels), test.labels),
       "  valid scores are:\n",
-      sprintf("    %-10s %s\n", names(score.labels), score.labels)),
+      sprintf("    %-15s %s\n", names(score.labels), score.labels)),
       sep = ""))
 
   return(criterion)
@@ -496,7 +545,7 @@ check.criterion = function(criterion, data) {
 }#CHECK.CRITERION
 
 # check loss functions' labels.
-check.loss = function(loss, data) {
+check.loss = function(loss, data, bn) {
 
   if (!is.null(loss)) {
 
@@ -505,7 +554,7 @@ check.loss = function(loss, data) {
     # check the score/test label.
     if (!(loss %in% loss.functions))
       stop(paste(c("valid loss functions are:\n",
-             sprintf("    %-10s %s\n", names(loss.labels), loss.labels)), sep = ""))
+             sprintf("    %-15s %s\n", names(loss.labels), loss.labels)), sep = ""))
     if (!is.data.discrete(data) && (loss %in% discrete.loss.functions))
       stop(paste("loss function '", loss, "' may be used with discrete data only.", sep = ""))
     if (!is.data.continuous(data) && (loss %in% continuous.loss.functions))
@@ -516,6 +565,9 @@ check.loss = function(loss, data) {
   }#THEN
   else {
 
+    if ((is.character(bn) && (bn %in% classifiers)) || 
+         is(bn, c("bn.naive", "bn.tan")))
+      return("pred")
     if (is.data.discrete(data))
       return("logl")
     else
@@ -535,7 +587,7 @@ check.fitting.method = function(method, data) {
     # check the score/test label.
     if (!(method %in% available.fitting.methods))
       stop(paste(c("valid fitting methods are:\n",
-             sprintf("    %-10s %s\n", names(fitting.labels), fitting.labels)), sep = ""))
+             sprintf("    %-15s %s\n", names(fitting.labels), fitting.labels)), sep = ""))
     # bayesian parameter estimation is implemented only for discrete data.
     if (is.data.continuous(data) && (method == "bayes"))
       stop("Bayesian parameter estimation for Gaussian Bayesian networks is not implemented.")
@@ -561,7 +613,7 @@ check.discretization.method = function(method) {
     # check the score/test label.
     if (!(method %in% available.discretization.methods))
       stop(paste(c("valid discretization methods are:\n",
-             sprintf("    %-10s %s\n", names(discretization.labels), discretization.labels)), sep = ""))
+             sprintf("    %-15s %s\n", names(discretization.labels), discretization.labels)), sep = ""))
 
     return(method)
 
@@ -584,7 +636,7 @@ check.mi.estimator = function(estimator, data) {
     # check the score/estimator label.
     if (!(estimator %in% available.mi))
       stop(paste(c("valid estimators are:\n",
-             sprintf("    %-10s %s\n", names(mi.estimator.labels), mi.estimator.labels)), sep = ""))
+             sprintf("    %-15s %s\n", names(mi.estimator.labels), mi.estimator.labels)), sep = ""))
     # check if it's the right estimator for the data (discrete, continuous).
     if (!is.data.discrete(data) && (estimator %in% available.discrete.mi))
       stop(paste("estimator '", estimator, "' may be used with discrete data only.", sep = ""))
@@ -762,7 +814,7 @@ check.penalty = function(k, network, data, score) {
   }#THEN
   else {
 
-    # check whether there is a penaltization coefficient stored in the bn object,
+    # check whether there is a penalization coefficient stored in the bn object,
     # use the default for the score function otherwise.
     if (!is.null(network$learning$args$k))
       k = network$learning$args$k
@@ -775,44 +827,138 @@ check.penalty = function(k, network, data, score) {
 
 }#CHECK.PENALTY
 
+# sanitize prior distributions over the graph space.
+check.graph.prior = function(prior, network) {
+
+  if (is.null(prior)) {
+
+    # check whether there is a graph prior stored in the bn object, use the
+    # uniform one otherwise.
+    if (!is.null(network$learning$args$prior))
+      prior = network$learning$args$prior
+    else
+      prior = "uniform"
+
+  }#THEN
+  else {
+
+    # check whether prior is a string.
+    check.string(prior)
+    # check whether the label matches a known prior.
+    if (!(prior %in% prior.distributions))
+      stop("valid prior distributions are: ",
+        paste(prior.distributions, collapse = " "), ".")
+
+  }#ELSE
+
+  return(prior)
+
+}#CHECK.GRAPH.PRIOR
+
+# check the sparsity parameter of the prior distribution over the graph space.
+check.graph.sparsity = function(beta, prior, network, data) {
+
+  default.beta = list("uniform" = NULL, "vsp" = 1/ncol(data), cs = NULL)
+
+  if (is.null(beta)) {
+
+    # check whether there is a graph prior stored in the bn object, use the
+    # uniform one otherwise.
+    if (!is.null(network$learning$args$prior))
+      beta = network$learning$args$beta
+    else
+      beta = default.beta[[prior]]
+
+  }#THEN
+  else {
+
+    if (prior == "uniform") {
+
+      warning("unused argument beta.")
+      beta = NULL
+
+    }#THEN
+    else if (prior == "vsp") {
+
+      if (!is.probability(beta) || (beta >= 1))
+       stop("beta must be a probability smaller than 1.")
+
+    }#THEN
+    else if (prior == "cs") {
+
+      # arcs' prior probabilities should be provided in a data frame.
+      if (!is.data.frame(beta) || (ncol(beta) != 3) ||
+          !identical(colnames(beta), c("from", "to", "prob")))
+        stop("beta must be a data frame with three colums: 'from', 'to' and 'prob'.")
+      # the probs cloumns must contain only probabilities.
+      if (!is.probability.vector(beta$prob))
+        stop("arcs prior must contain only probabilities.")
+      # check that the first two columns contain only valid arcs.
+      check.arcs(beta[, c("from", "to")], nodes = names(data))
+
+      # complete the user-specified prior.
+      beta = cs.completed.prior(beta,names(data))
+
+    }#THEN
+
+  }#ELSE
+
+  return(beta)
+
+}#CHECK.GRAPH.SPARSITY
+
+check.maxp = function(maxp, data) {
+
+  if (is.null(maxp)) {
+
+    maxp = Inf
+
+  }#THEN
+  else if (!isTRUE(all.equal(maxp, Inf))) {
+
+    if (!is.positive.integer(maxp))
+      stop("maxp must be a positive number.")
+    if (maxp >= ncol(data))
+      warning("maximum number of parents should be lower than the number of nodes, the limit will be ignored.")
+
+  }#ELSE
+
+  return(as.numeric(maxp))
+
+}#CHECK.MAXP
+
 # sanitize the extra arguments passed to the network scores.
 check.score.args = function(score, network, data, extra.args) {
 
-  if (score %in% c("bde", "bdes")) {
-
-    # check the imaginary sample size.
+  # check the imaginary sample size.
+  if (score %in% c("bde", "bdes", "mbde", "bge"))
     extra.args$iss = check.iss(iss = extra.args$iss,
       network = network, data = data)
 
-  }#THEN
-  else if (score == "mbde") {
+  # check the graph prior distribution.
+  if (score %in% c("bde", "bge"))
+    extra.args$prior = check.graph.prior(prior = extra.args$prior,
+      network = network)
 
-    # check the imaginary sample size.
-    extra.args$iss = check.iss(iss = extra.args$iss,
-      network = network, data = data)
+  # check the sparsity parameter of the graph prior distribution.
+  if (score %in% c("bde", "bge"))
+    extra.args$beta = check.graph.sparsity(beta = extra.args$beta,
+      prior = extra.args$prior, network = network, data = data)
 
-    # check the list of the experimental observations in the data set.
+  # check the list of the experimental observations in the data set.
+  if (score == "mbde")
     extra.args$exp = check.experimental(exp = extra.args$exp,
       network = network, data = data)
 
-  }#THEN
-  else if (score %in% c("aic", "bic", "aic-g", "bic-g")) {
-
+  # check the likelihood penalty.
+  if (score %in% c("aic", "bic", "aic-g", "bic-g"))
     extra.args$k = check.penalty(k = extra.args$k, network = network,
       data = data, score = score)
 
-  }#THEN
-  else if (score == "bge") {
-
-    # check the imaginary sample size.
-    extra.args$iss = check.iss(iss = extra.args$iss,
-      network = network, data = data)
-
-    # check phi estimator.
+  # check phi estimator.
+  if (score == "bge")
     extra.args$phi = check.phi(phi = extra.args$phi,
       network = network, data = data)
-
-  }#THEN
 
   check.unused.args(extra.args, score.extra.args[[score]])
 
@@ -1066,9 +1212,9 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
     }#ELSE
 
     # check the prior distribution.
-    if (is(bn, c("bn.naive", "bn.tan"))) {
+    if ((bn %in% classifiers) || is(bn, c("bn.naive", "bn.tan"))) {
 
-      extra.args$prior = check.prior(extra.args$prior, data[, extra.args$target])
+      extra.args$prior = check.classifier.prior(extra.args$prior, data[, extra.args$target])
       valid.args = c(valid.args, "prior")
 
     }#THEN
@@ -1123,7 +1269,7 @@ check.discretization.args = function(method, data, breaks, extra.args) {
         other.methods = available.discretization.methods[available.discretization.methods != "hartemink"]
         if (!(idisc %in% other.methods))
           stop(paste(c("valid initial discretization methods are:\n",
-                sprintf("    %-10s %s\n", other.methods, discretization.labels[other.methods])), sep = ""))
+                sprintf("    %-15s %s\n", other.methods, discretization.labels[other.methods])), sep = ""))
 
 
       }#THEN
@@ -1174,7 +1320,7 @@ check.discretization.args = function(method, data, breaks, extra.args) {
 check.classifier.args = function(method, data, training, explanatory,
     extra.args) {
 
-  if (method == "tan") {
+  if (method == "tree.bayes") {
 
     # check the label of the mutual information estimator.
     extra.args$estimator = check.mi.estimator(extra.args$estimator, data)
@@ -1755,7 +1901,7 @@ check.learning.algorithm = function(algorithm, class = "all", bn) {
 
   if (!(algorithm %in% ok))
        stop(paste(c("valid learning algorithms are:\n",
-            sprintf("    %-10s %s\n", ok, method.labels[ok])), sep = ""))
+            sprintf("    %-15s %s\n", ok, method.labels[ok])), sep = ""))
 
   return(algorithm)
 
@@ -1867,42 +2013,38 @@ check.mvber.vartest = function(method) {
 
   if (missing(method))
     stop(paste(c("valid statistical tests are:\n",
-           sprintf("    %-10s %s\n", names(mvber.labels), mvber.labels)), sep = ""))
+           sprintf("    %-15s %s\n", names(mvber.labels), mvber.labels)), sep = ""))
 
   if (method %in% available.mvber.vartests)
     method = which(available.mvber.vartests %in% method)
   else
     stop(paste(c("valid statistical tests are:\n",
-           sprintf("    %-10s %s\n", names(mvber.labels), mvber.labels)), sep = ""))
+           sprintf("    %-15s %s\n", names(mvber.labels), mvber.labels)), sep = ""))
 
   return(method)
 
 }#CHECK.MVBER.VARTEST
 
 # check a prior distribution against the observed variable.
-check.prior = function(prior, training) {
+check.classifier.prior = function(prior, training) {
 
-  if (is.factor(training)) {
+  if (missing(prior) || is.null(prior)) {
 
-    if (missing(prior) || is.null(prior)) {
-
-      # use an empirical prior if none is provided by the user.
-      prior = summary(training)
-
-    }#THEN
-    else {
-
-      if (length(prior) != nlevels(training))
-        stop("the prior distribution and the training variable have a different number of levels.")
-      if (!is.probability.vector(prior))
-        stop("the prior distribution must be expressed as a probability vector.")
-
-    }#ELSE
+    # use an empirical prior if none is provided by the user.
+    prior = rep(1, nlevels(training))
 
   }#THEN
+  else {
 
-  # make sure the prior probabilities sum to one.
-  prior = prior / sum(prior)
+    if (length(prior) != nlevels(training))
+      stop("the prior distribution and the training variable have a different number of levels.")
+    if (!is.probability.vector(prior))
+      stop("the prior distribution must be expressed as a probability vector.")
+
+    # make sure the prior probabilities sum to one.
+    prior = prior / sum(prior)
+
+  }#ELSE
 
   return(prior)
 
@@ -2002,7 +2144,7 @@ check.fit.gnode.spec = function(x, node) {
   # one residual for each fitted value.
   if (!is.null(x$resid) && !is.null(x$fitted))
     if (length(x$resid) != length(x$fitted))
-      stop("the residuals and the fitted values of node ", node, 
+      stop("the residuals and the fitted values of node ", node,
         " have different lengths.")
 
 }#CHECK.FIT.GNODE.SPEC
@@ -2079,7 +2221,7 @@ check.fit.dnode.spec = function(x, node) {
   }#THEN
   else {
 
-    check.sum = sapply(margin.table(x,  seq(from = 2, to = ndims)), 
+    check.sum = sapply(margin.table(x,  seq(from = 2, to = ndims)),
                   function(x) !isTRUE(all.equal(x, 1)))
 
     if (any(check.sum))

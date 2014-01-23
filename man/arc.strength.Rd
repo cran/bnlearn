@@ -15,7 +15,7 @@
 # strength of the arcs present in x.
 arc.strength(x, data, criterion = NULL, ..., debug = FALSE)
 # strength of all possible arcs, as learned from bootstrapped data.
-boot.strength(data, R = 200, m = nrow(data),
+boot.strength(data, cluster = NULL, R = 200, m = nrow(data),
   algorithm, algorithm.args = list(), cpdag = TRUE, debug = FALSE)
 # strength of all possible arcs, from a list of custom networks.
 custom.strength(networks, nodes, weights = NULL, cpdag = TRUE, debug = FALSE)
@@ -30,6 +30,9 @@ averaged.network(strength, nodes, threshold)
     labeled "from" and "to").}
   \item{data}{a data frame containing the data the Bayesian network
     was learned from.}
+  \item{cluster}{an optional cluster object from package \pkg{parallel}.
+      See \code{\link{parallel integration}} for details and a simple
+      example.}
   \item{strength}{an object of class \code{bn.strength}, see below.}
   \item{threshold}{a numeric value, the minimum strength required for
     an arc to be included in the averaged network. The default value
@@ -38,9 +41,8 @@ averaged.network(strength, nodes, threshold)
     in the network. In \code{\link{averaged.network}}, it defaults to
     the set of the unique node labels in the \code{strength} argument.}
   \item{criterion}{a character string, the label of a score
-    function, the label of an independence test or \code{bootstrap}.
-    See \code{\link{bnlearn-package}} for details on the first two
-    possibilities.}
+    function or an independence test. See \code{\link{bnlearn-package}}
+    for details.}
   \item{R}{a positive integer, the number of bootstrap replicates.}
   \item{m}{a positive integer, the size of each bootstrap replicate.}
   \item{weights}{a vector of non-negative numbers, to be used as
@@ -62,9 +64,7 @@ averaged.network(strength, nodes, threshold)
   \item{\dots}{additional tuning parameters for the network score (if
     \code{criterion} is the label of a score function, see
     \code{\link{score}} for details), the conditional independence test
-    (currently the only one is \code{B}, the number of permutations)
-    or the bootstrap simulation (if \code{criterion} is set to
-    \code{bootstrap}, see \code{\link{boot.strength}} for details).}
+    (currently the only one is \code{B}, the number of permutations).}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
     is printed; otherwise the function is completely silent.}
 }
@@ -79,11 +79,6 @@ averaged.network(strength, nodes, threshold)
   measured by the score gain/loss which would be caused by the arc's
   removal. There may be additional parameters depending on the choice
   of the score, see \code{\link{score}} for details.
-
-  If \code{criterion} is \code{bootstrap}, the strength is computed as
-  in \code{\link{boot.strength}}. The additional parameters are \code{R},
-  \code{m}, \code{algorithm} and \code{algorithm.args}; if the latter two
-  are not specified, the values stored in \code{x} are used.
 
   Model averaging is supported for objects of class \code{bn.strength}
   returned by \code{\link{boot.strength}}, by \code{\link{custom.strength}},

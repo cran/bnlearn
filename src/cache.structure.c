@@ -11,7 +11,7 @@ static SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrows,
 /* compute the cached values fro all nodes. */
 SEXP cache_structure(SEXP nodes, SEXP amat, SEXP debug) {
 
-int i = 0, debuglevel = LOGICAL(debug)[0], length_nodes = LENGTH(nodes);
+int i = 0, debuglevel = LOGICAL(debug)[0], length_nodes = length(nodes);
 int *status = NULL, *a = INTEGER(amat);
 
   SEXP bn, temp;
@@ -48,7 +48,7 @@ int *status = NULL, *a = INTEGER(amat);
 /* compute the cached values for a single node (R-friendly). */
 SEXP cache_partial_structure(SEXP nodes, SEXP target, SEXP amat, SEXP debug) {
 
-int i = 0, debuglevel = LOGICAL(debug)[0], length_nodes = LENGTH(nodes);
+int i = 0, debuglevel = LOGICAL(debug)[0], length_nodes = length(nodes);
 char *t = (char *)CHAR(STRING_ELT(target, 0));
 int *status = NULL, *a = INTEGER(amat);
 
@@ -71,7 +71,7 @@ int *status = NULL, *a = INTEGER(amat);
 /* compute the cached values for a single node (C-friendly). */
 SEXP c_cache_partial_structure(int target, SEXP nodes, SEXP amat, int *status, SEXP debug) {
 
-int debuglevel = LOGICAL(debug)[0], length_nodes = LENGTH(nodes);
+int debuglevel = LOGICAL(debug)[0], length_nodes = length(nodes);
 int *a = INTEGER(amat);
 
   /* allocate and initialize the status vector. */

@@ -31,7 +31,7 @@ bn.var(x, method)
   \item{x}{a covariance matrix or an object of class \code{mvber.moments}
     (the return value of the \code{bn.moments} function).}
   \item{method}{a character string, the label of the statistic. Possible
-    values are \code{tvar} (\emph{total variance}), \code{gvar} 
+    values are \code{tvar} (\emph{total variance}), \code{gvar}
     (\code{generalized variance}), \code{nvar} (\emph{Frobenius matrix
     norm}, which is equivalent to \emph{Nagao's test}) and \code{nvark}
     (another measure based on the \emph{Frobenius matrix norm}).}

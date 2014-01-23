@@ -7,7 +7,7 @@ SEXP jt(SEXP x, SEXP y) {
 
 int i = 0, j = 0, k = 0;
 int  **n = NULL, *ni = NULL, *nj = NULL;
-int llx = NLEVELS(x), lly = NLEVELS(y), num = LENGTH(x);
+int llx = NLEVELS(x), lly = NLEVELS(y), num = length(x);
 int *xx = INTEGER(x), *yy = INTEGER(y);
 double stat = 0, mean = 0, var = 0;
 SEXP result;
@@ -39,9 +39,10 @@ SEXP result;
   var = c_jt_var(&num, ni, &llx, nj, &lly);
 
   /* standardize before returning so to make the test invariant to
-   * the order of the variables. */
+   * the order of the variables; if the variance is zero return zero
+   * to imply independence. */
   PROTECT(result = allocVector(REALSXP, 1));
-  NUM(result) = (stat - mean) /sqrt(var);
+  NUM(result) = (var < MACHINE_TOL) ? 0 : (stat - mean) /sqrt(var);
   UNPROTECT(1);
 
   return result;
@@ -53,7 +54,7 @@ SEXP cjt(SEXP x, SEXP y, SEXP z) {
 
 int i = 0, j = 0, k = 0;
 int llx = NLEVELS(x), lly = NLEVELS(y), llz = NLEVELS(z);
-int num = LENGTH(x);
+int num = length(x);
 int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
 int  ***n = NULL, **nrowt = NULL, **ncolt = NULL, *ncond = NULL;
 double stat = 0, var = 0, tvar = 0;
@@ -98,7 +99,7 @@ SEXP result;
 
   /* guard against divide-by-zero errors and standardize the result. */
   PROTECT(result = allocVector(REALSXP, 1));
-  NUM(result) = (tvar > MACHINE_TOL) ? stat / sqrt(tvar) : 0;
+  NUM(result) = (tvar < MACHINE_TOL) ? 0 : stat / sqrt(tvar);
   UNPROTECT(1);
 
   return result;

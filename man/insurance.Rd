@@ -76,7 +76,7 @@ modelstring(res) = paste("[Age][Mileage][SocioEcon|Age][GoodStudent|Age:SocioEco
   "[DrivHist|RiskAversion:DrivingSkill][Accident|DrivQuality:Mileage:Antilock]",
   "[ThisCarDam|RuggedAuto:Accident][OtherCarCost|RuggedAuto:Accident]",
   "[MedCost|Age:Accident:Cushioning][ILiCost|Accident]",
-  "[ThisCarCost|ThisCarDam:Theft:CarValue][PropCost|ThisCarCost:OtherCarCost]", 
+  "[ThisCarCost|ThisCarDam:Theft:CarValue][PropCost|ThisCarCost:OtherCarCost]",
   sep = "")
 \dontrun{
 # there are too many nodes for plot(), use graphviz.plot().

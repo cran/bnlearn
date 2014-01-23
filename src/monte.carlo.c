@@ -36,9 +36,9 @@ static double _x2(int *n, int *nrowt, int *ncolt, int *nrows,
 static double _cx2(int **n, int **nrowt, int **ncolt, int *ncond,
     int *nr, int *nc, int *nl);
 static double _jt(int *n, int *nrowt, int *nrows, int *ncols, int *length);
-static double _cjt(int **n, int **nrowt, int *ncond, int *nr, 
+static double _cjt(int **n, int **nrowt, int *ncond, int *nr,
     int *nc, int *nl);
-static double _cvjt(int **nrowt, int **ncolt, int *ncond, int *nr, 
+static double _cvjt(int **nrowt, int **ncolt, int *ncond, int *nr,
     int *nc, int *nl);
 static double _cov(double *xx, double *yy, double *xm, double *ym, int *n);
 
@@ -47,7 +47,7 @@ SEXP mcarlo(SEXP x, SEXP y, SEXP samples, SEXP test, SEXP alpha) {
 
 double *fact = NULL, *res = NULL, observed = 0;
 int *n = NULL, *ncolt = NULL, *nrowt = NULL, *workspace = NULL;
-int num = LENGTH(x), nr = NLEVELS(x), nc = NLEVELS(y);
+int num = length(x), nr = NLEVELS(x), nc = NLEVELS(y);
 int *xx = INTEGER(x), *yy = INTEGER(y), *B = INTEGER(samples);
 int i = 0, k = 0, enough = ceil(NUM(alpha) * (*B)) + 1;
 SEXP result;
@@ -195,7 +195,7 @@ SEXP cmcarlo(SEXP x, SEXP y, SEXP z, SEXP samples, SEXP test, SEXP alpha) {
 
 double *fact = NULL, *res = NULL, observed = 0;
 int **n = NULL, **ncolt = NULL, **nrowt = NULL, *ncond = NULL, *workspace = NULL;
-int num = LENGTH(x), *B = INTEGER(samples);
+int num = length(x), *B = INTEGER(samples);
 int nr = NLEVELS(x), nc = NLEVELS(y), nl = NLEVELS(z);
 int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
 int i = 0, j = 0, k = 0, enough = ceil(NUM(alpha) * (*B)) + 1;
@@ -353,7 +353,7 @@ SEXP result;
 /* unconditional Monte Carlo simulation for correlation-based tests. */
 SEXP gauss_mcarlo(SEXP x, SEXP y, SEXP samples, SEXP test, SEXP alpha) {
 
-int j = 0, k = 0, num = LENGTH(x), *B = INTEGER(samples);
+int j = 0, k = 0, num = length(x), *B = INTEGER(samples);
 double *xx = REAL(x), *yy = REAL(y), *yperm = NULL, *res = NULL;
 double observed = 0, enough = ceil(NUM(alpha) * (*B)) + 1, xm = 0, ym = 0;
 int *perm = NULL, *work = NULL;
@@ -428,7 +428,7 @@ SEXP result;
 /* conditional Monte Carlo simulation for correlation-based tests. */
 SEXP gauss_cmcarlo(SEXP data, SEXP length, SEXP samples, SEXP test, SEXP alpha) {
 
-int j = 0, k = 0, ncols = LENGTH(data), errcode = 0, *work = NULL, *perm = NULL;
+int j = 0, k = 0, ncols = length(data), errcode = 0, *work = NULL, *perm = NULL;
 int error_counter = 0, *B = INTEGER(samples), *num = INTEGER(length);
 double observed = 0, permuted = 0, *yperm = NULL, *yorig = NULL, *res = NULL;
 double enough = ceil(NUM(alpha) * (*B)) + 1;
@@ -552,7 +552,7 @@ double res = 0;
 
   for (i = 0; i < *nrows; i++)
     for (j = 0; j < *ncols; j++)
-      res += MI_PART(n[CMC(i, j, *nrows)], nrowt[i], ncolt[j], *length); 
+      res += MI_PART(n[CMC(i, j, *nrows)], nrowt[i], ncolt[j], *length);
 
   return res;
 
@@ -567,7 +567,7 @@ double res = 0;
 
   for (k = 0; k < *nl; k++)
     for (j = 0; j < *nc; j++)
-      for (i = 0; i < *nr; i++) 
+      for (i = 0; i < *nr; i++)
         res += MI_PART(n[k][CMC(i, j, *nr)], nrowt[k][i], ncolt[k][j], ncond[k]);
 
   return res;
@@ -652,7 +652,7 @@ double mean = c_jt_mean(length, nrowt, nrows);
         for (t = 0, wi = 0; t < s; t++)
           wi += n[CMC(i, t, *nrows)] + n[CMC(j, t, *nrows)];
 
-        w += (wi + ((double)(n[CMC(i, s, *nrows)]) + (double)(n[CMC(j, s, *nrows)]) + 1)/2) * 
+        w += (wi + ((double)(n[CMC(i, s, *nrows)]) + (double)(n[CMC(j, s, *nrows)]) + 1)/2) *
                (double)(n[CMC(i, s, *nrows)]);
 
       }/*FOR*/

@@ -62,8 +62,7 @@ ordered.graph = function(num, nodes, prob) {
   .Call("ordered_graph",
         nodes = nodes,
         num = as.integer(num),
-        prob = prob,
-        PACKAGE = "bnlearn")
+        prob = prob)
 
 }#ORDERED.GRAPH
 
@@ -81,8 +80,7 @@ ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
         max.out.degree = as.numeric(max.out.degree),
         max.degree = as.numeric(max.degree),
         connected = connected,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#IDE.COZMAN.GRAPH
 
@@ -91,7 +89,6 @@ empty.graph.backend = function(nodes, num = 1) {
 
   .Call("empty_graph",
         nodes = nodes,
-        num = as.integer(num),
-        PACKAGE = "bnlearn")
+        num = as.integer(num))
 
 }#EMPTY.GRAPH.BACKEND

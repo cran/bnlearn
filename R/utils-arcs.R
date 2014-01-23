@@ -3,8 +3,7 @@ is.row.equal = function(data, array) {
 
   .Call("is_row_equal",
         data = as.character(data),
-        array = as.character(array),
-        PACKAGE = "bnlearn")
+        array = as.character(array))
 
 }#IS.ROW.EQUAL
 
@@ -16,8 +15,7 @@ is.listed = function(set, arc, either = FALSE, both = FALSE) {
         set = as.character(set),
         either = either,
         both = both,
-        debug = FALSE,
-        PACKAGE = "bnlearn")
+        debug = FALSE)
 
 }#IS.LISTED
 
@@ -29,8 +27,7 @@ which.undirected = function(arcs, nodes = NULL) {
 
   .Call("which_undirected",
         arcs = arcs,
-        nodes = nodes,
-        PACKAGE = "bnlearn")
+        nodes = nodes)
 
 }#WHICH.UNDIRECTED
 
@@ -99,9 +96,52 @@ set.arc.direction = function(from, to, arcs, debug = FALSE) {
 
 }#SET.ARC.DIRECTION
 
+# set an undirected edge.
+set.edge.backend = function(from, to, arcs, debug = FALSE) {
+
+  # the arc is there, undirected
+  if (is.listed(arcs, c(to, from), both = TRUE)) {
+
+    if (debug)
+      cat("  > the arc", from, "-", to, "is undirected, nothing to do.\n")
+
+    arcs
+
+  }#THEN
+  # the arc is there, but the direction is wrong.
+  else if (is.listed(arcs, c(to, from))) {
+
+    if (debug)
+      cat("  > the arc", to, "->", from, "is present, removing direction.\n")
+
+    rbind(arcs, c(from, to))
+
+  }#THEN
+  # the arc is already there.
+  else if (is.listed(arcs, c(from, to))) {
+
+    if (debug)
+      cat("  > the arc", from, "->", to, "is present, removing direction.\n")
+
+    rbind(arcs, c(to, from))
+
+  }#THEN
+  # the arc is not present.
+  else {
+
+    if (debug)
+      cat("  > the arc", from, "-", to, "is not present, adding.\n")
+
+    rbind(arcs, c(from, to), c(to, from))
+
+  }#ELSE
+
+}#SET.EDGE
+
 # drop an arc.
 drop.arc.backend = function(arcs, dropped, debug = FALSE) {
 
+  # the arc is there, undirected.
   if (debug)
     cat("  > dropping any arc between", dropped[1], "and", dropped[2], ".\n")
 
@@ -109,6 +149,30 @@ drop.arc.backend = function(arcs, dropped, debug = FALSE) {
          is.row.equal(arcs, dropped[c(2, 1)])), , drop = FALSE]
 
 }#DROP.ARC.BACKEND
+
+# drop an arc.
+drop.edge.backend = function(arcs, dropped, debug = FALSE) {
+
+  # the arc is there, undirected.
+  if (is.listed(arcs, dropped, both = TRUE)) {
+
+    if (debug)
+      cat("  > dropping any arc between", dropped[1], "and", dropped[2], ".\n")
+
+    arcs[!(is.row.equal(arcs, dropped) |
+           is.row.equal(arcs, dropped[c(2, 1)])), , drop = FALSE]
+
+  }#THEN
+  else {
+
+    if (debug)
+      cat("  > the arc", dropped[1], "-", dropped[2], "is not present, nothing to do.\n")
+
+    arcs
+
+  }#ELSE
+
+}#DROP.EDGE.BACKEND
 
 # reverse the direction of an arc.
 reverse.arc.backend = function(from, to, arcs, debug = FALSE) {
@@ -151,8 +215,7 @@ which.listed = function(arcs, list) {
 nbr2arcs = function(nbr) {
 
   .Call("nbr2arcs",
-        nbr = nbr,
-        PACKAGE = "bnlearn")
+        nbr = nbr)
 
 }#NBR2ARCS
 
@@ -163,8 +226,7 @@ unique.arcs = function(arcs, nodes, warn = FALSE) {
   .Call("unique_arcs",
         arcs = arcs,
         nodes = nodes,
-        warn = warn,
-        PACKAGE = "bnlearn")
+        warn = warn)
 
 }#UNIQUE.ARCS
 
@@ -172,8 +234,7 @@ unique.arcs = function(arcs, nodes, warn = FALSE) {
 fit2arcs = function(x) {
 
   .Call("fit2arcs",
-        x = x,
-        PACKAGE = "bnlearn")
+        x = x)
 
 }#FIT2ARCS
 
@@ -181,7 +242,6 @@ fit2arcs = function(x) {
 narcs.backend = function(x) {
 
   .Call("num_arcs",
-        x = x,
-        PACKAGE = "bnlearn")
+        x = x)
 
 }#NARCS.BACKEND

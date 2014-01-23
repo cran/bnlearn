@@ -141,7 +141,7 @@ coef.bn.fit.dnode = function(object, ...) {
 coef.bn.fit.onode = coef.bn.fit.dnode
 
 # logLik method for class 'bn.fit'.
-logLik.bn.fit = function(object, data, ...) {
+logLik.bn.fit = function(object, data, nodes, by.sample = FALSE, ...) {
 
   # check the data are there.
   check.data(data)
@@ -149,11 +149,19 @@ logLik.bn.fit = function(object, data, ...) {
   check.fit.vs.data(fitted = object, data = data)
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
+  # check the nodes whose logLik components we are going to compute.
+  if (missing(nodes))
+    nodes = names(object)
+  else
+    check.nodes(nodes, object)
 
-  nodes = names(object)
-  ndata = nrow(data)
+  llik = entropy.loss(fitted = object, data = data, keep = nodes,
+           by.sample = by.sample)$loss
 
-  - ndata * entropy.loss(nodes = nodes, fitted = object, data = data)$loss
+  if (!by.sample)
+    llik = - nrow(data) * llik
+
+  return(llik)
 
 }#LOGLIK.BN.FIT
 
@@ -197,6 +205,9 @@ BIC.bn.fit = function(object, data, ...) {
       # ordinary least squares, ridge, lasso, and elastic net.
       value = list(coef = coefficients(value), resid = residuals(value),
                 fitted = fitted(value), sd = sd(residuals(value)))
+      # if the intercept is not there, set it to zero.
+      if (!("(Intercept)" %in% names(value$coef)))
+        value$coef = c("(Intercept)" = 0, value$coef)
 
     }#THEN
     else {
@@ -263,7 +274,7 @@ custom.fit = function(x, dist, ordinal = FALSE) {
     stop("wrong number of conditional probability distributions.")
   check.nodes(names(dist), nodes, min.nodes = nnodes)
 
-  # if all the conditional probability distributions are tables (tables, 
+  # if all the conditional probability distributions are tables (tables,
   # matrices and multidimensional are fine), it's a discrete BN.
   discrete = all(sapply(dist, is.ndmatrix))
 

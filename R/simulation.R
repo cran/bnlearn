@@ -10,8 +10,7 @@ schedule = function(x, start = NULL, reverse = FALSE, debug = FALSE) {
                 bn = x,
                 root.nodes = nodes,
                 reverse = reverse,
-                debug = debug,
-                PACKAGE = "bnlearn")
+                debug = debug)
 
   if (is.null(start))
     return(names(sort(to.do)))
@@ -34,8 +33,7 @@ rbn.backend = function(x, n, data, fix = TRUE, debug = FALSE) {
         fitted = fitted,
         n = as.integer(n),
         fix = fix,
-        debug = debug,
-        PACKAGE = "bnlearn")
+        debug = debug)
 
 }#RBN.BACKEND
 

@@ -116,7 +116,7 @@ double res = 0, tol = MACHINE_TOL, sv_tol = 0;
 /* Partial Linear Correlation. */
 SEXP fast_pcor(SEXP data, SEXP length, SEXP shrinkage, SEXP strict) {
 
-int i = 0, ncols = LENGTH(data), errcode = 0;
+int i = 0, ncols = length(data), errcode = 0;
 int *shrink = LOGICAL(shrinkage);
 double *u = NULL, *d = NULL, *vt = NULL, *res = NULL;
 double k11 = 0, k12 = 0, k22 = 0;
@@ -236,7 +236,7 @@ long double temp = 0;
 
 static SEXP covmat(SEXP data, SEXP length) {
 
-int i = 0, j = 0, *n = INTEGER(length), ncols = LENGTH(data);
+int i = 0, j = 0, *n = INTEGER(length), ncols = length(data);
 double *var = NULL, *mean = NULL, **column = NULL;
 SEXP res;
 
@@ -285,7 +285,7 @@ long double temp = 0;
       temp += (data[update][k] - mean[update]) * (data[j][k] - mean[j]);
 
     /* fill the symmetric elements of the matrix. */
-    mat[CMC(j, update, *ncols)] = mat[CMC(update, j, *ncols)] = 
+    mat[CMC(j, update, *ncols)] = mat[CMC(update, j, *ncols)] =
       (double)(temp / (*nrows - 1));
 
   }/*FOR*/

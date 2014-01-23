@@ -17,7 +17,7 @@
 
   An object of class \code{bn.fit} is a list whose elements correspond to
   the nodes of the Bayesian network. If the latter is discrete (i.e. the
-  nodes are multinomial random variables) each node has class 
+  nodes are multinomial random variables) each node has class
   \code{bn.fit.dnode} and contains the following elements:
 
   \itemize{
@@ -56,7 +56,7 @@
 
   Furthermore, Bayesian network classifiers store the label of the training
   node in an additional attribute named \code{training}.
-  
+
 }
 \author{ Marco Scutari }
 \keyword{ classes }

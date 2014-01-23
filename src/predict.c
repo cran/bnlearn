@@ -33,7 +33,7 @@ SEXP result;
 /* predict the value of a gaussian node with one or more parents. */
 SEXP cgpred(SEXP fitted, SEXP data, SEXP debug)  {
 
-int i = 0, j = 0, ndata = LENGTH(VECTOR_ELT(data, 0)), ncols = LENGTH(data);
+int i = 0, j = 0, ndata = length(VECTOR_ELT(data, 0)), ncols = length(data);
 int *debuglevel = LOGICAL(debug);
 double *res = NULL, *coefs = NULL;
 double **columns = NULL;
@@ -82,14 +82,14 @@ SEXP result;
 /* predict the value of a discrete node without parents. */
 SEXP dpred(SEXP fitted, SEXP data, SEXP debug) {
 
-int i = 0, nmax = 0, ndata = LENGTH(data), length = 0;
+int i = 0, nmax = 0, ndata = length(data), length = 0;
 int *res = NULL, *debuglevel = LOGICAL(debug), *iscratch = NULL, *maxima = NULL;
 double *prob = NULL, *dscratch = NULL, *buf = NULL;
 SEXP ptab, result, tr_levels = getAttrib(data, R_LevelsSymbol);
 
   /* get the probabilities of the multinomial distribution. */
   ptab = getListElement(fitted, "prob");
-  length = LENGTH(ptab);
+  length = length(ptab);
   prob = REAL(ptab);
 
   /* create the vector of indexes. */
@@ -127,7 +127,7 @@ SEXP ptab, result, tr_levels = getAttrib(data, R_LevelsSymbol);
           CHAR(STRING_ELT(tr_levels, res[0] - 1)));
 
       Rprintf("  ");
-      for (i = 0; i < LENGTH(ptab); i++)
+      for (i = 0; i < length(ptab); i++)
         Rprintf("  %lf", prob[i]);
       Rprintf("\n");
 
@@ -167,7 +167,7 @@ SEXP ptab, result, tr_levels = getAttrib(data, R_LevelsSymbol);
 /* predict the value of a discrete node with one or more parents. */
 SEXP cdpred(SEXP fitted, SEXP data, SEXP parents, SEXP debug) {
 
-int i = 0, k = 0, ndata = LENGTH(data), nrows = 0, ncols = 0;
+int i = 0, k = 0, ndata = length(data), nrows = 0, ncols = 0;
 int *configs = INTEGER(parents), *debuglevel = LOGICAL(debug);
 int *iscratch = NULL, *maxima = NULL, *nmax = NULL, *res = NULL;
 double *prob = NULL, *dscratch = NULL, *buf = NULL;
@@ -176,7 +176,7 @@ SEXP temp, result, tr_levels = getAttrib(data, R_LevelsSymbol);
   /* get the probabilities of the multinomial distribution. */
   temp = getListElement(fitted, "prob");
   nrows = INT(getAttrib(temp, R_DimSymbol));
-  ncols = LENGTH(temp) / nrows;
+  ncols = length(temp) / nrows;
   prob = REAL(temp);
 
   /* create the vector of indexes. */
@@ -275,7 +275,7 @@ SEXP temp, result, tr_levels = getAttrib(data, R_LevelsSymbol);
 SEXP naivepred(SEXP fitted, SEXP data, SEXP parents, SEXP training, SEXP prior,
     SEXP prob, SEXP debug) {
 
-int i = 0, j = 0, k = 0, n = 0, nvars = LENGTH(fitted), nmax = 0, tr_nlevels = 0;
+int i = 0, j = 0, k = 0, n = 0, nvars = length(fitted), nmax = 0, tr_nlevels = 0;
 int *res = NULL, **ex = NULL, *ex_nlevels = NULL;
 int idx = 0, *tr_id = INTEGER(training);
 int *iscratch = NULL, *maxima = NULL, *prn = NULL, *debuglevel = LOGICAL(debug);
@@ -300,11 +300,11 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab, dimnames;
   }/*FOR*/
 
   /* get the training variable and its levels. */
-  n = LENGTH(VECTOR_ELT(data, 0));
+  n = length(VECTOR_ELT(data, 0));
   tr = getListElement(VECTOR_ELT(fitted, *tr_id - 1), "prob");
   tr_levels = VECTOR_ELT(getAttrib(tr, R_DimNamesSymbol), 0);
   tr_class = getAttrib(VECTOR_ELT(data, *tr_id - 1), R_ClassSymbol);
-  tr_nlevels = LENGTH(tr_levels);
+  tr_nlevels = length(tr_levels);
   /* get the prior distribution. */
   pr = REAL(prior);
 
@@ -322,7 +322,7 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab, dimnames;
   /* cache the pointers to the conditional probability tables. */
   cpt = (double **) alloc1dpointer(nvars);
 
-  for (i = 0; i < nvars; i++) 
+  for (i = 0; i < nvars; i++)
     cpt[i] = REAL(getListElement(VECTOR_ELT(fitted, i), "prob"));
 
   /* dereference the parents' vector. */
@@ -399,7 +399,7 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab, dimnames;
           /* (the first dimension corresponds to the current node [X], the second
            * to the training node [Y], the third to the only parent of the current
            * node [Z]; CMC coordinates are computed as X + Y * NX + Z * NX * NY. */
-          idx = (ex[j][i] - 1) + k * ex_nlevels[j] + 
+          idx = (ex[j][i] - 1) + k * ex_nlevels[j] +
                   (ex[prn[j] - 1][i] - 1) * ex_nlevels[j] * tr_nlevels;
 
           if (*debuglevel > 0) {
@@ -494,7 +494,7 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab, dimnames;
     SET_VECTOR_ELT(dimnames, 0, tr_levels);
     setAttrib(probtab, R_DimNamesSymbol, dimnames);
     /* add the posterior probabilities to the return value. */
-    setAttrib(result, install("prob"), probtab);
+    setAttrib(result, BN_ProbSymbol, probtab);
 
     UNPROTECT(3);
 

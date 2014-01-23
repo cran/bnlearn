@@ -1,4 +1,17 @@
 
+# get the number of nodes of a graph.
+nnodes = function(x) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+
+  if (is(x, "bn"))
+    return(length(x$nodes))
+  else
+    return(length(x))
+
+}#NNODES
+
 # get the root nodes of a graph.
 root.nodes = function(x) {
 
@@ -245,7 +258,7 @@ subgraph = function(x, nodes) {
   check.bn.or.fit(x)
   # get the network structure out of a bn.fit object.
   if (is(x, "bn.fit"))
-    x = bn.net(x) 
+    x = bn.net(x)
   # check the nodes of the subgraph.
   check.nodes(nodes, graph = x, max.nodes = length(x$nodes))
 

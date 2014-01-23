@@ -165,7 +165,7 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
     return(cpc)
 
   # get a marginal association measure for each of the available nodes.
-  association = sapply(nodes, conditional.test, x, sx = character(0), 
+  association = sapply(nodes, conditional.test, x, sx = character(0),
                   test = test, data = data, B = B, alpha = alpha)
 
   to.keep = names(association[association <= alpha])
@@ -198,7 +198,7 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
   nodes = nodes[nodes %in% names(association[association <= alpha])]
 
   # stop if there are no candidates for inclusion.
-  if (all(association > alpha)) 
+  if (all(association > alpha))
     return(cpc)
 
   # phase I (stepwise forward selection)
@@ -239,7 +239,7 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
 }#SI.HITON.PC.HEURISTIC
 
-# backward stage of HITON-PC. 
+# backward stage of HITON-PC.
 si.hiton.pc.backward = function(target, candidate, cpc, data, test, alpha, B, debug) {
 
   k = 1 # marginal associations are alwas significant.

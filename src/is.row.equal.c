@@ -5,7 +5,7 @@
 /* which elements of "data" match "array"? */
 SEXP is_row_equal(SEXP data, SEXP array) {
 
-int i = 0, nrows = LENGTH(data) / 2;
+int i = 0, nrows = length(data) / 2;
 const char *from = CHAR(STRING_ELT(array, 0));
 const char *to = CHAR(STRING_ELT(array, 1));
 SEXP res;
@@ -52,7 +52,7 @@ SEXP res;
 /* does "arc" match any elements of "set"? */
 SEXP is_listed(SEXP arc, SEXP set, SEXP either, SEXP both, SEXP debug) {
 
-int i = 0, matched = 0, nrows = LENGTH(set) / 2;
+int i = 0, matched = 0, nrows = length(set) / 2;
 const char *from = CHAR(STRING_ELT(arc, 0));
 const char *to = CHAR(STRING_ELT(arc, 1));
 int *debuglevel = NULL;

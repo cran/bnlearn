@@ -30,7 +30,7 @@
   \item{test}{a character string, the label of the conditional
       independence test to be used in the algorithm. If none is
       specified, the default test statistic is the \emph{mutual information}
-      for categorical variables, the Jonckheere-Terpstra test for 
+      for categorical variables, the Jonckheere-Terpstra test for
       ordered factors and the \emph{linear correlation} for continuous
       variables. See \code{\link{bnlearn-package}} for details.}
   \item{B}{a positive integer, the number of permutations considered

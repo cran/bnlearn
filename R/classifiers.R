@@ -43,8 +43,7 @@ tan.backend = function(data, training, explanatory, whitelist, blacklist,
                         arcs = chow.liu.arcs,
                         nodes = explanatory,
                         root = root,
-                        debug = FALSE,
-                        PACKAGE = "bnlearn")
+                        debug = FALSE)
 
   # merge learned and predetermined arcs.
   res$arcs = arcs.rbind(class.arcs, chow.liu.arcs)

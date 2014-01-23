@@ -171,7 +171,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
 
       cat("    * known good (backtracking): '", known.good, "'.\n")
       cat("    * known bad (backtracking): '", known.bad, "'.\n")
-      cat("    * nodes still to be tested for inclusion: '", 
+      cat("    * nodes still to be tested for inclusion: '",
         nodes[!(nodes %in% mb)], "'.\n")
 
     }#THEN

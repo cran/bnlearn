@@ -15,9 +15,8 @@ check.cluster = function(cluster) {
   if (!(any(class(cluster) %in% supported.clusters)))
     stop("cluster is not a valid cluster object.")
 
-  if (!("package:snow" %in% search()))
-    if (!require(parallel) && !require(snow))
-      stop("Can't find required packages: snow or parallel.")
+  if (!require(parallel))
+      stop("this function requires the parallel package.")
   if (!isClusterRunning(cluster))
     stop("the cluster is stopped.")
 
@@ -32,11 +31,8 @@ nSlaves = function(cluster) {
 
 slaves.setup = function(cluster) {
 
-  # export the functions dealing with the test counter.
-  clusterEvalQ(cluster, test.counter <<- bnlearn:::test.counter)
-  clusterEvalQ(cluster, increment.test.counter <<- bnlearn:::increment.test.counter)
-  clusterEvalQ(cluster, reset.test.counter <<- bnlearn:::reset.test.counter)
   # set the test counter in all the cluster nodes.
+  clusterEvalQ(cluster, library(bnlearn))
   clusterEvalQ(cluster, reset.test.counter())
 
 }#SLAVE.SETUP

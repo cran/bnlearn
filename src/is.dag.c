@@ -9,7 +9,7 @@
 /* determine whether a graph is DAG or a PDAG/UG. */
 SEXP is_dag(SEXP arcs, SEXP nnodes) {
 
-int i = 0, nrows = LENGTH(arcs)/2, n = INT(nnodes);
+int i = 0, nrows = length(arcs)/2, n = INT(nnodes);
 int *a = INTEGER(arcs);
 short int *checklist = NULL;
 SEXP res;
