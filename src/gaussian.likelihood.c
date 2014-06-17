@@ -1,6 +1,4 @@
-
 #include "common.h"
-#include <Rmath.h>
 #include <R_ext/Applic.h>
 
 double glik(SEXP x, double *nparams) {

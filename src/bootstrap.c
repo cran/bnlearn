@@ -45,7 +45,7 @@ SEXP bootstrap_arc_coefficients(SEXP prob, SEXP nodes) {
 
 int i = 0, j = 0, k = 0, narcs = 0, nnodes = length(nodes);
 double *p = NULL, *s = NULL, *d = NULL, tol = MACHINE_TOL;;
-SEXP res, class, rownames, colnames, from, to, str, dir;
+SEXP res, rownames, from, to, str, dir;
 
   /* compute the dimension of the arcs set. */
   narcs = nnodes * (nnodes - 1);
@@ -94,9 +94,7 @@ SEXP res, class, rownames, colnames, from, to, str, dir;
   PROTECT(res = allocVector(VECSXP, 4));
 
   /* allocate, initialize and set the class name. */
-  PROTECT(class = allocVector(STRSXP, 1));
-  SET_STRING_ELT(class, 0, mkChar("data.frame"));
-  setAttrib(res, R_ClassSymbol, class);
+  setAttrib(res, R_ClassSymbol, mkString("data.frame"));
 
   /* allocate, initialize and set row names. */
   PROTECT(rownames = allocVector(INTSXP, narcs));
@@ -104,13 +102,9 @@ SEXP res, class, rownames, colnames, from, to, str, dir;
     INTEGER(rownames)[i] = i + 1;
   setAttrib(res, R_RowNamesSymbol, rownames);
 
-  /* allocate, initialize and set column names. */
-  PROTECT(colnames = allocVector(STRSXP, 4));
-  SET_STRING_ELT(colnames, 0, mkChar("from"));
-  SET_STRING_ELT(colnames, 1, mkChar("to"));
-  SET_STRING_ELT(colnames, 2, mkChar("strength"));
-  SET_STRING_ELT(colnames, 3, mkChar("direction"));
-  setAttrib(res, R_NamesSymbol, colnames);
+  /* set column names. */
+  setAttrib(res, R_NamesSymbol,
+    mkStringVec(4, "from", "to", "strength", "direction"));
 
   /* attach the four columns. */
   SET_VECTOR_ELT(res, 0, from);
@@ -118,7 +112,7 @@ SEXP res, class, rownames, colnames, from, to, str, dir;
   SET_VECTOR_ELT(res, 2, str);
   SET_VECTOR_ELT(res, 3, dir);
 
-  UNPROTECT(8);
+  UNPROTECT(6);
   return res;
 
 }/*BOOTSTRAP_ARC_COEFFICIENTS*/

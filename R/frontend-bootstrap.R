@@ -33,7 +33,7 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
     # disable debugging, the slaves do not cat() here.
     if (debug) {
 
-      warning("disabling debugging output in cluster-aware mode.")
+      warning("disabling debugging output for parallel computing.")
       debug = FALSE
 
     }#THEN
@@ -77,7 +77,7 @@ boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
     # disable debugging, the slaves do not cat() here.
     if (debug) {
 
-      warning("disabling debugging output in cluster-aware mode.")
+      warning("disabling debugging output for parallel computing.")
       debug = FALSE
 
     }#THEN
@@ -125,7 +125,7 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
     # disable debugging, the slaves do not cat() here.
     if (debug) {
 
-      warning("disabling debugging output in cluster-aware mode.")
+      warning("disabling debugging output for parallel computing.")
       debug = FALSE
 
     }#THEN
@@ -136,14 +136,14 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
 
     # check the learning algorithm.
     check.learning.algorithm(bn)
+    # check the loss function.
+    loss = check.loss(loss, data, bn)
     # check whether it does return a DAG or not.
     if (!(bn %in% always.dag.result) && (loss == "pred"))
       stop(paste("this learning algorithm may result in a partially directed",
         "or undirected network, which is not handled by parameter fitting."))
     # check the extra arguments for the learning algorithm.
     algorithm.args = check.learning.algorithm.args(algorithm.args)
-    # check the loss function.
-    loss = check.loss(loss, data, bn)
     # since we have no other way to guess, copy the label of the target
     # variable from the parameters of the classifier.
     if ((loss == "pred") && (is.null(loss.args$target)) && (bn %in% classifiers))
@@ -158,14 +158,14 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
       warning("no learning algorithm is used, so 'algorithm.args' will be ignored.")
     # check whether the data agree with the bayesian network.
     check.bn.vs.data(bn, data)
+    # check the loss function.
+    loss = check.loss(loss, data, bn)
     # no parameters if the network structure is only partially directed.
     if (is.pdag(bn$arcs, nodes) && (loss == "pred"))
       stop("the graph is only partially directed.")
     # check bn.naive objects if any.
     if (is(bn, "bn.naive"))
       check.bn.naive(bn)
-    # check the loss function.
-    loss = check.loss(loss, data, bn)
     # check the extra arguments passed down to the loss function.
     loss.args = check.loss.args(loss, bn, nodes, data, loss.args)
 

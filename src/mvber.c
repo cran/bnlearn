@@ -1,14 +1,13 @@
 #include "common.h"
 #include <R_ext/Applic.h>
-#include <Rmath.h>
 
 #define TOTAL_VARIANCE        1
 #define GENERALIZED_VARIANCE  2
 #define FROBENIUS_NORM        3
 #define FROBENIUS_NORM_K      4
 
-static double _tvar(double *matrix, int *n);
-static double _nvar(double *matrix, int *n, double lambda);
+static double mvb_tvar(double *matrix, int *n);
+static double mvb_nvar(double *matrix, int *n, double lambda);
 
 /* compute the joint probabilities of each pair of arcs. */
 SEXP mvber_joint_counters(SEXP arcs, SEXP nodes, SEXP joint, SEXP debug) {
@@ -85,16 +84,13 @@ SEXP mvber_moments(SEXP joint, SEXP R, SEXP labels) {
 
 int i = 0, j = 0, dim = nrows(joint);
 double *p = NULL, *n = REAL(joint), *r = REAL(R);
-SEXP res, names, first, dimnames;
+SEXP res, first, dimnames;
 
   /* allocate the return value. */
   PROTECT(res = allocVector(VECSXP, 2));
 
-  /* allocate and set the elements' names. */
-  PROTECT(names = allocVector(STRSXP, 2));
-  SET_STRING_ELT(names, 0, mkChar("expected"));
-  SET_STRING_ELT(names, 1, mkChar("covariance"));
-  setAttrib(res, R_NamesSymbol, names);
+  /*  set the elements' names. */
+  setAttrib(res, R_NamesSymbol, mkStringVec(2, "expected", "covariance"));
 
   /* rescale all counts to probabilties. */
   for (i = 0; i < dim; i++)
@@ -140,7 +136,7 @@ SEXP res, names, first, dimnames;
   SET_VECTOR_ELT(res, 0, first);
   SET_VECTOR_ELT(res, 1, joint);
 
-  UNPROTECT(4);
+  UNPROTECT(3);
 
   return res;
 
@@ -162,7 +158,7 @@ SEXP result;
 
     case TOTAL_VARIANCE:
 
-      res[0] = _tvar(REAL(var), &k);
+      res[0] = mvb_tvar(REAL(var), &k);
       res[1] = 4 * res[0] / k;
       break;
 
@@ -174,13 +170,13 @@ SEXP result;
 
     case FROBENIUS_NORM:
 
-      res[0] = _nvar(REAL(var), &k, 0.25);
+      res[0] = mvb_nvar(REAL(var), &k, 0.25);
       res[1] = NA_REAL;
       break;
 
     case FROBENIUS_NORM_K:
 
-      res[0] = _nvar(REAL(var), &k, 0.25 * k);
+      res[0] = mvb_nvar(REAL(var), &k, 0.25 * k);
       res[1] = (res[0] - 0.0625 * k * (k - 1) * (k - 1)) / (0.0625 * k * k * k - 0.0625 * k * (k - 1) * (k - 1));
       break;
 
@@ -197,7 +193,7 @@ SEXP result;
 
 }/*MVBER_VARIANCE*/
 
-static double _tvar(double *matrix, int *n) {
+static double mvb_tvar(double *matrix, int *n) {
 
 int i = 0;
 double res = 0;
@@ -207,9 +203,9 @@ double res = 0;
 
   return res;
 
-}/*_TVAR*/
+}/*MVB_TVAR*/
 
-static double _nvar(double *matrix, int *n, double lambda) {
+static double mvb_nvar(double *matrix, int *n, double lambda) {
 
 int i = 0, j = 0;
 double res = 0;
@@ -223,5 +219,5 @@ double res = 0;
 
   return res;
 
-}/*_NVAR*/
+}/*MVB_NVAR*/
 

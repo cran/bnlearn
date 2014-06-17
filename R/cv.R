@@ -102,7 +102,7 @@ bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
   # returned by the learning algorithm is a CPDAG; extend it to a DAG (which
   # has the same log-likelihoos because it's in the same equivalence class)
   # and use the result in place of the original network.
-  if ((loss %in% c("logl", "logl-g")) &&
+  if (loss %in% c("logl", "logl-g") &&
       !is.dag(arcs = bn$arcs, nodes = names(bn$nodes))) {
 
     bn = cpdag.extension(cpdag.backend(bn))

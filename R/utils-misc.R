@@ -93,7 +93,7 @@ smaller = function(a, b) {
 # build an array containing the configurations of the variables.
 configurations = function(data, factor = TRUE, all = TRUE) {
 
-  .Call("cfg2",
+  .Call("configurations",
         data = data,
         factor = factor,
         all = all)

@@ -11,19 +11,13 @@ double res = 0;
   n = alloc1dcont(llx);
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < num; k++) {
-
+  for (k = 0; k < num; k++)
     n[xx[k] - 1]++;
 
-  }/*FOR*/
-
   /* compute the entropy from the joint and marginal frequencies. */
-  for (i = 0; i < llx; i++) {
-
+  for (i = 0; i < llx; i++)
     if (n[i] != 0)
       res += (double)n[i] * log((double)n[i] / num);
-
-  }/*FOR*/
 
   /* we may want to store the number of parameters. */
   if (nparams)
@@ -46,29 +40,20 @@ double res = 0;
   nj = alloc1dcont(lly);
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < num; k++) {
-
+  for (k = 0; k < num; k++)
     n[xx[k] - 1][yy[k] - 1]++;
-
-  }/*FOR*/
 
   /* compute the marginals. */
   for (i = 0; i < llx; i++)
-    for (j = 0; j < lly; j++) {
-
+    for (j = 0; j < lly; j++)
       nj[j] += n[i][j];
-
-    }/*FOR*/
 
   /* compute the conditional entropy from the joint and marginal
        frequencies. */
   for (i = 0; i < llx; i++)
-    for (j = 0; j < lly; j++) {
-
+    for (j = 0; j < lly; j++)
       if (n[i][j] != 0)
         res += (double)n[i][j] * log((double)n[i][j] / (double)nj[j]);
-
-    }/*FOR*/
 
   /* we may want to store the number of parameters. */
   if (nparams)
@@ -108,7 +93,7 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
 
     /* generate the configurations of the parents. */
     PROTECT(parent_vars = c_dataframe_column(data, parents, FALSE, FALSE));
-    PROTECT(config = c_cfg2(parent_vars, TRUE, TRUE));
+    PROTECT(config = c_configurations(parent_vars, TRUE, TRUE));
     /* compute the log-likelihood. */
     loglik = cdlik(data_t, config, nparams);
 

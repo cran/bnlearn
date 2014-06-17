@@ -59,7 +59,9 @@ mutilated(x, evidence)
   \itemize{
 
     \item \code{n}: a positive integer number, the number of random observations
-      to generate from \code{fitted}. Defaults to \code{5000 * nparams(fitted)}.
+      to generate from \code{fitted}. Defaults to \code{5000 * log10(nparams.fitted(fitted))}
+      for discrete networks and \cr \code{500 * nparams.fitted(fitted)} for Gaussian
+      networks.
 
     \item \code{batch}: a positive integer number, the size of each batch
       of random observations. Defaults to \code{10^4}.
@@ -86,8 +88,20 @@ mutilated(x, evidence)
 
   The \code{event} argument must be an expression describing the event of
   interest, as in logic sampling. The \code{evidence} argument must be a
-  named list; each element corresponds to one node in the network and must
-  contain the value that node will be set to when sampling.
+  named list:
+  \itemize{
+
+    \item Each element corresponds to one node in the network and must
+       contain the value that node will be set to when sampling.
+    \item In the case of a continuous node, two values can also be provided.
+       In that case, the value for that node will be sampled from a uniform
+       distribution on the interval delimited by the specified values.
+    \item In the case of a discrete or ordinal node, two or more values can
+       also be provided. In that case, the value for that node will be sampled
+       with uniform probability from the set of specified values.
+
+  }
+
   If either \code{event} or \code{evidence} is set to \code{TRUE} an
   unconditional probability query is performed with respect to that argument.
 
@@ -98,7 +112,8 @@ mutilated(x, evidence)
   the mutilated network, and need to be weighted appropriately when computing
   summary statistics (for more details, see the references below).
   \code{cpquery} does that automatically when computing the final conditional
-  probability.
+  probability. Also note that the \code{batch} argument is ignored in cpdist
+  for speed and memory efficiency.
 
 }
 \value{
@@ -108,6 +123,10 @@ mutilated(x, evidence)
 
   \code{cpudist} returns a data frame containing the observations generated from
   the conditional distribution of the \code{nodes} conditional on \code{evidence}.
+  The data frame has class \code{c("bn.cpdist", "data.frame")}, and a \code{method}
+  attribute storing the value of the \code{method} argument. In the case of 
+  likelihood weighting, the weights are also attached as an attribute called
+  \code{weights}.
 
   \code{mutilated} returns a \code{bn} or \code{bn.fit} object, depending on the
   class of \code{x}.

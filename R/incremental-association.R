@@ -153,9 +153,13 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   # phase I (stepwise forward selection)
   repeat {
 
+    # stop if there are no nodes left.
+    if (length(nodes) == 0 || is.null(nodes))
+      break
+
     # get an association measure for each of the available nodes.
-    association = sapply(nodes, conditional.test, x, sx = mb, test = test,
-                    data = data, B = B, alpha = alpha)
+    association = indep.test(nodes, x, sx = mb, test = test, data = data,
+                    B = B, alpha = alpha)
 
     if (debug) {
 
@@ -166,7 +170,8 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
     }#THEN
 
     # stop if there are no candidates for inclusion.
-    if (all(association > alpha) || length(nodes) == 0 || is.null(nodes)) break
+    if (all(association > alpha))
+      break
     # get the one which maximizes the association measure.
     to.add = names(which.min(association))
 
@@ -193,7 +198,7 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
     if (debug)
       cat("  * checking node", y, "for exclusion (shrinking phase).\n")
 
-    a = conditional.test(x, y, mb[mb != y], data = data, test = test, B = B,
+    a = indep.test(x, y, mb[mb != y], data = data, test = test, B = B,
           alpha = alpha)
 
     if (a > alpha) {

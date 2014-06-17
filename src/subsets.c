@@ -1,31 +1,31 @@
 #include "common.h"
 
 /* populate the first subset (in lexicographic order). */
-void first_subset(int *work, int *n) {
+void first_subset(int *work, int n, int offset) {
 
-  for (int i = 0; i < *n; i++)
-    work[i] = i;
+  for (int i = 0; i < n; i++)
+    work[i] = i + offset;
 
 }/*FIRST_SUBSET*/
 
 /* get the next subset (in lexicographic order). */
-int *next_subset(int *work, int *n, int *max) {
+int *next_subset(int *work, int n, int max, int offset) {
 
 int i = 0, j = 0;
 
   /* this is the last possible subset, nothing to do. */
-  if (work[0] == *max - *n)
+  if (work[0] - offset == max - n)
     return NULL;
 
-  if (work[*n - 1] < *max - 1) {
+  if (work[n - 1] - offset < max - 1) {
 
     /* increment the first element of the subset. */
-    work[*n - 1]++;
+    work[n - 1]++;
 
   }/*THEN*/
   else {
 
-    for (i = *n - 1; i >= 0; i--) {
+    for (i = n - 1; i >= 0; i--) {
 
       /* this is the last element of the set, look into the next slot... */
       if (work[i - 1] < work[i] - 1) {
@@ -34,7 +34,7 @@ int i = 0, j = 0;
         work[i - 1]++;
 
         /* ... and reset the previous ones. */
-        for (j = i - 1; j < *n; j++)
+        for (j = i - 1; j < n - 1; j++)
           work[j + 1] = work[j] + 1;
 
         break;

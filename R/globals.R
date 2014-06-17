@@ -1,7 +1,7 @@
 
 # Global variables.
-available.discrete.tests = c("mi", "mi-sh", "x2", "mc-mi", "smc-mi", "mc-x2",
-  "smc-x2", "sp-mi", "sp-x2")
+available.discrete.tests = c("mi", "mi-sh", "x2", "mc-mi", "smc-mi", "mi-adf",
+  "x2-adf", "mc-x2", "smc-x2", "sp-mi", "sp-x2")
 available.ordinal.tests = c("jt", "mc-jt", "smc-jt")
 available.continuous.tests = c("cor", "zf", "mi-g", "mi-g-sh", "mc-mi-g",
   "smc-mi-g", "mc-cor", "smc-cor", "mc-zf", "smc-zf")
@@ -11,7 +11,7 @@ available.tests = c(available.discrete.tests, available.ordinal.tests,
 semiparametric.tests = c("sp-mi", "sp-x2")
 resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g",
   "mc-cor", "smc-cor", "mc-zf", "smc-zf", "mc-jt", "smc-jt", semiparametric.tests)
-asymptotic.tests = c("mi", "mi-g", "x2", "zf", "jt")
+asymptotic.tests = c("mi", "mi-adf", "mi-g", "x2", "zf", "jt")
 
 available.discrete.scores = c("loglik", "aic", "bic", "bde", "bdes", "k2", "mbde")
 available.continuous.scores = c("bge", "loglik-g", "aic-g", "bic-g")
@@ -60,6 +60,7 @@ method.extra.args = list(
 
 test.labels = c(
   'mi' = "Mutual Information (disc.)",
+  'mi-adf' = "Mutual Information (disc., adj. d.f.)",
   'mi-sh' = "Mutual Information (disc., shrink.)",
   'mc-mi' = "Mutual Information (disc., MC)",
   'smc-mi' = "Mutual Information (disc., Seq. MC)",
@@ -68,7 +69,8 @@ test.labels = c(
   'mi-g-sh' = "Mutual Information (Gauss., shrink.)",
   'mc-mi-g' = "Mutual Information (Gauss., MC)",
   'smc-mi-g' = "Mutual Information (Gauss., Seq. MC)",
-  'x2'= "Pearson's X^2",
+  'x2' = "Pearson's X^2",
+  'x2-adf' = "Pearson's X^2 (adj. d.f.)",
   'mc-x2'= "Pearson's X^2 (MC)",
   'smc-x2'= "Pearson's X^2 (Seq. MC)",
   'sp-x2'= "Pearson's X^2 (semipar.)",
@@ -188,6 +190,18 @@ fitting.labels = c(
 fitting.extra.args = list(
   "mle" = character(0),
   "bayes" = "iss"
+)
+
+available.prediction.methods = c("parents", "bayes-lw")
+
+prediction.labels = c(
+  "parents" = "Parents (Maximum Likelihood)",
+  "bayes-lw" = "Posterior Expectation (Likelihood Weighting)"
+)
+
+prediction.extra.args = list(
+  "parents" = character(0),
+  "bayes-lw" = c("n", "from")
 )
 
 mvber.labels = list(

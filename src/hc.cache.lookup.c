@@ -2,16 +2,14 @@
 
 SEXP score_cache_fill(SEXP nodes, SEXP data, SEXP network, SEXP score,
     SEXP extra, SEXP reference, SEXP equivalence, SEXP decomposability,
-    SEXP updated, SEXP env, SEXP amat, SEXP cache, SEXP blmat, SEXP debug) {
+    SEXP updated, SEXP amat, SEXP cache, SEXP blmat, SEXP debug) {
 
 int *colsum = NULL, nnodes = length(nodes), lupd = length(updated);
-int *a = NULL, *upd = NULL, *b = NULL, *debuglevel = NULL;
+int *a = NULL, *upd = NULL, *b = NULL, debuglevel = isTRUE(debug);
 int i = 0, j = 0, k = 0;
 double *cache_value = NULL;
-SEXP arc, callenv, params, delta, op, temp;
-
-  /* dereference the debug parameter. */
-  debuglevel = LOGICAL(debug);
+void *p = NULL;
+SEXP arc, delta, op, temp;
 
   /* save a pointer to the adjacency matrix, the blacklist and the
    * updated nodes. */
@@ -40,38 +38,11 @@ SEXP arc, callenv, params, delta, op, temp;
   /* allocate a two-slot character vector. */
   PROTECT(arc = allocVector(STRSXP, 2));
 
-  /* allocate the call environment from the call to score.delta. */
-  PROTECT(params = callenv = allocList(10));
-  SET_TYPEOF(callenv, LANGSXP);
-
   /* allocate and initialize the fake score delta. */
-  PROTECT(delta = allocVector(REALSXP, 1));
-  NUM(delta) = 0;
+  PROTECT(delta = ScalarReal(0));
 
   /* allocate and initialize the score.delta() operator. */
-  PROTECT(op = allocVector(STRSXP, 1));
-  SET_STRING_ELT(op, 0, mkChar("set"));
-
-  /* set up the call to score.delta(). */
-  SETCAR(params, BN_ScoreDeltaSymbol);
-  params = CDR(params);
-  SETCAR(params, arc);
-  params = CDR(params);
-  SETCAR(params, network);
-  params = CDR(params);
-  SETCAR(params, data);
-  params = CDR(params);
-  SETCAR(params, score);
-  params = CDR(params);
-  SETCAR(params, delta);
-  params = CDR(params);
-  SETCAR(params, reference);
-  params = CDR(params);
-  SETCAR(params, op);
-  params = CDR(params);
-  SETCAR(params, extra);
-  params = CDR(params);
-  SETCAR(params, decomposability);
+  PROTECT(op = mkString("set"));
 
   for (i = 0; i < nnodes; i++) {
 
@@ -116,27 +87,24 @@ there:
        SET_STRING_ELT(arc, 0, STRING_ELT(nodes, i));
        SET_STRING_ELT(arc, 1, STRING_ELT(nodes, j));
 
-       /* add the arc to the call to score.delta().  */
-       params = CDR(callenv);
-       SETCAR(params, arc);
-
        /* if the arc is not present in the graph it should be added;
         * otherwise it should be removed. */
-       for (k = 0; k < 6; k++) params = CDR(params);
-
        if (a[CMC(i, j, nnodes)] == 0)
          SET_STRING_ELT(op, 0, mkChar("set"));
        else
          SET_STRING_ELT(op, 0, mkChar("drop"));
 
-       SETCAR(params, op);
-
+       /* checkpoint allocated memory. */
+       p = vmaxget();
        /* evaluate the call to score.delta() for the arc. */
-       PROTECT(temp = eval(callenv, env));
+       PROTECT(temp = score_delta(arc, network, data, score, delta, reference,
+         op, extra, decomposability));
+       vmaxset(p);
+
        cache_value[CMC(i, j, nnodes)] = NUM(VECTOR_ELT(temp, 1));
        UNPROTECT(1);
 
-       if (*debuglevel > 0)
+       if (debuglevel > 0)
          Rprintf("* caching score delta for arc %s -> %s (%lf).\n",
            CHAR(STRING_ELT(nodes, i)), CHAR(STRING_ELT(nodes, j)),
             cache_value[CMC(i, j, nnodes)]);
@@ -145,7 +113,7 @@ there:
 
   }/*FOR*/
 
-  UNPROTECT(4);
+  UNPROTECT(3);
   return cache;
 
 }/*HC_CACHE_FILL*/
@@ -155,24 +123,18 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
     SEXP wlmat, SEXP blmat, SEXP nparents, SEXP maxp, SEXP debug) {
 
 int nnodes = length(nodes), i = 0, j = 0;
-int *am = NULL, *ad = NULL, *w = NULL, *b = NULL, *debuglevel = NULL;
+int *am = NULL, *ad = NULL, *w = NULL, *b = NULL, debuglevel = isTRUE(debug);
 int counter = 0, update = 1, from = 0, to = 0;
 double *cache_value = NULL, temp = 0, max = 0, tol = MACHINE_TOL;
 double *mp = REAL(maxp), *np = REAL(nparents);
-SEXP false, bestop, names;
+SEXP bestop;
 
   /* allocate and initialize the return value (use FALSE as a canary value). */
   PROTECT(bestop = allocVector(VECSXP, 3));
-  PROTECT(names = allocVector(STRSXP, 3));
-  SET_STRING_ELT(names, 0, mkChar("op"));
-  SET_STRING_ELT(names, 1, mkChar("from"));
-  SET_STRING_ELT(names, 2, mkChar("to"));
-  setAttrib(bestop, R_NamesSymbol, names);
+  setAttrib(bestop, R_NamesSymbol, mkStringVec(3, "op", "from", "to"));
 
   /* allocate and initialize a dummy FALSE object. */
-  PROTECT(false = allocVector(LGLSXP, 1));
-  LOGICAL(false)[0] = FALSE;
-  SET_VECTOR_ELT(bestop, 0, false);
+  SET_VECTOR_ELT(bestop, 0, ScalarLogical(FALSE));
 
   /* save pointers to the numeric/integer matrices. */
   cache_value = REAL(cache);
@@ -181,10 +143,7 @@ SEXP false, bestop, names;
   w = INTEGER(wlmat);
   b = INTEGER(blmat);
 
-  /* dereference the debug parameter. */
-  debuglevel = LOGICAL(debug);
-
-  if (*debuglevel > 0) {
+  if (debuglevel > 0) {
 
      /* count how may arcs are to be tested. */
      for (i = 0; i < nnodes * nnodes; i++)
@@ -206,7 +165,7 @@ SEXP false, bestop, names;
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, nnodes)];
 
-      if (*debuglevel > 0) {
+      if (debuglevel > 0) {
 
         Rprintf("  > trying to add %s -> %s.\n", NODE(i), NODE(j));
         Rprintf("    > delta between scores for nodes %s %s is %lf.\n",
@@ -220,14 +179,14 @@ SEXP false, bestop, names;
 
         if (c_has_path(j, i, am, nnodes, nodes, FALSE, FALSE, FALSE)) {
 
-          if (*debuglevel > 0)
+          if (debuglevel > 0)
             Rprintf("    > not adding, introduces cycles in the graph.\n");
 
           continue;
 
         }/*THEN*/
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("    @ adding %s -> %s.\n", NODE(i), NODE(j));
 
         /* update the return value. */
@@ -245,7 +204,7 @@ SEXP false, bestop, names;
 
   }/*FOR*/
 
-  if (*debuglevel > 0) {
+  if (debuglevel > 0) {
 
      /* count how may arcs are to be tested. */
      for (i = 0, counter = 0; i < nnodes * nnodes; i++)
@@ -271,7 +230,7 @@ SEXP false, bestop, names;
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, nnodes)];
 
-      if (*debuglevel > 0) {
+      if (debuglevel > 0) {
 
         Rprintf("  > trying to remove %s -> %s.\n", NODE(i), NODE(j));
         Rprintf("    > delta between scores for nodes %s %s is %lf.\n",
@@ -281,7 +240,7 @@ SEXP false, bestop, names;
 
       if (temp - max > tol) {
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("    @ removing %s -> %s.\n", NODE(i), NODE(j));
 
         /* update the return value. */
@@ -299,7 +258,7 @@ SEXP false, bestop, names;
 
   }/*FOR*/
 
-  if (*debuglevel > 0) {
+  if (debuglevel > 0) {
 
      /* count how may arcs are to be tested. */
      for (i = 0, counter = 0; i < nnodes; i++)
@@ -332,7 +291,7 @@ SEXP false, bestop, names;
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, nnodes)] + cache_value[CMC(j, i, nnodes)];
 
-      if (*debuglevel > 0) {
+      if (debuglevel > 0) {
 
         Rprintf("  > trying to reverse %s -> %s.\n", NODE(i), NODE(j));
         Rprintf("    > delta between scores for nodes %s %s is %lf.\n",
@@ -344,14 +303,14 @@ SEXP false, bestop, names;
 
         if (c_has_path(i, j, am, nnodes, nodes, FALSE, TRUE, FALSE)) {
 
-          if (*debuglevel > 0)
+          if (debuglevel > 0)
             Rprintf("    > not reversing, introduces cycles in the graph.\n");
 
           continue;
 
         }/*THEN*/
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("    @ reversing %s -> %s.\n", NODE(i), NODE(j));
 
         /* update the return value. */
@@ -376,7 +335,7 @@ SEXP false, bestop, names;
   if (update == 2)
     REAL(reference)[from] += cache_value[CMC(to, from, nnodes)];
 
-  UNPROTECT(3);
+  UNPROTECT(1);
 
   return bestop;
 
@@ -384,20 +343,9 @@ SEXP false, bestop, names;
 
 void bestop_update(SEXP bestop, char *op, const char *from, const char *to) {
 
-SEXP temp;
-
-  PROTECT(temp = allocVector(STRSXP, 1));
-
-  SET_STRING_ELT(temp, 0, mkChar(op));
-  SET_VECTOR_ELT(bestop, 0, duplicate(temp));
-
-  SET_STRING_ELT(temp, 0, mkChar(from));
-  SET_VECTOR_ELT(bestop, 1, duplicate(temp));
-
-  SET_STRING_ELT(temp, 0, mkChar(to));
-  SET_VECTOR_ELT(bestop, 2, duplicate(temp));
-
-  UNPROTECT(1);
+  SET_VECTOR_ELT(bestop, 0, mkString(op));
+  SET_VECTOR_ELT(bestop, 1, mkString(from));
+  SET_VECTOR_ELT(bestop, 2, mkString(to));
 
 }/*BESTOP_UPDATE*/
 

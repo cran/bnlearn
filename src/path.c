@@ -6,14 +6,9 @@ SEXP has_pdag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes,
 int start = INT(from) - 1, stop = INT(to) - 1, n = INT(nrows);
 int debuglevel = LOGICAL(debug)[0], notdirect = LOGICAL(exclude_direct)[0],
       ugraph = LOGICAL(underlying)[0], *a = INTEGER(amat);
-SEXP result;
 
-  PROTECT(result = allocVector(LGLSXP, 1));
-  LOGICAL(result)[0] =
-    c_has_path(start, stop, a, n, nodes, ugraph, notdirect, debuglevel);
-
-  UNPROTECT(1);
-  return result;
+  return ScalarLogical(c_has_path(start, stop, a, n, nodes, ugraph, notdirect,
+           debuglevel));
 
 }/*HAS_DAG_PATH*/
 

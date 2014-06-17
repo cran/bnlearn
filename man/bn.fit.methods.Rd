@@ -31,7 +31,7 @@
 \method{fitted}{bn.fit}(object, ...)
 \method{coef}{bn.fit}(object, ...)
 \method{residuals}{bn.fit}(object, ...)
-\method{predict}{bn.fit}(object, node, data, ..., debug = FALSE)
+\method{predict}{bn.fit}(object, node, data, method = "parents", ..., debug = FALSE)
 \method{logLik}{bn.fit}(object, data, nodes, by.sample = FALSE, ...)
 \method{AIC}{bn.fit}(object, data, ..., k = 1)
 \method{BIC}{bn.fit}(object, data, ...)
@@ -57,7 +57,9 @@
   \item{nodes}{a vector of character strings, the label of a nodes whose
         loglikelihood components are to be computed.}
   \item{data}{a data frame containing the variables in the model.}
-  \item{\dots}{additional arguments (currently ignored).}
+  \item{method}{a character sting, the method used to estimate predictions.
+       See below.}
+  \item{\dots}{additional arguments. See below.}
   \item{k}{a numeric value, the penalty per parameter to be used; the
        default \code{k = 1} gives the expression used to compute AIC.}
   \item{by.sample}{a boolean value. If \code{TRUE}, \code{logLik} returns
@@ -81,8 +83,26 @@
   fitted values (for the nodes of interest, in the case of
   \code{bn.fit.gnode} objects), both functions return \code{NULL}.
 
-  \code{predict} returns the predicted values for \code{node} for
-  the data specified by \code{data}.
+  \code{predict} returns the predicted values for \code{node} given the data
+  specified by \code{data}. Depending on the value of \code{method}, the
+  predicted values are computed as follows.
+  \itemize{
+    \item \code{parents}: the predicted values are computed by plugging in
+      the new values for the parents of \code{node} in the local probability
+      distribution of \code{node} extracted from \code{fitted}.
+    \item \code{bayes-lw}: the predicted values are computed by averaging
+      likelihood weighting simulations performed using all the available
+      nodes as evidence (obviously, with the exception of the node whose
+      values we are predicting). The number of random samples which are
+      averaged for each new observation is controlled by the \code{n}
+      optional argument; the default is \code{500}. If the variable being
+      predicted is discrete, the predicted level is that with the highest
+      conditional probability. If the variable is continuous, the predicted
+      value is the expected value of the conditional distribution.
+  }
+  Both methods are available for \code{bn.fit} objects; predictions for
+  \code{bn.fit.dnode}, \code{bn.fit.onode} and \code{bn.fit.gnode} objects
+  are estimated with \code{method = "parents"}.
 
 }
 \note{

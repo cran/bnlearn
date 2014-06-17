@@ -9,14 +9,13 @@ char *from = (char *) CHAR(STRING_ELT(arc, 0));
 char *to = (char *) CHAR(STRING_ELT(arc, 1));
 char *op = (char *) CHAR(STRING_ELT(operator, 0));
 SEXP fake, nodes, parents_from, parents_to, children_from;
-SEXP start, cur_n, cur_p, cur_c, temp, name_to, name_nodes, name_cached;
+SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
 
   /* allocate the return value. */
   PROTECT(fake = allocVector(VECSXP, 1));
 
   /* allocate and initialize the names of the elements of the fake network. */
-  PROTECT(name_nodes = allocVector(STRSXP, 1));
-  SET_STRING_ELT(name_nodes, 0, mkChar("nodes"));
+  PROTECT(name_nodes = mkString("nodes"));
   PROTECT(name_cached = allocVector(STRSXP, 1 + children));
   SET_STRING_ELT(name_cached, 0, mkChar("parents"));
   if (children)
@@ -76,13 +75,10 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_to, name_nodes, name_cached;
     else {
 
       /* set the names in the structure. */
-      PROTECT(name_to = allocVector(STRSXP, 1));
-      SET_STRING_ELT(name_to, 0, mkChar(to));
-      setAttrib(nodes, R_NamesSymbol, name_to);
+      setAttrib(nodes, R_NamesSymbol, mkString(to));
       setAttrib(temp, R_NamesSymbol, name_cached);
       /* assign the only node. */
       SET_VECTOR_ELT(nodes, 0, temp);
-      UNPROTECT(1);
 
     }/*ELSE*/
 
@@ -141,13 +137,10 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_to, name_nodes, name_cached;
     else {
 
       /* set the names in the structure. */
-      PROTECT(name_to = allocVector(STRSXP, 1));
-      SET_STRING_ELT(name_to, 0, mkChar(to));
-      setAttrib(nodes, R_NamesSymbol, name_to);
+      setAttrib(nodes, R_NamesSymbol, mkString(to));
       setAttrib(temp, R_NamesSymbol, name_cached);
       /* assign the only node. */
       SET_VECTOR_ELT(nodes, 0, temp);
-      UNPROTECT(1);
 
     }/*ELSE*/
 
@@ -206,10 +199,10 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_to, name_nodes, name_cached;
 
 }/*SCORE_DELTA_HELPER*/
 
-static void robust_score_difference(double old1, double old2, double new1,
-    double new2, double *delta) {
+static double robust_score_difference(double old1, double old2, double new1,
+    double new2) {
 
-double new_sum = 0, old_sum = 0;
+double delta = 0, new_sum = 0, old_sum = 0;
 
   /* sum old and new score components. */
   new_sum = new1 + new2;
@@ -218,15 +211,17 @@ double new_sum = 0, old_sum = 0;
   /* compare the network scores, minus numeric tolerance for better score
    * equivalence detection. */
   if (fabs(new_sum - old_sum) < MACHINE_TOL)
-    *delta = 0;
+    delta = 0;
   else
-    *delta = new_sum - old_sum;
+    delta = new_sum - old_sum;
 
   /* catch: the difference between two -Inf scores must be -Inf and not NaN,
    * so that we can safely test it and reject the change; and if the old score
    * is -Inf just look at the new score. */
   if (old_sum == R_NegInf)
-    *delta = (new_sum != R_NegInf) ? new_sum : R_NegInf;
+    delta = (new_sum != R_NegInf) ? new_sum : R_NegInf;
+
+  return delta;
 
 }/*ROBUST_DIFFERENCE*/
 
@@ -234,14 +229,11 @@ SEXP score_delta_decomposable(SEXP arc, SEXP network, SEXP data, SEXP score,
     SEXP score_delta, SEXP reference_score, SEXP op, SEXP extra, int chld) {
 
 int *t = NULL;
-double *r = NULL, *new = NULL, *old = NULL;
-SEXP delta, greater, retval, dimnames, fake, new_score, try, to_update;
+double diff = 0, *new = NULL, *old = NULL;
+SEXP delta, fake, new_score, try, to_update;
 
   /* create the fake network with the updated structure. */
   PROTECT(fake = score_delta_helper(network, arc, op, chld, FALSE));
-  /* allocate the score delta. */
-  PROTECT(retval = allocVector(REALSXP, 1));
-  r = REAL(retval);
   /* find out which nodes to update from the fake structure. */
   to_update = getAttrib(getListElement(fake, "nodes"), R_NamesSymbol);
 
@@ -258,26 +250,20 @@ SEXP delta, greater, retval, dimnames, fake, new_score, try, to_update;
   old = REAL(reference_score);
 
   if (length(new_score) == 1)
-    robust_score_difference(old[t[0] - 1], 0, new[0], 0, r);
+    diff = robust_score_difference(old[t[0] - 1], 0, new[0], 0);
   else
-    robust_score_difference(old[t[0] - 1], old[t[1] - 1], new[0], new[1], r);
+    diff = robust_score_difference(old[t[0] - 1], old[t[1] - 1], new[0], new[1]);
 
   UNPROTECT(1);
 
   /* build the return value. */
   PROTECT(delta = allocVector(VECSXP, 3));
-  PROTECT(greater = allocVector(LGLSXP, 1));
-  LOGICAL(greater)[0] = (*r > 0);
-  SET_VECTOR_ELT(delta, 0, greater);
-  SET_VECTOR_ELT(delta, 1, retval);
+  SET_VECTOR_ELT(delta, 0, ScalarLogical(diff > 0));
+  SET_VECTOR_ELT(delta, 1, ScalarReal(diff));
   SET_VECTOR_ELT(delta, 2, new_score);
-  PROTECT(dimnames = allocVector(STRSXP, 3));
-  SET_STRING_ELT(dimnames, 0, mkChar("bool"));
-  SET_STRING_ELT(dimnames, 1, mkChar("delta"));
-  SET_STRING_ELT(dimnames, 2, mkChar("updates"));
-  setAttrib(delta, R_NamesSymbol, dimnames);
+  setAttrib(delta, R_NamesSymbol, mkStringVec(3, "bool", "delta", "updates"));
 
-  UNPROTECT(6);
+  UNPROTECT(3);
 
   return delta;
 
@@ -288,9 +274,9 @@ SEXP score_delta_cs(SEXP arc, SEXP network, SEXP data, SEXP score,
 
 int *t = NULL;
 const char *o = CHAR(STRING_ELT(op, 0));
-double *r = 0, *new = 0, *old = NULL, new_prior = 0, old_prior = 0;
-SEXP fake, prior, cs_prior, order, try, delta, greater, dimnames, new_score;
-SEXP fake_nodes, real_nodes, target, retval;
+double retval = 0, *new = 0, *old = NULL, new_prior = 0, old_prior = 0;
+SEXP fake, prior, cs_prior, order, try, delta, new_score;
+SEXP fake_nodes, real_nodes, target;
 
   /* get the prior specification. */
   prior = getListElement(extra, "prior");
@@ -335,27 +321,19 @@ SEXP fake_nodes, real_nodes, target, retval;
     new[0] = old[t[0] - 1] - old_prior + new_prior;
 
     /* compute the difference. */
-    PROTECT(retval = allocVector(REALSXP, 1));
-    r = REAL(retval);
     if (length(new_score) == 1)
-      robust_score_difference(old[t[0] - 1], 0, new[0], 0, r);
+      retval = robust_score_difference(old[t[0] - 1], 0, new[0], 0);
     else
-      robust_score_difference(old[t[0] - 1], old[t[1] - 1], new[0], new[1], r);
+      retval = robust_score_difference(old[t[0] - 1], old[t[1] - 1], new[0], new[1]);
 
     /* build the return value. */
     PROTECT(delta = allocVector(VECSXP, 3));
-    PROTECT(greater = allocVector(LGLSXP, 1));
-    LOGICAL(greater)[0] = (*r > 0);
-    SET_VECTOR_ELT(delta, 0, greater);
-    SET_VECTOR_ELT(delta, 1, retval);
+    SET_VECTOR_ELT(delta, 0, ScalarLogical(retval > 0));
+    SET_VECTOR_ELT(delta, 1, ScalarReal(retval));
     SET_VECTOR_ELT(delta, 2, new_score);
-    PROTECT(dimnames = allocVector(STRSXP, 3));
-    SET_STRING_ELT(dimnames, 0, mkChar("bool"));
-    SET_STRING_ELT(dimnames, 1, mkChar("delta"));
-    SET_STRING_ELT(dimnames, 2, mkChar("updates"));
-    setAttrib(delta, R_NamesSymbol, dimnames);
+    setAttrib(delta, R_NamesSymbol, mkStringVec(3, "bool", "delta", "updates"));
 
-    UNPROTECT(8);
+    UNPROTECT(5);
 
     return delta;
 

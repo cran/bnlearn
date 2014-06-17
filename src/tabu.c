@@ -2,13 +2,13 @@
 
 void tabu_add(double *cache_value, int *ad, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,
-    int *narcs, int *debuglevel);
+    int *narcs, int debuglevel);
 void tabu_del(double *cache_value, int *w, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,
-    int *narcs, int *debuglevel);
+    int *narcs, int debuglevel);
 void tabu_rev(double *cache_value, int *b, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, int *update, SEXP tabu_list,
-    int *cur, int *narcs, double *mp, double *np, int *debuglevel);
+    int *cur, int *narcs, double *mp, double *np, int debuglevel);
 
 /* create a numerical compact representation of a network structure (akin to
  * a hash, but not quite) to allow fast comparison and low memory usage. */
@@ -18,7 +18,7 @@ int *a = INTEGER(amat), nnodes = length(nodes);
 SEXP hash;
 
   /* compute the hash. */
-  PROTECT(hash = c_amat_hash(a, &nnodes));
+  PROTECT(hash = c_amat_hash(a, nnodes));
 
   /* set the hash into the tabu list. */
   SET_VECTOR_ELT(list, INT(current), hash);
@@ -31,13 +31,13 @@ SEXP hash;
 
 /* look up the current model (represented by the adjacency matrix) in the tabu list. */
 int tabu_match(SEXP tabu_list, int *cur, int *amat, int *narcs, int *nnodes,
-    int *debuglevel) {
+    int debuglevel) {
 
 int i = 0, j = 0, ntabu = length(tabu_list);
 int *matches = NULL, *target = NULL;
 SEXP tabu_network, hash;
 
-  PROTECT(hash = c_amat_hash(amat, nnodes));
+  PROTECT(hash = c_amat_hash(amat, *nnodes));
   target = INTEGER(hash);
 
   for (i = 0; i < ntabu; i++) {
@@ -89,24 +89,18 @@ SEXP tabu_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
     SEXP nparents, SEXP maxp, SEXP debug) {
 
 int nnodes = length(nodes), narcs = 0, i = 0, j = 0;
-int *am = NULL, *ad = NULL, *w = NULL, *b = NULL, *debuglevel = NULL;
+int *am = NULL, *ad = NULL, *w = NULL, *b = NULL, debuglevel = isTRUE(debug);
 int *cur = NULL, counter = 0, update = 1, from = 0, to = 0;
 double *cache_value = NULL, max = NUM(baseline);
 double *mp = REAL(maxp), *np = REAL(nparents);
-SEXP false, bestop, names;
+SEXP bestop;
 
   /* allocate and initialize the return value (use FALSE as a canary value). */
   PROTECT(bestop = allocVector(VECSXP, 3));
-  PROTECT(names = allocVector(STRSXP, 3));
-  SET_STRING_ELT(names, 0, mkChar("op"));
-  SET_STRING_ELT(names, 1, mkChar("from"));
-  SET_STRING_ELT(names, 2, mkChar("to"));
-  setAttrib(bestop, R_NamesSymbol, names);
+  setAttrib(bestop, R_NamesSymbol, mkStringVec(3, "op", "from", "to"));
 
   /* allocate and initialize a dummy FALSE object. */
-  PROTECT(false = allocVector(LGLSXP, 1));
-  LOGICAL(false)[0] = FALSE;
-  SET_VECTOR_ELT(bestop, 0, false);
+  SET_VECTOR_ELT(bestop, 0, ScalarLogical(FALSE));
 
   /* save pointers to the numeric/integer matrices. */
   cache_value = REAL(cache);
@@ -116,15 +110,12 @@ SEXP false, bestop, names;
   b = INTEGER(blmat);
   cur = INTEGER(current);
 
-  /* dereference the debug parameter. */
-  debuglevel = LOGICAL(debug);
-
   /* compute the number of arcs in the network. */
   for (i = 0; i < nnodes * nnodes; i++)
     if (am[i] > 0)
       narcs++;
 
-  if (*debuglevel > 0) {
+  if (debuglevel > 0) {
 
      /* count how may arcs are to be tested. */
      for (i = 0; i < nnodes * nnodes; i++)
@@ -139,7 +130,7 @@ SEXP false, bestop, names;
   tabu_add(cache_value, ad, am, bestop, nodes, &nnodes, &from, &to, &max,
     tabu_list, cur, &narcs, debuglevel);
 
-  if (*debuglevel > 0) {
+  if (debuglevel > 0) {
 
      /* count how may arcs are to be tested. */
      for (i = 0, counter = 0; i < nnodes * nnodes; i++)
@@ -154,7 +145,7 @@ SEXP false, bestop, names;
   tabu_del(cache_value, w, am, bestop, nodes, &nnodes, &from, &to, &max,
     tabu_list, cur, &narcs, debuglevel);
 
-  if (*debuglevel > 0) {
+  if (debuglevel > 0) {
 
      /* count how may arcs are to be tested. */
      for (i = 0, counter = 0; i < nnodes; i++)
@@ -175,7 +166,7 @@ SEXP false, bestop, names;
   if (update == 2)
     REAL(reference)[from] += cache_value[CMC(to, from, nnodes)];
 
-  UNPROTECT(3);
+  UNPROTECT(1);
 
   return bestop;
 
@@ -184,7 +175,7 @@ SEXP false, bestop, names;
 /* try to add an arc to the current network, minding the tabu list. */
 void tabu_add(double *cache_value, int *ad, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,
-    int *narcs, int *debuglevel) {
+    int *narcs, int debuglevel) {
 
 int i = 0, j = 0, idx = 0;
 double temp = 0, tol = MACHINE_TOL;
@@ -200,7 +191,7 @@ double temp = 0, tol = MACHINE_TOL;
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, *nnodes)];
 
-      if (*debuglevel > 0) {
+      if (debuglevel > 0) {
 
         Rprintf("  > trying to add %s -> %s.\n", NODE(i), NODE(j));
         Rprintf("    > delta between scores for nodes %s %s is %lf.\n",
@@ -215,7 +206,7 @@ double temp = 0, tol = MACHINE_TOL;
 
         if (c_has_path(j, i, am, *nnodes, nodes, FALSE, FALSE, FALSE)) {
 
-          if (*debuglevel > 0)
+          if (debuglevel > 0)
             Rprintf("    > not adding, introduces cycles in the graph.\n");
 
           continue;
@@ -235,14 +226,14 @@ double temp = 0, tol = MACHINE_TOL;
 
         if (idx > 0) {
 
-          if (*debuglevel > 0)
+          if (debuglevel > 0)
             Rprintf("    > not adding, network matches element %d in the tabu list.\n", idx);
 
           continue;
 
         }/*THEN*/
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("    @ adding %s -> %s.\n", NODE(i), NODE(j));
 
         /* update the return value. */
@@ -265,7 +256,7 @@ double temp = 0, tol = MACHINE_TOL;
 /* try to delete an arc from the current network, minding the tabu list. */
 void tabu_del(double *cache_value, int *w, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,
-    int *narcs, int *debuglevel) {
+    int *narcs, int debuglevel) {
 
 int i = 0, j = 0, idx = 0;
 double temp = 0, tol = MACHINE_TOL;
@@ -285,7 +276,7 @@ double temp = 0, tol = MACHINE_TOL;
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, *nnodes)];
 
-      if (*debuglevel > 0) {
+      if (debuglevel > 0) {
 
         Rprintf("  > trying to remove %s -> %s.\n", NODE(i), NODE(j));
         Rprintf("    > delta between scores for nodes %s %s is %lf.\n",
@@ -308,14 +299,14 @@ double temp = 0, tol = MACHINE_TOL;
 
         if (idx > 0) {
 
-          if (*debuglevel > 0)
+          if (debuglevel > 0)
             Rprintf("    > not removing, network matches element %d in the tabu list.\n", idx);
 
           continue;
 
         }/*THEN*/
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("    @ removing %s -> %s.\n", NODE(i), NODE(j));
 
         /* update the return value. */
@@ -338,7 +329,7 @@ double temp = 0, tol = MACHINE_TOL;
 /* try to reverse an arc in the current network, minding the tabu list. */
 void tabu_rev(double *cache_value, int *b, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, int *update, SEXP tabu_list,
-    int *cur, int *narcs, double *mp, double *np, int *debuglevel) {
+    int *cur, int *narcs, double *mp, double *np, int debuglevel) {
 
 int i = 0, j = 0, idx = 0;
 double temp = 0, tol = MACHINE_TOL;
@@ -364,7 +355,7 @@ double temp = 0, tol = MACHINE_TOL;
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, *nnodes)] + cache_value[CMC(j, i, *nnodes)];
 
-      if (*debuglevel > 0) {
+      if (debuglevel > 0) {
 
         Rprintf("  > trying to reverse %s -> %s.\n", NODE(i), NODE(j));
         Rprintf("    > delta between scores for nodes %s %s is %lf.\n",
@@ -376,7 +367,7 @@ double temp = 0, tol = MACHINE_TOL;
 
         if (c_has_path(i, j, am, *nnodes, nodes, FALSE, TRUE, FALSE)) {
 
-          if (*debuglevel > 0)
+          if (debuglevel > 0)
             Rprintf("    > not reversing, introduces cycles in the graph.\n");
 
           continue;
@@ -396,14 +387,14 @@ double temp = 0, tol = MACHINE_TOL;
 
         if (idx > 0) {
 
-          if (*debuglevel > 0)
+          if (debuglevel > 0)
             Rprintf("    > not reversing, network matches element %d in the tabu list.\n", idx);
 
           continue;
 
         }/*THEN*/
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("    @ reversing %s -> %s.\n", NODE(i), NODE(j));
 
         /* update the return value. */

@@ -89,3 +89,19 @@ write.net = function(file, fitted) {
 
 }#WRITE.NET
 
+write.dot = function(file, graph) {
+
+  # check graph's class.
+  check.bn.or.fit(graph)
+
+  # open the file for writing.
+  fd = file(description = file, open = "w")
+
+  write.dot.backend(fd, graph = graph)
+
+  close(fd)
+
+  invisible(NULL)
+
+}#WRITE.DOT
+

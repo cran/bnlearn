@@ -34,13 +34,7 @@ SEXP reset_test_counter() {
 /* return the global test counter, for R to see. */
 SEXP get_test_counter() {
 
-SEXP result;
-
-  PROTECT(result = allocVector(REALSXP, 1));
-  NUM(result) = test_counter;
-  UNPROTECT(1);
-
-  return result;
+  return ScalarReal(test_counter);
 
 }/*GET_TEST_COUNTER*/
 

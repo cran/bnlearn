@@ -19,15 +19,12 @@ int i = 0, j = 0, z = 0;
 int nrows = length(nodes);
 int check_status = nrows, check_status_old = nrows;
 int *rowsums = NULL, *colsums = NULL, *crossprod = NULL, *a = NULL;
-int *debuglevel = NULL;
+int debuglevel = isTRUE(debug);
 short int *status = NULL;
 SEXP amat;
 
-  /* dereference the debug parameter. */
-  debuglevel = LOGICAL(debug);
-
   /* build the adjacency matrix from the arc set.  */
-  if (*debuglevel > 0)
+  if (debuglevel > 0)
     Rprintf("* building the adjacency matrix.\n");
 
   PROTECT(amat = arcs2amat(arcs, nodes));
@@ -52,7 +49,7 @@ SEXP amat;
   colsums = alloc1dcont(nrows);
   crossprod = alloc1dcont(nrows);
 
-  if (*debuglevel > 0)
+  if (debuglevel > 0)
     Rprintf("* checking whether the partially directed graph is acyclic.\n");
 
   /* even in the worst case scenario at least two nodes are marked as
@@ -62,7 +59,7 @@ SEXP amat;
 
 start:
 
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       Rprintf("* beginning iteration %d.\n", z + 1);
 
     for (i = 0; i < nrows; i++) {
@@ -84,7 +81,7 @@ start:
 
 there:
 
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         Rprintf("  > checking node %s (%d child(ren), %d parent(s), %d neighbours).\n",
           NODE(i), rowsums[i], colsums[i], crossprod[i]);
 
@@ -93,7 +90,7 @@ there:
       if (((rowsums[i] == 0) || (colsums[i] == 0)) ||
           ((crossprod[i] == 1) && (rowsums[i] == 1) && (colsums[i] == 1))) {
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("  @ node %s is cannot be part of a cycle.\n", NODE(i));
 
         /* update the adjacency matrix and the row/column totals. */
@@ -120,7 +117,7 @@ there:
         if (((colsums[i] == 1) && (colsums[j] == 1)) ||
             ((rowsums[i] == 1) && (rowsums[j] == 1))) {
 
-          if (*debuglevel > 0)
+          if (debuglevel > 0)
             Rprintf("  @ arc %s - %s is cannot be part of a cycle.\n", NODE(i), NODE(j));
 
           /* update the adjacency matrix and the row/column totals. */
@@ -146,7 +143,7 @@ there:
     /* at least three nodes are needed to have a cycle. */
     if (check_status < 3) {
 
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         Rprintf("@ at least three nodes are needed to have a cycle.\n");
 
       UNPROTECT(1);
@@ -158,7 +155,7 @@ there:
      * the last iteration, the algorithm is stuck on a cycle. */
     if (check_status_old == check_status) {
 
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         Rprintf("@ no change in the last iteration.\n");
 
       /* give up and call c_has_path() to kill some undirected arcs. */
@@ -173,7 +170,7 @@ there:
             if(!c_has_path(i, j, INTEGER(amat), nrows, nodes, FALSE, TRUE, FALSE) &&
                !c_has_path(j, i, INTEGER(amat), nrows, nodes, FALSE, TRUE, FALSE)) {
 
-              if (*debuglevel > 0)
+              if (debuglevel > 0)
                 Rprintf("@ arc %s - %s is not part of any cycle, removing.\n", NODE(i), NODE(j));
 
               /* increase the iteration counter and start again. */
@@ -220,17 +217,10 @@ SEXP res;
 
   if (check_status < 3) {
 
-    if (isTRUE(return_nodes)) {
-
-      PROTECT(res = allocVector(STRSXP, 0));
-
-    }/*THEN*/
-    else {
-
-      PROTECT(res = allocVector(LGLSXP, 1));
-      LOGICAL(res)[0] = TRUE;
-
-    }/*ELSE*/
+    if (isTRUE(return_nodes))
+      return allocVector(STRSXP, 0);
+    else
+      return ScalarLogical(TRUE);
 
   }/*THEN*/
   else {
@@ -243,19 +233,18 @@ SEXP res;
         if (status[i] == BAD)
           SET_STRING_ELT(res, j++, STRING_ELT(nodes, i));
 
+      UNPROTECT(1);
+
+      return res;
+
     }/*THEN*/
     else {
 
-      PROTECT(res = allocVector(LGLSXP, 1));
-      LOGICAL(res)[0] = FALSE;
+      return ScalarLogical(FALSE);
 
     }/*ELSE*/
 
   }/*ELSE*/
-
-  UNPROTECT(1);
-
-  return res;
 
 }/*BUILD_RETURN_ARRAY*/
 

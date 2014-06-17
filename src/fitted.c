@@ -124,15 +124,10 @@ SEXP labels, node_data, children, result;
 SEXP fitted_nparams(SEXP bn, SEXP debug) {
 
 int i = 0, j = 0, node_params = 0, nnodes = length(bn);
-int *res = NULL, *debuglevel = LOGICAL(debug);
-SEXP result, nodes = R_NilValue, node_data, temp;
+int res = 0, debuglevel = isTRUE(debug);
+SEXP nodes = R_NilValue, node_data, temp;
 
-  /* allocate, dereference and initialize the return value. */
-  PROTECT(result = allocVector(INTSXP, 1));
-  res = INTEGER(result);
-  res[0] = 0;
-
-  if (*debuglevel > 0)
+  if (debuglevel > 0)
     nodes = getAttrib(bn, R_NamesSymbol);
 
   for (i = 0; i < nnodes; i++) {
@@ -162,16 +157,14 @@ SEXP result, nodes = R_NilValue, node_data, temp;
 
     }/*ELSE*/
 
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       Rprintf("* node %s has %d parameter(s).\n", NODE(i), node_params);
 
-    res[0] += node_params;
+    res += node_params;
 
   }/*FOR*/
 
-  UNPROTECT(1);
-
-  return result;
+  return ScalarInteger(res);
 
 }/*FITTED_NPARAMS*/
 
@@ -254,9 +247,9 @@ SEXP mb, labels, try, temp, node_data;
 /* return the size of the arc set. */
 SEXP num_arcs(SEXP bn) {
 
-int i = 0, is_fitted = 0, *res = NULL;
+int i = 0, is_fitted = 0, res = 0;
 char *element = NULL;
-SEXP nodes, node_data, temp, result;
+SEXP nodes, node_data, temp;
 
   /* get to the nodes' data. */
   nodes = getListElement(bn, "nodes");
@@ -275,28 +268,20 @@ SEXP nodes, node_data, temp, result;
 
   }/*ELSE*/
 
-  /* allocate and initialize the result. */
-  PROTECT(result = allocVector(INTSXP, 1));
-  res = INTEGER(result);
-  *res = 0;
-
   for (i = 0; i < length(nodes); i++) {
 
     /* get the parents/children of this node. */
     node_data = VECTOR_ELT(nodes, i);
-
     temp = getListElement(node_data, element);
-
-    *res += length(temp);
+    res += length(temp);
 
   }/*FOR*/
 
   /* summing up the neighbours counts each arc twice, dedeuplicate. */
   if (!is_fitted)
-    *res /= 2;
+    res /= 2;
 
-  UNPROTECT(1);
-
-  return result;
+  return ScalarInteger(res);
 
 }/*NUM_ARCS*/
+

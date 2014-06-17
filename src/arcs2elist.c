@@ -21,7 +21,7 @@ SEXP arcs2welist(SEXP arcs, SEXP nodes, SEXP weights, SEXP nid, SEXP sublist,
 
 int i = 0, j = 0, k = 0, nnodes = length(nodes), narcs = length(arcs)/2;
 int *e = NULL, *coords = NULL, *adjacent = NULL;
-int *num_id = LOGICAL(nid), *sub = LOGICAL(sublist), *up = LOGICAL(parents);
+int num_id = isTRUE(nid), sub = isTRUE(sublist), up = isTRUE(parents);
 double *w = REAL(weights), *ew = NULL;
 SEXP try, elist, edges, edge_weights, temp, temp_name = R_NilValue;
 
@@ -30,14 +30,9 @@ SEXP try, elist, edges, edge_weights, temp, temp_name = R_NilValue;
   /* set the node names. */
   setAttrib(elist, R_NamesSymbol, nodes);
 
-  if (*sub > 0) {
-
-    /* allocate and initialize the subset name. */
-    PROTECT(temp_name = allocVector(STRSXP, 2));
-    SET_STRING_ELT(temp_name, 0, mkChar("edges"));
-    SET_STRING_ELT(temp_name, 1, mkChar("weights"));
-
-  }/*THEN*/
+  /* allocate and initialize the subset name. */
+  if (sub > 0)
+    PROTECT(temp_name = mkStringVec(2, "edges", "weight"));
 
   /* allocate the scratch space to keep track adjacent nodes. */
   adjacent = alloc1dcont(nnodes);
@@ -46,16 +41,13 @@ SEXP try, elist, edges, edge_weights, temp, temp_name = R_NilValue;
   PROTECT(try = match(nodes, arcs, 0));
   coords = INTEGER(try);
 
-  for (i = 0; i < narcs; i++) {
-
-    adjacent[coords[i + (*up) * narcs] - 1]++;
-
-  }/*FOR*/
+  for (i = 0; i < narcs; i++)
+    adjacent[coords[i + up * narcs] - 1]++;
 
   for (i = 0; i < nnodes; i++) {
 
     /* allocate and set up the edge array. */
-    if (*num_id > 0) {
+    if (num_id > 0) {
 
       PROTECT(edges = allocVector(INTSXP, adjacent[i]));
       e = INTEGER(edges);
@@ -74,23 +66,23 @@ SEXP try, elist, edges, edge_weights, temp, temp_name = R_NilValue;
     /* copy the coordinates or the labels of adjacent nodes. */
     for (j = 0, k = 0; j < narcs; j++) {
 
-      if (coords[j + (*up) * narcs] != i + 1)
+      if (coords[j + up * narcs] != i + 1)
         continue;
 
       /* copy the weight as well. */
       ew[k] = w[j];
 
-      if (*num_id > 0)
-        e[k++] = coords[(1 - *up) * narcs + j];
+      if (num_id > 0)
+        e[k++] = coords[(1 - up) * narcs + j];
       else
-        SET_STRING_ELT(edges, k++, STRING_ELT(arcs, (1 - *up) * narcs + j));
+        SET_STRING_ELT(edges, k++, STRING_ELT(arcs, (1 - up) * narcs + j));
 
       if (k == adjacent[i])
         break;
 
     }/*FOR*/
 
-    if (*sub > 0) {
+    if (sub > 0) {
 
       /* allocate and set up the "edge" sublist for graphNEL. */
       PROTECT(temp = allocVector(VECSXP, 2));
@@ -113,7 +105,7 @@ SEXP try, elist, edges, edge_weights, temp, temp_name = R_NilValue;
 
   }/*FOR*/
 
-  if (*sub > 0)
+  if (sub > 0)
     UNPROTECT(3);
   else
     UNPROTECT(2);
@@ -126,8 +118,8 @@ SEXP try, elist, edges, edge_weights, temp, temp_name = R_NilValue;
 SEXP arcs2uelist(SEXP arcs, SEXP nodes, SEXP nid, SEXP sublist, SEXP parents) {
 
 int i = 0, j = 0, k = 0, nnodes = length(nodes), narcs = length(arcs)/2;
-int *e = NULL, *coords = NULL, *adjacent = NULL, *up = LOGICAL(parents);
-int *num_id = LOGICAL(nid), *sub = LOGICAL(sublist);
+int *e = NULL, *coords = NULL, *adjacent = NULL, up = isTRUE(parents);
+int num_id = isTRUE(nid), sub = isTRUE(sublist);
 SEXP try, elist, edges, temp, temp_name = R_NilValue;
 
   /* allocate the return value. */
@@ -135,13 +127,9 @@ SEXP try, elist, edges, temp, temp_name = R_NilValue;
   /* set the node names. */
   setAttrib(elist, R_NamesSymbol, nodes);
 
-  if (*sub > 0) {
-
-    /* allocate and initialize the subset name. */
-    PROTECT(temp_name = allocVector(STRSXP, 1));
-    SET_STRING_ELT(temp_name, 0, mkChar("edges"));
-
-  }/*THEN*/
+  /* allocate and initialize the subset name. */
+  if (sub > 0)
+    PROTECT(temp_name = mkString("edges"));
 
   /* allocate the scratch space to keep track of adjacent nodes. */
   adjacent = alloc1dcont(nnodes);
@@ -150,16 +138,13 @@ SEXP try, elist, edges, temp, temp_name = R_NilValue;
   PROTECT(try = match(nodes, arcs, 0));
   coords = INTEGER(try);
 
-  for (i = 0; i < narcs; i++) {
-
-    adjacent[coords[i + (*up) * narcs] - 1]++;
-
-  }/*FOR*/
+  for (i = 0; i < narcs; i++)
+    adjacent[coords[i + up * narcs] - 1]++;
 
   for (i = 0; i < nnodes; i++) {
 
     /* allocate and set up the edge array. */
-    if (*num_id > 0) {
+    if (num_id > 0) {
 
       PROTECT(edges = allocVector(INTSXP, adjacent[i]));
       e = INTEGER(edges);
@@ -174,20 +159,20 @@ SEXP try, elist, edges, temp, temp_name = R_NilValue;
     /* copy the coordinates or the labels of adjacent nodes. */
     for (j = 0, k = 0; j < narcs; j++) {
 
-      if (coords[j + (*up) * narcs] != i + 1)
+      if (coords[j + up * narcs] != i + 1)
         continue;
 
-      if (*num_id > 0)
-        e[k++] = coords[(1 - *up) * narcs + j];
+      if (num_id > 0)
+        e[k++] = coords[(1 - up) * narcs + j];
       else
-        SET_STRING_ELT(edges, k++, STRING_ELT(arcs, (1 - *up) * narcs + j));
+        SET_STRING_ELT(edges, k++, STRING_ELT(arcs, (1 - up) * narcs + j));
 
       if (k == adjacent[i])
         break;
 
     }/*FOR*/
 
-    if (*sub > 0) {
+    if (sub > 0) {
 
       /* allocate and set up the "edge" sublist for graphNEL. */
       PROTECT(temp = allocVector(VECSXP, 1));
@@ -207,7 +192,7 @@ SEXP try, elist, edges, temp, temp_name = R_NilValue;
 
   }/*FOR*/
 
-  if (*sub > 0)
+  if (sub > 0)
     UNPROTECT(3);
   else
     UNPROTECT(2);

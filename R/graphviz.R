@@ -19,7 +19,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
     layout = "dot", shape = "circle", main = NULL, sub = NULL) {
 
   graphviz.layouts = c("dot", "neato", "twopi", "circo", "fdp")
-  node.shapes = c("ellipse", "circle")
+  node.shapes = c("ellipse", "circle", "rectangle")
   highlight.params = c("nodes", "arcs", "col", "fill", "lwd", "lty", "textCol")
   highlighting = FALSE
 
@@ -126,12 +126,12 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
   graph.par(list(graph = list(main = main, sub = sub)))
 
   # set graph layout and global parameters.
-  if (shape == "ellipse") {
+  if (shape %in% c("ellipse", "rectangle")) {
 
-    # nodes have elliptic shapes whose width is determined by the
+    # nodes have elliptic/rectangulare shapes whose width is determined by the
     # length of the respective labels.
     attrs = list(node = list(fixedsize = FALSE))
-    node.attrs = list(shape = rep("ellipse", length(nodes)))
+    node.attrs = list(shape = rep(shape, length(nodes)))
     names(node.attrs$shape) = nodes
 
   }#THEN

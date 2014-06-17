@@ -1,5 +1,3 @@
-
-#include <Rmath.h>
 #include "common.h"
 
 /* posterior Dirichlet probability (covers BDe and K2 scores). */
@@ -178,7 +176,7 @@ SEXP nodes, node_t, data_t, exp_data, parents, parent_vars, config;
 
     /* generate the configurations of the parents. */
     PROTECT(parent_vars = c_dataframe_column(data, parents, FALSE, FALSE));
-    PROTECT(config = c_cfg2(parent_vars, TRUE, !sparse));
+    PROTECT(config = c_configurations(parent_vars, TRUE, !sparse));
     /* compute the marginal likelihood. */
     prob = cdpost(data_t, config, iss, exp_data);
 

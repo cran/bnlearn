@@ -8,6 +8,14 @@ is.real.number = function(x) {
 
 }#IS.REAL
 
+# is x a vector of real number?
+is.real.vector = function(x) {
+
+  is.numeric(x) &&
+  all(is.finite(x))
+
+}#IS.REAL.VECTOR
+
 # is x a positive number?
 is.positive = function(x) {
 
@@ -85,6 +93,15 @@ is.string = function(x) {
 
 }#IS.STRING
 
+# is x a vector of character strings?
+is.string.vector = function(x) {
+
+  is.character(x) &&
+  !any(is.na(x)) &&
+  any(x != "")
+
+}#IS.STRING
+
 is.ndmatrix = function(x) {
 
   is(x, c("table", "matrix", "array"))
@@ -99,12 +116,21 @@ is.symmetric = function(x) {
 
 }#IS.SYMMETRIC
 
+# does x satisfy the Cauchy-Schwarz inequality?
 is.cauchy.schwarz = function(x) {
 
   .Call("is_cauchy_schwarz",
         matrix = x)
 
-}#Is.CAUCHY.SCHWARZ
+}#IS.CAUCHY.SCHWARZ
+
+# are all numeric values in the data frame fimite?
+check.data.frame.finite = function(x) {
+
+  .Call("data_frame_finite",
+        data = x)
+
+}#DATA.FRAME.FINITE
 
 # check the data set.
 check.data = function(x, allow.mixed = FALSE) {
@@ -118,23 +144,15 @@ check.data = function(x, allow.mixed = FALSE) {
   # check the data for NULL/NaN/NA.
   if (missing.data(x))
     stop("the data set contains NULL/NaN/NA values.")
-  if (allow.mixed) {
+  # check which type of data we are dealing with.
+  type = data.type(x)
 
-    # check whether the variables are all factors or numeric.
-    if (!is.data.mixed(x))
-      stop("variables must be either numeric or factors.")
-
-  }#THEN
-  else {
-
-    # check whether the variables are either all continuous or all discrete.
-    if (!is.data.discrete(x) && !is.data.continuous(x))
+  # check whether the variables are either all continuous or all discrete.
+  if (!allow.mixed && (type == "mixed-cg"))
       stop("variables must be either all real numbers or all factors.")
 
-  }
-
   # checks specific to a particular data type.
-  if (is.data.discrete(x)) {
+  if (type %in% c("factor", "ordered", "mixed-do")) {
 
     for (col in names(x)) {
 
@@ -151,12 +169,10 @@ check.data = function(x, allow.mixed = FALSE) {
     }#FOR
 
   }#THEN
-  else if (is.data.continuous(x)) {
+  else if (type == "continuous") {
 
     # all values must be finite to have finite mean and variance.
-    for (col in names(x))
-      if (any(is.infinite(x[, col])))
-        stop("variable ", col, " contains non-finite values.")
+    check.data.frame.finite(x)
 
   }#THEN
 
@@ -360,12 +376,9 @@ build.blacklist = function(blacklist, whitelist, nodes) {
   if (!is.null(whitelist)) {
 
     # if x -> y is whitelisted but y -> x is not, it is to be blacklisted.
-    apply(whitelist, 1,
-      function(x) {
-        if (!is.whitelisted(whitelist, x[c(2, 1)]))
-          assign("blacklist", rbind(blacklist, x[c(2, 1)]),
-            envir = sys.frame(-2))
-      })
+    to.add = apply(whitelist, 1, function(x)
+               is.whitelisted(whitelist, x[c(2, 1)]))
+    blacklist = rbind(blacklist, whitelist[!to.add, c(2, 1)])
 
     # if x -> y is whitelisted, it is to be removed from the blacklist.
     if (!is.null(blacklist)) {
@@ -427,6 +440,9 @@ check.customlist = function(custom, nodes) {
 # check score labels.
 check.score = function(score, data) {
 
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
   if (!is.null(score)) {
 
     # check it's a single character string.
@@ -436,9 +452,10 @@ check.score = function(score, data) {
       stop(paste(c("valid scores are:\n",
              sprintf("    %-15s %s\n", names(score.labels), score.labels)), sep = ""))
     # check if it's the right score for the data (discrete, continuous).
-    if (!is.data.discrete(data) && (score %in% available.discrete.scores))
+    if (!(type %in% c("factor", "ordered", "mixed-do")) &&
+         (score %in% available.discrete.scores))
       stop(paste("score '", score, "' may be used with discrete data only.", sep = ""))
-    if (!is.data.continuous(data) && (score %in% available.continuous.scores))
+    if ((type != "continuous") && (score %in% available.continuous.scores))
       stop(paste("score '", score, "' may be used with continuous data only.", sep = ""))
 
     return(score)
@@ -447,10 +464,10 @@ check.score = function(score, data) {
   else {
 
     # warn about ordinal data modelled as unordered categorical ones.
-    if (is.data.ordinal(data))
+    if (type %in% c("ordered", "mixed-do"))
       warning("no score is available for ordinal data, disregarding the ordering of the levels.")
 
-    if (is.data.discrete(data))
+    if (type %in% c("factor", "ordered", "mixed-do"))
       return("bic")
     else
       return("bic-g")
@@ -492,6 +509,9 @@ is.score.decomposable = function(score, nodes, extra) {
 # check test labels.
 check.test = function(test, data) {
 
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
   if (!missing(test) && !is.null(test)) {
 
     # check it's a single character string.
@@ -501,11 +521,12 @@ check.test = function(test, data) {
       stop(paste(c("valid tests are:\n",
              sprintf("    %-15s %s\n", names(test.labels), test.labels)), sep = ""))
     # check if it's the right test for the data (discrete, continuous).
-    if (!is.data.ordinal(data) && (test %in% available.ordinal.tests))
+    if ((type != "ordered") && (test %in% available.ordinal.tests))
       stop(paste("test '", test, "' may be used with ordinal data only.", sep = ""))
-    if (!is.data.discrete(data) && (test %in% available.discrete.tests))
+    if (!(type %in% c("factor", "ordered", "mixed-do")) &&
+         (test %in% available.discrete.tests))
       stop(paste("test '", test, "' may be used with discrete data only.", sep = ""))
-    if (!is.data.continuous(data) && (test %in% available.continuous.tests))
+    if ((type != "continuous") && (test %in% available.continuous.tests))
       stop(paste("test '", test, "' may be used with continuous data only.", sep = ""))
 
     return(test)
@@ -513,9 +534,9 @@ check.test = function(test, data) {
   }#THEN
   else {
 
-    if (is.data.ordinal(data))
+    if (type == "ordered")
       return("jt")
-    else if (is.data.discrete(data))
+    else if (type %in% c("factor", "mixed-do"))
       return("mi")
     else
       return("cor")
@@ -547,6 +568,9 @@ check.criterion = function(criterion, data) {
 # check loss functions' labels.
 check.loss = function(loss, data, bn) {
 
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
   if (!is.null(loss)) {
 
     # check it's a single character string.
@@ -555,9 +579,9 @@ check.loss = function(loss, data, bn) {
     if (!(loss %in% loss.functions))
       stop(paste(c("valid loss functions are:\n",
              sprintf("    %-15s %s\n", names(loss.labels), loss.labels)), sep = ""))
-    if (!is.data.discrete(data) && (loss %in% discrete.loss.functions))
+    if (!(type %in% c("factor", "ordered", "mixed-do")) && (loss %in% discrete.loss.functions))
       stop(paste("loss function '", loss, "' may be used with discrete data only.", sep = ""))
-    if (!is.data.continuous(data) && (loss %in% continuous.loss.functions))
+    if ((type != "continuous") && (loss %in% continuous.loss.functions))
       stop(paste("loss function '", loss, "' may be used with continuous data only.", sep = ""))
 
     return(loss)
@@ -568,7 +592,7 @@ check.loss = function(loss, data, bn) {
     if ((is.character(bn) && (bn %in% classifiers)) || 
          is(bn, c("bn.naive", "bn.tan")))
       return("pred")
-    if (is.data.discrete(data))
+    if (type %in% c("factor", "ordered", "mixed-do"))
       return("logl")
     else
       return("logl-g")
@@ -580,6 +604,9 @@ check.loss = function(loss, data, bn) {
 # check the method used to fit the parameters of the network.
 check.fitting.method = function(method, data) {
 
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
   if (!is.null(method)) {
 
     # check it's a single character string.
@@ -589,7 +616,7 @@ check.fitting.method = function(method, data) {
       stop(paste(c("valid fitting methods are:\n",
              sprintf("    %-15s %s\n", names(fitting.labels), fitting.labels)), sep = ""))
     # bayesian parameter estimation is implemented only for discrete data.
-    if (is.data.continuous(data) && (method == "bayes"))
+    if ((type == "continuous") && (method == "bayes"))
       stop("Bayesian parameter estimation for Gaussian Bayesian networks is not implemented.")
 
     return(method)
@@ -597,11 +624,35 @@ check.fitting.method = function(method, data) {
   }#THEN
   else {
 
-      return("mle")
+    return("mle")
 
   }#ELSE
 
 }#CHECK.FITTING.METHOD
+
+# check the method used for prediction.
+check.prediction.method = function(method, data) {
+
+  if (!is.null(method)) {
+
+    # check it's a single character string.
+    check.string(method)
+    # check the score/test label.
+    if (!(method %in% available.prediction.methods))
+      stop(paste(c("valid prediction methods are:\n",
+             sprintf("    %-15s %s\n", names(prediction.labels),
+               prediction.labels)), sep = ""))
+
+    return(method)
+
+  }#THEN
+  else {
+
+      return("parents")
+
+  }#ELSE
+
+}#CHECK.PREDICTION.METHOD
 
 # check the method used to discretize the data.
 check.discretization.method = function(method) {
@@ -613,7 +664,8 @@ check.discretization.method = function(method) {
     # check the score/test label.
     if (!(method %in% available.discretization.methods))
       stop(paste(c("valid discretization methods are:\n",
-             sprintf("    %-15s %s\n", names(discretization.labels), discretization.labels)), sep = ""))
+             sprintf("    %-15s %s\n", names(discretization.labels),
+               discretization.labels)), sep = ""))
 
     return(method)
 
@@ -629,6 +681,9 @@ check.discretization.method = function(method) {
 # check the estimator for the mutual information.
 check.mi.estimator = function(estimator, data) {
 
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
   if (!is.null(estimator)) {
 
     # check it's a single character string.
@@ -636,11 +691,13 @@ check.mi.estimator = function(estimator, data) {
     # check the score/estimator label.
     if (!(estimator %in% available.mi))
       stop(paste(c("valid estimators are:\n",
-             sprintf("    %-15s %s\n", names(mi.estimator.labels), mi.estimator.labels)), sep = ""))
+             sprintf("    %-15s %s\n", names(mi.estimator.labels), 
+               mi.estimator.labels)), sep = ""))
     # check if it's the right estimator for the data (discrete, continuous).
-    if (!is.data.discrete(data) && (estimator %in% available.discrete.mi))
+    if (!(type %in% c("factor", "ordered", "mixed-do")) &&
+         (estimator %in% available.discrete.mi))
       stop(paste("estimator '", estimator, "' may be used with discrete data only.", sep = ""))
-    if (!is.data.continuous(data) && (estimator %in% available.continuous.mi))
+    if ((type != "continuous") && (estimator %in% available.continuous.mi))
       stop(paste("estimator '", estimator, "' may be used with continuous data only.", sep = ""))
 
     return(estimator)
@@ -648,7 +705,7 @@ check.mi.estimator = function(estimator, data) {
   }#THEN
   else {
 
-    if (is.data.discrete(data))
+    if (type %in% c("factor", "ordered", "mixed-do"))
       return("mi")
     else
       return("mi-g")
@@ -657,7 +714,7 @@ check.mi.estimator = function(estimator, data) {
 
 }#CHECK.MI.ESTIMATOR
 
-# is the fitted bayesian network of a prarticular type?
+# is the fitted bayesian network of a particular type?
 is.fitted.type = function(fitted, type) {
 
   for (i in 1:length(fitted))
@@ -676,24 +733,12 @@ is.fitted.ordinal = function(fitted) is.fitted.type(fitted, "bn.fit.onode")
 is.fitted.continuous = function(fitted) is.fitted.type(fitted, "bn.fit.gnode")
 
 # is the data of a particular type?
-is.data.type = function(data, type) {
+data.type = function(data) {
 
-  for (i in 1:ncol(data))
-    if (!is(data[, i], type))
-      return(FALSE)
+  .Call("data_type",
+        data = data)
 
-  return(TRUE)
-
-}#IS.DATA.TYPE
-
-# will the bayesian network be a discrete one?
-is.data.discrete = function(data) is.data.type(data, "factor")
-# will the bayesian network be an ordinal one?
-is.data.ordinal = function(data) is.data.type(data, "ordered")
-# will the bayesian network be a continuous one?
-is.data.continuous = function(data) is.data.type(data, "double")
-# does the data include coth discrete and continuous variables?
-is.data.mixed = function(data) is.data.type(data, c("factor", "double"))
+}#DATA.TYPE
 
 # there are missing data?
 missing.data = function(data) {
@@ -705,6 +750,9 @@ missing.data = function(data) {
 # check the imaginary sample size.
 check.iss = function(iss, network, data) {
 
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
   if (!is.null(iss)) {
 
     # validate the imaginary sample size.
@@ -714,7 +762,7 @@ check.iss = function(iss, network, data) {
     # computation stops with the following error:
     # Error in solve.default(phi[A, A]) :
     #   Lapack routine dgesv: system is exactly singular
-    if(is.data.continuous(data) && (iss < 3))
+    if((type == "continuous") && (iss < 3))
       stop("the imaginary sample size must be a numeric value greater than 3.")
 
   }#THEN
@@ -816,7 +864,7 @@ check.penalty = function(k, network, data, score) {
 
     # check whether there is a penalization coefficient stored in the bn object,
     # use the default for the score function otherwise.
-    if (!is.null(network$learning$args$k))
+    if (!is.null(network$learning$args$k) && (score == network$learning$test))
       k = network$learning$args$k
     else
       k = ifelse((score %in% c("aic", "aic-g")), 1, log(nrow(data))/2)
@@ -1126,7 +1174,7 @@ check.bootstrap.args = function(extra.args, network, data) {
 }#CHECK.BOOTSTRAP.ARGS
 
 # sanitize the extra arguments passed to the conditional probability algorithms.
-check.cpq.args = function(fitted, extra.args, method) {
+check.cpq.args = function(fitted, extra.args, method, action) {
 
   if (method %in% c("ls", "lw")) {
 
@@ -1139,22 +1187,35 @@ check.cpq.args = function(fitted, extra.args, method) {
     else {
 
       # this is a rule of thumb, the error of the estimate has no closed-form
-      # expression (Friedman & Koller).
-      extra.args$n = 5000 * nparams.fitted(fitted)
+      # expression (Koller & Friedman).
+      if (is.fitted.discrete(fitted))
+        extra.args$n = 5000 * min(1, round(log10(nparams.fitted(fitted))))
+      else
+        extra.args$n = 500 * nparams.fitted(fitted)
 
     }#ELSE
 
     if (!is.null(extra.args$batch)) {
 
-      if (!is.positive.integer(extra.args$batch))
-        stop("the number of observations to be sampled must be a positive integer number.")
+      if ((action == "cpdist") && (method == "lw")) {
 
-      if (extra.args$batch > extra.args$n) {
-
-        warning("cannot generate a batch bigger than the whole generated data set.")
-        warning("batch size will be ignored.")
+        extra.args$batch = NULL
+        warning(" 'batch' will be ignored for speed and memory efficience.")
 
       }#THEN
+      else {
+
+        if (!is.positive.integer(extra.args$batch))
+          stop("the number of observations to be sampled must be a positive integer number.")
+
+        if (extra.args$batch > extra.args$n) {
+
+          warning("cannot generate a batch bigger than the whole generated data set.")
+          warning("batch size will be ignored.")
+
+        }#THEN
+
+      }#ELSE
 
     }#THEN
     else {
@@ -1249,9 +1310,12 @@ check.fitting.args = function(method, network, data, extra.args) {
 # sanitize the extra arguments passed to discretization methods.
 check.discretization.args = function(method, data, breaks, extra.args) {
 
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
   if (method == "hartemink") {
 
-    if (is.data.discrete(data)) {
+    if (type %in% c("factor", "ordered", "mixed-do")) {
 
       extra.args$ibreaks = nlevels(data[, 1])
       warning("data are already discrete, 'ibreaks' and 'idisc' are ignored.")
@@ -1269,8 +1333,8 @@ check.discretization.args = function(method, data, breaks, extra.args) {
         other.methods = available.discretization.methods[available.discretization.methods != "hartemink"]
         if (!(idisc %in% other.methods))
           stop(paste(c("valid initial discretization methods are:\n",
-                sprintf("    %-15s %s\n", other.methods, discretization.labels[other.methods])), sep = ""))
-
+                sprintf("    %-15s %s\n", other.methods, 
+                  discretization.labels[other.methods])), sep = ""))
 
       }#THEN
       else {
@@ -1765,6 +1829,9 @@ check.max.tabu = function(max, tabu) {
 # check bn metadata against the data it's used with.
 check.bn.vs.data = function(bn, data) {
 
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
   # the number of variables must be the same
   if (length(names(bn$nodes)) != ncol(data))
     stop("the network and the data have different numbers of variables.")
@@ -1773,31 +1840,54 @@ check.bn.vs.data = function(bn, data) {
     stop("the variables in the data and in the network do not match.")
   # data type versus network type.
   if (bn$learning$test %in% c(available.discrete.tests, available.discrete.scores) &&
-      is.data.continuous(data))
+      (type == "continuous"))
     stop("continuous data and discrete network.")
   if (bn$learning$test %in% c(available.continuous.tests, available.continuous.scores) &&
-      is.data.discrete(data))
+      (type %in% c("factor", "ordered", "mixed-do")))
     stop("discrete data and continuous network.")
 
 }#CHECK.BN.VS.DATA
 
 # check bn.fit metadata against the data it's used with.
-check.fit.vs.data = function(fitted, data) {
+check.fit.vs.data = function(fitted, data, subset) {
 
-  # the number of variables must be the same
-  if (length(names(fitted)) != ncol(data))
-    stop("the network and the data have different numbers of variables.")
-  # the variables must be the same.
-  if (length(setdiff(names(fitted) , names(data))) != 0)
-    stop("the variables in the data and in the network do not match.")
+  fitted.names = names(fitted)
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
+  if (missing(subset)) {
+
+    # the number of variables must be the same.
+    if (length(fitted.names) != ncol(data))
+      stop("the network and the data have different numbers of variables.")
+    # the variables must be the same.
+    if (length(setdiff(fitted.names , names(data))) != 0)
+      stop("the variables in the data and in the network do not match.")
+
+    subset = fitted.names
+
+  }#THEN
+  else {
+
+    # the number of variables must not exceed that of the network.
+    if (length(subset) > length(fitted.names))
+      stop("the data have more variables than the network.")
+    # all the variables in the subset must be present in the data.
+    absent = !(subset %in% names(data))
+    if (any(absent))
+      stop("required variables '", paste(subset[absent], collapse = " "),
+           "' are not present in the data.")
+
+  }#ELSE
+
   # data type versus network type.
   if (is.fitted.discrete(fitted)) {
 
-    if (is.data.continuous(data))
+    if (type == "continuous")
       stop("continuous data and discrete network.")
 
     # double-check the levels of the variables against those of the nodes.
-    for (node in names(fitted)) {
+    for (node in subset) {
 
       data.levels = levels(data[, node])
       node.levels = dimnames(fitted[[node]]$prob)[[1]]
@@ -1809,7 +1899,8 @@ check.fit.vs.data = function(fitted, data) {
     }#FOR
 
   }#THEN
-  if (is.fitted.continuous(fitted) && is.data.discrete(data))
+  if (is.fitted.continuous(fitted) &&
+      (type %in% c("factor", "ordered", "mixed-do")))
     stop("discrete data and continuous network.")
 
 }#CHECK.FIT.VS.DATA
@@ -1818,22 +1909,28 @@ check.fit.vs.data = function(fitted, data) {
 check.fit.node.vs.data = function(fitted, data) {
 
   relevant = c(fitted$node, fitted$parents)
+  # check which type of data we are dealing with.
+  type = data.type(data)
 
   # check whether all relevant nodes are in the data.
   if (!all(relevant %in% names(data)))
     stop("not all required nodes are present in the data.")
   # data type versus network type.
-  if ((class(fitted) == "bn.fit.dnode") && is.data.continuous(data))
+  if ((class(fitted) == "bn.fit.dnode") && (type == "continuous"))
       stop("continuous data and discrete network.")
-  if ((class(fitted) == "bn.fit.gnode") && is.data.discrete(data))
+  if ((class(fitted) == "bn.fit.gnode") && 
+      (type %in% c("factor", "ordered", "mixed-do")))
     stop("discrete data and continuous network.")
   # double-check the levels of the variables against those of the nodes.
   if (class(fitted) == "bn.fit.dnode") {
 
-  for (node in relevant) {
+    for (node in relevant) {
 
       data.levels = levels(data[, node])
-      node.levels = dimnames(fitted$prob)[[node]]
+      if (length(relevant) == 1)
+        node.levels = dimnames(fitted$prob)[[1]]
+      else
+        node.levels = dimnames(fitted$prob)[[node]]
 
       if(!identical(data.levels, node.levels))
         stop("the levels of node '", node, "' do not match the levels of the ",
@@ -2309,25 +2406,27 @@ check.mutilated.evidence = function(evidence, graph) {
      # check the evidence is appropriate for the nodes.
      for (fixed in names(evidence)) {
 
-       # extract the node.
+       # extract the node and the evidence.
        cur = graph[[fixed]]
+       ev = evidence[[fixed]]
 
        if (is(cur, c("bn.fit.dnode", "bn.fit.onode"))) {
 
-         if (is.factor(evidence[[fixed]]) && (length(evidence[[fixed]]) == 1))
-           evidence[[fixed]] = as.character(evidence[[fixed]])
+         if (is.factor(ev))
+           evidence[[fixed]] = ev = as.character(ev)
 
-         if (!is.string(evidence[[fixed]]) ||
-             !(evidence[[fixed]] %in% dimnames(cur$prob)[[1]]))
-           stop("the evidence for node ", fixed, " must be a valid level.")
+         if (!is.string.vector(ev) || !all(ev %in% dimnames(cur$prob)[[1]]))
+           stop("the evidence for node ", fixed, " must be valid levels.")
 
        }#THEN
        else if (is(cur, "bn.fit.gnode")) {
 
          # for continuous nodes evidence must be real numbers.
-         if (!is.real.number(evidence[[fixed]]))
-           stop("the evidence ", fixed, " must be a real number.")
-         storage.mode(evidence[[fixed]]) = "double"
+         if (!is.real.vector(ev) || !(length(ev %in% c(1, 2))))
+           stop("the evidence ", fixed, " must be a real number or a finite interval.")
+         storage.mode(ev) = "double"
+         # amke sure interval boundaries are in the right order.
+         evidence[[fixed]] = sort(ev)
 
        }#THEN
 

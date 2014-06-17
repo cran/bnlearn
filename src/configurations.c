@@ -1,14 +1,14 @@
 #include "common.h"
 
 /* wrapper around the cfg() function for use in .Call(). */
-SEXP cfg2(SEXP parents, SEXP factor, SEXP all) {
+SEXP configurations(SEXP parents, SEXP factor, SEXP all) {
 
-  return c_cfg2(parents, isTRUE(factor), isTRUE(all));
+  return c_configurations(parents, isTRUE(factor), isTRUE(all));
 
 }/*CFG2*/
 
 /* wrapper around the cfg() function for use in C code. */
-SEXP c_cfg2(SEXP parents, int factor, int all_levels) {
+SEXP c_configurations(SEXP parents, int factor, int all_levels) {
 
 int i = 0, *res = NULL, nlevels = 0;
 SEXP temp, result;
@@ -113,4 +113,68 @@ int **columns = NULL;
   }/*FOR*/
 
 }/*CFG*/
+
+void cfg3(int **columns, int nrows, int ncols, int *levels, int *configurations,
+    int *nlevels) {
+
+int i = 0, j = 0, cfgmap = 0;
+long long *cumlevels = NULL, nl = 0;
+
+  /* create the cumulative products of the number of levels. */
+  cumlevels = (long long *) Calloc(ncols, long long);
+  memset(cumlevels, '\0', sizeof(long long) * ncols);
+
+  /* set the first one to 1 ... */
+  cumlevels[0] = 1;
+
+  /* ... then compute the following ones. */
+  for (j = 1; j < ncols; j++)
+    cumlevels[j] = cumlevels[j - 1] * levels[j - 1];
+
+  /* compute the number of possible configurations. */
+  nl = cumlevels[ncols - 1] * levels[ncols - 1];
+
+  if (nl >= INT_MAX) {
+
+    error("attempting to create a factor with more than INT_MAX levels.");
+
+  }/*THEN*/
+  else {
+
+    /* if nlevels is not a NULL pointer, save the number of possible
+      * configurations. */
+    if (nlevels)
+      *nlevels = nl;
+
+  }/*ELSE*/
+
+  for (i = 0; i < nrows; i++) {
+
+    /* reset the configuration mapping of the new row. */
+    cfgmap = 0;
+
+    for (j = 0; j < ncols; j++) {
+
+      if (columns[j][i] == NA_INTEGER) {
+
+        cfgmap = NA_INTEGER;
+        break;
+
+      }/*THEN*/
+      else {
+
+        cfgmap += (columns[j][i] - 1) * cumlevels[j];
+
+     }/*ELSE*/
+
+    }/*FOR*/
+
+  /* save the configuration in the array. */
+  configurations[i] = cfgmap + 1;
+
+  }/*FOR*/
+
+  Free(cumlevels);
+
+}/*CFG3*/
 

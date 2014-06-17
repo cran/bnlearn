@@ -1,36 +1,24 @@
 #include "common.h"
-#include <Rmath.h>
 
 double c_gloss(int *cur, SEXP cur_parents, double *coefs, double *sd,
     double **columns, SEXP nodes, int ndata, double *per_sample);
 double c_dloss(int *cur, SEXP cur_parents, int *configs, double *prob,
     SEXP data, SEXP nodes, int ndata, int nlevels, double *per_sample);
+double c_entropy_loss(SEXP fitted, SEXP orig_data, int ndata, int by,
+    double *res_sample, SEXP keep, int debuglevel);
 
 #define DISCRETE 0
 #define GAUSSIAN 1
 
-SEXP entropy_loss(SEXP fitted, SEXP orig_data, SEXP by_sample, SEXP keep,
+SEXP entropy_loss(SEXP fitted, SEXP data, SEXP by_sample, SEXP keep,
     SEXP debug) {
 
-int i = 0, k = 0, ndata = 0, nnodes = length(fitted), nlevels = 0, type = 0;
-int *configs = NULL, *debuglevel = LOGICAL(debug), *by = LOGICAL(by_sample);
-int *to_keep = NULL;
-double *res = 0, *res_sample = NULL, **columns = 0, cur_loss = 0;
-const char *class = NULL;
-SEXP data, cur_node, nodes, result, result_sample, coefs, sd, parents, try;
+int *by = LOGICAL(by_sample), ndata = length(VECTOR_ELT(data, 0));
+double *res_sample = NULL, loss = 0;
+SEXP result_sample;
 
-  /* get the node labels. */
-  nodes = getAttrib(fitted, R_NamesSymbol);
-  /* rearrange the columns of the data to match the network. */
-  PROTECT(data = c_dataframe_column(orig_data, nodes, FALSE, TRUE));
-  /* get the sample size. */
-  ndata = length(VECTOR_ELT(data, 0));
-  /* allocate and initialize the return value. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
-  *res = 0;
   /* allocate the sample's contributions if needed. */
-  if (*by > 0) {
+  if (*by) {
 
     PROTECT(result_sample = allocVector(REALSXP, ndata));
     res_sample = REAL(result_sample);
@@ -38,6 +26,29 @@ SEXP data, cur_node, nodes, result, result_sample, coefs, sd, parents, try;
 
   }/*THEN*/
 
+  loss = c_entropy_loss(fitted, data, ndata, *by, res_sample, keep,
+                  isTRUE(debug));
+
+  if (*by)
+    UNPROTECT(1);
+
+  return (*by) ? result_sample : ScalarReal(loss);
+
+}/*ENTROPY_LOSS*/
+
+double c_entropy_loss(SEXP fitted, SEXP orig_data, int ndata, int by, 
+    double *res_sample, SEXP keep, int debuglevel) {
+
+int i = 0, k = 0, nnodes = length(fitted), nlevels = 0, type = 0;
+int *configs = NULL, *to_keep = NULL;
+double result = 0, **columns = 0, cur_loss = 0;
+const char *class = NULL;
+SEXP data, cur_node, nodes, coefs, sd, parents, try;
+
+  /* get the node labels. */
+  nodes = getAttrib(fitted, R_NamesSymbol);
+  /* rearrange the columns of the data to match the network. */
+  PROTECT(data = c_dataframe_column(orig_data, nodes, FALSE, TRUE));
   /* find out which nodes to use in computing the entropy loss. */
   PROTECT(try = match(nodes, keep, 0));
   to_keep = INTEGER(try);
@@ -75,7 +86,7 @@ SEXP data, cur_node, nodes, result, result_sample, coefs, sd, parents, try;
     }/*THEN*/
     else {
 
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         Rprintf("  > skipping node %s.\n", NODE(i));
 
       continue;
@@ -111,26 +122,16 @@ SEXP data, cur_node, nodes, result, result_sample, coefs, sd, parents, try;
 
     }/*SWITCH*/
 
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       Rprintf("  > log-likelihood loss for node %s is %lf.\n", NODE(i), cur_loss);
 
     /* add the node contribution to the return value. */
-    *res += cur_loss;
+    result += cur_loss;
 
   }/*FOR*/
 
-  if (*by > 0) {
-
-    UNPROTECT(4);
-    return result_sample;
-
-  }/*THEN*/
-  else {
-
-    UNPROTECT(3);
-    return result;
-
-  }/*ELSE*/
+  UNPROTECT(2);
+  return result;
 
 }/*ENTROPY_LOSS*/
 
@@ -244,13 +245,7 @@ SEXP class_err(SEXP reference, SEXP predicted) {
 
 int i = 0, dropped = 0, ndata = length(reference);
 int *r = INTEGER(reference), *p = INTEGER(predicted);
-double *res = NULL;
-SEXP result;
-
-  /* allocate and initialize the return value. */
-  PROTECT(result = allocVector(REALSXP, 1));
-  res = REAL(result);
-  *res = 0;
+double err = 0;
 
   /* count how many elements differ (this assumes the levels of the two factors
    * are the same and in the same order); NAs are dropped. */
@@ -258,20 +253,18 @@ SEXP result;
 
     if ((r[i] == NA_INTEGER) || (p[i] == NA_INTEGER))
       dropped++;
-    else if ((r[i] != p[i]))
-      (*res)++;
+    else if (r[i] != p[i])
+      err++;
 
   }/*FOR*/
 
   /* rescale into a probability. */
-  *res /= (ndata - dropped);
+  err /= (ndata - dropped);
 
   /* print a warning if data were dropped. */
   if (dropped > 0)
     warning("%d observations were dropped because of missing values.", dropped);
 
-  UNPROTECT(1);
-
-  return result;
+  return ScalarReal(err);
 
 }/*CLASS_ERR*/

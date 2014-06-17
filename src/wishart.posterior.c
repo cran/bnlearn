@@ -1,15 +1,12 @@
-
-#include <Rmath.h>
 #include "common.h"
 
 /* posterior wishart probability for the BGe score. */
-double wpost(SEXP x, SEXP imaginary, double *phic) {
+double wpost(SEXP x, int iss, double phic) {
 
 int i = 0, n = length(x);
 double mu = 0, phi = 0, tau = 0, rho = 0;
 double oldtau = 0, oldmu = 0, logk = 0, logscale = 0, mscore = 0;
 double res = 0, *xx = REAL(x);
-int *iss = INTEGER(imaginary);
 
   /* compute the mean and the variance of the data. */
   for (i = 0; i < n; i++)
@@ -18,10 +15,10 @@ int *iss = INTEGER(imaginary);
 
   for (i = 0; i < n; i++)
     phi += (xx[i] - mu) * (xx[i] - mu);
-  phi = phi / (n - 1) * (*phic) ;
+  phi = phi / (n - 1) * phic ;
 
   /* set tau and rho. */
-  tau = rho = *iss;
+  tau = rho = iss;
 
   for (i = 0; i < n; i++) {
 
@@ -45,33 +42,33 @@ int *iss = INTEGER(imaginary);
 
 }/*WPOST*/
 
-void build_tau(double **data, double *tau, int *ncols, int *nrows,
-    int *imaginary, double *phi) {
+void build_tau(double **data, double *tau, int ncols, int nrows,
+    int iss, double phi) {
 
-int i = 0, j = 0, res_ncols = *ncols + 1;
+int i = 0, j = 0, res_ncols = ncols + 1;
 double temp = 0;
 double *mean = NULL, *mat = NULL;
 
   /* allocate mean vector and covariance matrix. */
-  mean = alloc1dreal(*ncols);
-  mat = alloc1dreal((*ncols) * (*ncols));
+  mean = alloc1dreal(ncols);
+  mat = alloc1dreal(ncols * ncols);
 
   /* compute the mean values.  */
-  for (i = 0; i < *ncols; i++) {
+  for (i = 0; i < ncols; i++) {
 
-    for (j = 0 ; j < *nrows; j++)
+    for (j = 0 ; j < nrows; j++)
       mean[i] += data[i][j];
 
-    mean[i] /= (*nrows);
+    mean[i] /= nrows;
 
   }/*FOR*/
 
   /* compute the covariance matrix... */
-  c_covmat(data, mean, ncols, nrows, mat);
+  c_covmat(data, mean, ncols, nrows, mat, 0);
   /* ... multiply it by the phi coefficient... */
-  for (i = 0; i < *ncols; i++)
-    for (j = 0; j < *ncols; j++)
-      mat[CMC(i, j, *ncols)] *= (*phi);
+  for (i = 0; i < ncols; i++)
+    for (j = 0; j < ncols; j++)
+      mat[CMC(i, j, ncols)] *= phi;
 
   /* ... compute the pseudoinverse... */
   c_ginv(mat, ncols, mat);
@@ -79,15 +76,15 @@ double *mean = NULL, *mat = NULL;
   /* ... and store it in the bottom-right corner of the tau matrix. */
   for (i = 1; i < res_ncols; i++)
     for (j = 1; j < res_ncols; j++)
-      tau[CMC(i, j, res_ncols)] = mat[CMC(i - 1, j - 1, *ncols)];
+      tau[CMC(i, j, res_ncols)] = mat[CMC(i - 1, j - 1, ncols)];
 
   /* fill the top-right and bottom-left corners. */
-  for (i = 1; i < *ncols + 1; i++) {
+  for (i = 1; i < ncols + 1; i++) {
 
     temp = 0;
 
-    for (j = 0; j < *ncols; j++)
-      temp += mean[j] * mat[CMC(j, i - 1, *ncols)];
+    for (j = 0; j < ncols; j++)
+      temp += mean[j] * mat[CMC(j, i - 1, ncols)];
 
     tau[CMC(i, 0, res_ncols)] = tau[CMC(0, i, res_ncols)] = -temp;
 
@@ -97,18 +94,18 @@ double *mean = NULL, *mat = NULL;
   for (i = 1; i < res_ncols; i++)
     tau[CMC(0, 0, res_ncols)] += - mean[i - 1] * tau[CMC(i, 0, res_ncols)];
 
-  tau[CMC(0, 0, res_ncols)] += 1/((double) *imaginary);
+  tau[CMC(0, 0, res_ncols)] += 1/((double) iss);
 
   /* perform the final (pseudo)inversion. */
-  c_ginv(tau, &res_ncols, tau);
+  c_ginv(tau, res_ncols, tau);
 
 }/*BUILD_TAU*/
 
-double cwpost(SEXP x, SEXP z, SEXP imaginary, double *phic) {
+double cwpost(SEXP x, SEXP z, int iss, double phic) {
 
 int i = 0, j = 0, k = 0;
 int ncols = length(z), num = length(x), tau_ncols = length(z) + 1;
-int *iss = INTEGER(imaginary), rho = *iss + ncols;
+int rho = iss + ncols;
 double logscale = 0, logk = 0, xprod = 0, var_x = 0, zi_mu = 0, phi = 0;
 double *xx = REAL(x), *workspace = NULL;
 double res = 0, **zz = NULL, *zi = NULL, *mu = NULL, *delta_mu = NULL;
@@ -135,7 +132,7 @@ double *tau = NULL, *invtau = NULL, *old_tau = NULL, *old_mu = NULL;
   var_x /= num - 1;
 
   /* initialize phi. */
-  phi = var_x * (*phic);
+  phi = var_x * phic;
 
   /* allocate and initialize an array of pointers for the variables. */
   zz = (double **) alloc1dpointer(ncols);
@@ -146,9 +143,9 @@ double *tau = NULL, *invtau = NULL, *old_tau = NULL, *old_mu = NULL;
   tau = alloc1dreal(tau_ncols * tau_ncols);
   old_tau = alloc1dreal(tau_ncols * tau_ncols);
   invtau = alloc1dreal(tau_ncols * tau_ncols);
-  build_tau(zz, tau, &ncols, &num, iss, phic);
+  build_tau(zz, tau, ncols, num, iss, phic);
   memcpy(old_tau, tau, tau_ncols * tau_ncols * sizeof(double));
-  c_ginv(tau, &tau_ncols, invtau);
+  c_ginv(tau, tau_ncols, invtau);
 
   /* for each sample... */
   for (i = 0; i < num; i++) {
@@ -205,10 +202,10 @@ double *tau = NULL, *invtau = NULL, *old_tau = NULL, *old_mu = NULL;
 
 }/*CWPOST*/
 
-double wishart_node(SEXP target, SEXP x, SEXP data, SEXP iss, SEXP phi, SEXP prior,
+double wishart_node(SEXP target, SEXP x, SEXP data, SEXP isize, SEXP phi, SEXP prior,
     SEXP beta, int debuglevel) {
 
-int *imaginary = INTEGER(iss);
+int iss = INT(isize);
 int n = length(VECTOR_ELT(data, 0));
 char *phi_str = (char *)CHAR(STRING_ELT(phi, 0));
 char *t = (char *)CHAR(STRING_ELT(target, 0));
@@ -217,10 +214,10 @@ SEXP nodes, node_t, parents, parent_vars, data_t;
 
   /* compute the phi multiplier. */
   if (strcmp(phi_str, "bottcher") == 0)
-    phi_coef = (double)(n - 1) / (double)(n) * (double)(*imaginary - 1);
+    phi_coef = (double)(n - 1) / (double)(n) * (double)(iss - 1);
   else
-    phi_coef = (double)(n - 1) / (double)n * (double)(*imaginary) /
-                 (double) (*imaginary + 1) * (double)(*imaginary - 2);
+    phi_coef = (double)(n - 1) / (double)n * (double)(iss) /
+                 (double) (iss + 1) * (double)(iss - 2);
 
   if (debuglevel > 0) {
 
@@ -241,14 +238,14 @@ SEXP nodes, node_t, parents, parent_vars, data_t;
 
   if (length(parents) == 0) {
 
-    prob = wpost(data_t, iss, &phi_coef);
+    prob = wpost(data_t, iss, phi_coef);
 
   }/*THEN*/
   else {
 
     PROTECT(parent_vars = c_dataframe_column(data, parents, FALSE, FALSE));
     /* compute the marginal likelihood. */
-    prob = cwpost(data_t, parent_vars, iss, &phi_coef);
+    prob = cwpost(data_t, parent_vars, iss, phi_coef);
 
     UNPROTECT(1);
 

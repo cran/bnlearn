@@ -1,31 +1,31 @@
 
 # transform continuous data into discrete ones.
-discretize = function(x, method, breaks = 3, ..., debug = FALSE) {
+discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FALSE) {
 
   # check the label of the discretization method.
   method = check.discretization.method(method)
+  # general check on the data.
+  check.data(data, allow.mixed = TRUE)
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
   # check the data.
   if (method %in% c("quantile", "interval")) {
 
-    # general check on the data.
-    check.data(x, allow.mixed = TRUE)
     # check the number of breaks.
     if (length(breaks) == 1) {
 
       # get an array of the correct length.
-      breaks = rep(breaks, ncol(x))
+      breaks = rep(breaks, ncol(data))
 
     }#THEN
-    else if (length(breaks) != ncol(x))
+    else if (length(breaks) != ncol(data))
       stop("the 'breaks' vector must have an element for each variable in the data.")
     if (!is.positive.vector(breaks))
       stop("the numbers of breaks must be positive integer numbers.")
 
   }#THEN
   else if (method == "hartemink") {
-
-    # general check on the data.
-    check.data(x, allow.mixed = FALSE)
 
     # check the number of breaks.
     if (!is.positive.integer(breaks))
@@ -34,9 +34,9 @@ discretize = function(x, method, breaks = 3, ..., debug = FALSE) {
       stop("the return value must have at least two levels for each variable.")
 
     # check the data types.
-    if (is.data.discrete(x)) {
+    if (type %in% c("factor", "ordered", "mixed-do")) {
 
-      nlvls = unique(sapply(x, nlevels))
+      nlvls = unique(sapply(data, nlevels))
       # this is implicit in Hartemink's definition of the algorithm.
       if (length(nlvls) > 1)
         stop("all variables must have the same number of levels.")
@@ -45,7 +45,7 @@ discretize = function(x, method, breaks = 3, ..., debug = FALSE) {
         stop("too many breaks, at most ", nlvls, " required.")
 
     }#THEN
-    else if (!is.data.continuous(x)) {
+    else if (type != "continuous") {
 
       stop("all variables must be continuous.")
 
@@ -53,13 +53,14 @@ discretize = function(x, method, breaks = 3, ..., debug = FALSE) {
 
   }#THEN
 
-  # check debug.
+  # check debug and ordered.
   check.logical(debug)
+  check.logical(ordered)
   # check the extra arguments.
-  extra.args = check.discretization.args(method, x, breaks, list(...))
+  extra.args = check.discretization.args(method, data, breaks, list(...))
 
-  discretize.backend(data = x, method = method, breaks = breaks,
-    extra.args = extra.args, debug = debug)
+  discretize.backend(data = data, method = method, breaks = breaks,
+    ordered = ordered, extra.args = extra.args, debug = debug)
 
 }#DISCRETIZE
 
@@ -94,6 +95,26 @@ relevant = function(target, context, data, test, alpha, B, debug = FALSE) {
   check.logical(debug)
 
   pena.backend(target = target, context = context, data = data, test = test,
-    alpha = alpha, debug = debug)
+    alpha = alpha, B = B, debug = debug)
 
 }#RELEVANT
+
+# screen the data for highly correlated variables.
+dedup = function(data, threshold = 0.90, debug = FALSE) {
+
+  # check the data.
+  check.data(data)
+  # only continuous data are supported.
+  if (data.type(data) != "continuous")
+    stop("only continuous data are supported.")
+  if (missing(threshold))
+    threshold = 0.90
+  else if (!is.probability(threshold))
+    stop("the correlation threshold must be a number between 0 and 1.")
+  # check debug.
+  check.logical(debug)
+
+  dedup.backend(data = data, threshold = threshold, debug = debug)
+
+}#DEDUP
+

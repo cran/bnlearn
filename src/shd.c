@@ -2,9 +2,9 @@
 
 SEXP shd(SEXP learned, SEXP golden, SEXP debug) {
 
-SEXP temp, nodes, l, r, result;
-int i = 0, j = 0, c1 = 0, c2 = 0, nnodes = 0;
-int *lrn = NULL, *ref = NULL, *shd = NULL, *debuglevel = LOGICAL(debug);
+int i = 0, j = 0, c1 = 0, c2 = 0, shd = 0, nnodes = 0;
+int *lrn = NULL, *ref = NULL, debuglevel = isTRUE(debug);
+SEXP temp, nodes, l, r;
 
   /* get the labels of the nodes. */
   temp = getListElement(learned, "nodes");
@@ -23,11 +23,6 @@ int *lrn = NULL, *ref = NULL, *shd = NULL, *debuglevel = LOGICAL(debug);
   PROTECT(r = arcs2amat(temp, nodes));
   ref = INTEGER(r);
 
-  /* allocate and initialize the result. */
-  PROTECT(result = allocVector(INTSXP, 1));
-  shd = INTEGER(result);
-  shd[0] = 0;
-
   for (i = 0; i < nnodes; i++) {
 
     for (j = i + 1; j < nnodes; j++) {
@@ -40,7 +35,7 @@ int *lrn = NULL, *ref = NULL, *shd = NULL, *debuglevel = LOGICAL(debug);
       if ((lrn[c1] == ref[c1]) && (lrn[c2] == ref[c2]))
         continue;
 
-      if (*debuglevel > 0) {
+      if (debuglevel > 0) {
 
         Rprintf("* arcs between %s and %s do not match.\n", NODE(i), NODE(j));
 
@@ -65,15 +60,15 @@ int *lrn = NULL, *ref = NULL, *shd = NULL, *debuglevel = LOGICAL(debug);
       }/*THEN*/
 
       /* increase the distance by one. */
-      shd[0]++;
+      shd++;
 
     }/*FOR*/
 
   }/*FOR*/
 
-  UNPROTECT(3);
+  UNPROTECT(2);
 
-  return result;
+  return ScalarInteger(shd);
 
 }/*SHD*/
 

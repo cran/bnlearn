@@ -7,7 +7,6 @@ int depth = 0, open = 0, line_id = INT(start) - 1;
 const char *current = NULL;
 const char *op = CHAR(STRING_ELT(open_brace, 0));
 const char *cl = CHAR(STRING_ELT(close_brace, 0));
-SEXP stop;
 
   do {
 
@@ -32,12 +31,7 @@ SEXP stop;
 
   } while ((depth > 0) || (open == 0));
 
-  /* allocate and assing the return value. */
-  PROTECT(stop = allocVector(INTSXP, 1));
-  INT(stop) = line_id;
-  UNPROTECT(1);
-
-return stop;
+  return ScalarInteger(line_id);
 
 }/*MATCH_BRACE*/
 

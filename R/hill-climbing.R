@@ -75,7 +75,6 @@ hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
           equivalence = score.equivalence && optimized,
           decomposability = score.decomposability,
           updated = (if (optimized) updated else seq(length(nodes)) - 1L),
-          env = environment(),
           amat = amat,
           cache = cache,
           blmat = blmat,
@@ -117,10 +116,11 @@ hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
 
           # if the network found by the algorithm is better, use that one as
           # starting network for the next random restart; use the old one
-          # otherwise.
+          # otherwise (and keep amat in sync).
           if (best.network.score > sum(reference.score)) {
 
             start = best.network
+            amat = arcs2amat(best.network$arcs, nodes)
 
             if (debug) {
 

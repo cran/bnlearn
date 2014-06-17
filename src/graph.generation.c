@@ -1,7 +1,7 @@
 #include "common.h"
 
 static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached,
-    double _ntests, char *_test, char *_algo);
+    double ntests, char *test, char *algo);
 
 static SEXP ic_2nodes(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
     SEXP max_out_degree, SEXP max_degree, SEXP connected, SEXP debug);
@@ -11,7 +11,7 @@ static SEXP c_ide_cozman(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
 
 static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     int *degree, double *max, int *in_degree, double *max_in, int *out_degree,
-    double *max_out, int *cozman, int *debuglevel);
+    double *max_out, int *cozman, int debuglevel);
 
 static void print_modelstring(SEXP bn);
 
@@ -20,24 +20,17 @@ SEXP empty_graph(SEXP nodes, SEXP num) {
 
 int i = 0, nnodes = length(nodes), *n = INTEGER(num);
 SEXP list, res, args, arcs, cached;
-SEXP dimnames, colnames, elnames, base, base2;
+SEXP dimnames, elnames, base, base2;
 
   /* an empty list of optional arguments. */
   PROTECT(args = allocVector(VECSXP, 0));
 
   /* names for the arc set columns. */
   PROTECT(dimnames = allocVector(VECSXP, 2));
-  PROTECT(colnames = allocVector(STRSXP, 2));
-  SET_STRING_ELT(colnames, 0, mkChar("from"));
-  SET_STRING_ELT(colnames, 1, mkChar("to"));
-  SET_VECTOR_ELT(dimnames, 1, colnames);
+  SET_VECTOR_ELT(dimnames, 1, mkStringVec(2, "from", "to"));
 
   /* names for the cached information. */
-  PROTECT(elnames = allocVector(STRSXP, 4));
-  SET_STRING_ELT(elnames, 0, mkChar("mb"));
-  SET_STRING_ELT(elnames, 1, mkChar("nbr"));
-  SET_STRING_ELT(elnames, 2, mkChar("parents"));
-  SET_STRING_ELT(elnames, 3, mkChar("children"));
+  PROTECT(elnames = mkStringVec(4, "mb", "nbr", "parents", "children"));
 
   /* allocate and initialize the arc set. */
   PROTECT(arcs = allocMatrix(STRSXP, 0, 2));
@@ -66,13 +59,13 @@ SEXP dimnames, colnames, elnames, base, base2;
     for (i = 0; i < *n; i++)
       SET_VECTOR_ELT(list, i, res);
 
-    UNPROTECT(10);
+    UNPROTECT(9);
     return list;
 
   }/*THEN*/
   else {
 
-    UNPROTECT(9);
+    UNPROTECT(8);
     return res;
 
   }/*ELSE*/
@@ -84,18 +77,11 @@ SEXP ordered_graph(SEXP nodes, SEXP num, SEXP prob) {
 
 int i = 0, j = 0, k = 0, nnodes = length(nodes), *a = NULL, *n = INTEGER(num);
 double *p = REAL(prob);
-SEXP list, res, args, argnames, amat, arcs, cached, debug2, null, temp;
-
-  /* a fake debug argument (set to FALSE) for cache_structure(). */
-  PROTECT(debug2 = allocVector(LGLSXP, 1));
-  LOGICAL(debug2)[0] = FALSE;
+SEXP list, res, args, amat, arcs, cached, null, temp;
 
   /* the list of optional arguments. */
-  PROTECT(argnames = allocVector(STRSXP, 1));
-  SET_STRING_ELT(argnames, 0, mkChar("prob"));
-
   PROTECT(args = allocVector(VECSXP, 1));
-  setAttrib(args, R_NamesSymbol, argnames);
+  setAttrib(args, R_NamesSymbol, mkString("prob"));
   SET_VECTOR_ELT(args, 0, prob);
 
   /* allocate and initialize the adjacency matrix. */
@@ -132,7 +118,7 @@ SEXP list, res, args, argnames, amat, arcs, cached, debug2, null, temp;
       /* generate the arc set and the cached information form the adjacency
        * matrix. */
       PROTECT(arcs = amat2arcs(amat, nodes));
-      PROTECT(cached = cache_structure(nodes, amat, debug2));
+      PROTECT(cached = cache_structure(nodes, amat, FALSESEXP));
       SET_VECTOR_ELT(res, 1, cached);
       SET_VECTOR_ELT(res, 2, arcs);
 
@@ -146,7 +132,7 @@ SEXP list, res, args, argnames, amat, arcs, cached, debug2, null, temp;
 
     PutRNGstate();
 
-    UNPROTECT(7);
+    UNPROTECT(5);
     return list;
 
   }/*THEN*/
@@ -159,14 +145,14 @@ SEXP list, res, args, argnames, amat, arcs, cached, debug2, null, temp;
     /* generate the arc set and the cached information form the adjacency
      * matrix. */
     PROTECT(arcs = amat2arcs(amat, nodes));
-    PROTECT(cached = cache_structure(nodes, amat, debug2));
+    PROTECT(cached = cache_structure(nodes, amat, FALSESEXP));
 
     /* generate the "bn" structure. */
     PROTECT(res = bn_base_structure(nodes, args, arcs, cached, 0, "none", "ordered"));
 
     PutRNGstate();
 
-    UNPROTECT(7);
+    UNPROTECT(5);
     return res;
 
   }/*ELSE*/
@@ -215,28 +201,19 @@ static SEXP ic_2nodes(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
     SEXP max_out_degree, SEXP max_degree, SEXP connected, SEXP debug) {
 
 int i = 0, *n = INTEGER(num), *a = NULL;
-int *debuglevel = LOGICAL(debug);
+int debuglevel = isTRUE(debug);
 double u = 0;
 SEXP list, resA, resB, arcsA, arcsB, cachedA, cachedB;
-SEXP amatA, amatB, args, argnames, false;
+SEXP amatA, amatB, args;
 
   /* the list of optional arguments. */
-  PROTECT(argnames = allocVector(STRSXP, 4));
-  SET_STRING_ELT(argnames, 0, mkChar("burn.in"));
-  SET_STRING_ELT(argnames, 1, mkChar("max.in.degree"));
-  SET_STRING_ELT(argnames, 2, mkChar("max.out.degree"));
-  SET_STRING_ELT(argnames, 3, mkChar("max.degree"));
-
   PROTECT(args = allocVector(VECSXP, 4));
-  setAttrib(args, R_NamesSymbol, argnames);
+  setAttrib(args, R_NamesSymbol, 
+    mkStringVec(4, "burn.in", "max.in.degree", "max.out.degree", "max.degree"));
   SET_VECTOR_ELT(args, 0, burn_in);
   SET_VECTOR_ELT(args, 1, max_in_degree);
   SET_VECTOR_ELT(args, 2, max_out_degree);
   SET_VECTOR_ELT(args, 3, max_degree);
-
-  /* allocate a FALSE variable. */
-  PROTECT(false = allocVector(LGLSXP, 1));
-  LOGICAL(false)[0] = FALSE;
 
   /* allocate and initialize the tow adjacency matrices. */
   PROTECT(amatA = allocMatrix(INTSXP, 2, 2));
@@ -251,13 +228,13 @@ SEXP amatA, amatB, args, argnames, false;
   PROTECT(arcsA = amat2arcs(amatA, nodes));
   PROTECT(arcsB = amat2arcs(amatB, nodes));
   /* generate the cached node information. */
-  PROTECT(cachedA = cache_structure(nodes, amatA, false));
-  PROTECT(cachedB = cache_structure(nodes, amatB, false));
+  PROTECT(cachedA = cache_structure(nodes, amatA, FALSESEXP));
+  PROTECT(cachedB = cache_structure(nodes, amatB, FALSESEXP));
   /* generate the two "bn" structures. */
   PROTECT(resA = bn_base_structure(nodes, args, arcsA, cachedA, 0, "none", "empty"));
   PROTECT(resB = bn_base_structure(nodes, args, arcsB, cachedB, 0, "none", "empty"));
 
-  if (*debuglevel > 0)
+  if (debuglevel > 0)
     Rprintf("* no burn-in required.\n");
 
   GetRNGstate();
@@ -268,7 +245,7 @@ SEXP amatA, amatB, args, argnames, false;
     PROTECT(list = allocVector(VECSXP, *n));
     for (i = 0; i < *n; i++) {
 
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         Rprintf("* current model (%d):\n", i + 1);
 
       /* sample which graph to return. */
@@ -280,7 +257,7 @@ SEXP amatA, amatB, args, argnames, false;
         SET_VECTOR_ELT(list, i, resA);
 
         /* print the model string to allow a sane debugging experience. */
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           print_modelstring(resA);
 
       }/*THEN*/
@@ -290,7 +267,7 @@ SEXP amatA, amatB, args, argnames, false;
         SET_VECTOR_ELT(list, i, resB);
 
         /* print the model string to allow a sane debugging experience. */
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           print_modelstring(resB);
 
       }/*ELSE*/
@@ -299,13 +276,13 @@ SEXP amatA, amatB, args, argnames, false;
 
     PutRNGstate();
 
-    UNPROTECT(12);
+    UNPROTECT(10);
     return list;
 
   }/*THEN*/
   else {
 
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       Rprintf("* current model (1):\n");
 
     /* sample which graph to return. */
@@ -313,12 +290,12 @@ SEXP amatA, amatB, args, argnames, false;
 
     PutRNGstate();
 
-    UNPROTECT(11);
+    UNPROTECT(9);
 
     if (u <= 0.5) {
 
       /* print the model string to allow a sane debugging experience. */
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         print_modelstring(resA);
 
       /* return the graph with A -> B. */
@@ -328,7 +305,7 @@ SEXP amatA, amatB, args, argnames, false;
     else {
 
       /* print the model string to allow a sane debugging experience. */
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         print_modelstring(resB);
 
       /* return the graph with B -> A. */
@@ -346,25 +323,16 @@ static SEXP c_ide_cozman(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
 int i = 0, k = 0, nnodes = length(nodes), *n = INTEGER(num);
 int changed = 0, *work = NULL, *arc = NULL, *a = NULL, *burn = INTEGER(burn_in);
 int *degree = NULL, *in_degree = NULL, *out_degree = NULL;
-int *debuglevel = LOGICAL(debug), *cozman = LOGICAL(connected);
+int debuglevel = isTRUE(debug), *cozman = LOGICAL(connected);
 double *max_in = REAL(max_in_degree), *max_out = REAL(max_out_degree),
   *max = REAL(max_degree);
-SEXP list, res, args, argnames, amat, arcs, cached, debug2, null, temp;
+SEXP list, res, args, amat, arcs, cached, null, temp;
 char *label = (*cozman > 0) ? "ic-dag" : "melancon";
 
-  /* a fake debug argument (set to FALSE) for cache_structure(). */
-  PROTECT(debug2 = allocVector(LGLSXP, 1));
-  LOGICAL(debug2)[0] = FALSE;
-
   /* the list of optional arguments. */
-  PROTECT(argnames = allocVector(STRSXP, 4));
-  SET_STRING_ELT(argnames, 0, mkChar("burn.in"));
-  SET_STRING_ELT(argnames, 1, mkChar("max.in.degree"));
-  SET_STRING_ELT(argnames, 2, mkChar("max.out.degree"));
-  SET_STRING_ELT(argnames, 3, mkChar("max.degree"));
-
   PROTECT(args = allocVector(VECSXP, 4));
-  setAttrib(args, R_NamesSymbol, argnames);
+  setAttrib(args, R_NamesSymbol,
+    mkStringVec(4, "burn.in", "max.in.degree", "max.out.degree", "max.degree"));
   SET_VECTOR_ELT(args, 0, burn_in);
   SET_VECTOR_ELT(args, 1, max_in_degree);
   SET_VECTOR_ELT(args, 2, max_out_degree);
@@ -404,7 +372,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
   /* wait for the markov chain monte carlo simulation to reach stationarity. */
   for (k = 0; k < *burn; k++) {
 
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       Rprintf("* current model (%d):\n", k + 1);
 
     changed = ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree, max_in,
@@ -412,12 +380,12 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
 
     /* print the model string to allow a sane debugging experience; note that this
      * has a huge impact on performance, so use it with care. */
-    if ((*debuglevel > 0) && (changed)) {
+    if ((debuglevel > 0) && (changed)) {
 
       PROTECT(null = allocVector(NILSXP, 1));
       PROTECT(res = bn_base_structure(nodes, args, null, null, 0, "none", label));
       PROTECT(arcs = amat2arcs(amat, nodes));
-      PROTECT(cached = cache_structure(nodes, amat, debug2));
+      PROTECT(cached = cache_structure(nodes, amat, FALSESEXP));
       SET_VECTOR_ELT(res, 1, cached);
       SET_VECTOR_ELT(res, 2, arcs);
       print_modelstring(res);
@@ -428,17 +396,17 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
   }/*FOR*/
 
 #define UPDATE_NODE_CACHE(cur) \
-          if (*debuglevel > 0) \
+          if (debuglevel > 0) \
             Rprintf("  > updating cached information about node %s.\n", NODE(cur)); \
           memset(work, '\0', nnodes * sizeof(int)); \
-          PROTECT(temp = c_cache_partial_structure(cur, nodes, amat, work, debug2)); \
+          PROTECT(temp = c_cache_partial_structure(cur, nodes, amat, work, FALSESEXP)); \
           SET_VECTOR_ELT(cached, cur, temp); \
           UNPROTECT(1);
 
   /* return a list if more than one bn is generated. */
   if (*n > 1) {
 
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       Rprintf("* end of the burn-in iterations.\n");
 
     PROTECT(list = allocVector(VECSXP, *n));
@@ -450,7 +418,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
 
     for (k = 0; k < *n; k++) {
 
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         Rprintf("* current model (%d):\n", *burn + k + 1);
 
       changed = ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree,
@@ -489,7 +457,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
         }/*THEN*/
         else {
 
-          PROTECT(cached = cache_structure(nodes, amat, debug2));
+          PROTECT(cached = cache_structure(nodes, amat, FALSESEXP));
 
         }/*ELSE*/
 
@@ -498,7 +466,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
         SET_VECTOR_ELT(res, 2, arcs);
 
         /* print the model string to allow a sane debugging experience. */
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           print_modelstring(res);
 
         /* save the structure in the list. */
@@ -520,13 +488,13 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
 
     PutRNGstate();
 
-    UNPROTECT(7);
+    UNPROTECT(5);
     return list;
 
   }/*THEN*/
   else {
 
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       Rprintf("* end of the burn-in.\n* current model (%d):\n", *burn + 1);
 
     ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree,
@@ -535,18 +503,18 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
     /* generate the arc set and the cached information form the adjacency
      * matrix. */
     PROTECT(arcs = amat2arcs(amat, nodes));
-    PROTECT(cached = cache_structure(nodes, amat, debug2));
+    PROTECT(cached = cache_structure(nodes, amat, FALSESEXP));
 
     /* generate the "bn" structure. */
     PROTECT(res = bn_base_structure(nodes, args, arcs, cached, 0, "none", label));
 
     /* print the model string to allow a sane debugging experience. */
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       print_modelstring(res);
 
     PutRNGstate();
 
-    UNPROTECT(7);
+    UNPROTECT(5);
     return res;
 
   }/*ELSE*/
@@ -555,65 +523,36 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
 
 /* helper function which does the dirty work. */
 static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached,
-    double _ntests, char *_test, char *_algo) {
+    double ntests, char *test, char *algo) {
 
-SEXP res, learning, names, names2, class, test, ntests, algo;
-
-  /* names of the elements of the "learning" element. */
-  PROTECT(names = allocVector(STRSXP, 6));
-  SET_STRING_ELT(names, 0, mkChar("whitelist"));
-  SET_STRING_ELT(names, 1, mkChar("blacklist"));
-  SET_STRING_ELT(names, 2, mkChar("test"));
-  SET_STRING_ELT(names, 3, mkChar("ntests"));
-  SET_STRING_ELT(names, 4, mkChar("algo"));
-  SET_STRING_ELT(names, 5, mkChar("args"));
-
-  /* names of the three parts of the strcture. */
-  PROTECT(names2 = allocVector(STRSXP, 3));
-  SET_STRING_ELT(names2, 0, mkChar("learning"));
-  SET_STRING_ELT(names2, 1, mkChar("nodes"));
-  SET_STRING_ELT(names2, 2, mkChar("arcs"));
-
-  /* the class name. */
-  PROTECT(class = allocVector(STRSXP, 1));
-  SET_STRING_ELT(class, 0, mkChar("bn"));
-
-  /* the number of tests/score comparisons/whatever. */
-  PROTECT(ntests = allocVector(REALSXP, 1));
-  NUM(ntests) = _ntests;
-
-  /* the test used in the learning algorithm. */
-  PROTECT(test = allocVector(STRSXP, 1));
-  SET_STRING_ELT(test, 0, mkChar(_test));
-
-  /* the label of the learning algorithm. */
-  PROTECT(algo = allocVector(STRSXP, 1));
-  SET_STRING_ELT(algo, 0, mkChar(_algo));
+SEXP res, learning;
 
   /* allocate and initialize the "learning" element. */
   PROTECT(learning = allocVector(VECSXP, 6));
-  setAttrib(learning, R_NamesSymbol, names);
-  SET_VECTOR_ELT(learning, 2, test);
-  SET_VECTOR_ELT(learning, 3, ntests);
-  SET_VECTOR_ELT(learning, 4, algo);
+  setAttrib(learning, R_NamesSymbol,
+    mkStringVec(6, "whitelist", "blacklist", "test", "ntests", "algo", "args"));
+  SET_VECTOR_ELT(learning, 2, mkString(test));
+  SET_VECTOR_ELT(learning, 3, ScalarReal(ntests));
+  SET_VECTOR_ELT(learning, 4, mkString(algo));
   SET_VECTOR_ELT(learning, 5, args);
 
   /* allocate and initialize the main structure. */
   PROTECT(res = allocVector(VECSXP, 3));
-  setAttrib(res, R_NamesSymbol, names2);
-  setAttrib(res, R_ClassSymbol, class);
+  setAttrib(res, R_NamesSymbol,
+    mkStringVec(3, "learning", "nodes", "arcs"));
+  setAttrib(res, R_ClassSymbol, mkString("bn"));
   SET_VECTOR_ELT(res, 0, learning);
   SET_VECTOR_ELT(res, 1, cached);
   SET_VECTOR_ELT(res, 2, arcs);
 
-  UNPROTECT(8);
+  UNPROTECT(2);
   return res;
 
 }/*BN_BASE_STRUCTURE*/
 
 static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     int *degree, double *max, int *in_degree, double *max_in, int *out_degree,
-    double *max_out, int *cozman, int *debuglevel) {
+    double *max_out, int *cozman, int debuglevel) {
 
 int path = 0;
 
@@ -624,7 +563,7 @@ int path = 0;
 
     /* if the arc (i, j) exists in the actual graph, delete the arc,
      * provided that the underlying graph remains connected. */
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       Rprintf("  > arc %s -> %s is present.\n",
         NODE(arc[0] - 1), NODE(arc[1] - 1));
 
@@ -649,7 +588,7 @@ int path = 0;
 
     if (path) {
 
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         Rprintf("  @ removing arc %s -> %s.\n",
           NODE(arc[0] - 1), NODE(arc[1] - 1));
 
@@ -667,7 +606,7 @@ int path = 0;
     }/*THEN*/
     else {
 
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         Rprintf("  @ not removing arc %s -> %s (graph not connected).\n",
           NODE(arc[0] - 1), NODE(arc[1] - 1));
 
@@ -679,7 +618,7 @@ int path = 0;
   else {
 
     /* add the arc, provided that the underlying graph remains acyclic. */
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       Rprintf("  > arc %s -> %s is not present.\n", NODE(arc[0] - 1), NODE(arc[1] - 1));
 
     /* do not add the arc if this violates the constraints on the degrees of the
@@ -687,7 +626,7 @@ int path = 0;
     if ((degree[arc[0] - 1] >= *max) || (degree[arc[1] - 1] >= *max) ||
         (out_degree[arc[0] - 1] >= *max_out) || (in_degree[arc[1]] >= *max_in)) {
 
-      if (*debuglevel > 0) {
+      if (debuglevel > 0) {
 
         if (degree[arc[0] - 1] >= *max)
           Rprintf("  > node %s already has degree %d, max is %lf.\n",
@@ -718,7 +657,7 @@ int path = 0;
 
     if (!path) {
 
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         Rprintf("  @ adding arc %s -> %s.\n", NODE(arc[0] - 1), NODE(arc[1] - 1));
 
       /* update the adjacency matrix. */
@@ -735,7 +674,7 @@ int path = 0;
     }/*THEN*/
     else {
 
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         Rprintf("  > not adding arc %s -> %s (cycles!).\n",
           NODE(arc[0] - 1), NODE(arc[1] - 1));
 

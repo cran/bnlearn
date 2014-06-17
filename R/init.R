@@ -1,5 +1,5 @@
 
-# load suggested packages and initialize global variables.
+# set up hooks, S4 classes and initialize global variables.
 .onLoad = function(lib, pkg) {
 
   bnlearn.classes = c("bn", "bn.fit", "bn.naive", "bn.tan")
@@ -47,9 +47,17 @@
 
   # load the shared library.
   library.dynam("bnlearn", package = pkg, lib.loc = lib)
-
-  # initialize stuff at the C level
+  # initialize stuff at the C level.
   .Call("c_onLoad")
 
 }#.ONLOAD
 
+# clean up global variables.
+.onUnload = function(libpath) {
+
+  # initialize stuff at the C level.
+  .Call("c_onUnload") 
+  # unload the shared library.
+  library.dynam.unload("bnlearn", libpath = libpath)
+
+}#ON.UNLOAD

@@ -222,3 +222,68 @@ dsc.write.probabilities = function(node, nlevels, cpt, parents, fd) {
 
 }#DSC.WRITE.PROBABILITIES
 
+# export graph structures as DOT files.
+write.dot.backend = function(fd, graph) {
+
+  if (is(graph, "bn"))
+    arcs = graph$arcs
+  else
+    arcs = fit2arcs(graph)
+
+  nodes = .nodes(graph)
+
+  if (nrow(arcs) == 0) {
+
+    # this is an empty graph, we assume it's (partially) directed.
+    cat("digraph {\n", file = fd)
+    cat(paste('  "', nodes(graph), '" ;'), sep = "\n")
+    cat("}\n", file = fd)
+
+  }#THEN
+  else {
+
+    wund = which.undirected(arcs, nodes)
+
+    type = ifelse(length(which(wund)) == nrow(arcs), "graph", "digraph")
+
+    if (type == "graph") {
+
+      dedup = match(arcs[, "from"], nodes) < match(arcs[, "to"], nodes)
+
+      und = apply(arcs[wund & dedup, , drop = FALSE], 1,
+              function(x) paste('"', x, '"', sep = "", collapse = " -- "))
+
+      # this is an undirected graph.
+      cat("graph {\n", file = fd)
+      cat(paste('  "', nodes(graph), '" ;', sep = ""), sep = "\n", file = fd)
+      cat(paste("  edge [dir=none]", und, ";\n"), sep = "", file = fd)
+      cat("}\n", file = fd)
+
+    }#THEN
+    else if (type == "digraph") {
+
+      # this is a (partially) directed graph.
+      cat("digraph {\n", file = fd)
+
+      dir = apply(arcs[!wund, , drop = FALSE], 1,
+              function(x) paste('"', x, '"', sep = "", collapse = " -> "))
+      cat(paste('  "', nodes(graph), '" ;', sep = ""), sep = "\n", file = fd)
+
+      if (any(wund)) {
+
+        dedup = match(arcs[, "from"], nodes) < match(arcs[, "to"], nodes)
+        und = apply(arcs[wund & dedup, , drop = FALSE], 1,
+                function(x) paste('"', x, '"', sep = "", collapse = " -> "))
+        cat(paste("  edge [dir=none]", und, ";\n"), sep = "", file = fd)
+
+      }#THEN
+
+      cat(paste("  edge [dir=forward]", dir, ";\n"), sep = "", file = fd)
+      cat("}\n", file = fd)
+
+    }#ELSE
+
+  }#ELSE
+
+}#WRITE.DOT.BACKEND
+

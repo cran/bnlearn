@@ -31,14 +31,19 @@ ci.test.character = function(x, y = NULL, z = NULL, data, test = NULL,
   }#THEN
   # check the test label.
   test = check.test(test, data)
-  # check B (the number of bootstrap/permutation samples).
+  # check B (the number of permutation samples).
   B = check.B(B, test)
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  # compute the network score.
-  conditional.test(x = x, y = y, sx = z, data = data, test = test,
-    B = B, alpha = 1, learning = FALSE)
+  # create the htest object.
+  htest = indep.test(x = x, y = y, sx = z, data = data, test = test,
+            B = B, alpha = 1, learning = FALSE)
+  htest$method = test.labels[test]
+  htest$data.name = paste(x, "~", y, ifelse(length(z) > 0, "|", ""),
+                      paste(z, collapse = " + "))
+
+  return(htest)
 
 }#CI.TEST.CHARACTER
 
@@ -48,7 +53,7 @@ ci.test.matrix = function(x, test = NULL, B = NULL, debug = FALSE, ...) {
   if (ncol(x) < 2)
     stop("'x' must have at least two columns.")
 
-  ci.test(x = as.data.frame(x), test = test, B = B, debug = debug, ...)
+  ci.test.data.frame(x = as.data.frame(x), test = test, B = B, debug = debug, ...)
 
 }#CI.TEST.MATRIX
 
@@ -84,7 +89,7 @@ ci.test.numeric = function(x, y = NULL, z = NULL, test = NULL, B = NULL, debug =
 
       if (nrow(z) != length(x))
         stop("'x', 'y', and 'z' must have the same length.")
-      if (!is.data.continuous(z))
+      if (data.type(z) != "continuous")
         stop("'z' must be a numeric matrix or data frame.")
 
       sx = 3:(2 + ncol(z))
@@ -117,20 +122,20 @@ ci.test.numeric = function(x, y = NULL, z = NULL, test = NULL, B = NULL, debug =
   check.data(data)
   # check the test label.
   test = check.test(test, data)
-  # check B (the number of bootstrap/permutation samples).
+  # check B (the number of permutation samples).
   B = check.B(B, test)
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  res = conditional.test(x = 1L, y = 2L, sx = sx, data = data,
+  # create the htest object.
+  htest = indep.test(x = 1L, y = 2L, sx = sx, data = data,
     test = test, B = B, alpha = 1, learning = FALSE)
-
-  # rewrite the test formula.
-  res$data.name = paste(deparse(substitute(x)), "~", deparse(substitute(y)),
+  htest$method = test.labels[test]
+  htest$data.name = paste(deparse(substitute(x)), "~", deparse(substitute(y)),
         ifelse(!is.null(z), paste("|", deparse(substitute(z))), ""),
         collapse = " + ")
 
-  return(res)
+  return(htest)
 
 }#CI.TEST.NUMERIC
 
@@ -151,7 +156,7 @@ ci.test.factor = function(x, y = NULL, z = NULL, test = NULL, B = NULL,
 
       if (nrow(z) != length(x))
         stop("'x', 'y', and 'z' must have the same length.")
-      if (!is.data.discrete(z))
+      if (!(data.type(z) %in% c("factor", "ordered", "mixed-do")))
         stop("'z' must be a factor matrix or data frame.")
 
       sx = 3:(2 + ncol(z))
@@ -184,20 +189,20 @@ ci.test.factor = function(x, y = NULL, z = NULL, test = NULL, B = NULL,
   check.data(data)
   # check the test label.
   test = check.test(test, data)
-  # check B (the number of bootstrap/permutation samples).
+  # check B (the number of permutation samples).
   B = check.B(B, test)
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  res = conditional.test(x = 1L, y = 2L, sx = as.integer(sx), data = data,
+  # create the htest object.
+  htest = indep.test(x = 1L, y = 2L, sx = as.integer(sx), data = data,
     test = test, B = B, alpha = 1, learning = FALSE)
-
-  # rewrite the test formula.
-  res$data.name = paste(deparse(substitute(x)), "~", deparse(substitute(y)),
+  htest$method = test.labels[test]
+  htest$data.name = paste(deparse(substitute(x)), "~", deparse(substitute(y)),
         ifelse(!is.null(z), paste("|", deparse(substitute(z))), ""),
         collapse = " + ")
 
-  return(res)
+  return(htest)
 
 }#CI.TEST.FACTOR
 

@@ -161,7 +161,7 @@ int i = 0, k = 0, cur = 0, narcs1 = 0, narcs2 = 0, nnodes = length(nodes);
 int *m1 = NULL, *m2 = NULL, *und = NULL, *aid = NULL, *poset = NULL, *id = NULL;
 double *d1 = NULL, *d2 = NULL, *p = NULL;
 SEXP df, arc_id, undirected, a1, a2, match1, match2, prob;
-SEXP result, colnames, from, to, nid, dir1, dir2;
+SEXP result, from, to, nid, dir1, dir2;
 
   /* compute numeric IDs for the arcs. */
   a1 = VECTOR_ELT(prior, 0);
@@ -174,7 +174,7 @@ SEXP result, colnames, from, to, nid, dir1, dir2;
   PROTECT(arc_id = allocVector(INTSXP, narcs1));
   aid = INTEGER(arc_id);
 
-  c_arc_hash(&narcs1, &nnodes, m1, m2, aid, NULL, TRUE);
+  c_arc_hash(narcs1, nnodes, m1, m2, aid, NULL, TRUE);
 
   /* duplicates correspond to undirected arcs. */
   PROTECT(undirected = dupe(arc_id));
@@ -252,16 +252,11 @@ SEXP result, colnames, from, to, nid, dir1, dir2;
   SET_VECTOR_ELT(result, 2, nid);
   SET_VECTOR_ELT(result, 3, dir1);
   SET_VECTOR_ELT(result, 4, dir2);
-  PROTECT(colnames = allocVector(STRSXP, 5));
-  SET_STRING_ELT(colnames, 0, mkChar("from"));
-  SET_STRING_ELT(colnames, 1, mkChar("to"));
-  SET_STRING_ELT(colnames, 2, mkChar("aid"));
-  SET_STRING_ELT(colnames, 3, mkChar("fwd"));
-  SET_STRING_ELT(colnames, 4, mkChar("bkwd"));
-  setAttrib(result, R_NamesSymbol, colnames);
+  setAttrib(result, R_NamesSymbol,
+    mkStringVec(5, "from", "to", "aid", "fwd", "bkwd"));
   PROTECT(df = minimal_data_frame(result));
 
-  UNPROTECT(12);
+  UNPROTECT(11);
 
   return df;
 

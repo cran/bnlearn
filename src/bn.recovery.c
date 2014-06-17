@@ -5,7 +5,7 @@ SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP filter, SEXP debug) {
 
 int i = 0, j = 0, k = 0, n = 0, counter = 0;
 short int *checklist = NULL, err = 0;
-int *debuglevel = NULL, *checkmb = NULL, *flt = INTEGER(filter);
+int debuglevel = isTRUE(debug), checkmb = isTRUE(mb), *flt = INTEGER(filter);
 SEXP temp, temp2, nodes, elnames = NULL, fixed;
 
   /* get the names of the nodes. */
@@ -15,15 +15,11 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
   /* allocate and initialize the checklist. */
   checklist = allocstatus(UPTRI_MATRIX(n));
 
-  /* dereference the debug and mb parameters. */
-  debuglevel = LOGICAL(debug);
-  checkmb = LOGICAL(mb);
-
-  if (*debuglevel > 0) {
+  if (debuglevel > 0) {
 
     Rprintf("----------------------------------------------------------------\n");
 
-    if (*checkmb)
+    if (checkmb)
       Rprintf("* checking consistency of markov blankets.\n");
     else
       Rprintf("* checking consistency of neighbourhood sets.\n");
@@ -33,13 +29,13 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
   /* scan the structure to determine the number of arcs.  */
   for (i = 0; i < n; i++) {
 
-     if (*debuglevel > 0)
+     if (debuglevel > 0)
        Rprintf("  > checking node %s.\n",  NODE(i));
 
     /* get the entry for the (neighbours|elements of the markov blanket)
        of the node.*/
     temp = getListElement(bn, (char *)NODE(i));
-    if (!(*checkmb))
+    if (!checkmb)
       temp = getListElement(temp, "nbr");
 
     /* check each element of the array and identify which variable it
@@ -69,9 +65,9 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
       if ((checklist[UPTRI(i + 1, j + 1, n)] != 0) &&
           (checklist[UPTRI(i + 1, j + 1, n)] != 2)) {
 
-        if (*debuglevel > 0) {
+        if (debuglevel > 0) {
 
-          if (*checkmb)
+          if (checkmb)
             Rprintf("@ asymmetry in the markov blankets for %s and %s.\n",
               NODE(i), NODE(j));
           else
@@ -96,7 +92,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
   }/*THEN*/
   else if (isTRUE(strict)) {
 
-    if (*checkmb)
+    if (checkmb)
       error("markov blankets are not symmetric.\n");
     else
       error("neighbourhood sets are not symmetric.\n");
@@ -107,18 +103,13 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
   PROTECT(fixed = allocVector(VECSXP, n));
   setAttrib(fixed, R_NamesSymbol, nodes);
 
-  if (!(*checkmb)) {
-
-    /* allocate colnames. */
-    PROTECT(elnames = allocVector(STRSXP, 2));
-    SET_STRING_ELT(elnames, 0, mkChar("mb"));
-    SET_STRING_ELT(elnames, 1, mkChar("nbr"));
-
-  }/*THEN*/
+  /* allocate colnames. */
+  if (!checkmb)
+    PROTECT(elnames = mkStringVec(2, "mb", "nbr"));
 
   for (i = 0; i < n; i++) {
 
-    if (!(*checkmb)) {
+    if (!checkmb) {
 
       /* allocate the "mb" and "nbr" elements of the node. */
       PROTECT(temp = allocVector(VECSXP, 2));
@@ -146,7 +137,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
         if (i != j)
           SET_STRING_ELT(temp2, --counter, STRING_ELT(nodes, j));
 
-    if (*checkmb) {
+    if (checkmb) {
 
       SET_VECTOR_ELT(fixed, i, temp2);
       UNPROTECT(1);
@@ -161,12 +152,12 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
 
   }/*FOR*/
 
-  if (*checkmb)
+  if (checkmb)
     UNPROTECT(1);
   else
     UNPROTECT(2);
 
-return fixed;
+  return fixed;
 
 }/*BN_RECOVERY*/
 

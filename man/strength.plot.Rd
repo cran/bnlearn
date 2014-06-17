@@ -25,7 +25,7 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL,
     \code{neato}, \code{twopi}, \code{circo} and \code{fdp}. See
     \pkg{Rgraphviz} documentation for details.}
   \item{shape}{a character string, the shape of the nodes. Can be
-    either \code{circle} or \code{ellipse}.}
+    \code{circle}, \code{ellipse} or \code{rectangle}.}
   \item{main}{a character string, the main title of the graph.
     It's plotted at the top of the graph.}
   \item{sub}{a character string, a subtitle which is plotted

@@ -37,7 +37,7 @@ obs.per.cell = function(x, y, z = NULL, data) {
 
   # return +Inf for continuous data to bypass countermeasures
   # thought for sparce discrete data.
-  if (is.data.continuous(data))
+  if (data.type(data) == "continuous")
     return(Inf)
 
   if (is.null(z) || (length(z) == 0)) {

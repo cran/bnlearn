@@ -110,7 +110,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
     if (debug)
       cat("  * checking node", y, "for exclusion (shrinking phase).\n")
 
-    a = conditional.test(x, y, mb[mb != y], data = data, test = test, B = B,
+    a = indep.test(x, y, mb[mb != y], data = data, test = test, B = B,
           alpha = alpha)
 
     if (a > alpha) {
@@ -180,13 +180,17 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
 
   repeat {
 
+    # stop if there are no nodes left.
+    if (length(nodes[!(nodes %in% mb)]) == 0 || is.null(nodes))
+      break
+
     # growing phase.
     # reset the insufficient.data boolean flag.
     insufficient.data = FALSE
 
     # get an association measure for each of the available nodes.
-    association = sapply(nodes[!(nodes %in% mb)], conditional.test, x, sx = mb,
-                    test = test, data = data, B = B, alpha = alpha)
+    association = indep.test(nodes[!(nodes %in% mb)], x, sx = mb, test = test,
+                    data = data, B = B, alpha = alpha) 
 
     if (debug) {
 
@@ -197,7 +201,8 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
     }#THEN
 
     # stop if there are no candidates for inclusion.
-    if (all(association > alpha) || length(nodes) == 0 || is.null(nodes)) break
+    if (all(association > alpha))
+      break
 
     # sort the candidates in increasing p-value order.
     association = sort(association[which(association <= alpha)])

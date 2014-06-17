@@ -1,18 +1,19 @@
 
-discretize.backend = function(data, method, breaks, extra.args, debug = FALSE) {
+discretize.backend = function(data, method, breaks, ordered = FALSE, extra.args,
+    debug = FALSE) {
 
   if (method == "quantile")
-    quantile.discretization(data = data, breaks = breaks)
+    quantile.discretization(data = data, breaks = breaks, ordered = ordered)
   else if (method == "interval")
-    interval.discretization(data = data, breaks = breaks)
+    interval.discretization(data = data, breaks = breaks, ordered = ordered)
   else if (method == "hartemink")
-    hartemink.discretization(data = data, breaks = breaks,
+    hartemink.discretization(data = data, breaks = breaks, ordered = ordered,
       initial.breaks = extra.args$ibreaks,
       initial.discretization = extra.args$idisc, debug = debug)
 
 }#DISCRETIZE.BACKEND
 
-quantile.discretization = function(data, breaks) {
+quantile.discretization = function(data, breaks, ordered) {
 
   discretized = lapply(seq(ncol(data)), function(x) {
 
@@ -29,7 +30,7 @@ quantile.discretization = function(data, breaks) {
       stop("unable to discretize ", names(data)[x], " in ", breaks,
            " intervals, some quantiles are not unique.")
     # cut the range using the quantiles as break points.
-    cut(y, breaks = quantiles, include.lowest = TRUE, ordered = TRUE)
+    cut(y, breaks = quantiles, include.lowest = TRUE, ordered = ordered)
 
   })
   # convert the return value to a data frame.
@@ -40,7 +41,7 @@ quantile.discretization = function(data, breaks) {
 
 }#QUANTILE.DISCRETIZATION
 
-interval.discretization = function(data, breaks) {
+interval.discretization = function(data, breaks, ordered) {
 
   # cut the range into intervals and assign observations.
   discretized = lapply(seq(ncol(data)), function(x) {
@@ -52,7 +53,7 @@ interval.discretization = function(data, breaks) {
     if (is(y, "factor"))
       return(y)
     # cut the range with the given number of break points.
-    cut(y, breaks = breaks, include.lowest = TRUE, ordered = TRUE)
+    cut(y, breaks = breaks, include.lowest = TRUE, ordered = ordered)
 
   })
   # convert the return value to a data frame.
@@ -63,19 +64,21 @@ interval.discretization = function(data, breaks) {
 
 }#INTERVAL.DISCRETIZATION
 
-hartemink.discretization = function(data, breaks, initial.breaks,
+hartemink.discretization = function(data, breaks, ordered, initial.breaks,
     initial.discretization, debug = FALSE) {
 
   # cache some useful quantities.
   nodes = names(data)
   nnodes = length(nodes)
   ndata = nrow(data)
+  # check which type of data we are dealing with.
+  type = data.type(data)
   # perform an initial discretization if needed.
-  if (is.data.continuous(data)) {
+  if (type == "continuous") {
 
     discretized = discretize.backend(data = data, method = initial.discretization,
                     breaks = rep(initial.breaks, ncol(data)), extra.args = list(),
-                    debug = FALSE)
+                    ordered = ordered, debug = FALSE)
 
   }#THEN
   else {
@@ -163,4 +166,13 @@ hartemink.discretization = function(data, breaks, initial.breaks,
   return(discretized)
 
 }#HARTEMINK.DISCRETIZATION
+
+dedup.backend = function(data, threshold, debug = FALSE) {
+
+  .Call("dedup",
+        data = data,
+        threshold = threshold,
+        debug = debug)
+
+}#DEDUP.BACKEND
 

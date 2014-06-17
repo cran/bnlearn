@@ -22,29 +22,29 @@ SEXP arc_hash(SEXP arcs, SEXP nodes, int uptri, int sort) {
 
 }/*ARC_HASH*/
 
-/* arc has backend. */
-void c_arc_hash(int *narcs, int *nnodes, int *from, int *to, int *uptri,
+/* arc hash backend. */
+void c_arc_hash(int narcs, int nnodes, int *from, int *to, int *uptri,
   int *cmc, int sort) {
 
 int i = 0;
 
   if (uptri) {
 
-    for (i = 0; i < *narcs; i++)
-      uptri[i] = UPTRI3(from[i], to[i], *nnodes);
+    for (i = 0; i < narcs; i++)
+      uptri[i] = UPTRI3(from[i], to[i], nnodes);
 
     if (sort)
-      R_isort(uptri, *narcs);
+      R_isort(uptri, narcs);
 
   }/*THEN*/
 
   if (cmc) {
 
-    for (i = 0; i < *narcs; i++)
-      cmc[i] = CMC(from[i], to[i], *nnodes);
+    for (i = 0; i < narcs; i++)
+      cmc[i] = CMC(from[i], to[i], nnodes);
 
     if (sort)
-      R_isort(cmc, *narcs);
+      R_isort(cmc, narcs);
 
   }/*ELSE*/
 
@@ -66,9 +66,9 @@ SEXP matched, hash;
   hash_el = INTEGER(hash);
 
   if (uptri)
-    c_arc_hash(&narcs, &nnodes, temp, temp + narcs, hash_el, NULL, sort);
+    c_arc_hash(narcs, nnodes, temp, temp + narcs, hash_el, NULL, sort);
   else
-    c_arc_hash(&narcs, &nnodes, temp, temp + narcs, NULL, hash_el, sort);
+    c_arc_hash(narcs, nnodes, temp, temp + narcs, NULL, hash_el, sort);
 
   UNPROTECT(2);
 
@@ -95,9 +95,9 @@ SEXP matched1, matched2, hash;
   hash_el = INTEGER(hash);
 
   if (uptri)
-    c_arc_hash(&narcs, &nnodes, temp1, temp2, hash_el, NULL, sort);
+    c_arc_hash(narcs, nnodes, temp1, temp2, hash_el, NULL, sort);
   else
-    c_arc_hash(&narcs, &nnodes, temp1, temp2, NULL, hash_el, sort);
+    c_arc_hash(narcs, nnodes, temp1, temp2, NULL, hash_el, sort);
 
   UNPROTECT(3);
 
@@ -106,14 +106,14 @@ SEXP matched1, matched2, hash;
 }/*ARC_HASH_DATAFRAME*/
 
 /* compute the hash of an adjacency matrix using CMC() coordinates. */
-SEXP c_amat_hash(int *amat, int *nnodes) {
+SEXP c_amat_hash(int *amat, int nnodes) {
 
 int i = 0, k = 0, narcs = 0;
 int *coords = NULL;
 SEXP hash;
 
   /* count the arcs in the network.  */
-  for (i = 0; i < (*nnodes) * (*nnodes); i++)
+  for (i = 0; i < nnodes * nnodes; i++)
     if (amat[i] > 0)
       narcs++;
 
@@ -124,7 +124,7 @@ SEXP hash;
   coords = INTEGER(hash);
 
   /* the (flattened) coordinates into the hash vector. */
-  for (i = 0, k = 0; i < (*nnodes) * (*nnodes); i++)
+  for (i = 0, k = 0; i < nnodes * nnodes; i++)
     if (amat[i] > 0)
       coords[k++] = i;
 

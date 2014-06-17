@@ -40,7 +40,7 @@ SEXP amat, res;
 SEXP dag2ug(SEXP bn, SEXP moral, SEXP debug) {
 
 int i = 0, j = 0, k = 0, nnodes = 0, narcs = 0, row = 0;
-int *debuglevel = LOGICAL(debug), *moralize = LOGICAL(moral);\
+int debuglevel = isTRUE(debug), *moralize = LOGICAL(moral);
 int *nparents = NULL, *nnbr = NULL;
 SEXP node_data, current, nodes, result, temp;
 
@@ -76,7 +76,7 @@ SEXP node_data, current, nodes, result, temp;
 
     }/*ELSE*/
 
-    if (*debuglevel > 0)  {
+    if (debuglevel > 0)  {
 
       if (*moralize > 0) {
 

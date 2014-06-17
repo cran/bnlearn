@@ -37,7 +37,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     # disable debugging, the slaves do not cat() here.
     if (debug) {
 
-      warning("disabling debugging output in cluster-aware mode.")
+      warning("disabling debugging output for parallel computing.")
       debug = FALSE
 
     }#THEN
@@ -687,7 +687,7 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
   if (method != "naive.bayes") {
 
     check.data(data)
-    if (!is.data.discrete(data))
+    if (!(data.type(data) %in% c("factor", "ordered", "mixed-do")))
       stop("continuous data are not supported.")
 
   }#THEN

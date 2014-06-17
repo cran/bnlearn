@@ -89,7 +89,7 @@ static SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrows,
 
 int i = 0, j = 0;
 int num_parents = 0, num_children = 0, num_neighbours = 0, num_blanket = 0;
-SEXP structure, names, mb, nbr, children, parents;
+SEXP structure, mb, nbr, children, parents;
 
   if (debuglevel > 0)
     Rprintf("* node %s.\n", NODE(cur));
@@ -191,52 +191,34 @@ SEXP structure, names, mb, nbr, children, parents;
     Rprintf("  > node %s has %d parent(s), %d child(ren), %d neighbour(s) and %d nodes in the markov blanket.\n",
       NODE(cur), num_parents, num_children, num_neighbours, num_blanket);
 
-  /* allocate and initialize the names of the elements. */
-  PROTECT(names = allocVector(STRSXP, 4));
-  SET_STRING_ELT(names, 0, mkChar("mb"));
-  SET_STRING_ELT(names, 1, mkChar("nbr"));
-  SET_STRING_ELT(names, 2, mkChar("parents"));
-  SET_STRING_ELT(names, 3, mkChar("children"));
-
   /* allocate the list and set its attributes. */
   PROTECT(structure = allocVector(VECSXP, 4));
-  setAttrib(structure, R_NamesSymbol, names);
+  setAttrib(structure, R_NamesSymbol, 
+    mkStringVec(4, "mb", "nbr", "parents", "children"));
 
   /* allocate and fill the "children" element of the list. */
   PROTECT(children = allocVector(STRSXP, num_children));
-  for (i = 0, j = 0; (i < nrows) && (j < num_children); i++) {
-
+  for (i = 0, j = 0; (i < nrows) && (j < num_children); i++)
     if (status[i] == CHILD)
       SET_STRING_ELT(children, j++, STRING_ELT(nodes, i));
 
-  }/*FOR*/
-
   /* allocate and fill the "parents" element of the list. */
   PROTECT(parents = allocVector(STRSXP, num_parents));
-  for (i = 0, j = 0; (i < nrows) && (j < num_parents); i++) {
-
+  for (i = 0, j = 0; (i < nrows) && (j < num_parents); i++)
     if (status[i] == PARENT)
       SET_STRING_ELT(parents, j++, STRING_ELT(nodes, i));
 
-  }/*FOR*/
-
   /* allocate and fill the "nbr" element of the list. */
   PROTECT(nbr = allocVector(STRSXP, num_neighbours));
-  for (i = 0, j = 0; (i < nrows) && (j < num_neighbours); i++) {
-
+  for (i = 0, j = 0; (i < nrows) && (j < num_neighbours); i++)
     if (status[i] >= NEIGHBOUR)
       SET_STRING_ELT(nbr, j++, STRING_ELT(nodes, i));
 
-  }/*FOR*/
-
   /* allocate and fill the "mb" element of the list. */
   PROTECT(mb = allocVector(STRSXP, num_blanket));
-  for (i = 0, j = 0; (i < nrows) && (j < num_blanket + num_neighbours); i++) {
-
+  for (i = 0, j = 0; (i < nrows) && (j < num_blanket + num_neighbours); i++)
     if (status[i] >= BLANKET)
       SET_STRING_ELT(mb, j++, STRING_ELT(nodes, i));
-
-  }/*FOR*/
 
   /* attach the string vectors to the list. */
   SET_VECTOR_ELT(structure, 0, mb);
@@ -244,7 +226,7 @@ SEXP structure, names, mb, nbr, children, parents;
   SET_VECTOR_ELT(structure, 2, parents);
   SET_VECTOR_ELT(structure, 3, children);
 
-  UNPROTECT(6);
+  UNPROTECT(5);
 
   return structure;
 

@@ -1,0 +1,88 @@
+#include "common.h"
+
+SEXP c_create_htest(double stat, SEXP test, double pvalue, double df, SEXP B) {
+
+const char *t = CHAR(STRING_ELT(test, 0));
+SEXP result, s, n, params;
+
+  /* allocate the return value. */
+  PROTECT(result = allocVector(VECSXP, 7));
+  /* set the class. */
+  setAttrib(result, R_ClassSymbol, mkString("htest"));
+  /* set the names of the elements. */
+  setAttrib(result, R_NamesSymbol, mkStringVec(7, "statistic", "p.value",
+    "method", "null.value", "alternative", "data.name", "parameter"));
+
+  /* set the test statistic. */
+  PROTECT(s = ScalarReal(stat));
+  setAttrib(s, R_NamesSymbol, test);
+  SET_VECTOR_ELT(result, 0, s);
+
+  /* set the p-value. */
+  SET_VECTOR_ELT(result, 1, ScalarReal(pvalue));
+
+  /* set the label of the test. */
+  SET_VECTOR_ELT(result, 2, mkString(""));
+
+  /* set the value of the statistic under the null. */
+  PROTECT(n = ScalarReal(0));
+  setAttrib(n, R_NamesSymbol, mkString("value"));
+  SET_VECTOR_ELT(result, 3, n);
+
+  /* set the alternative hypothesis. */
+  if (strcmp(t, "cor") && strcmp(t, "mc-cor") && strcmp(t, "smc-cor") &&
+      strcmp(t, "zf") && strcmp(t, "mc-zf") && strcmp(t, "smc-zf")) {
+
+    SET_VECTOR_ELT(result, 4, mkString("greater"));
+
+  }/*THEN*/
+  else {
+
+    SET_VECTOR_ELT(result, 4, mkString("two.sided"));
+
+  }/*ELSE*/
+
+  /* set the data description string. */
+  SET_VECTOR_ELT(result, 5, mkString(""));
+
+  if (ISNAN(df)) {
+
+    if (B != R_NilValue) {
+
+      PROTECT(params = ScalarReal(INT(B)));
+      setAttrib(params, R_NamesSymbol, mkString("Monte Carlo samples"));
+      SET_VECTOR_ELT(result, 6, params);
+      UNPROTECT(1);
+
+    }/*THEN*/
+
+  }/*THEN*/
+  else {
+
+    if (B != R_NilValue) {
+
+      PROTECT(params = allocVector(REALSXP, 2));
+      REAL(params)[0] = df;
+      REAL(params)[1] = INT(B);
+      setAttrib(params, R_NamesSymbol, mkStringVec(2, "df", "Monte Carlo samples"));
+      SET_VECTOR_ELT(result, 6, params);
+      UNPROTECT(1);
+
+    }/*THEN*/
+    else {
+
+      PROTECT(params = ScalarReal(df));
+      setAttrib(params, R_NamesSymbol, mkString("df"));
+      SET_VECTOR_ELT(result, 6, params);
+      UNPROTECT(1);
+
+    }/*ELSE*/
+
+  }/*ELSE*/
+
+  UNPROTECT(3);
+
+  return result;
+
+}/*C_CREATE_HTEST*/
+

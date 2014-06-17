@@ -7,12 +7,11 @@
    use double precision for integer multiplication (against overflow);
 */
 
-#include <Rmath.h>
 #include <R_ext/Applic.h>
 #include "common.h"
 
 void
-_rcont2(int *nrow, int *ncol,
+c_rcont2(int *nrow, int *ncol,
        /* vectors of row and column totals, and their sum ntotal: */
        int *nrowt, int *ncolt, int *ntotal,
        double *fact, int *jwork, int *matrix)

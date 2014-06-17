@@ -1,28 +1,62 @@
 
 # passthrough for bn objects.
-predict.bn  = function(object, node, data, ..., debug = FALSE) {
+predict.bn  = function(object, node, data, method = "parents", ...,
+    debug = FALSE) {
 
   predict.bn.fit(object = bn.fit(object, data), node = node, data = data,
-    ..., debug = debug)
+    method = method, ..., debug = debug)
 
 }#PREDICT.BN
 
 # estimate the predicted values for a particular node.
-predict.bn.fit = function(object, node, data, ..., debug = FALSE) {
+predict.bn.fit = function(object, node, data, method = "parents", ...,
+    debug = FALSE) {
 
   # check the data are there.
   check.data(data)
   # a valid node is needed.
   check.nodes(nodes = node, graph = object, max.nodes = 1)
-  # check the fitted model.
-  check.fit.vs.data(fitted = object, data = data)
+  # check the prediction method.
+  check.prediction.method(method, data)
   # warn about unused arguments.
-  check.unused.args(list(...), character(0))
+  extra.args = list(...)
+  check.unused.args(extra.args, prediction.extra.args[[method]])
 
-  if (is.fitted.discrete(object) || is.fitted.ordinal(object))
-    discrete.prediction(node = node, fitted = object, data = data, debug = debug)
-  else
-    gaussian.prediction(node = node, fitted = object, data = data, debug = debug)
+  if (method == "parents") {
+
+    # check the fitted model (parents are the only nodes that are actually
+    # needed).
+    check.fit.vs.data(fitted = object, data = data,
+      subset = object[[node]]$parents)
+
+    if (is.fitted.discrete(object) || is.fitted.ordinal(object))
+      discrete.prediction(node = node, fitted = object, data = data, debug = debug)
+    else
+      gaussian.prediction(node = node, fitted = object, data = data, debug = debug)
+
+  }#THEN
+  else if (method == "bayes-lw") {
+
+    # check the variables to predict from.
+    if (is.null(extra.args$from))
+      extra.args$from = setdiff(names(data), node)
+    else
+      check.nodes(nodes = extra.args$from, graph = object, min.nodes = 1)
+    # check that they do not include the node to predict.
+    if (node %in% extra.args$from)
+      stop("node ", node, " is both a predictor and being predicted.")
+    # check the fitted model and the conditioning variables.
+    check.fit.vs.data(fitted = object, data = data, subset = extra.args$from)
+    # check the number of particles to be used for each prediction.
+    if (is.null(extra.args$n))
+      extra.args$n = 500
+    else if (!is.positive.integer(extra.args$n))
+      stop("the number of observations to be sampled must be a positive integer number.")
+
+    map.prediction(node = node, fitted = object, data = data, n = extra.args$n,
+      from = extra.args$from, debug = debug)
+
+  }#THEN
 
 }#PREDICT.BN.FIT
 

@@ -20,8 +20,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 3.5\cr
-    Date: \tab 2014-01-23\cr
+    Version: \tab 3.6\cr
+    Date: \tab 2014-06-17\cr
     License: \tab GPLv2 or later
 
   }
@@ -200,16 +200,18 @@
           distance measure. It's proportional to the log-likelihood ratio
           (they differ by a \eqn{2n}{2n} factor) and is related to the
           deviance of the tested models. The asymptotic \eqn{\chi^2}{chi-square}
-          test (\code{mi}), the Monte Carlo permutation test (\code{mc-mi}),
-          the sequential Monte Carlo permutation test (\code{smc-mi}), and
-          the semiparametric test (\code{sp-mi}) are implemented.
+          test (\code{mi} and \code{mi-adf}, with adjusted degrees of freedom),
+          the Monte Carlo permutation test (\code{mc-mi}), the sequential Monte
+          Carlo permutation test (\code{smc-mi}), and the semiparametric test
+          (\code{sp-mi}) are implemented. 
         \item \emph{shrinkage estimator} for the \emph{mutual information}
           (\code{mi-sh}): an improved asymptotic \eqn{\chi^2}{chi-square} test
           based on the James-Stein estimator for the mutual information.
         \item \emph{Pearson's \eqn{X^2}{X^2}}: the classical Pearson's
           \eqn{X^2}{X^2} test for contingency tables. The asymptotic
-          \eqn{\chi^2}{chi-square} test (\code{x2}), the Monte Carlo permutation
-          test (\code{mc-x2}), the sequential Monte Carlo permutation test
+          \eqn{\chi^2}{chi-square} test (\code{x2} and \code{x2-adf}, with 
+          adjusted degrees of freedom), the Monte Carlo permutation test
+          (\code{mc-x2}), the sequential Monte Carlo permutation test
           (\code{smc-x2}) and semiparametric test (\code{sp-x2}) are implemented.
 
       }

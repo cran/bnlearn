@@ -29,8 +29,11 @@ score = function(x, data, type = NULL, ..., debug = FALSE) {
 # AIC method for class 'bn', an alias of score(..., type = "aic")
 AIC.bn = function(object, data, ..., k = 1) {
 
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
   # parameter sanitization done in the score() function.
-  if (is.data.discrete(data))
+  if (type %in% c("factor", "ordered", "mixed-do"))
     score(object, data = data, type = "aic", k = k, ...)
   else
     score(object, data = data, type = "aic-g", k = k, ...)
@@ -40,8 +43,11 @@ AIC.bn = function(object, data, ..., k = 1) {
 # BIC method for class 'bn', an alias of score(..., type = "bic")
 BIC.bn = function(object, data, ...) {
 
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
   # parameter sanitization done in the score() function.
-  if (is.data.discrete(data))
+  if (type %in% c("factor", "ordered", "mixed-do"))
     score(object, data = data, type = "bic", ...)
   else
     score(object, data = data, type = "bic-g", ...)
@@ -51,8 +57,11 @@ BIC.bn = function(object, data, ...) {
 # logLik method for class 'bn', an alias of score(..., type = "loglik")
 logLik.bn = function(object, data, ...) {
 
+  # check which type of data we are dealing with.
+  type = data.type(data)
+
   # parameter sanitization done in the score() function.
-  if (is.data.discrete(data))
+  if (type %in% c("factor", "ordered", "mixed-do"))
     score(x = object, data = data, type = "loglik", ...)
   else
     score(x = object, data = data, type = "loglik-g", ...)

@@ -118,6 +118,19 @@ int i = 0, j = 0;
 
 }/*ALLOC3DREAL*/
 
+/* allocate a 1-dimensional long double vector. */
+long double *allocldouble (int length) {
+
+long double *p = NULL;
+
+  p = (long double *) R_alloc(length, sizeof(long double));
+  memset(p, '\0', sizeof(long double) * length);
+
+  return p;
+
+}/*ALLOC1DREAL*/
+
+
 void **alloc1dpointer (int length) {
 
 void **p = NULL;

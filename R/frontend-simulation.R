@@ -69,7 +69,8 @@ empty.graph = function(nodes, num = 1) {
 }#EMPTY.GRAPH
 
 # perform conditional probability queries.
-cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ..., debug = FALSE) {
+cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ...,
+    debug = FALSE) {
 
   # check fitted's class.
   check.fit(fitted)
@@ -92,7 +93,7 @@ cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ..., 
     # disable debugging, the slaves do not cat() here.
     if (debug) {
 
-      warning("disabling debugging output in cluster-aware mode.")
+      warning("disabling debugging output for parallel computing.")
       debug = FALSE
 
     }#THEN
@@ -100,7 +101,7 @@ cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ..., 
   }#THEN
 
   extra.args = check.cpq.args(fitted = fitted, extra.args = list(...),
-                 method = method)
+                 method = method, action = "cpquery")
 
   # deparse the expression for the event before passing it to
   # the backend and beyond.
@@ -138,7 +139,8 @@ cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ..., 
 }#CPQUERY
 
 # compute conditional probability distributions
-cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ..., debug = FALSE) {
+cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
+    debug = FALSE) {
 
   # check fitted's class.
   check.fit(fitted)
@@ -158,7 +160,7 @@ cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ..., d
     # disable debugging, the slaves do not cat() here.
     if (debug) {
 
-      warning("disabling debugging output in cluster-aware mode.")
+      warning("disabling debugging output for parallel computing.")
       debug = FALSE
 
     }#THEN
@@ -166,7 +168,7 @@ cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ..., d
   }#THEN
 
   extra.args = check.cpq.args(fitted = fitted, extra.args = list(...),
-                 method = method)
+                 method = method, action = "cpdist")
 
   if (method == "ls") {
 

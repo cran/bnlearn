@@ -11,7 +11,7 @@ gaussian.prediction = function(node, fitted, data, debug = FALSE) {
 
     .Call("gpred",
           fitted = fitted[[node]],
-          data = nrow(data),
+          ndata = nrow(data),
           debug = debug)
 
   }#THEN
@@ -19,7 +19,7 @@ gaussian.prediction = function(node, fitted, data, debug = FALSE) {
 
     .Call("cgpred",
           fitted = fitted[[node]],
-          data = minimal.data.frame.column(data, parents, drop = FALSE),
+          parents = minimal.data.frame.column(data, parents, drop = FALSE),
           debug = debug)
 
   }#ELSE
@@ -38,7 +38,7 @@ discrete.prediction = function(node, fitted, data, debug = FALSE) {
 
     .Call("dpred",
           fitted = fitted[[node]],
-          data = minimal.data.frame.column(data, node),
+          ndata = nrow(data),
           debug = debug)
 
   }#THEN
@@ -52,7 +52,6 @@ discrete.prediction = function(node, fitted, data, debug = FALSE) {
 
     .Call("cdpred",
           fitted = fitted[[node]],
-          data = minimal.data.frame.column(data, node),
           parents = config,
           debug = debug)
 
@@ -84,4 +83,17 @@ naive.classifier = function(training, fitted, prior, data, prob = FALSE,
         debug = debug)
 
 }#NAIVE.CLASSIFIER
+
+# maximum a posteriori predictions.
+map.prediction = function(node, fitted, data, n, from, debug = FALSE) {
+
+  .Call("mappred",
+        node = node,
+        fitted = fitted,
+        data = data,
+        n = as.integer(n),
+        from = from,
+        debug = debug)
+
+}#MAP.PREDICTION
 

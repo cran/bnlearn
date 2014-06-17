@@ -364,6 +364,9 @@ logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) 
 
   # reset the row names.
   rownames(result) = NULL
+  # set attributes for later use.
+  class(result) = c("bn.cpdist", class(result))
+  attr(result, "method") = "ls"
 
   if (debug && (nbatches > 1))
     cat("* generated a grand total of", n, "samples.\n")
@@ -392,7 +395,6 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
       .Call("lw_weights",
             fitted = fitted,
             data = data,
-            by.sample = TRUE,
             keep = names(evidence),
             debug = debug)
 
@@ -458,37 +460,11 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
 # weighting.
 weighting.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) {
 
-  result = NULL
-
-  # count how many complete batches we have to generate.
-  nbatches = n %/% batch
-  # count how many observations are in the last one.
-  last.one = n %% batch
-
-  for (m in c(rep(batch, nbatches), last.one)) {
-
-    # do a hard reset of generated.data, so that the memory used by the data
-    # set generated in the previous iteration can be garbage-collected and
-    # reused _before_ rbn() returns.
-    generated.data = NULL
-
-    # generate random data from the bayesian network.
-    if (m > 0)
-      generated.data = rbn.backend(x = fitted, fix = evidence, n = m)
-    else
-      break
-
-    if (debug)
-      cat("* generated", m, "samples from the bayesian network.\n")
-
-    # update the return value.
-    result = rbind(result, generated.data[, nodes, drop = FALSE])
-
-  }#FOR
-
-  if (debug && (nbatches > 1))
-    cat("* generated a grand total of", n, "samples.\n")
-
-  return(result)
+  .Call("cpdist_lw",
+        fitted = fitted,
+        nodes = nodes,
+        n = as.integer(n),
+        fix = evidence,
+        debug = debug)
 
 }#WEIGHTING.DISTRIBUTION

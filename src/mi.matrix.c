@@ -5,7 +5,7 @@
 #define DISCRETE_NETWORK(x) (x < GAUSSIAN_MAXIMUM_LIKELIHOOD)
 
 #define LIST_MUTUAL_INFORMATION_COEFS() \
-  if (*debuglevel > 0) { \
+  if (debuglevel > 0) { \
     for (i = 0; i < ncols; i++) \
       for (j = i + 1; j < ncols; j++) \
         Rprintf("  > mutual information between %s and %s is %lf.\n", \
@@ -61,8 +61,8 @@ int i = 0, j = 0;
           for (j = i + 1; j < dim; j++) {
 
             mim[UPTRI3(i + 1, j + 1, dim)] =
-              c_mi(((int **)columns)[i], nlevels + i,
-                   ((int **)columns)[j], nlevels + j, num);
+              c_mi(((int **)columns)[i], nlevels[i],
+                   ((int **)columns)[j], nlevels[j], *num, NULL, FALSE);
 
           }/*FOR*/
 
@@ -76,9 +76,9 @@ int i = 0, j = 0;
           for (j = i + 1; j < dim; j++) {
 
             mim[UPTRI3(i + 1, j + 1, dim)] =
-              c_cmi(((int **)columns)[i], nlevels + i,
-                    ((int **)columns)[j], nlevels + j,
-                    (int *)cond, clevels, num);
+              c_cmi(((int **)columns)[i], nlevels[i],
+                    ((int **)columns)[j], nlevels[j],
+                    (int *)cond, *clevels, *num, NULL, FALSE);
 
           }/*FOR*/
 
@@ -113,7 +113,7 @@ SEXP aracne(SEXP data, SEXP estimator, SEXP whitelist, SEXP blacklist, SEXP debu
 int i = 0, j = 0, k = 0, coord = 0, ncols = length(data);
 int num = length(VECTOR_ELT(data, i)), narcs = ncols * (ncols - 1) / 2;
 int *nlevels = NULL, *est = INTEGER(estimator), *wl = NULL, *bl = NULL;
-int *debuglevel = LOGICAL(debug);
+int debuglevel = isTRUE(debug);
 void **columns = NULL;
 short int *exclude = NULL;
 double *mim = NULL;
@@ -129,7 +129,7 @@ SEXP arcs, nodes, wlist, blist;
   exclude = allocstatus(UPTRI3_MATRIX(ncols));
 
   /* compute the pairwise mutual information coefficients. */
-  if (*debuglevel > 0)
+  if (debuglevel > 0)
     Rprintf("* computing pairwise mutual information coefficients.\n");
 
   mi_matrix(mim, columns, ncols, nlevels, &num, NULL, NULL, est);
@@ -153,7 +153,7 @@ SEXP arcs, nodes, wlist, blist;
         if ((mim[coord] < mim[UPTRI3(i + 1, k + 1, ncols)]) &&
             (mim[coord] < mim[UPTRI3(j + 1, k + 1, ncols)])) {
 
-          if (*debuglevel > 0) {
+          if (debuglevel > 0) {
 
             Rprintf("* dropping arc %s - %s because of %s, %lf < min(%lf, %lf)\n",
               NODE(i), NODE(j), NODE(k), mim[UPTRI3(i + 1, j + 1, ncols)],
@@ -184,7 +184,7 @@ SEXP arcs, nodes, wlist, blist;
 
     for (i = 0; i < length(wlist); i++) {
 
-      if (*debuglevel > 0) {
+      if (debuglevel > 0) {
 
         Rprintf("* adding back whitelisted arcs.\n");
 
@@ -223,7 +223,7 @@ SEXP arcs, nodes, wlist, blist;
 
     for (i = 0; i < length(blist); i++) {
 
-      if (*debuglevel > 0) {
+      if (debuglevel > 0) {
 
         Rprintf("* removing blacklisted arcs.\n");
 
@@ -277,7 +277,7 @@ SEXP chow_liu(SEXP data, SEXP nodes, SEXP estimator, SEXP whitelist,
 int i = 0, j = 0, k = 0, debug_coord[2], ncols = length(data);
 int num = length(VECTOR_ELT(data, i)), narcs = 0, nwl = 0, nbl = 0;
 int *nlevels = NULL, *clevels = NULL, *est = INTEGER(estimator);
-int *wl = NULL, *bl = NULL, *poset = NULL, *debuglevel = LOGICAL(debug);
+int *wl = NULL, *bl = NULL, *poset = NULL, debuglevel = isTRUE(debug);
 void **columns = NULL, *cond = NULL;
 short int *include = NULL;
 double *mim = NULL;
@@ -300,7 +300,7 @@ SEXP arcs, wlist, blist;
   include = allocstatus(UPTRI3_MATRIX(ncols));
 
   /* compute the pairwise mutual information coefficients. */
-  if (*debuglevel > 0)
+  if (debuglevel > 0)
     Rprintf("* computing pairwise mutual information coefficients.\n");
 
   mi_matrix(mim, columns, ncols, nlevels, &num, cond, clevels, est);
@@ -316,7 +316,7 @@ SEXP arcs, wlist, blist;
 
     for (i = 0; i < nwl; i++) {
 
-      if (*debuglevel > 0) {
+      if (debuglevel > 0) {
 
         Rprintf("* adding whitelisted arcs first.\n");
 
@@ -378,7 +378,7 @@ SEXP arcs, wlist, blist;
 
       if (chow_liu_blacklist(bl, &nbl, poset + i)) {
 
-        if (*debuglevel > 0) {
+        if (debuglevel > 0) {
 
           Rprintf("* arc %s - %s is blacklisted, skipping.\n",
             NODE(debug_coord[0]), NODE(debug_coord[1]));
@@ -393,7 +393,7 @@ SEXP arcs, wlist, blist;
 
     if (c_uptri3_path(include, debug_coord[0], debug_coord[1], ncols, nodes, FALSE)) {
 
-      if (*debuglevel > 0) {
+      if (debuglevel > 0) {
 
         Rprintf("* arc %s - %s introduces cycles, skipping.\n",
           NODE(debug_coord[0]), NODE(debug_coord[1]));
@@ -404,7 +404,7 @@ SEXP arcs, wlist, blist;
 
     }/*THEN*/
 
-    if (*debuglevel > 0) {
+    if (debuglevel > 0) {
 
       Rprintf("* adding arc %s - %s with mutual information %lf.\n",
         NODE(debug_coord[0]), NODE(debug_coord[1]), mim[i]);
@@ -437,7 +437,7 @@ SEXP tree_directions(SEXP arcs, SEXP nodes, SEXP root, SEXP debug) {
 
 int i = 0, j = 0, d = 0, traversed = 1;
 int narcs = length(arcs)/2, nnodes = length(nodes);
-int *a = NULL, *depth = 0, *debuglevel = LOGICAL(debug);
+int *a = NULL, *depth = 0, debuglevel = isTRUE(debug);
 SEXP try, try2, result;
 
   /* match the node labels in the arc set. */
@@ -451,12 +451,12 @@ SEXP try, try2, result;
   depth = alloc1dcont(nnodes);
   depth[INT(try2) - 1] = 1;
 
-  if (*debuglevel > 0)
+  if (debuglevel > 0)
     Rprintf("> root node (depth 1) is %s.\n", NODE(INT(try2) - 1));
 
   for (d = 1; d <= nnodes; d++) {
 
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       Rprintf("> considering nodes at depth %d.\n", d + 1);
 
     for (i = 0; i < narcs; i++) {
@@ -469,7 +469,7 @@ SEXP try, try2, result;
 
         if ((a[i + narcs] == (j + 1)) && (depth[a[i] - 1] == 0)) {
 
-          if (*debuglevel > 0)
+          if (debuglevel > 0)
             Rprintf("  * found node %s.\n", NODE(a[i] - 1));
 
           /* save the depth at which the node was found. */

@@ -11,6 +11,9 @@ bn.fit = function(x, data, method = "mle", ..., debug = FALSE) {
   # no parameters if the network structure is only partially directed.
   if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
+  # also check that the network is acyclic.
+  if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
+    stop("the graph contains cycles.")
   # check the fitting method (maximum likelihood, bayesian, etc.)
   check.fitting.method(method, data)
   # check the extra arguments.
@@ -263,9 +266,15 @@ custom.fit = function(x, dist, ordinal = FALSE) {
 
   # check x's class.
   check.bn(x)
-
   nodes = names(x$nodes)
   nnodes = length(nodes)
+
+  # no parameters if the network structure is only partially directed.
+  if (is.pdag(x$arcs, nodes))
+    stop("the graph is only partially directed.")
+  # also check that the network is acyclic.
+  if (!is.acyclic(x$arcs, nodes, directed = TRUE))
+    stop("the graph contains cycles.")
 
   # do some basic sanity checks on dist.
   if (!is.list(dist) || is.null(names(dist)))

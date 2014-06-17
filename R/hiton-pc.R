@@ -165,8 +165,8 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
     return(cpc)
 
   # get a marginal association measure for each of the available nodes.
-  association = sapply(nodes, conditional.test, x, sx = character(0),
-                  test = test, data = data, B = B, alpha = alpha)
+  association = indep.test(nodes, x, sx = character(0), test = test,
+                  data = data, B = B, alpha = alpha)
 
   to.keep = names(association[association <= alpha])
   to.drop = names(association[association > alpha])
@@ -242,9 +242,6 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
 # backward stage of HITON-PC.
 si.hiton.pc.backward = function(target, candidate, cpc, data, test, alpha, B, debug) {
 
-  k = 1 # marginal associations are alwas significant.
-  a = 0
-
   # the nodes are always marginally associated, otherwise the candidate would not
   # have been chosen as such.
   if (length(cpc) == 0)
@@ -253,35 +250,8 @@ si.hiton.pc.backward = function(target, candidate, cpc, data, test, alpha, B, de
   if (debug)
     cat("* backward phase for candidate node", candidate, ".\n")
 
-  repeat {
-
-    dsep.subsets = subsets(length(cpc), k, cpc)
-
-    for (s in 1:nrow(dsep.subsets)) {
-
-      a = conditional.test(target, candidate, dsep.subsets[s,], data = data,
-            test = test, B = B, alpha = alpha)
-      if (debug)
-        cat("    > testing", candidate, "vs", target, "given", dsep.subsets[s,], "(", a, ")\n")
-
-      if (a > alpha) {
-
-        if (debug)
-          cat("    >", candidate, "and", target, "are independent given '", dsep.subsets[s,], "' (", a, ")\n")
-        return(FALSE)
-
-      }#THEN
-
-    }#FOR
-
-    if (k < length(cpc))
-      k = k + 1
-    else
-      break
-
-  }#REPEAT
-
-  return(TRUE)
+  allsubs.test(x = target, y = candidate, sx = cpc, min = 1L, data = data,
+    test = test, alpha = alpha, B = B, debug = debug) <= alpha
 
 }#SI.HITON.PC.BACKWARD
 

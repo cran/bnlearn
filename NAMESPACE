@@ -98,6 +98,7 @@ export(
   "mutilated",
   "dsep",
   "discretize",
+  "dedup",
   "relevant",
   "bn.var",
   "bn.moments",
@@ -107,6 +108,7 @@ export(
   "write.dsc",
   "read.net",
   "write.net",
+  "write.dot",
   "test.counter",
   "increment.test.counter",
   "reset.test.counter"

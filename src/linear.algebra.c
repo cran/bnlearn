@@ -1,5 +1,4 @@
 #include "common.h"
-#include <Rmath.h>
 #include <R_ext/Applic.h>
 #include <R_ext/Lapack.h>
 #include <R_ext/Linpack.h>
@@ -16,10 +15,8 @@ double c_det(double *matrix, int *rows);
 SEXP r_det(SEXP matrix, int scale) {
 
 int i = 0, nr = nrows(matrix);
+double det = 0;
 short int duplicated = 0;
-SEXP result;
-
-  PROTECT(result = allocVector(REALSXP, 1));
 
   /* duplicate the matrix so the original one is not overwritten. */
   if ((duplicated = NAMED(matrix)) > 0)
@@ -30,14 +27,12 @@ SEXP result;
     REAL(matrix)[i] *= scale;
 
   /* call Lapack to do the grunt work. */
-  NUM(result) = c_det(REAL(matrix), &nr);
+  det = c_det(REAL(matrix), &nr);
 
   if (duplicated > 0)
-    UNPROTECT(2);
-  else
     UNPROTECT(1);
 
-  return result;
+  return ScalarReal(det);
 
 }/*R_DET*/
 
@@ -118,50 +113,50 @@ double det = 1;
 }/*C_DET*/
 
 /* C-level function to compute Moore-Penrose Generalized Inverse of a square matrix. */
-void c_ginv(double *covariance, int *ncols, double *mpinv) {
+void c_ginv(double *covariance, int ncols, double *mpinv) {
 
 int i = 0, j = 0, errcode = 0;
 double *u = NULL, *d = NULL, *vt = NULL, *backup = NULL;
 double sv_tol = 0, zero = 0, one = 1;
 char transa = 'N', transb = 'N';
 
-  u = Calloc((*ncols) * (*ncols), double);
-  memset(u, '\0', (*ncols) * (*ncols) * sizeof(double));
-  d = Calloc((*ncols), double);
-  memset(d, '\0', (*ncols) * sizeof(double));
-  vt = Calloc((*ncols) * (*ncols), double);
-  memset(vt, '\0', (*ncols) * (*ncols) * sizeof(double));
+  u = Calloc(ncols * ncols, double);
+  memset(u, '\0', ncols * ncols * sizeof(double));
+  d = Calloc(ncols, double);
+  memset(d, '\0', ncols * sizeof(double));
+  vt = Calloc(ncols * ncols, double);
+  memset(vt, '\0', ncols * ncols * sizeof(double));
 
   if (covariance != mpinv) {
 
-    backup = Calloc((*ncols) * (*ncols), double);
-    memcpy(backup, covariance, (*ncols) * (*ncols) * sizeof(double));
+    backup = Calloc(ncols * ncols, double);
+    memcpy(backup, covariance, ncols * ncols * sizeof(double));
 
   }/*THEN*/
 
   /* compute the SVD decomposition. */
-  c_svd(covariance, u, d, vt, ncols, ncols, ncols, FALSE, &errcode);
+  c_svd(covariance, u, d, vt, &ncols, &ncols, &ncols, FALSE, &errcode);
 
   /* if SVD fails, catch the error code and free all buffers. */
   if (errcode == 0) {
 
     /* set the threshold for the singular values as in corpcor. */
-    sv_tol = (*ncols) * d[0] * MACHINE_TOL * MACHINE_TOL;
+    sv_tol = ncols * d[0] * MACHINE_TOL * MACHINE_TOL;
 
     /* the first multiplication, U * D^{-1} is easy. */
-    for (i = 0; i < *ncols; i++)
-      for (j = 0; j < *ncols; j++)
-        u[CMC(i, j, *ncols)] = u[CMC(i, j, *ncols)] * ((d[j] > sv_tol) ? 1/d[j] : 0);
+    for (i = 0; i < ncols; i++)
+      for (j = 0; j < ncols; j++)
+        u[CMC(i, j, ncols)] = u[CMC(i, j, ncols)] * ((d[j] > sv_tol) ? 1/d[j] : 0);
 
     /* the second one, (U * D^{-1}) * Vt  is a real matrix multiplication. */
-    F77_CALL(dgemm)(&transa, &transb, ncols, ncols, ncols, &one, u,
-      ncols, vt, ncols, &zero, mpinv, ncols);
+    F77_CALL(dgemm)(&transa, &transb, &ncols, &ncols, &ncols, &one, u,
+      &ncols, vt, &ncols, &zero, mpinv, &ncols);
 
   }/*THEN*/
 
   if (covariance != mpinv) {
 
-    memcpy(covariance, backup, (*ncols) * (*ncols) * sizeof(double));
+    memcpy(covariance, backup, ncols * ncols * sizeof(double));
     Free(backup);
 
   }/*THEN*/

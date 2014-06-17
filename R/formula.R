@@ -89,6 +89,9 @@ model2network.backend = function(modelstring, node.order = NULL, debug = FALSE) 
     # check whether the the graph is acyclic.
     if (!is.acyclic(nodes = nodes, arcs = res$arcs, debug = debug))
       stop("the specified network contains cycles.")
+    # check whether the network is completely directed.
+    if (is.pdag(arcs = res$arcs, nodes = nodes))
+      stop("the graph is only partially directed.")
 
     # update the network structure.
     if (is.null(node.order)) {

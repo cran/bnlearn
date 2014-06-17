@@ -2,10 +2,13 @@
 # fit the parameters of the bayesian network for a given network stucture.
 bn.fit.backend = function(x, data, method = "mle", extra.args, debug = FALSE) {
 
+  # cache the sample size.
   n = nrow(data)
-
+  # check which type of data we are dealing with.
+  type = data.type(data)
+ 
   # define the fitting functions.
-  if (is.data.discrete(data)) {
+  if (type %in% c("factor", "ordered", "mixed-do")) {
 
     fit = function(node) {
 

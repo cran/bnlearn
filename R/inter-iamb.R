@@ -111,7 +111,7 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
     if (debug)
       cat("  * checking node", y, "for exclusion (shrinking phase).\n")
 
-    a = conditional.test(x, y, mb[mb != y], data = data, test = test, B = B,
+    a = indep.test(x, y, mb[mb != y], data = data, test = test, B = B,
           alpha = alpha)
 
     if (a > alpha) {
@@ -182,17 +182,21 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
 
   repeat {
 
+    # stop if there are no nodes left.
+    if (length(nodes[!(nodes %in% c(mb, culprit))]) == 0 || is.null(nodes))
+      break
+
     # get a snapshot of the markov blanket status.
     mb.snapshot = mb
 
     # get an association measure for each of the available nodes.
-    association = sapply(nodes[!(nodes %in% c(mb, culprit))], conditional.test, x, sx = mb,
+    association = indep.test(nodes[!(nodes %in% c(mb, culprit))], x, sx = mb,
                     test = test, data = data, B = B, alpha = alpha)
 
     # stop if there are no candidates for inclusion; the markov blanket
     # would obviously be unchanged.
-    if (all(association > alpha) || length(nodes) == 0 || is.null(nodes)) break
-
+    if (all(association > alpha))
+      break
     # get the one which maximizes the association measure.
     to.add = names(which.min(association))
 

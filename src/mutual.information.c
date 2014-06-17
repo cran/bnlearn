@@ -2,27 +2,39 @@
 #include "common.h"
 
 /* unconditional mutual information, to be used in C code. */
-double c_mi(int *xx, int *llx, int *yy, int *lly, int *num) {
+double c_mi(int *xx, int llx, int *yy, int lly, int num, double *df,
+    int adj) {
 
 int i = 0, j = 0, k = 0;
 int  **n = NULL, *ni = NULL, *nj = NULL;
 double res = 0;
 
+  if (adj) {
+
+    /* if there are less than 5 observations per cell on average, assume the
+     * test does not have enough power and return independence. */
+    if (num < 5 * llx * lly) {
+
+      if (df) *df = 1;
+
+      return 0;
+
+    }/*THEN*/
+
+  }/*THEN*/
+
   /* initialize the contingency table and the marginal frequencies. */
-  n = alloc2dcont(*llx, *lly);
-  ni = alloc1dcont(*llx);
-  nj = alloc1dcont(*lly);
+  n = alloc2dcont(llx, lly);
+  ni = alloc1dcont(llx);
+  nj = alloc1dcont(lly);
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < *num; k++) {
-
+  for (k = 0; k < num; k++)
     n[xx[k] - 1][yy[k] - 1]++;
 
-  }/*FOR*/
-
   /* compute the marginals. */
-  for (i = 0; i < *llx; i++)
-    for (j = 0; j < *lly; j++) {
+  for (i = 0; i < llx; i++)
+    for (j = 0; j < lly; j++) {
 
     ni[i] += n[i][j];
     nj[j] += n[i][j];
@@ -30,16 +42,20 @@ double res = 0;
   }/*FOR*/
 
   /* compute the mutual information from the joint and marginal frequencies. */
-  for (i = 0; i < *llx; i++)
-    for (j = 0; j < *lly; j++)
-      res += MI_PART(n[i][j], ni[i], nj[j], *num);
+  for (i = 0; i < llx; i++)
+    for (j = 0; j < lly; j++)
+      res += MI_PART(n[i][j], ni[i], nj[j], num);
 
-  return (res)/(*num);
+  /* compute the degrees of freedom. */
+  if (df)
+    *df = adj ? df_adjust(ni, llx, nj, lly) : (llx - 1) * (lly - 1);
+
+  return res / num;
 
 }/*C_MI*/
 
 /* unconditional mutual information, to be used for the asymptotic test. */
-SEXP mi(SEXP x, SEXP y, SEXP gsquare) {
+SEXP mi(SEXP x, SEXP y, SEXP gsquare, SEXP adjusted) {
 
 int llx = NLEVELS(x), lly = NLEVELS(y), num = length(x);
 int *xx = INTEGER(x), *yy = INTEGER(y);
@@ -48,8 +64,7 @@ SEXP result;
 
   PROTECT(result = allocVector(REALSXP, 2));
   res = REAL(result);
-  res[0] = c_mi(xx, &llx, yy, &lly, &num);
-  res[1] = (double)(llx - 1) * (double)(lly - 1);
+  res[0] = c_mi(xx, llx, yy, lly, num, res + 1, isTRUE(adjusted));
 
   /* rescale to match the G^2 test. */
   if (isTRUE(gsquare))
@@ -62,29 +77,41 @@ SEXP result;
 }/*MI*/
 
 /* conditional mutual information, to be used in C code. */
-double c_cmi(int *xx, int *llx, int *yy, int *lly, int *zz, int *llz, int *num) {
+double c_cmi(int *xx, int llx, int *yy, int lly, int *zz, int llz, int num,
+    double *df, int adj) {
 
 int i = 0, j = 0, k = 0;
 int ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL;
 double res = 0;
 
-  /* initialize the contingency table and the marginal frequencies. */
-  n = alloc3dcont(*llx, *lly, *llz);
-  ni = alloc2dcont(*llx, *llz);
-  nj = alloc2dcont(*lly, *llz);
-  nk = alloc1dcont(*llz);
+   if (adj) {
+
+    /* if there are less than 5 observations per cell on average, asuume the
+     * test does not have enough power and return independence. */
+    if (num < 5 * llx * lly * llz) {
+
+      if (df) *df = 1;
+
+      return 0;
+
+    }/*THEN*/
+
+  }/*THEN*/
+
+ /* initialize the contingency table and the marginal frequencies. */
+  n = alloc3dcont(llx, lly, llz);
+  ni = alloc2dcont(llx, llz);
+  nj = alloc2dcont(lly, llz);
+  nk = alloc1dcont(llz);
 
   /* compute the joint frequency of x, y, and z. */
-  for (k = 0; k < *num; k++) {
-
+  for (k = 0; k < num; k++)
     n[xx[k] - 1][yy[k] - 1][zz[k] - 1]++;
 
-  }/*FOR*/
-
   /* compute the marginals. */
-  for (i = 0; i < *llx; i++)
-    for (j = 0; j < *lly; j++)
-      for (k = 0; k < *llz; k++) {
+  for (i = 0; i < llx; i++)
+    for (j = 0; j < lly; j++)
+      for (k = 0; k < llz; k++) {
 
         ni[i][k] += n[i][j][k];
         nj[j][k] += n[i][j][k];
@@ -94,62 +121,27 @@ double res = 0;
 
   /* compute the conditional mutual information from the joint and
      marginal frequencies. */
-  for (i = 0; i < *llx; i++)
-    for (j = 0; j < *lly; j++)
-      for (k = 0; k < *llz; k++)
+  for (i = 0; i < llx; i++)
+    for (j = 0; j < lly; j++)
+      for (k = 0; k < llz; k++)
         res += MI_PART(n[i][j][k], ni[i][k], nj[j][k], nk[k]);
 
-  res = res/(*num);
+  res /= num;
+
+  /* compute the degrees of freedom. */
+  if (df)
+    *df = adj ? cdf_adjust(ni, llx, nj, lly, llz) : (llx - 1) * (lly - 1) * llz;
 
   return res;
 
 }/*C_CMI*/
 
-/* conditional mutual information, to be used for the asymptotic test. */
-SEXP cmi(SEXP x, SEXP y, SEXP z, SEXP gsquare) {
-
-int llx = NLEVELS(x), lly = NLEVELS(y), llz = NLEVELS(z);
-int num = length(x);
-int *xx = INTEGER(x), *yy = INTEGER(y), *zz = INTEGER(z);
-double *res = NULL;
-SEXP result;
-
-  /* allocate and initialize result to zero. */
-  PROTECT(result = allocVector(REALSXP, 2));
-  res = REAL(result);
-  res[0] = c_cmi(xx, &llx, yy, &lly, zz, &llz, &num);
-  res[1] = (double)(llx - 1) * (double)(lly - 1) * (double)llz;
-
-  /* rescale to match the G^2 test. */
-  if (isTRUE(gsquare))
-    res[0] *= 2 * num;
-
-  UNPROTECT(1);
-
-  return result;
-
-}/*CMI*/
-
 /* unconditional Gaussian mutual information, to be used in C code. */
 double c_mig(double *xx, double *yy, int *num) {
 
-double cor = c_fast_cor(xx, yy, num);
+double cor = c_fast_cor(xx, yy, *num);
 
   return - 0.5 * log(1 - cor * cor);
 
 }/*C_MIG*/
 
-/* unconditional Gaussian mutual information, to be used in the asymptotic test. */
-SEXP mig(SEXP x, SEXP y, SEXP length) {
-
-double *xx = REAL(x), *yy = REAL(y);
-int *num = INTEGER(length);
-SEXP result;
-
-  PROTECT(result = allocVector(REALSXP, 1));
-  NUM(result) = c_mig(xx, yy, num);
-  UNPROTECT(1);
-
-  return result;
-
-}/*MIG*/

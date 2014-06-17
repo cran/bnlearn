@@ -194,7 +194,7 @@ maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B,
 
     for (s in 1:nrow(dsep.subsets)) {
 
-      a = conditional.test(x, y, c(dsep.subsets[s,], last), data = data,
+      a = indep.test(x, y, c(dsep.subsets[s,], last), data = data,
             test = test, B = B, alpha = alpha)
 
       if (debug) {

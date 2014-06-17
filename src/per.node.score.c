@@ -67,6 +67,9 @@ SEXP cur;
      res[i] = loglik_dnode(cur, network, data, &nparams, debuglevel);
      res[i] -= (*k) * nparams;
 
+     if (debuglevel > 0)
+       Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
+
     }/*FOR*/
 
   }/*THEN*/
@@ -82,6 +85,9 @@ SEXP cur;
 
      res[i] = loglik_gnode(cur, network, data, &nparams, debuglevel); 
      res[i] -= (*k) * nparams;
+
+     if (debuglevel > 0)
+       Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
 
     }/*FOR*/
 

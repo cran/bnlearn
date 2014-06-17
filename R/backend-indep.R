@@ -120,9 +120,6 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
   # define the backward selection heuristic.
   nbr = function(y, x, mb, test) {
 
-    k = ifelse(empty.dsep, 0, 1)
-    a = 0
-
     if (debug)
       cat("  * checking node", y, "for neighbourhood.\n")
 
@@ -135,53 +132,25 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
     if (debug)
       cat("    > dsep.set = '", dsep.set, "'\n")
 
-    repeat {
+    a = allsubs.test(x = x, y = y, sx = dsep.set, min = ifelse(empty.dsep, 0, 1),
+          data = data, test = test, alpha = alpha, B = B, debug = debug)
 
-      # create all possible subsets of the markov blanket (excluding
-      # the node to be tested for exclusion) of size k.
-      dsep.subsets = subsets(length(dsep.set), k, dsep.set)
+    if (a > alpha) {
 
-      for (s in 1:nrow(dsep.subsets)) {
+      if (debug)
+        cat("    > node", y, "is not a neighbour of", x, ". ( p-value:", a, ")\n")
 
-        if (debug)
-          cat("    > trying conditioning subset '", dsep.subsets[s,], "'.\n")
+      # update the neighbourhood.
+      assign("nbrhood", nbrhood[nbrhood != y], envir = sys.frame(-3) )
 
-        a = conditional.test(x, y, dsep.subsets[s,], data = data,
-              test = test, B = B, alpha = alpha)
-        if (a > alpha) {
+      return(NULL)
 
-          if (debug)
-            cat("    > node", y, "is not a neighbour of", x, ". ( p-value:", a, ")\n")
+    }#THEN
+    else if (debug) {
 
-          # update the neighbourhood.
-          assign("nbrhood", nbrhood[nbrhood != y], envir = sys.frame(-3) )
+        cat("    > node", y, "is still a neighbour of", x, ". ( p-value:", a, ")\n")
 
-          break
-
-        }#THEN
-        else if (debug) {
-
-            cat("    > node", y, "is still a neighbour of", x, ". ( p-value:", a, ")\n")
-
-        }#THEN
-
-      }#FOR
-
-      # if the node was not removed from the markov blanket, increase
-      # the size of the conditioning set and try again (if the size of
-      # the markov blanket itself allows it).
-      if ((a <= alpha) && (k < length(dsep.set))) {
-
-        k = k + 1
-
-      }#THEN
-      else {
-
-        break
-
-      }#ELSE
-
-    }#REPEAT
+    }#THEN
 
   }#NBR
 
@@ -249,7 +218,7 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
 
           for (s in 1:nrow(dsep.subsets)) {
 
-            a = conditional.test(y, z, c(dsep.subsets[s,], x), data = data,
+            a = indep.test(y, z, c(dsep.subsets[s,], x), data = data,
                   test = test, B = B, alpha = alpha)
             if (debug)
               cat("    > testing", y, "vs", z, "given", c(dsep.subsets[s,], x), "(", a, ")\n")

@@ -2,61 +2,6 @@
 #include <R_ext/Arith.h>
 #include <R_ext/Utils.h>
 
-/* a rudimental C implementation of which.max(). */
-int which_max(double *array, int length) {
-
-int i = 0, imax = -1;
-double max = R_NegInf;
-
-  for (i = 0; i < length; i++) {
-
-    /* NA and NaN cannot be compared with valid real numbers. */
-    if (ISNAN(array[i]))
-      continue;
-
-    if (array[i] > max) {
-
-      imax = i;
-      max = array[i];
-
-    }/*THEN*/
-
-  }/*FOR*/
-
-    /* if all elements are NA/NaN return NA. */
-    if (imax < 0)
-      return NA_INTEGER;
-
-  return imax + 1;
-
-}/*WHICH_MAX*/
-
-/* return all maxima in the array, modulo numeric tolerance. */
-void all_max(double *array, int length, int *maxima, int *nmax, int *indexes,
-    double *buf) {
-
-  int i = 0;
-  double tol = MACHINE_TOL;
-
-  /* make a safety copy of the array. */
-  memcpy(buf, array, length * sizeof(double));
-
-  /* sort the elements of the array. */
-  rsort_with_index(buf, indexes, length);
-
-  /* count the number of maxima (considering numeric tolerance). */
-  for (i = length - 1; i >= 0; i--)
-    if (buf[i] < buf[length - 1] - tol)
-      break;
-
-  /* set the counter for the number of maxima. */
-  *nmax = length - i - 1;
-
-  /* save the indexes of the maxima. */
-  memcpy(maxima, indexes + length - *nmax, *nmax * sizeof(int));
-
-}/*ALL_MAX*/
-
 /* get the list element named str, or return NULL. */
 SEXP getListElement(SEXP list, char *str) {
 
@@ -74,7 +19,7 @@ int i = 0;
 
   }/*FOR*/
 
-return elmt;
+  return elmt;
 
 }/*GETLISTELEMENT*/
 
@@ -151,7 +96,7 @@ SEXP result, temp;
 SEXP int2fac(SEXP vector, int *nlevels) {
 
 int i = 0, *l = NULL;
-SEXP result, class, levels, lvls;
+SEXP result, levels, lvls;
 
   if (!nlevels) {
 
@@ -176,114 +121,13 @@ SEXP result, class, levels, lvls;
   setAttrib(result, R_LevelsSymbol, lvls);
 
   /* set the class of the return value. */
-  PROTECT(class = allocVector(STRSXP, 1));
-  SET_STRING_ELT(class, 0, mkChar("factor"));
-  setAttrib(result, R_ClassSymbol, class);
+  setAttrib(result, R_ClassSymbol, mkString("factor"));
 
-  UNPROTECT(4);
+  UNPROTECT(3);
 
   return result;
 
 }/*INT2FAC*/
-
-/* in-place conversion an list into a data frame. */
-SEXP minimal_data_frame(SEXP obj) {
-
-int n = length(VECTOR_ELT(obj, 0));
-int *row = NULL;
-SEXP classname, rownames;
-
-  // generate and set the row names.
-  PROTECT(rownames = allocVector(INTSXP, 2));
-  row = INTEGER(rownames);
-
-  row[0] = NA_INTEGER;
-  row[1] = n;
-
-  setAttrib(obj, R_RowNamesSymbol, rownames);
-
-  // set the class name.
-  PROTECT(classname = allocVector(STRSXP, 1));
-  SET_STRING_ELT(classname, 0, mkChar("data.frame"));
-  setAttrib(obj, R_ClassSymbol, classname);
-
-  UNPROTECT(2);
-
-  return obj;
-
-}/*MINIMAL_DATA_FRAME*/
-
-/* efficient column extraction from data frames. */
-SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop) {
-
-  return c_dataframe_column(dataframe, name, LOGICAL(drop)[0], FALSE);
-
-}/*DATAFRAME_COLUMN*/
-
-SEXP c_dataframe_column(SEXP dataframe, SEXP name, int drop, int keep_names) {
-
-SEXP try, result, colnames = getAttrib(dataframe, R_NamesSymbol);
-int *idx = NULL, nnames = length(name), name_type = TYPEOF(name);
-
-  if (dataframe == R_NilValue)
-    return R_NilValue;
-
-  switch(name_type) {
-
-    case STRSXP:
-
-      /* column names passed as strings; match the corresponding indexes. */
-      PROTECT(try = match(colnames, name, 0));
-      idx = INTEGER(try);
-      break;
-
-    case REALSXP:
-
-      /* these are almost good enough, coerce them to integers. */
-      PROTECT(try = coerceVector(name, INTSXP));
-      idx = INTEGER(try);
-      break;
-
-    case INTSXP:
-
-      /* these are already indexes, nothing to do. */
-      idx = INTEGER(name);
-      break;
-
-    default:
-
-      error("this SEXP type is not handled in minimal.data.frame.column().");
-
-  }/*SWITCH*/
-
-  if ((nnames > 1) || (drop == 0)) {
-
-    PROTECT(result = allocVector(VECSXP, nnames));
-
-    for (int i = 0; i < nnames; i++)
-      SET_VECTOR_ELT(result, i, VECTOR_ELT(dataframe, idx[i] -1));
-
-    if (keep_names)
-      setAttrib(result, R_NamesSymbol, name);
-
-    UNPROTECT(1);
-
-  }/*THEN*/
-  else {
-
-    if (*idx != 0)
-      result = VECTOR_ELT(dataframe, *idx - 1);
-    else
-      result = R_NilValue;
-
-  }/*ELSE*/
-
-  if (name_type != INTSXP)
-    UNPROTECT(1);
-
-  return result;
-
-}/*C_DATAFRAME_COLUMN*/
 
 /* efficient copying of data from the data frame to a matrix for the QR decomposition. */
 SEXP qr_matrix(SEXP dataframe, SEXP name) {
@@ -324,19 +168,15 @@ double *res = NULL, *source = NULL;
 /* set the column names on arc sets. */
 SEXP finalize_arcs(SEXP arcs) {
 
-SEXP dimnames, colnames;
+SEXP dimnames;
 
   /* allocate column names. */
   PROTECT(dimnames = allocVector(VECSXP, 2));
-  PROTECT(colnames = allocVector(STRSXP, 2));
-  SET_STRING_ELT(colnames, 0, mkChar("from"));
-  SET_STRING_ELT(colnames, 1, mkChar("to"));
-  SET_VECTOR_ELT(dimnames, 1, colnames);
-
+  SET_VECTOR_ELT(dimnames, 1, mkStringVec(2, "from", "to"));
   /* set the column names. */
   setAttrib(arcs, R_DimNamesSymbol, dimnames);
 
-  UNPROTECT(2);
+  UNPROTECT(1);
 
   return arcs;
 
@@ -398,4 +238,23 @@ double *c = NULL;
   return cpt;
 
 }/*NORMALIZE_CPT*/
+
+/* data-independent pointer extraction without USE_RINTERNALS. */
+void *DATAPTR(SEXP x) {
+
+  switch(TYPEOF(x)) {
+
+    case REALSXP:
+
+      return (void *)REAL(x);
+
+    case INTSXP:
+
+      return (void *)INTEGER(x);
+
+  }/*SWITCH*/
+
+  return NULL;
+
+}/*DATAPTR*/
 

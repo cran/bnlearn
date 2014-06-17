@@ -55,27 +55,15 @@ SEXP is_listed(SEXP arc, SEXP set, SEXP either, SEXP both, SEXP debug) {
 int i = 0, matched = 0, nrows = length(set) / 2;
 const char *from = CHAR(STRING_ELT(arc, 0));
 const char *to = CHAR(STRING_ELT(arc, 1));
-int *debuglevel = NULL;
-SEXP res;
-
-  /* allocate and initialize the logical value to be returned. */
-  PROTECT(res = allocVector(LGLSXP, 1));
-  LOGICAL(res)[0] = FALSE;
+int debuglevel = isTRUE(debug);
 
   /* if the arc set is NULL, return immediately. */
-  if (isNull(set)) {
-
-    UNPROTECT(1);
-    return res;
-
-  }/*THEN*/
-
-  /* dereference the debug parameter. */
-  debuglevel = LOGICAL(debug);
+  if (isNull(set))
+    return ScalarLogical(FALSE);
 
   for (i = 0; i < nrows; i++) {
 
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       Rprintf("* checking %s -> %s\n", ARC(i, 0), ARC(i, 1));
 
     /* check the first element; if it does not match skip to the second one. */
@@ -89,7 +77,7 @@ SEXP res;
          * A -> B and B -> A are in the arc set when "both = TRUE". */
         matched++;
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("  > matched %s -> %s (matched is %d).\n", ARC(i, 0),
             ARC(i, 1), matched);
 
@@ -121,7 +109,7 @@ SEXP res;
            * A -> B and B -> A are in the arc set when "both = TRUE". */
           matched++;
 
-          if (*debuglevel > 0)
+          if (debuglevel > 0)
             Rprintf("  > matched %s -> %s (matched is %d).\n", ARC(i, 0),
               ARC(i, 1), matched);
 
@@ -142,15 +130,10 @@ SEXP res;
 
   }/*FOR*/
 
-  UNPROTECT(1);
-  return res;
+  return ScalarLogical(FALSE);
 
 success:
-
-   LOGICAL(res)[0] = TRUE;
-
-   UNPROTECT(1);
-   return res;
+   return ScalarLogical(TRUE);
 
 }/*IS_LISTED*/
 

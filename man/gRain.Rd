@@ -30,6 +30,9 @@
   \code{method = "bayes"} and a low \code{iss} value, using the same data
   and network structure.
 
+  Ordinal nodes will be treated as categorical by \code{as.grain}, 
+  disregarding the ordering of the levels.
+
 }
 \value{
 

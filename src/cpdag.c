@@ -9,15 +9,15 @@
 
 static void fix_all_directed(int *a, int *nnodes);
 static void scan_graph(int *a, SEXP nodes, int *nnodes,
-    short int *collider, int *debuglevel);
+    short int *collider, int debuglevel);
 static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
-    short int *collider, int *debuglevel);
+    short int *collider, int debuglevel);
 static void unmark_shielded(int *a, SEXP nodes, int *nnodes,
-    short int *collider, int *debuglevel);
+    short int *collider, int debuglevel);
 static int prevent_cycles(int *a, SEXP nodes, int *nnodes,
-    short int *collider, int *debuglevel);
+    short int *collider, int debuglevel);
 static int prevent_additional_vstructures(int *a, SEXP nodes,
-    int *nnodes, short int *collider, int *debuglevel);
+    int *nnodes, short int *collider, int debuglevel);
 static void renormalize_amat(int *a, int *nnodes);
 static SEXP amat2vstructs(int *a, SEXP nodes, int *nnodes, short int *collider);
 static void is_a_sink(int *a, int node, int *k, int nnodes, int *nbr,
@@ -28,8 +28,8 @@ static int all_adjacent(int *a, int node, int k, int nnodes, int *nbr);
 SEXP vstructures(SEXP arcs, SEXP nodes, SEXP return_arcs, SEXP moral, SEXP debug) {
 
 int i = 0, nnodes = length(nodes);
-int *a = NULL, *ret_arcs = LOGICAL(return_arcs), *debuglevel = LOGICAL(debug);
-int *all_vstructs = LOGICAL(moral);
+int *a = NULL, *ret_arcs = LOGICAL(return_arcs), debuglevel = isTRUE(debug);
+int all_vstructs = isTRUE(moral);
 short int *collider = NULL;
 SEXP amat, result;
 
@@ -47,7 +47,7 @@ SEXP amat, result;
   mark_vstructures(a, nodes, &nnodes, collider, debuglevel);
 
   /* decide whether or not to keep moral v-structures (i.e. shielded colliders). */
-  if (*all_vstructs == 0)
+  if (all_vstructs == 0)
     unmark_shielded(a, nodes, &nnodes, collider, debuglevel);
 
   /* remove all non-fixed arcs (including compelled ones). */
@@ -68,7 +68,7 @@ SEXP amat, result;
 static SEXP amat2vstructs(int *a, SEXP nodes, int *nnodes, short int *collider) {
 
 int i = 0, j = 0, k = 0, nvstructs = 0, counter = 0, row = 0;
-SEXP result, dimnames, colnames;
+SEXP result, dimnames;
 
   for (i = 0; i < *nnodes; i++) {
 
@@ -93,11 +93,7 @@ SEXP result, dimnames, colnames;
 
   /* allocate and the colnames. */
   PROTECT(dimnames = allocVector(VECSXP, 2));
-  PROTECT(colnames = allocVector(STRSXP, 3));
-  SET_STRING_ELT(colnames, 0, mkChar("X"));
-  SET_STRING_ELT(colnames, 1, mkChar("Z"));
-  SET_STRING_ELT(colnames, 2, mkChar("Y"));
-  SET_VECTOR_ELT(dimnames, 1, colnames);
+  SET_VECTOR_ELT(dimnames, 1, mkStringVec(3, "X", "Z", "Y"));
   setAttrib(result, R_DimNamesSymbol, dimnames);
 
   for (i = 0; i < *nnodes; i++) {
@@ -130,7 +126,7 @@ SEXP result, dimnames, colnames;
 
   }/*FOR*/
 
-  UNPROTECT(3);
+  UNPROTECT(2);
 
   return result;
 
@@ -140,7 +136,7 @@ SEXP cpdag(SEXP arcs, SEXP nodes, SEXP moral, SEXP fix, SEXP debug) {
 
 int i = 0, changed = 0, nnodes = length(nodes);
 short int *collider = NULL;
-int *a = NULL, *debuglevel = LOGICAL(debug);
+int *a = NULL, debuglevel = isTRUE(debug);
 SEXP amat;
 
   /* build the adjacency matrix and dereference it. */
@@ -177,7 +173,7 @@ SEXP amat;
    * v-structures in the graph. */
   for (i = 0; i < nnodes * nnodes; i++) {
 
-    if (*debuglevel > 0)
+    if (debuglevel > 0)
       Rprintf("* setting the direction of more arcs (step 3, iteration %d).\n", i);
 
     /* STEP 3a: prevent the creation of cycles. */
@@ -188,7 +184,7 @@ SEXP amat;
 
     if (!changed) {
 
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         Rprintf("  > the graph is unchanged, skipping to the next step.\n");
 
       break;
@@ -231,13 +227,13 @@ int i = 0, j = 0;
 }/*FIX_ALL_DIRECTED*/
 
 static void scan_graph(int *a, SEXP nodes, int *nnodes,
-    short int *collider, int *debuglevel) {
+    short int *collider, int debuglevel) {
 
  int i = 0, j = 0, counter = 0;
 
   /* count the parents of each node (the non-symmetric 1s in the
    * corresponding column of the adjacency matrix). */
-  if (*debuglevel > 0)
+  if (debuglevel > 0)
     Rprintf("* scanning the graph (step 1).\n");
 
   for (j = 0; j < *nnodes; j++) {
@@ -258,7 +254,7 @@ static void scan_graph(int *a, SEXP nodes, int *nnodes,
 
         collider[j] = 1;
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("  > node %s is the center of a v-structure.\n", NODE(j));
 
         break;
@@ -272,12 +268,12 @@ static void scan_graph(int *a, SEXP nodes, int *nnodes,
 }/*SCAN_GRAPH*/
 
 static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
-    short int *collider, int *debuglevel) {
+    short int *collider, int debuglevel) {
 
  int i = 0, j = 0;
 
   /* set arcs belonging to a v-structure as FIXED. */
-  if (*debuglevel > 0)
+  if (debuglevel > 0)
     Rprintf("* marking v-structures (step 2).\n");
 
   for (j = 0; j < *nnodes; j++) {
@@ -314,7 +310,7 @@ static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
           /* this is a directed arc, it's part of a v-structure; mark it as FIXED. */
           a[CMC(i, j, *nnodes)] = FIXED;
 
-          if (*debuglevel > 0)
+          if (debuglevel > 0)
             Rprintf("  > fixing arc %s -> %s, it's part of a v-structure.\n", NODE(i), NODE(j));
 
         }/*THEN*/
@@ -326,7 +322,7 @@ static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
              * fix the arc without setting a direction. */
             a[CMC(i, j, *nnodes)] = a[CMC(j, i, *nnodes)] = FIXED;
 
-            if (*debuglevel > 0)
+            if (debuglevel > 0)
               Rprintf("  > fixing arc %s - %s due to conflicting v-structures.\n", NODE(j), NODE(i));
 
             warning("conflicting v-structures, the PDAG spans more than one equivalence class.");
@@ -344,11 +340,11 @@ static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
 }/*MARK_VSTRUCTURES*/
 
 static void unmark_shielded(int *a, SEXP nodes, int *nnodes,
-    short int *collider, int *debuglevel) {
+    short int *collider, int debuglevel) {
 
 int i = 0, j = 0, k = 0, check = FALSE;
 
-  if (*debuglevel > 0)
+  if (debuglevel > 0)
     Rprintf("* removing moral v-structures aka shielded colliders.\n");
 
   for (i = 0; i < *nnodes; i++) {
@@ -363,7 +359,7 @@ int i = 0, j = 0, k = 0, check = FALSE;
       if (a[CMC(j, i, *nnodes)] != FIXED)
         continue;
 
-      if (*debuglevel > 0)
+      if (debuglevel > 0)
         Rprintf("  > considering arc %s -> %s.\n", NODE(j), NODE(i));
 
       /* this is set to TRUE is the arc is part of an unshielded collider. */
@@ -375,7 +371,7 @@ int i = 0, j = 0, k = 0, check = FALSE;
         if ((a[CMC(k, i, *nnodes)] != FIXED) || (j == k))
           continue;
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("    > considering v-structure %s -> %s <- %s.\n", NODE(j), NODE(i), NODE(k));
 
         /* parents are not connected, that's a real v-structure. */
@@ -391,13 +387,13 @@ int i = 0, j = 0, k = 0, check = FALSE;
 
       if (check) {
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("  @ arc %s -> %s is part of a v-structure.\n", NODE(j), NODE(i));
 
       }/*THEN*/
       else {
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("  @ arc %s -> %s is not part of a v-structure.\n", NODE(j), NODE(i));
 
         /* this arc should not be marked as FIXED and should not be directed. */
@@ -412,7 +408,7 @@ int i = 0, j = 0, k = 0, check = FALSE;
 }/*UNMARK_SHIELDED*/
 
 static int prevent_cycles(int *a, SEXP nodes, int *nnodes, short int *collider,
-    int *debuglevel) {
+    int debuglevel) {
 
 int i = 0, j = 0, changed = UNCHANGED, n = *nnodes;
 
@@ -428,7 +424,7 @@ int i = 0, j = 0, changed = UNCHANGED, n = *nnodes;
         a[CMC(i, j, n)] = FIXED;
         a[CMC(j, i, n)] = ABSENT;
 
-        if (*debuglevel)
+        if (debuglevel)
             Rprintf("  > fixing arc %s -> %s due to directed path (step 3a).\n", NODE(i), NODE(j));
 
         changed = CHANGED;
@@ -439,7 +435,7 @@ int i = 0, j = 0, changed = UNCHANGED, n = *nnodes;
         a[CMC(i, j, n)] = ABSENT;
         a[CMC(j, i, n)] = FIXED;
 
-        if (*debuglevel)
+        if (debuglevel)
             Rprintf("  > fixing arc %s -> %s due to directed path (step 3a).\n", NODE(j), NODE(i));
 
         changed = CHANGED;
@@ -455,7 +451,7 @@ int i = 0, j = 0, changed = UNCHANGED, n = *nnodes;
 }/*PREVENT_CYCLES*/
 
 static int prevent_additional_vstructures(int *a, SEXP nodes, int *nnodes,
-    short int *collider, int *debuglevel) {
+    short int *collider, int debuglevel) {
 
 int i = 0, j = 0;
 short int *has_parent = NULL, *has_neighbour = NULL;
@@ -500,7 +496,7 @@ short int *has_parent = NULL, *has_neighbour = NULL;
             a[CMC(i, j, *nnodes)] = FIXED;
             a[CMC(j, i, *nnodes)] = FIXED;
 
-            if (*debuglevel > 0)
+            if (debuglevel > 0)
               Rprintf("  > fixing arc %s - %s, both nodes have parents (step 3b).\n", NODE(j), NODE(i));
 
           }/*THEN*/
@@ -509,7 +505,7 @@ short int *has_parent = NULL, *has_neighbour = NULL;
             a[CMC(i, j, *nnodes)] = ABSENT;
             a[CMC(j, i, *nnodes)] = FIXED;
 
-            if (*debuglevel > 0)
+            if (debuglevel > 0)
               Rprintf("  > fixing arc %s -> %s, prevent v-structure (step 3b).\n", NODE(j), NODE(i));
 
           }/*ELSE*/
@@ -540,7 +536,7 @@ SEXP pdag_extension(SEXP arcs, SEXP nodes, SEXP debug) {
 
 int i = 0, j = 0, k = 0, t = 0, nnodes = length(nodes);
 int changed = 0, left = nnodes;
-int *a = NULL, *nbr = NULL, *debuglevel = LOGICAL(debug);
+int *a = NULL, *nbr = NULL, debuglevel = isTRUE(debug);
 short int *matched = NULL;
 SEXP amat, result;
 
@@ -554,7 +550,7 @@ SEXP amat, result;
 
   for (t = 0; t < nnodes; t++) {
 
-    if (*debuglevel > 0) {
+    if (debuglevel > 0) {
 
       Rprintf("----------------------------------------------------------------\n");
       Rprintf("> performing pass %d.\n", t + 1);
@@ -578,7 +574,7 @@ SEXP amat, result;
       /* if the node is not a sink move on. */
       if (k == -1) {
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("  * node %s is not a sink.\n", NODE(i));
 
         continue;
@@ -586,14 +582,14 @@ SEXP amat, result;
       }/*THEN*/
       else {
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("  * node %s is a sink.\n", NODE(i));
 
       }/*ELSE*/
 
       if (!all_adjacent(a, i, k, nnodes, nbr)) {
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("  * not all nodes linked to %s by an undirected arc are adjacent.\n", NODE(i));
 
         continue;
@@ -601,7 +597,7 @@ SEXP amat, result;
       }/*THEN*/
       else {
 
-        if (*debuglevel > 0) {
+        if (debuglevel > 0) {
 
           if (k == 0)
             Rprintf("  * no node is linked to %s by an undirected arc.\n", NODE(i));
@@ -615,7 +611,7 @@ SEXP amat, result;
       /* the current node meets all the conditions, direct all the arcs towards it. */
       if (k == 0) {
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("  @ no undirected arc to direct towards %s.\n", NODE(i));
 
       }/*THEN*/
@@ -624,7 +620,7 @@ SEXP amat, result;
         for (j = 0; j < k; j++)
           a[CMC(i, nbr[j], nnodes)] = 0;
 
-        if (*debuglevel > 0)
+        if (debuglevel > 0)
           Rprintf("  @ directing all incident undirected arcs towards %s.\n", NODE(i));
 
       }/*ELSE*/
