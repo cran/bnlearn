@@ -15,7 +15,7 @@ write.bif = function(file, fitted) {
   # check fitted's class.
   check.fit(fitted)
   # only discrete bayesian networks are supported.
-  if (is.fitted.continuous(fitted))
+  if (!is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
     stop("only discrete Bayesian networks can be exported into BIF format.")
 
   # open the file for writing.
@@ -45,7 +45,7 @@ write.dsc = function(file, fitted) {
   # check fitted's class.
   check.fit(fitted)
   # only discrete bayesian networks are supported.
-  if (is.fitted.continuous(fitted))
+  if (!is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
     stop("only discrete Bayesian networks can be exported into DSC format.")
 
   # open the file for writing.
@@ -75,7 +75,7 @@ write.net = function(file, fitted) {
   # check fitted's class.
   check.fit(fitted)
   # only discrete bayesian networks are supported.
-  if (is.fitted.continuous(fitted))
+  if (!is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
     stop("only discrete Bayesian networks can be exported into DSC format.")
 
   # open the file for writing.

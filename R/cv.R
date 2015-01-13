@@ -20,7 +20,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args,
 
     if (!is.null(cluster)) {
 
-      kcv = parLapply(cluster, kcv, bn.cv.algorithm, data = data,
+      kcv = parallel::parLapply(cluster, kcv, bn.cv.algorithm, data = data,
               algorithm = bn, algorithm.args = algorithm.args, loss = loss,
               loss.args = loss.args, fit = fit, fit.args = fit.args,
               debug = debug)
@@ -40,9 +40,10 @@ crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args,
 
     if (!is.null(cluster)) {
 
-      kcv = parLapply(cluster, kcv, bn.cv.structure, data = data, bn = bn,
-              loss = loss, loss.args = loss.args, fit = fit, fit.args = fit.args,
-              debug = debug)
+      kcv = parallel::parLapply(cluster, kcv, bn.cv.structure, data = data,
+              bn = bn, loss = loss, loss.args = loss.args, fit = fit,
+              fit.args = fit.args, debug = debug)
+
     }#THEN
     else {
 
@@ -102,7 +103,7 @@ bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
   # returned by the learning algorithm is a CPDAG; extend it to a DAG (which
   # has the same log-likelihoos because it's in the same equivalence class)
   # and use the result in place of the original network.
-  if (loss %in% c("logl", "logl-g") &&
+  if (loss %in% c("logl", "logl-g", "logl-cg") &&
       !is.dag(arcs = bn$arcs, nodes = names(bn$nodes))) {
 
     bn = cpdag.extension(cpdag.backend(bn))
@@ -114,6 +115,13 @@ bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
   # fit the parameters.
   net = bn.fit.backend(x = bn, data = data[-test, ], method = fit,
           extra.args = fit.args)
+
+  # in the case of naive Bayes and TAN models, the prior must be computed on
+  # the training sample for each fold to match the behaviour of the default
+  # for non-cross-validated models.
+  if (is(net, c("bn.naive", "bn.tan")))
+    if (all(loss.args$prior == 1))
+      loss.args$prior = net[[attr(net, "training")]]$prob
 
   if (debug)
     cat("* applying the loss function to the data from the test sample.\n")

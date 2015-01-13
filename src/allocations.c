@@ -1,4 +1,25 @@
-#include <R.h>
+#include "common.h"
+
+static int stack_counter = 0;
+
+/* instrumentation to debug PROTECT()/UNPROTECT() calls. */
+void PROTECT_DEBUG(SEXP s, const char *fun, const char *file, int line) {
+
+  Rprintf("[%s()][%d -> %d] PROTECT() at %s:%d\n", fun,
+    stack_counter, stack_counter + 1, file, line);
+  stack_counter++;
+  Rf_protect(s);
+
+}/*PROTECT_DEBUG*/
+
+void UNPROTECT_DEBUG(int n, const char *fun, const char *file, int line) {
+
+  Rprintf("[%s()][%d -> %d] UNPROTECT() at %s:%d\n", fun,
+    stack_counter, stack_counter - n, file, line);
+  stack_counter -= n;
+  Rf_unprotect(n);
+
+}/*UNPROTECT_DEBUG*/
 
 /* allocate a 1-dimensional contingency table. */
 int *alloc1dcont (int length) {

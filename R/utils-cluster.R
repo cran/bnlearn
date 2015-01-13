@@ -1,7 +1,7 @@
 # check whether the cluster is running.
 isClusterRunning = function(cl) {
 
-  tryCatch(any(unlist(clusterEvalQ(cl, TRUE))),
+  tryCatch(any(unlist(parallel::clusterEvalQ(cl, TRUE))),
     error = function(err) { FALSE })
 
 }#ISCLUSTERRUNNING
@@ -12,10 +12,10 @@ check.cluster = function(cluster) {
   if (is.null(cluster))
     return(TRUE)
 
-  if (!(any(class(cluster) %in% supported.clusters)))
+  if (any(class(cluster) %!in% supported.clusters))
     stop("cluster is not a valid cluster object.")
 
-  if (!require(parallel))
+  if (!requireNamespace("parallel"))
       stop("this function requires the parallel package.")
   if (!isClusterRunning(cluster))
     stop("the cluster is stopped.")
@@ -32,7 +32,18 @@ nSlaves = function(cluster) {
 slaves.setup = function(cluster) {
 
   # set the test counter in all the cluster nodes.
-  clusterEvalQ(cluster, library(bnlearn))
-  clusterEvalQ(cluster, reset.test.counter())
+  parallel::clusterEvalQ(cluster, library(bnlearn))
+  parallel::clusterEvalQ(cluster, reset.test.counter())
 
 }#SLAVE.SETUP
+
+# smart parLapply() that falls back to standard lapply().
+smartLapply = function(cl, ...) {
+
+  if (is.null(cl))
+    lapply(...)
+  else
+    parallel::parLapply(cl = cl, ...)
+
+}#SMARTLAPPLY
+

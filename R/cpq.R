@@ -32,7 +32,7 @@ conditional.probability.query = function(fitted, event, evidence, method,
 
       if (probability) {
 
-        results = parSapply(cluster, seq(s),
+        results = parallel::parSapply(cluster, seq(s),
           function(x) {
 
             sampling(fitted = fitted, event = event, evidence = evidence,
@@ -45,7 +45,7 @@ conditional.probability.query = function(fitted, event, evidence, method,
       }#THEN
       else {
 
-        results = parLapply(cluster, seq(s),
+        results = parallel::parLapply(cluster, seq(s),
           function(x) {
 
             distribution(fitted = fitted, nodes = event, evidence = evidence,
@@ -114,7 +114,7 @@ reduce.fitted = function(fitted, event, evidence, nodes, method, debug) {
 
     # check whether something went horribly wrong in getting the node labels
     # and the upper closure.
-    if (((length(upper.closure) == 0) || !all(upper.closure %in% nodes)) ||
+    if (((length(upper.closure) == 0) || any(upper.closure %!in% nodes)) ||
         (!identical(evidence, TRUE) && (length(nodes.evidence) == 0)) ||
         (!identical(event, TRUE) && (length(nodes.event) == 0))) {
 

@@ -1,5 +1,12 @@
 #include "common.h"
 
+#define DEBUG_BEFORE() \
+  if (debuglevel > 0) { \
+    Rprintf("----------------------------------------------------------------\n"); \
+    Rprintf("* processing node %s.\n", CHAR(STRING_ELT(cur, 0))); \
+  }/*THEN*/ \
+
+
 /* R frontend: compute the score component for each target node. */
 SEXP per_node_score(SEXP network, SEXP data, SEXP score, SEXP targets,
     SEXP extra_args, SEXP debug) {
@@ -36,9 +43,9 @@ SEXP cur;
     /* discrete log-likelihood score. */
     for (i = 0; i < ntargets; i++) {
 
-     SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
-
-     res[i] = loglik_dnode(cur, network, data, NULL, debuglevel);
+      SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      DEBUG_BEFORE();
+      res[i] = loglik_dnode(cur, network, data, NULL, debuglevel);
 
     }/*FOR*/
 
@@ -48,27 +55,39 @@ SEXP cur;
     /* Gaussian log-likelihood score. */
     for (i = 0; i < ntargets; i++) {
 
-     SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      DEBUG_BEFORE();
+      res[i] = loglik_gnode(cur, network, data, NULL, debuglevel);
 
-     res[i] = loglik_gnode(cur, network, data, NULL, debuglevel);
+    }/*FOR*/
+
+  }/*THEN*/
+  else if (strcmp(s, "loglik-cg") == 0) {
+
+    /* Conditional Linear Gaussian log-likelihood score. */
+    for (i = 0; i < ntargets; i++) {
+
+      SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      DEBUG_BEFORE();
+      res[i] = loglik_cgnode(cur, network, data, NULL, debuglevel);
 
     }/*FOR*/
 
   }/*THEN*/
   else if ((strcmp(s, "aic") == 0) || (strcmp(s, "bic") == 0)) {
 
+    /* AIC and BIC scores, discrete data. */
     double nparams = 0, *k = REAL(getListElement(extra_args, "k"));
 
-    /* AIC and BIC scores, discrete data. */
     for (i = 0; i < ntargets; i++) {
 
-     SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      DEBUG_BEFORE();
+      res[i] = loglik_dnode(cur, network, data, &nparams, debuglevel);
+      res[i] -= (*k) * nparams;
 
-     res[i] = loglik_dnode(cur, network, data, &nparams, debuglevel);
-     res[i] -= (*k) * nparams;
-
-     if (debuglevel > 0)
-       Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
+      if (debuglevel > 0)
+        Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
 
     }/*FOR*/
 
@@ -78,16 +97,33 @@ SEXP cur;
     /* AIC and BIC scores, Gaussian data. */
     double nparams = 0, *k = REAL(getListElement(extra_args, "k"));
 
-    /* AIC and BIC scores, discrete data. */
     for (i = 0; i < ntargets; i++) {
 
-     SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      DEBUG_BEFORE();
+      res[i] = loglik_gnode(cur, network, data, &nparams, debuglevel);
+      res[i] -= (*k) * nparams;
 
-     res[i] = loglik_gnode(cur, network, data, &nparams, debuglevel); 
-     res[i] -= (*k) * nparams;
+      if (debuglevel > 0)
+        Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
 
-     if (debuglevel > 0)
-       Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
+    }/*FOR*/
+
+  }/*THEN*/
+  else if ((strcmp(s, "aic-cg") == 0) || (strcmp(s, "bic-cg") == 0)) {
+
+    /* AIC and BIC scores, Conditional Linear Gaussian data. */
+    double nparams = 0, *k = REAL(getListElement(extra_args, "k"));
+
+    for (i = 0; i < ntargets; i++) {
+
+      SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      DEBUG_BEFORE();
+      res[i] = loglik_cgnode(cur, network, data, &nparams, debuglevel);
+      res[i] -= (*k) * nparams;
+
+      if (debuglevel > 0)
+        Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
 
     }/*FOR*/
 
@@ -101,10 +137,10 @@ SEXP cur;
     /* Bayesian Dirichlet equivalent score (BDe). */
     for (i = 0; i < ntargets; i++) {
 
-     SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
-
-     res[i] = dirichlet_node(cur, network, data, iss, prior, beta, R_NilValue,
-                FALSE, debuglevel);
+      SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      DEBUG_BEFORE();
+      res[i] = dirichlet_node(cur, network, data, iss, prior, beta, R_NilValue,
+                 FALSE, debuglevel);
 
     }/*FOR*/
 
@@ -114,10 +150,10 @@ SEXP cur;
     /* Bayesian Dirichlet equivalent score (BDe). */
     for (i = 0; i < ntargets; i++) {
 
-     SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
-
-     res[i] = dirichlet_node(cur, network, data, R_NilValue, R_NilValue, R_NilValue,
-                R_NilValue, FALSE, debuglevel);
+      SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      DEBUG_BEFORE();
+      res[i] = dirichlet_node(cur, network, data, R_NilValue, R_NilValue, R_NilValue,
+                 R_NilValue, FALSE, debuglevel);
 
     }/*FOR*/
 
@@ -132,9 +168,9 @@ SEXP cur;
     /* Bayesian Gaussian equivalent score (BGe). */
     for (i = 0; i < ntargets; i++) {
 
-     SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
-
-     res[i] = wishart_node(cur, network, data, iss, phi, prior, beta, debuglevel);
+      SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      DEBUG_BEFORE();
+      res[i] = wishart_node(cur, network, data, iss, phi, prior, beta, debuglevel);
 
     }/*FOR*/
 
@@ -146,10 +182,10 @@ SEXP cur;
     /* Bayesian Dirichlet equivalent sparse score (BDes). */
     for (i = 0; i < ntargets; i++) {
 
-     SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
-
-     res[i] = dirichlet_node(cur, network, data, iss, R_NilValue, R_NilValue,
-                R_NilValue, TRUE, debuglevel);
+      SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      DEBUG_BEFORE();
+      res[i] = dirichlet_node(cur, network, data, iss, R_NilValue, R_NilValue,
+                 R_NilValue, TRUE, debuglevel);
 
     }/*FOR*/
 
@@ -162,10 +198,10 @@ SEXP cur;
     /* Mixture Bayesian Dirichlet equivalent score (mBDe). */
     for (i = 0; i < ntargets; i++) {
 
-     SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
-
-     res[i] = dirichlet_node(cur, network, data, iss, R_NilValue, R_NilValue, exp,
-                FALSE, debuglevel);
+      SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+      DEBUG_BEFORE();
+      res[i] = dirichlet_node(cur, network, data, iss, R_NilValue, R_NilValue, exp,
+                 FALSE, debuglevel);
 
     }/*FOR*/
 

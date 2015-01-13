@@ -17,9 +17,12 @@ long double sd = 0;
     sd += (xx[i] - xm) * (xx[i] - xm);
   sd = sqrt(sd / (num - 1));
 
-  /* compute the log-likelihood. */
-  for (i = 0; i < num; i++)
-    res += dnorm(xx[i], xm, (double)sd, TRUE);
+  /* compute the log-likelihood (singular models haze zero density). */
+  if (sd < MACHINE_TOL)
+    res = R_NegInf;
+  else
+    for (i = 0; i < num; i++)
+      res += dnorm(xx[i], xm, (double)sd, TRUE);
 
   /* we may want to store the number of parameters. */
   if (nparams)
@@ -44,11 +47,14 @@ SEXP qr_x;
   fitted = alloc1dreal(nrow);
 
   /* estimate OLS using the QR decomposition. */
-  c_qr_ols(qr, xx, &nrow, &ncol, fitted, &sd);
+  c_qr_ols(qr, xx, nrow, ncol, fitted, &sd);
 
-  /* compute the log-likelihood. */
-  for (i = 0; i < nrow; i++)
-    res += dnorm(xx[i], fitted[i], (double)sd, TRUE);
+  /* compute the log-likelihood (singular models haze zero density). */
+  if (sd < MACHINE_TOL)
+    res = R_NegInf;
+  else
+    for (i = 0; i < nrow; i++)
+      res += dnorm(xx[i], fitted[i], (double)sd, TRUE);
 
   /* we may want to store the number of parameters. */
   if (nparams)
@@ -65,13 +71,6 @@ double loglik_gnode(SEXP target, SEXP x, SEXP data, double *nparams, int debugle
 double loglik = 0;
 char *t = (char *)CHAR(STRING_ELT(target, 0));
 SEXP nodes, node_t, parents, data_t;
-
-  if (debuglevel > 0) {
-
-    Rprintf("----------------------------------------------------------------\n");
-    Rprintf("* processing node %s.\n", t);
-
-  }/*THEN*/
 
   /* get the node cached information. */
   nodes = getListElement(x, "nodes");

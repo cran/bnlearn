@@ -20,8 +20,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 3.6\cr
-    Date: \tab 2014-06-17\cr
+    Version: \tab 3.7\cr
+    Date: \tab 2015-01-13\cr
     License: \tab GPLv2 or later
 
   }
@@ -203,13 +203,13 @@
           test (\code{mi} and \code{mi-adf}, with adjusted degrees of freedom),
           the Monte Carlo permutation test (\code{mc-mi}), the sequential Monte
           Carlo permutation test (\code{smc-mi}), and the semiparametric test
-          (\code{sp-mi}) are implemented. 
+          (\code{sp-mi}) are implemented.
         \item \emph{shrinkage estimator} for the \emph{mutual information}
           (\code{mi-sh}): an improved asymptotic \eqn{\chi^2}{chi-square} test
           based on the James-Stein estimator for the mutual information.
         \item \emph{Pearson's \eqn{X^2}{X^2}}: the classical Pearson's
           \eqn{X^2}{X^2} test for contingency tables. The asymptotic
-          \eqn{\chi^2}{chi-square} test (\code{x2} and \code{x2-adf}, with 
+          \eqn{\chi^2}{chi-square} test (\code{x2} and \code{x2-adf}, with
           adjusted degrees of freedom), the Monte Carlo permutation test
           (\code{mc-x2}), the sequential Monte Carlo permutation test
           (\code{smc-x2}) and semiparametric test (\code{sp-x2}) are implemented.
@@ -241,12 +241,22 @@
         \item \emph{mutual information}: an information-theoretic distance
           measure. Again it is proportional to the log-likelihood ratio (they
           differ by a \eqn{2n}{2n} factor). The asymptotic \eqn{\chi^2}{chi-square}
-          test (\code{mi-g}),the Monte Carlo permutation test (\code{mc-mi-g})
+          test (\code{mi-g}), the Monte Carlo permutation test (\code{mc-mi-g})
           and the sequential Monte Carlo permutation test (\code{smc-mi-g})
           are implemented.
         \item \emph{shrinkage estimator} for the \emph{mutual information}
           (\code{mi-g-sh}): an improved asymptotic \eqn{\chi^2}{chi-square} test
           based on the James-Stein estimator for the mutual information.
+
+      }
+
+    \item \emph{hybrid case} (mixed discrete and normal variables)
+      \itemize{
+
+        \item \emph{mutual information}: an information-theoretic distance
+          measure. Again it is proportional to the log-likelihood ratio (they
+          differ by a \eqn{2n}{2n} factor). Only the asymptotic
+          \eqn{\chi^2}{chi-square} test (\code{mi-cg}) is implemented.
 
       }
 
@@ -286,6 +296,17 @@
         \item the corresponding \emph{Akaike Information Criterion} score (\code{aic-g}).
         \item the corresponding \emph{Bayesian Information Criterion} score (\code{bic-g}).
         \item a score equivalent \emph{Gaussian posterior density} (\code{bge}).
+
+      }
+
+    \item \emph{hybrid case} (mixed discrete and normal variables)
+      \itemize{
+
+        \item the conditional linear Gaussian \emph{log-likelihood} (\code{loglik-cg})
+          score.
+        \item the corresponding \emph{Akaike Information Criterion} score (\code{aic-cg}).
+        \item the corresponding \emph{Bayesian Information Criterion} score (\code{bic-cg}).
+
       }
 
   }

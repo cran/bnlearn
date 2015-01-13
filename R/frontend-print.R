@@ -49,7 +49,7 @@ print.bn = function(x, ...) {
 
   cat("\n")
 
-  if (!(x$learning$algo %in% graph.generation.algorithms)) {
+  if (x$learning$algo %!in% graph.generation.algorithms) {
 
     wcat("  learning algorithm:                   ", method.labels[x$learning$algo])
 
@@ -210,6 +210,35 @@ print.bn.fit.gnode = function(x, ...) {
   invisible(x)
 
 }#PRINT.BN.FIT.GNODE
+
+# print method for class bn.fit.cgnode.
+print.bn.fit.cgnode = function(x, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  cat("\n  Parameters of node", x$node, "(conditional Gaussian distribution)\n")
+
+  cat("\nConditional density: ")
+  if (length(x$parents) > 0)
+    cat(paste(x$node, "|", paste(x$parents, sep = "", collapse = " + ")))
+  else
+    cat(x$node)
+
+  cat("\nCoefficients:\n")
+  print.default(format(x$coefficients), print.gap = 2, right = TRUE, quote = FALSE)
+
+  cat("Standard deviation of the residuals:\n")
+  print.default(format(x$sd), print.gap = 2, right = TRUE, quote = FALSE)
+
+  cat("Discrete parents' configurations:\n")
+  config = expand.grid(x$dlevels)
+  rownames(config) = seq(from = 0, to = nrow(config) - 1)
+  print.data.frame(config, print.gap = 2, right = TRUE, quote = FALSE)
+
+  invisible(x)
+
+}#PRINT.BN.FIT.CGNODE
 
 # print method for class mvber.moments.
 print.mvber.moments = function(x, ...) {

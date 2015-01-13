@@ -148,13 +148,6 @@ char *t = (char *)CHAR(STRING_ELT(target, 0));
 double prob = 0, prior_prob = 0;
 SEXP nodes, node_t, data_t, exp_data, parents, parent_vars, config;
 
-  if (debuglevel > 0) {
-
-    Rprintf("----------------------------------------------------------------\n");
-    Rprintf("* processing node %s.\n", t);
-
-  }/*THEN*/
-
   /* get the node cached information. */
   nodes = getListElement(x, "nodes");
   node_t = getListElement(nodes, t);

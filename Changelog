@@ -1,3 +1,28 @@
+bnlearn (3.7)
+
+  * fixed the default setting for the number of particles in cpquery()
+     (thanks Nishanth Upadhyaya).
+  * reimplemented common test patterns in monolithic C functions to speed
+     up constraint-based algorithms.
+  * added support for conditional linear Gaussian (CLG) networks.
+  * fixed several recursion bugs in choose.direction().
+  * make read.{bif,dsc,net}() consistent with the `$<-` method for bn.fit
+     objects (thanks Felix Rios).
+  * support empty networks in read.{bif,dsc,net}().
+  * fixed bug in hc(), triggered when using both random restarts and the
+     maxp argument (thanks Irene Kaplow).
+  * correctly initialize the Castelo & Siebes prior (thanks Irene Kaplow).
+  * change the prior distribution for the training variable in classifiers
+     from the uniform prior to the fitted distribution in the
+     bn.fit.{naive,tan} object, for consistency with gRain and e1071 (thanks
+     Bojan Mihaljevic).
+  * note AIC and BIC scaling in the documentation (thanks Thomas Lefevre).
+  * note limitations of {white,black}lists in tree.bayes() (thanks Bojan
+     Mihaljevic).
+  * better input sanitization in custom.fit() and bn.fit<-().
+  * fixed .Call stack imbalance in random restarts (thanks James Jensen).
+  * note limitations of predict()ing from bn objects (thanks Florian Sieck).
+
 bnlearn (3.6)
 
   * support rectangular nodes in {graphviz,strength}.plot().
@@ -18,12 +43,12 @@ bnlearn (3.6)
   * attach the weights to the return value of cpdist(..., method = "lw").
   * changed the default number of simulations in cp{query, dist}().
   * support interval and multiple-valued evidence for likelihood weighting
-      in cp{query,dist}().
+     in cp{query,dist}().
   * implemented dedup() to pre-process continuous data.
   * fixed a scalability bug in blacklist sanitization (thanks Dong Yeon Cho).
   * fixed permutation test support in relevant().
   * reimplemented the conditional.test() backend completely in C for
-      speed, it is now called indep.test().
+     speed, it is now called indep.test().
 
 bnlearn (3.5)
 

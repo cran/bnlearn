@@ -1,9 +1,9 @@
 Package: bnlearn
 Type: Package
-Title: Bayesian network structure learning, parameter learning and
-        inference
-Version: 3.6
-Date: 2014-06-17
+Title: Bayesian Network Structure Learning, Parameter Learning and
+        Inference
+Version: 3.7
+Date: 2015-01-13
 Depends: R (>= 2.14.0)
 Imports: methods
 Suggests: parallel, graph, Rgraphviz, lattice, gRain
@@ -14,8 +14,8 @@ Description: Bayesian network structure learning, parameter learning and
   This package implements constraint-based (GS, IAMB, Inter-IAMB, Fast-IAMB,
   MMPC, Hiton-PC), pairwise (ARACNE and Chow-Liu), score-based (Hill-Climbing
   and Tabu Search) and hybrid (MMHC and RSMAX2) structure learning algorithms
-  for both discrete and Gaussian networks, along with many score functions
-  and conditional independence tests.
+  for discrete, Gaussian and conditional Gaussian networks, along with many
+  score functions and conditional independence tests.
   The Naive Bayes and the Tree-Augmented Naive Bayes (TAN) classifiers are
   also implemented.
   Some utility functions (model comparison and manipulation, random data
@@ -27,7 +27,7 @@ Description: Bayesian network structure learning, parameter learning and
 URL: http://www.bnlearn.com/
 License: GPL (>= 2)
 LazyData: yes
-Packaged: 2014-06-17 17:15:42 UTC; fizban
+Packaged: 2015-01-13 23:45:31 UTC; fizban
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2014-06-17 21:16:12
+Date/Publication: 2015-01-14 01:52:50

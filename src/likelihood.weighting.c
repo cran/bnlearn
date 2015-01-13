@@ -9,8 +9,8 @@ double maxw = 0;
   /* ensure the buffer is clean. */
   memset(w, '\0', n * sizeof(double));
   /* compute log-probabilities for each particle. */
-  c_entropy_loss(fitted, data, n, TRUE, w, keep, debuglevel);
-  /* resscale before exponentiating them into probabilities. */
+  c_entropy_loss(fitted, data, n, TRUE, w, keep, FALSE, debuglevel);
+  /* rescale before exponentiating them into probabilities. */
   maxw = w[d_which_max(w, n) - 1];
 
   for (i = 0; i < n; i++)

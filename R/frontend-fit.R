@@ -5,7 +5,10 @@ bn.fit = function(x, data, method = "mle", ..., debug = FALSE) {
   # check x's class.
   check.bn(x)
   # check the data.
-  check.data(data)
+  if (is(x, c("bn.naive", "bn.tan")))
+    check.data(data, allowed.types = discrete.data.types)
+  else
+    check.data(data)
   # check whether the data agree with the bayesian network.
   check.bn.vs.data(x, data)
   # no parameters if the network structure is only partially directed.
@@ -44,7 +47,7 @@ residuals.bn.fit = function(object, ...) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  if (is.fitted.discrete(object))
+  if (!is(object, c("bn.fit.gnet", "bn.fit.cgnet")))
     stop("residuals are not defined for discrete bayesian networks.")
 
   lapply(object, "[[", "residuals")
@@ -60,6 +63,9 @@ residuals.bn.fit.gnode = function(object, ...) {
   object$residuals
 
 }#RESIDUALS.BN.FIT.GNODE
+
+# same here...
+residuals.bn.fit.cgnode = residuals.bn.fit.gnode
 
 # no residuals here, move along ...
 residuals.bn.fit.dnode = function(object, ...) {
@@ -77,7 +83,7 @@ residuals.bn.fit.onode = residuals.bn.fit.dnode
 # extract fitted values for continuous bayesian networks.
 fitted.bn.fit = function(object, ...) {
 
-  if (is.fitted.discrete(object))
+  if (!is(object, c("bn.fit.gnet", "bn.fit.cgnet")))
     stop("fitted values are not defined for discrete bayesian networks.")
 
   # warn about unused arguments.
@@ -96,6 +102,9 @@ fitted.bn.fit.gnode = function(object, ...) {
   object$fitted.values
 
 }#FITTED.BN.FIT.GNODE
+
+# same here...
+fitted.bn.fit.cgnode = fitted.bn.fit.gnode
 
 # no fitted values here, move along ...
 fitted.bn.fit.dnode = function(object, ...) {
@@ -129,6 +138,9 @@ coef.bn.fit.gnode = function(object, ...) {
   object$coefficients
 
 }#COEF.BN.FIT.GNODE
+
+# same here...
+coef.bn.fit.cgnode = coef.bn.fit.gnode
 
 # extract probabilities from discrete nodes.
 coef.bn.fit.dnode = function(object, ...) {
@@ -185,71 +197,12 @@ BIC.bn.fit = function(object, data, ...) {
 # replace one conditional probability distribution in a bn.fit object.
 "[[<-.bn.fit" = function(x, name, value) {
 
+  # check x's class.
+  check.fit(x)
   # check the label of the node to replace.
   check.nodes(name, x)
-  # preserve the original object for subsequent sanity checks.
-  to.replace = x[[name]]
-  new = to.replace
 
-  if (is(to.replace, c("bn.fit.dnode", "bn.fit.onode"))) {
-
-    # check the consistency of the new conditional distribution.
-    value = check.fit.dnode.spec(value, node = name)
-    # sanity check the new obejct by comparing it to the old one.
-    value = check.dnode.vs.spec(value, to.replace)
-    # replace the conditional probability table.
-    new$prob = value
-
-  }#THEN
-  else if (is(to.replace, "bn.fit.gnode")) {
-
-    if (is(value, c("lm", "glm", "penfit"))) {
-
-      # ordinary least squares, ridge, lasso, and elastic net.
-      value = list(coef = coefficients(value), resid = residuals(value),
-                fitted = fitted(value), sd = sd(residuals(value)))
-      # if the intercept is not there, set it to zero.
-      if (!("(Intercept)" %in% names(value$coef)))
-        value$coef = c("(Intercept)" = 0, value$coef)
-
-    }#THEN
-    else {
-
-      # check the consistency of the new conditional distribution.
-      check.fit.gnode.spec(value, node = name)
-
-    }#ELSE
-
-    # sanity check the new obejct by comparing it to the old one.
-    check.gnode.vs.spec(value, to.replace)
-
-    # replace the regression coefficients, keeping the names and the ordering.
-    if (is.null(names(value$coef)))
-      new$coefficients = structure(value$coef, names = names(new$coefficients))
-    else
-      new$coefficients = value$coef[names(new$coefficients)]
-
-    # replace the residuals' standard deviation.
-    if (is.null(value$sd))
-      new$sd = sd(value$resid)
-    else
-      new$sd = value$sd
-
-    # replace the residuals, padding with NAs if needed.
-    if (is.null(value$resid))
-      new$residuals = rep(as.numeric(NA), length(new$resid))
-    else
-      new$residuals = value$resid
-
-    # replace the fitted values, padding with NAs if needed.
-    if (is.null(value$fitted))
-      new$fitted.values = rep(as.numeric(NA), length(new$fitted))
-    else
-      new$fitted.values = value$fitted
-
-  }#ELSE
-
-  x[name] = list(new)
+  x[name] = list(fitted.assignment.backend(x, name, value))
 
   return(x)
 
@@ -262,10 +215,12 @@ BIC.bn.fit = function(object, data, ...) {
 
 }#$<-.BN.FIT
 
-custom.fit = function(x, dist, ordinal = FALSE) {
+# create a bn.fit object for user-specified local distributions.
+custom.fit = function(x, dist, ordinal) {
 
   # check x's class.
   check.bn(x)
+  # cache node labels.
   nodes = names(x$nodes)
   nnodes = length(nodes)
 
@@ -283,112 +238,22 @@ custom.fit = function(x, dist, ordinal = FALSE) {
     stop("wrong number of conditional probability distributions.")
   check.nodes(names(dist), nodes, min.nodes = nnodes)
 
-  # if all the conditional probability distributions are tables (tables,
-  # matrices and multidimensional are fine), it's a discrete BN.
-  discrete = all(sapply(dist, is.ndmatrix))
+  # only discrete nodes can be parameterized by a CPT, all the others are lists
+  # with multiple elements.
+  discrete = sapply(dist, is.ndmatrix)
 
-  # check ordinal.
-  check.logical(ordinal)
-  if (ordinal && !discrete)
-    warning("ordinal is only meaningful for discrete data, disregarding.")
+  # check ordinal ...
+  if (missing(ordinal))
+    ordinal = character(0)
+  else
+    check.nodes(ordinal, graph = nodes)
+  # ... and that nodes that are supposed to be ordinal are discrete in the
+  # first place.
+  if (!all(discrete[ordinal]))
+    stop("node(s)", paste0(" '", names(discrete[!discrete[ordinal]]), "'"),
+      " are set to be ordinal but are not discrete.") 
 
-  # create a dummy bn.fit object from the bn one.
-  fitted = structure(vector(nnodes, mode = "list"), names = nodes)
-
-  for (node in nodes) {
-
-    fitted[[node]] = list(node = node, parents = x$nodes[[node]]$parents,
-                       children = x$nodes[[node]]$children)
-
-  }#FOR
-
-  if (discrete) {
-
-    # check the consistency of the conditional probability distributions.
-    for (cpd in names(dist))
-      dist[[cpd]] = check.fit.dnode.spec(dist[[cpd]], node = cpd)
-
-    # cross-check the levels of each node across all CPTs.
-    cpt.levels = lapply(dist, function(x) dimnames(x)[[1]])
-
-    for (cpd in names(dist)) {
-
-      # sanity check the new object by comparing it to the old one.
-      dist[[cpd]] = check.dnode.vs.spec(dist[[cpd]], old = fitted[[cpd]]$parents,
-                      node = cpd, cpt.levels = cpt.levels)
-      # store the new CPT in the bn.fit object.
-      fitted[[cpd]]$prob = normalize.cpt(dist[[cpd]])
-      # set the correct class for methods' dispatch.
-      class(fitted[[cpd]]) = ifelse(ordinal, "bn.fit.onode", "bn.fit.dnode")
-
-    }#FOR
-
-  }#THEN
-  else {
-
-    # convert any lm-type object to the basic list format.
-    for (cpd in names(dist)) {
-
-      if (is(dist[[cpd]], c("lm", "glm", "penfit"))) {
-
-        # ordinary least squares, ridge, lasso, and elastic net.
-        dist[[cpd]] = list(coef = coefficients(dist[[cpd]]),
-                           resid = residuals(dist[[cpd]]),
-                           fitted = fitted(dist[[cpd]]),
-                           sd = sd(residuals(dist[[cpd]])))
-
-      }#THEN
-
-    }#FOR
-
-    # check whether there is a coherent set of fitted values and residuals.
-    nresid = unique(sapply(dist, function(x) length(x$resid)))
-    nfitted = unique(sapply(dist, function(x) length(x$fitted)))
-
-    if ((length(nresid) != 1) || (length(nfitted) != 1) || any(nresid != nfitted)) {
-
-      full.spec = FALSE
-      warning("different nodes have different number of residuals or fitted values, disregarding.")
-
-    }#THEN
-    else {
-
-      full.spec = TRUE
-
-    }#ELSE
-
-    for (cpd in names(dist)) {
-
-      # check the consistency of the conditional probability distribution.
-      check.fit.gnode.spec(dist[[cpd]], node = cpd)
-      # sanity check the new object by comparing it to the old one.
-      check.gnode.vs.spec(dist[[cpd]], old = fitted[[cpd]]$parents,
-        node = cpd)
-      # store the new CPT in the bn.fit object.
-      fitted[[cpd]]$coefficients = dist[[cpd]]$coef
-      fitted[[cpd]]$sd = dist[[cpd]]$sd
-
-      if (full.spec) {
-
-        fitted[[cpd]]$residuals = dist[[cpd]]$resid
-        fitted[[cpd]]$fitted.values = dist[[cpd]]$fitted
-
-      }#THEN
-      else {
-
-        fitted[[cpd]]$residuals = as.numeric(NA)
-        fitted[[cpd]]$fitted.values = as.numeric(NA)
-
-      }#ELSE
-
-      # set the correct class for methods' dispatch.
-      class(fitted[[cpd]]) = "bn.fit.gnode"
-
-    }#FOR
-
-  }#ELSE
-
-  return(structure(fitted, class = "bn.fit"))
+  custom.fit.backend(x = x, dist = dist, discrete = discrete, ordinal = ordinal)
 
 }#CUSTOM.FIT
 

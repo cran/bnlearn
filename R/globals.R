@@ -5,8 +5,9 @@ available.discrete.tests = c("mi", "mi-sh", "x2", "mc-mi", "smc-mi", "mi-adf",
 available.ordinal.tests = c("jt", "mc-jt", "smc-jt")
 available.continuous.tests = c("cor", "zf", "mi-g", "mi-g-sh", "mc-mi-g",
   "smc-mi-g", "mc-cor", "smc-cor", "mc-zf", "smc-zf")
+available.mixedcg.tests = c("mi-cg")
 available.tests = c(available.discrete.tests, available.ordinal.tests,
-  available.continuous.tests)
+  available.continuous.tests, available.mixedcg.tests)
 
 semiparametric.tests = c("sp-mi", "sp-x2")
 resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g",
@@ -14,8 +15,10 @@ resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g"
 asymptotic.tests = c("mi", "mi-adf", "mi-g", "x2", "zf", "jt")
 
 available.discrete.scores = c("loglik", "aic", "bic", "bde", "bdes", "k2", "mbde")
-available.continuous.scores = c("bge", "loglik-g", "aic-g", "bic-g")
-available.scores = c(available.discrete.scores, available.continuous.scores)
+available.continuous.scores = c("loglik-g", "aic-g", "bic-g", "bge")
+available.mixedcg.scores = c("loglik-cg", "aic-cg", "bic-cg")
+available.scores = c(available.discrete.scores, available.continuous.scores,
+  available.mixedcg.scores)
 
 available.discrete.mi = c("mi")
 available.continuous.mi = c("mi-g")
@@ -69,6 +72,7 @@ test.labels = c(
   'mi-g-sh' = "Mutual Information (Gauss., shrink.)",
   'mc-mi-g' = "Mutual Information (Gauss., MC)",
   'smc-mi-g' = "Mutual Information (Gauss., Seq. MC)",
+  'mi-cg' = "Mutual Information (cond. Gauss.)",
   'x2' = "Pearson's X^2",
   'x2-adf' = "Pearson's X^2 (adj. d.f.)",
   'mc-x2'= "Pearson's X^2 (MC)",
@@ -96,7 +100,10 @@ score.labels = c(
   'bge' = "Bayesian Gaussian (BGe)",
   'loglik-g' = "Log-Likelihood (Gauss.)",
   'aic-g' = "AIC (Gauss.)",
-  'bic-g' = "BIC (Gauss.)"
+  'bic-g' = "BIC (Gauss.)",
+  'loglik-cg' = "Log-Likelihood (cond. Gauss.)",
+  'aic-cg' = "AIC (cond. Gauss.)",
+  'bic-cg' = "BIC (cond. Gauss.)"
 )
 
 score.extra.args = list(
@@ -110,7 +117,10 @@ score.extra.args = list(
   "loglik" = character(0),
   "loglik-g" = character(0),
   "aic-g" = c("k"),
-  "bic-g" = c("k")
+  "bic-g" = c("k"),
+  "loglik-cg" = character(0),
+  "aic-cg" = c("k"),
+  "bic-cg" = c("k")
 )
 
 mi.estimator.labels = c(
@@ -162,14 +172,17 @@ cpq.extra.args = list(
 
 discrete.loss.functions = c("logl", "pred")
 continuous.loss.functions = c("logl-g", "cor", "mse")
-loss.functions = c(discrete.loss.functions, continuous.loss.functions)
+mixedcg.loss.functions = c("logl-cg")
+loss.functions = c(discrete.loss.functions, continuous.loss.functions,
+  mixedcg.loss.functions)
 
 loss.labels = c(
   "logl" = "Log-Likelihood Loss (disc.)",
   "pred" = "Classification Error",
   "logl-g" = "Log-Likelihood Loss (Gauss.)",
   "cor" = "Predictive Correlation",
-  "mse" = "Mean Squared Error"
+  "mse" = "Mean Squared Error",
+  "logl-cg" = "Log-Likelihood Loss (cond. Gauss.)"
 )
 
 loss.extra.args = list(
@@ -227,6 +240,31 @@ discretization.extra.args = list(
   "hartemink" = c("ibreaks", "idisc")
 )
 
+fitted.from.data = c(
+  "continuous" = "bn.fit.gnet",
+  "factor" = "bn.fit.dnet",
+  "ordered" = "bn.fit.onet",
+  "mixed-cg" = "bn.fit.cgnet",
+  "mixed-do" = "bn.fit.donet"
+)
+
+discrete.data.types = c("factor", "ordered", "mixed-do")
+continuous.data.types = c("continuous")
+mixed.data.types = c("mixed-cg")
+available.data.types = c(discrete.data.types, continuous.data.types,
+  mixed.data.types)
+
+data.type.labels = c(
+  "continuous" = "all variables must be numeric",
+  "factor" = "all variables must be unordered factors",
+  "ordered" = "all variables must be ordered factors",
+  "mixed-cg" = "variables can be either numeric or factors",
+  "mixed-do" = "variables can be either ordered or unordered factors"
+)
+
+fitted.node.types = c("bn.fit.dnode", "bn.fit.onode", "bn.fit.gnode",
+  "bn.fit.cgnode")
+
 # global test counter.
 reset.test.counter = function() {
 
@@ -245,7 +283,7 @@ increment.test.counter = function(i = 1) {
 
 test.counter = function() {
 
-  invisible(.Call("get_test_counter"))
+  return(.Call("get_test_counter"))
 
 }#TEST.COUNTER
 

@@ -43,10 +43,10 @@
   if (!is.null(x$learning$blacklist))
     x$learning$blacklist[] = value[match(x$learning$blacklist, nodes)]
   # ... Castelo & Siebes prior specification...
-  if (("prior" %in% names(x$learning$args)) && 
+  if (("prior" %in% names(x$learning$args)) &&
       (x$learning$args$prior == "cs")) {
 
-    x$learning$args$beta[, c("from", "to")] = 
+    x$learning$args$beta[, c("from", "to")] =
       value[match(x$learning$args$beta[, c("from", "to")], nodes)]
     attr(x$learning$args$beta, "nodes") = value
 
@@ -99,7 +99,7 @@
   }#FOR
 
   # relabel the nodes.
-  names(x) = value 
+  names(x) = value
 
   # update the training node of classifiers.
   if (is(x, c("bn.naive", "bn.tan")))

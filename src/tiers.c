@@ -37,7 +37,7 @@ SEXP flattened, blacklist, temp;
   else {
 
     /* "node" is a character vector, which means that each node is in its own tier
-     * and that there is no need to flatted it. */
+     * and that there is no need to flatten it. */
     flattened = nodes;
     nnodes = length(nodes);
     for (i = 0; i < ntiers; i++)
@@ -56,7 +56,8 @@ SEXP flattened, blacklist, temp;
     temp = STRING_ELT(flattened, k);
 
     if (debuglevel > 0)
-      Rprintf("* current node is %s in tier %d.\n", CHAR(temp), i + 1);
+      Rprintf("* current node is %s in tier %d, position %d of %d.\n",
+        CHAR(temp), i + 1, k + 1, nnodes);
 
     for (j = tier_start + tier_size[i]; j < nnodes; j++) {
 
@@ -69,13 +70,19 @@ SEXP flattened, blacklist, temp;
 
     }/*FOR*/
 
-    if (k >= tier_start + tier_size[i] - 1)
+    while (k >= tier_start + tier_size[i] - 1) {
+
       tier_start += tier_size[i++];
+
+      if (i == ntiers)
+        break;
+
+    }/*WHILE*/
 
     if (i == ntiers)
       break;
 
-  }
+  }/*FOR*/
 
   /* allocate, initialize and set the column names. */
   finalize_arcs(blacklist);

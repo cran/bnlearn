@@ -1,6 +1,6 @@
 #include "common.h"
 
-/* wrapper around the cfg() function for use in .Call(). */
+/* wrapper around the c_configurations() function for use in .Call(). */
 SEXP configurations(SEXP parents, SEXP factor, SEXP all) {
 
   return c_configurations(parents, isTRUE(factor), isTRUE(all));
@@ -42,80 +42,33 @@ SEXP temp, result;
 
   return result;
 
-}/*C_CFG2*/
+}/*C_CONFIGURATIONS*/
 
 /* identify different configurations of factors and assign them unique integer
  * codes, computed using the general formula for the column-mayor indexing. */
 void cfg(SEXP parents, int *configurations, int *nlevels) {
 
-int i = 0, j = 0, cfgmap = 0;
+int i = 0, **columns = NULL, *levels = NULL;
 int ncols = length(parents), nrows = length(VECTOR_ELT(parents, 0));
-long long *cumlevels = NULL, nl = 0;
-int **columns = NULL;
-
-  /* create the cumulative products of the number of levels. */
-  cumlevels = (long long *) R_alloc(ncols, sizeof(long long));
-  memset(cumlevels, '\0', sizeof(long long) * ncols);
+SEXP temp;
 
   /* dereference the columns of the data frame. */
   columns = (int **) alloc1dpointer(ncols);
-  for (i = 0; i < ncols; i++)
-    columns[i] = INTEGER(VECTOR_ELT(parents, i));
+  levels = alloc1dcont(ncols);
+  for (i = 0; i < ncols; i++) {
 
-  /* set the first one to 1 ... */
-  cumlevels[0] = 1;
-
-  /* ... then compute the following ones. */
-  for (j = 1; j < ncols; j++)
-    cumlevels[j] = cumlevels[j - 1] * NLEVELS2(parents, j - 1);
-
-  /* compute the number of possible configurations. */
-  nl = cumlevels[ncols - 1] * NLEVELS2(parents, ncols - 1);
-
-  if (nl >= INT_MAX) {
-
-    error("attempting to create a factor with more than INT_MAX levels.");
-
-  }/*THEN*/
-  else {
-
-    /* if nlevels is not a NULL pointer, save the number of possible
-      * configurations. */
-    if (nlevels)
-      *nlevels = nl;
-
-  }/*ELSE*/
-
-  for (i = 0; i < nrows; i++) {
-
-    /* reset the configuration mapping of the new row. */
-    cfgmap = 0;
-
-    for (j = 0; j < ncols; j++) {
-
-      if (columns[j][i] == NA_INTEGER) {
-
-        cfgmap = NA_INTEGER;
-        break;
-
-      }/*THEN*/
-      else {
-
-        cfgmap += (columns[j][i] - 1) * cumlevels[j];
-
-     }/*ELSE*/
-
-    }/*FOR*/
-
-  /* save the configuration in the array. */
-  configurations[i] = cfgmap;
+    temp = VECTOR_ELT(parents, i);
+    columns[i] = INTEGER(temp);
+    levels[i] = NLEVELS(temp);
 
   }/*FOR*/
 
+  c_fast_config(columns, nrows, ncols, levels, configurations, nlevels, 0);
+
 }/*CFG*/
 
-void cfg3(int **columns, int nrows, int ncols, int *levels, int *configurations,
-    int *nlevels) {
+void c_fast_config(int **columns, int nrows, int ncols, int *levels, int *configurations,
+    int *nlevels, int offset) {
 
 int i = 0, j = 0, cfgmap = 0;
 long long *cumlevels = NULL, nl = 0;
@@ -134,19 +87,13 @@ long long *cumlevels = NULL, nl = 0;
   /* compute the number of possible configurations. */
   nl = cumlevels[ncols - 1] * levels[ncols - 1];
 
-  if (nl >= INT_MAX) {
-
+  if (nl >= INT_MAX)
     error("attempting to create a factor with more than INT_MAX levels.");
 
-  }/*THEN*/
-  else {
-
-    /* if nlevels is not a NULL pointer, save the number of possible
-      * configurations. */
-    if (nlevels)
-      *nlevels = nl;
-
-  }/*ELSE*/
+  /* if nlevels is not a NULL pointer, save the number of possible
+   * configurations. */
+  if (nlevels)
+    *nlevels = nl;
 
   for (i = 0; i < nrows; i++) {
 
@@ -170,11 +117,11 @@ long long *cumlevels = NULL, nl = 0;
     }/*FOR*/
 
   /* save the configuration in the array. */
-  configurations[i] = cfgmap + 1;
+  configurations[i] = cfgmap + offset;
 
   }/*FOR*/
 
   Free(cumlevels);
 
-}/*CFG3*/
+}/*C_FAST_CONFIG*/
 

@@ -1,8 +1,8 @@
 #include "common.h"
 
-SEXP arcs_rbind1 (SEXP matrix1, SEXP matrix2, SEXP reverse2) {
+SEXP arcs_rbind (SEXP matrix1, SEXP matrix2, SEXP reverse2) {
 
-int i = 0, j = 0, m1 = nrows(matrix1), m2 = nrows(matrix2);
+int i = 0, j = 0, m1 = length(matrix1)/2, m2 = length(matrix2)/2;
 SEXP res;
 
   /* allocate the reutrn value*/
@@ -36,4 +36,4 @@ SEXP res;
 
   return res;
 
-}/*ARCS_RBIND1*/
+}/*ARCS_RBIND*/

@@ -5,9 +5,7 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
   # check the label of the discretization method.
   method = check.discretization.method(method)
   # general check on the data.
-  check.data(data, allow.mixed = TRUE)
-  # check which type of data we are dealing with.
-  type = data.type(data)
+  type = check.data(data)
 
   # check the data.
   if (method %in% c("quantile", "interval")) {
@@ -34,7 +32,7 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
       stop("the return value must have at least two levels for each variable.")
 
     # check the data types.
-    if (type %in% c("factor", "ordered", "mixed-do")) {
+    if (type %in% discrete.data.types) {
 
       nlvls = unique(sapply(data, nlevels))
       # this is implicit in Hartemink's definition of the algorithm.
@@ -68,7 +66,7 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
 relevant = function(target, context, data, test, alpha, B, debug = FALSE) {
 
   # check the data.
-  check.data(data)
+  check.data(data, allowed.types = c(discrete.data.types, continuous.data.types))
   # a valid node is needed.
   check.nodes(nodes = target, graph = data, max.nodes = 1)
   # an optional valid node is needed.
@@ -102,11 +100,9 @@ relevant = function(target, context, data, test, alpha, B, debug = FALSE) {
 # screen the data for highly correlated variables.
 dedup = function(data, threshold = 0.90, debug = FALSE) {
 
-  # check the data.
-  check.data(data)
-  # only continuous data are supported.
-  if (data.type(data) != "continuous")
-    stop("only continuous data are supported.")
+  # check the data (only continuous data are supported).
+  type = check.data(data, allowed.types = continuous.data.types)
+  # check the correlation threshold.
   if (missing(threshold))
     threshold = 0.90
   else if (!is.probability(threshold))

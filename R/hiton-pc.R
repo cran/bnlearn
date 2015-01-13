@@ -12,8 +12,7 @@ si.hiton.pc.optimized = function(x, whitelist, blacklist, test,
     # 1. [Forward Phase (I)]
     mb[[node]] = si.hiton.pc.heuristic(node, data = x, nodes = nodes,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, optimized = TRUE,
-         debug = debug)
+         backtracking = backtracking, test = test, debug = debug)
 
     # 2. [Backward Phase (II)]
     mb[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
@@ -30,45 +29,21 @@ si.hiton.pc.optimized = function(x, whitelist, blacklist, test,
 
 }#SI.HITON.PC.OPTIMIZED
 
-si.hiton.pc.cluster = function(x, cluster, whitelist, blacklist,
+si.hiton.pc.backend = function(x, cluster = NULL, whitelist, blacklist,
   test, alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Forward Phase (I)]
-  mb = parLapply(cluster, as.list(nodes), si.hiton.pc.heuristic, data = x,
+  mb = smartLapply(cluster, as.list(nodes), si.hiton.pc.heuristic, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, optimized = TRUE, debug = debug)
+         blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
 
   # 2. [Backward Phase (II)]
-  mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+  mb = smartLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug, empty.dsep = FALSE, markov = FALSE)
-  names(mb) = nodes
-
-  # check neighbourhood sets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
-
-  return(mb)
-
-}#SI.HITON.PC.CLUSTER
-
-si.hiton.pc.backend = function(x, whitelist, blacklist, test, alpha, B,
-  strict, debug = FALSE) {
-
-  nodes = names(x)
-
-  # 1. [Forward Phase (I)]
-  mb = lapply(as.list(nodes), si.hiton.pc.heuristic, data = x, nodes = nodes,
-         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, optimized = FALSE, debug = debug)
-  names(mb) = nodes
-
-  # 2. [Backward Phase (II)]
-  mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
-         B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-         debug = debug, empty.dsep = FALSE, markov = FALSE)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -79,7 +54,7 @@ si.hiton.pc.backend = function(x, whitelist, blacklist, test, alpha, B,
 }#SI.HITON.PC.BACKEND
 
 si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
-    backtracking = NULL, test, optimized = TRUE, debug = FALSE) {
+    backtracking = NULL, test, debug = FALSE) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
@@ -101,10 +76,10 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
   # whitelisted nodes are included, and blacklisted nodes are excluded.
   cpc = whitelisted
-  nodes = nodes[!(nodes %in% c(cpc, blacklisted))]
+  nodes = nodes[nodes %!in% c(cpc, blacklisted)]
 
   # use backtracking for a further screening of the nodes to be checked.
-  if (!is.null(backtracking) && optimized) {
+  if (!is.null(backtracking)) {
 
     # X adiacent to Y <=> Y adiacent to X
     known.good = names(backtracking[backtracking])
@@ -113,8 +88,9 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
     # and vice versa X not adiacent to Y <=> Y not adiacent to X
     known.bad = names(backtracking[!backtracking])
 
-    # both are not to be checked for inclusion/exclusion.
-    nodes = nodes[!(nodes %in% cpc)]
+    # known.good nodes are not to be checked for inclusion, and the "nodes"
+    # is resetted below so we can just remove them.
+    nodes = nodes[nodes %!in% known.good]
 
     if (debug) {
 
@@ -251,7 +227,7 @@ si.hiton.pc.backward = function(target, candidate, cpc, data, test, alpha, B, de
     cat("* backward phase for candidate node", candidate, ".\n")
 
   allsubs.test(x = target, y = candidate, sx = cpc, min = 1L, data = data,
-    test = test, alpha = alpha, B = B, debug = debug) <= alpha
+    test = test, alpha = alpha, B = B, debug = debug)[1] <= alpha
 
 }#SI.HITON.PC.BACKWARD
 

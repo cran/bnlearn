@@ -10,19 +10,19 @@ nparams = function(x, data, debug = FALSE) {
   if (is(x, "bn")) {
 
     # check the data are there.
-    check.data(data)
+    type = check.data(data)
     # check the network against the data.
     check.bn.vs.data(x, data)
     # nparams is unknown for partially directed graphs.
     if (is.pdag(x$arcs, names(x$nodes)))
       stop("the graph is only partially directed.")
-    # check which type of data we are dealing with.
-    type = data.type(data)
 
-    if (type %in% c("factor", "ordered", "mixed-do"))
-      return(nparams.discrete(x, data, real = TRUE, debug = debug))
-    else
+    if (type %in% discrete.data.types)
+      return(nparams.discrete(x, data = data, real = TRUE, debug = debug))
+    else if (type == "continuous")
       return(nparams.gaussian(x, debug = debug))
+    else if (type == "mixed-cg")
+      return(nparams.mixedcg(x, data = data, debug = debug))
 
   }#THEN
   else {
@@ -102,7 +102,7 @@ blacklist = function(x) {
 }#BLACKLIST
 
 # reconstruct the equivalence class of a network.
-cpdag = function(x, moral = FALSE, debug = FALSE) {
+cpdag = function(x, moral = TRUE, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
@@ -144,7 +144,7 @@ cextend = function(x, strict = TRUE, debug = FALSE) {
 }#CEXTEND
 
 # report v-structures in the network.
-vstructs = function(x, arcs = FALSE, moral = FALSE, debug = FALSE) {
+vstructs = function(x, arcs = FALSE, moral = TRUE, debug = FALSE) {
 
   # check x's class.
   check.bn(x)

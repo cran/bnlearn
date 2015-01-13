@@ -94,7 +94,7 @@ SEXP result, colnames, nodes = getAttrib(data, R_NamesSymbol);
   PROTECT(result = allocVector(VECSXP, ncols - dropped));
   PROTECT(colnames = allocVector(STRSXP, ncols - dropped));
 
-  for (j = 0, k = 0; j < ncols; j++) 
+  for (j = 0, k = 0; j < ncols; j++)
     if (!drop[j]) {
 
       SET_STRING_ELT(colnames, k, STRING_ELT(nodes, j));
@@ -103,7 +103,7 @@ SEXP result, colnames, nodes = getAttrib(data, R_NamesSymbol);
     }/*THEN*/
 
   setAttrib(result, R_NamesSymbol, colnames);
-  
+
   /* make it a data frame. */
   minimal_data_frame(result);
 

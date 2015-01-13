@@ -41,13 +41,13 @@ inter.incremental.association.optimized = function(x, whitelist, blacklist,
 
 }#INTER.INCREMENTAL.ASSOCIATION.OPTIMIZED
 
-inter.incremental.association.cluster = function(x, cluster, whitelist,
+inter.incremental.association = function(x, cluster = NULL, whitelist,
   blacklist, test, alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
-  mb = parLapply(cluster, as.list(nodes), inter.ia.markov.blanket, data = x,
+  mb = smartLapply(cluster, as.list(nodes), inter.ia.markov.blanket, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
@@ -56,36 +56,9 @@ inter.incremental.association.cluster = function(x, cluster, whitelist,
   mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
 
   # 2. [Compute Graph Structure]
-  mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+  mb = smartLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
-  names(mb) = nodes
-
-  # check neighbourhood sets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
-
-  return(mb)
-
-}#INTER.INCREMENTAL.ASSOCIATION.CLUSTER
-
-inter.incremental.association = function(x, whitelist, blacklist, test,
-  alpha, B, strict, debug = FALSE) {
-
-  nodes = names(x)
-
-  # 1. [Compute Markov Blankets]
-  mb = lapply(as.list(nodes), inter.ia.markov.blanket, data = x,
-         nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, debug = debug)
-  names(mb) = nodes
-
-  # check markov blankets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
-
-  # 2. [Compute Graph Structure]
-  mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
-         B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-         debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -152,7 +125,7 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
   # between them of course they are in each other's markov blanket).
   # arc direction is irrelevant here.
   mb = unique(c(mb, whitelisted))
-  nodes = nodes[!(nodes %in% mb)]
+  nodes = nodes[nodes %!in% mb]
   # blacklist is not checked, not all nodes in a markov blanket must be
   # neighbours.
 
@@ -174,7 +147,7 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
       cat("    * known good (backtracking): '", known.good, "'.\n")
       cat("    * known bad (backtracking): '", known.bad, "'.\n")
       cat("    * nodes still to be tested for inclusion: '",
-        nodes[!(nodes %in% mb)], "'.\n")
+        nodes[nodes %!in% mb], "'.\n")
 
     }#THEN
 
@@ -183,14 +156,14 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
   repeat {
 
     # stop if there are no nodes left.
-    if (length(nodes[!(nodes %in% c(mb, culprit))]) == 0 || is.null(nodes))
+    if (length(nodes[nodes %!in% c(mb, culprit)]) == 0 || is.null(nodes))
       break
 
     # get a snapshot of the markov blanket status.
     mb.snapshot = mb
 
     # get an association measure for each of the available nodes.
-    association = indep.test(nodes[!(nodes %in% c(mb, culprit))], x, sx = mb,
+    association = indep.test(nodes[nodes %!in% c(mb, culprit)], x, sx = mb,
                     test = test, data = data, B = B, alpha = alpha)
 
     # stop if there are no candidates for inclusion; the markov blanket
@@ -218,7 +191,7 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
     # the tests for inclusion and removal are identical; on the other hand,
     # known.good nodes should be checked to remove false positives.
     if (length(mb) > 1)
-      sapply(mb[!(mb %in% c(to.add, whitelisted))], del.node, x = x, test = test)
+      sapply(mb[mb %!in% c(to.add, whitelisted)], del.node, x = x, test = test)
 
     if (identical(mb, mb.snapshot)) {
 

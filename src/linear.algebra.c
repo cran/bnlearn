@@ -327,30 +327,40 @@ int i_one = 1;
 }/*C_ROTATE*/
 
 /* C-level function to perform OLS via QR decomposition. */
-void c_qr_ols (double *qr, double *y, int *nrow, int *ncol, double *fitted,
+void c_qr_ols (double *qr, double *y, int nrow, int ncol, double *fitted,
     long double *sd) {
 
 int i = 0, job = 1, rank = 0, info = 0, *pivot = NULL;
 double tol = MACHINE_TOL, *qraux = NULL, *work = NULL;
 
+  /* safety check for sample size = 1. */
+  if (nrow == 1) {
+
+    *sd = 0;
+    *fitted = *y;
+
+    return;
+
+  }/*THEN*/
+
   /* allocate the working space. */
-  qraux = (double *)Calloc(*ncol, double);
-  memset(qraux, '\0', *ncol * sizeof(double));
-  work = (double *)Calloc(2 * (*ncol), double);
-  memset(work, '\0', 2 * (*ncol) * sizeof(double));
-  pivot = (int *)Calloc(*ncol, int);
-  for (i = 0; i < *ncol; i++)
+  qraux = (double *)Calloc(ncol, double);
+  memset(qraux, '\0', ncol * sizeof(double));
+  work = (double *)Calloc(2 * ncol, double);
+  memset(work, '\0', 2 * ncol * sizeof(double));
+  pivot = (int *)Calloc(ncol, int);
+  for (i = 0; i < ncol; i++)
     pivot[i] = i + 1;
 
   /* perform the QR decomposition. */
-  F77_CALL(dqrdc2)(qr, nrow, nrow, ncol, &tol, &rank, qraux, pivot, work);
+  F77_CALL(dqrdc2)(qr, &nrow, &nrow, &ncol, &tol, &rank, qraux, pivot, work);
 
   /* operate on a backup copy of the response variable. */
-  memcpy(fitted, y, (*nrow) * sizeof(double));
+  memcpy(fitted, y, nrow * sizeof(double));
 
   /* compute the fitted values. */
-  /*       dqrsl( x,  ldx,  n,    k,     qraux, y,      qy,     qty, */
-  F77_CALL(dqrsl)(qr, nrow, nrow, &rank, qraux, fitted, NULL,   fitted,
+  /*       dqrsl( x,  ldx,   n,     k,     qraux, y,      qy,     qty, */
+  F77_CALL(dqrsl)(qr, &nrow, &nrow, &rank, qraux, fitted, NULL,   fitted,
   /*  b,      rsd,    xb,     job,  info) */
       NULL,   NULL,   fitted, &job, &info);
 
@@ -358,9 +368,9 @@ double tol = MACHINE_TOL, *qraux = NULL, *work = NULL;
     error("an error (%d) occurred in the call to dqrsl().\n", &info);
 
   /* compute the standard deviation of the residuals. */
-  for (i = 0; i < *nrow; i++)
+  for (i = 0, *sd = 0; i < nrow; i++)
     *sd += (y[i] - fitted[i]) * (y[i] - fitted[i]);
-  *sd = sqrt(*sd / (*nrow - 1));
+  *sd = sqrt(*sd / (nrow - 1));
 
   Free(pivot);
   Free(work);

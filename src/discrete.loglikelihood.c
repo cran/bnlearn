@@ -1,4 +1,3 @@
-
 #include "common.h"
 
 double dlik(SEXP x, double *nparams) {
@@ -69,13 +68,6 @@ double loglik = 0;
 char *t = (char *)CHAR(STRING_ELT(target, 0));
 SEXP nodes, node_t, parents, data_t, parent_vars, config;
 
-  if (debuglevel > 0) {
-
-    Rprintf("----------------------------------------------------------------\n");
-    Rprintf("* processing node %s.\n", t);
-
-  }/*THEN*/
-
   /* get the node cached information. */
   nodes = getListElement(x, "nodes");
   node_t = getListElement(nodes, t);
@@ -89,7 +81,7 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
     loglik = dlik(data_t, nparams);
 
   }/*THEN*/
-  else { 
+  else {
 
     /* generate the configurations of the parents. */
     PROTECT(parent_vars = c_dataframe_column(data, parents, FALSE, FALSE));

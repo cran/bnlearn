@@ -258,3 +258,24 @@ void *DATAPTR(SEXP x) {
 
 }/*DATAPTR*/
 
+/* variadic version of mkString(). */
+SEXP mkRealVec(int n, ...) {
+
+va_list strings;
+int i = 0;
+double *v = NULL;
+SEXP vec;
+
+  PROTECT(vec = allocVector(REALSXP, n));
+  v = REAL(vec);
+  va_start(strings, n);
+  for (i = 0; i < n; i++)
+    v[i] = va_arg(strings, double);
+  va_end(strings);
+  UNPROTECT(1);
+
+  return vec;
+
+}/*MKSTRINGVEC*/
+
+

@@ -18,24 +18,18 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
     if (algorithm.args$score == "mbde")
       stop("the 'mbde' score is incompatible with parametric bootstrap.")
 
-    if (algorithm %in% always.dag.result) {
+    if (algorithm %!in% always.dag.result)
+      stop("this learning algorithm may result in a partially directed graph,",
+           " which is not handled by parametric bootstrap.")
 
-      net = do.call(algorithm, c(list(x = data), algorithm.args))
+    net = do.call(algorithm, c(list(x = data), algorithm.args))
 
-      if (debug) {
+    if (debug) {
 
-        cat("* initial network for parametric bootstrap is:\n")
-        print(net)
-
-      }#THEN
+      cat("* initial network for parametric bootstrap is:\n")
+      print(net)
 
     }#THEN
-    else {
-
-      stop(paste("this learning algorithm may result in a partially",
-             "directed dag, which is not handled by parametric bootstrap."))
-
-    }#ELSE
 
   }#THEN
 
@@ -109,16 +103,18 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
 
   if (!is.null(cluster)) {
 
-    res = parLapply(cluster, res, bootstrap.step, data = data, m = m, net = net,
-      sim = sim, algorithm = algorithm, algorithm.args = algorithm.args,
-      statistic = statistic, statistic.args = statistic.args, debug = debug)
+    res = parallel::parLapply(cluster, res, bootstrap.step, data = data,
+            m = m, net = net, sim = sim, algorithm = algorithm,
+            algorithm.args = algorithm.args, statistic = statistic,
+            statistic.args = statistic.args, debug = debug)
 
   }#THEN
   else {
 
     res = lapply(res, bootstrap.step, data = data, m = m, net = net, sim = sim,
-      algorithm = algorithm, algorithm.args = algorithm.args, statistic = statistic,
-      statistic.args = statistic.args, debug = debug)
+            algorithm = algorithm, algorithm.args = algorithm.args,
+            statistic = statistic, statistic.args = statistic.args,
+            debug = debug)
 
   }#ELSE
 

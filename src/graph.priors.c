@@ -115,7 +115,7 @@ SEXP nodes, try;
           default:
             prior = 1 - bkwd[k] - fwd[k];
 
-        }/*SWITCH*/       
+        }/*SWITCH*/
 
         break;
 

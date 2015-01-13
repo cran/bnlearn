@@ -59,10 +59,10 @@ plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
 
   if (!is.null(highlight)) {
 
-    if (!all(highlight %in% names(x$nodes)))
+    if (any(highlight %!in% names(x$nodes)))
       stop("invalid node label.")
 
-    if (!(color %in% colors()) && !is.numeric(color))
+    if ((color %!in% colors()) && !is.numeric(color))
       stop("invalid highlight color.")
 
   }#THEN

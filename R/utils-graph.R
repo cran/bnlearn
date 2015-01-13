@@ -59,56 +59,6 @@ mb.fitted = function(x, node) {
 
 }#MB.FITTED
 
-# backend of nparams, the "get the number of parameters of a
-# discrete bayesian network" function. If real = TRUE this
-# function returns the number of _independent_ parameters
-# (one parameter of each set is set by the constraint by
-# the condition \sum \pi_{i} = 1).
-nparams.discrete = function(x, data, real = FALSE, debug = FALSE) {
-
-  # works for both dnode and onode objects, they have the same structure.
-  .Call("nparams_dnet",
-        graph = x,
-        data = data,
-        real = real,
-        debug = debug)
-
-}#NPARAMS.DISCRETE
-
-nparams.discrete.node = function(node, x, data, real) {
-
-  .Call("nparams_dnode",
-        graph = x,
-        node = node,
-        data = data,
-        real = real)
-
-}#NPARAMS.DISCRETE.NODE
-
-nparams.gaussian = function(x, debug = FALSE) {
-
-  .Call("nparams_gnet",
-        graph = x,
-        debug = debug)
-
-}#NPARAMS.GAUSSIAN
-
-nparams.gaussian.node = function(node, x) {
-
-  .Call("nparams_gnode",
-        graph = x,
-        node = node)
-
-}#NPARAMS.GAUSSIAN.NODE
-
-nparams.fitted = function(x, debug = FALSE) {
-
-  .Call("fitted_nparams",
-        bn = x,
-        debug = debug)
-
-}#NPARAMS.FITTED
-
 # return the skeleton of a graph.
 dag2ug.backend = function(x, moral = FALSE, debug = FALSE) {
 
@@ -191,7 +141,7 @@ mutilated.backend.bn = function(x, evidence) {
   fixed = names(evidence)
   nodes = names(x$nodes)
   # remove all parents of nodes in the evidence.
-  x$arcs = x$arcs[!(x$arcs[, "to"] %in% fixed), ]
+  x$arcs = x$arcs[x$arcs[, "to"] %!in% fixed, ]
   # update the cached information for the fixed nodes.
   amat = arcs2amat(x$arcs, nodes)
   for (node in fixed)
@@ -451,7 +401,7 @@ dseparation = function(bn, x, y, z) {
   # get its moral graph.
   mgraph = dag2ug.backend(ucgraph, moral = TRUE)
   # remove z and incident arcs to block paths.
-  upper.closure = upper.closure[!(upper.closure %in% z)]
+  upper.closure = upper.closure[upper.closure %!in% z]
   mgraph = subgraph.backend(mgraph, upper.closure)
   # look for a path between x and y.
   connected = has.path(x, y, nodes = upper.closure,

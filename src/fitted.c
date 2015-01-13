@@ -120,54 +120,6 @@ SEXP labels, node_data, children, result;
 
 }/*FIT2ARCS*/
 
-/* compute the number of parameters of the model. */
-SEXP fitted_nparams(SEXP bn, SEXP debug) {
-
-int i = 0, j = 0, node_params = 0, nnodes = length(bn);
-int res = 0, debuglevel = isTRUE(debug);
-SEXP nodes = R_NilValue, node_data, temp;
-
-  if (debuglevel > 0)
-    nodes = getAttrib(bn, R_NamesSymbol);
-
-  for (i = 0; i < nnodes; i++) {
-
-    /* get the node's data. */
-    node_data = VECTOR_ELT(bn, i);
-    /* get its probability distribution (if discrete). */
-    temp = getListElement(node_data, "prob");
-
-    if (!isNull(temp)) {
-
-      /* reset the parameters' counter for this node. */
-      node_params = 1;
-      /* get the dimensions of the conditional probability table. */
-      temp = getAttrib(temp, R_DimSymbol);
-      /* compute the number of parameters. */
-      for (j = 1; j < length(temp); j++)
-        node_params *= INTEGER(temp)[j];
-
-      node_params *= INTEGER(temp)[0] - 1;
-
-    }/*THEN*/
-    else {
-
-      /* this is a continuous node, so it's a lot easier. */
-      node_params = length(getListElement(node_data, "coefficients"));
-
-    }/*ELSE*/
-
-    if (debuglevel > 0)
-      Rprintf("* node %s has %d parameter(s).\n", NODE(i), node_params);
-
-    res += node_params;
-
-  }/*FOR*/
-
-  return ScalarInteger(res);
-
-}/*FITTED_NPARAMS*/
-
 #define MATCH_NODES(which, value) \
   temp = getListElement(node_data, which);     \
                                                \

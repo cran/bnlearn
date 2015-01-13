@@ -41,13 +41,13 @@ incremental.association.optimized = function(x, whitelist, blacklist, test,
 
 }#INCREMENTAL.ASSOCIATION.OPTIMIZED
 
-incremental.association.cluster = function(x, cluster, whitelist, blacklist,
+incremental.association = function(x, cluster = NULL, whitelist, blacklist,
   test, alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
-  mb = parLapply(cluster, as.list(nodes), ia.markov.blanket, data = x,
+  mb = smartLapply(cluster, as.list(nodes), ia.markov.blanket, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
@@ -56,36 +56,9 @@ incremental.association.cluster = function(x, cluster, whitelist, blacklist,
   mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
 
   # 2. [Compute Graph Structure]
-  mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+  mb = smartLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
-  names(mb) = nodes
-
-  # check neighbourhood sets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
-
-  return(mb)
-
-}#INCREMENTAL.ASSOCIATION.CLUSTER
-
-incremental.association = function(x, whitelist, blacklist, test, alpha,
-  B, strict, debug = FALSE) {
-
-  nodes = names(x)
-
-  # 1. [Compute Markov Blankets]
-  mb = lapply(as.list(nodes), ia.markov.blanket, data = x, nodes = nodes,
-         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, debug = debug)
-  names(mb) = nodes
-
-  # check markov blankets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
-
-  # 2. [Compute Graph Structure]
-  mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
-         B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-         debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -120,7 +93,7 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   # between them of course they are in each other's markov blanket).
   # arc direction is irrelevant here.
   mb = unique(c(mb, whitelisted))
-  nodes = nodes[!(nodes %in% mb)]
+  nodes = nodes[nodes %!in% mb]
   # blacklist is not checked, not all nodes in a markov blanket must be
   # neighbours.
 
@@ -138,7 +111,7 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
     # known.good nodes are not to be checked for inclusion, and the "nodes"
     # is resetted below so we can just remove them.
-    nodes = nodes[!(nodes %in% known.good)]
+    nodes = nodes[nodes %!in% known.good]
 
     if (debug) {
 
@@ -229,7 +202,7 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   # the tests for inclusion and removal are identical; on the other hand,
   # known.good nodes should be checked to remove false positives.
   if (length(mb) > 1)
-    sapply(mb[!(mb %in% c(to.add, whitelisted))], del.node, x = x, test = test)
+    sapply(mb[mb %!in% c(to.add, whitelisted)], del.node, x = x, test = test)
 
   return(mb)
 

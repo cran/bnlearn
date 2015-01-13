@@ -102,7 +102,8 @@
   }
   Both methods are available for \code{bn.fit} objects; predictions for
   \code{bn.fit.dnode}, \code{bn.fit.onode} and \code{bn.fit.gnode} objects
-  are estimated with \code{method = "parents"}.
+  can only be estimated with \code{method = "parents"}. That is the default
+  \code{method} for \code{bn.fit} objects as well.
 
 }
 \note{
@@ -110,6 +111,11 @@
   Ties in prediction are broken using \emph{Bayesian tie breaking}, i.e.
   sampling at random from the tied values. Therefore, setting the random
   seed is required to get reproducible results.
+
+  \code{predict} accepts either a \code{bn} or a \code{bn.fit} object as
+  its first argument. For the former, the parameters of the network are
+  fitted on \code{data}, that is, the observations whose class labels the
+  function is trying to predict.
 
 }
 \value{

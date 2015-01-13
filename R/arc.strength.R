@@ -205,7 +205,7 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
     # get the number of slaves.
     s = nSlaves(cluster)
 
-    res = parLapply(cluster, rep(ceiling(R / s), s), bootstrap.batch,
+    res = parallel::parLapply(cluster, rep(ceiling(R / s), s), bootstrap.batch,
             data = data, m = m, arcs = arcs, algorithm = algorithm,
             algorithm.args = algorithm.args, cpdag = cpdag, debug = debug)
 

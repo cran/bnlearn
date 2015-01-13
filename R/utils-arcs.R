@@ -72,7 +72,7 @@ set.arc.direction = function(from, to, arcs, debug = FALSE) {
     if (debug)
       cat("  > the arc", to, "->", from, "is present, reversing.\n")
 
-    rbind(arcs[!is.row.equal(arcs, c(to, from)),], c(from, to))
+    arcs.rbind(arcs[!is.row.equal(arcs, c(to, from)),], c(from, to))
 
   }#THEN
   # the arc is already there.
@@ -90,7 +90,7 @@ set.arc.direction = function(from, to, arcs, debug = FALSE) {
     if (debug)
       cat("  > the arc", from, "->", to, "is not present, adding.\n")
 
-    rbind(arcs, c(from, to))
+    arcs.rbind(arcs, c(from, to))
 
   }#ELSE
 
@@ -114,7 +114,7 @@ set.edge.backend = function(from, to, arcs, debug = FALSE) {
     if (debug)
       cat("  > the arc", to, "->", from, "is present, removing direction.\n")
 
-    rbind(arcs, c(from, to))
+    arcs.rbind(arcs, c(from, to))
 
   }#THEN
   # the arc is already there.
@@ -123,7 +123,7 @@ set.edge.backend = function(from, to, arcs, debug = FALSE) {
     if (debug)
       cat("  > the arc", from, "->", to, "is present, removing direction.\n")
 
-    rbind(arcs, c(to, from))
+    arcs.rbind(arcs, c(to, from))
 
   }#THEN
   # the arc is not present.
@@ -132,7 +132,7 @@ set.edge.backend = function(from, to, arcs, debug = FALSE) {
     if (debug)
       cat("  > the arc", from, "-", to, "is not present, adding.\n")
 
-    rbind(arcs, c(from, to), c(to, from))
+    arcs.rbind(arcs, c(from, to, to, from))
 
   }#ELSE
 
@@ -186,7 +186,7 @@ reverse.arc.backend = function(from, to, arcs, debug = FALSE) {
     if (debug)
       cat("  > the arc", to, "->", from, "is present, reversing.\n")
 
-    rbind(arcs[!is.row.equal(arcs, c(to, from)),], c(from, to))
+    arcs.rbind(arcs[!is.row.equal(arcs, c(to, from)),], c(from, to))
 
   }#THEN
   # the arc is already there.
@@ -195,7 +195,7 @@ reverse.arc.backend = function(from, to, arcs, debug = FALSE) {
     if (debug)
       cat("  > the arc", from, "->", to, "is present, reversing.\n")
 
-    rbind(arcs[!is.row.equal(arcs, c(from, to)),], c(to, from))
+    arcs.rbind(arcs[!is.row.equal(arcs, c(from, to)),], c(to, from))
 
   }#THEN
   # the arc is not present.

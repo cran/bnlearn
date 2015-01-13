@@ -103,7 +103,8 @@ SEXP node2df(SEXP target, int n) {
 const char *class = CHAR(STRING_ELT(getAttrib(target, R_ClassSymbol), 0));
 SEXP result, res_levels;
 
-  if (strcmp(class, "bn.fit.gnode") == 0) {
+  if ((strcmp(class, "bn.fit.gnode") == 0) ||
+      (strcmp(class, "bn.fit.cgnode") == 0)) {
 
     return allocVector(REALSXP, n);
 

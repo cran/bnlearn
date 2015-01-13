@@ -47,7 +47,7 @@ bn.moments = function(data, R = 200, m = nrow(data), algorithm,
   # in any bootstrap sample ("first") or that has zero variance ("second").
   if (!is.null(reduce)) {
 
-    if (!is.string(reduce) || !(reduce %in% c("first", "second")))
+    if (!is.string(reduce) || (reduce %!in% c("first", "second")))
       stop("unknown criterion for matrix reduction.")
 
     if (reduce == "first")

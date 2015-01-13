@@ -41,155 +41,124 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       debug = FALSE
 
     }#THEN
+    # disable backtracking, there's nothing to backtrack.
+    optimized = FALSE
 
   }#THEN
 
   # sanitize whitelist and blacklist, if any.
-  whitelist = build.whitelist(whitelist, names(x))
+  whitelist = build.whitelist(whitelist, names(x), x, test)
   blacklist = build.blacklist(blacklist, whitelist, names(x))
+  # create the full blacklist incorporating model assumptions.
+  full.blacklist = arcs.rbind(blacklist,
+                     check.arcs.against.assumptions(NULL, x, test))
+  full.blacklist = unique.arcs(full.blacklist, names(x))
 
   # call the right backend.
   if (method == "gs") {
 
-    if (cluster.aware) {
-
-      mb = grow.shrink.cluster(x = x, cluster = cluster,
-        whitelist = whitelist, blacklist = blacklist, test = test,
-        alpha = alpha, B = B, strict = strict, debug = debug)
-
-    }#THEN
-    else if (optimized) {
+    if (optimized) {
 
       mb = grow.shrink.optimized(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B,
-        strict = strict, debug = debug)
+             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+             strict = strict, debug = debug)
 
     }#THEN
     else {
 
-      mb = grow.shrink(x = x, whitelist = whitelist, blacklist = blacklist,
-        test = test, alpha = alpha, B = B, strict = strict, debug = debug)
+      mb = grow.shrink(x = x, whitelist = whitelist,
+             blacklist = full.blacklist, test = test, alpha = alpha,
+             B = B, strict = strict, debug = debug, cluster = cluster)
 
     }#ELSE
 
   }#THEN
   else if (method == "iamb") {
 
-    if (cluster.aware) {
-
-      mb = incremental.association.cluster(x = x, cluster = cluster,
-        whitelist = whitelist, blacklist = blacklist, test = test,
-        alpha = alpha, B = B, strict = strict, debug = debug)
-
-    }#THEN
-    else if (optimized) {
+    if (optimized) {
 
       mb = incremental.association.optimized(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B,
-        strict = strict, debug = debug)
+             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+             strict = strict, debug = debug)
 
     }#THEN
     else {
 
       mb = incremental.association(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B,
-        strict = strict, debug = debug)
+             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+             strict = strict, debug = debug, cluster = cluster)
 
     }#ELSE
 
   }#THEN
   else if (method == "fast.iamb") {
 
-    if (cluster.aware) {
-
-      mb = fast.incremental.association.cluster(x = x, cluster = cluster,
-        whitelist = whitelist, blacklist = blacklist, test = test,
-        alpha = alpha, B = B, strict = strict, debug = debug)
-
-    }#THEN
-    else if (optimized) {
+    if (optimized) {
 
       mb = fast.incremental.association.optimized(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B,
-        strict = strict, debug = debug)
+             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+             strict = strict, debug = debug)
 
     }#THEN
     else {
 
       mb = fast.incremental.association(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B,
-        strict = strict, debug = debug)
+             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+             strict = strict, debug = debug, cluster = cluster)
 
     }#ELSE
 
   }#THEN
   else if (method == "inter.iamb") {
 
-    if (cluster.aware) {
-
-      mb = inter.incremental.association.cluster(x = x, cluster = cluster,
-        whitelist = whitelist, blacklist = blacklist, test = test,
-        alpha = alpha, B = B, strict = strict, debug = debug)
-
-    }#THEN
-    else if (optimized) {
+    if (optimized) {
 
       mb = inter.incremental.association.optimized(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B,
-        strict = strict, debug = debug)
+             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+             strict = strict, debug = debug)
 
     }#THEN
     else {
 
       mb = inter.incremental.association(x = x, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B,
-        strict = strict, debug = debug)
+             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+             strict = strict, debug = debug, cluster = cluster)
 
     }#ELSE
 
   }#THEN
   else if (method == "mmpc") {
 
-    if (cluster.aware) {
+    if (optimized) {
 
-      mb = maxmin.pc.cluster(x = x, cluster = cluster, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B,
-        strict = strict, debug = debug)
-
-    }#THEN
-    else if (optimized) {
-
-      mb = maxmin.pc.optimized(x = x, whitelist = whitelist, blacklist = blacklist,
-        test = test, alpha = alpha, B = B, strict = strict, debug = debug)
+      mb = maxmin.pc.optimized(x = x, whitelist = whitelist,
+             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+             strict = strict, debug = debug)
 
     }#THEN
     else {
 
-      mb = maxmin.pc(x = x, whitelist = whitelist, blacklist = blacklist,
-        test = test, alpha = alpha, B = B, strict = strict, debug = debug)
+      mb = maxmin.pc(x = x, whitelist = whitelist, blacklist = full.blacklist,
+             test = test, alpha = alpha, B = B, strict = strict, debug = debug,
+             cluster = cluster)
 
     }#ELSE
 
   }#THEN
   else if (method == "si.hiton.pc") {
 
-    if (cluster.aware) {
+    if (optimized) {
 
-      mb = si.hiton.pc.cluster(x = x, cluster = cluster, whitelist = whitelist,
-        blacklist = blacklist, test = test, alpha = alpha, B = B,
-        strict = strict, debug = debug)
-
-    }#THEN
-    else if (optimized) {
-
-      mb = si.hiton.pc.optimized(x = x, whitelist = whitelist, blacklist = blacklist,
-        test = test, alpha = alpha, B = B, strict = strict, debug = debug)
+      mb = si.hiton.pc.optimized(x = x, whitelist = whitelist,
+             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+             strict = strict, debug = debug)
 
     }#THEN
     else {
 
-      mb = si.hiton.pc.backend(x = x, whitelist = whitelist, blacklist = blacklist,
-        test = test, alpha = alpha, B = B, strict = strict, debug = debug)
+      mb = si.hiton.pc.backend(x = x, whitelist = whitelist,
+             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+             strict = strict, debug = debug, cluster = cluster)
 
     }#ELSE
 
@@ -216,15 +185,18 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     # recover some arc directions.
     res = second.principle(x = x, mb = mb, whitelist = whitelist,
-            blacklist = blacklist, test = test, alpha = alpha, B = B,
+            blacklist = full.blacklist, test = test, alpha = alpha, B = B,
             strict = strict, debug = debug)
+    # return the user-specified blacklist, not the full one, as in other
+    # classes of learning algorithms.
+    res$learning$blacklist = blacklist
 
   }#ELSE
 
   # add tests performed by the slaves to the test counter.
   if (cluster.aware)
     res$learning$ntests = res$learning$ntests +
-      sum(unlist(clusterEvalQ(cluster, test.counter())))
+      sum(unlist(parallel::clusterEvalQ(cluster, test.counter())))
   # save the learning method used.
   res$learning$algo = method
   # save the 'optimized' flag.
@@ -275,7 +247,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   }#THEN
 
   # sanitize whitelist and blacklist, if any.
-  whitelist = build.whitelist(whitelist, names(x))
+  whitelist = build.whitelist(whitelist, names(x), x, score)
   blacklist = build.blacklist(blacklist, whitelist, names(x))
   # if there is no preseeded network, use an empty one.
   if (is.null(start))
@@ -291,10 +263,13 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     if (any(nparents > maxp))
       stop("nodes ", paste(names(which(nparents > maxp)), collapse = " "),
         " have more than 'maxp' parents.")
+    # check the preseeded network is valid for the model assumptions.
+    check.arcs.against.assumptions(start$arcs, x, score)
 
   }#ELSE
 
-  # apply the whitelist to the preseeded network.
+  # apply the whitelist to the preseeded network; undirected arcs are allowed
+  # but applied as directed to interoperate with bnlearn() in hybrid.search().
   if (!is.null(whitelist)) {
 
     for (i in 1:nrow(whitelist))
@@ -423,7 +398,7 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
     debug = FALSE) {
 
   # check the data are there.
-  check.data(x)
+  check.data(x, allowed.types = c(discrete.data.types, continuous.data.types))
   # check the algorithm.
   check.learning.algorithm(method, class = "mim")
   # check debug.
@@ -433,7 +408,7 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
   # sanitize whitelist and blacklist, if any.
   nodes = names(x)
   nnodes = length(nodes)
-  whitelist = build.whitelist(whitelist, nodes)
+  whitelist = build.whitelist(whitelist, nodes, x, mi)
   blacklist = build.blacklist(blacklist, whitelist, nodes)
 
   if (method == "aracne") {
@@ -474,8 +449,7 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
 
 # learn the markov blanket of a single node.
 mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
-    start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
-    optimized = TRUE) {
+    start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE) {
 
   reset.test.counter()
 
@@ -489,9 +463,8 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   check.learning.algorithm(method, class = "markov.blanket")
   # check test labels.
   test = check.test(test, x)
-  # check the logical flags (debug, optimized).
+  # check debug.
   check.logical(debug)
-  check.logical(optimized)
   # check alpha.
   alpha = check.alpha(alpha)
   # check B (the number of bootstrap/permutation samples).
@@ -527,7 +500,7 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   # remove whitelisted nodes from the blacklist.
   if (!is.null(whitelist) && !is.null(blacklist)) {
 
-    blacklist = blacklist[!(blacklist %in% whitelist)]
+    blacklist = blacklist[blacklist %!in% whitelist]
 
     if (length(blacklist) == 0)
       blacklist = NULL
@@ -543,7 +516,7 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
     # check the labels of the blacklisted nodes.
     check.nodes(nodes = blacklist, graph = nodes[nodes != target])
 
-    nodes = nodes[!(nodes %in% blacklist)]
+    nodes = nodes[nodes %!in% blacklist]
     x = minimal.data.frame.column(x, nodes, drop = FALSE)
     x = minimal.data.frame(x)
     names(x) = nodes
@@ -569,7 +542,8 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 
     mb = fast.ia.markov.blanket(x = target, data = x, nodes = nodes,
            alpha = alpha, B = B, whitelist = whitelist, blacklist = NULL,
-           start = start, backtracking = NULL, test = test, debug = debug)
+           start = start, backtracking = NULL, test = test,
+           debug = debug)
 
   }#THEN
   else if (method == "inter.iamb") {
@@ -586,7 +560,7 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 
 # learn the neighbourhood of a single node.
 nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE) {
+    test = NULL, alpha = 0.05, B = NULL, debug = FALSE) {
 
   reset.test.counter()
 
@@ -600,9 +574,8 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   check.learning.algorithm(method, class = "neighbours")
   # check test labels.
   test = check.test(test, x)
-  # check the logical flags (debug, optimized).
+  # check debug.
   check.logical(debug)
-  check.logical(optimized)
   # check alpha.
   alpha = check.alpha(alpha)
   # check B (the number of bootstrap/permutation samples).
@@ -625,7 +598,7 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   # remove whitelisted nodes from the blacklist.
   if (!is.null(whitelist) && !is.null(blacklist)) {
 
-    blacklist = blacklist[!(blacklist %in% whitelist)]
+    blacklist = blacklist[blacklist %!in% whitelist]
 
     if (length(blacklist) == 0)
       blacklist = NULL
@@ -641,7 +614,7 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
     # check the labels of the blacklisted nodes.
     check.nodes(nodes = blacklist, graph = nodes[nodes != target])
 
-    nodes = nodes[!(nodes %in% blacklist)]
+    nodes = nodes[nodes %!in% blacklist]
     x = minimal.data.frame.column(x, nodes, drop = FALSE)
     x = minimal.data.frame(x)
     names(x) = nodes
@@ -653,14 +626,14 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 
     nbr = maxmin.pc.forward.phase(target, data = x, nodes = nodes,
            alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-           test = test, optimized = optimized, debug = debug)
+           test = test, optimized = FALSE, backtracking = NULL, debug = debug)
 
   }#THEN
   else if (method == "si.hiton.pc") {
 
     nbr = si.hiton.pc.heuristic(target, data = x, nodes = nodes, alpha = alpha,
             B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-            optimized = optimized, debug = debug)
+            backtracking = NULL, debug = debug)
 
   }#ELSE
 
@@ -683,14 +656,8 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
   check.learning.algorithm(method, class = "classifier")
   # check the training node (the center of the star-shaped graph).
   check.nodes(training, max.nodes = 1)
-  # check the data (which are not really used in naive bayes).
-  if (method != "naive.bayes") {
-
-    check.data(data)
-    if (!(data.type(data) %in% c("factor", "ordered", "mixed-do")))
-      stop("continuous data are not supported.")
-
-  }#THEN
+  # check the data.
+  check.data(data, allowed.types = discrete.data.types)
 
   # check the explantory variables.
   if (missing(data)) {
@@ -720,8 +687,16 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
   # sanitize whitelist and blacklist, if any.
   if (method != "naive.bayes") {
 
-    whitelist = build.whitelist(whitelist, explanatory)
-    blacklist = build.blacklist(blacklist, whitelist, explanatory)
+    whitelist = build.whitelist(whitelist, nodes, data, criterion = "mi")
+    blacklist = build.blacklist(blacklist, whitelist, nodes)
+
+    if (method == "tree.bayes") {
+
+      # arcs to and from the training node cannot be whitelisted or blacklisted.
+      if ((training %in% whitelist) || (training %in% blacklist))
+        stop("blacklisting arcs to and from the training node is not allowed.")
+
+    }#THEN
 
   }#THEN
 

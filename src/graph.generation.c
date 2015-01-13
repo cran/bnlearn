@@ -208,7 +208,7 @@ SEXP amatA, amatB, args;
 
   /* the list of optional arguments. */
   PROTECT(args = allocVector(VECSXP, 4));
-  setAttrib(args, R_NamesSymbol, 
+  setAttrib(args, R_NamesSymbol,
     mkStringVec(4, "burn.in", "max.in.degree", "max.out.degree", "max.degree"));
   SET_VECTOR_ELT(args, 0, burn_in);
   SET_VECTOR_ELT(args, 1, max_in_degree);

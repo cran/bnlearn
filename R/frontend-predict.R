@@ -29,10 +29,12 @@ predict.bn.fit = function(object, node, data, method = "parents", ...,
     check.fit.vs.data(fitted = object, data = data,
       subset = object[[node]]$parents)
 
-    if (is.fitted.discrete(object) || is.fitted.ordinal(object))
+    if (is(object, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
       discrete.prediction(node = node, fitted = object, data = data, debug = debug)
-    else
+    else if (is(object, "bn.fit.gnet"))
       gaussian.prediction(node = node, fitted = object, data = data, debug = debug)
+    else if (is(object, "bn.fit.cgnet"))
+      mixedcg.prediction(node = node, fitted = object, data = data, debug = debug)
 
   }#THEN
   else if (method == "bayes-lw") {
@@ -59,6 +61,29 @@ predict.bn.fit = function(object, node, data, method = "parents", ...,
   }#THEN
 
 }#PREDICT.BN.FIT
+
+# estimate the predicted values for a conditional gaussian node.
+predict.bn.fit.cgnode = function(object, data, ..., debug = FALSE) {
+
+  nodes = names(data)
+  target = object$node
+
+  # check the data are there.
+  check.data(data)
+  # check the fitted node.
+  check.fit.node.vs.data(object, data)
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  # create a dummy bn.fit object to pass to gaussian.prediction().
+  dummy = vector(length(nodes), mode = "list")
+  names(dummy) = nodes
+  dummy[[target]] = object
+
+  # compute the predicted values.
+  mixedcg.prediction(node = target, fitted = dummy, data = data, debug = debug)
+
+}#PREDICT.BN.FIT.CGNODE
 
 # estimate the predicted values for a gaussian node.
 predict.bn.fit.gnode = function(object, data, ..., debug = FALSE) {
@@ -113,7 +138,7 @@ predict.bn.fit.onode = predict.bn.fit.dnode
 predict.bn.naive = function(object, data, prior, ..., prob = FALSE, debug = FALSE) {
 
   # check the data are there.
-  check.data(data)
+  check.data(data, allowed.types = discrete.data.types)
   # check the bn.{naive,tan} object.
   if (is(object, "bn.naive"))
     check.bn.naive(object)
@@ -138,7 +163,7 @@ predict.bn.naive = function(object, data, prior, ..., prob = FALSE, debug = FALS
   # get the response variable.
   training = attr(fitted, "training")
   # check the prior distribution.
-  prior = check.classifier.prior(prior, data[, training])
+  prior = check.classifier.prior(prior, object[[training]])
 
   # compute the predicted values.
   naive.classifier(training = training, fitted = fitted, data = data,

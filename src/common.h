@@ -72,6 +72,7 @@ SEXP finalize_arcs(SEXP arcs);
 SEXP int2fac(SEXP vector, int *nlevels);
 SEXP qr_matrix(SEXP dataframe, SEXP name);
 void *DATAPTR(SEXP x);
+SEXP mkRealVec(int n, ...);
 
 /* from data.frame.c */
 SEXP minimal_data_frame(SEXP obj);
@@ -117,7 +118,7 @@ double c_quadratic(double *x, int *ncols, double *sigma, double *y,
     double *workspace);
 void c_rotate(double *S1, double *S2, double *x, double *a, double *mu,
     int *ncols, double *workspace);
-void c_qr_ols (double *qr, double *y, int *nrow, int *ncol, double *fitted,
+void c_qr_ols (double *qr, double *y, int nrow, int ncol, double *fitted,
     long double *sd);
 
 /* from covariance.c */
@@ -139,7 +140,7 @@ double c_fast_pcor(double *cov, double *u, double *d, double *vt, int ncols,
 
 /* from loss.c */
 double c_entropy_loss(SEXP fitted, SEXP orig_data, int ndata, int by,
-    double *res_sample, SEXP keep, int debuglevel);
+    double *res_sample, SEXP keep, int allow_singular, int debuglevel);
 
 /* from {discrete.gaussian}.monte.carlo.c */
 #define MUTUAL_INFORMATION             1
@@ -170,6 +171,8 @@ void c_gauss_cmcarlo(double **column, int ncols, int num, int B,
     double *observed, double *pvalue, double alpha, int test);
 
 /* from shrinkage.c */
+void mi_lambda(double *n, double *lambda, double target, int num, int llx,
+    int lly, int llz);
 double c_shmi(int *xx, int llx, int *yy, int lly, int num);
 double c_shcmi(int *xx, int llx, int *yy, int lly, int *zz, int llz,
     int num, double *df);
@@ -192,8 +195,8 @@ SEXP c_amat_hash(int *amat, int nnodes);
 
 /* from configurations.c */
 void cfg(SEXP parents, int *configurations, int *nlevels);
-void cfg3(int **columns, int nrows, int ncols, int *levels,
-    int *configurations, int *nlevels);
+void c_fast_config(int **columns, int nrows, int ncols, int *levels,
+    int *configurations, int *nlevels, int offset);
 SEXP c_configurations(SEXP parents, int factor, int all_levels);
 
 /* shared between hill climbing and tabu search. */
@@ -208,6 +211,12 @@ SEXP root_nodes(SEXP bn, SEXP leaves);
 /* from simulation.c */
 SEXP schedule(SEXP bn, SEXP root_nodes, SEXP reverse, SEXP debug);
 
+/* conditional independence tests. */
+SEXP utest(SEXP x, SEXP y, SEXP data, SEXP test, SEXP B, SEXP alpha,
+    SEXP learning);
+SEXP ctest(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP B, SEXP alpha,
+    SEXP learning);
+
 /* from mutual.information.c */
 #define MI_PART(cell, xmarg, ymarg, zmarg) \
   ((cell) == 0 ? 0 : \
@@ -218,6 +227,11 @@ double c_mi(int *xx, int llx, int *yy, int lly, int num, double *df, int adj);
 double c_cmi(int *xx, int llx, int *yy, int lly, int *zz, int llz, int num,
     double *df, int adj);
 double c_mig(double *xx, double *yy, int *num);
+double c_micg(double *yy, double ym, double ysd, int *xx, int llx, int num);
+double c_cmicg(double *yy, double **xx, int nx, int **zz, int nz, int *z0,
+    int nz0, int *nlvls, int num);
+double c_cmicg_unroll(int *xx, int llx, int *yy, int lly, int *zz, int llz,
+    double **gp, int ngp, double *df, int num);
 
 /* from df.adjust.c */
 double df_adjust(int *ni, int llx, int *nj, int lly);
@@ -261,8 +275,15 @@ void c_rcont2(int *nrow, int *ncol, int *nrowt, int *ncolt, int *ntotal,
     double *fact, int *jwork, int *matrix);
 
 /* score functions exported to per.node.score.c */
+double dlik(SEXP x, double *nparams);
+double cdlik(SEXP x, SEXP y, double *nparams);
 double loglik_dnode(SEXP target, SEXP x, SEXP data, double *nparams, int debuglevel);
+double glik(SEXP x, double *nparams);
+double cglik(SEXP x, SEXP data, SEXP parents, double *nparams);
+double c_fast_ccgloglik(double *xx, double **gp, int ngp, int nobs, int *config,
+    int nconfig);
 double loglik_gnode(SEXP target, SEXP x, SEXP data, double *nparams, int debuglevel);
+double loglik_cgnode(SEXP target, SEXP x, SEXP data, double *nparams, int debuglevel);
 double dirichlet_node(SEXP target, SEXP x, SEXP data, SEXP iss, SEXP prior,
     SEXP beta, SEXP experimental, int sparse, int debuglevel);
 double wishart_node(SEXP target, SEXP x, SEXP data, SEXP isize, SEXP phi,
@@ -284,8 +305,26 @@ void c_lw_weights(SEXP fitted, SEXP data, int n, double *w, SEXP keep,
 SEXP c_create_htest(double stat, SEXP test, double pvalue, double df, SEXP B);
 
 /* from indep.test.c */
-SEXP utest(SEXP x, SEXP y, SEXP data, SEXP test, SEXP B, SEXP alpha, SEXP learning);
+SEXP indep_test(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP B,
+    SEXP alpha, SEXP learning);
 
 /* from subsets.c */
 void first_subset(int *work, int n, int offset);
-int *next_subset(int *work, int n, int max, int offset);
+int next_subset(int *work, int n, int max, int offset);
+
+/* from filter.arcs.c */
+SEXP which_undirected(SEXP arcs, SEXP nodes);
+
+/* from tiers.c */
+SEXP tiers(SEXP nodes, SEXP debug);
+
+/* instrumentation to debug PROTECT()/UNPROTECT() calls. */
+void PROTECT_DEBUG(SEXP s, const char *fun, const char *file, int line);
+void UNPROTECT_DEBUG(int n, const char *fun, const char *file, int line);
+#ifdef DEBUG
+#undef PROTECT
+#define PROTECT(s) PROTECT_DEBUG(s, __func__, __FILE__, __LINE__)
+#undef UNPROTECT
+#define UNPROTECT(n) UNPROTECT_DEBUG(n, __func__, __FILE__, __LINE__)
+#endif
+

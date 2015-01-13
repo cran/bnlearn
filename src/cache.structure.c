@@ -193,7 +193,7 @@ SEXP structure, mb, nbr, children, parents;
 
   /* allocate the list and set its attributes. */
   PROTECT(structure = allocVector(VECSXP, 4));
-  setAttrib(structure, R_NamesSymbol, 
+  setAttrib(structure, R_NamesSymbol,
     mkStringVec(4, "mb", "nbr", "parents", "children"));
 
   /* allocate and fill the "children" element of the list. */

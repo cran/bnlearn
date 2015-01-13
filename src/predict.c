@@ -264,6 +264,59 @@ SEXP temp, result, tr_levels;
 
 }/*CDPRED*/
 
+/* predict the values of a conditional Gaussian node. */
+SEXP ccgpred(SEXP fitted, SEXP configurations, SEXP parents, SEXP debug) {
+
+int i = 0, j = 0, ndata = length(configurations);
+int *config = INTEGER(configurations), debuglevel = isTRUE(debug);
+int cur_config = 0, np = length(parents), nrows = np + 1;
+double *res = NULL, *beta = NULL, *beta_offset = NULL, **columns = NULL;
+SEXP result;
+
+  /* get the regression coefficients of the conditional Gaussian distribution. */
+  beta = REAL(getListElement(fitted, "coefficients"));
+
+  /* dereference the columns of the data frame and get the sample size. */
+  columns = (double **) alloc1dpointer(np);
+  for (i = 0; i < np; i++)
+    columns[i] = REAL(VECTOR_ELT(parents, i));
+
+  /* allocate and initialize the return value. */
+  PROTECT(result = allocVector(REALSXP, ndata));
+  res = REAL(result);
+
+  for (i = 0; i < ndata; i++)  {
+
+    /* find out which conditional regression to use for prediction. */
+    cur_config = config[i] - 1;
+    beta_offset = beta + cur_config * nrows;
+
+    /* compute the mean value for this observation. */
+    res[i] = beta_offset[0];
+
+    for (j = 0; j < np; j++)
+      res[i] += columns[j][i] * beta_offset[j + 1];
+
+    if (debuglevel > 0) {
+
+      Rprintf("  > prediction for observation %d is %lf with predictor:\n",
+        i + 1, res[i]);
+
+      Rprintf("    (%lf)", beta_offset[0]);
+      for (j = 0; j < np; j++)
+        Rprintf(" + (%lf) * (%lf)", columns[j][i], beta_offset[j + 1]);
+      Rprintf("\n");
+
+    }/*THEN*/
+
+  }/*FOR*/
+
+  UNPROTECT(1);
+
+  return result;
+
+}/*CCGPRED*/
+
 /* predict the value of the training variable in a naive Bayes or Tree-Augmented
  * naive Bayes classifier. */
 SEXP naivepred(SEXP fitted, SEXP data, SEXP parents, SEXP training, SEXP prior,
@@ -276,7 +329,7 @@ int *iscratch = NULL, *maxima = NULL, *prn = NULL, debuglevel = isTRUE(debug);
 int *include_prob = LOGICAL(prob);
 double **cpt = NULL, *pr = NULL, *scratch = NULL, *buf = NULL, *pt = NULL;
 double sum = 0;
-SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab, dimnames;
+SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue, dimnames;
 
   /* cache the node labels. */
   nodes = getAttrib(fitted, R_NamesSymbol);
@@ -422,7 +475,7 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab, dimnames;
       /* copy the log-probabilities from scratch. */
       memcpy(pt + i * tr_nlevels, scratch, tr_nlevels * sizeof(double));
 
-      /* transform log-probabilitiees into plain probabilities. */
+      /* transform log-probabilities into plain probabilities. */
       for (k = 0, sum = 0; k < tr_nlevels; k++)
         sum += pt[i * tr_nlevels + k] = exp(pt[i * tr_nlevels + k] - scratch[maxima[0] - 1]);
 

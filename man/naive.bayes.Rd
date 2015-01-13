@@ -27,7 +27,8 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
     must all be factors.}
   \item{prior}{a numeric vector, the prior distribution for the training
     variable. It is automatically normalized if not already so. The default
-    prior is an improper flat prior with all elements equal to \code{1}. }
+    prior is the probability distribution of the training variable in
+    \code{object}. }
   \item{whitelist}{a data frame with two columns (optionally labeled
     "from" and "to"), containing a set of arcs to be included in the
      graph. }
@@ -69,6 +70,15 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   Ties in prediction are broken using \emph{Bayesian tie breaking}, i.e.
   sampling at random from the tied values. Therefore, setting the random
   seed is required to get reproducible results.
+
+  \code{tan.tree} support whitelisting and blacklisting arcs but not their
+  directions. Morevoer it is not possible to whitelist or blacklist arcs
+  incident on \code{training}.
+
+  \code{predict} accepts either a \code{bn} or a \code{bn.fit} object as
+  its first argument. For the former, the parameters of the network are
+  fitted on \code{data}, that is, the observations whose class labels the
+  function is trying to predict.
 
 }
 \value{

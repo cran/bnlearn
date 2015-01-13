@@ -7,7 +7,6 @@ as.grain = function(x) {
 
 }#AS.GRAIN
 
-# the generic as method for class bn.
 as.bn = function(x) {
 
   UseMethod("as.bn", x)
@@ -32,19 +31,19 @@ as.graphAM = function(x) {
 
 }#AS.GRAPHAM
 
-# convert a "bn.fit" object from gRain to "grain" object.
+# convert a "bn.fit" object from bnlearn into a "grain" object.
 as.grain.bn.fit = function(x) {
 
   # check whether gRain is loaded.
-  if (!require(gRain))
+  if (!requireNamespace("gRain"))
     stop("this function requires the gRain package.")
 
   # check x's class.
   check.fit(x)
-  # check whether x is a dsicrete fitted network.
-  if (is.fitted.ordinal(x))
+  # check whether x is a discrete fitted network.
+  if (!is(x, c("bn.fit.onet", "bn.fit.donet")))
     warning("the gRain package does not support ordinal networks, disregarding the ordering of the levels.")
-  else if (!is.fitted.discrete(x))
+  else if (!is(x, "bn.fit.dnet"))
     stop("the gRain package only supports discrete networks.")
 
   cpt = vector(length(x), mode = "list")
@@ -72,19 +71,19 @@ as.grain.bn.fit = function(x) {
 
     }#THEN
 
-    cpt[[node]] = cptable(formula(f), values = values, levels = levels)
+    cpt[[node]] = gRain::cptable(formula(f), values = values, levels = levels)
 
   }#FOR
 
-  return(grain(compileCPT(cpt)))
+  return(gRain::grain(gRain::compileCPT(cpt)))
 
 }#AS.GRAIN.BN.FIT
 
-# convert a "grain" object from gRain to a "bn.fit" object.
+# convert a "grain" object from gRain into a "bn.fit" object.
 as.bn.fit.grain = function(x) {
 
   # check whether gRain is loaded.
-  if (!require(gRain))
+  if (!requireNamespace("gRain"))
     stop("this function requires the gRain package.")
 
   if (!is(x, "grain"))
@@ -123,11 +122,11 @@ as.bn.fit.grain = function(x) {
 
 }#AS.BN.FIT.GRAIN
 
-# convert a "grain" object from gRain to a "bn" object.
+# convert a "grain" object from gRain into a "bn" object.
 as.bn.grain = function(x) {
 
   # check whether gRain is loaded.
-  if (!require(gRain))
+  if (!requireNamespace("gRain"))
     stop("this function requires the gRain package.")
 
   if (!is(x, "grain"))
@@ -137,11 +136,11 @@ as.bn.grain = function(x) {
 
 }#AS.BN.GRAIN
 
-# convert a bn or bn.fit object into a graphNEL one.
+# convert a "bn" or "bn.fit" object into a "graphNEL" object.
 as.graphNEL.bn = function(x) {
 
   # check whether graph is loaded.
-  if (!require(graph))
+  if (!requireNamespace("graph"))
     stop("this function requires the graph package.")
 
   # check x's class.
@@ -167,11 +166,11 @@ as.graphNEL.bn = function(x) {
 
 as.graphNEL.bn.fit = as.graphNEL.bn
 
-# convert a bn or bn.fit object into a graphAM one.
+# convert a "bn" or "bn.fit" object into a "graphAM" object.
 as.graphAM.bn = function(x) {
 
   # check whether graph is loaded.
-  if (!require(graph))
+  if (!requireNamespace("graph"))
     stop("this function requires the graph package.")
 
   # check x's class.
@@ -196,11 +195,11 @@ as.graphAM.bn = function(x) {
 
 as.graphAM.bn.fit = as.graphAM.bn
 
-# convert a graphAM object to a bn one.
+# convert a "graphAM" object into a "bn" object.
 as.bn.graphAM = function(x) {
 
   # check whether graph is loaded.
-  if (!require(graph))
+  if (!requireNamespace("graph"))
     stop("this function requires the graph package.")
 
   nodes = x@nodes
@@ -214,15 +213,15 @@ as.bn.graphAM = function(x) {
 
 }#AS.BN.GRAPHAM
 
-# convert a graphNEL object to a bn one.
+# convert a "graphNEL" object into a "bn" object.
 as.bn.graphNEL = function(x) {
 
   # check whether graph is loaded.
-  if (!require(graph))
+  if (!requireNamespace("graph"))
     stop("this function requires the graph package.")
 
   nodes = x@nodes
-  arcs = elist2arcs(edges(x))
+  arcs = elist2arcs(graph::edges(x))
 
   res = empty.graph(nodes)
   res$arcs = arcs

@@ -97,7 +97,7 @@ int *perm = NULL, *work = NULL;
 }/*C_GAUSS_MCARLO*/
 
 /* conditional Monte Carlo simulation for correlation-based tests. */
-void c_gauss_cmcarlo(double **column, int ncols, int num, int B, 
+void c_gauss_cmcarlo(double **column, int ncols, int num, int B,
     double *observed, double *pvalue, double alpha, int test) {
 
 int j = 0, k = 0, errcode = 0, *work = NULL, *perm = NULL;
@@ -216,6 +216,9 @@ double *u = NULL, *d = NULL, *vt = NULL;
   }/*SWITCH*/
 
   PutRNGstate();
+
+  /* restore the pointer to the original column. */
+  column[1] = yorig;
 
   /* save the observed p-value. */
   *pvalue /= B;

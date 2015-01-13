@@ -1,4 +1,3 @@
-
 #include "common.h"
 
 double c_x2(int *xx, int llx, int *yy, int lly, int num, double *df,

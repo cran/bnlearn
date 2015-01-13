@@ -15,7 +15,7 @@ double stat = 0, mean = 0, var = 0;
   nj = alloc1dcont(lly);
 
   /* compute the joint frequency of x and y. */
-  for (k = 0; k < num; k++) 
+  for (k = 0; k < num; k++)
     n[xx[k] - 1][yy[k] - 1]++;
 
   /* compute the marginals. */

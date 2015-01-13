@@ -61,7 +61,7 @@ score(x, data, type = NULL, ..., debug = FALSE)
         (the one used by default in the \pkg{deal} package.)
 
     \item \code{prior}: the prior distribution to be used with the Bayesian
-        Dirichlet equivalent score (\code{bde}) and the Bayesian Gaussian 
+        Dirichlet equivalent score (\code{bde}) and the Bayesian Gaussian
         score (\code{bge}). Possible values are \code{uniform} (the default),
         \code{vsp} (the Bayesian variable selection prior, which puts a
         probability of inclusion on parents) and \code{cs} (the Castelo &
@@ -73,11 +73,18 @@ score(x, data, type = NULL, ..., debug = FALSE)
         \code{prior} is \code{vsp}, \code{beta} is the probability of
         inclusion of an additional parent (the default is \code{1/ncol(data)}).
         If \code{prior} is \code{cs}, \code{beta} is a data frame with columns
-        \code{from}, \code{to} and \code{prob} specifying the prior 
+        \code{from}, \code{to} and \code{prob} specifying the prior
         probability for a set of arcs. A uniform probability distribution
         is assumed for the remaining arcs.
 
   }
+
+}
+\note{
+
+  AIC and BIC are computed as \code{logLik(x) - k * nparams(x)}, that is, the
+  classic definition rescaled by -2. Therefore higher values are better, and
+  for large sample sizes BIC converges to log(BDe).
 
 }
 \references{
@@ -119,7 +126,7 @@ res2 = set.arc(gs(learning.test), "B", "A")
 score(res2, learning.test, type = "bde")
 
 ## BDe with a prior.
-beta = data.frame(from = c("A", "D"), to = c("B", "F"), 
+beta = data.frame(from = c("A", "D"), to = c("B", "F"),
          prob = c(0.2, 0.5), stringsAsFactors = FALSE)
 score(res, learning.test, type = "bde", prior = "cs", beta = beta)
 

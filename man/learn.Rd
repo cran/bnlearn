@@ -11,9 +11,9 @@
 }
 \usage{
 learn.mb(x, node, method, whitelist = NULL, blacklist = NULL, start = NULL,
-  test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE)
+  test = NULL, alpha = 0.05, B = NULL, debug = FALSE)
 learn.nbr(x, node, method, whitelist = NULL, blacklist = NULL, start = NULL,
-  test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE)
+  test = NULL, alpha = 0.05, B = NULL, debug = FALSE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
@@ -45,8 +45,6 @@ learn.nbr(x, node, method, whitelist = NULL, blacklist = NULL, start = NULL,
       argument is not a permutation test.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
       is printed; otherwise the function is completely silent.}
-  \item{optimized}{a boolean value. See \code{\link{bnlearn-package}}
-      for details.}
 }
 \value{
 

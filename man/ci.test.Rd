@@ -1,10 +1,5 @@
 \name{ci.test}
 \alias{ci.test}
-\alias{ci.test.character}
-\alias{ci.test.data.frame}
-\alias{ci.test.numeric}
-\alias{ci.test.factor}
-\alias{ci.test.default}
 \title{ Independence and Conditional Independence Tests }
 \description{
 
@@ -12,11 +7,7 @@
 
 }
 \usage{
-\method{ci.test}{character}(x, y = NULL, z = NULL, data, test = NULL, B = NULL, debug = FALSE, ...)
-\method{ci.test}{data.frame}(x, test = NULL, B = NULL, debug = FALSE, ...)
-\method{ci.test}{numeric}(x, y = NULL, z = NULL, test = NULL, B = NULL, debug = FALSE, ...)
-\method{ci.test}{factor}(x, y = NULL, z = NULL, test = NULL, B = NULL, debug = FALSE, ...)
-\method{ci.test}{default}(x, ...)
+ci.test(x, y, z, data, test, B, debug = FALSE)
 }
 \arguments{
   \item{x}{a character string (the name of a variable), a data frame, a numeric
@@ -39,7 +30,6 @@
       argument is not a permutation test.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
        is printed; otherwise the function is completely silent.}
-  \item{\dots}{extra arguments from the generic method (currently ignored).}
 }
 \value{
 

@@ -78,7 +78,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
   # whitelisted nodes are included (arc orientation is irrelevant),
   # and blacklisted nodes are removed if both directed arcs are banned
   # and both are not in the whitelist.
-  nbrhood = nbrhood[!(nbrhood %in% blacklisted)]
+  nbrhood = nbrhood[nbrhood %!in% blacklisted]
   nbrhood = unique(c(nbrhood, whitelisted))
 
   # use backtracking for a further screening of the nodes to be checked.
@@ -92,7 +92,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
     # known.bad nodes are not to be checked for inclusion and/or used in
     # the subsets.
-    nbrhood = nbrhood[!(nbrhood %in% known.bad)]
+    nbrhood = nbrhood[nbrhood %!in% known.bad]
 
   }#THEN
 
@@ -133,7 +133,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
       cat("    > dsep.set = '", dsep.set, "'\n")
 
     a = allsubs.test(x = x, y = y, sx = dsep.set, min = ifelse(empty.dsep, 0, 1),
-          data = data, test = test, alpha = alpha, B = B, debug = debug)
+          data = data, test = test, alpha = alpha, B = B, debug = debug)[1]
 
     if (a > alpha) {
 
@@ -156,7 +156,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
   # do not even try to remove whitelisted nodes; on the other hand, known.good
   # nodes from backtracking should be checked to remove false positives.
-  sapply(nbrhood[!(nbrhood %in% whitelisted)], nbr, x = x, mb = mb, test = test)
+  sapply(nbrhood[nbrhood %!in% whitelisted], nbr, x = x, mb = mb, test = test)
 
   return(list(mb = mb[[x]], nbr = nbrhood))
 
@@ -177,11 +177,12 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
 
     tos = parents.backend(arcs, x, TRUE)
 
-    if (length(tos) < 2) return(NULL)
+    if (length(tos) < 2)
+      return(NULL)
 
     # build a list of possibile parents for the node x, i.e. all the subsets
     # of size 2 of the nodes connected to x by incoming arcs.
-    tos.combs = subsets(length(tos), 2, tos)
+    tos.combs = subsets(tos, 2)
     vs = NULL
 
     for (j in 1:nrow(tos.combs)) {
@@ -193,70 +194,28 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
         cat("  * checking", y, "->", x, "<-", z, "\n")
 
       # check there's no arc from y to z and vice versa.
-      if(!is.listed(arcs, c(y, z)) &&
-         !is.listed(arcs, c(z, y))) {
+      if (is.listed(arcs, c(y, z), either = TRUE))
+        next
 
-        mby = mb[[y]][['mb']]
-        mbz = mb[[z]][['mb']]
+      # choose the smallest of mb(y) - {x,z} and mb(z) - {x,y} to cut down
+      # the number of subsets to test.
+      dsep.set = smaller(setdiff(mb[[y]][['mb']], c(x, z)),
+                         setdiff(mb[[z]][['mb']], c(x, y)))
 
-        # compute mb(y) - {x,z} and mb(z) - {x,y}
-        mby = mby[!(mby %in% c(x, z))]
-        mbz = mbz[!(mbz %in% c(x, y))]
+      if (debug)
+        cat("    > chosen d-separating set: '", dsep.set, "'\n")
 
-        # choose the smallest one to cut down the number of subsets to test.
-        dsep.set = smaller(mby, mbz)
+      assoc = allsubs.test(x = y, y = z, fixed = x, sx = dsep.set, data = data,
+                test = test, B = B, alpha = alpha, debug = debug)
+      a = assoc[1]
+      max_a = assoc[3]
+
+      if (a <= alpha) {
 
         if (debug)
-          cat("    > chosen d-separating set: '", dsep.set, "'\n")
+          cat("    @ detected v-structure", y, "->", x, "<-", z, "\n")
 
-        k = 0
-        max_a = a = 0
-
-        repeat {
-
-          dsep.subsets = subsets(length(dsep.set), k, dsep.set)
-
-          for (s in 1:nrow(dsep.subsets)) {
-
-            a = indep.test(y, z, c(dsep.subsets[s,], x), data = data,
-                  test = test, B = B, alpha = alpha)
-            if (debug)
-              cat("    > testing", y, "vs", z, "given", c(dsep.subsets[s,], x), "(", a, ")\n")
-            max_a = max(a, max_a)
-            if (a > alpha) {
-
-              if (debug)
-                cat("    >", y, "and", z, "are independent given '", c(dsep.subsets[s,], x), "' (", a, ")\n")
-              break
-
-            }#THEN
-
-          }#FOR
-
-          if (a <= alpha) {
-
-            if (k < length(dsep.set)) {
-
-              k = k + 1
-
-            }#THEN
-            else {
-
-              if (debug)
-                cat("    @ detected v-structure", y, "->", x, "<-", z, "\n")
-              vs = rbind(vs, data.frame(max_a, y, x, z, stringsAsFactors = FALSE))
-              break
-
-            }#ELSE
-
-          }#THEN
-          else {
-
-            break
-
-          }#ELSE
-
-        }#REPEAT
+        vs = rbind(vs, data.frame(max_a, y, x, z, stringsAsFactors = FALSE))
 
       }#THEN
 
@@ -288,13 +247,13 @@ vstruct.apply = function(arcs, vs, nodes, strict, debug = FALSE) {
       }#THEN
 
       if (strict)
-        stop(paste("vstructure", v["y"], "->", v["x"], "<-", v["z"],
-          "is not applicable, because one or both arcs are oriented",
-          "in the opposite direction."))
+        stop("vstructure ", v["y"], " -> ", v["x"], " <- ", v["z"],
+          " is not applicable, because one or both arcs are oriented",
+          " in the opposite direction.")
       else
-        warning(paste("vstructure", v["y"], "->", v["x"], "<-", v["z"],
-          "is not applicable, because one or both arcs are oriented",
-          "in the opposite direction."))
+        warning("vstructure ", v["y"], " -> ", v["x"], " <- ", v["z"],
+          " is not applicable, because one or both arcs are oriented",
+          " in the opposite direction.")
 
       return(NULL)
 
@@ -314,13 +273,13 @@ vstruct.apply = function(arcs, vs, nodes, strict, debug = FALSE) {
       }#THEN
 
       if (strict)
-        stop(paste("vstructure", v["y"], "->", v["x"], "<-", v["z"],
-          "is not applicable, because one or both arcs introduce cycles",
-          "in the graph."))
+        stop("vstructure ", v["y"], " -> ", v["x"], " <- ", v["z"],
+          " is not applicable, because one or both arcs introduce cycles",
+          " in the graph.")
       else
-        warning(paste("vstructure", v["y"], "->", v["x"], "<-", v["z"],
-          "is not applicable, because one or both arcs introduce cycles",
-          "in the graph."))
+        warning("vstructure ", v["y"], " -> ", v["x"], " <- ", v["z"],
+          " is not applicable, because one or both arcs introduce cycles",
+          " in the graph.")
 
       return(NULL)
 

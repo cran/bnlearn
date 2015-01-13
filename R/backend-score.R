@@ -50,7 +50,7 @@ arcs.to.be.reversed = function(arcs, blacklist, nparents, maxp = Inf) {
     arcs = arcs[!which.listed(arcs[, c(2, 1), drop = FALSE], blacklist), , drop = FALSE]
 
   if (!missing(nparents))
-    arcs = arcs[nparents[arcs[, 1]] < maxp, ]
+    arcs = arcs[nparents[arcs[, 1]] < maxp, , drop = FALSE]
 
   return(arcs)
 

@@ -14,7 +14,7 @@ long double wsum = 0, wtot = 0;
   wsum /= wtot;
 
   if (debuglevel > 0)
-    Rprintf("  > prediction is %Lf:\n", wsum);
+    Rprintf("  > prediction is %Lf.\n", wsum);
 
   return (double)wsum;
 
@@ -53,7 +53,8 @@ SEXP mappred(SEXP node, SEXP fitted, SEXP data, SEXP n, SEXP from, SEXP debug) {
 int i = 0, j = 0, k = 0, nobs = 0, nev = 0, nlvls = 0;
 int *vartypes = NULL, nsims = INT(n), debuglevel = isTRUE(debug);
 void **varptrs = NULL, **evptrs = NULL, *pred = NULL, *res = NULL;
-SEXP result, colnames, evidence, evmatch, temp, cpdist, predicted, lvls;
+SEXP result, colnames, evidence, evmatch, temp = R_NilValue;
+SEXP cpdist, predicted, lvls = R_NilValue;
 double *wgt = NULL;
 long double *lvls_counts = NULL;
 

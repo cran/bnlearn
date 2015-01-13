@@ -88,6 +88,14 @@ averaged.network(strength, nodes, threshold)
   object passed to \code{averaged.network}.
 
 }
+\note{
+
+  \code{averaged.network} typically returns a completely directed graph;
+  an arc can be undirected if and only if the probabiliy of each of its
+  directions is exactly 0.5. This may happen, for example, if the arc is
+  undirected in all the networks being averaged.
+
+}
 \value{
 
   \code{arc.strength}, \code{boot.strength} and \code{custom.strength}

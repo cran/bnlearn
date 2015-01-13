@@ -8,7 +8,7 @@ arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE,
   # check x's class.
   check.bn(x)
   # check the op code.
-  if (!(op %in% available.ops))
+  if (op %!in% available.ops)
     stop("valid op codes are 'set', 'drop' and 'reverse'.")
   # a valid node is needed.
   check.nodes(nodes = from, graph = x, max.nodes = 1)

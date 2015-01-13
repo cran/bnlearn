@@ -1,4 +1,3 @@
-
 #include "common.h"
 
 SEXP BN_ModelstringSymbol;

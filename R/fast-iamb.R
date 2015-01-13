@@ -41,13 +41,13 @@ fast.incremental.association.optimized = function(x, whitelist, blacklist,
 
 }#FAST.INCREMENTAL.ASSOCIATION.OPTIMIZED
 
-fast.incremental.association.cluster = function(x, cluster, whitelist,
+fast.incremental.association = function(x, cluster = NULL, whitelist,
   blacklist, test, alpha, B, strict, debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
-  mb = parLapply(cluster, as.list(nodes), fast.ia.markov.blanket,
+  mb = smartLapply(cluster, as.list(nodes), fast.ia.markov.blanket,
          data = x, nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
@@ -56,36 +56,9 @@ fast.incremental.association.cluster = function(x, cluster, whitelist,
   mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
 
   # 2. [Compute Graph Structure]
-  mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+  mb = smartLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
-  names(mb) = nodes
-
-  # check neighbourhood sets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
-
-  return(mb)
-
-}#FAST.INCREMENTAL.ASSOCIATION.CLUSTER
-
-fast.incremental.association = function(x, whitelist, blacklist, test,
-  alpha, B, strict, debug = FALSE) {
-
-  nodes = names(x)
-
-  # 1. [Compute Markov Blankets]
-  mb = lapply(as.list(nodes), fast.ia.markov.blanket, data = x,
-         nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, debug = debug)
-  names(mb) = nodes
-
-  # check markov blankets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
-
-  # 2. [Compute Graph Structure]
-  mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
-         B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-         debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -151,7 +124,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
   # between them of course they are in each other's markov blanket).
   # arc direction is irrelevant here.
   mb = unique(c(mb, whitelisted))
-  nodes = nodes[!(nodes %in% mb)]
+  nodes = nodes[nodes %!in% mb]
   # blacklist is not checked, not all nodes in a markov blanket must be
   # neighbours.
 
@@ -172,7 +145,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
       cat("    * known good (backtracking): '", known.good, "'.\n")
       cat("    * known bad (backtracking): '", known.bad, "'.\n")
       cat("    * nodes still to be tested for inclusion: '",
-        nodes[!(nodes %in% mb)], "'.\n")
+        nodes[nodes %!in% mb], "'.\n")
 
     }#THEN
 
@@ -181,7 +154,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
   repeat {
 
     # stop if there are no nodes left.
-    if (length(nodes[!(nodes %in% mb)]) == 0 || is.null(nodes))
+    if (length(nodes[nodes %!in% mb]) == 0 || is.null(nodes))
       break
 
     # growing phase.
@@ -189,8 +162,8 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
     insufficient.data = FALSE
 
     # get an association measure for each of the available nodes.
-    association = indep.test(nodes[!(nodes %in% mb)], x, sx = mb, test = test,
-                    data = data, B = B, alpha = alpha) 
+    association = indep.test(nodes[nodes %!in% mb], x, sx = mb, test = test,
+                    data = data, B = B, alpha = alpha)
 
     if (debug) {
 
@@ -211,7 +184,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
 
       opc = obs.per.cell(x, node, mb, data)
 
-      if (!(test %in% asymptotic.tests) || (opc >= 5)) {
+      if ((test %!in% asymptotic.tests) || (opc >= 5)) {
 
         if (debug) {
 
@@ -257,14 +230,14 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
     # markov blanket; on the other hand, known.good nodes from backtracking
     # should be checked to remove false positives.
     if (length(mb) > 1)
-      sapply(mb[!(mb %in% whitelisted)], del.node, x = x, test = test)
+      sapply(mb[mb %!in% whitelisted], del.node, x = x, test = test)
 
     # if there are not enough observations and no new node has been included
     # in the markov blanket, stop iterating.
     if (insufficient.data && (mb.old.length == length(mb))) break
 
     # do not touch the check the nodes in the markov blanket again.
-    nodes = nodes[!(nodes %in% mb)]
+    nodes = nodes[nodes %!in% mb]
 
   }#REPEAT
 

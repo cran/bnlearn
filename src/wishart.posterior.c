@@ -219,13 +219,6 @@ SEXP nodes, node_t, parents, parent_vars, data_t;
     phi_coef = (double)(n - 1) / (double)n * (double)(iss) /
                  (double) (iss + 1) * (double)(iss - 2);
 
-  if (debuglevel > 0) {
-
-    Rprintf("----------------------------------------------------------------\n");
-    Rprintf("* processing node %s.\n", t);
-
-  }/*THEN*/
-
   /* get the node cached information. */
   nodes = getListElement(x, "nodes");
   node_t = getListElement(nodes, t);

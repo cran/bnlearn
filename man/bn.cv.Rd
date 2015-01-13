@@ -18,7 +18,7 @@ bn.cv(data, bn, loss = NULL, k = 10, algorithm.args = list(),
     algorithm to be applied to the training data in each iteration)
     or an object of class \code{bn} (a fixed network structure).}
   \item{loss}{a character string, the label of a loss function.
-    If none is specified, the default loss function is the 
+    If none is specified, the default loss function is the
     \emph{Classification Error} for Bayesian networks classifiers;
     otherwise, the \emph{Log-Likelihood Loss} for both discrete
     and continuous data sets. See below for additional details.}

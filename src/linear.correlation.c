@@ -51,7 +51,7 @@ double tol = MACHINE_TOL;
 }/*C_FAST_COR*/
 
 /* linear correlation from known mean and variance, to be used in C code. */
-double c_fast_cor2(double *xx, double *yy, int num, double xm, double ym, 
+double c_fast_cor2(double *xx, double *yy, int num, double xm, double ym,
     long double xsd, long double ysd) {
 
 int i = 0;

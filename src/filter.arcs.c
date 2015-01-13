@@ -113,7 +113,7 @@ int i = 0, nrows = length(arcs)/2, nlvls = 0;
 int *coords = NULL, *id = NULL;
 SEXP result, labels, try, arc_id;
 
-  /* get the node labels from the arcs, or use the ones passed down from R. */
+  /* get the node labels from the arcs, or use those passed down from R. */
   if (isNull(nodes))
     PROTECT(labels = unique(arcs));
   else

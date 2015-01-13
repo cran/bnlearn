@@ -1,8 +1,4 @@
-
 #include "common.h"
-
-static void _mi_lambda(double *n, double *lambda, double target, int num,
-    int llx, int lly, int llz);
 
 /* shrinked mutual information, to be used in C code. */
 double c_shmi(int *xx, int llx, int *yy, int lly, int num) {
@@ -22,7 +18,7 @@ double res = 0;
     n[xx[k] - 1][yy[k] - 1]++;
 
   /* estimate the optimal lambda for the data. */
-  _mi_lambda((double *)n, &lambda, target, num, llx, lly, 0);
+  mi_lambda((double *)n, &lambda, target, num, llx, lly, 0);
 
   /* switch to the probability scale and shrink the estimates. */
   for (i = 0; i < llx; i++)
@@ -71,7 +67,7 @@ double res = 0;
     n[xx[k] - 1][yy[k] - 1][zz[k] - 1]++;
 
   /* estimate the optimal lambda for the data. */
-  _mi_lambda((double *)n, &lambda, target, num, llx, lly, llz);
+  mi_lambda((double *)n, &lambda, target, num, llx, lly, llz);
 
   /* switch to the probability scale and shrink the estimates. */
   for (i = 0; i < llx; i++)
@@ -115,8 +111,8 @@ double res = 0;
 }/*C_SHCMI*/
 
 /* compute the shrinkage intensity lambda for the mutual information. */
-static void _mi_lambda(double *n, double *lambda, double target, int num,
-    int llx, int lly, int llz) {
+void mi_lambda(double *n, double *lambda, double target, int num, int llx,
+    int lly, int llz) {
 
 double lden = 0, lnum = 0, temp = 0;
 
@@ -162,7 +158,7 @@ double lden = 0, lnum = 0, temp = 0;
   if (*lambda < 0)
     *lambda = 0;
 
-}/*_MI_LAMBDA*/
+}/*MI_LAMBDA*/
 
 /* shrinked linear correlation, to be used in C code. */
 double c_fast_shcor(double *xx, double *yy, int *n) {
@@ -193,7 +189,7 @@ double tol = MACHINE_TOL;
   }/*FOR*/
 
   /* note that the shrinkage intesity for the correlation coefficient is
-   * identical to the one for the covariance; so we don't need to standaridize
+   * identical to that for the covariance; so we don't need to standardize
    * the data. */
   for (i = 0; i < *n; i++) {
 

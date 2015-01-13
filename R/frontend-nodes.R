@@ -61,9 +61,9 @@ parents = function(x, node) {
   # remove duplicate labels from value.
   value = unique(value)
   # drop the parents which are not listed for inclusion.
-  to.be.dropped = x$nodes[[node]]$parents[!(x$nodes[[node]]$parents %in% value)]
+  to.be.dropped = x$nodes[[node]]$parents[x$nodes[[node]]$parents %!in% value]
   # add only the nodes that were not already there.
-  to.be.added = value[!(value %in% x$nodes[[node]]$parents)]
+  to.be.added = value[value %!in% x$nodes[[node]]$parents]
 
   if (debug) {
 
@@ -130,9 +130,9 @@ children = function(x, node) {
   # remove duplicate labels from value.
   value = unique(value)
   # drop the parents which are not listed for inclusion.
-  to.be.dropped = x$nodes[[node]]$children[!(x$nodes[[node]]$children %in% value)]
+  to.be.dropped = x$nodes[[node]]$children[x$nodes[[node]]$children %!in% value]
   # add only the nodes that were not already there.
-  to.be.added = value[!(value %in% x$nodes[[node]]$children)]
+  to.be.added = value[value %!in% x$nodes[[node]]$children]
 
   if (debug) {
 

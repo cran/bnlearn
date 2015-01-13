@@ -9,13 +9,13 @@ void first_subset(int *work, int n, int offset) {
 }/*FIRST_SUBSET*/
 
 /* get the next subset (in lexicographic order). */
-int *next_subset(int *work, int n, int max, int offset) {
+int next_subset(int *work, int n, int max, int offset) {
 
 int i = 0, j = 0;
 
   /* this is the last possible subset, nothing to do. */
   if (work[0] - offset == max - n)
-    return NULL;
+    return FALSE;
 
   if (work[n - 1] - offset < max - 1) {
 
@@ -45,7 +45,39 @@ int i = 0, j = 0;
 
   }/*ELSE*/
 
-  return work;
+  return TRUE;
 
 }/*NEXT_SUBSET*/
 
+/* enumerate all subsets of a certain size (R interface). */
+SEXP r_subsets(SEXP elems, SEXP size) {
+
+int i = 0, k = 0, n = length(elems), r = INT(size), *id = NULL;
+double nsub = choose(n, r);
+SEXP result;
+
+ if (nsub * r > INT_MAX)
+   error("too many subsets of size %d.", r);
+
+ /* allocate the scratch space and the return value. */
+ id = Calloc(r, int);
+ PROTECT(result = allocMatrix(STRSXP, nsub, r));
+
+  /* iterate over subsets. */
+  first_subset(id, r, 0);
+
+  for (k = 0;  k < nsub; k++) {
+
+    for (i = 0; i < r; i++) 
+      SET_STRING_ELT(result, CMC(k, i, nsub), STRING_ELT(elems, id[i]));
+
+    next_subset(id, r, n, 0);
+
+  }/*FOR*/
+
+  Free(id);
+  UNPROTECT(1);
+
+  return result;
+
+}/*R_SUBSETS*/

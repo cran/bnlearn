@@ -146,23 +146,20 @@ mmhc = function(x, whitelist = NULL, blacklist = NULL, test = NULL,
 
 # Frontend for the Markov blanket learning algorithms.
 learn.mb = function(x, node, method, whitelist = NULL, blacklist = NULL,
-    start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
-    optimized = TRUE) {
+    start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE) {
 
   mb.backend(x, target = node, method = method, whitelist = whitelist,
     blacklist = blacklist, start = start, test = test, alpha = alpha,
-    B = B, debug = debug, optimized = optimized)
+    B = B, debug = debug)
 
 }#LEARN.MB
 
 # Frontend for causal discovery learning algorithms.
 learn.nbr = function(x, node, method, whitelist = NULL, blacklist = NULL,
-    start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE,
-    optimized = TRUE) {
+    start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE) {
 
   nbr.backend(x, target = node, method = method, whitelist = whitelist,
-    blacklist = blacklist, test = test, alpha = alpha, B = B, debug = debug,
-    optimized = optimized)
+    blacklist = blacklist, test = test, alpha = alpha, B = B, debug = debug)
 
 }#LEARN.NBR
 

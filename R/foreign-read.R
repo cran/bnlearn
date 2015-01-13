@@ -71,7 +71,7 @@ read.foreign.backend = function(lines, format = "bif", filename, debug = FALSE) 
       warning("the node description of node ", m, " is missing, dropping.")
 
     # recompute fundamental quantities.
-    nodes = nodes[!(nodes %in% bogus)]
+    nodes = nodes[nodes %!in% bogus]
     nnodes = length(nodes)
 
   }#THEN
@@ -126,7 +126,7 @@ read.foreign.backend = function(lines, format = "bif", filename, debug = FALSE) 
       warning("node ", d, " have only one level, dropping.")
 
     # recompute some fundamental quantities.
-    nodes = nodes[!(nodes %in% dummies)]
+    nodes = nodes[nodes %!in% dummies]
     nnodes = length(nodes)
     description.start = description.start[nodes]
     cpt.start = cpt.start[nodes]
@@ -153,7 +153,7 @@ read.foreign.backend = function(lines, format = "bif", filename, debug = FALSE) 
 
   # separate root and non-root nodes.
   nonroot.nodes = names(parents)
-  root.nodes = nodes[!(nodes %in% nonroot.nodes)]
+  root.nodes = nodes[nodes %!in% nonroot.nodes]
 
   # create the empty bn.fit object.
   fitted = structure(vector(nnodes, mode = "list"), names = nodes)
@@ -215,7 +215,7 @@ read.foreign.backend = function(lines, format = "bif", filename, debug = FALSE) 
 
   # set the class of the return value; doing it before the object has been
   # completely initialized clashed with the "[[<-.bn.fit" replacement methods.
-  class(fitted) = "bn.fit"
+  class(fitted) = c("bn.fit", "bn.fit.dnet")
 
   return(fitted)
 
@@ -500,7 +500,10 @@ net.get.parents = function(lines, start, dummies, bogus) {
 
 foreign.get.children = function(node, parents) {
 
-  names(which(sapply(parents, function(x, node) { node %in% x  }, node = node)))
+  if (length(parents) == 0)
+    character(0)
+  else
+    names(which(sapply(parents, function(x, node) { node %in% x  }, node = node)))
 
 }#BIF.GET.CHILDREN
 
@@ -599,7 +602,17 @@ bif.get.probabilities = function(node, start, lines, nodes.levels, parents, root
       stop("the dimension of the CPT of node ", node,
         " does not match the number of its levels.")
 
-    node.cpt = as.table(as.numeric(probs))
+    # check whether the marginal probability distribution is valid.
+    probs = as.numeric(probs)
+
+    if (!is.probability.vector(probs))
+      stop("the distribution of node ", node, " is not a vector of probabilities.")
+    if (abs(sum(probs) - 1) > 0.01)
+      stop("the distribution of node ", node, " does not sum up to one.")
+    # re-normalize. 
+    probs = probs / sum(probs)
+
+    node.cpt = as.table(probs)
     dimnames(node.cpt) = list(nodes.levels[[node]])
 
   }#THEN
@@ -638,7 +651,7 @@ bif.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
     }#THEN
     # check whether each conditional probability distribution sums to one.
-    not.prob = (abs(sapply(probs, sum) - 1) > 0.011)
+    not.prob = (abs(sapply(probs, sum) - 1) > 0.01)
     if (any(not.prob)) {
 
       # if more than 1% of probability mass, let's assume that the conditional
@@ -650,8 +663,7 @@ bif.get.probabilities = function(node, start, lines, nodes.levels, parents, root
     }#THEN
     else {
 
-      # perform some more rounding to make the total probability mass closer
-      # to one.
+      # re-normalize. 
       probs = lapply(probs, prop.table)
 
     }#ELSE
@@ -703,7 +715,17 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
       stop("the dimension of the CPT of node ", node,
         " does not match the number of its levels.")
 
-    node.cpt = as.table(as.numeric(probs))
+    # check whether the marginal probability distribution is valid.
+    probs = as.numeric(probs)
+
+    if (!is.probability.vector(probs))
+      stop("the distribution of node ", node, " is not a vector of probabilities.")
+    if (abs(sum(probs) - 1) > 0.01)
+      stop("the distribution of node ", node, " does not sum up to one.")
+    # re-normalize. 
+    probs = probs / sum(probs)
+
+    node.cpt = as.table(probs)
     dimnames(node.cpt) = list(nodes.levels[[node]])
 
   }#THEN
@@ -769,7 +791,7 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
     }#THEN
     # check whether each conditional probability distribution sums to one.
-    not.prob = (abs(sapply(probs, sum) - 1) > 0.011)
+    not.prob = (abs(sapply(probs, sum) - 1) > 0.01)
     if (any(not.prob)) {
 
       # if more than 1% of probability mass, let's assume that the conditional
@@ -837,7 +859,17 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
       stop("the dimension of the CPT of node ", node,
         " does not match the number of its levels.")
 
-    node.cpt = as.table(as.numeric(probs))
+    # check whether the marginal probability distribution is valid.
+    probs = as.numeric(probs)
+
+    if (!is.probability.vector(probs))
+      stop("the distribution of node ", node, " is not a vector of probabilities.")
+    if (abs(sum(probs) - 1) > 0.01)
+      stop("the distribution of node ", node, " does not sum up to one.")
+    # re-normalize. 
+    probs = probs / sum(probs)
+
+    node.cpt = as.table(probs)
     dimnames(node.cpt) = list(nodes.levels[[node]])
 
   }#THEN
@@ -868,7 +900,7 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
     }#THEN
     # check whether each conditional probability distribution sums to one.
-    not.prob = (abs(apply(probs, 1, sum) - 1) > 0.011)
+    not.prob = (abs(apply(probs, 1, sum) - 1) > 0.01)
     if (any(not.prob)) {
 
       # if more than 1% of probability mass, let's assume that the conditional
@@ -882,7 +914,7 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
       # perform some more rounding to make the total probability mass closer
       # to one.
-      probs = prop.table(probs, margin = 1)
+      probs = prop.table(probs, margin = seq(length(dim(probs)))[-1])
 
     }#ELSE
 

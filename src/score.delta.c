@@ -1,4 +1,3 @@
-
 #include "common.h"
 
 static SEXP score_delta_helper(SEXP net, SEXP arc, SEXP operator, int children,
@@ -225,7 +224,7 @@ double delta = 0, new_sum = 0, old_sum = 0;
 
 }/*ROBUST_DIFFERENCE*/
 
-SEXP score_delta_decomposable(SEXP arc, SEXP network, SEXP data, SEXP score, 
+SEXP score_delta_decomposable(SEXP arc, SEXP network, SEXP data, SEXP score,
     SEXP score_delta, SEXP reference_score, SEXP op, SEXP extra, int chld) {
 
 int *t = NULL;
@@ -360,19 +359,19 @@ const char *s = CHAR(STRING_ELT(score, 0));
 
 }/*SCORE_DELTA_MONOLITHIC*/
 
-SEXP score_delta(SEXP arc, SEXP network, SEXP data, SEXP score, 
+SEXP score_delta(SEXP arc, SEXP network, SEXP data, SEXP score,
     SEXP score_delta, SEXP reference_score, SEXP op, SEXP extra, SEXP decomposable) {
 
   if (isTRUE(decomposable)) {
- 
+
     return score_delta_decomposable(arc, network, data, score, score_delta,
-             reference_score, op, extra, FALSE);   
+             reference_score, op, extra, FALSE);
 
   }/*THEN*/
   else {
 
     return score_delta_monolithic(arc, network, data, score, score_delta,
-             reference_score, op, extra);   
+             reference_score, op, extra);
 
   }/*ELSE*/
 

@@ -29,45 +29,21 @@ maxmin.pc.optimized = function(x, whitelist, blacklist, test,
 
 }#MAXMIN.PC.OPTIMIZED
 
-maxmin.pc.cluster = function(x, cluster, whitelist, blacklist,
-  test, alpha, B, strict, debug = FALSE) {
-
-  nodes = names(x)
-
-  # 1. [Forward Phase (I)]
-  mb = parLapply(cluster, as.list(nodes), maxmin.pc.forward.phase, data = x,
-         nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, optimized = FALSE, debug = debug)
-  names(mb) = nodes
-
-  # 2. [Backward Phase (II)]
-  mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
-         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, markov = FALSE, debug = debug)
-  names(mb) = nodes
-
-  # check neighbourhood sets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
-
-  return(mb)
-
-}#MAXMIN.PC.CLUSTER
-
-maxmin.pc = function(x, whitelist, blacklist, test, alpha, B,
+maxmin.pc = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
   strict, debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Forward Phase (I)]
-  mb = lapply(as.list(nodes), maxmin.pc.forward.phase, data = x, nodes = nodes,
-         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, optimized = FALSE, debug = debug)
+  mb = smartLapply(cluster, as.list(nodes), maxmin.pc.forward.phase, data = x,
+         nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
+         blacklist = blacklist, test = test, optimized = FALSE, debug = debug)
   names(mb) = nodes
 
   # 2. [Backward Phase (II)]
-  mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
-         B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-         markov = FALSE, debug = debug)
+  mb = smartLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
+         test = test, markov = FALSE, debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -100,7 +76,7 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
 
   # whitelisted nodes are included, and blacklisted nodes are excluded.
   cpc = whitelisted
-  nodes = nodes[!(nodes %in% c(cpc, blacklisted))]
+  nodes = nodes[nodes %!in% c(cpc, blacklisted)]
 
   # use backtracking for a further screening of the nodes to be checked.
   if (!is.null(backtracking) && optimized) {
@@ -116,14 +92,14 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
 
     # from empirical observations, MMPC has very few false negatives and
     # therefore it is fairly safe not to test known.bad nodes.
-    nodes  = nodes[!(nodes %in% known.bad)]
+    nodes  = nodes[nodes %!in% known.bad]
 
     if (debug) {
 
       cat("    * known good (backtracking): '", known.good, "'.\n")
       cat("    * known bad (backtracking): '", known.bad, "'.\n")
       cat("    * nodes still to be tested for inclusion: '",
-        nodes[!(nodes %in% cpc)], "'.\n")
+        nodes[nodes %!in% cpc], "'.\n")
 
     }#THEN
 
@@ -170,7 +146,6 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
 maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B,
     association, debug = FALSE) {
 
-  k = 0
   min.assoc = association[x]
 
   if (debug) {
@@ -180,53 +155,18 @@ maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B,
 
   }#THEN
 
-  # generate only the subsets of the current parent/children set
-  # which include node added last; the rest are considered to be
-  # already tested against.
+  # generate only the subsets of the current parent/children set which include
+  # node added last; the rest are considered to be already tested against.
   last = sx[length(sx)]
   sx = sx[-length(sx)]
 
-  repeat {
+  new.min.assoc = allsubs.test(x = x, y = y, sx = sx, fixed = last, data = data,
+                    test = test, B = B, alpha = alpha, debug = debug)[3]
 
-    # create all the possible subsets of size k of the candidate
-    # parent-children set.
-    dsep.subsets = subsets(length(sx), k, sx)
-
-    for (s in 1:nrow(dsep.subsets)) {
-
-      a = indep.test(x, y, c(dsep.subsets[s,], last), data = data,
-            test = test, B = B, alpha = alpha)
-
-      if (debug) {
-
-        cat("    > trying conditioning subset '", c(dsep.subsets[s,], last), "'.\n")
-        cat("    > node", x, "has p-value:", a, ".\n")
-
-      }#THEN
-
-      # minimum association means maximum p-value.
-      min.assoc = max(min.assoc, a)
-
-      # if the p-value is already this high, it's useless to do further
-      # testing (as it min.assoc can only increase in value).
-      if (min.assoc > alpha) break
-
-    }#FOR
-
-    # if the p-value is already this high, it's useless to do further
-    # testing (as it min.assoc can only increase in value).
-    if (min.assoc > alpha) break
-
-    if (k < length(sx))
-      k = k + 1
-    else
-      break
-
-  }#REPEAT
+  min.assoc = max(min.assoc, new.min.assoc)
 
   if (debug)
-    cat("    > node", x, "has a minimum association of",
-              min.assoc, ".\n")
+    cat("    > node", x, "has a minimum association of", min.assoc, ".\n")
 
   return(min.assoc)
 

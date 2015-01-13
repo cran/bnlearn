@@ -28,7 +28,7 @@
   setClass("bn.tan")
 
   # if no generic is present, create it.
-  if (!("graph" %in% loadedNamespaces())) {
+  if ("graph" %!in% loadedNamespaces()) {
 
     setGeneric("nodes", function(object, ...) standardGeneric("nodes"))
     setGeneric("nodes<-", function(object, value) standardGeneric("nodes<-"))
@@ -56,7 +56,7 @@
 .onUnload = function(libpath) {
 
   # initialize stuff at the C level.
-  .Call("c_onUnload") 
+  .Call("c_onUnload")
   # unload the shared library.
   library.dynam.unload("bnlearn", libpath = libpath)
 

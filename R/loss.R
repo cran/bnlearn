@@ -1,9 +1,7 @@
 
 loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
 
-  result = 0
-
-  if (loss %in% c("logl", "logl-g")) {
+  if (loss %in% c("logl", "logl-g", "logl-cg")) {
 
     result = entropy.loss(fitted = fitted, data = data, debug = debug)
 

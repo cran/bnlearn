@@ -340,7 +340,7 @@ double res = 0;
 
 /* compute the conditional mutual information from the joint and marginal
  * frequencies. */
-static double mc_cmi(int **n, int **nrowt, int **ncolt, int *ncond, int nr, 
+static double mc_cmi(int **n, int **nrowt, int **ncolt, int *ncond, int nr,
     int nc, int nl) {
 
 int i = 0, j = 0, k = 0;

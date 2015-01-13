@@ -11,7 +11,7 @@
 }
 \usage{
 bn.fit(x, data, method = "mle", \dots, debug = FALSE)
-custom.fit(x, dist, ordinal = FALSE)
+custom.fit(x, dist, ordinal)
 bn.net(x, debug = FALSE)
 }
 \arguments{
@@ -24,9 +24,9 @@ bn.net(x, debug = FALSE)
     parameter estimation} (currently implemented only for discrete data).}
   \item{...}{additional arguments for the parameter estimation prcoedure,
     see below.}
-  \item{ordinal}{a boolean value. If \code{TRUE}, discrete nodes saved as
-    ordinal random variables (\code{bn.fit.onode}) instead of unordered
-    factors (\code{bn.fit.dnode}).}
+  \item{ordinal}{a vector of character strings, the labels of the discrete
+    nodes which should be saved as ordinal random variables (\code{bn.fit.onode})
+    instead of unordered  factors (\code{bn.fit.dnode}).}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
     is printed; otherwise the function is completely silent.}
 }
@@ -36,14 +36,22 @@ bn.net(x, debug = FALSE)
   structure and a data set; \code{bn.net} returns the structure underlying
   a fitted Bayesian network.
 
-  An in-place replacement method is available to change the parameters of
-  each node in a \code{bn.fit} object; see the examples for both discrete
-  and continuous networks below. For a node in a discrete network, the new
-  parameters must be in a \code{table} object. For a node in a continuous
-  network, the new parameters can be defined either by an \code{lm},
-  \code{glm} or \code{pensim} object (the latter is from the \code{penalized}
-  package) or in a list with elements named \code{coef}, \code{sd} and
-  optionally \code{fitted} and \code{resid}.
+  An in-place replacement method is available to change the parameters of each
+  node in a \code{bn.fit} object; see the examples for discrete, continuous and
+  hybrid networks below. For a discrete node (class \code{bn.fit.dnode} or
+  \code{bn.fit.onode}), the new parameters must be in a \code{table} object.
+  For a Gaussian node (class \code{bn.fit.gnode}), the new parameters can be
+  defined either by an \code{lm}, \code{glm} or \code{pensim} object (the
+  latter is from the \code{penalized} package) or in a list with elements named
+  \code{coef}, \code{sd} and optionally \code{fitted} and \code{resid}. For
+  a conditional Gaussian node (class \code{bn.fit.cgnode}), the new parameters
+  can be defined by a list with elements named \code{coef}, \code{sd} and
+  optionally \code{fitted}, \code{resid} and \code{configs}. In both cases
+  \code{coef} should contain the new regression coefficients, \code{sd} the
+  standard deviation of the residuals, \code{fitted} the fitted values and
+  \code{resid} the residuals. \code{configs} should contain the configurations
+  if the discrete parents of the conditional Gaussian node, stored as a
+  factor.
 
   \code{custom.fit} takes a set of user-specified distributions and their
   parameters and uses them to build a \code{bn.fit} object. Its purpose is
@@ -114,13 +122,22 @@ dimnames(cptC) = list("C" = c("TRUE", "FALSE"), "A" =  c("LOW", "HIGH"),
                    "B" = c("GOOD", "BAD"))
 cfit = custom.fit(net, dist = list(A = cptA, B = cptB, C = cptC))
 # for ordinal nodes it is nearly the same.
-cfit = custom.fit(net, dist = list(A = cptA, B = cptB, C = cptC), ordinal = TRUE)
+cfit = custom.fit(net, dist = list(A = cptA, B = cptB, C = cptC),
+         ordinal = c("A", "B"))
 
 # Gaussian Bayesian network from expert knowledge.
 distA = list(coef = c("(Intercept)" = 2), sd = 1)
 distB = list(coef = c("(Intercept)" = 1), sd = 1.5)
-distC = list(coef = c("(Intercept)" = 0.5, "A" = 0.75, "B" = 1.32), sd = 04)
+distC = list(coef = c("(Intercept)" = 0.5, "A" = 0.75, "B" = 1.32), sd = 0.4)
 cfit = custom.fit(net, dist = list(A = distA, B = distB, C = distC))
+
+# conditional Gaussian Bayesian network from expert knowledge.
+cptA = matrix(c(0.4, 0.6), ncol = 2, dimnames = list(NULL, c("LOW", "HIGH")))
+distB = list(coef = c("(Intercept)" = 1), sd = 1.5)
+distC = list(coef = matrix(c(1.2, 2.3, 3.4, 4.5), ncol = 2,
+               dimnames = list(c("(Intercept)", "B"), NULL)),
+          sd = c(0.3, 0.6))
+cgfit = custom.fit(net, dist = list(A = cptA, B = distB, C = distC))
 }
 \author{ Marco Scutari }
 \keyword{multivariate}

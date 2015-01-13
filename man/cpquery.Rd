@@ -124,7 +124,7 @@ mutilated(x, evidence)
   \code{cpudist} returns a data frame containing the observations generated from
   the conditional distribution of the \code{nodes} conditional on \code{evidence}.
   The data frame has class \code{c("bn.cpdist", "data.frame")}, and a \code{method}
-  attribute storing the value of the \code{method} argument. In the case of 
+  attribute storing the value of the \code{method} argument. In the case of
   likelihood weighting, the weights are also attached as an attribute called
   \code{weights}.
 

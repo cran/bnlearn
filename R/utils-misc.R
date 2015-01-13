@@ -12,71 +12,15 @@ is = function(x, class) {
 
 # get all the subsets of a given size, even if either the initial set
 # or the subset are empty (i.e. of size zero).
-# Slightly modified version of the combinations() function from
-# the gtools package. This is the copyroght notice:
-## From email by Brian D Ripley <ripley@stats.ox.ac.uk> to r-help
-## dated Tue, 14 Dec 1999 11:14:04 +0000 (GMT) in response to
-## Alex Ahgarin <datamanagement@email.com>.  Original version was
-## named "subsets" and was Written by Bill Venables.
-# It's released under "LGPL 2.1".
-subsets = function(n, r, v = 1:n, set = TRUE, repeats.allowed = FALSE) {
+subsets = function(elems, size) {
 
   # allow empty subsets (i.e. subsets of empty sets).
-  if ((n == 0) || (r == 0)) return(matrix(c(""), 1, 1))
+  if ((length(elems) == 0) || (size == 0))
+    return(matrix(character(0), nrow = 0, ncol = 0))
 
-  if (mode(n) != "numeric" || length(n) != 1 || n < 1 || (n %% 1) != 0)
-    stop("bad value of n")
-
-  if (mode(r) != "numeric" || length(r) != 1 || r < 1 || (r %% 1) != 0)
-    stop("bad value of r")
-
-  if (!is.atomic(v) || length(v) < n)
-    stop("v is either non-atomic or too short")
-
-  if ((r > n) & repeats.allowed == FALSE)
-    stop("r > n and repeats.allowed = FALSE")
-
-  if (set) {
-
-    v = unique(sort(v))
-    if (length(v) < n)
-      stop("too few different elements")
-
-  }#THEN
-
-  v0 = vector(mode(v), 0)
-  if (repeats.allowed) {
-
-    sub = function(n, r, v) {
-
-        if (r == 0)
-            v0
-        else if (r == 1)
-            matrix(v, n, 1)
-        else if (n == 1)
-            matrix(v, 1, r)
-        else rbind(cbind(v[1], Recall(n, r - 1, v)), Recall(n - 1, r, v[-1]))
-
-    }#SUB
-
-  }#THEN
-  else {
-
-    sub = function(n, r, v) {
-
-        if (r == 0)
-            v0
-        else if (r == 1)
-            matrix(v, n, 1)
-        else if (r == n)
-            matrix(v, 1, n)
-        else rbind(cbind(v[1], Recall(n - 1, r - 1, v[-1])), Recall(n - 1, r, v[-1]))
-
-    }#SUB
-
-  }#ELSE
-
-  sub(n, r, v[1:n])
+  .Call("r_subsets",
+        elems = elems,
+        size = as.integer(size))
 
 }#SUBSETS
 
@@ -103,7 +47,7 @@ configurations = function(data, factor = TRUE, all = TRUE) {
 # rbind-like function for arc sets.
 arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
 
-  .Call("arcs_rbind1",
+  .Call("arcs_rbind",
         matrix1 = matrix1,
         matrix2 = matrix2,
         reverse2 = reverse2)
@@ -174,3 +118,29 @@ normalize.cpt = function(x) {
         cpt = x)
 
 }#NORMALIZE.CPT
+
+# negated inclusion operator.
+`%!in%` = function(x, table) {
+
+  match(x, table, nomatch = 0L) == 0L
+
+}#%!IN%
+
+# remove extraneous attributes.
+noattr = function(x, ok) {
+
+  if (missing(ok))
+    if (is.matrix(x))
+      ok = c("dim", "dimnames")
+    else if (is.factor(x))
+      ok = c("class", "levels")
+    else
+      ok = character(0)
+
+  x.attr = attributes(x)
+  attributes(x) = x.attr[names(x.attr) %in% ok]  
+
+  return(x)
+
+}#NOATTR
+

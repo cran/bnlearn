@@ -41,13 +41,13 @@ grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
 
 }#GROW.SHRINK.OPTIMIZED
 
-grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test,
-  alpha, B, strict, debug = FALSE) {
+grow.shrink = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
+  strict, debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
-  mb = parLapply(cluster, as.list(nodes), gs.markov.blanket, data = x,
+  mb = smartLapply(cluster, as.list(nodes), gs.markov.blanket, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
@@ -56,36 +56,9 @@ grow.shrink.cluster = function(x, cluster, whitelist, blacklist, test,
   mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
 
   # 2. [Compute Graph Structure]
-  mb = parLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+  mb = smartLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
-  names(mb) = nodes
-
-  # check neighbourhood sets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
-
-  return(mb)
-
-}#GROW.SHRINK.CLUSTER
-
-grow.shrink = function(x, whitelist, blacklist, test, alpha, B,
-  strict, debug = FALSE) {
-
-  nodes = names(x)
-
-  # 1. [Compute Markov Blankets]
-  mb = lapply(as.list(nodes), gs.markov.blanket, data = x, nodes = nodes,
-         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, debug = debug)
-  names(mb) = nodes
-
-  # check markov blankets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
-
-  # 2. [Compute Graph Structure]
-  mb = lapply(as.list(nodes), neighbour, mb = mb, data = x, alpha = alpha,
-         B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-         debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -119,7 +92,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   # between them of course they are in each other's markov blanket).
   # arc direction is irrelevant here.
   mb = unique(c(mb, whitelisted))
-  nodes = nodes[!(nodes %in% mb)]
+  nodes = nodes[nodes %!in% mb]
   # blacklist is not checked, not all nodes in a markov blanket must be
   # neighbours.
 
@@ -134,7 +107,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
     # known.good nodes are not to be checked for inclusion, and "mb" is used
     # for the shrinking phase instead of "nodes", we can just remove them.
-    nodes = nodes[!(nodes %in% known.good)]
+    nodes = nodes[nodes %!in% known.good]
 
     # and vice versa X \not\in MB(Y) <=> Y \not\in MB(X)
     known.bad = names(backtracking[!backtracking])
@@ -197,7 +170,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   # whitelisted nodes are neighbours, they cannot be removed from the
   # markov blanket; on the other hand, known.good nodes from backtracking
   # should be checked to remove false positives.
-  nodes = mb[!(mb %in% whitelisted)]
+  nodes = mb[mb %!in% whitelisted]
 
   # shrinking phase.
   repeat {

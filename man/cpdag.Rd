@@ -12,9 +12,9 @@
 
 }
 \usage{
-cpdag(x, moral = FALSE, debug = FALSE)
+cpdag(x, moral = TRUE, debug = FALSE)
 cextend(x, strict = TRUE, debug = FALSE)
-vstructs(x, arcs = FALSE, moral = FALSE, debug = FALSE)
+vstructs(x, arcs = FALSE, moral = TRUE, debug = FALSE)
 moral(x, debug = FALSE)
 }
 \arguments{
@@ -22,8 +22,8 @@ moral(x, debug = FALSE)
   \item{arcs}{a boolean value. If \code{TRUE} the arcs that are part
     of at least one v-structure are returned instead of the v-structures
     themselves.}
-  \item{moral}{a boolean value. If \code{FALSE} we define a v-structure as
-    in Pearl (2000); if \code{TRUE}, as in Koller and Friedman (2009).
+  \item{moral}{a boolean value. If \code{TRUE} we define a v-structure as
+    in Pearl (2000); if \code{FALSE}, as in Koller and Friedman (2009).
     See below.}
   \item{strict}{a boolean value. If no consistent extension is possible
     and \code{strict} is \code{TRUE}, an error is generated; otherwise
@@ -42,9 +42,9 @@ moral(x, debug = FALSE)
   by an arc. This mirrors the \emph{unshielded} versus \emph{shielded
   collider} naming convention, but is confusing.
 
-  Setting \code{moral} to \code{TRUE} in \code{cpdag} and \code{vstructs}
+  Setting \code{moral} to \code{FALSE} in \code{cpdag} and \code{vstructs}
   makes those functions follow the definition from Koller and Friedman
-  (2009); the default value of \code{FALSE}, on the other hand, makes
+  (2009); the default value of \code{TRUE}, on the other hand, makes
   those functions follow the definition from Pearl (2000). The former call
   \emph{v-structures} both shielded and unshielded colliders (respectively
   \emph{moral v-structures} and \emph{immoral v-structures}); the latter
