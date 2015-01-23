@@ -293,7 +293,7 @@ SEXP try;
 
   for (i = 0; i < ndata; i++) {
 
-    if (ISNAN(config[i])) {
+    if (config[i] == NA_INTEGER) {
 
       logprob = R_NaN;
 

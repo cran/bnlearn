@@ -624,7 +624,7 @@ int path = 0;
     /* do not add the arc if this violates the constraints on the degrees of the
      * nodes it's incident on. */
     if ((degree[arc[0] - 1] >= *max) || (degree[arc[1] - 1] >= *max) ||
-        (out_degree[arc[0] - 1] >= *max_out) || (in_degree[arc[1]] >= *max_in)) {
+        (out_degree[arc[0] - 1] >= *max_out) || (in_degree[arc[1] - 1] >= *max_in)) {
 
       if (debuglevel > 0) {
 

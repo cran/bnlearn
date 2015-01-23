@@ -1,3 +1,7 @@
+bnlearn (3.7.1)
+
+  * small changes to make CRAN check happy.
+
 bnlearn (3.7)
 
   * fixed the default setting for the number of particles in cpquery()

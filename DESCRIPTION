@@ -2,8 +2,8 @@ Package: bnlearn
 Type: Package
 Title: Bayesian Network Structure Learning, Parameter Learning and
         Inference
-Version: 3.7
-Date: 2015-01-13
+Version: 3.7.1
+Date: 2015-01-23
 Depends: R (>= 2.14.0)
 Imports: methods
 Suggests: parallel, graph, Rgraphviz, lattice, gRain
@@ -27,7 +27,7 @@ Description: Bayesian network structure learning, parameter learning and
 URL: http://www.bnlearn.com/
 License: GPL (>= 2)
 LazyData: yes
-Packaged: 2015-01-13 23:45:31 UTC; fizban
+Packaged: 2015-01-23 08:02:55 UTC; scutari
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2015-01-14 01:52:50
+Date/Publication: 2015-01-23 09:57:07

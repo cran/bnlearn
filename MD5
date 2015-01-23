@@ -1,5 +1,5 @@
-c011cc4be2f464a10668d0ed3e76b242 *Changelog
-a201081e5efe38f63a5eb974fdf08ef9 *DESCRIPTION
+ed579107cbe1d2f7d848433e34197d9d *Changelog
+9c710776287e530d4332e8502b9fd87c *DESCRIPTION
 d23ba83c4f2ac1867002ad46e529c0e6 *NAMESPACE
 708f700deea0489d5baadc34ec2fa60b *R/aracne.R
 9702b7c689aafd4b7b45982cc8e3422e *R/arc.operations.R
@@ -102,7 +102,7 @@ d6fa76518f1e3869f4f0c9f45de2cdb7 *man/bn.kcv.class.Rd
 a0a9632d7443c72bef4f61cd747335b7 *man/bn.strength-class.Rd
 541f7076169b8661959fb5c3c02b9085 *man/bn.var.Rd
 91eba1cc3225193ca5c2997e11bd0627 *man/bnboot.Rd
-88e08e6317543e9d447b7e3238fddda6 *man/bnlearn-package.Rd
+92db405af6f7e1b5df125b9d54de7bd5 *man/bnlearn-package.Rd
 b0342850cd728ca1b0e5192816c7ec69 *man/choose.direction.Rd
 f430bb89a452e8f168cbc20c997df0f0 *man/ci.test.Rd
 e270fe5e008509af6102decb7a675d6d *man/clgaussian-test.Rd
@@ -178,7 +178,7 @@ c43f72311d8c0ea9af57a3985808b4e2 *src/df.adjust.c
 19f1c427caa63a7e9e7225d3b3a50e9e *src/gaussian.monte.carlo.c
 68bc639b1122e2d956fd37331b873326 *src/gaussian.mutual.information.c
 efd2f4cc2c04393504c8bdca02481c22 *src/globals.c
-ae5bfe7e1bb55babed9b8927bbf2fdaa *src/graph.generation.c
+3aab67523839d7b2a525476883ab32aa *src/graph.generation.c
 b8220795607da162865f58be51724f70 *src/graph.priors.c
 a24a2b13b31651ba4b116908d054be58 *src/hash.c
 92650b69a015eb983ec117eaf14026fe *src/hc.cache.lookup.c
@@ -190,7 +190,7 @@ a24a2b13b31651ba4b116908d054be58 *src/hash.c
 92a83d38192218bdec0587189c326b3d *src/likelihood.weighting.c
 0192ff26c4442d9db4455d89cd2a7c5a *src/linear.algebra.c
 6291219ba8d01a4e47e6a349fccc1b7c *src/linear.correlation.c
-bd76009598f67b5ee471cf46deeb7869 *src/loss.c
+46cde53a0d8bf9fbe1fc1925945c1e16 *src/loss.c
 b1a6041c84d41a60a99d11def50d8971 *src/map.lw.c
 9e17d07fcb1f942c4fdabe912234aee8 *src/mi.matrix.c
 c9010e7fe6b6f08d7f92f97159a19cd3 *src/mvber.c
