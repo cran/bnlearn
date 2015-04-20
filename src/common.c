@@ -1,6 +1,5 @@
-#include "common.h"
-#include <R_ext/Arith.h>
-#include <R_ext/Utils.h>
+#include "include/rcore.h"
+#include "include/matrix.h"
 
 /* get the list element named str, or return NULL. */
 SEXP getListElement(SEXP list, char *str) {

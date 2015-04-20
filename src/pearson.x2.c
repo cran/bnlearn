@@ -1,4 +1,6 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/tests.h"
 
 double c_x2(int *xx, int llx, int *yy, int lly, int num, double *df,
     int adj) {

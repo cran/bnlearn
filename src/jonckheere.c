@@ -1,4 +1,7 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/globals.h"
+#include "include/allocations.h"
+#include "include/tests.h"
 
 static double c_jt_stat(int **n, int *ni, int llx, int lly);
 

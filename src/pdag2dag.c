@@ -1,4 +1,8 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
+#include "include/allocations.h"
+#include "include/graph.h"
+#include "include/bn.h"
 
 /* return the complete orientation of a graph (the nodes argument gives
   * the node ordering). */
@@ -65,7 +69,7 @@ SEXP node_data, current, nodes, result, temp;
     if (*moralize > 0) {
 
       /* get also the number of parents, needed to account for the arcs added
-       * for their moraliztion. */
+       * for their moralization. */
       nparents[i] = length(getListElement(current, "parents"));
       narcs += nnbr[i] + nparents[i] * (nparents[i] - 1);
 
@@ -145,7 +149,7 @@ SEXP node_data, current, nodes, result, temp;
   UNPROTECT(1);
 
   /* be really sure not to return duplicate arcs in moral graphs when shielded
-   * parents are present (the "shielding" are is counted twice). */
+   * parents are present (the "shielding" nodes are counted twice). */
   if (*moralize > 0)
     return c_unique_arcs(result, nodes, FALSE);
   else

@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
 
 /* populate the first subset (in lexicographic order). */
 void first_subset(int *work, int n, int offset) {
@@ -68,7 +69,7 @@ SEXP result;
 
   for (k = 0;  k < nsub; k++) {
 
-    for (i = 0; i < r; i++) 
+    for (i = 0; i < r; i++)
       SET_STRING_ELT(result, CMC(k, i, nsub), STRING_ELT(elems, id[i]));
 
     next_subset(id, r, n, 0);

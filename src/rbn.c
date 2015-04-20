@@ -1,4 +1,10 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/sampling.h"
+#include "include/sets.h"
+#include "include/dataframe.h"
+#include "include/graph.h"
+#include "include/globals.h"
 
 void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int num, int ordinal,
     SEXP fixed);

@@ -1,7 +1,6 @@
-#include "common.h"
-#include <R_ext/Applic.h>
-#include <R_ext/Lapack.h>
-#include <R_ext/Linpack.h>
+#include "include/rcore.h"
+#include "include/globals.h"
+#include "include/matrix.h"
 
 /* -------------------- function declarations --------------------------- */
 

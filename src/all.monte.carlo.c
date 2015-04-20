@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/tests.h"
 
 int remap_permutation_test(const char *t) {
 

@@ -1,4 +1,6 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/graph.h"
+#include "include/globals.h"
 
 /* sanitize an arc set using the conditional Gaussian assumptions. */
 SEXP arcs_cg_assumptions(SEXP arcs, SEXP nodes, SEXP data) {
@@ -32,7 +34,7 @@ SEXP result, try, undirected;
   /* check variables types in each arc are ok. */
   for (i = 0; i < narcs; i++) {
 
-    arc_ok[i] = !((vartype[t[i] - 1] == REALSXP) && 
+    arc_ok[i] = !((vartype[t[i] - 1] == REALSXP) &&
                   (vartype[t[i + narcs] - 1] == INTSXP));
 
     /* nothing to do here, move to the next arc. */

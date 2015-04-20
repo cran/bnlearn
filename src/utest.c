@@ -1,4 +1,9 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/globals.h"
+#include "include/tests.h"
+#include "include/dataframe.h"
+#include "include/covariance.h"
 
 #define DISCRETE_SWAP_X() \
       xdata = VECTOR_ELT(xx, i); \

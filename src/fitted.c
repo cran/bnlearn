@@ -1,4 +1,6 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/bn.h"
 
 /* get root or leaf nodes of the graph. */
 SEXP root_nodes(SEXP bn, SEXP leaves) {

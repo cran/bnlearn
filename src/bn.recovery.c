@@ -1,4 +1,6 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/matrix.h"
 
 /* check neighbourhood sets and markov blanets for consistency.. */
 SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP filter, SEXP debug) {

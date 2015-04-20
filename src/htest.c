@@ -1,4 +1,4 @@
-#include "common.h"
+#include "include/rcore.h"
 
 SEXP c_create_htest(double stat, SEXP test, double pvalue, double df, SEXP B) {
 
@@ -31,7 +31,8 @@ SEXP result, s, n, params;
 
   /* set the alternative hypothesis. */
   if (strcmp(t, "cor") && strcmp(t, "mc-cor") && strcmp(t, "smc-cor") &&
-      strcmp(t, "zf") && strcmp(t, "mc-zf") && strcmp(t, "smc-zf")) {
+      strcmp(t, "zf") && strcmp(t, "mc-zf") && strcmp(t, "smc-zf") &&
+      strcmp(t, "jt") && strcmp(t, "mc-jt") && strcmp(t, "smc-jt")) {
 
     SET_VECTOR_ELT(result, 4, mkString("greater"));
 

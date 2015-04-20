@@ -1,4 +1,8 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/graph.h"
+#include "include/matrix.h"
+#include "include/dataframe.h"
+#include "include/globals.h"
 
 /* adjusted arc counting for boot.strength(). */
 SEXP bootstrap_strength_counters(SEXP prob, SEXP weight, SEXP arcs, SEXP nodes) {

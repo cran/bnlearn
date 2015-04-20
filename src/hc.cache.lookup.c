@@ -1,4 +1,10 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/globals.h"
+#include "include/graph.h"
+#include "include/scores.h"
+#include "include/matrix.h"
+#include "include/learning.h"
 
 SEXP score_cache_fill(SEXP nodes, SEXP data, SEXP network, SEXP score,
     SEXP extra, SEXP reference, SEXP equivalence, SEXP decomposability,

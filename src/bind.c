@@ -1,4 +1,6 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
+#include "include/bn.h"
 
 SEXP arcs_rbind (SEXP matrix1, SEXP matrix2, SEXP reverse2) {
 

@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/loss.h"
 
 void c_lw_weights(SEXP fitted, SEXP data, int n, double *w, SEXP keep,
     int debuglevel) {

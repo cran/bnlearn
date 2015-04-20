@@ -1,5 +1,8 @@
-#include "common.h"
-#include <R_ext/Applic.h>
+#include "include/rcore.h"
+#include "include/blas.h"
+#include "include/allocations.h"
+#include "include/dataframe.h"
+#include "include/globals.h"
 
 double glik(SEXP x, double *nparams) {
 

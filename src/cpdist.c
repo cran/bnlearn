@@ -1,4 +1,7 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/sampling.h"
+#include "include/dataframe.h"
+#include "include/globals.h"
 
 SEXP cpdist_lw(SEXP fitted, SEXP nodes, SEXP n, SEXP fix, SEXP debug) {
 
@@ -34,3 +37,4 @@ SEXP result, simulation, wgt, from;
   return result;
 
 }/*CPDIST_LW*/
+

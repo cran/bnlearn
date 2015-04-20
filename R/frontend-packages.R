@@ -1,6 +1,12 @@
 
 ## generics for the S3 methods below (and others in the frontend-* files).
 
+sigma = function(object, ...) {
+
+  UseMethod("sigma")
+
+}#SIGMA
+
 as.grain = function(x) {
 
   UseMethod("as.grain", x)
@@ -41,7 +47,7 @@ as.grain.bn.fit = function(x) {
   # check x's class.
   check.fit(x)
   # check whether x is a discrete fitted network.
-  if (!is(x, c("bn.fit.onet", "bn.fit.donet")))
+  if (is(x, c("bn.fit.onet", "bn.fit.donet")))
     warning("the gRain package does not support ordinal networks, disregarding the ordering of the levels.")
   else if (!is(x, "bn.fit.dnet"))
     stop("the gRain package only supports discrete networks.")
@@ -75,7 +81,7 @@ as.grain.bn.fit = function(x) {
 
   }#FOR
 
-  return(gRain::grain(gRain::compileCPT(cpt)))
+  return(gRain::grain.CPTspec(gRain::compileCPT(cpt)))
 
 }#AS.GRAIN.BN.FIT
 
@@ -106,8 +112,11 @@ as.bn.fit.grain = function(x) {
     prob = structure(as.table(x[["cptlist"]][[node]]), class = "table")
     parents = names(dimnames(prob))[-1]
 
-    fitted[[node]] = structure(list(node = node, parents = parents, prob = prob),
-                       class = "bn.fit.dnode")
+    # marginal tables have no dimension names in bnlearn.
+    prob = cptattr(prob)
+
+    fitted[[node]] = structure(list(node = node, parents = parents,
+                       children = NULL, prob = prob), class = "bn.fit.dnode")
 
   }#FOR
 
@@ -118,7 +127,7 @@ as.bn.fit.grain = function(x) {
 
   }#FOR
 
-  return(structure(fitted, class = "bn.fit"))
+  return(structure(fitted, class = c("bn.fit", guess.fitted.class(fitted))))
 
 }#AS.BN.FIT.GRAIN
 

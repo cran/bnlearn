@@ -138,9 +138,49 @@ noattr = function(x, ok) {
       ok = character(0)
 
   x.attr = attributes(x)
-  attributes(x) = x.attr[names(x.attr) %in% ok]  
+  attributes(x) = x.attr[names(x.attr) %in% ok]
 
   return(x)
 
 }#NOATTR
 
+# reset the attributes of a CPT (with dimnames is complicated)
+cptattr = function(cpt) {
+
+  # marginal tables have no dimension names (and a single dimension).
+  if (length(dim(cpt)) == 1)
+    dnn = noattr(dimnames(cpt))
+  else
+    dnn = dimnames(cpt)
+  dim(cpt) = noattr(dim(cpt))
+  dimnames(cpt) = dnn
+
+  return(cpt)
+
+}#CPTATTR
+
+# conditional standard deviation.
+cgsd = function(resid, configs, p) {
+
+  resid = noattr(resid, ok = character(0))
+  mult = function(x, p)
+           ifelse(missing(p), 1, sqrt((length(x) - 1) / (length(x) - p)))
+
+  if (missing(configs) || is.null(configs)) {
+
+    sd = sd(resid) * mult(resid, p)
+
+  }#THEN
+  else {
+
+    sd = by(data = resid, INDICES = configs,
+             FUN = function(x) { sd(x) * mult(x, p) })
+
+  }#ELSE
+
+  # replace NA values with zeroes.
+  sd[is.na(sd)] = 0
+
+  return(noattr(sd))
+
+}#CGSD

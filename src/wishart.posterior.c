@@ -1,4 +1,10 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/blas.h"
+#include "include/covariance.h"
+#include "include/dataframe.h"
+#include "include/matrix.h"
+#include "include/scores.h"
 
 /* posterior wishart probability for the BGe score. */
 double wpost(SEXP x, int iss, double phic) {

@@ -1,4 +1,7 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
+#include "include/allocations.h"
+#include "include/graph.h"
 
 SEXP smart_network_averaging(SEXP arcs, SEXP nodes, SEXP weights) {
 

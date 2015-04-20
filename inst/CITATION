@@ -8,8 +8,8 @@ citEntry(entry = "Book",
          year         = 2013,
          note         = "ISBN 978-1461464457",
 
- textVersion = 
- paste("Radhakrishnan Nagarajan, Marco Scutari, Sophie Lebre. (2013)", 
+ textVersion =
+ paste("Radhakrishnan Nagarajan, Marco Scutari, Sophie Lebre. (2013)",
        "Bayesian Networks in R with Applications in Systems Biology.",
        "Springer, New York. ISBN 978-1461464457.")
 

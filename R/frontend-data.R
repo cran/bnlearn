@@ -114,3 +114,14 @@ dedup = function(data, threshold = 0.90, debug = FALSE) {
 
 }#DEDUP
 
+# configurations of sets of discrete variables.
+configs = function(data, all = TRUE) {
+
+  # check the data (only discrete data are supported).
+  check.data(data, allowed.types = discrete.data.types)
+  # check the "all configurations" flag.
+  check.logical(all)
+
+  configurations(data, factor = TRUE, all = all)
+
+}#CONFIGS

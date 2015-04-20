@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
 
 /* check if a square matrix is symmetric in a zero-copy way. */
 SEXP is_symmetric(SEXP matrix) {

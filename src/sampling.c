@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
 
 void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int *num, int ordinal,
     SEXP fixed);

@@ -2,10 +2,9 @@ Package: bnlearn
 Type: Package
 Title: Bayesian Network Structure Learning, Parameter Learning and
         Inference
-Version: 3.7.1
-Date: 2015-01-23
-Depends: R (>= 2.14.0)
-Imports: methods
+Version: 3.8
+Date: 2015-04-20
+Depends: R (>= 2.14.0), methods
 Suggests: parallel, graph, Rgraphviz, lattice, gRain
 Author: Marco Scutari
 Maintainer: Marco Scutari <marco.scutari@gmail.com>
@@ -27,7 +26,7 @@ Description: Bayesian network structure learning, parameter learning and
 URL: http://www.bnlearn.com/
 License: GPL (>= 2)
 LazyData: yes
-Packaged: 2015-01-23 08:02:55 UTC; scutari
+Packaged: 2015-05-02 18:17:32 UTC; scutari
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2015-01-23 09:57:07
+Date/Publication: 2015-05-03 07:07:32

@@ -1,4 +1,4 @@
-#include "common.h"
+#include "include/rcore.h"
 
 /* delete a string for a STRSXP array. */
 SEXP string_delete(SEXP array, SEXP string, int *idx) {

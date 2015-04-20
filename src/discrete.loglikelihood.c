@@ -1,4 +1,7 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/sets.h"
+#include "include/allocations.h"
+#include "include/dataframe.h"
 
 double dlik(SEXP x, double *nparams) {
 

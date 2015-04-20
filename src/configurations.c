@@ -1,4 +1,6 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/sets.h"
+#include "include/allocations.h"
 
 /* wrapper around the c_configurations() function for use in .Call(). */
 SEXP configurations(SEXP parents, SEXP factor, SEXP all) {

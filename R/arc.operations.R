@@ -66,7 +66,7 @@ arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE,
 
   # check whether the graph is still acyclic; not needed if an arc is dropped.
   if (check.cycles && (op != "drop"))
-    if (!is.acyclic(x$arcs, names(x$nodes)))
+    if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
       stop("the resulting graph contains cycles.")
 
   # update the network structure.

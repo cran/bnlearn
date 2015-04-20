@@ -1,4 +1,9 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/dataframe.h"
+#include "include/globals.h"
+#include "include/matrix.h"
+#include "include/sets.h"
 
 double c_gloss(int *cur, SEXP cur_parents, double *coefs, double *sd,
     void **columns, SEXP nodes, int ndata, double *per_sample,

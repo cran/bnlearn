@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/dataframe.h"
 
 /* in-place conversion of a list into a data frame. */
 SEXP minimal_data_frame(SEXP obj) {

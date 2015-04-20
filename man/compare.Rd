@@ -26,6 +26,13 @@ hamming(learned, true, debug = FALSE)
     is printed; otherwise the function is completely silent.}
   \item{arcs}{a boolean value. See below.}
 }
+\note{
+
+  Note that SHD, as defined in the reference, is defined on CPDAGs;
+  therefore \code{cpdag} is called on both \code{learned} and \code{true}
+  before computing the distance.
+
+}
 \value{
 
   \code{compare} returns a list containing the number of true positives

@@ -141,7 +141,7 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
     }#THEN
 
   }#THEN
-  else if (class(fitted) %in% c("bn.fit.gnode", "bn.fit.cgnode")) {
+  else if (is(fitted, c("bn.fit.gnode", "bn.fit.cgnode"))) {
 
     # check whether the residuals are there.
     if ("residuals" %!in% names(fitted))

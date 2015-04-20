@@ -1,4 +1,7 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/dataframe.h"
+#include "include/allocations.h"
+#include "include/globals.h"
 
 SEXP dedup (SEXP data, SEXP threshold, SEXP debug) {
 

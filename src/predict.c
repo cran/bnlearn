@@ -1,4 +1,9 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/globals.h"
+#include "include/allocations.h"
+#include "include/dataframe.h"
+#include "include/sampling.h"
+#include "include/matrix.h"
 
 /* predict the value of a gaussian node without parents. */
 SEXP gpred(SEXP fitted, SEXP ndata, SEXP debug) {

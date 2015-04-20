@@ -1,4 +1,4 @@
-#include "common.h"
+#include "include/rcore.h"
 
 /* find out the partial ordering of the nodes of a DAG. */
 SEXP schedule(SEXP bn, SEXP root_nodes, SEXP reverse, SEXP debug) {

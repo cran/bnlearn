@@ -1,4 +1,7 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/globals.h"
+#include "include/matrix.h"
+#include "include/blas.h"
 
 #define COR_BOUNDS(x) \
   if (x > 1) { \

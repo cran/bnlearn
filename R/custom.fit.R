@@ -34,11 +34,12 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
         dist[[node]] = list(coef = coefficients(dist[[node]]),
                             resid = residuals(dist[[node]]),
                             fitted = fitted(dist[[node]]),
-                            sd = sd(residuals(dist[[node]])))
+                            sd = cgsd(residuals(dist[[node]])),
+                                   p = length(coefficients(dist[[node]])))
 
       }#THEN
 
-      check.fit.gnode.spec(dist[[node]], node = node)
+      dist[[node]] = check.fit.gnode.spec(dist[[node]], node = node)
       # sanity check the distribution by comparing it to the network structure.
       if (is(dist[[node]]$coef, "matrix")) {
 
@@ -80,7 +81,7 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
     nconfig = unique(nconfig[sapply(fitted, class) == "bn.fit.cgnode"])
 
     # all nodes must have residuals and fitted values of the same length.
-    full.spec = all(!is.na(nresid) & !is.na(nfitted)) && 
+    full.spec = all(!is.na(nresid) & !is.na(nfitted)) &&
                 (length(nresid) == 1) && (length(nfitted) == 1)
     if (full.spec)
       full.spec = full.spec && (nresid == nfitted)
@@ -118,7 +119,7 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
           stop("node ", node, " is discrete but has continuous parents.")
         # store the new CPT in the bn.fit object.
         fitted[[cpd]]$prob = normalize.cpt(dist[[cpd]])
-  
+
       }#FOR
 
     }#THEN
@@ -128,21 +129,21 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
 
         # identify discrete and continuous parents and configurations.
         parents = fitted[[node]]$parents
-        configs = as.character(seq(from = 0, to = length(dist[[node]]$sd) - 1))
+        configs = as.character(seq(from = 0, to = ncol(dist[[node]]$coef) - 1))
         # store the new coefficients and standard deviations.
         fitted[[node]]$coefficients = noattr(dist[[node]]$coef)
         fitted[[node]]$sd = structure(noattr(dist[[node]]$sd), names = configs)
         # identify discrete and continuous parents.
         dparents = as.integer(which(discrete[parents]))
         gparents = as.integer(which(!discrete[parents]))
-        fitted[[node]]$dparents = dparents 
+        fitted[[node]]$dparents = dparents
         fitted[[node]]$gparents = gparents
         # include the levels of the discrete parents
         dlevels = sapply(parents[dparents],
           function(x) dimnames(dist[[x]])[[1]], simplify = FALSE)
         fitted[[node]]$dlevels = dlevels
         # reset columns names for the coefficients and names for sd.
-        colnames(fitted[[node]]$coefficients) = 
+        colnames(fitted[[node]]$coefficients) =
           names(fitted[[node]]$sd) = configs
         # save the configurations of the discrete parents.
         if (full.spec) {
@@ -150,14 +151,14 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
           # check the number of the discrete parents' configurations is right.
           if (prod(sapply(dlevels, length)) != nlevels(dist[[node]]$configs))
             stop("number of discrete parents configurations for node ", node,
-              " is ", nlevels(dist[[node]]$configs), " but should be ", 
+              " is ", nlevels(dist[[node]]$configs), " but should be ",
               prod(sapply(dlevels, length)), ".")
 
-          if (levels(dist[[node]]$configs) != configs) {
+          if (any(levels(dist[[node]]$configs) != configs)) {
 
             # wrong levels, or wrong order: warn and rename.
             warning("remapping levels of the discrete parents configurations ",
-              "for node", node, ".")
+              "for node ", node, ".")
 
             levels(dist[[node]]$configs) = configs
 
@@ -175,7 +176,7 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
 
         # all parents of Gaussian nodes must be continuous nodes.
         if (any(discrete[fitted[[node]]$parents]))
-         stop("node ", node, 
+         stop("node ", node,
            " is Gaussian (not conditional Gaussian) but has discrete parents.")
 
         # store the new coefficients and standard deviations.

@@ -33,15 +33,14 @@ bn.net = function(x, debug = FALSE) {
   # check x's class.
   check.fit(x)
 
-  nodes = names(x)
-  net = empty.graph.backend(nodes)
+  net = empty.graph.backend(names(x))
   arcs(net) = fit2arcs(x)
 
   return(net)
 
 }#BN.NET
 
-# extract residuals for continuous bayesian networks.
+# extract residuals from continuous bayesian networks.
 residuals.bn.fit = function(object, ...) {
 
   # warn about unused arguments.
@@ -54,8 +53,8 @@ residuals.bn.fit = function(object, ...) {
 
 }#RESIDUALS.BN.FIT
 
-# extract residuals for continuous nodes.
-residuals.bn.fit.gnode = function(object, ...) {
+# extract residuals from continuous nodes.
+residuals.bn.fit.cgnode = residuals.bn.fit.gnode = function(object, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -64,11 +63,8 @@ residuals.bn.fit.gnode = function(object, ...) {
 
 }#RESIDUALS.BN.FIT.GNODE
 
-# same here...
-residuals.bn.fit.cgnode = residuals.bn.fit.gnode
-
 # no residuals here, move along ...
-residuals.bn.fit.dnode = function(object, ...) {
+residuals.bn.fit.onode = residuals.bn.fit.dnode = function(object, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -77,10 +73,47 @@ residuals.bn.fit.dnode = function(object, ...) {
 
 }#RESIDUALS.BN.FIT.DNODE
 
-# same here ...
-residuals.bn.fit.onode = residuals.bn.fit.dnode
+# extract standard errors from continuous bayesian networks.
+sigma.bn.fit = function(object, ...) {
 
-# extract fitted values for continuous bayesian networks.
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  if (!is(object, c("bn.fit.gnet", "bn.fit.cgnet")))
+    stop("standard errors are not defined for discrete bayesian networks.")
+
+  ll = lapply(object, "[[", "sd")
+
+  # in a conditional Gaussian network, set the standard errors of discrete
+  # nodes to NA.
+  if (is(object, "bn.fit.cgnet"))
+    ll[sapply(ll, is.null)] = NA
+
+  return(ll)
+
+}#SIGMA.BN.FIT
+
+# extract standard errors for continuous nodes.
+sigma.bn.fit.cgnode = sigma.bn.fit.gnode = function(object, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  object$sd
+
+}#SIGMA.BN.FIT.GNODE
+
+# no sigma here, move along ...
+sigma.bn.fit.onode = sigma.bn.fit.dnode = function(object, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  stop("standard errors are not defined for discrete nodes.")
+
+}#SIGMA.BN.FIT.DNODE
+
+# extract fitted values from continuous bayesian networks.
 fitted.bn.fit = function(object, ...) {
 
   if (!is(object, c("bn.fit.gnet", "bn.fit.cgnet")))
@@ -93,8 +126,8 @@ fitted.bn.fit = function(object, ...) {
 
 }#FITTED.BN.FIT
 
-# extract fitted values for continuous nodes.
-fitted.bn.fit.gnode = function(object, ...) {
+# extract fitted values from continuous nodes.
+fitted.bn.fit.cgnode = fitted.bn.fit.gnode = function(object, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -103,11 +136,8 @@ fitted.bn.fit.gnode = function(object, ...) {
 
 }#FITTED.BN.FIT.GNODE
 
-# same here...
-fitted.bn.fit.cgnode = fitted.bn.fit.gnode
-
 # no fitted values here, move along ...
-fitted.bn.fit.dnode = function(object, ...) {
+fitted.bn.fit.onode = fitted.bn.fit.dnode = function(object, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -115,9 +145,6 @@ fitted.bn.fit.dnode = function(object, ...) {
   stop("fitted values are not defined for discrete nodes.")
 
 }#FITTED.BN.FIT.DNODE
-
-# same here ...
-fitted.bn.fit.onode = fitted.bn.fit.dnode
 
 # extract parameters from any bayesian network.
 coef.bn.fit = function(object, ...) {
@@ -130,7 +157,7 @@ coef.bn.fit = function(object, ...) {
 }#COEF.BN.FIT
 
 # extract regression coefficients from continuous nodes.
-coef.bn.fit.gnode = function(object, ...) {
+coef.bn.fit.cgnode = coef.bn.fit.gnode = function(object, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -139,11 +166,8 @@ coef.bn.fit.gnode = function(object, ...) {
 
 }#COEF.BN.FIT.GNODE
 
-# same here...
-coef.bn.fit.cgnode = coef.bn.fit.gnode
-
 # extract probabilities from discrete nodes.
-coef.bn.fit.dnode = function(object, ...) {
+coef.bn.fit.onode = coef.bn.fit.dnode = function(object, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -151,9 +175,6 @@ coef.bn.fit.dnode = function(object, ...) {
   object$prob
 
 }#COEF.BN.FIT.DNODE
-
-# it's the same for ordinal nodes.
-coef.bn.fit.onode = coef.bn.fit.dnode
 
 # logLik method for class 'bn.fit'.
 logLik.bn.fit = function(object, data, nodes, by.sample = FALSE, ...) {
@@ -251,7 +272,7 @@ custom.fit = function(x, dist, ordinal) {
   # first place.
   if (!all(discrete[ordinal]))
     stop("node(s)", paste0(" '", names(discrete[!discrete[ordinal]]), "'"),
-      " are set to be ordinal but are not discrete.") 
+      " are set to be ordinal but are not discrete.")
 
   custom.fit.backend(x = x, dist = dist, discrete = discrete, ordinal = ordinal)
 

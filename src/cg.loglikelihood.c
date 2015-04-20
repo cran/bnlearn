@@ -1,4 +1,11 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/sets.h"
+#include "include/scores.h"
+#include "include/dataframe.h"
+#include "include/globals.h"
+#include "include/matrix.h"
+#include "include/allocations.h"
+#include "include/blas.h"
 
 double ccgloglik(SEXP x, SEXP parents, int *type, int np, int ndp,
     double *nparams) {

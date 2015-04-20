@@ -1,4 +1,4 @@
-#include "common.h"
+#include "include/rcore.h"
 
 /* adjust degrees of freedom: zeroes are considered structural if they
  * are part of a column or a row with a zero marginal, the rest are

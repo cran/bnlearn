@@ -1,4 +1,9 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/tests.h"
+#include "include/globals.h"
+#include "include/covariance.h"
+#include "include/matrix.h"
 
 /* shrinked mutual information, to be used in C code. */
 double c_shmi(int *xx, int llx, int *yy, int lly, int num) {

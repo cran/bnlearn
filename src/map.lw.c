@@ -1,4 +1,7 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/dataframe.h"
+#include "include/sampling.h"
 
 static double posterior_mean(double *x, double *wgt, int n, int debuglevel) {
 

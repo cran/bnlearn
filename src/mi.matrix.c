@@ -1,4 +1,9 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
+#include "include/allocations.h"
+#include "include/graph.h"
+#include "include/tests.h"
+#include "include/bn.h"
 
 #define DISCRETE_MAXIMUM_LIKELIHOOD 1
 #define GAUSSIAN_MAXIMUM_LIKELIHOOD 2

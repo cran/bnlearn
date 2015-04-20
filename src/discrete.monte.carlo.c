@@ -1,5 +1,8 @@
-#include <R_ext/Applic.h>
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/sampling.h"
+#include "include/tests.h"
+#include "include/matrix.h"
 
 /* initialize the table of log-factorials. */
 #define allocfact(n) \

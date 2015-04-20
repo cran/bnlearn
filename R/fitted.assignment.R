@@ -9,7 +9,7 @@ fitted.assignment.backend = function(x, name, value) {
 
     # check the consistency of the new conditional distribution.
     value = check.fit.dnode.spec(value, node = name)
-    # sanity check the new obejct by comparing it to the old one.
+    # sanity check the new object by comparing it to the old one.
     value = check.dnode.vs.spec(value, to.replace)
     # replace the conditional probability table.
     new$prob = value
@@ -21,7 +21,8 @@ fitted.assignment.backend = function(x, name, value) {
 
       # ordinary least squares, ridge, lasso, and elastic net.
       value = list(coef = coefficients(value), resid = residuals(value),
-                fitted = fitted(value), sd = sd(residuals(value)))
+                fitted = fitted(value),
+                sd = cgsd(residuals(value)), p = length(coefficients(value)))
       # if the intercept is not there, set it to zero.
       if ("(Intercept)" %!in% names(value$coef))
         value$coef = c("(Intercept)" = 0, value$coef)
@@ -30,11 +31,11 @@ fitted.assignment.backend = function(x, name, value) {
     else {
 
       # check the consistency of the new conditional distribution.
-      check.fit.gnode.spec(value, node = name)
+      value = check.fit.gnode.spec(value, node = name)
 
     }#ELSE
 
-    # sanity check the new obejct by comparing it to the old one.
+    # sanity check the new object by comparing it to the old one.
     check.gnode.vs.spec(value, to.replace)
 
     # replace the regression coefficients, keeping the names and the ordering.
@@ -44,11 +45,7 @@ fitted.assignment.backend = function(x, name, value) {
       new$coefficients = noattr(value$coef[names(new$coefficients)], ok = "names")
 
     # replace the residuals' standard deviation.
-    if (is.null(value$sd))
-      new$sd = sd(value$resid) * sqrt((length(value$resid) - 1) /
-                 (length(value$resid) - length(value$coef)))
-    else
-      new$sd = noattr(value$sd)
+    new$sd = noattr(value$sd)
 
     # replace the residuals, padding with NAs if needed.
     if (is.null(value$resid))
@@ -65,9 +62,11 @@ fitted.assignment.backend = function(x, name, value) {
   }#THEN
   else if (is(to.replace, "bn.fit.cgnode")) {
 
+    # carry discrete parents' configurations from the old object.
+    value$configs = to.replace$configs
     # check the consistency of the new conditional distribution.
-    check.fit.gnode.spec(value, node = name)
-    # sanity check the new obejct by comparing it to the old one.
+    value = check.fit.gnode.spec(value, node = name)
+    # sanity check the new object by comparing it to the old one.
     check.cgnode.vs.spec(value, to.replace)
 
     # replace the regression coefficients, keeping the names and the ordering.
@@ -77,14 +76,6 @@ fitted.assignment.backend = function(x, name, value) {
     new$coefficients = noattr(value$coef)
 
     # replace the residuals' standard deviation.
-    if (is.null(value$sd))
-      new$sd = by(data = value$resid, INDICES = new$configs,
-                 FUN = function(x) {
-                   sd(x) * sqrt((length(x) - 1) / (length(x) - nrow(value$coef)))
-                  })
-    else
-      new$sd = value$sd
-
     new$sd = structure(noattr(new$sd), names = colnames(value$coef))
 
     # replace the residuals, padding with NAs if needed.

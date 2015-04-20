@@ -1,4 +1,8 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/sets.h"
+#include "include/dataframe.h"
+#include "include/allocations.h"
+#include "include/scores.h"
 
 /* posterior Dirichlet probability (covers BDe and K2 scores). */
 double dpost(SEXP x, SEXP iss, SEXP exp) {

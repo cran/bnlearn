@@ -121,7 +121,7 @@ mutilated(x, evidence)
   \code{cpquery} returns a numeric value, the conditional probability of \code{event}
   conditional on \code{evidence}.
 
-  \code{cpudist} returns a data frame containing the observations generated from
+  \code{cpdist} returns a data frame containing the observations generated from
   the conditional distribution of the \code{nodes} conditional on \code{evidence}.
   The data frame has class \code{c("bn.cpdist", "data.frame")}, and a \code{method}
   attribute storing the value of the \code{method} argument. In the case of

@@ -1,4 +1,8 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/globals.h"
+#include "include/matrix.h"
+#include "include/graph.h"
+#include "include/learning.h"
 
 void tabu_add(double *cache_value, int *ad, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,

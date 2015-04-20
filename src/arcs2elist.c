@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
 
 SEXP arcs2uelist(SEXP arcs, SEXP nodes, SEXP nid, SEXP sublist, SEXP parents);
 SEXP arcs2welist(SEXP arcs, SEXP nodes, SEXP weights, SEXP nid, SEXP sublist,

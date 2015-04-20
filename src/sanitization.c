@@ -1,4 +1,4 @@
-#include "common.h"
+#include "include/rcore.h"
 
 SEXP data_frame_finite(SEXP data) {
 

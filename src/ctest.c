@@ -1,4 +1,10 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/sets.h"
+#include "include/allocations.h"
+#include "include/dataframe.h"
+#include "include/tests.h"
+#include "include/covariance.h"
+#include "include/globals.h"
 
 #define DISCRETE_SWAP_X() \
       xdata = VECTOR_ELT(xx, i); \
@@ -614,8 +620,8 @@ SEXP xx, yy, zz, result;
   else if ((strcmp(t, "x2") == 0) || (strcmp(t, "x2-adf") == 0)) {
 
     /* Pearson's X^2 test, with and without df adjustments. */
-    statistic = ct_mi(xx, yy, zz, nobs, ntests, pvalue, &df,
-                  (strcmp(t, "mi-adf") == 0));
+    statistic = ct_x2(xx, yy, zz, nobs, ntests, pvalue, &df,
+                  (strcmp(t, "x2-adf") == 0));
 
   }/*THEN*/
   else if (strcmp(t, "jt") == 0) {

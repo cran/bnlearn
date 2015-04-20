@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/globals.h"
 
 /* a rudimental C implementation of which.max() for a double array. */
 int d_which_max(double *array, int length) {

@@ -1,5 +1,11 @@
-#include <R_ext/Applic.h>
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/sampling.h"
+#include "include/globals.h"
+#include "include/covariance.h"
+#include "include/tests.h"
+#include "include/blas.h"
+#include "include/matrix.h"
 
 static double mc_fast_pcor(double *covariance, int ncols, double *u, double *d,
     double *vt, int *errcode);

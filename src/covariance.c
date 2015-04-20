@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
 
 /* fill a covariance matrix. */
 void c_covmat(double **data, double *mean, int ncols, int nrows,

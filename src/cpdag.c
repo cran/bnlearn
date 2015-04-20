@@ -1,4 +1,7 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/graph.h"
+#include "include/allocations.h"
+#include "include/matrix.h"
 
 #define ABSENT     0
 #define PRESENT    1

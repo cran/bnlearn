@@ -1,5 +1,7 @@
-#include "common.h"
-#include <R_ext/Applic.h>
+#include "include/rcore.h"
+#include "include/blas.h"
+#include "include/allocations.h"
+#include "include/matrix.h"
 
 #define TOTAL_VARIANCE        1
 #define GENERALIZED_VARIANCE  2

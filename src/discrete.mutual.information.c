@@ -1,4 +1,6 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/tests.h"
 
 /* unconditional mutual information, to be used in C code. */
 double c_mi(int *xx, int llx, int *yy, int lly, int num, double *df,

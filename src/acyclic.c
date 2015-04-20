@@ -1,7 +1,10 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/matrix.h"
+#include "include/graph.h"
 
 #define GOOD 1
-#define BAD 0
+#define BAD  0
 
 static SEXP build_return_array(SEXP nodes, short int *status,
     int nrows, int check_status, SEXP return_nodes);

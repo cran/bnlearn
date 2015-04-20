@@ -1,4 +1,10 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/sets.h"
+#include "include/tests.h"
+#include "include/dataframe.h"
+#include "include/globals.h"
+#include "include/covariance.h"
 
 #define DEBUGGING(UNWIND) \
         if (pvalue > a) { \
@@ -763,7 +769,7 @@ SEXP xx, yy, zz, ff = R_NilValue, res;
   else if ((strcmp(t, "x2") == 0) || (strcmp(t, "x2-adf") == 0)) {
 
     /* Pearson's X^2 test, with and without df adjustments. */
-    res = ast_mi(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
+    res = ast_x2(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
             maxsize, (strcmp(t, "x2-adf") == 0), NUM(alpha), debuglevel);
 
 
@@ -771,7 +777,7 @@ SEXP xx, yy, zz, ff = R_NilValue, res;
   else if (strcmp(t, "jt") == 0) {
 
     /* Jonckheere-Terpstra test. */
-    res = ast_mish(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
+    res = ast_jt(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
             maxsize, NUM(alpha), debuglevel);
 
   }/*THEN*/

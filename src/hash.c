@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
 
 SEXP arc_hash_matrix(SEXP arcs, SEXP nodes, int uptri, int sort);
 SEXP arc_hash_dataframe(SEXP arcs, SEXP nodes, int uptri, int sort);

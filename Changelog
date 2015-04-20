@@ -1,6 +1,29 @@
+bnlearn (3.8)
+
+  * reorder CPT dimensions as needed in custom.fit() (thanks Zheng Zhu).
+  * fixed two uninitialized-memory bugs found by valgrind, one in
+     predict() and one random.graph().
+  * fixed wrong check for cluster objects (thanks Vladimir Manewitsch).
+  * fixed the description of the alternative hypothesis for the
+     Jonckheere-Terpstra test.
+  * allow undirected cycles in whitelists for structure learning algorithms
+     and let the algorithm learn arc directions (thanks Vladimir Manewitsch).
+  * include sanitized whitelists (as opposed to those provided by the user)
+     in bn.fit objects.
+  * removed predict() methods for single-node objects, use the method for
+     bn.fit objects instead.
+  * various fixes in the monolithic C test functions.
+  * fixed indexing bug in compare() (thanks Vladimir Manewitsch).
+  * fixed false positives in cycle detection when adding edges to a graph
+     (thanks Vladimir Manewitsch).
+  * fixed prior handling in predict() for naive Bayes and TAN classifiers
+     (thanks Vinay Bhat).
+  * added configs() to construct configurations of discrete variables.
+  * added sigma() to extract standard errors from bn.fit objects.
+
 bnlearn (3.7.1)
 
-  * small changes to make CRAN check happy.
+  * small changes to make CRAN checks happy.
 
 bnlearn (3.7)
 
@@ -97,8 +120,8 @@ bnlearn (3.4)
      freedom in large networks.
   * added {compelled,reversible}.arcs().
   * added the MSE and predictive correlation loss functions to bn.cv().
-  * use the unbiased estimate of residual variance to compute the 
-     standard error in bn.fit(..., method = "mle") (thanks 
+  * use the unbiased estimate of residual variance to compute the
+     standard error in bn.fit(..., method = "mle") (thanks
      Jean-Baptiste Denis).
   * revised optimizations in constraint-based algorithms, removing
      most false positives by sacrificing speed.

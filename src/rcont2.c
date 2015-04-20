@@ -7,8 +7,7 @@
    use double precision for integer multiplication (against overflow);
 */
 
-#include <R_ext/Applic.h>
-#include "common.h"
+#include "include/rcore.h"
 
 void
 c_rcont2(int *nrow, int *ncol,

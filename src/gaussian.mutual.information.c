@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/covariance.h"
 
 /* unconditional Gaussian mutual information, to be used in C code. */
 double c_mig(double *xx, double *yy, int *num) {

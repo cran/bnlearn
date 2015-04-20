@@ -1,4 +1,6 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
+#include "include/bn.h"
 
 /* convert an arc set to an adjacency matrix. */
 SEXP arcs2amat(SEXP arcs, SEXP nodes) {

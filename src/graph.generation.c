@@ -1,4 +1,10 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/graph.h"
+#include "include/globals.h"
+#include "include/sampling.h"
+#include "include/bn.h"
+#include "include/matrix.h"
 
 static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached,
     double ntests, char *test, char *algo);

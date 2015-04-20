@@ -235,7 +235,7 @@ compare = function(target, current, arcs = FALSE) {
     fn = arcs.rbind(target.dir[which.fn.dir, , drop = FALSE],
                     target.und[which.fn.und, , drop = FALSE])
     fp = arcs.rbind(current.dir[which.fp.dir, , drop = FALSE],
-                    current.dir[which.fp.und, , drop = FALSE])
+                    current.und[which.fp.und, , drop = FALSE])
 
   }#THEN
   else {

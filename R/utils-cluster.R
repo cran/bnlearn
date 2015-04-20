@@ -11,12 +11,10 @@ check.cluster = function(cluster) {
 
   if (is.null(cluster))
     return(TRUE)
-
-  if (any(class(cluster) %!in% supported.clusters))
+  if (!is(cluster, supported.clusters))
     stop("cluster is not a valid cluster object.")
-
   if (!requireNamespace("parallel"))
-      stop("this function requires the parallel package.")
+    stop("this function requires the parallel package.")
   if (!isClusterRunning(cluster))
     stop("the cluster is stopped.")
 

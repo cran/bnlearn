@@ -1,4 +1,6 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/globals.h"
+#include "include/scores.h"
 
 static SEXP score_delta_helper(SEXP net, SEXP arc, SEXP operator, int children,
     int both) {

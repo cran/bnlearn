@@ -66,6 +66,9 @@ bn.fit.backend.discrete = function(x, node, data, method, extra.args,
   # this is to preserve the ordering of the factor.
   class = ifelse(is(data[, node], "ordered"), "bn.fit.onode", "bn.fit.dnode")
 
+  # marginal tables have no dimension names in bnlearn.
+  tab = cptattr(tab)
+
   structure(list(node = node, parents = parents, children = children,
     prob = tab), class = class)
 
@@ -90,7 +93,7 @@ bn.fit.backend.continuous = function(x, node, data, method, extra.args,
     mean = mean(data[, node])
     coefs = c("(Intercept)" = mean)
     resid = data[, node] - mean
-    sd = sd(data[, node])
+    sd = cgsd(data[, node])
 
     structure(list(node = node, parents = parents, children = children,
       coefficients = coefs, residuals = resid,
@@ -109,10 +112,7 @@ bn.fit.backend.continuous = function(x, node, data, method, extra.args,
     coefs = structure(qr.coef(qr.x, data[, node]), names = c("(Intercept)", parents))
     fitted = qr.fitted(qr.x, data[, node])
     resid = qr.resid(qr.x, data[, node])
-    if (n > length(parents) + 1)
-      sd = sd(resid) * sqrt((n - 1) / (n - length(parents) - 1))
-    else
-      sd = 0
+    sd = cgsd(resid, p = length(parents) + 1)
 
     structure(list(node = node, parents = parents, children = children,
       coefficients = c(coefs), residuals = resid,
@@ -177,10 +177,7 @@ bn.fit.backend.mixedcg = function(x, node, data, method, extra.args,
         coefs = structure(qr.coef(qr.x, x[, 1]), names = c("(Intercept)", continuous.parents))
         fitted = qr.fitted(qr.x, x[, 1])
         resid = qr.resid(qr.x, x[, 1])
-        if (nrow(x) > ncol(x))
-          sd = sd(resid) * sqrt((nrow(x) - 1) / (nrow(x) - ncol(x)))
-        else
-          sd = 0
+        sd = cgsd(resid, p = ncol(x))
 
         # zero all NA coefficients; they arise when a continuous parent is
         # constant for one or more configurations of the discrete parents,

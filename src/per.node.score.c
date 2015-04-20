@@ -1,11 +1,11 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/scores.h"
 
 #define DEBUG_BEFORE() \
   if (debuglevel > 0) { \
     Rprintf("----------------------------------------------------------------\n"); \
     Rprintf("* processing node %s.\n", CHAR(STRING_ELT(cur, 0))); \
-  }/*THEN*/ \
-
+  }/*THEN*/
 
 /* R frontend: compute the score component for each target node. */
 SEXP per_node_score(SEXP network, SEXP data, SEXP score, SEXP targets,

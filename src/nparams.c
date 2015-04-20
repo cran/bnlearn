@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
 
 /* get the number of parameters of the whole network (discrete case). */
 SEXP nparams_dnet(SEXP graph, SEXP data, SEXP real, SEXP debug) {

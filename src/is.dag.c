@@ -1,4 +1,6 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/matrix.h"
 
 /* Beware: this function is based on the assumption that each arc is unique
  * in the arc set; otherwise the counter may be wrong, leading to false

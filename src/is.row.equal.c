@@ -1,4 +1,4 @@
-#include "common.h"
+#include "include/rcore.h"
 
 #define ARC(i,col) CHAR(STRING_ELT(data, i + col * nrows))
 

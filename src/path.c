@@ -1,4 +1,7 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
+#include "include/allocations.h"
+#include "include/graph.h"
 
 SEXP has_pdag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes,
     SEXP underlying, SEXP exclude_direct, SEXP debug) {

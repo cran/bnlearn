@@ -346,6 +346,7 @@ tiers.backend = function(nodes, debug = FALSE) {
 
 }#TIERS.BACKEND
 
+# backend to get a DAG out of a CPDAG (still in the same equivalence class).
 cpdag.extension = function(x, debug = FALSE) {
 
   nodes = names(x$nodes)
@@ -359,7 +360,7 @@ cpdag.extension = function(x, debug = FALSE) {
 
 }#CPDAG.EXTENSION
 
-# backend to get a DAG out of a CPDAG (still in the same equivalence class).
+# backend to get a set of directed arcs out of a CPDAG.
 cpdag.arc.extension = function(arcs, nodes, debug = FALSE) {
 
   .Call("pdag_extension",

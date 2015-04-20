@@ -609,7 +609,7 @@ bif.get.probabilities = function(node, start, lines, nodes.levels, parents, root
       stop("the distribution of node ", node, " is not a vector of probabilities.")
     if (abs(sum(probs) - 1) > 0.01)
       stop("the distribution of node ", node, " does not sum up to one.")
-    # re-normalize. 
+    # re-normalize.
     probs = probs / sum(probs)
 
     node.cpt = as.table(probs)
@@ -663,7 +663,7 @@ bif.get.probabilities = function(node, start, lines, nodes.levels, parents, root
     }#THEN
     else {
 
-      # re-normalize. 
+      # re-normalize.
       probs = lapply(probs, prop.table)
 
     }#ELSE
@@ -686,7 +686,7 @@ bif.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
   }#ELSE
 
-  return(node.cpt)
+  return(cptattr(node.cpt))
 
 }#BIF.GET.PROBABILITIES
 
@@ -722,7 +722,7 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
       stop("the distribution of node ", node, " is not a vector of probabilities.")
     if (abs(sum(probs) - 1) > 0.01)
       stop("the distribution of node ", node, " does not sum up to one.")
-    # re-normalize. 
+    # re-normalize.
     probs = probs / sum(probs)
 
     node.cpt = as.table(probs)
@@ -803,8 +803,7 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
     }#THEN
     else {
 
-      # perform some more rounding to make the total probability mass closer
-      # to one.
+      # re-normalize.
       probs = lapply(probs, prop.table)
 
     }#ELSE
@@ -827,7 +826,7 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
   }#ELSE
 
-  return(node.cpt)
+  return(cptattr(node.cpt))
 
 }#DSC.GET.PROBABILITIES
 
@@ -866,7 +865,7 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
       stop("the distribution of node ", node, " is not a vector of probabilities.")
     if (abs(sum(probs) - 1) > 0.01)
       stop("the distribution of node ", node, " does not sum up to one.")
-    # re-normalize. 
+    # re-normalize.
     probs = probs / sum(probs)
 
     node.cpt = as.table(probs)
@@ -912,9 +911,8 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
     }#THEN
     else {
 
-      # perform some more rounding to make the total probability mass closer
-      # to one.
-      probs = prop.table(probs, margin = seq(length(dim(probs)))[-1])
+      # re-normalize.
+      probs = prop.table(probs, margin = 1)
 
     }#ELSE
 
@@ -940,7 +938,7 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 
   }#ELSE
 
-  return(node.cpt)
+  return(cptattr(node.cpt))
 
 }#NET.GET.PROBABILITIES
 

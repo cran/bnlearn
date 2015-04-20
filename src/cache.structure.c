@@ -1,4 +1,6 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/allocations.h"
+#include "include/matrix.h"
 
 #define BLANKET		 1
 #define NEIGHBOUR	 2

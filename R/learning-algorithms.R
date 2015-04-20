@@ -47,8 +47,9 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   }#THEN
 
   # sanitize whitelist and blacklist, if any.
-  whitelist = build.whitelist(whitelist, names(x), x, test)
-  blacklist = build.blacklist(blacklist, whitelist, names(x))
+  whitelist = build.whitelist(whitelist, nodes = names(x), data = x,
+                algo = method, criterion = test)
+  blacklist = build.blacklist(blacklist, whitelist, names(x), algo = method)
   # create the full blacklist incorporating model assumptions.
   full.blacklist = arcs.rbind(blacklist,
                      check.arcs.against.assumptions(NULL, x, test))
@@ -247,8 +248,9 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   }#THEN
 
   # sanitize whitelist and blacklist, if any.
-  whitelist = build.whitelist(whitelist, names(x), x, score)
-  blacklist = build.blacklist(blacklist, whitelist, names(x))
+  whitelist = build.whitelist(whitelist, nodes = names(x), data = x,
+                algo = heuristic, criterion = score)
+  blacklist = build.blacklist(blacklist, whitelist, names(x), algo = heuristic)
   # if there is no preseeded network, use an empty one.
   if (is.null(start))
     start = empty.graph(nodes = names(x))
@@ -382,8 +384,8 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
           optimized = optimized, debug = debug)
 
   # set the metadata of the network in one stroke.
-  res$learning = list(whitelist = rst$learning$whitelist,
-    blacklist = rst$learning$blacklist, test = res$learning$test,
+  res$learning = list(whitelist = res$learning$whitelist,
+    blacklist = res$learning$blacklist, test = res$learning$test,
     ntests = res$learning$ntests + rst$learning$ntests, algo = method,
     args = c(res$learning$args, rst$learning$args), optimized = optimized,
     restrict = restrict, rstest = rst$learning$test, maximize = maximize,
@@ -408,8 +410,10 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
   # sanitize whitelist and blacklist, if any.
   nodes = names(x)
   nnodes = length(nodes)
-  whitelist = build.whitelist(whitelist, nodes, x, mi)
-  blacklist = build.blacklist(blacklist, whitelist, nodes)
+
+  whitelist = build.whitelist(whitelist, nodes = nodes, data = x,
+                algo = method, criterion = estimator)
+  blacklist = build.blacklist(blacklist, whitelist, nodes, algo = method)
 
   if (method == "aracne") {
 
@@ -687,8 +691,9 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
   # sanitize whitelist and blacklist, if any.
   if (method != "naive.bayes") {
 
-    whitelist = build.whitelist(whitelist, nodes, data, criterion = "mi")
-    blacklist = build.blacklist(blacklist, whitelist, nodes)
+    whitelist = build.whitelist(whitelist, nodes = nodes, data = data,
+                  algo = method, criterion = "mi")
+    blacklist = build.blacklist(blacklist, whitelist, nodes, algo = method)
 
     if (method == "tree.bayes") {
 

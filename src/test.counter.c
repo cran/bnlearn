@@ -1,4 +1,4 @@
-#include "common.h"
+#include "include/rcore.h"
 
 /* initialize the global test counter. */
 double test_counter = 0;

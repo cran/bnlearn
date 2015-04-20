@@ -1,4 +1,4 @@
-#include "common.h"
+#include "include/rcore.h"
 
 /* find the matching closed brace. */
 SEXP match_brace(SEXP lines, SEXP start, SEXP open_brace, SEXP close_brace) {

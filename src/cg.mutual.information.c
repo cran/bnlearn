@@ -1,4 +1,7 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/scores.h"
+#include "include/sets.h"
+#include "include/tests.h"
 
 /* unconditional mutual information, to be used in C code. */
 double c_micg(double *yy, double ym, double ysd, int *xx, int llx, int num) {

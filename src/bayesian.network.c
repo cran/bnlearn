@@ -1,4 +1,5 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/graph.h"
 
 /* convert a set of neighbourhoods into an arc set. */
 SEXP nbr2arcs(SEXP nbr) {

@@ -1,4 +1,6 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
+#include "include/graph.h"
 
 SEXP shd(SEXP learned, SEXP golden, SEXP debug) {
 

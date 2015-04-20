@@ -1,4 +1,7 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/graph.h"
+#include "include/matrix.h"
+#include "include/bn.h"
 
 /* remove duplicate arcs from the arc set. */
 SEXP unique_arcs(SEXP arcs, SEXP nodes, SEXP warn) {

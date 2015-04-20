@@ -89,6 +89,7 @@ export(
   "bn.fit.barchart",
   "bn.fit.dotplot",
   "bn.net",
+  "sigma",
   "cpquery",
   "cpdist",
   "cpdag",
@@ -99,6 +100,7 @@ export(
   "dsep",
   "discretize",
   "dedup",
+  "configs",
   "relevant",
   "bn.var",
   "bn.moments",
@@ -118,6 +120,8 @@ useDynLib(bnlearn)
 
 importFrom(methods, setClass, setGeneric, setMethod)
 importFrom(stats, logLik, AIC, BIC)
+
+S3method(as.bn, fit)
 
 S3method(all.equal, bn)
 S3method(print, bn)
@@ -157,6 +161,11 @@ S3method(fitted, "bn.fit.dnode")
 S3method(fitted, "bn.fit.onode")
 S3method(fitted, "bn.fit.gnode")
 S3method(fitted, "bn.fit.cgnode")
+S3method(sigma, "bn.fit")
+S3method(sigma, "bn.fit.dnode")
+S3method(sigma, "bn.fit.onode")
+S3method(sigma, "bn.fit.gnode")
+S3method(sigma, "bn.fit.cgnode")
 S3method(coef, "bn.fit")
 S3method(coef, "bn.fit.dnode")
 S3method(coef, "bn.fit.onode")
@@ -167,10 +176,6 @@ S3method(print, "bn.kcv")
 S3method(plot, "bn.strength")
 S3method(predict, "bn")
 S3method(predict, "bn.fit")
-S3method(predict, "bn.fit.dnode")
-S3method(predict, "bn.fit.onode")
-S3method(predict, "bn.fit.gnode")
-S3method(predict, "bn.fit.cgnode")
 S3method(predict, "bn.naive")
 S3method(predict, "bn.tan")
 S3method("$<-", "bn.fit")

@@ -231,7 +231,7 @@ check.nodes = function(nodes, graph = NULL, min.nodes = 1, max.nodes = Inf) {
     else if (is.character(graph)) {
 
       if (any(nodes %!in% graph))
-        stop("node(s)", paste0(" '", nodes[nodes %!in% names(graph)], "'"),
+        stop("node(s)", paste0(" '", nodes[nodes %!in% graph], "'"),
              " not present in the graph.")
 
     }#THEN
@@ -248,6 +248,8 @@ check.arcs = function(arcs, nodes) {
 
      if (dim(arcs)[2] != 2)
        stop("arc sets must have two columns.")
+     if (!all(sapply(arcs, class) == "character"))
+       stop("node labels in arc sets must be character strings.")
 
      if (is.data.frame(arcs))
        arcs = as.matrix(cbind(as.character(arcs[, 1]),
@@ -293,7 +295,7 @@ check.arcs = function(arcs, nodes) {
 }#CHECK.ARCS
 
 # build a valid whitelist.
-build.whitelist = function(whitelist, nodes, data, criterion) {
+build.whitelist = function(whitelist, nodes, data, algo, criterion) {
 
   if (is.null(whitelist)) {
 
@@ -302,7 +304,7 @@ build.whitelist = function(whitelist, nodes, data, criterion) {
 
   }#THEN
 
-  if (class(whitelist) %in% c("matrix", "data.frame")) {
+  if (is(whitelist, c("matrix", "data.frame"))) {
 
     if (dim(whitelist)[2] != 2)
       stop("whitelist must have two columns.")
@@ -337,9 +339,26 @@ build.whitelist = function(whitelist, nodes, data, criterion) {
   # check that whitelisted arcs do not violate parametric assumptions.
   whitelist = check.arcs.against.assumptions(whitelist, data, criterion)
 
+  if (algo %in% score.based.algorithms) {
+
+    # the whitelist should contain only directed arcs; extend the implied CPDAG
+    # instead of picking arc directions at random to avoid loops.
+    whitelist = cpdag.arc.extension(whitelist, nodes = nodes)
+
+  }#THEN
+  else if (algo %in% mim.based.algorithms) {
+
+    # all arcs in the whitelist are treated as undirected, because these
+    # algorithms operate in the space of undirected graphs.
+    whitelist = unique.arcs(arcs.rbind(whitelist, whitelist,
+                  reverse2 = TRUE), nodes)
+
+  }#THEN
+
   # if the whitelist itself contains cycles, no acyclic graph
   # can be learned.
-  if (!is.acyclic(whitelist, nodes))
+  if (!is.acyclic(whitelist, nodes = nodes,
+         directed = (algo %in% c(constraint.based.algorithms, "aracne"))))
     stop("this whitelist does not allow an acyclic graph.")
 
   return(whitelist)
@@ -373,11 +392,11 @@ check.arcs.against.assumptions = function(arcs, data, criterion) {
 }#CHECK.ARCS.AGAINST.ASSUMPTIONS
 
 # build a valid blacklist.
-build.blacklist = function(blacklist, whitelist, nodes) {
+build.blacklist = function(blacklist, whitelist, nodes, algo) {
 
   if (!is.null(blacklist)) {
 
-    if (class(blacklist) %in% c("matrix", "data.frame")) {
+    if (is(blacklist, c("matrix", "data.frame"))) {
 
       if (dim(blacklist)[2] != 2)
         stop("blacklist must have two columns.")
@@ -405,6 +424,14 @@ build.blacklist = function(blacklist, whitelist, nodes) {
     if (any(unique(as.vector(blacklist)) %!in% nodes))
       stop("unknown node label present in the blacklist.")
 
+    if (algo %in% mim.based.algorithms) {
+
+      # all arcs in the whitelist are treated as undirected, because these
+      # algorithms operate in the space of undirected graphs.
+      blacklist = arcs.rbind(blacklist, blacklist, reverse2 = TRUE)
+
+    }#THEN
+
     # drop duplicate rows.
     blacklist = unique.arcs(blacklist, nodes)
 
@@ -426,15 +453,16 @@ build.blacklist = function(blacklist, whitelist, nodes) {
       blacklist = blacklist[!apply(blacklist, 1,
         function(x){ is.whitelisted(whitelist, x) }),]
 
-      blacklist = matrix(blacklist, ncol = 2, byrow = FALSE,
-        dimnames = list(NULL, c("from", "to")))
-
-      # drop duplicate rows.
-      blacklist = unique.arcs(blacklist, nodes)
+      # also drop duplicate rows.
+      blacklist = unique.arcs(matrix(blacklist, ncol = 2, byrow = FALSE), nodes)
 
     }#THEN
 
   }#THEN
+
+  # set the column names.
+  if (!is.null(blacklist))
+    colnames(blacklist) = c("from", "to")
 
   return(blacklist)
 
@@ -1436,7 +1464,7 @@ check.classifier.args = function(method, data, training, explanatory,
 
   return(extra.args)
 
-}#CHECK.CLASSIFICATION.ARGS
+}#CHECK.CLASSIFIER.ARGS
 
 # warn about unused arguments.
 check.unused.args = function(dots, used.args) {
@@ -1929,13 +1957,13 @@ check.fit.node.vs.data = function(fitted, data) {
   if (any(relevant %!in% names(data)))
     stop("not all required nodes are present in the data.")
   # data type versus network type.
-  if ((class(fitted) == "bn.fit.dnode") && (type == "continuous"))
+  if (is(fitted, "bn.fit.dnode") && (type == "continuous"))
       stop("continuous data and discrete network.")
-  if ((class(fitted) == "bn.fit.gnode") &&
+  if (is(fitted, "bn.fit.gnode") &&
       (type %in% discrete.data.types))
     stop("discrete data and continuous network.")
   # double-check the levels of the variables against those of the nodes.
-  if (class(fitted) == "bn.fit.dnode") {
+  if (is(fitted, "bn.fit.dnode")) {
 
     for (node in relevant) {
 
@@ -2150,9 +2178,14 @@ check.classifier.prior = function(prior, training) {
   }#THEN
   else {
 
-    if (length(prior) != nlevels(training))
+    if (is(training, c("bn.fit.dnode", "bn.fit.onode")))
+      nlvls = dim(training$prob)[1]
+    else
+      nlvls = nlevels(training)
+
+    if (length(prior) != nlvls)
       stop("the prior distribution and the training variable have a different number of levels.")
-    if (!is.probability.vector(prior))
+    if (!is.nonnegative.vector(prior))
       stop("the prior distribution must be expressed as a probability vector.")
 
     # make sure the prior probabilities sum to one.
@@ -2162,7 +2195,7 @@ check.classifier.prior = function(prior, training) {
 
   return(prior)
 
-}#CHECK.PRIOR
+}#CHECK.CLASSIFIER.PRIOR
 
 # check a vector of weights.
 check.weights = function(weights, len) {
@@ -2193,8 +2226,7 @@ check.weights = function(weights, len) {
 check.fit.gnode.spec = function(x, node) {
 
   components =  c("coef", "fitted", "resid", "sd", "configs")
-  labels = c(coef = "regression coefficients", fitted = "fitted values",
-             resid = "residuals")
+  labels = c(fitted = "fitted values", resid = "residuals")
 
   # custom list of components.
   if (!is.list(x) || any(names(x) %!in% components))
@@ -2208,7 +2240,12 @@ check.fit.gnode.spec = function(x, node) {
   if ((length(dim(x$coef)) != 2) && ("configs" %in% names(x)))
     stop("no parents' configurations are needed with a single set of coefficients.")
 
-  for (comp in c("coef", "fitted", "resid"))
+  if (!is.null(x$coef))
+    if ((length(x$coef) == 0) || !is.real.vector(x$coef))
+      stop("coef must be a vector or a matrix of numeric values, the ",
+        "regression coefficients for node ", node, " given its parents.")
+
+  for (comp in c("fitted", "resid"))
     if (!is.null(x[[comp]]))
       if ((length(x[[comp]]) == 0) || !is.real.vector(x[[comp]]))
         stop(comp, " must be a vector of numeric values, the ",
@@ -2230,17 +2267,35 @@ check.fit.gnode.spec = function(x, node) {
         (length(dim(x$coef)) == 1) && (length(x$sd) > 1) ||
         (length(dim(x$sd)) > 1))
       stop("the dimensions of sd and coef do not match.")
-    
+
     if (!is.null(x$resid) && (length(x$sd) == 1)) {
 
-      n = length(x$resid)
-      adj.sd = sd(x$resid) * sqrt((n - 1) / (n - length(x$coef)))
+      adj.sd = cgsd(x$resid, p = length(x$coef))
 
-      if (!isTRUE(all.equal(x$sd, adj.sd, check.attributes = FALSE)))
-      stop("the reported standard deviation of the residuals of node ", node,
-        " does not match the observed one.")
+      if (!isTRUE(all.equal(x$sd, adj.sd, check.attributes = FALSE, tol = 0.0005)))
+        stop("the reported standard deviation of the residuals of node ", node,
+          " does not match the observed one.")
 
     }#THEN
+    else if (!is.null(x$resid) && (length(x$sd) > 1) && !is.null(x$configs)) {
+
+      adj.sd = cgsd(x$resid, configs = x$configs, p = nrow(x$coef))
+
+      if (!isTRUE(all.equal(x$sd, adj.sd, check.attributes = FALSE, tol = 0.0005)))
+        stop("the reported standard deviation of the residuals of node ", node,
+          " does not match the observed one.")
+
+    }#THEN
+
+  }#THEN
+  else if (!is.null(x$resid)) {
+
+    # compute the standard error from the residuals if possible.
+    if ((length(dim(x$coef)) == 2) && is.null(x$config))
+      stop("sd is missing, and parents' configurations are required to compute it.")
+
+    x$sd = cgsd(x$resid, configs = x$configs,
+             p = ifelse(is.matrix(x$coef), nrow(x$coef), length(x$coef)))
 
   }#THEN
 
@@ -2252,16 +2307,16 @@ check.fit.gnode.spec = function(x, node) {
   # if any, one parent configuration for each fitted value and residual.
   if (!is.null(x$config)) {
 
-    if (!is.null(x$configs) && (length(x$configs) != length(x$resid)))
+    if (!is.null(x$resid) && (length(x$configs) != length(x$resid)))
       stop("parents' configurations and residuals of node ", node,
         " have different lengths.")
-    if (!is.null(x$configs) && (length(x$configs) != length(x$fitted)))
+    if (!is.null(x$fitted) && (length(x$configs) != length(x$fitted)))
       stop("parents' configurations and fitted values of node ", node,
         " have different lengths.")
 
   }#THEN
-    
 
+  return(x)
 
 }#CHECK.FIT.GNODE.SPEC
 
@@ -2415,15 +2470,16 @@ check.dnode.vs.spec = function(new, old, node, cpt.levels) {
     }#THEN
     else {
 
-      if (any(dim(new) != sapply(cpt.levels[c(node, old)], length)))
-        stop("wrong number of dimensions for node ", node, ".")
-      if (any(names(dimnames(new)) %!in% c(node, old)))
+      # check whether all the CPT inclues all the relevant variables.
+      if(!setequal(names(dimnames(new)), c(node, old)))
         stop("wrong dimensions for node ", node, ".")
-      # now that we are sure that the dimensions are the right ones, reorder them
-      # to follow the ordering of the parents in the network.
+      # now that we are sure that the dimensions are the right ones, reorder
+      # them to follow the ordering of the parents in the network.
       d = names(dimnames(new))
       new = aperm(new, c(match(node, d), match(old, d)))
-
+      # check whether the margins of the CPT are right.
+      if (any(dim(new) != sapply(cpt.levels[c(node, old)], length)))
+        stop("wrong number of dimensions for node ", node, ".")
       if (!identical(cpt.levels[c(node, old)], dimnames(new)))
         stop("wrong levels for node ", node, ".")
 

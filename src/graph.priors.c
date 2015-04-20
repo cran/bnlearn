@@ -1,4 +1,9 @@
-#include "common.h"
+#include "include/rcore.h"
+#include "include/matrix.h"
+#include "include/allocations.h"
+#include "include/dataframe.h"
+#include "include/globals.h"
+#include "include/graph.h"
 
 double castelo_prior(SEXP beta, SEXP target, SEXP parents, SEXP children,
     int debuglevel);
