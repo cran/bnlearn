@@ -1,3 +1,9 @@
+bnlearn (3.8.1)
+
+  * fixed CPT import in read.net().
+  * fixed penfit objects import from penalized (thanks John Noble).
+  * fixed memory allocation corner case in BDe.
+
 bnlearn (3.8)
 
   * reorder CPT dimensions as needed in custom.fit() (thanks Zheng Zhu).

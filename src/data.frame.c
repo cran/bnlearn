@@ -9,11 +9,20 @@ int *row = NULL;
 SEXP rownames;
 
   // generate and set the row names.
-  PROTECT(rownames = allocVector(INTSXP, 2));
-  row = INTEGER(rownames);
+  if (n > 0) {
 
-  row[0] = NA_INTEGER;
-  row[1] = n;
+    PROTECT(rownames = allocVector(INTSXP, 2));
+    row = INTEGER(rownames);
+
+    row[0] = NA_INTEGER;
+    row[1] = -n;
+
+  }/*THEN*/
+  else {
+
+    PROTECT(rownames = allocVector(INTSXP, 0));
+
+  }/*ELSE*/
 
   setAttrib(obj, R_RowNamesSymbol, rownames);
 

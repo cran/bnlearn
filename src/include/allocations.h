@@ -1,13 +1,14 @@
 
 /* memory allocation functions */
-int *alloc1dcont(int length);
+void *R_calloc(size_t num, size_t size);
+#define alloc1dcont(x) ((int *) R_calloc(x, sizeof(int)))
 int **alloc2dcont(int length, int width);
 int ***alloc3dcont(int length, int width, int depth);
-short int *allocstatus(int length);
-double *alloc1dreal(int length);
+#define allocstatus(x) ((short int *) R_calloc(x, sizeof(short int)))
+#define alloc1dreal(x) ((double *) R_calloc(x, sizeof(double)))
 double **alloc2dreal(int length, int width);
 double ***alloc3dreal(int length, int width, int depth);
-void **alloc1dpointer (int length);
-char **alloc1dstring (int length);
-long double *allocldouble (int length);
+#define alloc1dpointer(x) ((void **) R_calloc(x, sizeof(void *)))
+#define alloc1dstring(x) ((char **) alloc1dpointer(x))
+#define allocldouble(x) ((long double *) R_calloc(x, sizeof(long double)))
 

@@ -34,8 +34,8 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
         dist[[node]] = list(coef = coefficients(dist[[node]]),
                             resid = residuals(dist[[node]]),
                             fitted = fitted(dist[[node]]),
-                            sd = cgsd(residuals(dist[[node]])),
-                                   p = length(coefficients(dist[[node]])))
+                            sd = cgsd(residuals(dist[[node]]),
+                                   p = length(coefficients(dist[[node]]))))
 
       }#THEN
 

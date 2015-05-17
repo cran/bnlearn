@@ -1,5 +1,5 @@
-8e3c57b4460b9ebf17ada8f0de194471 *Changelog
-76b483eeb21fee3ff238f4bf5e6aaa23 *DESCRIPTION
+f96c037ebdfcc746b91e56c1260f3730 *Changelog
+5f767e635329000f82fa9c4f2fcd6684 *DESCRIPTION
 b3ba398f885c668900fa195e3e77e769 *NAMESPACE
 708f700deea0489d5baadc34ec2fa60b *R/aracne.R
 31a610990cb1f5f3dc740d246fb717ad *R/arc.operations.R
@@ -13,12 +13,12 @@ c288567d8e1d6d5f988e1d6bf2701f76 *R/chow.liu.R
 ad113636c720561424e9424ce6df8bb2 *R/ci.test.R
 fadb1dacb77d1fe88c2f94d85cd7c78e *R/classifiers.R
 bb09abfbce868666228efac4d5664d87 *R/cpq.R
-3dd84c9bb3b516747fc0a620a8302516 *R/custom.fit.R
+e9b21461fde5e26053db18f495563006 *R/custom.fit.R
 be9154977d6c3e18235e8bf87f13550e *R/cv.R
 c118f30d1b9873ff6529cad3504009c9 *R/data.preprocessing.R
 55434a17467ea07fd62c9da25867be9b *R/fast-iamb.R
 6b6bf69297eedb90553f18fdba034651 *R/fit.R
-a5e7101b0855e3d3e365a8d438747d73 *R/fitted.assignment.R
+2724c862d9bbf181c2bbb3f17ffd1f37 *R/fitted.assignment.R
 982f165bc8ab82186a5f4be0c6ff3009 *R/foreign-read.R
 871abfbe64fdd53c7e574ddf5042f762 *R/foreign-write.R
 8747086b14a7043eb22c441115e2f378 *R/formula.R
@@ -102,7 +102,7 @@ d6fa76518f1e3869f4f0c9f45de2cdb7 *man/bn.kcv.class.Rd
 a0a9632d7443c72bef4f61cd747335b7 *man/bn.strength-class.Rd
 541f7076169b8661959fb5c3c02b9085 *man/bn.var.Rd
 91eba1cc3225193ca5c2997e11bd0627 *man/bnboot.Rd
-60dbf0a38639de96349fe3bd0f9fe738 *man/bnlearn-package.Rd
+33ac875bf4ce6fee1cb9bacc1e1b4538 *man/bnlearn-package.Rd
 b0342850cd728ca1b0e5192816c7ec69 *man/choose.direction.Rd
 f430bb89a452e8f168cbc20c997df0f0 *man/ci.test.Rd
 e270fe5e008509af6102decb7a675d6d *man/clgaussian-test.Rd
@@ -146,7 +146,7 @@ f8416d674c7839eb93039c1a4777dd66 *man/strength.plot.Rd
 81e1bce4fcba4d5ceb0b136a7dd0471c *src/Makevars
 c1def105136188e7a149423e001fd3a6 *src/acyclic.c
 627b5b75eca4b9490240dbf1b05d0e61 *src/all.monte.carlo.c
-3bdeaf9d4371e51077a152ced5bc6e9c *src/allocations.c
+f7a4b4cbb1f812b4b2e4f700d3830638 *src/allocations.c
 f7b6b1e17a26e061208d6887693a16d6 *src/allsubs.test.c
 b8015905ac6f3ecd8e440978f4f1b711 *src/arcs2amat.c
 f279f0f51ad84f92360b1323ff85cd8b *src/arcs2elist.c
@@ -165,7 +165,7 @@ b3fb51cc07d4fa9bccacdbf4e6f50816 *src/covariance.c
 a9e789cd4fff3a1641c36ef96f376168 *src/cpdag.c
 5d473bfa12f762e954a084e378963bd9 *src/cpdist.c
 b8f397040df5be30d59dabdac715f3fa *src/ctest.c
-711b59fc484199fc9d2889151afe73db *src/data.frame.c
+464399a4ae38b284a98351d70d13bf7f *src/data.frame.c
 412f2ef3bff9b550232205c338421975 *src/dedup.c
 005598cfed58d2470cf7e13a9b976ac1 *src/df.adjust.c
 0c7f93ffe3f37a717beabb5134c91bec *src/dirichlet.posterior.c
@@ -183,7 +183,7 @@ f9263d80ed65cb4fb7d9e94752acab16 *src/globals.c
 fc91270f5a7674ababadf6451700457e *src/hash.c
 61cdc29671dd0a684cf4d0fde6455f87 *src/hc.cache.lookup.c
 f6f97c7a18524dbe27f61b3937170a2d *src/htest.c
-b25c3b0e7e60f82b48ff7d2d97599be5 *src/include/allocations.h
+29b71aa552589807f63335469869dac2 *src/include/allocations.h
 427cedfe349275c2d25f7d3e19799da6 *src/include/blas.h
 164039dc2a15c110e75011142ba9d371 *src/include/bn.h
 70ede13331fe5f9b240c872794cb2e1b *src/include/covariance.h

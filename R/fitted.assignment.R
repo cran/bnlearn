@@ -22,7 +22,7 @@ fitted.assignment.backend = function(x, name, value) {
       # ordinary least squares, ridge, lasso, and elastic net.
       value = list(coef = coefficients(value), resid = residuals(value),
                 fitted = fitted(value),
-                sd = cgsd(residuals(value)), p = length(coefficients(value)))
+                sd = cgsd(residuals(value), p = length(coefficients(value))))
       # if the intercept is not there, set it to zero.
       if ("(Intercept)" %!in% names(value$coef))
         value$coef = c("(Intercept)" = 0, value$coef)

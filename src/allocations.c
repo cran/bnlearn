@@ -21,15 +21,20 @@ void UNPROTECT_DEBUG(int n, const char *fun, const char *file, int line) {
 
 }/*UNPROTECT_DEBUG*/
 
-/* allocate a 1-dimensional contingency table. */
-int *alloc1dcont (int length) {
+/* make R_alloc() behave like calloc() and zero allocated memory. */
+void *R_calloc(size_t num, size_t size) {
 
-int *p = (int *) R_alloc(length, sizeof(int));
-memset(p, '\0', sizeof(int) * length);
+void *p = R_alloc(num, size);
+
+  /* memset()ting a NULL pointer is a NOP. */
+  if (p)
+    memset(p, '\0', size * num);
+  else if (num > 0)
+    error("memsetting() %d bytes on a NULL pointer.", size * num);
 
   return p;
 
-}/*ALLOC1DCONT*/
+}/*R_CALLOC*/
 
 /* allocate a 2-dimensional contingency table. */
 int **alloc2dcont (int length, int width) {
@@ -38,12 +43,8 @@ int **p = NULL, k = 0;
 
   p = (int **) R_alloc(length, sizeof(int *));
 
-  for (k = 0; k < length; k++) {
-
-    p[k] = (int *) R_alloc(width, sizeof(int));
-    memset(p[k], '\0', sizeof(int) * width);
-
-  }/*FOR*/
+  for (k = 0; k < length; k++)
+    p[k] = (int *) R_calloc(width, sizeof(int));
 
   return p;
 
@@ -59,42 +60,14 @@ int ***p = NULL, i = 0, j = 0;
 
     p[i] = (int **) R_alloc(width, sizeof(int *));
 
-    for (j = 0; j < width; j++) {
-
-      p[i][j] = (int *) R_alloc(depth, sizeof(int));
-      memset(p[i][j], '\0', sizeof(int) * depth);
-
-    }/*FOR*/
+    for (j = 0; j < width; j++)
+      p[i][j] = (int *) R_calloc(depth, sizeof(int));
 
   }/*FOR*/
 
   return p;
 
 }/*ALLOC3DCONT*/
-
-/* allocate and initialize a status vector. */
-short int *allocstatus (int length) {
-
-short int *p = NULL;
-
-  p = (short int *) R_alloc(length, sizeof(short int));
-  memset(p, '\0', sizeof(short int) * length);
-
-  return p;
-
-}/*ALLOCSTATUS*/
-
-/* allocate a 1-dimensional real vector. */
-double *alloc1dreal (int length) {
-
-double *p = NULL;
-
-  p = (double *) R_alloc(length, sizeof(double));
-  memset(p, '\0', sizeof(double) * length);
-
-  return p;
-
-}/*ALLOC1DREAL*/
 
 /* allocate a 2-dimensional contingency table. */
 double **alloc2dreal (int length, int width) {
@@ -104,12 +77,8 @@ int k = 0;
 
   p = (double **) R_alloc(length, sizeof(double *));
 
-  for (k = 0; k < length; k++) {
-
-    p[k] = (double *) R_alloc(width, sizeof(double));
-    memset(p[k], '\0', sizeof(double) * width);
-
-  }/*FOR*/
+  for (k = 0; k < length; k++)
+    p[k] = (double *) R_calloc(width, sizeof(double));
 
   return p;
 
@@ -126,41 +95,12 @@ int i = 0, j = 0;
 
     p[i] = (double **) R_alloc(width, sizeof(double *));
 
-    for (j = 0; j < width; j++) {
-
-      p[i][j] = (double *) R_alloc(depth, sizeof(double));
-      memset(p[i][j], '\0', sizeof(double) * depth);
-
-    }/*FOR*/
+    for (j = 0; j < width; j++)
+      p[i][j] = (double *) R_calloc(depth, sizeof(double));
 
   }/*FOR*/
 
   return p;
 
 }/*ALLOC3DREAL*/
-
-/* allocate a 1-dimensional long double vector. */
-long double *allocldouble (int length) {
-
-long double *p = NULL;
-
-  p = (long double *) R_alloc(length, sizeof(long double));
-  memset(p, '\0', sizeof(long double) * length);
-
-  return p;
-
-}/*ALLOC1DREAL*/
-
-
-void **alloc1dpointer (int length) {
-
-void **p = NULL;
-
-  p = (void **) R_alloc(length, sizeof(void *));
-
-  return p;
-
-}/*ALLOC1DPOINTERS*/
-
-#define alloc1dstring(length) ((char **) alloc1dpointer(length))
 
