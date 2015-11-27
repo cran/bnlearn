@@ -4,9 +4,8 @@
 \title{Lizards' perching behaviour data set}
 \description{
 
-  Real-world data set about the perching behaviour of two
-  species of lizards in the South Bimini island, from
-  Shoener (1968).
+  Real-world data set about the perching behaviour of two species of lizards in
+  the South Bimini island, from Shoener (1968).
 
 }
 \usage{
@@ -17,31 +16,28 @@ data(lizards)
   The \code{lizards} data set contains the following variables:
   \itemize{
 
-    \item \code{Species} (\emph{the species of the lizard}): a
-      two-level factor with levels \code{Sagrei} and
-      \code{Distichus}.
-    \item \code{Height} (\emph{perch height}): a two-level
-      factor with levels \code{high} (greater than 4.75 feet)
-      and \code{low} (lesser or equal to 4.75 feet).
-    \item \code{Diameter} (\emph{perch diameter}): a
-      two-level factor with levels \code{narrow} (greater
-      than 4 inches) and \code{wide} (lesser or equal to 4
-      inches).
+    \item \code{Species} (\emph{the species of the lizard}): a two-level factor
+      with levels \code{Sagrei} and \code{Distichus}.
+    \item \code{Height} (\emph{perch height}): a two-level factor with levels
+      \code{high} (greater than 4.75 feet) and \code{low} (lesser or equal to
+      4.75 feet).
+    \item \code{Diameter} (\emph{perch diameter}): a two-level factor with
+      levels \code{narrow} (greater than 4 inches) and \code{wide} (lesser or
+      equal to 4 inches).
 
   }
 
 }
 \source{
 
-  Edwards DI (2000). \emph{Introduction to Graphical Modelling}.
+  Edwards DI (2000). \emph{Introduction to Graphical Modelling}. Springer, 2nd
+      edition.
+
+  Fienberg SE (1980). \emph{The Analysis of Cross-Classified Categorical Data}.
       Springer, 2nd edition.
 
-  Fienberg SE (1980). \emph{The Analysis of Cross-Classified
-      Categorical Data}. Springer, 2nd edition.
-
-  Schoener TW (1968). "The Anolis Lizards of Bimini: Resource
-      Partitioning in a Complex Fauna". \emph{Ecology},
-      \strong{49}(4), 704-726.
+  Schoener TW (1968). "The Anolis Lizards of Bimini: Resource Partitioning in a
+      Complex Fauna". \emph{Ecology}, \strong{49}(4), 704-726.
 
 }
 \examples{

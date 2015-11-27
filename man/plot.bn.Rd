@@ -1,6 +1,6 @@
 \name{plot.bn}
 \alias{plot.bn}
-\title{ Plot a Bayesian network }
+\title{Plot a Bayesian network}
 \description{
 
   Plot the graph associated with a small Bayesian network.
@@ -12,17 +12,16 @@
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
-  \item{ylim}{a numeric vector with two components containing the range
-          on y-axis.}
-  \item{xlim}{a numeric vector with two components containing the range
-          on x-axis.}
+  \item{ylim}{a numeric vector with two components containing the range of the
+    y-axis.}
+  \item{xlim}{a numeric vector with two components containing the range of the
+    x-axis.}
   \item{radius}{a numeric value containing the radius of the nodes.}
   \item{arrow}{a numeric value containing the length of the arrow heads.}
-  \item{highlight}{a vector of character strings, representing the
-    labels of the nodes (and corresponding arcs) to be highlighted.}
+  \item{highlight}{a vector of character strings, representing the labels of
+    the nodes (and corresponding arcs) to be highlighted.}
   \item{color}{an integer or character string (the highlight colour).}
-  \item{\dots}{other parameters to be passed through to plotting
-    functions.}
+  \item{\dots}{other parameters to be passed through to plotting functions.}
 }
 \note{
   The following graphical parameters are always overridden:

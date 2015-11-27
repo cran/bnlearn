@@ -1,14 +1,10 @@
 \name{parallel integration}
 \alias{parallel integration}
-\title{
-
-  bnlearn - snow/parallel package integration
-
-}
+\title{bnlearn - snow/parallel package integration}
 \description{
 
-  How to use the \pkg{bnlearn} package with the parallel computing
-  environment provided by the \pkg{snow} or \pkg{parallel} packages.
+  How to use the \pkg{bnlearn} package with the parallel computing environment
+  provided by the \pkg{snow} or \pkg{parallel} packages.
 
 }
 \section{Parallel computing for constraint-based algorithms}{

@@ -432,14 +432,14 @@ SEXP try, result = R_NilValue, result2;
       for (i = 0; i < narcs; i++)  \
         a[CMC(coords[i] - 1, coords[i + narcs] - 1, dims)] = value; \
       UNPROTECT(1); \
-    } \
+    }/*THEN*/ \
     else { \
       coords = INTEGER(list); \
       for (i = 0; i < dims * dims; i ++) \
         if (coords[i] == 1) \
           a[i] = value; \
-    } \
-  }
+    }/*ELSE*/ \
+  }/*THEN*/
 
   /* now the blacklist gets involved. */
   FLIP_FROM_LIST(blacklist, 0);

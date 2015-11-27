@@ -2,11 +2,7 @@
 \alias{bn.strength class}
 \alias{bn.strength-class}
 \alias{bn.strength}
-\title{
-
-  The bn.strength class structure
-
-}
+\title{The bn.strength class structure}
 \description{
 
   The structure of an object of S3 class \code{bn.strength}.
@@ -14,8 +10,8 @@
 }
 \details{
 
-  An object of class \code{bn.strength} is a data frame with the
-  following columns (one row for each arc):
+  An object of class \code{bn.strength} is a data frame with the following
+  columns (one row for each arc):
 
   \itemize{
 
@@ -31,19 +27,19 @@
 
   \itemize{
 
-    \item \code{mode}: a character string, the criterion used to
-      compute the strength coefficient. It can be equal to \code{test},
-      \code{score} or \code{bootstrap}.
-    \item \code{threshold}: a numeric value, the threshold used
-      to determine if a strength coefficient is significant.
+    \item \code{mode}: a character string, the criterion used to compute the
+      strength coefficient. It can be equal to \code{test}, \code{score} or
+      \code{bootstrap}.
+    \item \code{threshold}: a numeric value, the threshold used to determine
+      if a strength coefficient is significant.
 
   }
 
   An optional column called \code{direction} may also be present, giving the
   probability of the direction of an arc given its presence in the graph.
 
-  Only the \code{plot} method is defined for this class; therefore, it can
-  be manipulated as a standard data frame.
+  Only the \code{plot} method is defined for this class; therefore, it can be
+  manipulated as a standard data frame.
 
 }
 \author{ Marco Scutari }

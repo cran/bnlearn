@@ -6,7 +6,7 @@
 \alias{skeleton}
 \alias{pdag2dag}
 \alias{subgraph}
-\title{ Utilities to manipulate graphs }
+\title{Utilities to manipulate graphs}
 \description{
 
   Check and manipulate graph-related properties of an object of class \code{bn}.
@@ -26,18 +26,20 @@ subgraph(x, nodes)
 }
 \arguments{
   \item{x}{an object of class \code{bn}. \code{acyclic}, \code{directed} and
-       \code{path} also accept objects of class \code{bn.fit}.}
+    \code{path} also accept objects of class \code{bn.fit}.}
   \item{from}{a character string, the label of a node.}
-  \item{to}{a character string, the label of a node (different from \code{from}).}
-  \item{direct}{a boolean value. If \code{FALSE} ignore any arc between \code{from}
-       and \code{to} when looking for a path.}
-  \item{underlying.graph}{a boolean value. If \code{TRUE} the underlying undirected
-       graph is used instead of the (directed) one from the \code{x} parameter.}
+  \item{to}{a character string, the label of a node (different from
+    \code{from}).}
+  \item{direct}{a boolean value. If \code{FALSE} ignore any arc between
+    \code{from} and \code{to} when looking for a path.}
+  \item{underlying.graph}{a boolean value. If \code{TRUE} the underlying
+    undirected graph is used instead of the (directed) one from the \code{x}
+    parameter.}
   \item{ordering}{the labels of all the nodes in the graph; their order is the
-       node ordering used to set the direction of undirected arcs.}
+    node ordering used to set the direction of undirected arcs.}
   \item{nodes}{the labels of the nodes that induce the subgraph.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-       printed; otherwise the function is completely silent.}
+    printed; otherwise the function is completely silent.}
 }
 \value{
 

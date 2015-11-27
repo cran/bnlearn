@@ -6,7 +6,7 @@
 /* unconditional mutual information, to be used in C code. */
 double c_micg(double *yy, double ym, double ysd, int *xx, int llx, int num) {
 
-int i = 0;
+int i = 0, *ni = NULL;
 double lognum = 0, logden = 0, *mu = NULL, *sd = NULL;
 
   /* compute the denominator (model under the null). */
@@ -15,17 +15,22 @@ double lognum = 0, logden = 0, *mu = NULL, *sd = NULL;
 
   mu = Calloc(llx, double);
   sd = Calloc(llx, double);
+  ni = Calloc(llx, int);
 
   /* compute the conditional means and variances. */
-  for (i = 0; i < num; i++)
+  for (i = 0; i < num; i++) {
+
     mu[xx[i] - 1] += yy[i];
+    ni[xx[i] - 1]++;
+
+  }/*FOR*/
   for (i = 0; i < llx; i++)
-    mu[i] /= num;
+    mu[i] /= ni[i];
 
   for (i = 0; i < num; i++)
     sd[xx[i] - 1] += (yy[i] - mu[xx[i] - 1]) * (yy[i] - mu[xx[i] - 1]);
   for (i = 0; i < llx; i++)
-    sd[i] /= num;
+    sd[i] = sqrt(sd[i] / (ni[i] - 1));
 
   /* compute the numerator (model under the alternative). */
   for (i = 0; i < num; i++)
@@ -33,6 +38,7 @@ double lognum = 0, logden = 0, *mu = NULL, *sd = NULL;
 
   Free(mu);
   Free(sd);
+  Free(ni);
 
   return (lognum - logden) / num;
 
@@ -87,7 +93,7 @@ double logden = 0, lognum = 0;
     llz2 = lly;
 
     /* remainder term: the mutual information test of xx and yy. */
-    lognum = c_mi(xx, llx, yy, lly, num, df, FALSE);
+    lognum = c_chisqtest(xx, llx, yy, lly, num, df, MI);
 
   }/*THEN*/
   else {
@@ -101,7 +107,7 @@ double logden = 0, lognum = 0;
     c_fast_config(tt, num, 2, tlvls, zz2, &llz2, 1);
 
     /* remainder term: the mutual information test of xx and yy given zz. */
-    lognum = c_cmi(xx, llx, yy, lly, zz, llz, num, df, FALSE);
+    lognum = c_cchisqtest(xx, llx, yy, lly, zz, llz, num, df, MI);
 
   }/*ELSE*/
 

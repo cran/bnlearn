@@ -1,8 +1,9 @@
 #include "include/rcore.h"
+#include "include/tests.h"
 
 SEXP c_create_htest(double stat, SEXP test, double pvalue, double df, SEXP B) {
 
-const char *t = CHAR(STRING_ELT(test, 0));
+test_e test_type = test_label(CHAR(STRING_ELT(test, 0)));
 SEXP result, s, n, params;
 
   /* allocate the return value. */
@@ -30,18 +31,10 @@ SEXP result, s, n, params;
   SET_VECTOR_ELT(result, 3, n);
 
   /* set the alternative hypothesis. */
-  if (strcmp(t, "cor") && strcmp(t, "mc-cor") && strcmp(t, "smc-cor") &&
-      strcmp(t, "zf") && strcmp(t, "mc-zf") && strcmp(t, "smc-zf") &&
-      strcmp(t, "jt") && strcmp(t, "mc-jt") && strcmp(t, "smc-jt")) {
-
-    SET_VECTOR_ELT(result, 4, mkString("greater"));
-
-  }/*THEN*/
-  else {
-
+  if (IS_TWO_SIDED(test_type))
     SET_VECTOR_ELT(result, 4, mkString("two.sided"));
-
-  }/*ELSE*/
+  else 
+    SET_VECTOR_ELT(result, 4, mkString("greater"));
 
   /* set the data description string. */
   SET_VECTOR_ELT(result, 5, mkString(""));

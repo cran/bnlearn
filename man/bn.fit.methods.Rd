@@ -21,12 +21,11 @@
 \alias{coef.bn.fit.cgnode}
 \alias{residuals.bn.fit.cgnode}
 \alias{sigma.bn.fit.cgnode}
-
-\title{ Utilities to manipulate fitted Bayesian networks }
+\title{Utilities to manipulate fitted Bayesian networks}
 \description{
 
- Assign, extract or compute various quantities of interest from an object
- of class \code{bn.fit}, \code{bn.fit.dnode}, \code{bn.fit.gnode},
+ Assign, extract or compute various quantities of interest from an object of
+ class \code{bn.fit}, \code{bn.fit.dnode}, \code{bn.fit.gnode}, 
  \code{bn.fit.cgnode} or \code{bn.fit.onode}.
 
 }
@@ -58,44 +57,41 @@
 \method{coef}{bn.fit.cgnode}(object, ...)
 \method{residuals}{bn.fit.cgnode}(object, ...)
 \method{sigma}{bn.fit.cgnode}(object, ...)
-
 }
 \arguments{
   \item{object}{an object of class \code{bn.fit}, \code{bn.fit.dnode},
     \code{bn.fit.gnode}, \code{bn.fit.cgnode} or \code{bn.fit.onode}.}
   \item{node}{a character string, the label of a node.}
   \item{nodes}{a vector of character strings, the label of a nodes whose
-        loglikelihood components are to be computed.}
+    log-likelihood components are to be computed.}
   \item{data}{a data frame containing the variables in the model.}
   \item{method}{a character string, the method used to estimate predictions.
-       See below.}
+    See below.}
   \item{\dots}{additional arguments. See below.}
-  \item{k}{a numeric value, the penalty per parameter to be used; the
-       default \code{k = 1} gives the expression used to compute AIC.}
-  \item{by.sample}{a boolean value. If \code{TRUE}, \code{logLik} returns
-       a vector containing the the log-likelihood of each observations in
-       the sample. If \code{FALSE}, \code{logLik} returns a single value,
-       the likelihood of the whole sample.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-       is printed; otherwise the function is completely silent.}
+  \item{k}{a numeric value, the penalty per parameter to be used; the default
+    \code{k = 1} gives the expression used to compute AIC.}
+  \item{by.sample}{a boolean value. If \code{TRUE}, \code{logLik} returns a
+    vector containing the the log-likelihood of each observations in the
+    sample. If \code{FALSE}, \code{logLik} returns a single value, the 
+    likelihood of the whole sample.}
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
+    printed; otherwise the function is completely silent.}
 
 }
 \details{
 
-  \code{coef} (and its alias \code{coefficients}) extracts model
-  coefficients (which are conditional probabilities for discrete nodes
-  and linear regression coefficients for Gaussian and conditional
-  Gaussian nodes).
+  \code{coef} (and its alias \code{coefficients}) extracts model coefficients
+  (which are conditional probabilities for discrete nodes and linear regression
+  coefficients for Gaussian and conditional Gaussian nodes).
 
-  \code{residuals} (and its alias \code{resid}) extracts model
-  residuals and \code{fitted} (and its alias \code{fitted.values})
-  extracts fitted values from Gaussian and conditional Gaussian nodes.
-  If the \code{bn.fit} object does not include the residuals or
-  the fitted values for the node of interest both functions return
-  \code{NULL}.
+  \code{residuals} (and its alias \code{resid}) extracts model residuals and
+  \code{fitted} (and its alias \code{fitted.values}) extracts fitted values
+  from Gaussian and conditional Gaussian nodes. If the \code{bn.fit} object
+  does not include the residuals or the fitted values for the node of interest
+  both functions return \code{NULL}.
 
-  \code{sigma} extracts the standard deviations of the residuals from
-  Gaussian and conditional Gaussian networks and nodes.
+  \code{sigma} extracts the standard deviations of the residuals from Gaussian
+  and conditional Gaussian networks and nodes.
 
   \code{predict} returns the predicted values for \code{node} given the data
   specified by \code{data} and the fitted network. Depending on the value of
@@ -105,43 +101,43 @@
       the new values for the parents of \code{node} in the local probability
       distribution of \code{node} extracted from \code{fitted}.
     \item \code{bayes-lw}: the predicted values are computed by averaging
-      likelihood weighting simulations performed using all the available
-      nodes as evidence (obviously, with the exception of the node whose
-      values we are predicting). The number of random samples which are
-      averaged for each new observation is controlled by the \code{n}
-      optional argument; the default is \code{500}. If the variable being
-      predicted is discrete, the predicted level is that with the highest
-      conditional probability. If the variable is continuous, the predicted
-      value is the expected value of the conditional distribution.
+      likelihood weighting simulations performed using all the available nodes
+      as evidence (obviously, with the exception of the node whose values we
+      are predicting). The number of random samples which are averaged for each
+      new observation is controlled by the \code{n} optional argument; the
+      default is \code{500}. If the variable being predicted is discrete, the
+      predicted level is that with the highest  conditional probability. If the
+      variable is continuous, the predicted value is the expected value of the
+      conditional distribution.
   }
 
 }
 \note{
 
   Ties in prediction are broken using \emph{Bayesian tie breaking}, i.e.
-  sampling at random from the tied values. Therefore, setting the random
-  seed is required to get reproducible results.
+  sampling at random from the tied values. Therefore, setting the random seed
+  is required to get reproducible results.
 
-  \code{predict} accepts either a \code{bn} or a \code{bn.fit} object as
-  its first argument. For the former, the parameters of the network are
-  fitted on \code{data}, that is, the observations whose class labels the
-  function is trying to predict.
+  \code{predict} accepts either a \code{bn} or a \code{bn.fit} object as its
+  first argument. For the former, the parameters of the network are fitted on
+  \code{data}, that is, the observations whose class labels the function is
+  trying to predict.
 
 }
 \value{
 
   \code{predict} returns a numeric vector (for Gaussian and conditional
-  Gaussian nodes), a factor (for categorical nodes) or an ordered factor
-  (for ordinal nodes).
+  Gaussian nodes), a factor (for categorical nodes) or an ordered factor (for
+  ordinal nodes).
 
   \code{logLik} returns a numeric vector or a single numeric value, depending
-  on the value of \code{by.sample}. \code{AIC} and \code{BIC} always return
-  a single numeric value.
+  on the value of \code{by.sample}. \code{AIC} and \code{BIC} always return a
+  single numeric value.
 
-  All the other functions return a list with an element for each node in
-  the network (if \code{object} has class \code{bn.fit}) or a numeric
-  vector or matrix (if \code{object} has class \code{bn.fit.dnode},
-  \code{bn.fit.gnode}, \code{bn.fit.cgnode} or \code{bn.fit.onode}).
+  All the other functions return a list with an element for each node in the
+  network (if \code{object} has class \code{bn.fit}) or a numeric vector or
+  matrix (if \code{object} has class \code{bn.fit.dnode}, \code{bn.fit.gnode},
+  \code{bn.fit.cgnode} or \code{bn.fit.onode}).
 
 }
 \seealso{

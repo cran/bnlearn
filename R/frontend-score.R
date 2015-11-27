@@ -18,7 +18,7 @@ score = function(x, data, type = NULL, ..., debug = FALSE) {
 
   # expand and sanitize score-specific arguments.
   extra.args = check.score.args(score = type, network = x,
-                 data = data, extra.args = list(...))
+                 data = data, extra.args = list(...), learning = FALSE)
 
   # compute the network score.
   network.score(network = x, data = data, score = type,
@@ -132,7 +132,7 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
 
     # expand and sanitize score-specific arguments.
     extra.args = check.score.args(score = criterion, network = x,
-                   data = data, extra.args = list(...))
+                   data = data, extra.args = list(...), learning = FALSE)
 
     x = choose.direction.score(x, data = data, arc = arc, score = criterion,
           extra.args = extra.args, debug = debug)

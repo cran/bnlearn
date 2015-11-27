@@ -47,7 +47,8 @@ long double temp = 0;
 
 }/*C_UPDATE_COVMAT*/
 
-double c_var(double *data, double mean, int nrows) {
+/* compute the sum of the squared errors. */
+double c_sse(double *data, double mean, int nrows) {
 
 int i = 0;
 long double nvar = 0;
@@ -57,7 +58,7 @@ long double nvar = 0;
 
   return (double)nvar;
 
-}/*C_VAR*/
+}/*C_SSE*/
 
 double c_mean(double *data, int nrows) {
 
@@ -86,6 +87,23 @@ int i = 0, j = 0;
   }/*FOR*/
 
 }/*C_MEANVEC*/
+
+void c_ssevec(double **data, double *sse, double *means, int nrows, int ncols,
+    int first) {
+
+int i = 0, j = 0;
+long double sum = 0;
+
+  for (i = first; i < ncols; i++) {
+
+    for (sum = 0, j = 0 ; j < nrows; j++)
+      sum += (data[i][j] - means[i]) * (data[i][j] - means[i]);
+
+    sse[i] = sum;
+
+  }/*FOR*/
+
+}/*C_SSEVEC*/
 
 void c_update_meanvec(double **data, double *mean, int update, int nrows) {
 

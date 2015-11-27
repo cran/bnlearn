@@ -77,7 +77,6 @@ long long *cumlevels = NULL, nl = 0;
 
   /* create the cumulative products of the number of levels. */
   cumlevels = (long long *) Calloc(ncols, long long);
-  memset(cumlevels, '\0', sizeof(long long) * ncols);
 
   /* set the first one to 1 ... */
   cumlevels[0] = 1;

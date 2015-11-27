@@ -1,5 +1,5 @@
 
-# generic plot of an object of class 'bn' using graphivz.
+# generic plot of an object of class 'bn' or 'bn.fit' using graphviz.
 graphviz.plot = function(x, highlight = NULL, layout = "dot", shape = "circle",
     main = NULL, sub = NULL) {
 
@@ -19,6 +19,7 @@ graphviz.plot = function(x, highlight = NULL, layout = "dot", shape = "circle",
 
   }#ELSE
 
+  # return the graph object for further customization, not NULL.
   graphviz.backend(nodes = nodes, arcs = arcs, highlight = highlight,
     layout = layout, shape = shape, main = main, sub = sub)
 
@@ -44,6 +45,7 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
                   cutpoints = cutpoints, mode = attr(strength, "mode"),
                   arcs = x$arcs, debug = debug)
 
+  # return the graph object for further customization, not NULL.
   graphviz.backend(nodes = names(x$nodes), arcs = x$arcs,
     highlight = highlight, arc.weights = arc.weights,
     layout = layout, shape = shape, main = main, sub = sub)
@@ -151,6 +153,8 @@ plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
 
   }#FOR
 
+  invisible(NULL)
+
 }#PLOT.BN
 
 # ECDF plot for 'bn.strength' objects.
@@ -182,4 +186,63 @@ plot.bn.strength = function(x, draw.threshold = TRUE, main = NULL,
   if (draw.threshold)
     abline(v = attr(x, "threshold"), lty = 2)
 
+  invisible(NULL)
+
 }#PLOT.BN.STRENGTH
+
+# boxplot for cross-validation losses (single run).
+plot.bn.kcv = function(x, ..., main, xlab, ylab, connect = FALSE) {
+
+  # check x's class.
+  if (!is(x, "bn.kcv"))
+    stop("x must be an object of class 'bn.kcv'.")
+
+  plot.bn.kcv.list(x = structure(list(x), class = "bn.kcv.list"), ...,
+    main = main, xlab = xlab, ylab = ylab, connect = connect)
+
+  invisible(NULL)
+
+}#PLOT.BN.KCV
+
+# boxplot for cross-validation losses (multiple runs).
+plot.bn.kcv.list = function(x, ..., main, xlab, ylab, connect = FALSE) {
+
+  # check x's class.
+  if (!is(x, "bn.kcv.list"))
+    stop("x must be an object of class 'bn.kcv.list'.")
+  # check the connect flag.
+  check.logical(connect)
+
+  # store all cross-validation objects in a list for easy handling.
+  arg.list = c(list(x), list(...))
+
+  # extract relevant quantities from the cross-validation objects.
+  means = numeric(0)
+  labels = character(0)
+  losses = character(0)
+
+  for (i in seq_along(arg.list)) {
+
+    # transform bn.kcv objects into bn.kcv.list objects.
+    if (is(arg.list[[i]], "bn.kcv"))
+      arg.list[[i]] = structure(list(arg.list[[i]]), class = "bn.kcv.list")
+    else if (!is(arg.list[[i]], "bn.kcv.list"))
+      stop("optional argument number", i,
+        "must be an object of class 'bn.kcv' or 'bn.kcv.list'.")
+
+    m = sapply(arg.list[[i]], function(x) attr(x, "mean"))
+    l = sapply(arg.list[[i]], function(x) attr(x, "loss"))
+
+    means = c(means, m)
+    labels = c(labels, rep(as.character(i), length(m)))
+    losses = c(losses, l)
+
+  }#FOR
+
+  lattice.cv.bwplot(means = means, labels = labels, losses = losses,
+    main = main, xlab = xlab, ylab = ylab, connect = connect)
+
+  invisible(NULL)
+
+}#PLOT.BN.KCV.LIST
+

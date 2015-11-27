@@ -8,27 +8,11 @@ static double c_jt_stat(int **n, int *ni, int llx, int lly);
 /* unconditional Jonckheere-Terpstra asymptotic test for use in C code. */
 double c_jt(int *xx, int llx, int *yy, int lly, int num) {
 
-int i = 0, j = 0, k = 0;
 int  **n = NULL, *ni = NULL, *nj = NULL;
 double stat = 0, mean = 0, var = 0;
 
   /* initialize the contingency table and the marginal frequencies. */
-  n = alloc2dcont(llx, lly);
-  ni = alloc1dcont(llx);
-  nj = alloc1dcont(lly);
-
-  /* compute the joint frequency of x and y. */
-  for (k = 0; k < num; k++)
-    n[xx[k] - 1][yy[k] - 1]++;
-
-  /* compute the marginals. */
-  for (i = 0; i < llx; i++)
-    for (j = 0; j < lly; j++) {
-
-    ni[i] += n[i][j];
-    nj[j] += n[i][j];
-
-  }/*FOR*/
+  fill_2d_table(xx, yy, &n, &ni, &nj, llx, lly, num);
 
   /* compute the test statistic, its mean and it variance. */
   stat = c_jt_stat(n, ni, llx, lly);
@@ -45,32 +29,11 @@ double stat = 0, mean = 0, var = 0;
 /* conditional Jonckheere-Terpstra asymptotic test for use in C code. */
 double c_cjt(int *xx, int llx, int *yy, int lly, int *zz, int llz, int num) {
 
-int i = 0, j = 0, k = 0;
-int  ***n = NULL, **nrowt = NULL, **ncolt = NULL, *ncond = NULL;
+int k = 0, ***n = NULL, **nrowt = NULL, **ncolt = NULL, *ncond = NULL;
 double stat = 0, var = 0, tvar = 0;
 
-  /* initialize the contingency table. */
-  n = alloc3dcont(llz, llx, lly);
-
-  /* initialize the marginal frequencies. */
-  nrowt = alloc2dcont(llz, llx);
-  ncolt = alloc2dcont(llz, lly);
-  ncond = alloc1dcont(llz);
-
-  /* compute the joint frequencies. */
-  for (k = 0; k < num; k++)
-    n[zz[k] - 1][xx[k] - 1][yy[k] - 1]++;
-
-  /* compute the marginals. */
-  for (i = 0; i < llx; i++)
-    for (j = 0; j < lly; j++)
-      for (k = 0; k < llz; k++) {
-
-        nrowt[k][i] += n[k][i][j];
-        ncolt[k][j] += n[k][i][j];
-        ncond[k] += n[k][i][j];
-
-      }/*FOR*/
+  /* initialize the contingency table and the marginal frequencies. */
+  fill_3d_table(xx, yy, zz, &n, &nrowt, &ncolt, &ncond, llx, lly, llz, num);
 
   /* sum up over the parents' configurations. */
   for (k = 0; k < llz; k++) {

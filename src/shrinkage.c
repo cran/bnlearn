@@ -5,6 +5,12 @@
 #include "include/covariance.h"
 #include "include/matrix.h"
 
+#define TRUNCATE_LAMBDA(lambda) \
+  if (lambda > 1) \
+    lambda = 1; \
+  if (lambda < 0) \
+    lambda = 0;
+
 /* shrinked mutual information, to be used in C code. */
 double c_shmi(int *xx, int llx, int *yy, int lly, int num) {
 
@@ -158,99 +164,48 @@ double lden = 0, lnum = 0, temp = 0;
     *lambda = (1 - lnum) / ((double)(num - 1) * lden);
 
   /* bound the shrinkage intensity in the [0,1] interval. */
-  if (*lambda > 1)
-    *lambda = 1;
-  if (*lambda < 0)
-    *lambda = 0;
+  TRUNCATE_LAMBDA(*lambda);
 
 }/*MI_LAMBDA*/
 
-/* shrinked linear correlation, to be used in C code. */
-double c_fast_shcor(double *xx, double *yy, int *n) {
+/* compute the shrinkage intensity lambda for marginal correlation. */
+double cor_lambda(double *xx, double *yy, int nobs, double xm, double ym,
+   double xsd, double ysd, double cor) {
 
 int i = 0;
-double sum = 0;
-double xm = 0, ym = 0, xsd = 0, ysd = 0, lambda = 0;
-double tol = MACHINE_TOL;
+long double sum = 0, lambda = 0;
 
-  /* compute the mean values.  */
-  for (i = 0 ; i < *n; i++) {
-
-    xm += xx[i];
-    ym += yy[i];
-
-  }/*FOR*/
-
-  xm /= (*n);
-  ym /= (*n);
-
-  /* compute the actual covariance. */
-  for (i = 0; i < *n; i++) {
-
-    sum += (xx[i] - xm) * (yy[i] - ym);
-    xsd += (xx[i] - xm) * (xx[i] - xm);
-    ysd += (yy[i] - ym) * (yy[i] - ym);
-
-  }/*FOR*/
+  sum = cor * sqrt(xsd * ysd) / (nobs - 1);
 
   /* note that the shrinkage intesity for the correlation coefficient is
    * identical to that for the covariance; so we don't need to standardize
    * the data. */
-  for (i = 0; i < *n; i++) {
+  for (i = 0; i < nobs; i++) {
 
-    lambda += ((xx[i] - xm) * (yy[i] - ym) - sum / (*n)) *
-              ((xx[i] - xm) * (yy[i] - ym) - sum / (*n));
+    lambda += ((xx[i] - xm) * (yy[i] - ym) - sum) *
+              ((xx[i] - xm) * (yy[i] - ym) - sum);
 
   }/*FOR*/
 
-  /* compute lambda, the shrinkage intensity. */
-  lambda *= (*n / sum) * (*n / sum);
-  lambda *= (double)(*n) / (double)(*n - 1) / (double)(*n -1) / (double)(*n -1);
+  /* compute lambda, the shrinkage intensity, on a log-scale for numerical
+   * stability. */
+  lambda = exp(log(lambda) - log(sum * sum) + log((double)nobs) 
+             - 3 * log((double)(nobs - 1)));
 
   /* truncate the shrinkage intensity in the [0,1] interval; this is not an
    * error, but a measure to increase the quality of the shrinked estimate. */
-  if (lambda > 1) {
+  TRUNCATE_LAMBDA(lambda);
 
-    lambda = 1;
+  return (double)lambda;
 
-  }/*THEN*/
-  else if (lambda < 0) {
+}/*COR_LAMBDA*/
 
-    lambda = 0;
-
-  }/*THEN*/
-
-  /* safety check against "divide by zero" errors. */
-  if (fabs(xsd) < tol || fabs(ysd) < tol)
-    sum = 0;
-  else
-    sum *= (1 - lambda) / (sqrt(xsd) * sqrt(ysd));
-
-  /* double check that the coefficient is in the [-1, 1] range. */
-  if (sum > 1) {
-
-    warning("fixed correlation coefficient greater than 1, probably due to floating point errors.");
-
-    sum = 1;
-
-  }/*THEN*/
-  else if (sum < -1) {
-
-    warning("fixed correlation coefficient lesser than -1, probably due to floating point errors.");
-
-    sum = -1;
-
-  }/*ELSE*/
-
-  return sum;
-
-}/*C_FAST_SHCOR*/
-
-/* Shrinked Covariance Matrix. */
-void c_cov_lambda(double **column, double *mean, int ncols, int n, double *var) {
+/* compute the shrinkage intensity lambda for a covariance matrix. */
+double covmat_lambda(double **column, double *mean, double *var, int n,
+    int ncols) {
 
 int i = 0, j = 0, k = 0, cur = 0;
-double lambda = 0, sumcors = 0, sumvars = 0;
+long double lambda = 0, sumcors = 0, sumvars = 0, temp = 0;
 
   for (i = 0; i < ncols; i++) {
 
@@ -258,56 +213,45 @@ double lambda = 0, sumcors = 0, sumvars = 0;
 
       cur = CMC(i, j, ncols);
 
-      /* compute the actual variance/covariance. */
-      for (k = 0; k < n; k++)
-        var[cur] += (column[i][k] - mean[i]) * (column[j][k] - mean[j]);
-
       if (i != j) {
 
         /* do the first round of computations for the shrinkage intensity. */
         for (k = 0; k < n; k++) {
 
-          sumvars +=
-            ((column[i][k] - mean[i]) * (column[j][k] - mean[j]) - var[cur] / n) *
-            ((column[i][k] - mean[i]) * (column[j][k] - mean[j]) - var[cur] / n);
+          temp = (column[i][k] - mean[i]) * (column[j][k] - mean[j]) -
+                    (var[cur] * (double)(n - 1) / (double)n);
+          sumvars += temp * temp;
 
         }/*FOR*/
 
-        sumcors += (var[cur] / (n - 1)) * (var[cur] / (n - 1));
+        sumcors += var[cur] * var[cur];
 
       }/*THEN*/
-
-      /* use the unbiased estimator for variances/covariances. */
-      var[cur] /= n - 1;
-
-      /* fill in the symmetric element of the matrix. */
-      var[CMC(j, i, ncols)] = var[cur];
 
     }/*FOR*/
 
   }/*FOR*/
 
-  /* wrap up the computation of the shrinkage intensity. */
-  lambda = sumvars * n / (n - 1) / (n -1) / (n -1) / sumcors;
+  lambda = exp(log(sumvars) + log((double)n)  - 3 * log((double)(n - 1))
+             - log(sumcors));
 
   /* truncate the shrinkage intensity in the [0,1] interval; this is not an
    * error, but a measure to increase the quality of the shrinked estimate. */
-  if (lambda > 1) {
+  TRUNCATE_LAMBDA(lambda);
 
-    lambda = 1;
+  return (double)lambda;
 
-  }/*THEN*/
-  else if (lambda < 0) {
+}/*COVMAT_LAMBDA*/
 
-    lambda = 0;
+/* shrink the covariance matrix (except the diagonal, which stays the same). */
+void covmat_shrink(double *var, int ncols, double lambda) {
 
-  }/*THEN*/
+int i = 0, j = 0;
 
-  /* shrink the covariance matrix (except the diagonal, which stays the same). */
   for (i = 0; i < ncols; i++)
     for (j = 0; j < ncols; j++)
       if (i != j)
         var[CMC(i, j, ncols)] *= 1 - lambda;
 
-}/*C_COV_LAMBDA*/
+}/*COVMAT_SHRINK*/
 

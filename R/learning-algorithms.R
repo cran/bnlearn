@@ -190,7 +190,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
             strict = strict, debug = debug)
     # return the user-specified blacklist, not the full one, as in other
     # classes of learning algorithms.
-    res$learning$blacklist = blacklist
+    res$learning["blacklist"] = list(blacklist)
 
   }#ELSE
 
@@ -299,7 +299,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
   # sanitize score-specific arguments.
   extra.args = check.score.args(score = score, network = start,
-                 data = x, extra.args = extra.args)
+                 data = x, extra.args = extra.args, learning = TRUE)
 
   # reset the test counter.
   reset.test.counter()

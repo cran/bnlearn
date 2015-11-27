@@ -6,9 +6,9 @@
 \title{Measure arc strength}
 \description{
 
-  Measure the strength of the probabilistic relationships expressed
-  by the arcs of a Bayesian network, and use model averaging to build
-  a network containing only the significant arcs.
+  Measure the strength of the probabilistic relationships expressed by the arcs
+  of a Bayesian network, and use model averaging to build a network containing
+  only the significant arcs.
 
 }
 \usage{
@@ -25,82 +25,85 @@ averaged.network(strength, nodes, threshold)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
-  \item{networks}{a list, containing either object of class \code{bn}
-    or arc sets (matrices or data frames with two columns, optionally
-    labeled "from" and "to").}
-  \item{data}{a data frame containing the data the Bayesian network
-    was learned from.}
-  \item{cluster}{an optional cluster object from package \pkg{parallel}.
-      See \code{\link{parallel integration}} for details and a simple
-      example.}
+  \item{networks}{a list, containing either object of class \code{bn} or arc
+    sets (matrices or data frames with two columns, optionally labeled "from"
+    and "to").}
+  \item{data}{a data frame containing the data the Bayesian network was
+    learned from.}
+  \item{cluster}{an optional cluster object from package \pkg{parallel}. See
+    \code{\link{parallel integration}} for details and a simple example.}
   \item{strength}{an object of class \code{bn.strength}, see below.}
-  \item{threshold}{a numeric value, the minimum strength required for
-    an arc to be included in the averaged network. The default value
-    is the \code{threshold} attribute of the \code{strength} argument.}
-  \item{nodes}{a vector of character strings, the labels of the nodes
-    in the network. In \code{\link{averaged.network}}, it defaults to
-    the set of the unique node labels in the \code{strength} argument.}
-  \item{criterion}{a character string, the label of a score
-    function or an independence test. See \code{\link{bnlearn-package}}
-    for details.}
+  \item{threshold}{a numeric value, the minimum strength required for an
+    arc to be included in the averaged network. The default value is the 
+    \code{threshold} attribute of the \code{strength} argument.}
+  \item{nodes}{a vector of character strings, the labels of the nodes in the
+    network. In \code{\link{averaged.network}}, it defaults to the set of the
+    unique node labels in the \code{strength} argument.}
+  \item{criterion}{a character string, the label of a score function or an
+    independence test. See \code{\link{bnlearn-package}} for details.}
   \item{R}{a positive integer, the number of bootstrap replicates.}
   \item{m}{a positive integer, the size of each bootstrap replicate.}
-  \item{weights}{a vector of non-negative numbers, to be used as
-    weights when averaging network structures to compute strength
-    coefficients. If \code{NULL}, weights are assumed to be
-    uniform.}
-  \item{cpdag}{a boolean value. If \code{TRUE} the (PDAG of) the
-    equivalence class is used instead of the network structure
-    itself. It should make it easier to identify score-equivalent
-    arcs.}
-  \item{algorithm}{a character string, the learning algorithm to be
-    applied to the bootstrap replicates. Possible values are \code{gs},
-    \code{iamb}, \code{fast.iamb}, \code{inter.iamb}, \code{mmpc},
-    \code{hc}, \code{tabu}, \code{mmhc} and \code{rsmax2}. See
-    \code{\link{bnlearn-package}} and the documentation of each algorithm
-    for details.}
-  \item{algorithm.args}{a list of extra arguments to be passed to
-    the learning algorithm.}
+  \item{weights}{a vector of non-negative numbers, to be used as weights
+    when averaging network structures to compute strength coefficients. If 
+    \code{NULL}, weights are assumed to be uniform.}
+  \item{cpdag}{a boolean value. If \code{TRUE} the (PDAG of) the equivalence
+    class is used instead of the network structure itself. It should make it
+    easier to identify score-equivalent arcs.}
+  \item{algorithm}{a character string, the learning algorithm to be applied
+    to the bootstrap replicates. Possible values are \code{gs}, \code{iamb},
+    \code{fast.iamb}, \code{inter.iamb}, \code{mmpc}, \code{hc}, \code{tabu},
+    \code{mmhc} and \code{rsmax2}. See \code{\link{bnlearn-package}} and the
+    documentation of each algorithm for details.}
+  \item{algorithm.args}{a list of extra arguments to be passed to the learning
+    algorithm.}
   \item{\dots}{additional tuning parameters for the network score (if
-    \code{criterion} is the label of a score function, see
-    \code{\link{score}} for details), the conditional independence test
-    (currently the only one is \code{B}, the number of permutations).}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-    is printed; otherwise the function is completely silent.}
+    \code{criterion} is the label of a score function, see \code{\link{score}}
+    for details), the conditional independence test (currently the only one is
+    \code{B}, the number of permutations).}
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
+    printed; otherwise the function is completely silent.}
 }
 \details{
 
-  If \code{criterion} is a conditional independence test, the strength
-  is a p-value (so the lower the value, the stronger the relationship).
-  The only possible additional parameter is \code{B}, the number of
-  permutations to be generated for each permutation test.
+  \code{arc.strength} computes a measure of confidence or strength for each
+  arc, while keeping fixed the rest of the network structure.
+
+  If \code{criterion} is a conditional independence test, the strength is a
+  p-value (so the lower the value, the stronger the relationship). The
+  conditional independence test would be that to drop the arc from the
+  network. The only possible additional parameter is \code{B}, the number
+  of permutations to be generated for each permutation test.
 
   If \code{criterion} is the label of a score function, the strength is
-  measured by the score gain/loss which would be caused by the arc's
-  removal. There may be additional parameters depending on the choice
-  of the score, see \code{\link{score}} for details.
+  measured by the score gain/loss which would be caused by the arc's removal.
+  In other words, it is the difference between the score of the network 
+  including the arc and the score of the network in which the arc is not
+  present. Negative values correspond to decreases in the network score and
+  positive values correspond to increases in the network score (the stronger
+  the relationship, the more negative the difference). There may be additional
+  parameters depending on the choice of the score, see \code{\link{score}} for
+  details.
 
-  Model averaging is supported for objects of class \code{bn.strength}
-  returned by \code{\link{boot.strength}}, by \code{\link{custom.strength}},
-  or by \code{\link{arc.strength}} with \code{criterion} set to
-  \code{bootstrap}. The returned network contains the arcs whose strength
-  is greater than the \code{threshold} attribute of the \code{bn.strength}
-  object passed to \code{averaged.network}.
+  Model averaging is supported for objects of class \code{bn.strength} returned
+  by \code{\link{boot.strength}} or by \code{\link{custom.strength}}. The
+  returned network contains the arcs whose strength is greater than the 
+  \code{threshold} attribute of the \code{bn.strength} object passed to 
+  \code{averaged.network}.
 
 }
 \note{
 
-  \code{averaged.network} typically returns a completely directed graph;
-  an arc can be undirected if and only if the probabiliy of each of its
-  directions is exactly 0.5. This may happen, for example, if the arc is
-  undirected in all the networks being averaged.
+  \code{averaged.network} typically returns a completely directed graph; an arc
+  can be undirected if and only if the probabiliy of each of its directions is
+  exactly 0.5. This may happen, for example, if the arc is undirected in all
+  the networks being averaged.
 
 }
 \value{
 
-  \code{arc.strength}, \code{boot.strength} and \code{custom.strength}
-  return an object of class \code{bn.strength}; \code{boot.strength}
-  and \code{custom.strength} also include information about the relative
+  \code{arc.strength}, \code{boot.strength} and \code{custom.strength} return
+  an object of class \code{bn.strength}; \code{boot.strength} and 
+  \code{custom.strength} also include information about the relative 
   probabilities of arc directions.
 
   \code{averaged.network} returns an object of class \code{bn}.
@@ -113,16 +116,17 @@ averaged.network(strength, nodes, threshold)
   \bold{for model averaging and boostrap strength (confidence):}
 
   Friedman N, Goldszmidt M, Wyner A (1999). "Data Analysis with Bayesian
-      Networks: A Bootstrap Approach". In "UAI '99: Proceedings of the
-      15th Annual Conference on Uncertainty in Artificial Intelligence",
+      Networks: A Bootstrap Approach". In "UAI '99: Proceedings of the 15th
+      Annual Conference on Uncertainty in Artificial Intelligence",
       pp. 196-201. Morgan Kaufmann.
 
-  \bold{for the computation of the strength (confidence) significance threshold:}
+  \bold{for the computation of the strength (confidence) significance
+    threshold:}
 
-  Scutari M, Nagarajan R (2011). "On Identifying Significant Edges in
-      Graphical Models". In "Proceedings of the Workshop 'Probabilistic
-      Problem Solving in Biomedicine' of the 13th Artificial Intelligence
-      in Medicine (AIME) Conference", pp. 15-27.
+  Scutari M, Nagarajan R (2011). "On Identifying Significant Edges in Graphical
+      Models". In "Proceedings of the Workshop 'Probabilistic Problem Solving
+      in Biomedicine' of the 13th Artificial Intelligence in Medicine (AIME)
+      Conference", pp. 15-27.
 
 }
 \examples{
@@ -146,6 +150,6 @@ modelstring(averaged.network(arcs))
 }
 }
 \seealso{\code{\link{strength.plot}}, \code{\link{choose.direction}},
-  \code{\link{score}}, \code{\link{ci.test}}. }
+  \code{\link{score}}, \code{\link{ci.test}}.}
 \author{ Marco Scutari }
 \keyword{htest}

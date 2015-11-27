@@ -2,11 +2,11 @@
 \alias{test.counter}
 \alias{increment.test.counter}
 \alias{reset.test.counter}
-\title{ Manipulating the test counter }
+\title{Manipulating the test counter}
 \description{
 
-  Check, increment or reset the test/score counter used in structure
-  learning algorithms.
+  Check, increment or reset the test/score counter used in structure learning
+  algorithms.
 
 }
 \usage{

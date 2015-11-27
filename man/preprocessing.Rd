@@ -1,11 +1,11 @@
 \name{preprocess}
 \alias{discretize}
 \alias{dedup}
-\title{ Pre-process data to better learn Bayesian networks }
+\title{Pre-process data to better learn Bayesian networks}
 \description{
 
-  Screen and transform the data to make them more suitable for structure
-  and parameter learning.
+  Screen and transform the data to make them more suitable for structure and
+  parameter learning.
 
 }
 \usage{
@@ -15,10 +15,10 @@
   dedup(data, threshold, debug = FALSE)
 }
 \arguments{
-  \item{data}{a data frame containing numeric columns (for \code{dedup}) or
-    a combination of numeric or factor columns (for \code{}).}
-  \item{threshold}{a numeric value between zero and one, the absolute correlation
-    used a threshold in screening highly correlated pairs.}
+  \item{data}{a data frame containing numeric columns (for \code{dedup}) or a
+    combination of numeric or factor columns (for \code{}).}
+  \item{threshold}{a numeric value between zero and one, the absolute
+    correlation used a threshold in screening highly correlated pairs.}
   \item{method}{a character string, either \code{interval} for \emph{interval
     discretization}, \code{quantile} for \emph{quantile discretization}
     (the default) or \code{hartemink} for \emph{Hartemink's pairwise mutual
@@ -30,8 +30,8 @@
   \item{ordered}{a boolean value. If \code{TRUE} the discretized variables are
     returned as ordered factors instead of unordered ones.}
   \item{\dots}{additional tuning parameters, see below.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-      is printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
+    printed; otherwise the function is completely silent.}
 }
 \details{
 
@@ -59,9 +59,9 @@
 }
 \value{
 
-  \code{discretize} returns a data frame with the same structure (number
-    of columns, column names, etc.) as \code{data}, containing the discretized
-    variables.
+  \code{discretize} returns a data frame with the same structure (number of
+  columns, column names, etc.) as \code{data}, containing the discretized
+  variables.
 
   \code{dedup} returns a data frame with a subset of the columns of \code{data}.
 

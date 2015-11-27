@@ -1,17 +1,18 @@
 \name{bn.kcv class}
 \alias{bn.kcv class}
 \alias{bn.kcv-class}
-\title{
-
-  The bn.kcv class structure
-
-}
+\alias{bn.kcv.list class}
+\alias{bn.kcv.list-class}
+\title{The bn.kcv class structure}
 \description{
 
-  The structure of an object of S3 class \code{bn.kcv}.
+  The structure of an object of S3 class \code{bn.kcv} or \code{bn.kcv.list}.
 
 }
 \details{
+
+  An object of class \code{bn.kcv.list} is a list whose elements are objects
+  of class \code{bn.kcv}.
 
   An object of class \code{bn.kcv} is a list whose elements correspond to the
   iterations of a k-fold cross-validation. Each element contains the following

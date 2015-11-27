@@ -184,3 +184,35 @@ cgsd = function(resid, configs, p) {
   return(noattr(sd))
 
 }#CGSD
+
+# wrapper around coefficients() to avoid dispatch.
+minimal.coefficients = function(x) {
+
+  if (is(x, "penfit"))
+    c(x@unpenalized, x@penalized)
+  else
+    coefficients(x)
+
+}#MINIMAL.COEFFICIENTS
+
+# wrapper around residuals() to avoid dispatch.
+minimal.residuals = function(x) {
+
+  if (is(x, "penfit"))
+    x@residuals
+  else
+    residuals(x)
+
+}#MINIMAL.RESIDUALS
+
+# wrapper around fitted() to avoid dispatch.
+minimal.fitted = function(x) {
+
+  if (is(x, "penfit"))
+    x@fitted
+  else
+    fitted(x)
+
+}#MINIMAL.FITTED
+
+

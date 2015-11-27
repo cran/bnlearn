@@ -1,10 +1,10 @@
 \name{configs}
 \alias{configs}
-\title{ Construct configurations of discrete variables }
+\title{Construct configurations of discrete variables}
 \description{
 
-  Create configurations of discrete variables, which can be used in
-  modelling conditional probability tables.
+  Create configurations of discrete variables, which can be used in modelling
+  conditional probability tables.
 
 }
 \usage{

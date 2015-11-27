@@ -6,34 +6,6 @@
 
 void c_svd(double *A, double *U, double *D, double *V, int *nrows,
     int *ncols, int *mindim, int strict, int *errcode);
-double c_det(double *matrix, int *rows);
-
-/* -------------------- R level interfaces to LAPACK -------------------- */
-
-/* Determinant. */
-SEXP r_det(SEXP matrix, int scale) {
-
-int i = 0, nr = nrows(matrix);
-double det = 0;
-short int duplicated = 0;
-
-  /* duplicate the matrix so the original one is not overwritten. */
-  if ((duplicated = NAMED(matrix)) > 0)
-    PROTECT(matrix = duplicate(matrix));
-
-  /* rescale the determinant by multiplying the matrix. */
-  for (i = 0; i < nr * nr; i++)
-    REAL(matrix)[i] *= scale;
-
-  /* call Lapack to do the grunt work. */
-  det = c_det(REAL(matrix), &nr);
-
-  if (duplicated > 0)
-    UNPROTECT(1);
-
-  return ScalarReal(det);
-
-}/*R_DET*/
 
 /* -------------------- C level interfaces to LAPACK -------------------- */
 
@@ -68,49 +40,6 @@ double tmp = 0, *work = NULL;
 
 }/*C_SVD*/
 
-/* C-level function to compute the determinant of a real-valued square matrix,
- * modeled after the moddet_ge_real() function in Lapack.c. */
-double c_det(double *matrix, int *rows) {
-
-int sign = 1, i = 0, info = 0, *jpvt = NULL;
-double det = 1;
-
-  jpvt = (int *) Calloc(*rows, int);
-
-  /* comute the A = L*U decomposition. */
-  F77_CALL(dgetrf)(rows, rows, matrix, rows, jpvt, &info);
-
-  if (info < 0) {
-
-    error("an error (%d) occurred in the call to dgesvd().\n", info);
-
-  }/*THEN*/
-  else if (info > 0) {
-
-    /* the matrix is singular, so the determinant is zero. */
-    det = 0;
-
-  }/*THEN*/
-  else {
-
-    /* the matrix is full rank, compute the determinant. */
-    for (i = 0; i < *rows; i++) {
-
-      if (jpvt[i] != (i + 1))
-        sign = -sign;
-
-      det *= matrix[CMC(i, i, *rows)];
-
-    }/*FOR*/
-
-  }/*ELSE*/
-
-  Free(jpvt);
-
-  return sign * det;
-
-}/*C_DET*/
-
 /* C-level function to compute Moore-Penrose Generalized Inverse of a square matrix. */
 void c_ginv(double *covariance, int ncols, double *mpinv) {
 
@@ -120,11 +49,8 @@ double sv_tol = 0, zero = 0, one = 1;
 char transa = 'N', transb = 'N';
 
   u = Calloc(ncols * ncols, double);
-  memset(u, '\0', ncols * ncols * sizeof(double));
   d = Calloc(ncols, double);
-  memset(d, '\0', ncols * sizeof(double));
   vt = Calloc(ncols * ncols, double);
-  memset(vt, '\0', ncols * ncols * sizeof(double));
 
   if (covariance != mpinv) {
 
@@ -344,9 +270,7 @@ double tol = MACHINE_TOL, *qraux = NULL, *work = NULL;
 
   /* allocate the working space. */
   qraux = (double *)Calloc(ncol, double);
-  memset(qraux, '\0', ncol * sizeof(double));
   work = (double *)Calloc(2 * ncol, double);
-  memset(work, '\0', 2 * ncol * sizeof(double));
   pivot = (int *)Calloc(ncol, int);
   for (i = 0; i < ncol; i++)
     pivot[i] = i + 1;

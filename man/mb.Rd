@@ -42,11 +42,11 @@
 \alias{ntests}
 \alias{whitelist}
 \alias{blacklist}
-\title{ Miscellaneous utilities }
+\title{Miscellaneous utilities}
 \description{
 
-  Assign or extract various quantities of interest from an object of
-  class \code{bn} of \code{bn.fit}.
+  Assign or extract various quantities of interest from an object of class
+  \code{bn} of \code{bn.fit}.
 
 }
 \usage{
@@ -80,7 +80,7 @@ amat(x)
 amat(x, ignore.cycles = FALSE, debug = FALSE) <- value
 
 ## graphs
-nparams(x, data, debug = FALSE)
+nparams(x, data, effective = FALSE, debug = FALSE)
 ntests(x)
 whitelist(x)
 blacklist(x)
@@ -95,24 +95,24 @@ blacklist(x)
 # re-label the nodes.
 \S4method{nodes}{bn}(object) <- value
 \S4method{nodes}{bn.fit}(object) <- value
-
 }
 \arguments{
-  \item{x,object}{an object of class \code{bn} or \code{bn.fit}. The
-       replacement form of \code{parents}, \code{children}, \code{arcs}
-       and \code{amat} require an object of class \code{bn}.}
+  \item{x,object}{an object of class \code{bn} or \code{bn.fit}. The replacement
+    form of \code{parents}, \code{children}, \code{arcs} and \code{amat}
+    requires an object of class \code{bn}.}
   \item{node,Nodes}{a character string, the label of a node.}
   \item{value}{either a vector of character strings (for \code{parents} and
-       \code{children}), an adjacency matrix (for \code{amat}) or a data
-       frame with two columns (optionally labeled "from" and "to", for
-       \code{arcs}).}
-  \item{data}{a data frame containing the data the Bayesian network
-       was learned from. It's only needed if \code{x} is an object of
-       class \code{bn}.}
-  \item{ignore.cycles}{a boolean value. If \code{TRUE} the returned network
-       will not be checked for cycles.}
+    \code{children}), an adjacency matrix (for \code{amat}) or a data frame with
+    two columns (optionally labeled "from" and "to", for \code{arcs}).}
+  \item{data}{a data frame containing the data the Bayesian network was learned
+    from. It's only needed if \code{x} is an object of class \code{bn}.}
+  \item{ignore.cycles}{a boolean value. If \code{TRUE} the returned network will
+    not be checked for cycles.}
+  \item{effective}{a boolean value. If \code{TRUE} the number of non-zero free
+    parameters is returned, that is, the effective degrees of freedom of the
+    network; otherwise the theoretical number of parameters is returned.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-       printed; otherwise the function is completely silent.}
+    printed; otherwise the function is completely silent.}
 }
 \details{
 
@@ -127,16 +127,15 @@ blacklist(x)
 \value{
 
   \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{children},
-  \code{root.nodes} and \code{leaf.nodes} return a vector of character
-  strings.
+  \code{root.nodes} and \code{leaf.nodes} return a vector of character strings.
 
   \code{arcs}, \code{directed.arcs}, \code{undirected.arcs},
   \code{incoming.arcs}, \code{outgoing.arcs}, \code{incident.arcs}, \cr
   \code{compelled.arcs}, \code{reversible.arcs}, \code{whitelist} and
   \code{blacklist} return a matrix of two columns of character strings.
 
-  \code{narcs} and \code{nnodes} return the number of arcs and nodes
-  in the graph, respectively.
+  \code{narcs} and \code{nnodes} return the number of arcs and nodes in the
+  graph, respectively.
 
   \code{amat} returns a matrix of 0/1 integer values.
 

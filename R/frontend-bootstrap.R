@@ -97,9 +97,9 @@ boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
 }#BOOT.STRENGTH
 
 # perform cross-validation.
-bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
-    loss.args = list(), fit = "mle", fit.args = list(), cluster = NULL,
-    debug = FALSE) {
+bn.cv = function(data, bn, loss = NULL, k = 10, m, runs = 1, 
+    algorithm.args = list(), loss.args = list(), fit = "mle",
+    fit.args = list(), method = "k-fold", cluster = NULL, debug = FALSE) {
 
   # check the data are there.
   check.data(data)
@@ -114,6 +114,9 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
     stop("the number of splits must be at least 2.")
   if (n < k)
     stop("insufficient sample size for ", k, " subsets.")
+  # check the number of runs.
+  if (!is.positive.integer(runs))
+    stop("the number of runs must be a positive integer number.")
 
   # check the fitting method (maximum likelihood, bayesian, etc.)
   check.fitting.method(fit, data)
@@ -131,6 +134,26 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
     }#THEN
 
   }#THEN
+  # check the cross-validation method.
+  if (!is.string(method) && (method %!in% c("k-fold", "hold-out") ))
+    stop("valid cross-validation methods are 'k-fold' and 'hold-out'.")
+  # check the size of the test subsets in hold-put cross-validation.
+  if (method == "hold-out") {
+
+    if (missing(m))
+      m = ceiling(n / 10)
+    if (!is.positive.integer(m))
+      stop("the size of the test subset must be a positive integer number.")
+    if (m >= n)
+      stop("insufficient sample size for a test subset of size ", m, ".")
+
+  }#THEN
+  else {
+
+    if (!missing(m))
+      warning("'m' is only required for hold-out cross-validation, ignoring.")
+
+  }#ELSE
 
   if (is.character(bn)) {
 
@@ -176,9 +199,20 @@ bn.cv = function(data, bn, loss = NULL, k = 10, algorithm.args = list(),
 
   }#ELSE
 
-  crossvalidation(data = data, bn = bn, loss = loss, k = k,
-    algorithm.args = algorithm.args, loss.args = loss.args,
-    fit = fit, fit.args = fit.args, cluster = cluster, debug = debug)
+  # allocate and populate the return value.
+  result = structure(vector(runs, mode = "list"), class = "bn.kcv.list")
 
+  for (r in seq(runs))
+    result[[r]] = crossvalidation(data = data, bn = bn, loss = loss, k = k,
+                    m = m, algorithm.args = algorithm.args,
+                    loss.args = loss.args, fit = fit, fit.args = fit.args,
+                    method = method, cluster = cluster, debug = debug)
+
+  # return a bn.kcv object (for a single run) or a bn.kcv.list object (for
+  # multiple runs).
+  if (runs == 1)
+    return(result[[1]])
+  else
+    return(result)
 
 }#BN.CV

@@ -142,7 +142,8 @@ check.data.frame.finite = function(x) {
 }#DATA.FRAME.FINITE
 
 # check the data set.
-check.data = function(x, allowed.types = available.data.types) {
+check.data = function(x, allowed.types = available.data.types,
+    allow.levels = FALSE) {
 
   # check the data are there.
   if (missing(x))
@@ -173,7 +174,7 @@ check.data = function(x, allowed.types = available.data.types) {
 
       # warn about levels with zero frequencies, it's not necessarily wrong
       # (data frame subsetting) but sure is fishy.
-      if (any(table(x[, col]) == 0))
+      if (!allow.levels && any(table(x[, col]) == 0))
         warning("variable ", col, " has levels that are not observed in the data.")
 
     }#FOR
@@ -965,7 +966,7 @@ check.graph.prior = function(prior, network) {
 }#CHECK.GRAPH.PRIOR
 
 # check the sparsity parameter of the prior distribution over the graph space.
-check.graph.sparsity = function(beta, prior, network, data) {
+check.graph.sparsity = function(beta, prior, network, data, learning = FALSE) {
 
   default.beta =
     list("uniform" = NULL, "vsp" = 1/ncol(data),
@@ -1009,7 +1010,7 @@ check.graph.sparsity = function(beta, prior, network, data) {
       check.arcs(beta[, c("from", "to")], nodes = names(data))
 
       # complete the user-specified prior.
-      beta = cs.completed.prior(beta, names(data))
+      beta = cs.completed.prior(beta, names(data), learning)
 
     }#THEN
 
@@ -1040,7 +1041,7 @@ check.maxp = function(maxp, data) {
 }#CHECK.MAXP
 
 # sanitize the extra arguments passed to the network scores.
-check.score.args = function(score, network, data, extra.args) {
+check.score.args = function(score, network, data, extra.args, learning = FALSE) {
 
   # check the imaginary sample size.
   if (score %in% c("bde", "bdes", "mbde", "bge"))
@@ -1055,7 +1056,8 @@ check.score.args = function(score, network, data, extra.args) {
   # check the sparsity parameter of the graph prior distribution.
   if (score %in% c("bde", "bge"))
     extra.args$beta = check.graph.sparsity(beta = extra.args$beta,
-      prior = extra.args$prior, network = network, data = data)
+      prior = extra.args$prior, network = network, data = data,
+      learning = learning)
 
   # check the list of the experimental observations in the data set.
   if (score == "mbde")
@@ -1309,7 +1311,7 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
 
   valid.args = loss.extra.args[[loss]]
 
-  if (loss %in% c("pred", "cor", "mse")) {
+  if (loss %in% c("pred", "pred-lw", "cor", "cor-lw", "mse", "mse-lw")) {
 
     if (!is.null(extra.args$target)) {
 
@@ -1343,6 +1345,29 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
       valid.args = c(valid.args, "prior")
 
     }#THEN
+
+  }#THEN
+
+  if (loss %in% c("pred-lw", "cor-lw", "mse-lw")) {
+
+    # number of particles for likelihood weighting.
+    if (!is.null(extra.args$n)) {
+
+      if (!is.positive.integer(extra.args$n))
+        stop("the number of observations to be sampled must be a positive integer number.")
+
+    }#THEN
+    else {
+
+      extra.args$n = 500
+
+    }#ELSE
+
+    # which nodes to predict from.
+    if (!is.null(extra.args$from))
+      check.nodes(extra.args$from, graph = names(data), min.nodes = 1)
+    else
+      extra.args$from = setdiff(names(data), extra.args$target)
 
   }#THEN
 
@@ -2146,23 +2171,6 @@ check.bootsize = function(m, data, default = nrow(data)) {
 
 }#CHECK.BOOTSIZE
 
-# check the label of the multivariate Bernulli variance test.
-check.mvber.vartest = function(method) {
-
-  if (missing(method))
-    stop("valid statistical tests are:\n",
-         sprintf("    %-15s %s\n", names(mvber.labels), mvber.labels))
-
-  if (method %in% available.mvber.vartests)
-    method = which(available.mvber.vartests %in% method)
-  else
-    stop("valid statistical tests are:\n",
-         sprintf("    %-15s %s\n", names(mvber.labels), mvber.labels))
-
-  return(method)
-
-}#CHECK.MVBER.VARTEST
-
 # check a prior distribution against the observed variable.
 check.classifier.prior = function(prior, training) {
 
@@ -2332,6 +2340,8 @@ check.gnode.vs.spec = function(new, old, node) {
     if (!is.null(names(new$coef)))
       check.nodes(names(new$coef), graph = names(old$coefficients),
         min.nodes = length(names(old$coefficients)))
+    else
+      names(new$coef) = names(old$coef)
     # same number of residuals.
     if (!is.null(new$resid))
       if (length(new$resid) != length(old$residuals))
@@ -2353,8 +2363,12 @@ check.gnode.vs.spec = function(new, old, node) {
     # if the new coefficients have labels, they must match.
     if (!is.null(names(new$coef)))
       check.nodes(names(new$coef), graph = old, min.nodes = length(old))
+    else
+      names(new$coef) = old
 
   }#ELSE
+
+  return(new)
 
 }#CHECK.GNODE.VS.SPEC
 

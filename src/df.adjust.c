@@ -32,9 +32,9 @@ double df = 0;
     alx = aly = 0;
 
     for (i = 0; i < llx; i++)
-      alx += (ni[i][k] > 0);
+      alx += (ni[k][i] > 0);
     for (j = 0; j < lly; j++)
-      aly += (nj[j][k] > 0);
+      aly += (nj[k][j] > 0);
 
     /* ensure the degrees of freedom will not be negative. */
     alx = (alx >= 1) ? alx : 1;

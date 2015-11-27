@@ -118,7 +118,7 @@ SEXP nodes, try;
             prior = fwd[k];
             break;
           default:
-            prior = 1 - bkwd[k] - fwd[k];
+            prior = fmax2(0, 1 - bkwd[k] - fwd[k]);
 
         }/*SWITCH*/
 
@@ -149,8 +149,8 @@ SEXP nodes, try;
     }/*THEN*/
 
     /* move to log-scale and divide by the non-informative log(1/3), so that
-     * the contribution of each arc whose prior has not been not specified by
-     * the user is zero; overflow is likely otherwise. */
+     * the contribution of each arc whose prior has not been specified by the
+     * user is zero; overflow is likely otherwise. */
     result += log(prior / ((double)1/3));
 
   }/*FOR*/
@@ -160,7 +160,7 @@ SEXP nodes, try;
 }/*CASTELO_PRIOR*/
 
 /* complete a prior as per Castelo & Siebes. */
-SEXP castelo_completion(SEXP prior, SEXP nodes)  {
+SEXP castelo_completion(SEXP prior, SEXP nodes, SEXP learning)  {
 
 int i = 0, k = 0, cur = 0, narcs1 = 0, narcs2 = 0, nnodes = length(nodes);
 int *m1 = NULL, *m2 = NULL, *und = NULL, *aid = NULL, *poset = NULL, *id = NULL;
@@ -179,7 +179,7 @@ SEXP result, from, to, nid, dir1, dir2;
   PROTECT(arc_id = allocVector(INTSXP, narcs1));
   aid = INTEGER(arc_id);
 
-  c_arc_hash(narcs1, nnodes, m1, m2, aid, NULL, TRUE);
+  c_arc_hash(narcs1, nnodes, m1, m2, aid, NULL, FALSE);
 
   /* duplicates correspond to undirected arcs. */
   PROTECT(undirected = dupe(arc_id));
@@ -236,12 +236,33 @@ SEXP result, from, to, nid, dir1, dir2;
 
     }/*ELSE*/
 
+    /* check the probabilities do not exceed 1; fail only for large errors. */
     if (d1[k] + d2[k] > 1) {
 
-      UNPROTECT(9);
+      if (d1[k] + d2[k] < 1 + 2 * MACHINE_TOL) {
 
-      error("the probabilities for arc %s -> %s sum to %lf.",
-        CHAR(STRING_ELT(from, k)), CHAR(STRING_ELT(to, k)), d1[k] + d2[k]);
+        d1[k] = d1[k] / (d1[k] + d2[k]);
+        d2[k] = d2[k] / (d1[k] + d2[k]);
+
+      }/*THEN*/
+      else {
+
+        UNPROTECT(9);
+
+        error("the probabilities for arc %s -> %s sum to %lf.",
+          CHAR(STRING_ELT(from, k)), CHAR(STRING_ELT(to, k)), d1[k] + d2[k]);
+
+      }/*ELSE*/
+
+    }/*THEN*/
+
+    /* bound the probability of not including an arc away from zero, structure
+     * learning otherwise fails when starting from the empty graph and gets
+     * stuck very easily in general. */
+    if (isTRUE(learning) && (fabs(1 - d1[k] - d2[k]) < MACHINE_TOL)) {
+
+      d1[k] = d1[k] - MACHINE_TOL;
+      d2[k] = d2[k] - MACHINE_TOL;
 
     }/*THEN*/
 

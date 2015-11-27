@@ -4,7 +4,7 @@
 \alias{as.bn.fit.grain}
 \alias{as.grain}
 \alias{as.grain.bn.fit}
-\title{ Import and export networks from the gRain package }
+\title{Import and export networks from the gRain package}
 \description{
 
   Convert \code{bn.fit} objects to \code{grain} objects and vice versa.
@@ -36,8 +36,8 @@
 }
 \value{
 
-  An object of class \code{grain} (for \code{as.grain}) or \code{bn.fit}
-  (for \code{as.bn.fit}).
+  An object of class \code{grain} (for \code{as.grain}) or \code{bn.fit} (for
+  \code{as.bn.fit}).
 
 }
 \examples{

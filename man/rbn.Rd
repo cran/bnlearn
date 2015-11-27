@@ -2,7 +2,7 @@
 \alias{rbn}
 \alias{rbn.bn}
 \alias{rbn.bn.fit}
-\title{ Simulate random data from a given Bayesian network }
+\title{Simulate random data from a given Bayesian network}
 \description{
 
   Simulate random data from a given Bayesian network.
@@ -14,24 +14,22 @@
 }
 \arguments{
   \item{x}{an object of class \code{bn} or \code{bn.fit}.}
-  \item{n}{a positive integer giving the number of observations
-       to generate.}
-  \item{data}{a data frame containing the data the Bayesian network
-       was learned from.}
+  \item{n}{a positive integer giving the number of observations to generate.}
+  \item{data}{a data frame containing the data the Bayesian network was learned
+    from.}
   \item{fit}{a character string, the label of the method used to fit the
-       parameters of the newtork. See \code{\link{bn.fit}} for details.}
-  \item{...}{additional arguments for the parameter estimation prcoedure,
-    see again \code{\link{bn.fit}} for details..}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-       is printed; otherwise the function is completely silent.}
+    parameters of the newtork. See \code{\link{bn.fit}} for details.}
+  \item{...}{additional arguments for the parameter estimation prcoedure, see
+    again \code{\link{bn.fit}} for details..}
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
+    printed; otherwise the function is completely silent.}
 }
 \value{
 
-  A data frame with the same structure (column names and data types)
-  of the \code{data} parameter (if \code{x} is an object of class \code{bn})
-  or with the same structure as the data originally used to to fit the
-  parameters of the Bayesian network (if \code{x} is an object of class
-  \code{bn.fit}).
+  A data frame with the same structure (column names and data types) of the
+  \code{data} parameter (if \code{x} is an object of class \code{bn}) or with
+  the same structure as the data originally used to to fit the parameters of
+  the Bayesian network (if \code{x} is an object of class \code{bn.fit}).
 
 }
 \references{

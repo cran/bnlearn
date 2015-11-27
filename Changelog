@@ -1,3 +1,30 @@
+bnlearn (3.9)
+
+  * fixed alpha threshold truncation bug in conditional independence tests
+     (thanks Janko Tackmann).
+  * massive cleanup of the C code handling conditional independence tests.
+  * fixed variance scaling bug for the mi-cg test (thanks Nicholas Mitsakakis).
+  * in the exact t-test for correlation and in Fisher's Z, assume independence
+     instead of returning an error when degrees of freedom are < 1.
+  * fixed segfault in cpdist(..., method = "lw") when the evidence has
+     probability zero.
+  * added loss functions based on MAP predictions in bn.cv().
+  * removed bn.moments() and bn.var(), they were basically unmaintained and had
+     numerical stability problems.
+  * added support for hold-out cross-validation in bn.cv().
+  * added plot() methods for comparing the results of different bn.cv() calls.
+  * permutation tests should return a p-value of 1 when one of the two
+     variables being tested is constant (thanks Maxime Gasse).
+  * improved handling of zero prior probabilities for arcs in the Castelo &
+     Siebes prior, so that hc() and tabu() do not get stuck (thanks Jim Metz).
+  * added an "effective" argument to compute the effective degrees of freedoms
+     of the network, estimated with the number of non-zero free parameters.
+  * fixed optional argument handling in rsmax2().
+  * fixed more corner cases related to singular models in 
+     cpdist(..., method = "lw") and predict(..., method = "bayes-lw").
+  * fixed Pearson's X^2 test, zero cells may have dropped too often in
+     sparse contingency tables.
+
 bnlearn (3.8.1)
 
   * fixed CPT import in read.net().

@@ -8,7 +8,7 @@ int n = length(VECTOR_ELT(obj, 0));
 int *row = NULL;
 SEXP rownames;
 
-  // generate and set the row names.
+  /* generate and set the row names. */
   if (n > 0) {
 
     PROTECT(rownames = allocVector(INTSXP, 2));
@@ -26,7 +26,7 @@ SEXP rownames;
 
   setAttrib(obj, R_RowNamesSymbol, rownames);
 
-  // set the class name.
+  /* set the class name. */
   setAttrib(obj, R_ClassSymbol, mkString("data.frame"));
 
   UNPROTECT(1);
@@ -168,4 +168,32 @@ SEXP df, nodes = getAttrib(fitted, R_NamesSymbol);
   return df;
 
 }/*FIT2DF*/
+
+/* dereference a data frame with discrete and continuous variables for mi-cg. */
+void df2micg(SEXP df, void **columns, int *nlvls, int *ndp, int *ngp) {
+
+int i = 0;
+SEXP temp;
+
+  for (i = 0; i < length(df); i++) {
+
+    temp = VECTOR_ELT(df, i);
+
+    if (TYPEOF(temp) == INTSXP) {
+
+      columns[i] = INTEGER(temp);
+      nlvls[i] = NLEVELS(temp);
+      (*ndp)++;
+
+    }/*THEN*/
+    else {
+
+      columns[i] = REAL(temp);
+      (*ngp)++;
+
+    }/*ELSE*/
+
+  }/*FOR*/
+
+}/*DF2MICG*/
 

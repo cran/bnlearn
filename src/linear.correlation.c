@@ -7,54 +7,17 @@
   if (x > 1) { \
     warning("fixed correlation coefficient greater than 1, probably due to floating point errors."); \
     x = 1; \
-  } \
+  }/*THEN*/ \
   else if (x < -1) { \
     warning("fixed correlation coefficient lesser than -1, probably due to floating point errors."); \
     x = -1; \
-  }
+  }/*THEN*/
 
 #define SAFE_COR(cov, xvar, yvar) \
   ((xvar < tol) || (yvar < tol)) ? 0 :  cov / sqrt(xvar * yvar);
 
-/* linear correlation from unknown mean and variance, to be used in C code. */
-double c_fast_cor(double *xx, double *yy, int num) {
-
-int i = 0;
-double xm = 0, ym = 0;
-long double xsd = 0, ysd = 0, sum = 0;
-double tol = MACHINE_TOL;
-
-  /* compute the mean values.  */
-  for (i = 0 ; i < num; i++) {
-
-    xm += xx[i];
-    ym += yy[i];
-
-  }/*FOR*/
-
-  xm /= num;
-  ym /= num;
-
-  /* compute the actual covariance. */
-  for (i = 0; i < num; i++) {
-
-    sum += (xx[i] - xm) * (yy[i] - ym);
-    xsd += (xx[i] - xm) * (xx[i] - xm);
-    ysd += (yy[i] - ym) * (yy[i] - ym);
-
-  }/*FOR*/
-
-  /* safety check against "divide by zero" errors. */
-  sum = SAFE_COR(sum, xsd, ysd);
-  /* double check that the coefficient is in the [-1, 1] range. */
-  COR_BOUNDS(sum);
-
-  return (double)sum;
-
-}/*C_FAST_COR*/
-
 /* linear correlation from known mean and variance, to be used in C code. */
-double c_fast_cor2(double *xx, double *yy, int num, double xm, double ym,
+double c_fast_cor(double *xx, double *yy, int num, double xm, double ym,
     long double xsd, long double ysd) {
 
 int i = 0;

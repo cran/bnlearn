@@ -20,9 +20,10 @@ fitted.assignment.backend = function(x, name, value) {
     if (is(value, c("lm", "glm", "penfit")) && is(to.replace, "bn.fit.gnode")) {
 
       # ordinary least squares, ridge, lasso, and elastic net.
-      value = list(coef = coefficients(value), resid = residuals(value),
-                fitted = fitted(value),
-                sd = cgsd(residuals(value), p = length(coefficients(value))))
+      value = list(coef = minimal.coefficients(value),
+                resid = minimal.residuals(value), fitted = minimal.fitted(value),
+                sd = cgsd(minimal.residuals(value),
+                       p = length(minimal.coefficients(value))))
       # if the intercept is not there, set it to zero.
       if ("(Intercept)" %!in% names(value$coef))
         value$coef = c("(Intercept)" = 0, value$coef)
@@ -36,7 +37,7 @@ fitted.assignment.backend = function(x, name, value) {
     }#ELSE
 
     # sanity check the new object by comparing it to the old one.
-    check.gnode.vs.spec(value, to.replace)
+    value = check.gnode.vs.spec(value, to.replace)
 
     # replace the regression coefficients, keeping the names and the ordering.
     if (is.null(names(value$coef)))

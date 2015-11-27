@@ -5,7 +5,7 @@
 \alias{reverse.arc}
 \alias{set.edge}
 \alias{drop.edge}
-\title{ Drop, add or set the direction of an arc or an edge}
+\title{Drop, add or set the direction of an arc or an edge}
 \description{
 
   Drop, add or set the direction of an arc or an edge.
@@ -20,73 +20,69 @@ reverse.arc(x, from, to, check.cycles = TRUE, debug = FALSE)
 # edge (i.e. undirected arc) operations
 set.edge(x, from, to, check.cycles = TRUE, debug = FALSE)
 drop.edge(x, from, to, debug = FALSE)
-
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
   \item{from}{a character string, the label of a node.}
   \item{to}{a character string, the label of another node.}
-  \item{check.cycles}{a boolean value. If \code{TRUE} the graph is
-    tested for acyclicity; otherwise the graph is returned anyway.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-       is printed; otherwise the function is completely silent.}
+  \item{check.cycles}{a boolean value. If \code{TRUE} the graph is tested for
+    acyclicity; otherwise the graph is returned anyway.}
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
+    printed; otherwise the function is completely silent.}
 }
 \details{
 
   The \code{set.arc} function operates in the following way:
   \itemize{
-    \item if there is no arc between \code{from} and \code{to},
-      the arc \code{from} \eqn{\rightarrow}{->} \code{to} is added.
-    \item if there is an undirected arc between \code{from} and
-      \code{to}, its direction is set to \code{from}
-      \eqn{\rightarrow}{->} \code{to}.
-    \item if the arc \code{to} \eqn{\rightarrow}{->} \code{from}
-      is present, it is reversed.
-    \item if the arc \code{from} \eqn{\rightarrow}{->} \code{to}
-      is present, no action is taken.
+    \item if there is no arc between \code{from} and \code{to}, the arc 
+      \code{from} \eqn{\rightarrow}{->} \code{to} is added.
+    \item if there is an undirected arc between \code{from} and \code{to}, its
+      direction is set to \code{from} \eqn{\rightarrow}{->} \code{to}.
+    \item if the arc \code{to} \eqn{\rightarrow}{->} \code{from} is present,
+      it is reversed.
+    \item if the arc \code{from} \eqn{\rightarrow}{->} \code{to} is present, no
+      action is taken.
   }
 
   The \code{drop.arc} function operates in the following way:
   \itemize{
-    \item if there is no arc between \code{from} and \code{to},
-      no action is taken.
-    \item if there is a directed or an undirected arc between
-      \code{from} and \code{to}, it is dropped regardless of its
-      direction.
+    \item if there is no arc between \code{from} and \code{to}, no action is
+      taken.
+    \item if there is a directed or an undirected arc between \code{from} and
+      \code{to}, it is dropped regardless of its direction.
   }
 
   The \code{reverse.arc} function operates in the following way:
   \itemize{
-    \item if there is no arc between \code{from} and \code{to},
-      it returns an error.
-    \item if there is an undirected arc between \code{from} and
-      \code{to}, it returns an error.
-    \item if the arc \code{to} \eqn{\rightarrow}{->} \code{from}
-      is present, it is reversed.
-    \item if the arc \code{from} \eqn{\rightarrow}{->} \code{to}
-      is present, it is reversed.
+    \item if there is no arc between \code{from} and \code{to}, it returns an
+      error.
+    \item if there is an undirected arc between \code{from} and \code{to}, it
+      returns an error.
+    \item if the arc \code{to} \eqn{\rightarrow}{->} \code{from} is present, it
+      is reversed.
+    \item if the arc \code{from} \eqn{\rightarrow}{->} \code{to} is present, it
+      is reversed.
   }
 
   The \code{set.edge} function operates in the following way:
   \itemize{
-    \item if there is no arc between \code{from} and \code{to},
-      the undirected arc \code{from} - \code{to} is added.
-    \item if there is an undirected arc between \code{from} and
-      \code{to}, no action is taken.
-    \item if either the arc \code{from} \eqn{\rightarrow}{->}
-      \code{to} or the arc \code{to} \eqn{\rightarrow}{->}
-      \code{from} are present, they are replaced with the
-      undirected arc \code{from} - \code{to}.
-   }
+    \item if there is no arc between \code{from} and \code{to}, the undirected
+      arc \code{from} - \code{to} is added.
+    \item if there is an undirected arc between \code{from} and \code{to}, no
+      action is taken.
+    \item if either the arc \code{from} \eqn{\rightarrow}{->} \code{to} or the
+      arc \code{to} \eqn{\rightarrow}{->} \code{from} are present, they are
+      replaced with the undirected arc \code{from} - \code{to}.
+  }
 
   The \code{drop.edge} function operates in the following way:
   \itemize{
-    \item if there is no undirected arc between \code{from} and
-      \code{to}, no action is taken.
-    \item if there is an undirected arc between \code{from} and
-      \code{to}, it is removed.
-    \item if there is a directed arc between \code{from} and
-      \code{to}, no action is taken.
+    \item if there is no undirected arc between \code{from} and \code{to}, no
+      action is taken.
+    \item if there is an undirected arc between \code{from} and \code{to}, it
+      is removed.
+    \item if there is a directed arc between \code{from} and \code{to}, no 
+      action is taken.
   }
 
 }

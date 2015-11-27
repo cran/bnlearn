@@ -119,7 +119,7 @@ rsmax2 = function(x, whitelist = NULL, blacklist = NULL, restrict = "gs",
     debug = FALSE) {
 
   restrict.args = list(test = test, alpha = alpha, B = B, strict = strict)
-  maximize.args = list(...)
+  maximize.args = c(list(...), maximize.args)
 
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
     restrict = restrict, maximize = maximize, score = score,

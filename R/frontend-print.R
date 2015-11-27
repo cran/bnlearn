@@ -240,29 +240,15 @@ print.bn.fit.cgnode = function(x, ...) {
 
 }#PRINT.BN.FIT.CGNODE
 
-# print method for class mvber.moments.
-print.mvber.moments = function(x, ...) {
-
-  # warn about unused arguments.
-  check.unused.args(list(...), character(0))
-
-  # reset the attributes to have a clean printout.
-  attributes(x) = list(R = NULL, m = NULL, class = NULL, names = names(x))
-  print(x)
-
-  invisible(x)
-
-}#PRINT.MVBER.MOMENTS
-
-# print method for k-fold cross-validation.
-print.bn.kcv = function(x, ...) {
+# print method for a single cross-validation run.
+print.bn.kcv = function(x, print.loss = TRUE, ...) {
 
   a = attributes(x)
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  cat("\n  k-fold cross-validation for Bayesian networks\n\n")
+  cat("\n ", a$method,  "cross-validation for Bayesian networks\n\n")
 
   if (is.character(a$bn)) {
 
@@ -277,7 +263,7 @@ print.bn.kcv = function(x, ...) {
     else
       fcat(formula.backend(a$bn))
 
-  }#LSE
+  }#ELSE
 
   wcat("  number of subsets:                    ", length(x))
   wcat("  loss function:                        ", loss.labels[a$loss])
@@ -285,10 +271,28 @@ print.bn.kcv = function(x, ...) {
   if ("target" %in% loss.extra.args[[a$loss]])
     wcat("  training node:                        ", a$args$target)
 
-  wcat("  expected loss:                        ", format(a$mean))
+  if (print.loss) {
 
-  cat("\n")
+    wcat("  expected loss:                        ", format(a$mean))
+    cat("\n")
+
+  }#THEN
 
   invisible(x)
 
 }#PRINT.BN.KCV
+
+# print method for a list containing multiple cross-validation runs.
+print.bn.kcv.list = function(x, ...) {
+
+  losses = sapply(x, function(x) attr(x, "mean"))
+
+  print.bn.kcv(x[[1]], print.loss = FALSE)
+  wcat("  number of runs:                       ", length(x))
+  wcat("  average loss over the runs:           ", format(mean(losses)))
+  wcat("  standard deviation of the loss:       ", format(cgsd(losses)))
+  cat("\n")
+
+  invisible(x)
+
+}#PRINT.BN.KCV.LIST

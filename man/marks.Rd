@@ -4,8 +4,7 @@
 \title{Examination marks data set}
 \description{
 
-  Examination marks of 88 students on five different
-  topics, from Mardia (1979).
+  Examination marks of 88 students on five different topics, from Mardia (1979).
 
 }
 \usage{
@@ -13,8 +12,8 @@ data(marks)
 }
 \format{
 
-  The \code{marks} data set contains the following variables,
-  one for each topic in the examination:
+  The \code{marks} data set contains the following variables, one for each 
+  topic in the examination:
   \itemize{
 
     \item \code{MECH} (\emph{mechanics})
@@ -30,11 +29,11 @@ data(marks)
 }
 \source{
 
-  Edwards DI (2000). \emph{Introduction to Graphical Modelling}.
-      Springer, 2nd edition.
+  Edwards DI (2000). \emph{Introduction to Graphical Modelling}. Springer, 2nd
+      edition.
 
-  Mardia KV, Kent JT, Bibby JM (1979). \emph{Multivariate Analysis}.
-      Academic Press.
+  Mardia KV, Kent JT, Bibby JM (1979). \emph{Multivariate Analysis}. Academic
+      Press.
 
   Whittaker J (1990). \emph{Graphical Models in Applied Multivariate
       Statistics}. Wiley.

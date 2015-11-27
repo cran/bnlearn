@@ -41,8 +41,6 @@
         /* update the covariance matrix. */ \
         memcpy(cov, basecov, ncols * ncols * sizeof(double)); \
         c_update_covmat(column, mean, 0, ncols, nobs, cov); \
-        /* compute the partial correlation and the test statistic. */ \
-        statistic = c_fast_pcor(cov, u, d, vt, ncols, TRUE);
 
 #define GAUSSIAN_PCOR_NOCACHE() \
       /* extract and de-reference the i-th variable. */ \
@@ -50,44 +48,15 @@
       /* allocate and compute mean values and the covariance matrix. */ \
       mean = alloc1dreal(ncols); \
       c_meanvec(column, mean, nobs, ncols, 0); \
-      c_covmat(column, mean, ncols, nobs, cov, 0); \
-      /* compute the partial correlation and the test statistic. */ \
-      statistic = c_fast_pcor(cov, u, d, vt, ncols, TRUE);
+      c_covmat(column, mean, ncols, nobs, cov, 0);
 
-/* mutual information test, with and without df adjustments. */
-static inline double ct_mi(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
-    double *pvalue, double *df, int adj) {
+#define COMPUTE_PCOR() \
+        /* compute the partial correlation and the test statistic. */ \
+        statistic = c_fast_pcor(cov, u, d, vt, ncols, TRUE);
 
-int i = 0, llx = 0, lly = NLEVELS(yy), llz = 0;
-int *xptr = NULL, *yptr = INTEGER(yy), *zptr = NULL;
-double statistic = 0;
-void *memp = NULL;
-SEXP xdata, config;
-
-  DISCRETE_CACHE();
-
-  for (i = 0; i < ntests; i++) {
-
-    memp = vmaxget();
-
-    DISCRETE_SWAP_X();
-    statistic = 2 * nobs * c_cmi(xptr, llx, yptr, lly, zptr, llz,
-                               nobs, df, adj);
-    pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
-
-    vmaxset(memp);
-
-  }/*FOR*/
-
-  UNPROTECT(1);
-
-  return statistic;
-
-}/*CT_MI*/
-
-/* shrinkage mutual information test. */
-static inline double ct_mish(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
-    double *pvalue, double *df) {
+/* parametric tests for discrete variables. */
+static double ct_discrete(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
+    double *pvalue, double *df, test_e test) {
 
 int i = 0, llx = 0, lly = NLEVELS(yy), llz = 0;
 int *xptr = NULL, *yptr = INTEGER(yy), *zptr = NULL;
@@ -102,266 +71,163 @@ SEXP xdata, config;
     memp = vmaxget();
 
     DISCRETE_SWAP_X();
-    statistic = 2 * nobs * c_shcmi(xptr, llx, yptr, lly, zptr, llz,
-                               nobs, df);
-    pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
 
-    vmaxset(memp);
+    if (test == MI || test == MI_ADF || test == X2 || test == X2_ADF) {
 
-  }/*FOR*/
-
-  UNPROTECT(1);
-
-  return statistic;
-
-}/*CT_MISH*/
-
-/* Pearson's X^2 test, with and without df adjustments. */
-static inline double ct_x2(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
-    double *pvalue, double *df, int adj) {
-
-int i = 0, llx = 0, lly = NLEVELS(yy), llz = 0;
-int *xptr = NULL, *yptr = INTEGER(yy), *zptr = NULL;
-double statistic = 0;
-void *memp = NULL;
-SEXP xdata, config;
-
-  DISCRETE_CACHE();
-
-  for (i = 0; i < ntests; i++) {
-
-    memp = vmaxget();
-
-    DISCRETE_SWAP_X();
-    statistic = c_cx2(xptr, llx, yptr, lly, zptr, llz, nobs, df, adj);
-    pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
-
-    vmaxset(memp);
-
-  }/*FOR*/
-
-  UNPROTECT(1);
-
-  return statistic;
-
-}/*CT_X2*/
-
-/* Jonckheere-Terpstra test. */
-static inline double ct_jt(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
-    double *pvalue) {
-
-int i = 0, llx = 0, lly = NLEVELS(yy), llz = 0;
-int *xptr = NULL, *yptr = INTEGER(yy), *zptr = NULL;
-double statistic = 0;
-void *memp = NULL;
-SEXP xdata, config;
-
-  DISCRETE_CACHE();
-
-  for (i = 0; i < ntests; i++) {
-
-    memp = vmaxget();
-
-    DISCRETE_SWAP_X();
-    statistic = c_cjt(xptr, llx, yptr, lly, zptr, llz, nobs);
-    pvalue[i] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
-
-    vmaxset(memp);
-
-  }/*FOR*/
-
-  UNPROTECT(1);
-
-  return statistic;
-
-}/*CT_JT*/
-
-/* Pearson's linear correlation test. */
-static inline double ct_cor(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
-    double *pvalue, double *df) {
-
-int i = 0, nsx = length(zz), ncols = nsx + 2;
-double transform = 0, **column = NULL, *mean = NULL, statistic = 0;
-double *u = NULL, *d = NULL, *vt = NULL, *cov = NULL, *basecov = 0;
-
-  /* check that we have enough degrees of freedom. */
-  *df = nobs - ncols;
-
-  if (*df < 1)
-    error("trying to do a conditional independence test with zero degrees of freedom.");
-
-  GAUSSIAN_CACHE();
-
-  if (ntests > 1) {
-
-    /* allocate and compute mean values and the covariance matrix. */
-    mean = alloc1dreal(ncols);
-    c_meanvec(column, mean, nobs, ncols, 1);
-    c_covmat(column, mean, ncols, nobs, cov, 1);
-    memcpy(basecov, cov, ncols * ncols * sizeof(double));
-
-    for (i = 0; i < ntests; i++) {
-
-      /* no allocations require a vmax{get,set}() call. */
-
-      GAUSSIAN_PCOR_CACHE();
-      transform = fabs(statistic * sqrt(*df) / sqrt(1 - statistic * statistic));
-      pvalue[i] = 2 * pt(transform, *df, FALSE, FALSE);
-
-    }/*FOR*/
-
-  }/*THEN*/
-  else {
-
-    GAUSSIAN_PCOR_NOCACHE();
-    transform = fabs(statistic * sqrt(*df) / sqrt(1 - statistic * statistic));
-    pvalue[0] = 2 * pt(transform, *df, FALSE, FALSE);
-
-  }/*ELSE*/
-
-  return statistic;
-
-}/*CT_COR*/
-
-/* Fisher's Z test. */
-static inline double ct_zf(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
-    double *pvalue) {
-
-int i = 0, nsx = length(zz), ncols = nsx + 2;
-double **column = NULL, *mean = NULL, *cov = NULL, *basecov = NULL;
-double *u = NULL, *d = NULL, *vt = NULL, statistic = 0;
-
-  /* check that we have enough degrees of freedom. */
-  if (nobs - 1 - ncols < 1)
-    error("trying to do an independence test with zero degrees of freedom.");
-
-  GAUSSIAN_CACHE();
-
-  if (ntests > 1) {
-
-    /* allocate and compute mean values and the covariance matrix. */
-    mean = alloc1dreal(ncols);
-    c_meanvec(column, mean, nobs, ncols, 1);
-    c_covmat(column, mean, ncols, nobs, cov, 1);
-    memcpy(basecov, cov, ncols * ncols * sizeof(double));
-
-    for (i = 0; i < ntests; i++) {
-
-      /* no allocations require a vmax{get,set}() call. */
-
-      GAUSSIAN_PCOR_CACHE();
-      statistic = log((1 + statistic)/(1 - statistic)) / 2 *
-                    sqrt((double)nobs - 1 - ncols);
-      pvalue[i] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
-
-    }/*FOR*/
-
-  }/*THEN*/
-  else {
-
-    GAUSSIAN_PCOR_NOCACHE();
-    statistic = log((1 + statistic)/(1 - statistic)) / 2 *
-                  sqrt((double)nobs - 1 - ncols);
-    pvalue[0] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
-
-  }/*ELSE*/
-
-  return statistic;
-
-}/*CT_ZF*/
-
-/* Gaussian mutual information test. */
-static inline double ct_mig(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
-    double *pvalue, double *df) {
-
-int i = 0, nsx = length(zz), ncols = nsx + 2;
-double **column = NULL, *mean = NULL, *cov = NULL, *basecov = NULL;
-double *u = NULL, *d = NULL, *vt = NULL, statistic = 0;
-
-  *df = 1;
-
-  GAUSSIAN_CACHE();
-
-  if (ntests > 1) {
-
-    /* allocate and compute mean values and the covariance matrix. */
-    mean = alloc1dreal(ncols);
-    c_meanvec(column, mean, nobs, ncols, 1);
-    c_covmat(column, mean, ncols, nobs, cov, 1);
-    memcpy(basecov, cov, ncols * ncols * sizeof(double));
-
-    for (i = 0; i < ntests; i++) {
-
-      /* no allocations require a vmax{get,set}() call. */
-
-      GAUSSIAN_PCOR_CACHE();
-      statistic = - nobs * log(1 - statistic * statistic);
+      /* mutual information and Pearson's X^2 asymptotic tests. */
+      statistic = c_cchisqtest(xptr, llx, yptr, lly, zptr, llz, nobs, df, test);
+      if ((test == MI) || (test == MI_ADF))
+        statistic = 2 * nobs * statistic;
       pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
 
+    }/*THEN*/
+    else if (test == MI_SH) {
+
+      /* shrinkage mutual information test. */
+      statistic = 2 * nobs * c_shcmi(xptr, llx, yptr, lly, zptr, llz,
+                               nobs, df);
+      pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
+
+    }/*THEN*/
+    else if (test == JT) {
+
+      /* Jonckheere-Terpstra test. */
+      statistic = c_cjt(xptr, llx, yptr, lly, zptr, llz, nobs);
+      pvalue[i] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
+
+    }/*THEN*/
+
+    vmaxset(memp);
+
+  }/*FOR*/
+
+  UNPROTECT(1);
+
+  return statistic;
+
+}/*CT_DISCRETE*/
+
+/* parametric tests for Gaussian variables. */
+static double ct_gaustests(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
+    double *pvalue, double *df, test_e test) {
+
+int i = 0, nsx = length(zz), ncols = nsx + 2;
+double transform = 0, **column = NULL, *mean = NULL, statistic = 0, lambda = 0;
+double *u = NULL, *d = NULL, *vt = NULL, *cov = NULL, *basecov = 0;
+
+  /* compute the degrees of freedom for correlation and mutual information. */
+  if (test == COR)
+    *df = nobs - ncols;
+  else if ((test == MI_G) || (test == MI_G_SH))
+    *df = 1; 
+
+  if (((test == COR) && (*df < 1)) || ((test == ZF) && (nobs - ncols < 2))) {
+
+    /* if there are not enough degrees of freedom, return independence. */
+    warning("trying to do a conditional independence test with zero degrees of freedom.");
+
+    *df = 0;
+    statistic = 0;
+    for (i = 0; i < ntests; i++)
+      pvalue[i] = 1;
+
+    return statistic;
+
+  }/*THEN*/
+
+  GAUSSIAN_CACHE();
+
+  if (ntests > 1) {
+
+    /* allocate and compute mean values and the covariance matrix. */
+    mean = alloc1dreal(ncols);
+    c_meanvec(column, mean, nobs, ncols, 1);
+    c_covmat(column, mean, ncols, nobs, cov, 1);
+    memcpy(basecov, cov, ncols * ncols * sizeof(double));
+
+    for (i = 0; i < ntests; i++) {
+
+      /* no allocations require a vmax{get,set}() call. */
+
+      GAUSSIAN_PCOR_CACHE();
+
+      if (test == COR) {
+
+        COMPUTE_PCOR();
+        transform = cor_t_trans(statistic, *df);
+        pvalue[i] = 2 * pt(fabs(transform), *df, FALSE, FALSE);
+
+      }/*THEN*/
+      else if (test == MI_G) {
+
+        COMPUTE_PCOR();
+        statistic = 2 * nobs * cor_mi_trans(statistic);
+        pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
+
+      }/*THEN*/
+      else if (test == MI_G_SH) {
+
+        lambda = covmat_lambda(column, mean, cov, nobs, ncols);
+        covmat_shrink(cov, ncols, lambda);
+        COMPUTE_PCOR();
+        statistic = 2 * nobs * cor_mi_trans(statistic);
+        pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
+
+      }/*THEN*/
+      else if (test == ZF) {
+
+        COMPUTE_PCOR();
+        statistic = cor_zf_trans(statistic, (double)nobs - ncols);
+        pvalue[i] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
+
+      }/*THEN*/
+
     }/*FOR*/
 
   }/*THEN*/
   else {
 
     GAUSSIAN_PCOR_NOCACHE();
-    statistic = - nobs * log(1 - statistic * statistic);
-    pvalue[0] = pchisq(statistic, *df, FALSE, FALSE);
+
+    if (test == COR) {
+
+      COMPUTE_PCOR();
+      transform = cor_t_trans(statistic, *df);
+      pvalue[0] = 2 * pt(fabs(transform), *df, FALSE, FALSE);
+
+    }/*THEN*/
+    else if (test == MI_G) {
+
+      COMPUTE_PCOR();
+      statistic = 2 * nobs * cor_mi_trans(statistic);
+      pvalue[0] = pchisq(statistic, *df, FALSE, FALSE);
+
+    }/*THEN*/
+    else if (test == MI_G_SH) {
+
+      lambda = covmat_lambda(column, mean, cov, nobs, ncols);
+      covmat_shrink(cov, ncols, lambda);
+      COMPUTE_PCOR();
+      statistic = 2 * nobs * cor_mi_trans(statistic);
+      pvalue[0] = pchisq(statistic, *df, FALSE, FALSE);
+
+    }/*THEN*/
+    else if (test == ZF) {
+
+      COMPUTE_PCOR();
+      statistic = cor_zf_trans(statistic, (double)nobs - ncols);
+      pvalue[0] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
+
+    }/*THEN*/
 
   }/*ELSE*/
 
   return statistic;
 
-}/*CT_MIG*/
-
-/* shrinkage Gaussian mutual information test. */
-static inline double ct_migsh(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
-    double *pvalue, double *df) {
-
-int i = 0, nsx = length(zz), ncols = nsx + 2;
-double **column = NULL, *mean = NULL, *cov = NULL;
-double *u = NULL, *d = NULL, *vt = NULL, statistic = 0;
-
-  *df = 1;
-
-  /* allocate the covariance matrix. */
-  cov = alloc1dreal(ncols * ncols);
-
-  /* allocate the matrices needed for the SVD decomposition. */
-  u = alloc1dreal(ncols * ncols);
-  d = alloc1dreal(ncols);
-  vt = alloc1dreal(ncols * ncols);
-
-  GAUSSIAN_COLUMN_CACHE();
-
-  /* allocate and compute the mean values. */
-  mean = alloc1dreal(ncols);
-  c_meanvec(column, mean, nobs, ncols, 1);
-
-  for (i = 0; i < ntests; i++) {
-
-    /* no allocations require a vmax{get,set}() call. */
-
-    /* extract and de-reference the i-th variable. */
-    column[0] = REAL(VECTOR_ELT(xx, i));
-    /* update the corresponding mean in the cache. */
-    c_update_meanvec(column, mean, 0, nobs);
-    /* compute the covariance matrix. */
-    memset(cov, '\0', ncols * ncols * sizeof(double));
-    c_cov_lambda(column, mean, ncols, nobs, cov);
-    /* compute the partial correlation and the test statistic. */
-    statistic = c_fast_pcor(cov, u, d, vt, ncols, TRUE);
-    statistic = - nobs * log(1 - statistic * statistic);
-    pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
-
-  }/*FOR*/
-
-  return statistic;
-
-}/*CT_MIGSH*/
-
+}/*CT_GAUSTESTS*/
 
 /* conditional linear Gaussian mutual information test. */
-static inline double ct_micg(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
+static double ct_micg(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
     double *pvalue, double *df) {
 
 int xtype = 0, ytype = TYPEOF(yy), *nlvls = NULL, llx = 0, lly = 0, llz = 0;
@@ -370,7 +236,7 @@ int i = 0, *zptr = 0;
 void *xptr = NULL, *yptr = NULL, **columns = NULL;
 double **gp = NULL;
 double statistic = 0;
-SEXP xdata, temp;
+SEXP xdata;
 
   if (ytype == INTSXP) {
 
@@ -388,26 +254,7 @@ SEXP xdata, temp;
   /* extract the conditioning variables and cache their types. */
   columns = Calloc(nsx, void *);
   nlvls = Calloc(nsx, int);
-
-  for (i = 0; i < nsx; i++) {
-
-    temp = VECTOR_ELT(zz, i);
-
-    if (TYPEOF(temp) == INTSXP) {
-
-      ndp++;
-      columns[i] = INTEGER(temp);
-      nlvls[i] = NLEVELS(temp);
-
-    }/*THEN*/
-    else {
-
-      ngp++;
-      columns[i] = REAL(temp);
-
-    }/*ELSE*/
-
-  }/*FOR*/
+  df2micg(zz, columns, nlvls, &ndp, &ngp);
 
   dp = Calloc(ndp + 1, int *);
   gp = Calloc(ngp + 1, double *);
@@ -464,8 +311,8 @@ SEXP xdata, temp;
       else {
 
         /* the test reverts back to a discrete mutual information test. */
-        statistic = 2 * nobs * c_cmi(xptr, llx, yptr, lly, zptr, llz,
-                                 nobs, df, FALSE);
+        statistic = 2 * nobs * c_cchisqtest(xptr, llx, yptr, lly, zptr, llz,
+                                 nobs, df, MI);
 
       }/*ELSE*/
 
@@ -521,8 +368,8 @@ SEXP xdata, temp;
 }/*CT_MICG*/
 
 /* discrete permutation tests. */
-static inline double ct_dperm(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
-    double *pvalue, double *df, int type, int B, int a) {
+static double ct_dperm(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
+    double *pvalue, double *df, test_e type, int B, double a) {
 
 int i = 0, *xptr = NULL, *yptr = INTEGER(yy), *zptr = NULL;
 int llx = 0, lly = NLEVELS(yy), llz = 0;
@@ -552,8 +399,8 @@ SEXP xdata, config;
 }/*CT_DPERM*/
 
 /* continuous permutation tests. */
-static inline double ct_gperm(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
-    double *pvalue, double *df, int type, int B, int a) {
+static double ct_gperm(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
+    double *pvalue, double *df, test_e type, int B, double a) {
 
 int i = 0, nsx = length(zz), ncols = nsx + 2;
 double **column = NULL, *yptr = REAL(yy), statistic = 0;
@@ -589,6 +436,7 @@ SEXP ctest(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP B, SEXP alpha,
 int ntests = length(x), nobs = 0;
 double *pvalue = NULL, statistic = 0, df = NA_REAL;
 const char *t = CHAR(STRING_ELT(test, 0));
+test_e test_type = test_label(t);
 SEXP xx, yy, zz, result;
 
   /* allocate the return value, which the same length as x. */
@@ -604,80 +452,43 @@ SEXP xx, yy, zz, result;
   PROTECT(zz = c_dataframe_column(data, sx, FALSE, FALSE));
   nobs = length(yy);
 
-  if ((strcmp(t, "mi") == 0) || (strcmp(t, "mi-adf") == 0)) {
+  if (IS_DISCRETE_ASYMPTOTIC_TEST(test_type)) {
 
-    /* mutual information test, with and without df adjustments. */
-    statistic = ct_mi(xx, yy, zz, nobs, ntests, pvalue, &df,
-                  (strcmp(t, "mi-adf") == 0));
-
-  }/*THEN*/
-  else if (strcmp(t, "mi-sh") == 0) {
-
-    /* shrinkage mutual information test. */
-    statistic = ct_mish(xx, yy, zz, nobs, ntests, pvalue, &df);
+    /* parametric tests for discrete variables. */
+    statistic = ct_discrete(xx, yy, zz, nobs, ntests, pvalue, &df, test_type);
 
   }/*THEN*/
-  else if ((strcmp(t, "x2") == 0) || (strcmp(t, "x2-adf") == 0)) {
+  else if ((test_type == COR) || (test_type == ZF) || (test_type == MI_G) ||
+           (test_type == MI_G_SH)) {
 
-    /* Pearson's X^2 test, with and without df adjustments. */
-    statistic = ct_x2(xx, yy, zz, nobs, ntests, pvalue, &df,
-                  (strcmp(t, "x2-adf") == 0));
-
-  }/*THEN*/
-  else if (strcmp(t, "jt") == 0) {
-
-    /* Jonckheere-Terpstra test. */
-    statistic = ct_jt(xx, yy, zz, nobs, ntests, pvalue);
+    /* parametric tests for Gaussian variables. */
+    statistic = ct_gaustests(xx, yy, zz, nobs, ntests, pvalue, &df, test_type);
 
   }/*THEN*/
-  else if (strcmp(t, "cor") == 0) {
-
-    /* Pearson's linear correlation test. */
-    statistic = ct_cor(xx, yy, zz, nobs, ntests, pvalue, &df);
-
-  }/*THEN*/
-  else if (strcmp(t, "zf") == 0) {
-
-    /* Fisher's Z test. */
-    statistic = ct_zf(xx, yy, zz, nobs, ntests, pvalue);
-
-  }/*THEN*/
-  else if (strcmp(t, "mi-g") == 0) {
-
-    /* Gaussian mutual information test. */
-    statistic = ct_mig(xx, yy, zz, nobs, ntests, pvalue, &df);
-
-  }/*THEN*/
-  else if (strcmp(t, "mi-g-sh") == 0) {
-
-    /* shrinkage Gaussian mutual information test. */
-    statistic = ct_migsh(xx, yy, zz, nobs, ntests, pvalue, &df);
-
-  }/*THEN*/
-  else if (strcmp(t, "mi-cg") == 0) {
+  else if (test_type == MI_CG) {
 
     /* conditional linear Gaussian mutual information test. */
     statistic = ct_micg(xx, yy, zz, nobs, ntests, pvalue, &df);
 
   }/*THEN*/
-  else if ((strncmp(t, "mc-", 3) == 0) || (strncmp(t, "smc-", 4) == 0) ||
-           (strncmp(t, "sp-", 3) == 0)) {
+  else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
 
-    /* nonparametric and semiparametric tests. */
-    int type = 0;
-    double a = (strncmp(t, "smc-", 4) == 0) ? NUM(alpha) : 1;
+    statistic = ct_dperm(xx, yy, zz, nobs, ntests, pvalue, &df, test_type, INT(B),
+                  IS_SMC(test_type) ? NUM(alpha) : 1);
 
-    /* remap the test statistics to the constants used in monte.carlo.c. */
-    type = remap_permutation_test(t);
+  }/*THEN*/
+  else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
 
-    if (DISCRETE_PERMUTATION_TEST(type))
-      statistic = ct_dperm(xx, yy, zz, nobs, ntests, pvalue, &df, type, INT(B), a);
-    else
-      statistic = ct_gperm(xx, yy, zz, nobs, ntests, pvalue, &df, type, INT(B), a);
+    statistic = ct_gperm(xx, yy, zz, nobs, ntests, pvalue, &df, test_type, INT(B),
+                  IS_SMC(test_type) ? NUM(alpha) : 1);
 
   }/*THEN*/
 
   UNPROTECT(4);
+
+  /* catch-all for unknown tests (after deallocating memory.) */
+  if (test_type == ENOTEST)
+    error("unknown test statstic '%s'.", t);
 
   /* increase the test counter. */
   test_counter += ntests;

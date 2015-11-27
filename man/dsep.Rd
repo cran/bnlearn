@@ -1,6 +1,6 @@
 \name{dsep}
 \alias{dsep}
-\title{ Test d-separation }
+\title{Test d-separation}
 \description{
 
   Check whether two nodes are d-separated.

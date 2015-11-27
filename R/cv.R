@@ -1,18 +1,30 @@
 
-crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args,
-    loss.args, fit, fit.args, cluster = NULL, debug = FALSE) {
+crossvalidation = function(data, bn, loss = NULL, k = 5, m = m, algorithm.args,
+    loss.args, fit, fit.args, method, cluster = NULL, debug = FALSE) {
 
   n = nrow(data)
 
-  # shuffle the data to get unbiased splits.
-  kcv = split(sample(n), seq_len(k))
-  # store the length of each test set.
-  kcv.length = sapply(kcv, length)
+  if (method == "k-fold") {
 
-  if (debug) {
+    # shuffle the data to get unbiased splits (do not warn about fold size).
+    kcv = suppressWarnings(split(sample(n), seq_len(k)))
+    # store the length of each test set.
+    kcv.length = sapply(kcv, length)
 
-    cat("* splitting", n, "data in", k, "subsets.\n")
-    cat("----------------------------------------------------------------\n")
+    if (debug) {
+
+      cat("* splitting", n, "data in", k, "subsets.\n")
+      cat("----------------------------------------------------------------\n")
+
+    }#THEN
+
+  }#THEN
+  else if (method == "hold-out") {
+
+    # sample m observations without replacement.
+    kcv = lapply(seq(k), function(x) sample(n, m)) 
+    # all test sets have the same length, a dummy works just fine.
+    kcv.length = rep(m, k)
 
   }#THEN
 
@@ -69,11 +81,11 @@ crossvalidation = function(data, bn, loss = NULL, k = 5, algorithm.args,
   names(kcv) = NULL
   # add some useful attributes to the return value.
   kcv = structure(kcv, class = "bn.kcv", loss = loss, args = loss.args,
-          bn = bn, mean = mean)
+          bn = bn, mean = mean, method = method)
 
   return(kcv)
 
-}#BN.CV
+}#CROSSVALIDATION
 
 bn.cv.algorithm = function(test, data, algorithm, algorithm.args, loss,
     loss.args, fit, fit.args, debug = FALSE) {

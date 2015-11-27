@@ -3,12 +3,11 @@
 \alias{all.equal.bn}
 \alias{shd}
 \alias{hamming}
-\title{ Compare two different Bayesian networks }
+\title{Compare two different Bayesian networks}
 \description{
 
- Compare two different Bayesian networks; compute the Structural
- Hamming Distance (SHD) between them or the Hamming distance
- between their skeletons.
+  Compare two different Bayesian networks; compute the Structural Hamming
+  Distance (SHD) between them or the Hamming distance between their skeletons.
 
 }
 \usage{
@@ -22,29 +21,29 @@ hamming(learned, true, debug = FALSE)
   \item{target, learned}{an object of class \code{bn}.}
   \item{current, true}{another object of class \code{bn}.}
   \item{\dots}{extra arguments from the generic method (currently ignored).}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-    is printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
+    printed; otherwise the function is completely silent.}
   \item{arcs}{a boolean value. See below.}
 }
 \note{
 
-  Note that SHD, as defined in the reference, is defined on CPDAGs;
-  therefore \code{cpdag} is called on both \code{learned} and \code{true}
-  before computing the distance.
+  Note that SHD, as defined in the reference, is defined on CPDAGs; therefore
+  \code{cpdag} is called on both \code{learned} and \code{true} before computing
+  the distance.
 
 }
 \value{
 
   \code{compare} returns a list containing the number of true positives
-    (\code{tp}, the number of arcs in \code{current} also present in
-    \code{target}), of false positives (\code{fp}, the number of arcs in
-    \code{current} not present in \code{target}) and of false negatives
-    (\code{tn}, the number of arcs not in \code{current} but present in
-    \code{target}) if \code{arcs} is \code{FALSE}; or the corresponding
-    arc sets if \code{arcs} is \code{TRUE}.
+  (\code{tp}, the number of arcs in \code{current} also present in
+  \code{target}), of false positives (\code{fp}, the number of arcs in
+  \code{current} not present in \code{target}) and of false negatives
+  (\code{fn}, the number of arcs not in \code{current} but present in
+  \code{target}) if \code{arcs} is \code{FALSE}; or the corresponding arc sets
+  if \code{arcs} is \code{TRUE}.
 
-  \code{all.equal} returns either \code{TRUE} or a character string
-  describing the differences between \code{target} and \code{current}.
+  \code{all.equal} returns either \code{TRUE} or a character string describing
+  the differences between \code{target} and \code{current}.
 
   \code{shd} and \code{hamming} return a non-negative integer number.
 

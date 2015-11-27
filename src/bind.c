@@ -2,12 +2,13 @@
 #include "include/matrix.h"
 #include "include/bn.h"
 
+/* faster rbind() implementation for arc sets. */
 SEXP arcs_rbind (SEXP matrix1, SEXP matrix2, SEXP reverse2) {
 
 int i = 0, j = 0, m1 = length(matrix1)/2, m2 = length(matrix2)/2;
 SEXP res;
 
-  /* allocate the reutrn value*/
+  /* allocate the return value. */
   PROTECT(res = allocMatrix(STRSXP, m1 + m2, 2));
   /* allocate and initialize the column names. */
   finalize_arcs(res);
@@ -39,3 +40,4 @@ SEXP res;
   return res;
 
 }/*ARCS_RBIND*/
+

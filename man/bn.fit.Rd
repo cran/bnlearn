@@ -3,7 +3,7 @@
 \alias{custom.fit}
 \alias{bn.net}
 \alias{$<-.bn.fit}
-\title{ Fit the parameters of a Bayesian network }
+\title{Fit the parameters of a Bayesian network}
 \description{
 
   Fit the parameters of a Bayesian network conditional on its structure.
@@ -22,19 +22,19 @@ bn.net(x, debug = FALSE)
   \item{method}{a character string, either \code{mle} for \emph{Maximum
     Likelihood parameter estimation} or \code{bayes} for \emph{Bayesian
     parameter estimation} (currently implemented only for discrete data).}
-  \item{...}{additional arguments for the parameter estimation prcoedure,
-    see below.}
+  \item{...}{additional arguments for the parameter estimation prcoedure, see
+    below.}
   \item{ordinal}{a vector of character strings, the labels of the discrete
-    nodes which should be saved as ordinal random variables (\code{bn.fit.onode})
-    instead of unordered  factors (\code{bn.fit.dnode}).}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-    is printed; otherwise the function is completely silent.}
+    nodes which should be saved as ordinal random variables
+    (\code{bn.fit.onode}) instead of unordered  factors (\code{bn.fit.dnode}).}
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
+    printed; otherwise the function is completely silent.}
 }
 \details{
 
-  \code{bn.fit} fits the parameters of a Bayesian network given its
-  structure and a data set; \code{bn.net} returns the structure underlying
-  a fitted Bayesian network.
+  \code{bn.fit} fits the parameters of a Bayesian network given its structure
+  and a data set; \code{bn.net} returns the structure underlying a fitted 
+  Bayesian network.
 
   An in-place replacement method is available to change the parameters of each
   node in a \code{bn.fit} object; see the examples for discrete, continuous and
@@ -50,30 +50,35 @@ bn.net(x, debug = FALSE)
   \code{coef} should contain the new regression coefficients, \code{sd} the
   standard deviation of the residuals, \code{fitted} the fitted values and
   \code{resid} the residuals. \code{configs} should contain the configurations
-  if the discrete parents of the conditional Gaussian node, stored as a
-  factor.
+  if the discrete parents of the conditional Gaussian node, stored as a factor.
 
   \code{custom.fit} takes a set of user-specified distributions and their
-  parameters and uses them to build a \code{bn.fit} object. Its purpose is
-  to specify a Bayesian network (complete with the parameters, not only
-  the structure) using knowledge from experts in the field instead of
-  learning it from a data set. The distributions must be passed to the
-  function in a list, with elements named after the nodes of the network
-  structure \code{x}. Each element of the list must be in one of the
-  formats described above for in-place replacement.
+  parameters and uses them to build a \code{bn.fit} object. Its purpose is to
+  specify a Bayesian network (complete with the parameters, not only the 
+  structure) using knowledge from experts in the field instead of learning it
+  from a data set. The distributions must be passed to the function in a list,
+  with elements named after the nodes of the network structure \code{x}. Each
+  element of the list must be in one of the formats described above for
+  in-place replacement.
 
 }
 \note{
 
-  Due to the way Bayesian networks are defined it is possible to
-  estimate their parameters only if the network structure is
-  completely directed (i.e. there are no undirected arcs). See
-  \code{\link{set.arc}} and \code{\link{pdag2dag}} for two ways
-  of manually setting the direction of one or more arcs.
+  Due to the way Bayesian networks are defined it is possible to estimate their
+  parameters only if the network structure is completely directed (i.e. there
+  are no undirected arcs). See \code{\link{set.arc}} and \code{\link{pdag2dag}}
+  for two ways of manually setting the direction of one or more arcs.
 
   The only supported additional parameter is the imaginary sample size
-  (\code{iss}) for the Dirichlet posterior distribution of discrete
-  networks (see \code{\link{score}} for details).
+  (\code{iss}) for the Dirichlet posterior distribution of discrete networks
+  (see \code{\link{score}} for details).
+
+  The conditional probabilities in the local distributions of discrete nodes
+  have a mximum likelihood estimate of \code{NaN} for all parents configurations
+  that are not observed in \code{data}. Such missing values propagate to the
+  results of functions such as \code{predict}. Bayesian posterior estimates do
+  not have this problem, and are very close to the corresponding maximum
+  likelihood estimates when \code{iss} is small.
 
 }
 \value{

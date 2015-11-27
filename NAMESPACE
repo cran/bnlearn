@@ -102,8 +102,6 @@ export(
   "dedup",
   "configs",
   "relevant",
-  "bn.var",
-  "bn.moments",
   "read.bif",
   "write.bif",
   "read.dsc",
@@ -118,8 +116,13 @@ export(
 
 useDynLib(bnlearn)
 
-importFrom(methods, setClass, setGeneric, setMethod)
-importFrom(stats, logLik, AIC, BIC)
+importFrom("methods", "new", "setClass", "setGeneric", "setMethod")
+importFrom("stats", "logLik", "AIC", "BIC", "coefficients", "complete.cases",
+  "cor", "dnorm", "ecdf", "fitted", "formula", "knots", "optimize", "quantile",
+  "residuals", "sd", "weighted.mean", "median")
+importFrom("grDevices", "col2rgb", "colors")
+importFrom("graphics", "abline", "arrows", "lines", "plot", "points",
+  "strheight", "strwidth", "text")
 
 S3method(as.bn, fit)
 
@@ -171,8 +174,10 @@ S3method(coef, "bn.fit.dnode")
 S3method(coef, "bn.fit.onode")
 S3method(coef, "bn.fit.gnode")
 S3method(coef, "bn.fit.cgnode")
-S3method(print, "mvber.moments")
 S3method(print, "bn.kcv")
+S3method(plot, "bn.kcv")
+S3method(print, "bn.kcv.list")
+S3method(plot, "bn.kcv.list")
 S3method(plot, "bn.strength")
 S3method(predict, "bn")
 S3method(predict, "bn.fit")

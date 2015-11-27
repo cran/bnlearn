@@ -58,7 +58,9 @@
     for (i = 0; i < nf; i++) \
       column[i + 2] = REAL(VECTOR_ELT(ff, i)); \
     for (i = 0; i < nsx + 0; i++) \
-      column[i + nf + 2] = REAL(VECTOR_ELT(zz, i)); \
+      column[i + nf + 2] = REAL(VECTOR_ELT(zz, i));
+
+#define GAUSSIAN_ALLOC() \
     /* allocate and compute mean values and the covariance matrix. */ \
     mean = alloc1dreal(nsx + nf + 2); \
     c_meanvec(column, mean, nobs, nsx + nf + 2, 0);
@@ -133,10 +135,10 @@
         min_pvalue = pvalue < min_pvalue ? pvalue : min_pvalue; \
         max_pvalue = pvalue > max_pvalue ? pvalue : max_pvalue;
 
-/* mutual information test, with and without df adjustments. */
-static inline SEXP ast_mi(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
+/* parametric tests for discrete variables. */
+static SEXP ast_discrete(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
     SEXP sx, SEXP fixed, int nobs, int nsx, int nf, int minsize, int maxsize,
-    int adj, int a, int debuglevel) {
+    test_e test, double a, int debuglevel) {
 
 int *xptr = INTEGER(xx), *yptr = INTEGER(yy), *zptr = NULL, *subset = NULL;
 int i = 0, cursize = 0, llx = NLEVELS(xx), lly = NLEVELS(yy), llz = 0;
@@ -155,8 +157,31 @@ double statistic = 0, pvalue = 0, df = 0, min_pvalue = 1, max_pvalue = 0;
 
       PREPARE_DISCRETE_SUBSET();
       memp = vmaxget();
-      statistic = c_cmi(xptr, llx, yptr, lly, zptr, llz, nobs, &df, adj);
-      PVALUE(pchisq(2 * nobs * statistic, df, FALSE, FALSE));
+
+      if (test == MI || test == MI_ADF || test == X2 || test == X2_ADF) {
+
+        /* mutual information and Pearson's X^2 asymptotic tests. */
+        statistic = c_cchisqtest(xptr, llx, yptr, lly, zptr, llz, nobs, &df, test);
+        if ((test == MI) || (test == MI_ADF))
+          statistic = 2 * nobs * statistic;
+        PVALUE(pchisq(statistic, df, FALSE, FALSE));
+
+      }/*THEN*/
+      else if (test == MI_SH) {
+
+        /* shrinkage mutual information test. */
+        statistic = c_shcmi(xptr, llx, yptr, lly, zptr, llz, nobs, &df);
+        PVALUE(pchisq(2 * nobs * statistic, df, FALSE, FALSE));
+
+      }/*THEN*/
+      else if (test == JT) {
+
+        /* Jonckheere-Terpstra test. */
+        statistic = c_cjt(xptr, llx, yptr, lly, zptr, llz, nobs);
+        PVALUE(2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE));
+
+      }/*THEN*/
+
       vmaxset(memp);
       DEBUGGING(FREE_DISCRETE_SUBSET());
 
@@ -168,135 +193,39 @@ double statistic = 0, pvalue = 0, df = 0, min_pvalue = 1, max_pvalue = 0;
 
   return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
 
-}/*AST_MI*/
+}/*AST_DISCRETE*/
 
-/* shrinkage mutual information test. */
-static inline SEXP ast_mish(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
+/* parametric tests for Gaussian variables. */
+static SEXP ast_gaustests(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
     SEXP sx, SEXP fixed, int nobs, int nsx, int nf, int minsize, int maxsize,
-    int a, int debuglevel) {
+    double a, int debuglevel, test_e test) {
 
-int *xptr = INTEGER(xx), *yptr = INTEGER(yy), *zptr = NULL, *subset = NULL;
-int i = 0, cursize = 0, llx = NLEVELS(xx), lly = NLEVELS(yy), llz = 0;
-int **column = NULL, *nlvls = NULL, **subcol = NULL, *sublvls = NULL;void *memp = NULL;
-double statistic = 0, pvalue = 0, df = 0, min_pvalue = 1, max_pvalue = 0;
-
-  DISCRETE_CACHE();
-
-  for (cursize = 1; cursize <= maxsize; cursize++) {
-
-    ALLOC_DISCRETE_SUBSET();
-
-    /* iterate over subsets. */
-    do {
-
-      PREPARE_DISCRETE_SUBSET();
-      memp = vmaxget();
-      statistic = c_shcmi(xptr, llx, yptr, lly, zptr, llz, nobs, &df);
-      PVALUE(pchisq(2 * nobs * statistic, df, FALSE, FALSE));
-      vmaxset(memp);
-      DEBUGGING(FREE_DISCRETE_SUBSET());
-
-    } while (next_subset(subset + nf, cursize, nsx, nf));
-
-    FREE_DISCRETE_SUBSET();
-
-  }/*FOR*/
-
-  return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
-
-}/*AST_MISH*/
-
-/* Pearson's X^2 test, with and without df adjustments. */
-static inline SEXP ast_x2(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
-    SEXP sx, SEXP fixed, int nobs, int nsx, int nf, int minsize, int maxsize,
-    int adj, int a, int debuglevel) {
-
-int *xptr = INTEGER(xx), *yptr = INTEGER(yy), *zptr = NULL, *subset = NULL;
-int i = 0, cursize = 0, llx = NLEVELS(xx), lly = NLEVELS(yy), llz = 0;
-int **column = NULL, *nlvls = NULL, **subcol = NULL, *sublvls = NULL;
-void *memp = NULL;
-double statistic = 0, pvalue = 0, df = 0, min_pvalue = 1, max_pvalue = 0;
-
-  DISCRETE_CACHE();
-
-  for (cursize = 1; cursize <= maxsize; cursize++) {
-
-    ALLOC_DISCRETE_SUBSET();
-
-    /* iterate over subsets. */
-    do {
-
-      PREPARE_DISCRETE_SUBSET();
-      memp = vmaxget();
-      statistic = c_cx2(xptr, llx, yptr, lly, zptr, llz, nobs, &df, adj);
-      PVALUE(pchisq(statistic, df, FALSE, FALSE));
-      vmaxset(memp);
-      DEBUGGING(FREE_DISCRETE_SUBSET());
-
-    } while (next_subset(subset + nf, cursize, nsx, nf));
-
-    FREE_DISCRETE_SUBSET();
-
-  }/*FOR*/
-
-  return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
-
-}/*AST_X2*/
-
-/* Jonckheere-Terpstra test. */
-static inline SEXP ast_jt(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
-    SEXP sx, SEXP fixed, int nobs, int nsx, int nf, int minsize, int maxsize,
-    int a, int debuglevel) {
-
-int *xptr = INTEGER(xx), *yptr = INTEGER(yy), *zptr = NULL, *subset = NULL;
-int i = 0, cursize = 0, llx = NLEVELS(xx), lly = NLEVELS(yy), llz = 0;
-int **column = NULL, *nlvls = NULL, **subcol = NULL, *sublvls = NULL;
-void *memp = NULL;
-double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
-
-  DISCRETE_CACHE();
-
-  for (cursize = 1; cursize <= maxsize; cursize++) {
-
-    ALLOC_DISCRETE_SUBSET();
-
-    /* iterate over subsets. */
-    do {
-
-      PREPARE_DISCRETE_SUBSET();
-      memp = vmaxget();
-      statistic = c_cjt(xptr, llx, yptr, lly, zptr, llz, nobs);
-      PVALUE(2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE));
-      vmaxset(memp);
-      DEBUGGING(FREE_DISCRETE_SUBSET());
-
-    } while (next_subset(subset + nf, cursize, nsx, nf));
-
-    FREE_DISCRETE_SUBSET();
-
-  }/*FOR*/
-
-  return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
-
-}/*AST_JT*/
-
-/* Pearson's linear correlation test. */
-static inline SEXP ast_cor(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
-    SEXP sx, SEXP fixed, int nobs, int nsx, int nf, int minsize, int maxsize,
-    int a, int debuglevel) {
-
-int i = 0, cursize = 0, *subset = NULL;
+int i = 0, cursize = 0, *subset = NULL, df = 0;
 double **column = NULL, *mean = NULL, **subcol = NULL, *submean = NULL;
-double *cov = NULL, *u = NULL, *d = NULL, *vt = NULL;
+double *cov = NULL, *u = NULL, *d = NULL, *vt = NULL, lambda = 0;
 double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
 
   GAUSSIAN_CACHE();
+  GAUSSIAN_ALLOC();
 
   for (cursize = 1; cursize <= maxsize; cursize++) {
 
-    /* check that we have enough degrees of freedom. */
-    if (nobs - cursize - nf - 2 < 1)
-      error("trying to do a conditional independence test with zero degrees of freedom.");
+    /* compute the degrees of freedom for correlation and mutual information. */
+    if (test == COR)
+      df = nobs - (cursize + nf + 2);
+    else if ((test == MI_G) || (test == MI_G_SH))
+      df = 1;
+
+    if (((test == COR) && (df < 1)) ||
+        ((test == ZF) && (nobs - (cursize + nf + 2) < 2))) {
+
+      /* if there are not enough degrees of freedom, return independence. */
+      warning("trying to do a conditional independence test with zero degrees of freedom.");
+
+      PVALUE(1);
+      DEBUGGING();
+
+    }/*THEN*/
 
     ALLOC_GAUSSIAN_SUBSET();
 
@@ -305,10 +234,38 @@ double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
       PREPARE_GAUSSIAN_SUBSET();
       /* compute the covariance matrix. */
       c_covmat(subcol, submean, cursize + nf + 2, nobs, cov, 0);
-      statistic = c_fast_pcor(cov, u, d, vt, cursize + nf + 2, TRUE);
-      statistic = fabs(statistic * sqrt(nobs - cursize - nf - 2) /
-                          sqrt(1 - statistic * statistic));
-      PVALUE(2 * pt(statistic, nobs - cursize - nf - 2, FALSE, FALSE));
+
+      if (test == COR) {
+
+        statistic = c_fast_pcor(cov, u, d, vt, cursize + nf + 2, TRUE);
+        statistic = cor_t_trans(statistic, (double)df);
+        PVALUE(2 * pt(fabs(statistic), df, FALSE, FALSE));
+
+      }/*THEN*/
+      else if (test == MI_G) {
+
+        statistic = c_fast_pcor(cov, u, d, vt, cursize + nf + 2, TRUE);
+        statistic = 2 * nobs * cor_mi_trans(statistic);
+        PVALUE(pchisq(statistic, df, FALSE, FALSE));
+
+      }/*THEN*/
+      else if (test == MI_G_SH) {
+
+        lambda = covmat_lambda(subcol, submean, cov, nobs, cursize + nf + 2);
+        covmat_shrink(cov, cursize + nf + 2, lambda);
+        statistic = c_fast_pcor(cov, u, d, vt, cursize + nf + 2, TRUE);
+        statistic = 2 * nobs * cor_mi_trans(statistic);
+        PVALUE(pchisq(statistic, df, FALSE, FALSE));
+
+      }/*THEN*/
+      else if (test == ZF) {
+
+        statistic = c_fast_pcor(cov, u, d, vt, cursize + nf + 2, TRUE);
+        statistic = cor_zf_trans(statistic, (double)nobs - (cursize + nf + 2));
+        PVALUE(2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE));
+
+      }/*THEN*/
+
       DEBUGGING(FREE_GAUSSIAN_SUBSET());
 
     } while (next_subset(subset + nf, cursize, nsx, nf));
@@ -319,180 +276,27 @@ double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
 
   return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
 
-}/*AST_COR*/
-
-/* Fisher's Z test. */
-static inline SEXP ast_zf(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
-    SEXP sx, SEXP fixed, int nobs, int nsx, int nf, int minsize, int maxsize,
-    int a, int debuglevel) {
-
-int i = 0, cursize = 0, *subset = NULL;
-double **column = NULL, *mean = NULL, **subcol = NULL, *submean = NULL;
-double *cov = NULL, *u = NULL, *d = NULL, *vt = NULL;
-double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
-
-  GAUSSIAN_CACHE();
-
-  for (cursize = 1; cursize <= maxsize; cursize++) {
-
-    /* check that we have enough degrees of freedom. */
-    if (nobs - cursize - nf - 2 < 1)
-      error("trying to do a conditional independence test with zero degrees of freedom.");
-
-    ALLOC_GAUSSIAN_SUBSET();
-
-    do {
-
-      PREPARE_GAUSSIAN_SUBSET();
-      /* compute the covariance matrix. */
-      c_covmat(subcol, submean, cursize + nf + 2, nobs, cov, 0);
-      statistic = c_fast_pcor(cov, u, d, vt, cursize + nf + 2, TRUE);
-      statistic = log((1 + statistic)/(1 - statistic)) / 2 *
-                    sqrt((double)nobs - cursize - nf - 3);
-      PVALUE(2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE));
-      DEBUGGING(FREE_GAUSSIAN_SUBSET());
-
-    } while (next_subset(subset + nf, cursize, nsx, nf));
-
-    FREE_GAUSSIAN_SUBSET();
-
-  }/*FOR*/
-
-  return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
-
-}/*AST_ZF*/
-
-/* Gaussian mutual information test. */
-static inline SEXP ast_mig(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
-    SEXP sx, SEXP fixed, int nobs, int nsx, int nf, int minsize, int maxsize,
-    int a, int debuglevel) {
-
-int i = 0, cursize = 0, *subset = NULL;
-double **column = NULL, *mean = NULL, **subcol = NULL, *submean = NULL;
-double *cov = NULL, *u = NULL, *d = NULL, *vt = NULL;
-double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
-
-  GAUSSIAN_CACHE();
-
-  for (cursize = 1; cursize <= maxsize; cursize++) {
-
-    ALLOC_GAUSSIAN_SUBSET();
-
-    do {
-
-      PREPARE_GAUSSIAN_SUBSET();
-      /* compute the covariance matrix. */
-      c_covmat(subcol, submean, cursize + nf + 2, nobs, cov, 0);
-      statistic = c_fast_pcor(cov, u, d, vt, cursize + nf + 2, TRUE);
-      statistic = - nobs * log(1 - statistic * statistic);
-      PVALUE(pchisq(statistic, 1, FALSE, FALSE));
-      DEBUGGING(FREE_GAUSSIAN_SUBSET());
-
-    } while (next_subset(subset + nf, cursize, nsx, nf));
-
-    FREE_GAUSSIAN_SUBSET();
-
-  }/*FOR*/
-
-  return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
-
-}/*AST_MIG*/
-
-/* shrinkage Gaussian mutual information test. */
-static inline SEXP ast_migsh(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
-    SEXP sx, SEXP fixed, int nobs, int nsx, int nf, int minsize, int maxsize,
-    int a, int debuglevel) {
-
-int i = 0, cursize = 0, *subset = NULL;
-double **column = NULL, *mean = NULL, **subcol = NULL, *submean = NULL;
-double *cov = NULL, *u = NULL, *d = NULL, *vt = NULL;
-double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
-
-  GAUSSIAN_CACHE();
-
-  for (cursize = 1; cursize <= maxsize; cursize++) {
-
-    ALLOC_GAUSSIAN_SUBSET();
-
-    do {
-
-      PREPARE_GAUSSIAN_SUBSET();
-      /* compute the covariance matrix. */
-      c_cov_lambda(subcol, submean, cursize + nf + 2, nobs, cov);
-      statistic = c_fast_pcor(cov, u, d, vt, cursize + nf + 2, TRUE);
-      statistic = - nobs * log(1 - statistic * statistic);
-      PVALUE(pchisq(statistic, 1, FALSE, FALSE));
-      DEBUGGING(FREE_GAUSSIAN_SUBSET());
-
-    } while (next_subset(subset + nf, cursize, nsx, nf));
-
-    FREE_GAUSSIAN_SUBSET();
-
-  }/*FOR*/
-
-  return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
-
-}/*AST_MIGSH*/
+}/*AST_GAUSTESTS*/
 
 /* conditional linear Gaussian test. */
-static inline SEXP ast_micg(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
+static SEXP ast_micg(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
     SEXP sx, SEXP fixed, int nobs, int nsx, int nf, int minsize, int maxsize,
-    int a, int debuglevel) {
+    double a, int debuglevel) {
 
 int cursize = 0, ndp = 0, ngp = 0, xtype = TYPEOF(xx), ytype = TYPEOF(yy);
 int i = 0, j = 0, k = 0, *subset = NULL, *nlvls = NULL, **dp = NULL;
 int *zptr = NULL, llx = 0, lly = 0, llz = 0, *dlvls = NULL;
 double **gp = NULL, statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0, df = 0;
 void *xptr = 0, *yptr = 0, **columns = NULL;
-SEXP temp;
 
   /* scan the parents for type and number of levels. */
   columns = Calloc(nsx + nf, void *);
   nlvls = Calloc(nsx + nf, int);
-
-  for (i = 0; i < nf; i++) {
-
-    temp = VECTOR_ELT(ff, i);
-
-    if (TYPEOF(temp) == INTSXP) {
-
-      columns[i] = INTEGER(temp);
-      nlvls[i] = NLEVELS(temp);
-      ndp++;
-
-    }/*THEN*/
-    else {
-
-      columns[i] = REAL(temp);
-      ngp++;
-
-    }/*ELSE*/
-
-  }/*FOR*/
-
-  for (i = 0; i < nsx; i++) {
-
-    temp = VECTOR_ELT(zz, i);
-
-    if (TYPEOF(temp) == INTSXP) {
-
-      columns[i + nf] = INTEGER(temp);
-      nlvls[i + nf] = NLEVELS(temp);
-      ndp++;
-
-    }/*THEN*/
-    else {
-
-      columns[i + nf] = REAL(temp);
-      ngp++;
-
-    }/*ELSE*/
-
-  }/*FOR*/
+  df2micg(ff, columns, nlvls, &ndp, &ngp);
+  df2micg(zz, columns + nf, nlvls + nf, &ndp, &ngp);
 
   /* if both variables are continuous and all conditioning variables are
-   * continuous,  the test reverts back to a Gaussian mutual information
-   * test. */
+   * continuous, the test reverts back to a Gaussian mutual information test. */
   if ((xtype == INTSXP) && (ytype == INTSXP)) {
 
     xptr = INTEGER(xx);
@@ -570,7 +374,8 @@ SEXP temp;
         if (ngp > 0) {
 
           /* need to reverse conditioning to actually compute the test. */
-          statistic = 2 * nobs * c_cmicg_unroll(xptr, llx, yptr, lly, zptr, llz,
+          statistic = 2 * nobs * nobs *
+                        c_cmicg_unroll(xptr, llx, yptr, lly, zptr, llz,
                                    gp + 1, ngp, &df, nobs);
 
         }/*THEN*/
@@ -578,8 +383,8 @@ SEXP temp;
 
           /* if both nodes are discrete, the test reverts back to a discrete
            * mutual information test. */
-          statistic = 2 * nobs * c_cmi(xptr, llx, yptr, lly, zptr, llz,
-                                   nobs, &df, FALSE);
+          statistic = 2 * nobs * c_cchisqtest(xptr, llx, yptr, lly, zptr, llz,
+                                   nobs, &df, MI);
 
         }/*ELSE*/
 
@@ -608,7 +413,7 @@ SEXP temp;
          * coefficients (plus the intercept) is added. */
         df = (lly - 1) * ((llz == 0) ? 1 : llz)  * (ngp + 1);
 
-      }/*THEN*/
+      }/*ELSE*/
 
       Free(gp);
       Free(dp);
@@ -632,9 +437,9 @@ SEXP temp;
 }/*AST_MICG*/
 
 /* discrete permutation tests. */
-static inline SEXP ast_dperm(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
+static SEXP ast_dperm(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
     SEXP sx, SEXP fixed, int nobs, int nsx, int nf, int minsize, int maxsize,
-    int a, int type, int nperms, int threshold, int debuglevel) {
+    double a, test_e type, int nperms, double threshold, int debuglevel) {
 
 int *xptr = INTEGER(xx), *yptr = INTEGER(yy), *zptr = NULL, *subset = NULL;
 int i = 0, cursize = 0, llx = NLEVELS(xx), lly = NLEVELS(yy), llz = 0;
@@ -670,23 +475,16 @@ void *memp = NULL;
 }/*AST_DPERM*/
 
 /* continuous permutation tests. */
-static inline SEXP ast_gperm(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
+static SEXP ast_gperm(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
     SEXP sx, SEXP fixed, int nobs, int nsx, int nf, int minsize, int maxsize,
-    int a, int type, int nperms, int threshold, int debuglevel) {
+    double a, test_e type, int nperms, double threshold, int debuglevel) {
 
 int i = 0, cursize = 0, *subset = NULL;
 double **column = NULL, **subcol= NULL;
 double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
 void *memp = NULL;
 
-  /* allocate and initialize an array of pointers for the variables. */
-  column = (double **) alloc1dpointer(nsx + nf + 2);
-  column[0] = REAL(xx);
-  column[1] = REAL(yy);
-  for (i = 0; i < nf; i++)
-    column[i + 2] = REAL(VECTOR_ELT(ff, i));
-  for (i = 0; i < nsx + 0; i++)
-    column[i + nf + 2] = REAL(VECTOR_ELT(zz, i));
+  GAUSSIAN_CACHE();
 
   for (cursize = 1; cursize <= maxsize; cursize++) {
 
@@ -734,7 +532,8 @@ int minsize = INT(min), maxsize = INT(max), debuglevel = isTRUE(debug), nobs = 0
 int i = 0, *subset = NULL, cursize = 0, nsx = length(sx), nf = length(fixed);
 double pvalue = 0, min_pvalue = 1, max_pvalue = 0, a = NUM(alpha);
 const char *t = CHAR(STRING_ELT(test, 0));
-SEXP xx, yy, zz, ff = R_NilValue, res;
+test_e test_type = test_label(t);
+SEXP xx, yy, zz, ff = R_NilValue, res = R_NilValue;
 
   /* call indep_test to deal with zero-length conditioning subsets. */
   if (minsize == 0) {
@@ -752,95 +551,48 @@ SEXP xx, yy, zz, ff = R_NilValue, res;
     PROTECT(ff = c_dataframe_column(data, fixed, FALSE, FALSE));
   nobs = length(xx);
 
-  if ((strcmp(t, "mi") == 0) || (strcmp(t, "mi-adf") == 0)) {
+  if (IS_DISCRETE_ASYMPTOTIC_TEST(test_type)) {
 
-    /* mutual information test, with and without df adjustments. */
-    res = ast_mi(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-            maxsize, (strcmp(t, "mi-adf") == 0), NUM(alpha), debuglevel);
-
-  }/*THEN*/
-  else if (strcmp(t, "mi-sh") == 0) {
-
-    /* shrinkage mutual information test. */
-    res = ast_mish(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-            maxsize, NUM(alpha), debuglevel);
+    /* parametric tests for discrete variables. */
+    res = ast_discrete(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
+            maxsize, test_type, a, debuglevel);
 
   }/*THEN*/
-  else if ((strcmp(t, "x2") == 0) || (strcmp(t, "x2-adf") == 0)) {
+  else if ((test_type == COR) || (test_type == ZF) || (test_type == MI_G) ||
+           (test_type == MI_G_SH)) {
 
-    /* Pearson's X^2 test, with and without df adjustments. */
-    res = ast_x2(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-            maxsize, (strcmp(t, "x2-adf") == 0), NUM(alpha), debuglevel);
-
-
-  }/*THEN*/
-  else if (strcmp(t, "jt") == 0) {
-
-    /* Jonckheere-Terpstra test. */
-    res = ast_jt(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-            maxsize, NUM(alpha), debuglevel);
+    /* parametric tests for Gaussian variables. */
+    res = ast_gaustests(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
+            maxsize, a, debuglevel, test_type);
 
   }/*THEN*/
-  else if (strcmp(t, "cor") == 0) {
-
-    /* Pearson's linear correlation test. */
-    res = ast_cor(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-            maxsize, NUM(alpha), debuglevel);
-
-  }/*THEN*/
-  else if (strcmp(t, "zf") == 0) {
-
-    /* Fisher's Z test. */
-    res = ast_zf(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-            maxsize, NUM(alpha), debuglevel);
-
-  }/*THEN*/
-  else if (strcmp(t, "mi-g") == 0) {
-
-    /* Gaussian mutual information test. */
-    res = ast_mig(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-            maxsize, NUM(alpha), debuglevel);
-
-  }/*THEN*/
-  else if (strcmp(t, "mi-g-sh") == 0) {
-
-    /* shrinkage Gaussian mutual information test. */
-    res = ast_migsh(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-            maxsize, NUM(alpha), debuglevel);
-
-  }/*THEN*/
-  else if (strcmp(t, "mi-cg") == 0) {
+  else if (test_type == MI_CG) {
 
     /* conditional linear Gaussian test. */
     res = ast_micg(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-            maxsize, NUM(alpha), debuglevel);
+            maxsize, a, debuglevel);
 
   }/*THEN*/
-  else if ((strncmp(t, "mc-", 3) == 0) || (strncmp(t, "smc-", 4) == 0) ||
-           (strncmp(t, "sp-", 3) == 0)) {
+  else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
 
-    /* nonparametric and semiparametric tests. */
-    int type = 0, nperms = INT(B);
-    double threshold = (strncmp(t, "smc-", 4) == 0) ? a : 1;
-
-    /* remap the test statistics to the constants used in monte.carlo.c. */
-    type = remap_permutation_test(t);
-
-    if (DISCRETE_PERMUTATION_TEST(type))
       res = ast_dperm(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-              maxsize, NUM(alpha), type, nperms, threshold, debuglevel);
-    else
-      res = ast_gperm(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-              maxsize, NUM(alpha), type, nperms, threshold, debuglevel);
+              maxsize, a, test_type, INT(B), 
+              IS_SMC(test_type) ? a : 1, debuglevel);
 
   }/*THEN*/
-  else {
+  else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
 
-    error("unknown test statistic '%s'.", t);
+      res = ast_gperm(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
+              maxsize, a, test_type, INT(B), 
+              IS_SMC(test_type) ? a : 1, debuglevel);
 
-  }/*ELSE*/
+  }/*THEN*/
 
   UNPROTECT(3 + (nf > 0));
+
+  /* catch-all for unknown tests (after deallocating memory.) */
+  if (test_type == ENOTEST)
+    error("unknown test statistic '%s'.", t);
 
   return res;
 

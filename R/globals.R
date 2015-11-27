@@ -12,7 +12,8 @@ available.tests = c(available.discrete.tests, available.ordinal.tests,
 semiparametric.tests = c("sp-mi", "sp-x2")
 resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g",
   "mc-cor", "smc-cor", "mc-zf", "smc-zf", "mc-jt", "smc-jt", semiparametric.tests)
-asymptotic.tests = c("mi", "mi-adf", "mi-g", "x2", "zf", "jt")
+asymptotic.tests = c("mi", "mi-adf", "mi-g", "x2", "x2-adf", "zf", "jt", "mi-sh",
+  "mi-g-sh")
 
 available.discrete.scores = c("loglik", "aic", "bic", "bde", "bdes", "k2", "mbde")
 available.continuous.scores = c("loglik-g", "aic-g", "bic-g", "bge")
@@ -35,8 +36,6 @@ available.learning.algorithms = c(constraint.based.algorithms, score.based.algor
   hybrid.algorithms, mim.based.algorithms, classifiers)
 
 always.dag.result = c(score.based.algorithms, hybrid.algorithms, classifiers)
-
-available.mvber.vartests = c("tvar", "gvar", "nvar", "nvark")
 
 method.labels = c(
   'gs' = "Grow-Shrink",
@@ -170,8 +169,8 @@ cpq.extra.args = list(
   "lw" = c("n", "batch", "query.nodes")
 )
 
-discrete.loss.functions = c("logl", "pred")
-continuous.loss.functions = c("logl-g", "cor", "mse")
+discrete.loss.functions = c("logl", "pred", "pred-lw")
+continuous.loss.functions = c("logl-g", "cor", "cor-lw", "mse", "mse-lw")
 mixedcg.loss.functions = c("logl-cg")
 loss.functions = c(discrete.loss.functions, continuous.loss.functions,
   mixedcg.loss.functions)
@@ -179,18 +178,25 @@ loss.functions = c(discrete.loss.functions, continuous.loss.functions,
 loss.labels = c(
   "logl" = "Log-Likelihood Loss (disc.)",
   "pred" = "Classification Error",
+  "pred-lw" = "Classification Error (Posterior)",
   "logl-g" = "Log-Likelihood Loss (Gauss.)",
   "cor" = "Predictive Correlation",
+  "cor-lw" = "Predictive Correlation (Posterior)",
   "mse" = "Mean Squared Error",
+  "mse-lw" = "Mean Squared Error (Posterior)",
   "logl-cg" = "Log-Likelihood Loss (cond. Gauss.)"
 )
 
 loss.extra.args = list(
   "logl" = character(0),
   "pred" = "target",
+  "pred-lw" = c("target", "n", "from"),
   "logl-g" = character(0),
   "cor" = "target",
-  "mse" = "target"
+  "cor-lw" = c("target", "n", "from"),
+  "mse" = "target",
+  "mse-lw" = c("target", "n", "from"),
+  "logl-cg" = character(0)
 )
 
 available.fitting.methods = c("mle", "bayes")
@@ -215,13 +221,6 @@ prediction.labels = c(
 prediction.extra.args = list(
   "parents" = character(0),
   "bayes-lw" = c("n", "from")
-)
-
-mvber.labels = list(
-  "tvar" = "Total Variance",
-  "gvar" = "Generalized Variance",
-  "nvar" = "Squared Frobenius Norm (1/4)",
-  "nvark" = "Squared Frobenius Norm (k/4)"
 )
 
 supported.clusters = c("MPIcluster", "PVMcluster","SOCKcluster")

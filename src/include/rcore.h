@@ -8,7 +8,7 @@
 #include <R_ext/Utils.h>
 
 /* utility macros */
-#define isTRUE(logical) LOGICAL(logical)[0] == TRUE
+#define isTRUE(logical) ((LOGICAL(logical)[0]) == TRUE)
 #define INT(x) INTEGER(x)[0]
 #define NUM(x) REAL(x)[0]
 #define NODE(i) CHAR(STRING_ELT(nodes, i))
@@ -28,6 +28,7 @@ SEXP int2fac(SEXP vector, int *nlevels);
 
 /* from strings.c */
 SEXP string_delete(SEXP array, SEXP string, int *idx);
+SEXP string_setdiff(SEXP large, SEXP small);
 SEXP mkStringVec(int n, ...);
 
 /* from which.max.c */

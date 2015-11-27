@@ -1,11 +1,10 @@
 \name{learning.test}
 \docType{data}
 \alias{learning.test}
-\title{ Synthetic (discrete) data set to test learning algorithms }
+\title{Synthetic (discrete) data set to test learning algorithms}
 \description{
 
-  This a synthetic data set used as a test case in the
-  \pkg{bnlearn} package.
+  This a synthetic data set used as a test case in the \pkg{bnlearn} package.
 
 }
 \usage{
@@ -16,18 +15,17 @@ data(learning.test)
   The \code{learning.test} data set contains the following variables:
   \itemize{
 
-    \item \code{A}, a three-level factor with levels \code{a},
-            \code{b} and \code{c}.
-    \item \code{B}, a three-level factor with levels \code{a},
-            \code{b} and \code{c}.
-    \item \code{C}, a three-level factor with levels \code{a},
-            \code{b} and \code{c}.
-    \item \code{D}, a three-level factor with levels \code{a},
-            \code{b} and \code{c}.
-    \item \code{E}, a three-level factor with levels \code{a},
-            \code{b} and \code{c}.
-    \item \code{F}, a two-level factor with levels \code{a}
-            and \code{b}.
+    \item \code{A}, a three-level factor with levels \code{a}, \code{b} and
+      \code{c}.
+    \item \code{B}, a three-level factor with levels \code{a}, \code{b} and
+      \code{c}.
+    \item \code{C}, a three-level factor with levels \code{a}, \code{b} and
+      \code{c}.
+    \item \code{D}, a three-level factor with levels \code{a}, \code{b} and
+      \code{c}.
+    \item \code{E}, a three-level factor with levels \code{a}, \code{b} and
+      \code{c}.
+    \item \code{F}, a two-level factor with levels \code{a} and \code{b}.
 
   }
 

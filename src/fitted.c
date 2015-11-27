@@ -124,18 +124,14 @@ SEXP labels, node_data, children, result;
 
 #define MATCH_NODES(which, value) \
   temp = getListElement(node_data, which);     \
-                                               \
   PROTECT(try = match(labels, temp, 0));       \
   matched = INTEGER(try);                      \
-                                               \
-  for (i = 0; i < length(try); i++)            \
+  for (i = 0; i < length(try); i++) {          \
     if (status[matched[i] - 1] == 0) {         \
-                                               \
       status[matched[i] - 1] = value;          \
       counter++;                               \
-                                               \
-     }                                         \
-                                               \
+     }/*THEN*/                                 \
+  }/*FOR*/                                     \
   UNPROTECT(1);
 
 #define BLANKET		 1

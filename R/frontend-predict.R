@@ -13,7 +13,7 @@ predict.bn.fit = function(object, node, data, method = "parents", ...,
     debug = FALSE) {
 
   # check the data are there.
-  check.data(data)
+  check.data(data, allow.levels = TRUE)
   # a valid node is needed.
   check.nodes(nodes = node, graph = object, max.nodes = 1)
   # check the prediction method.
@@ -66,7 +66,7 @@ predict.bn.fit = function(object, node, data, method = "parents", ...,
 predict.bn.naive = function(object, data, prior, ..., prob = FALSE, debug = FALSE) {
 
   # check the data are there.
-  check.data(data, allowed.types = discrete.data.types)
+  check.data(data, allowed.types = discrete.data.types, allow.levels = TRUE)
   # check the bn.{naive,tan} object.
   if (is(object, "bn.naive"))
     check.bn.naive(object)

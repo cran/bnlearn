@@ -4,6 +4,7 @@
 #include "include/graph.h"
 #include "include/tests.h"
 #include "include/bn.h"
+#include "include/covariance.h"
 
 #define DISCRETE_MAXIMUM_LIKELIHOOD 1
 #define GAUSSIAN_MAXIMUM_LIKELIHOOD 2
@@ -15,7 +16,7 @@
       for (j = i + 1; j < ncols; j++) \
         Rprintf("  > mutual information between %s and %s is %lf.\n", \
           NODE(i), NODE(j), mim[UPTRI3(i + 1, j + 1, ncols)]); \
-  }
+  }/*THEN*/
 
 #define CONVERT_TO_ARC_SET(ind, drop, rows) \
   PROTECT(arcs = allocMatrix(STRSXP, (rows), 2)); \
@@ -28,9 +29,9 @@
          SET_STRING_ELT(arcs, k, STRING_ELT(nodes, j)); \
          SET_STRING_ELT(arcs, k + (rows), STRING_ELT(nodes, i)); \
          k++; \
-      } \
-    } \
-  } \
+      }/*THEN*/ \
+    } /*FOR*/ \
+  } /*FOR*/ \
   finalize_arcs(arcs); \
   UNPROTECT(1);
 
@@ -42,16 +43,20 @@
     nlevels = alloc1dcont(ncols); \
     for (i = 0; i < ncols; i++) \
       nlevels[i] = NLEVELS2(data, i); \
-  } \
+  } /*THEN*/ \
   else { \
     columns = (void **) alloc1dpointer(ncols); \
     for (i = 0; i < ncols; i++) \
       columns[i] = REAL(VECTOR_ELT(data, i)); \
-  }
+    means = alloc1dreal(ncols); \
+    c_meanvec((double **)columns, means, num, ncols, 0); \
+    sse = alloc1dreal(ncols); \
+    c_ssevec((double **)columns, sse, means, num, ncols, 0); \
+  }/*ELSE*/
 
 /* compute all the pairwise mutual information coefficients between the variables. */
 void mi_matrix(double *mim, void **columns, int dim, int *nlevels, int *num,
-    void *cond, int *clevels, int *est) {
+    void *cond, int *clevels, double *means, double *sse, int *est) {
 
 int i = 0, j = 0;
 
@@ -66,8 +71,8 @@ int i = 0, j = 0;
           for (j = i + 1; j < dim; j++) {
 
             mim[UPTRI3(i + 1, j + 1, dim)] =
-              c_mi(((int **)columns)[i], nlevels[i],
-                   ((int **)columns)[j], nlevels[j], *num, NULL, FALSE);
+              c_chisqtest(((int **)columns)[i], nlevels[i],
+                   ((int **)columns)[j], nlevels[j], *num, NULL, MI);
 
           }/*FOR*/
 
@@ -81,9 +86,9 @@ int i = 0, j = 0;
           for (j = i + 1; j < dim; j++) {
 
             mim[UPTRI3(i + 1, j + 1, dim)] =
-              c_cmi(((int **)columns)[i], nlevels[i],
+              c_cchisqtest(((int **)columns)[i], nlevels[i],
                     ((int **)columns)[j], nlevels[j],
-                    (int *)cond, *clevels, *num, NULL, FALSE);
+                    (int *)cond, *clevels, *num, NULL, MI);
 
           }/*FOR*/
 
@@ -99,8 +104,9 @@ int i = 0, j = 0;
 
         for (j = i + 1; j < dim; j++) {
 
-          mim[UPTRI3(i + 1, j + 1, dim)] =
-            c_mig(((double **)columns)[i], ((double **)columns)[j], num);
+          mim[UPTRI3(i + 1, j + 1, dim)] = cor_mi_trans(
+            c_fast_cor(((double **)columns)[i], ((double **)columns)[j], *num,
+              means[i], means[j], sse[i], sse[j]));
 
         }/*FOR*/
 
@@ -121,7 +127,7 @@ int *nlevels = NULL, *est = INTEGER(estimator), *wl = NULL, *bl = NULL;
 int debuglevel = isTRUE(debug);
 void **columns = NULL;
 short int *exclude = NULL;
-double *mim = NULL;
+double *mim = NULL, *means = NULL, *sse = NULL;
 SEXP arcs, nodes, wlist, blist;
 
   nodes = getAttrib(data, R_NamesSymbol);
@@ -137,7 +143,7 @@ SEXP arcs, nodes, wlist, blist;
   if (debuglevel > 0)
     Rprintf("* computing pairwise mutual information coefficients.\n");
 
-  mi_matrix(mim, columns, ncols, nlevels, &num, NULL, NULL, est);
+  mi_matrix(mim, columns, ncols, nlevels, &num, NULL, NULL, means, sse, est);
 
   LIST_MUTUAL_INFORMATION_COEFS()
 
@@ -285,7 +291,7 @@ int *nlevels = NULL, *clevels = NULL, *est = INTEGER(estimator);
 int *wl = NULL, *bl = NULL, *poset = NULL, debuglevel = isTRUE(debug);
 void **columns = NULL, *cond = NULL;
 short int *include = NULL;
-double *mim = NULL;
+double *mim = NULL, *means = NULL, *sse = NULL;
 SEXP arcs, wlist, blist;
 
   /* dereference the columns of the data frame. */
@@ -308,7 +314,7 @@ SEXP arcs, wlist, blist;
   if (debuglevel > 0)
     Rprintf("* computing pairwise mutual information coefficients.\n");
 
-  mi_matrix(mim, columns, ncols, nlevels, &num, cond, clevels, est);
+  mi_matrix(mim, columns, ncols, nlevels, &num, cond, clevels, means, sse, est);
 
   LIST_MUTUAL_INFORMATION_COEFS()
 

@@ -10,7 +10,7 @@
 static SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrows,
     int *status, int debuglevel);
 
-/* compute the cached values fro all nodes. */
+/* compute the cached values for all nodes. */
 SEXP cache_structure(SEXP nodes, SEXP amat, SEXP debug) {
 
 int i = 0, debuglevel = LOGICAL(debug)[0], length_nodes = length(nodes);
@@ -85,7 +85,7 @@ int *a = INTEGER(amat);
 
 }/*C_CACHE_PARTIAL_STRUCTURE*/
 
-/* backend to compute the cached values fro a single node. */
+/* backend to compute the cached values for a single node. */
 static SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrows,
     int *status, int debuglevel) {
 

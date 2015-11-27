@@ -6,6 +6,8 @@ bn.fit.qqplot = function(fitted, xlab = "Theoretical Quantiles",
   lattice.gaussian.backend(fitted = fitted, type = "qqplot",
     xlab = xlab, ylab = ylab, main = main, ...)
 
+  invisible(NULL)
+
 }#BN.FIT.QQPLOT
 
 # dispatch histogram() from lattice for fitted bayesian networks.
@@ -17,6 +19,8 @@ bn.fit.histogram = function(fitted, density = TRUE, xlab = "Residuals",
     type = ifelse(density, "hist-dens", "hist"),
     xlab = xlab, ylab = ylab, main = main, ...)
 
+  invisible(NULL)
+
 }#BN.FIT.HISTOGRAM
 
 # dispatch xyplot() from lattice for fitted bayesian networks.
@@ -25,6 +29,8 @@ bn.fit.xyplot = function(fitted, xlab = "Fitted values",
 
   lattice.gaussian.backend(fitted = fitted, type = "fitted",
     xlab = xlab, ylab = ylab, main = main, ...)
+
+  invisible(NULL)
 
 }#BN.FIT.XYPLOT
 
@@ -35,6 +41,8 @@ bn.fit.barchart = function(fitted, xlab = "Probabilities",
   lattice.discrete.backend(fitted = fitted, type = "bar",
     xlab = xlab, ylab = ylab, main = main, ...)
 
+  invisible(NULL)
+
 }#BN.FIT.BARCHART
 
 # dispatch dotplot() from lattice for fitted bayesian networks.
@@ -43,5 +51,7 @@ bn.fit.dotplot = function(fitted, xlab = "Probabilities",
 
   lattice.discrete.backend(fitted = fitted, type = "dot",
     xlab = xlab, ylab = ylab, main = main, ...)
+
+  invisible(NULL)
 
 }#BN.FIT.DOTPLOT

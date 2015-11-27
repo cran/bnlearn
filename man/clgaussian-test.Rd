@@ -1,11 +1,10 @@
 \name{clgaussian.test}
 \docType{data}
 \alias{clgaussian.test}
-\title{ Synthetic (mixed) data set to test learning algorithms }
+\title{Synthetic (mixed) data set to test learning algorithms}
 \description{
 
-  This a synthetic data set used as a test case in the
-  \pkg{bnlearn} package.
+  This a synthetic data set used as a test case in the \pkg{bnlearn} package.
 
 }
 \usage{
@@ -13,9 +12,8 @@ data(gaussian.test)
 }
 \format{
 
-  The \code{clgaussian.test} data set contains one normal
-  (Gaussian) variable, 4 discrete variables and 3 conditional
-  Gaussian variables.
+  The \code{clgaussian.test} data set contains one normal (Gaussian) variable,
+  4 discrete variables and 3 conditional Gaussian variables.
 
 }
 \note{

@@ -1,4 +1,19 @@
-citHeader("To cite bnlearn in publications use:")
+citHeader("To cite bnlearn in publications use the most appropriate among:")
+
+citEntry(entry = "Book",
+         title = "Bayesian Networks with Examples in R",
+         author = personList(as.person("Marco Scutari"), as.person("Jean-Baptiste Denis")),
+         publisher = "Chapman and Hall",
+         address      = "Boca Raton",
+         year         = 2014,
+         note         = "ISBN 978-1482225587",
+
+ textVersion =
+ paste("Marco Scutari, Jean-Baptiste Denis. (2014)",
+       "Bayesian Networks with Examples in R.",
+       "Chapman and Hall, Boca Raton. ISBN 978-1482225587.")
+
+)
 
 citEntry(entry = "Book",
          title = "Bayesian Networks in R with Applications in Systems Biology",
@@ -31,4 +46,6 @@ citEntry(entry = "Article",
         "Journal of Statistical Software, 35(3), 1-22.",
         "URL http://www.jstatsoft.org/v35/i03/.")
 )
+
+citFooter("This last is the original JSS paper for the package.")
 

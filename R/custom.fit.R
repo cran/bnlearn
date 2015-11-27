@@ -31,11 +31,12 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
       if (is(dist[[node]], c("lm", "glm", "penfit"))) {
 
         # ordinary least squares, ridge, lasso, and elastic net.
-        dist[[node]] = list(coef = coefficients(dist[[node]]),
-                            resid = residuals(dist[[node]]),
-                            fitted = fitted(dist[[node]]),
-                            sd = cgsd(residuals(dist[[node]]),
-                                   p = length(coefficients(dist[[node]]))))
+        dist[[node]] =
+          list(coef = minimal.coefficients(dist[[node]]),
+               resid = minimal.residuals(dist[[node]]),
+               fitted = minimal.fitted(dist[[node]]),
+               sd = cgsd(minimal.residuals(dist[[node]]),
+                      p = length(minimal.coefficients(dist[[node]]))))
 
       }#THEN
 
@@ -54,8 +55,8 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
       }#THEN
       else {
 
-        check.gnode.vs.spec(dist[[node]], old = fitted[[node]]$parents,
-          node = node)
+        dist[[node]] = check.gnode.vs.spec(dist[[node]],
+                         old = fitted[[node]]$parents, node = node)
         # set the correct class for method dispatch.
         class(fitted[[node]]) = "bn.fit.gnode"
 

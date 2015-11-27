@@ -13,11 +13,11 @@ static double mc_cov(double *xx, double *yy, double xm, double ym, int n);
 
 /* unconditional Monte Carlo simulation for correlation-based tests. */
 void c_gauss_mcarlo(double *xx, double *yy, int num, int B, double *res,
-    double alpha, int test, double *observed) {
+    double alpha, test_e test, double *observed) {
 
 int j = 0, k = 0;
 double *yperm = NULL;
-double enough = ceil(alpha * B) + 1, xm = 0, ym = 0;
+double enough = ceil(alpha * B) + 1, xm = 0, ym = 0, xsse = 0, ysse = 0;
 int *perm = NULL, *work = NULL;
 
   /* allocate the arrays needed by RandomPermutation. */
@@ -27,7 +27,7 @@ int *perm = NULL, *work = NULL;
   /* allocate the array for the pemutations. */
   yperm = alloc1dreal(num);
 
-  /* cache the means of the two variables (they are invariant under permutation). */
+  /* cache the means of the two variables (invariant under permutation). */
   for (j = 0; j < num; j++) {
 
     xm += xx[j];
@@ -38,60 +38,77 @@ int *perm = NULL, *work = NULL;
   xm /= num;
   ym /= num;
 
+  /* compute the variances of the two variables (also invariant). */
+  xsse = c_sse(xx, xm, num);
+  ysse = c_sse(yy, ym, num);
+
+  /* if at least one of the two variables is constant, they are independent. */
+  if ((xsse == 0) || (ysse == 0)) {
+
+    *observed = 0;
+    *res = 1;
+    return;
+
+  }/*THEN*/
+
   /* initialize the random number generator. */
   GetRNGstate();
 
   /* pick up the observed value of the test statistic, then generate a set of
      random permutations (all variable but the second are fixed) and check how
      many tests are greater (in absolute value) than the original one.*/
-  switch(test) {
+  *observed = mc_cov(xx, yy, xm, ym, num);
 
-    case GAUSSIAN_MUTUAL_INFORMATION:
-    case LINEAR_CORRELATION:
-    case FISHER_Z:
-      *observed = mc_cov(xx, yy, xm, ym, num);
+  for (j = 0; j < B; j++) {
 
-      for (j = 0; j < B; j++) {
+    RandomPermutation(num, perm, work);
 
-        RandomPermutation(num, perm, work);
+    for (k = 0; k < num; k++)
+      yperm[k] = yy[perm[k] - 1];
 
-        for (k = 0; k < num; k++)
-          yperm[k] = yy[perm[k] - 1];
+    if (fabs(mc_cov(xx, yperm, xm, ym, num)) > fabs(*observed)) {
 
-        if (fabs(mc_cov(xx, yperm, xm, ym, num)) > fabs(*observed)) {
+      SEQUENTIAL_COUNTER_CHECK(*res);
 
-          sequential_counter_check(*res);
+    }/*THEN*/
 
-        }/*THEN*/
-
-      }/*FOR*/
-
-      break;
-
-  }/*SWITCH*/
+  }/*FOR*/
 
   /* compute the observed value for the statistic. */
   switch(test) {
 
-    case GAUSSIAN_MUTUAL_INFORMATION:
-      *observed = c_fast_cor(xx, yy, num);
-      *observed = - num * log(1 - (*observed) * (*observed));
+    case MC_MI_G:
+    case SMC_MI_G:
+      *observed = c_fast_cor(xx, yy, num, xm, ym, xsse, ysse);
+      *observed = 2 * num * cor_mi_trans(*observed);
       break;
 
-    case LINEAR_CORRELATION:
-      *observed = c_fast_cor(xx, yy, num);
+    case MC_COR:
+    case SMC_COR:
+      *observed = c_fast_cor(xx, yy, num, xm, ym, xsse, ysse);
       break;
 
-    case FISHER_Z:
+    case MC_ZF:
+    case SMC_ZF:
 
       /* check whether the sample size is big enough for the transform. */
-      if (num - 3 < 1)
-        error("sample size too small to compute the Fisher's Z transform.");
+      if (num - 3 < 1) {
 
-      *observed = c_fast_cor(xx, yy, num);
-      *observed = log((1 + *observed)/(1 - *observed)) / 2 *
-                    sqrt((double)(num) - 3);
+        warning("sample size too small to compute the Fisher's Z transform.");
+        *observed = 0;
+
+      }/*THEN*/
+      else {
+
+        *observed = cor_zf_trans(c_fast_cor(xx, yy, num, xm, ym, xsse, ysse),
+                      (double)num - 2);
+
+      }/*ELSE*/
+
       break;
+
+    default:
+      error("unknown permutation test statistic.");
 
   }/*SWITCH*/
 
@@ -104,7 +121,7 @@ int *perm = NULL, *work = NULL;
 
 /* conditional Monte Carlo simulation for correlation-based tests. */
 void c_gauss_cmcarlo(double **column, int ncols, int num, int B,
-    double *observed, double *pvalue, double alpha, int test) {
+    double *observed, double *pvalue, double alpha, test_e test) {
 
 int j = 0, k = 0, errcode = 0, *work = NULL, *perm = NULL;
 int error_counter = 0;
@@ -120,21 +137,24 @@ double *u = NULL, *d = NULL, *vt = NULL;
 
   /* cache the means of the variables (they are invariant under permutation). */
   mean = alloc1dreal(ncols);
-
   /* compute the mean values  */
-  for (j = 0; j < ncols; j++) {
-
-    for (k = 0 ; k < num; k++)
-      mean[j] += column[j][k];
-
-    mean[j] /= num;
-
-  }/*FOR*/
+  c_meanvec(column, mean, num, ncols, 0);
 
   /* allocate and initialize the covariance matrix. */
   covariance = alloc1dreal(ncols * ncols);
-  covariance_backup = alloc1dreal(ncols * ncols);
   c_covmat(column, mean, ncols, num, covariance, 0);
+
+  /* if at least one of the two variables is constant, they are independent. */
+  if ((covariance[CMC(0, 0, ncols)] == 0) || (covariance[CMC(1, 1, ncols)] == 0)) {
+
+    *observed = 0;
+    *pvalue = 1;
+    return;
+
+  }/*THEN*/
+
+  /* make a backup copy that will not be touched by permutations. */
+  covariance_backup = alloc1dreal(ncols * ncols);
   memcpy(covariance_backup, covariance, ncols * ncols * sizeof(double));
 
   /* substitute the original data with the fake column that will be permuted. */
@@ -153,71 +173,74 @@ double *u = NULL, *d = NULL, *vt = NULL;
   /* pick up the observed value of the test statistic, then generate a set of
      random permutations (all variable but the second are fixed) and check how
      many tests are greater (in absolute value) than the original one.*/
-  switch(test) {
+  *observed = mc_fast_pcor(covariance, ncols, u, d, vt, &errcode);
 
-    case GAUSSIAN_MUTUAL_INFORMATION:
-    case LINEAR_CORRELATION:
-    case FISHER_Z:
-      *observed = mc_fast_pcor(covariance, ncols, u, d, vt, &errcode);
+  if (errcode)
+    error("an error (%d) occurred in the call to dgesvd().\n", errcode);
 
-      if (errcode)
-        error("an error (%d) occurred in the call to dgesvd().\n", errcode);
+  for (j = 0; j < B; j++) {
 
-      for (j = 0; j < B; j++) {
+    /* reset the error flag of the SVD Fortran routine. */
+    errcode = 0;
 
-        /* reset the error flag of the SVD Fortran routine. */
-        errcode = 0;
+    RandomPermutation(num, perm, work);
 
-        RandomPermutation(num, perm, work);
+    for (k = 0; k < num; k++)
+      yperm[k] = yorig[perm[k] - 1];
 
-        for (k = 0; k < num; k++)
-          yperm[k] = yorig[perm[k] - 1];
+    /* restore the covariance matrix from the good copy. */
+    memcpy(covariance, covariance_backup, ncols * ncols * sizeof(double));
+    /* update the relevant covariances. */
+    c_update_covmat(column, mean, 1, ncols, num, covariance);
 
-        /* restore the covariance matrix from the good copy. */
-        memcpy(covariance, covariance_backup, ncols * ncols * sizeof(double));
-        /* update the relevant covariances. */
-        c_update_covmat(column, mean, 1, ncols, num, covariance);
+    permuted = mc_fast_pcor(covariance, ncols, u, d, vt, &errcode);
 
-        permuted = mc_fast_pcor(covariance, ncols, u, d, vt, &errcode);
+    if (errcode != 0)
+      error_counter++;
 
-        if (errcode != 0)
-          error_counter++;
+    if (fabs(permuted) > fabs(*observed)) {
 
-        if (fabs(permuted) > fabs(*observed)) {
+      SEQUENTIAL_COUNTER_CHECK(*pvalue);
 
-          sequential_counter_check(*pvalue);
+    }/*THEN*/
 
-        }/*THEN*/
+  }/*FOR*/
 
-      }/*FOR*/
-
-    if (error_counter > 0)
-      warning("unable to compute %d permutations due to errors in dgesvd().\n",
-        error_counter);
-
-    break;
-
-  }/*SWITCH*/
+  if (error_counter > 0)
+    warning("unable to compute %d permutations due to errors in dgesvd().\n",
+      error_counter);
 
   /* compute the observed value for the statistic. */
   switch(test) {
 
-    case GAUSSIAN_MUTUAL_INFORMATION:
-      *observed = - num * log(1 - (*observed) * (*observed));
+    case MC_MI_G:
+    case SMC_MI_G:
+      *observed = 2 * num * cor_mi_trans(*observed);
       break;
 
-    case LINEAR_CORRELATION:
+    case MC_COR:
+    case SMC_COR:
       break;
 
-    case FISHER_Z:
-
+    case MC_ZF:
+    case SMC_ZF:
       /* check whether the sample size is big enough for the transform. */
-      if (num - 1 - ncols < 1)
-        error("sample size too small to compute the Fisher's Z transform.");
+      if (num - 1 - ncols < 1) {
 
-      *observed = log((1 + *observed)/(1 - *observed)) / 2 *
-                    sqrt((double)(num) - 1 - ncols);
+        warning("sample size too small to compute the Fisher's Z transform.");
+        *observed = 0;
+
+      }/*THEN*/
+      else {
+
+        *observed = cor_zf_trans(*observed, (double)num - ncols);
+
+      }/*ELSE*/
+
       break;
+
+    default:
+      error("unknown permutation test statistic.");
 
   }/*SWITCH*/
 

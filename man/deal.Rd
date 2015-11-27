@@ -1,14 +1,10 @@
 \name{deal integration}
 \alias{deal integration}
-\title{
-
-  bnlearn - deal package integration
-
-}
+\title{bnlearn - deal package integration}
 \description{
 
-  How to use the \pkg{bnlearn} package with the Bayesian
-  network learning methods  provided by the \pkg{deal} package.
+  How to use the \pkg{bnlearn} package with the Bayesian network learning
+  methods provided by the \pkg{deal} package.
 
 }
 \section{Export a bn object to deal}{

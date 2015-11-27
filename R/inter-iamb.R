@@ -79,37 +79,6 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
   loop.counter = 1
   state = vector(5 * length(nodes), mode = "list")
 
-  del.node = function(y, x, test) {
-
-    if (debug)
-      cat("  * checking node", y, "for exclusion (shrinking phase).\n")
-
-    a = indep.test(x, y, mb[mb != y], data = data, test = test, B = B,
-          alpha = alpha)
-
-    if (a > alpha) {
-
-      if (debug) {
-
-        cat("    > node", y, "removed from the markov blanket. ( p-value:", a, ")\n")
-        cat("    > conditioning subset: '", mb[mb != y], "'\n")
-
-      }#THEN
-
-      # update the markov blanket.
-      assign("mb", mb[mb != y], envir = sys.frame(-3))
-
-      return(NULL)
-
-    }#THEN
-    else if (debug) {
-
-      cat("    > node", y, "remains in the markov blanket. ( p-value:", a, ")\n")
-
-    }#THEN
-
-  }#DEL.NODE
-
   # growing phase
   if (debug) {
 
@@ -186,12 +155,20 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
 
     if (association[to.add] <= alpha) mb = c(mb, to.add)
 
+    if (debug)
+      cat("  * checking nodes for exclusion.\n")
+
     # whitelisted nodes are neighbours, they cannot be removed from the markov
     # blanket; the last node added in phase I will never be removed, because
     # the tests for inclusion and removal are identical; on the other hand,
     # known.good nodes should be checked to remove false positives.
-    if (length(mb) > 1)
-      sapply(mb[mb %!in% c(to.add, whitelisted)], del.node, x = x, test = test)
+    fixed = c(to.add, whitelisted)
+    fixed = fixed[fixed != ""]
+
+    pv = roundrobin.test(x = x, z = mb, fixed = fixed, data = data, test = test,
+           B = B, alpha = alpha, debug = debug)
+
+    mb = intersect(mb, c(names(pv[pv < alpha]), fixed))
 
     if (identical(mb, mb.snapshot)) {
 

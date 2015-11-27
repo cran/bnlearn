@@ -31,5 +31,5 @@ SEXP c_onUnload() {
 
   return R_NilValue;
 
-}/*C_UNLOAD*/
+}/*C_ONUNLOAD*/
 

@@ -22,9 +22,16 @@ double max = R_NegInf;
 
   }/*FOR*/
 
-  /* if all elements are NA/NaN return NA. */
-  if (imax < 0)
+  if (imax < 0) {
+
+    /* if all elements are -Inf, return the first as the maximum. */
+    if (array[0] == R_NegInf)
+      return 1;
+
+    /* if all elements are NA/NaN return NA. */
     return NA_INTEGER;
+
+  }/*THEN*/
 
   return imax + 1;
 
@@ -51,9 +58,16 @@ long double max = R_NegInf;
 
   }/*FOR*/
 
-  /* if all elements are NA/NaN return NA. */
-  if (imax < 0)
+  if (imax < 0) {
+
+    /* if all elements are -Inf, return the first as the maximum. */
+    if (array[0] == R_NegInf)
+      return 1;
+
+    /* if all elements are NA/NaN return NA. */
     return NA_INTEGER;
+
+  }/*THEN*/
 
   return imax + 1;
 

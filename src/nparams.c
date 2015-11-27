@@ -1,89 +1,9 @@
 #include "include/rcore.h"
+#include "include/matrix.h"
 #include "include/allocations.h"
 
-/* get the number of parameters of the whole network (discrete case). */
-SEXP nparams_dnet(SEXP graph, SEXP data, SEXP real, SEXP debug) {
-
-int i = 0, j = 0, nnodes = 0;
-int *index = NULL, r = isTRUE(real), debuglevel = isTRUE(debug);
-double node_params = 0, all_params = 0;
-double *nlevels = NULL;
-SEXP nodes, node_data, parents, try;
-
-  /* get nodes' number and data. */
-  node_data = getListElement(graph, "nodes");
-  nodes = getAttrib(node_data, R_NamesSymbol);
-  nnodes = length(node_data);
-
-  /* get the level count for each node. */
-  nlevels = alloc1dreal(nnodes);
-  for (i = 0; i < nnodes; i++)
-    nlevels[i] = NLEVELS2(data, i);
-
-  /* for each node... */
-  for (i = 0; i < nnodes; i++) {
-
-    /* reset the parameter counter. */
-    node_params = 1;
-
-    /* match the parents of the node. */
-    parents = getListElement(VECTOR_ELT(node_data, i), "parents");
-    PROTECT(try = match(nodes, parents, 0));
-    index = INTEGER(try);
-
-    /* compute the number of configurations. */
-    for (j = 0; j < length(try); j++)
-      node_params *= nlevels[index[j] - 1];
-
-    UNPROTECT(1);
-
-    /* multiply by the number of free parameters. */
-    if (r > 0)
-      node_params *= nlevels[i] - 1;
-    else
-      node_params *= nlevels[i];
-
-    if (debuglevel > 0)
-      Rprintf("* node %s has %.0lf parameter(s).\n", NODE(i), node_params);
-
-    /* update the return value. */
-    all_params += node_params;
-
-  }/*FOR*/
-
-  return ScalarReal(all_params);
-
-}/*NPARAMS_DNET*/
-
-/* get the number of parameters of the whole network (continuous case). */
-SEXP nparams_gnet(SEXP graph, SEXP debug) {
-
-int i = 0, node_params = 0, debuglevel = isTRUE(debug);
-double all_params = 0;
-SEXP nodes = R_NilValue, temp = getListElement(graph, "nodes");
-
-  if (debuglevel > 0)
-    nodes = getAttrib(temp, R_NamesSymbol);
-
-  /* add one parameter for each regressor, which means one for each
-   * parent for each node plus the intercept. */
-  for (i = 0; i < length(temp); i++) {
-
-    node_params = length(getListElement(VECTOR_ELT(temp, i), "parents")) + 1;
-
-    if (debuglevel > 0)
-      Rprintf("* node %s has %d parameter(s).\n", NODE(i), node_params);
-
-    /* update the return value. */
-    all_params += node_params;
-
-  }/*FOR*/
-
-  return ScalarReal(all_params);
-
-}/*NPARAMS_GNET*/
-
-/* get the number of parameters of the whole network (mixed case) */
+/* get the number of parameters of the whole network (mixed case, also handles
+ * discrete and Gaussian networks). */
 SEXP nparams_cgnet(SEXP graph, SEXP data, SEXP debug) {
 
 int i = 0, j = 0, nnodes = 0, debuglevel = isTRUE(debug);
@@ -123,7 +43,7 @@ SEXP nodes = R_NilValue, node_data, parents, temp;
     }/*FOR*/
     /* compute the overall number of parameters as regressors plus intercept
      * times configurations. */
-    node_params = nconfig * (nlevels[i] == 0 ? ngp + 1 : nlevels[i]  - 1);
+    node_params = nconfig * (nlevels[i] == 0 ? ngp + 1 : nlevels[i] - 1);
 
     if (debuglevel > 0)
       Rprintf("* node %s has %.0lf parameter(s).\n", NODE(i), node_params);
@@ -142,11 +62,12 @@ SEXP nodes = R_NilValue, node_data, parents, temp;
 }/*NPARAMS_CGNET*/
 
 /* compute the number of parameters of a fitted model. */
-SEXP fitted_nparams(SEXP bn, SEXP debug) {
+SEXP nparams_fitted(SEXP bn, SEXP effective, SEXP debug) {
 
-int i = 0, j = 0, node_params = 0, nnodes = length(bn);
-int res = 0, debuglevel = isTRUE(debug);
-SEXP nodes = R_NilValue, node_data, temp;
+int i = 0, j = 0, k = 0, node_params = 0, nnodes = length(bn), *pd = NULL;
+int res = 0, debuglevel = isTRUE(debug), eff = isTRUE(effective);
+double *ps = NULL, counter = 0;
+SEXP nodes = R_NilValue, node_data, param_set, param_dims;
 
   if (debuglevel > 0)
     nodes = getAttrib(bn, R_NamesSymbol);
@@ -156,25 +77,63 @@ SEXP nodes = R_NilValue, node_data, temp;
     /* get the node's data. */
     node_data = VECTOR_ELT(bn, i);
     /* get its probability distribution (if discrete). */
-    temp = getListElement(node_data, "prob");
+    param_set = getListElement(node_data, "prob");
 
-    if (!isNull(temp)) {
+    if (!isNull(param_set)) {
 
-      /* reset the parameters' counter for this node. */
-      node_params = 1;
       /* get the dimensions of the conditional probability table. */
-      temp = getAttrib(temp, R_DimSymbol);
-      /* compute the number of parameters. */
-      for (j = 1; j < length(temp); j++)
-        node_params *= INTEGER(temp)[j];
+      param_dims = getAttrib(param_set, R_DimSymbol);
+      pd = INTEGER(param_dims);
+      ps = REAL(param_set);
 
-      node_params *= INTEGER(temp)[0] - 1;
+      if (eff) {
+
+        /* count the number of non-zero free parameters. */
+        for (node_params = 0, k = 0; k < length(param_set) / pd[0]; k++) {
+
+          /* check the elements of each conditional probability distribution. */
+          for (counter = 0, j = 0; j < pd[0]; j++)
+            counter += !ISNAN(ps[CMC(j, k, pd[0])]) && (ps[CMC(j, k, pd[0])] > 0);
+          /* subtract the column total to get the free parameters. */
+          if (counter > 0)
+            counter--;
+
+          node_params += counter;
+
+        }/*FOR*/
+
+      }/*THEN*/
+      else {
+
+        /* compute the number of parameters. */
+        for (node_params = 1, j = 1; j < length(param_dims); j++)
+          node_params *= pd[j];
+
+        node_params *= pd[0] - 1;
+
+      }/*ELSE*/
 
     }/*THEN*/
     else {
 
+      /* get the vector (or matrix) of regression coefficients. */
+      param_set = getListElement(node_data, "coefficients");
+      ps = REAL(param_set);
+
       /* this is a continuous node, so it's a lot easier. */
-      node_params = length(getListElement(node_data, "coefficients"));
+      if (eff) {
+
+        /* count the number of non-zero regression coefficients. */
+        for (node_params = 0, j = 0; j < length(param_set); j++)
+          node_params += (ps[j] != 0);
+
+      }/*THEN*/
+      else {
+
+        /* compute the number of parameters. */
+        node_params = length(param_set);
+
+      }/*ELSE*/
 
     }/*ELSE*/
 
@@ -187,5 +146,5 @@ SEXP nodes = R_NilValue, node_data, temp;
 
   return ScalarInteger(res);
 
-}/*FITTED_NPARAMS*/
+}/*NPARAMS_FITTED*/
 

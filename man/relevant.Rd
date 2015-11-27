@@ -1,6 +1,6 @@
 \name{relevant}
 \alias{relevant}
-\title{ Identify Relevant Nodes Without Learning the Bayesian network }
+\title{Identify Relevant Nodes Without Learning the Bayesian network}
 \description{
 
   Identify all the nodes relevant to compute all the conditional probability
@@ -16,20 +16,20 @@
   \item{context}{a vector of character strings, the labels of nodes on
     which to condition the independence tests.}
   \item{data}{a data frame containing either numeric or factor columns.}
-  \item{test}{a character string, the label of the conditional
-      independence test to be used in the algorithm.
-      If none is specified, the default test statistic is the \emph{mutual
-      information} for categorical variables, the Jonckheere-Terpstra test
-      for ordered factors and the \emph{linear correlation} for continuous
-      variables. See \code{\link{bnlearn-package}} for details.}
-  \item{alpha}{a numeric value, the target nominal type I error rate. If
-      none is specified, the default value is \code{0.05}.}
-  \item{B}{a positive integer, the number of permutations considered
-      for each permutation test. It will be ignored with a warning if
-      the conditional independence test specified by the \code{test}
-      argument is not a permutation test.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output
-      is printed; otherwise the function is completely silent.}
+  \item{test}{a character string, the label of the conditional independence
+    test to be used in the algorithm. If none is specified, the default test
+    statistic is the \emph{mutual information} for categorical variables, the
+    Jonckheere-Terpstra test for ordered factors and the \emph{linear
+    correlation} for continuous variables. See \code{\link{bnlearn-package}}
+    for details.}
+  \item{alpha}{a numeric value, the target nominal type I error rate. If none
+    is specified, the default value is \code{0.05}.}
+  \item{B}{a positive integer, the number of permutations considered for each
+    permutation test. It will be ignored with a warning if the conditional
+    independence test specified by the \code{test} argument is not a
+    permutation test.}
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
+    printed; otherwise the function is completely silent.}
 }
 \note{
 
@@ -44,7 +44,7 @@
 \value{
 
   \code{relevant} returns a vector of character strings, the labels of the
-    relevant nodes.
+  relevant nodes.
 
 }
 \examples{

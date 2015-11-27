@@ -1,6 +1,6 @@
 \name{plot.bn.strength}
 \alias{plot.bn.strength}
-\title{ Plot arc strengths derived from bootstrap }
+\title{Plot arc strengths derived from bootstrap}
 \description{
 
   Plot arc strengths derived from bootstrap resampling.
@@ -12,8 +12,8 @@
 }
 \arguments{
   \item{x}{an object of class \code{bn.strength}.}
-  \item{draw.threshold}{a boolean value. If \code{TRUE}, a dashed vertical
-    line is drawn at the threshold.}
+  \item{draw.threshold}{a boolean value. If \code{TRUE}, a dashed vertical line
+    is drawn at the threshold.}
   \item{main,xlab,ylab}{character strings, the main title and the axes labels.}
   \item{\dots}{other graphical parameters.}
 }

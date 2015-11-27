@@ -1,33 +1,43 @@
 
 # get the number of parameters of the bayesian network.
-nparams = function(x, data, debug = FALSE) {
+nparams = function(x, data, effective = FALSE, debug = FALSE) {
 
   # check x's class.
   check.bn.or.fit(x)
-  # check debug.
+  # check debug and  effective.
   check.logical(debug)
+  check.logical(effective)
 
   if (is(x, "bn")) {
 
     # check the data are there.
-    type = check.data(data)
+    check.data(data)
     # check the network against the data.
     check.bn.vs.data(x, data)
-    # nparams is unknown for partially directed graphs.
+    # the number of parameters is unknown for partially directed graphs.
     if (is.pdag(x$arcs, names(x$nodes)))
       stop("the graph is only partially directed.")
 
-    if (type %in% discrete.data.types)
-      return(nparams.discrete(x, data = data, real = TRUE, debug = debug))
-    else if (type == "continuous")
-      return(nparams.gaussian(x, debug = debug))
-    else if (type == "mixed-cg")
-      return(nparams.mixedcg(x, data = data, debug = debug))
+    if (effective) {
+
+      # fit the network to compute the number of non-zero parameters.
+      x = bn.fit(x, data)
+      return(nparams.fitted(x, effective = TRUE, debug = debug))
+
+    }#THEN
+    else {
+
+      return(nparams.backend(x, data = data, debug = debug))
+
+    }#ELSE
 
   }#THEN
   else {
 
-    return(nparams.fitted(x, debug = debug))
+    if (!missing(data))
+      warning("unused argument data.")
+
+    return(nparams.fitted(x, effective = effective, debug = debug))
 
   }#ELSE
 

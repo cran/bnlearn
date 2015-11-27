@@ -1,36 +1,19 @@
 
-nparams.discrete = function(x, data, real = FALSE, debug = FALSE) {
+nparams.backend = function(x, data, debug = FALSE) {
 
-  # works for both dnode and onode objects, they have the same structure.
-  .Call("nparams_dnet",
-        graph = x,
-        data = minimal.data.frame.column(data, names(x$nodes)),
-        real = real,
-        debug = debug)
-
-}#NPARAMS.DISCRETE
-
-nparams.gaussian = function(x, debug = FALSE) {
-
-  .Call("nparams_gnet",
-        graph = x,
-        debug = debug)
-
-}#NPARAMS.GAUSSIAN
-
-nparams.mixedcg = function(x, data, debug = FALSE) {
-
+  # handles all of discrete, Gaussian and conditional Gaussian networks.
   .Call("nparams_cgnet",
         graph = x,
         data = minimal.data.frame.column(data, names(x$nodes)),
         debug = debug)
 
-}#NPARAMS.MIXEDCG
+}#NPARAMS.BACKEND
 
-nparams.fitted = function(x, debug = FALSE) {
+nparams.fitted = function(x, effective = FALSE, debug = FALSE) {
 
-  .Call("fitted_nparams",
+  .Call("nparams_fitted",
         bn = x,
+        effective = effective,
         debug = debug)
 
 }#NPARAMS.FITTED

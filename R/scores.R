@@ -23,11 +23,12 @@ per.node.score = function(network, data, score, targets, extra.args,
 }#PER.NODE.SCORE
 
 # complete a prior over arcs as per Castelo and Siebes.
-cs.completed.prior = function(beta, nodes) {
+cs.completed.prior = function(beta, nodes, learning = FALSE) {
 
   beta = .Call("castelo_completion",
                prior = beta,
-               nodes = nodes)
+               nodes = nodes,
+               learning = learning)
 
   class(beta) = c("prior", "prior.cs", "data.frame")
   attr(beta, "nodes") = nodes

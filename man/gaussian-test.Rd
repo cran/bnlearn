@@ -1,11 +1,10 @@
 \name{gaussian.test}
 \docType{data}
 \alias{gaussian.test}
-\title{ Synthetic (continuous) data set to test learning algorithms }
+\title{Synthetic (continuous) data set to test learning algorithms}
 \description{
 
-  This a synthetic data set used as a test case in the
-  \pkg{bnlearn} package.
+  This a synthetic data set used as a test case in the \pkg{bnlearn} package.
 
 }
 \usage{
@@ -13,8 +12,7 @@ data(gaussian.test)
 }
 \format{
 
-  The \code{gaussian.test} data set contains seven normal
-  (Gaussian) variables.
+  The \code{gaussian.test} data set contains seven normal (Gaussian) variables.
 
 }
 \note{

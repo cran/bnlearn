@@ -2,6 +2,7 @@
 #include "include/dataframe.h"
 #include "include/allocations.h"
 #include "include/globals.h"
+#include "include/covariance.h"
 
 SEXP dedup (SEXP data, SEXP threshold, SEXP debug) {
 
@@ -9,7 +10,7 @@ int i = 0, j = 0, k = 0, dropped = 0;
 int ncols = length(data), nrows = length(VECTOR_ELT(data, 0));
 int debuglevel = isTRUE(debug);
 short int *drop = NULL;
-double **column = NULL, *mean = NULL, *sd = NULL;
+double **column = NULL, *mean = NULL, *sse = NULL;
 double tol = MACHINE_TOL, t = NUM(threshold);
 long double sum = 0;
 SEXP result, colnames, nodes = getAttrib(data, R_NamesSymbol);
@@ -27,26 +28,14 @@ SEXP result, colnames, nodes = getAttrib(data, R_NamesSymbol);
 
   /* cache the means. */
   mean = alloc1dreal(ncols);
-  for (j = 0; j < ncols; j++) {
-
-    for (i = 0; i < nrows; i++)
-      mean[j] += column[j][i];
-    mean[j] /= nrows;
-
-  }/*FOR*/
+  c_meanvec(column, mean, nrows, ncols, 0);
 
   if (debuglevel > 0)
     Rprintf("* caching standard deviations.\n");
 
   /* cache the variances. */
-  sd = alloc1dreal(ncols);
-  for (j = 0; j < ncols; j++) {
-
-    for (i = 0, sum = 0; i < nrows; i++)
-      sum += (column[j][i] - mean[j]) * (column[j][i] - mean[j]);
-    sd[j] = sqrt(sum / nrows);
-
-  }/*FOR*/
+  sse = alloc1dreal(ncols);
+  c_ssevec(column, sse, mean, nrows, ncols, 0);
 
   /* main loop. */
   for (j = 0; j < ncols - 1; j++) {
@@ -68,13 +57,12 @@ SEXP result, colnames, nodes = getAttrib(data, R_NamesSymbol);
       /* compute the covariance. */
       for (i = 0, sum = 0; i < nrows; i++)
         sum += (column[j][i] - mean[j]) * (column[k][i] - mean[k]);
-      sum /= nrows;
 
       /* safety check against "divide by zero" errors. */
-      if ((sd[j] < tol) || (sd[k] < tol))
+      if ((sse[j] < tol) || (sse[k] < tol))
         sum = 0;
       else
-        sum /= sd[j] * sd[k];
+        sum /= sqrt(sse[j] * sse[k]);
 
       /* test the correlation against the threshold. */
       if (fabsl(sum) > t) {

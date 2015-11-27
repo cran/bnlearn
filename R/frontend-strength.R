@@ -56,7 +56,7 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
     # expand and sanitize score-specific arguments.
     extra.args = check.score.args(score = criterion, network = x,
-                   data = data, extra.args = list(...))
+                   data = data, extra.args = list(...), learning = FALSE)
 
     res = arc.strength.score(network = x, data = data, score = criterion,
             extra = extra.args, debug = debug)
@@ -79,7 +79,8 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
 # compute the strength of all possible arcs from a list of network
 # structures/arc sets.
-custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE, debug = FALSE) {
+custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
+    debug = FALSE) {
 
   # check debug.
   check.logical(debug)

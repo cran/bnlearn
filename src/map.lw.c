@@ -16,6 +16,10 @@ long double wsum = 0, wtot = 0;
   }/*FOR*/
   wsum /= wtot;
 
+  /* if all weights are zero, the predicted value is NA.*/
+  if (wtot == 0)
+    wsum = NA_REAL;
+
   if (debuglevel > 0)
     Rprintf("  > prediction is %Lf.\n", wsum);
 
@@ -35,10 +39,14 @@ int k = 0, res = 0;
 
   res = ld_which_max(counts, nlvls);
 
+  /* if all weights are zero, the predicted value is NA.*/
+  if (counts[res - 1] == 0)
+    res = NA_INTEGER;
+
   if (debuglevel > 0) {
 
     Rprintf("  > prediction is '%s' with weight sums:\n",
-      CHAR(STRING_ELT(levels, res - 1)));
+      res == NA_INTEGER ? "NA" : CHAR(STRING_ELT(levels, res - 1)));
     for (k = 0; k < nlvls; k++)
       Rprintf("%Lf ", counts[k]);
     Rprintf("\n");
