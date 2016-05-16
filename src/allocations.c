@@ -21,54 +21,78 @@ void UNPROTECT_DEBUG(int n, const char *fun, const char *file, int line) {
 
 }/*UNPROTECT_DEBUG*/
 
-/* make R_alloc() behave like calloc() and zero allocated memory. */
-void *R_calloc(size_t num, size_t size) {
+void *Calloc1D(size_t R, size_t size) {
 
-void *p = R_alloc(num, size);
+void *p = NULL;
 
-  /* memset()ting a NULL pointer is a NOP. */
-  if (p)
-    memset(p, '\0', size * num);
-  else if (num > 0)
-    error("memsetting() %d bytes on a NULL pointer.", size * num);
+  if (R == 0)
+    return NULL;
 
-  return p;
+  p = calloc(R, size);
 
-}/*R_CALLOC*/
+  if (!p)
+    error("unable to allocate a %d array.", R);
 
-/* two-dimensional version of R_calloc(). */
-void **R_calloc2(size_t num1, size_t num2, size_t size) {
+  return(p);
+
+}/*CALLOC1D*/
+
+void BN_Free1D(void *p) {
+
+  free(p);
+
+}/*FREE1D*/
+
+void **Calloc2D(size_t R, size_t C, size_t size) {
 
 void **p = NULL;
 
   /* no corner cases, both dimensions required to be positive. */
-  if ((num1 == 0) || (num2 == 0))
-    error("trying to allocate a %dx%d two-dimensional array.", num1, num2);
+  if ((R == 0) || (C == 0))
+    error("trying to allocate a %dx%d two-dimensional array.", R, C);
 
-  p = (void **) R_alloc(num1, sizeof(void *));
+  p = Calloc1D(R, sizeof(void *));
 
-  for (int i = 0; i < num1; i++)
-    p[i] = R_calloc(num2, size);
+  for (int i = 0; i < R; i++)
+    p[i] = Calloc1D(C, size);
 
   return p;
 
-}/*R_CALLOC2*/
+}/*CALLOC2D*/
 
-/* three-dimensional version of R_calloc(). */
-void ***R_calloc3(size_t num1, size_t num2, size_t num3, size_t size) {
+void BN_Free2D(void **p, size_t R) {
+
+int i = 0;
+
+  for (i = 0; i < R; i++)
+    free(p[i]);
+  free(p);
+
+}/*FREE2D*/
+
+void ***Calloc3D(size_t R, size_t C, size_t L, size_t size) {
 
 void ***p = NULL;
 
   /* no corner cases, all three dimensions required to be positive. */
-  if ((num1 == 0) || (num2 == 0) || (num3 == 0))
-    error("trying to allocate a %dx%dx%d three-dimensional array.",
-      num1, num2, num3);
+  if ((R == 0) || (C == 0) || (L == 0))
+    error("trying to allocate a %dx%dx%d three-dimensional array.", R, C, L);
 
-  p = (void ***) R_alloc(num1, sizeof(void *));
-  for (int i = 0; i < num1; i++)
-    p[i] = R_calloc2(num2, num3, size);
+  p = Calloc1D(R, sizeof(void *));
+  for (int i = 0; i < R; i++)
+    p[i] = Calloc2D(C, L, size);
 
   return p;
 
-}/*R_CALLOC3*/
+}/*CALLOC3D*/
+
+void BN_Free3D(void ***p, size_t R, size_t C) {
+
+int i = 0;
+
+  for (i = 0; i < R; i++)
+    BN_Free2D(p[i], C);
+  free(p);
+
+}/*FREE3D*/
 

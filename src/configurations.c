@@ -1,6 +1,5 @@
 #include "include/rcore.h"
 #include "include/sets.h"
-#include "include/allocations.h"
 
 /* wrapper around the c_configurations() function for use in .Call(). */
 SEXP configurations(SEXP parents, SEXP factor, SEXP all) {
@@ -55,8 +54,8 @@ int ncols = length(parents), nrows = length(VECTOR_ELT(parents, 0));
 SEXP temp;
 
   /* dereference the columns of the data frame. */
-  columns = (int **) alloc1dpointer(ncols);
-  levels = alloc1dcont(ncols);
+  columns = (int **) Calloc1D(ncols, sizeof(int *));
+  levels = Calloc1D(ncols, sizeof(int));
   for (i = 0; i < ncols; i++) {
 
     temp = VECTOR_ELT(parents, i);
@@ -67,6 +66,9 @@ SEXP temp;
 
   c_fast_config(columns, nrows, ncols, levels, configurations, nlevels, 0);
 
+  Free1D(columns);
+  Free1D(levels);
+
 }/*CFG*/
 
 void c_fast_config(int **columns, int nrows, int ncols, int *levels, int *configurations,
@@ -76,7 +78,7 @@ int i = 0, j = 0, cfgmap = 0;
 long long *cumlevels = NULL, nl = 0;
 
   /* create the cumulative products of the number of levels. */
-  cumlevels = (long long *) Calloc(ncols, long long);
+  cumlevels = Calloc1D(ncols, sizeof(long long));
 
   /* set the first one to 1 ... */
   cumlevels[0] = 1;
@@ -122,7 +124,7 @@ long long *cumlevels = NULL, nl = 0;
 
   }/*FOR*/
 
-  Free(cumlevels);
+  Free1D(cumlevels);
 
 }/*C_FAST_CONFIG*/
 

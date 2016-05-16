@@ -82,13 +82,13 @@ is.probability = function(x) {
 }#IS.PROBABILITY
 
 # is x a vector of probabilities?
-is.probability.vector = function(x) {
+is.probability.vector = function(x, zero = FALSE) {
 
   is.numeric(x) &&
   all(is.finite(x)) &&
   all(x >= 0) &&
   all(x <= 1) &&
-  any(x > 0)
+  (zero || any(x > 0))
 
 }#IS.PROBABILITY.VECTOR
 
@@ -373,9 +373,8 @@ check.arcs.against.assumptions = function(arcs, data, criterion) {
     # arcs cannot point from continuous nodes to discrete nodes.
     if (is.null(arcs)) {
 
-      arcs = .Call("cg_banned_arcs",
-                   nodes = names(data),
-                   data = data)
+      arcs = list.cg.illegal.arcs(nodes = names(data), variables = data)
+
     }#THEN
     else {
 
@@ -391,6 +390,14 @@ check.arcs.against.assumptions = function(arcs, data, criterion) {
   return(arcs)
 
 }#CHECK.ARCS.AGAINST.ASSUMPTIONS
+
+list.cg.illegal.arcs = function(nodes, variables) {
+
+  .Call("cg_banned_arcs",
+        nodes = nodes,
+        variables = variables)
+
+}#LIST.ILLEGAL.ARCS
 
 # build a valid blacklist.
 build.blacklist = function(blacklist, whitelist, nodes, algo) {
@@ -560,7 +567,7 @@ is.score.equivalent = function(score, nodes, extra) {
     return(TRUE)
   # BDe and BGe are score equivalent if they have uniform priors (e.g. BDeu and BGeu).
   else if ((score %in% c("bde", "bge")) && (extra$prior == "uniform"))
-      return(TRUE)
+    return(TRUE)
 
   # a conservative default.
   return(FALSE)
@@ -571,7 +578,7 @@ is.score.equivalent = function(score, nodes, extra) {
 is.score.decomposable = function(score, nodes, extra) {
 
   # Castelo & Siebes prior is not decomposable.
-  if ((score %in% c("bde", "bge")) && (extra$prior == "cs"))
+  if ((score %in% c("bde", "bds", "mbde", "bge")) && (extra$prior == "cs"))
     return(FALSE)
 
   # a sensible default.
@@ -598,7 +605,7 @@ check.test = function(test, data) {
     if ((type != "ordered") && (test %in% available.ordinal.tests))
       stop("test '", test, "' may be used with ordinal data only.")
     if ((type %!in% discrete.data.types) && (test %in% available.discrete.tests))
-      stop("test '", test, "' may be used with continuous data only.")
+      stop("test '", test, "' may be used with discrete data only.")
     if ((type != "continuous") && (test %in% available.continuous.tests))
       stop("test '", test, "' may be used with continuous data only.")
     if ((type != "mixed-cg") && (test %in% available.mixedcg.tests))
@@ -1004,7 +1011,7 @@ check.graph.sparsity = function(beta, prior, network, data, learning = FALSE) {
           !identical(colnames(beta), c("from", "to", "prob")))
         stop("beta must be a data frame with three colums: 'from', 'to' and 'prob'.")
       # the probs cloumns must contain only probabilities.
-      if (!is.probability.vector(beta$prob))
+      if (!is.probability.vector(beta$prob, zero = TRUE))
         stop("arcs prior must contain only probabilities.")
       # check that the first two columns contain only valid arcs.
       check.arcs(beta[, c("from", "to")], nodes = names(data))
@@ -1044,17 +1051,17 @@ check.maxp = function(maxp, data) {
 check.score.args = function(score, network, data, extra.args, learning = FALSE) {
 
   # check the imaginary sample size.
-  if (score %in% c("bde", "bdes", "mbde", "bge"))
+  if (score %in% c("bde", "bds", "mbde", "bge"))
     extra.args$iss = check.iss(iss = extra.args$iss,
       network = network, data = data)
 
   # check the graph prior distribution.
-  if (score %in% c("bde", "bge"))
+  if (score %in% c("bde", "bds", "mbde", "bge"))
     extra.args$prior = check.graph.prior(prior = extra.args$prior,
       network = network)
 
   # check the sparsity parameter of the graph prior distribution.
-  if (score %in% c("bde", "bge"))
+  if (score %in% c("bde", "bds", "mbde", "bge"))
     extra.args$beta = check.graph.sparsity(beta = extra.args$beta,
       prior = extra.args$prior, network = network, data = data,
       learning = learning)
@@ -1311,12 +1318,21 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
 
   valid.args = loss.extra.args[[loss]]
 
-  if (loss %in% c("pred", "pred-lw", "cor", "cor-lw", "mse", "mse-lw")) {
+  if (loss %in% c("pred", "pred-lw", "pred-lw-cg", "cor", "cor-lw", "cor-lw-cg",
+                  "mse", "mse-lw", "mse-lw-cg")) {
 
     if (!is.null(extra.args$target)) {
 
       if (!is.string(extra.args$target) || (extra.args$target %!in% nodes))
         stop("target node must be a single, valid node label for the network.")
+
+      # in hybrid networks, check the target has the right data type.
+      if (loss %in% c("cor-lw-cg", "mse-lw-cg"))
+        if (!is(data[, extra.args$target], "numeric"))
+          stop("the target node must be a continuous variable.")
+      if (loss == "pred-lw-cg")
+        if (!is(data[, extra.args$target], "factor"))
+          stop("the target node must be a factor.")
 
     }#THEN
     else {
@@ -1348,7 +1364,8 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
 
   }#THEN
 
-  if (loss %in% c("pred-lw", "cor-lw", "mse-lw")) {
+  if (loss %in% c("pred-lw", "pred-lw-cg", "cor-lw", "cor-lw-cg", "mse-lw",
+                  "mse-lw-cg")) {
 
     # number of particles for likelihood weighting.
     if (!is.null(extra.args$n)) {
@@ -1813,8 +1830,8 @@ check.bn.strength = function(strength, nodes) {
       !identical(names(strength), c("from", "to", "strength", "direction")))
     stop("objects of class 'bn.strength' must be data frames with column names ",
          "'from', 'to', 'strength' and (optionally) 'direction'.")
-  if (any(c("mode", "threshold") %!in% names(attributes(strength))))
-    stop("objects of class 'bn.strength' must have a 'mode' and a 'strength' attribute.")
+  if (any(c("method", "threshold") %!in% names(attributes(strength))))
+    stop("objects of class 'bn.strength' must have a 'method' and a 'strength' attributes.")
   if (!missing(nodes))
     check.arcs(strength[, c("from", "to"), drop = FALSE], nodes)
 

@@ -1,4 +1,21 @@
 
+# safe version of setMethod().
+tryMethod = function(f, signature, definition, generic) {
+
+  # try a first time.
+  catch = try(setMethod(f, signature, definition), silent = TRUE)
+
+  if (is(catch, "try-error")) {
+
+    # if it failed, create a generic function ...
+    setGeneric(f, generic)
+    # ... and then try again.
+    setMethod(f, signature, definition)
+
+  }#THEN
+
+}#TRYMETHOD
+
 # set up hooks, S4 classes and initialize global variables.
 .onLoad = function(lib, pkg) {
 
@@ -27,21 +44,18 @@
   setClass("bn.naive")
   setClass("bn.tan")
 
-  # if no generic is present, create it.
-  if ("graph" %!in% loadedNamespaces()) {
-
-    setGeneric("nodes", function(object, ...) standardGeneric("nodes"))
-    setGeneric("nodes<-", function(object, value) standardGeneric("nodes<-"))
-    setGeneric("degree", function(object, Nodes, ...) standardGeneric("degree"))
-
-  }#THEN
-
-  # add the methods.
+  # add the methods (if no generic is present, create it) .
   for (cl in bnlearn.classes) {
 
-    setMethod("nodes", cl, function(object) .nodes(object))
-    setMethod("nodes<-", cl, function(object, value) .relabel(object, value))
-    setMethod("degree", cl, function(object, Nodes) .degree(object, Nodes))
+    tryMethod("nodes", cl,
+      definition = function(object) .nodes(object),
+      generic = function(object, ...) standardGeneric("nodes"))
+    tryMethod("nodes<-", cl,
+      definition = function(object, value) .relabel(object, value),
+      generic = function(object, value) standardGeneric("nodes<-"))
+    tryMethod("degree", cl,
+      definition = function(object, Nodes) .degree(object, Nodes),
+      generic = function(object, Nodes, ...) standardGeneric("degree"))
 
   }#FOR
 

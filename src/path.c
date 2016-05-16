@@ -1,6 +1,5 @@
 #include "include/rcore.h"
 #include "include/matrix.h"
-#include "include/allocations.h"
 #include "include/graph.h"
 
 SEXP has_pdag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes,
@@ -9,16 +8,25 @@ SEXP has_pdag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes,
 int start = INT(from) - 1, stop = INT(to) - 1, n = INT(nrows);
 int debuglevel = LOGICAL(debug)[0], notdirect = LOGICAL(exclude_direct)[0],
       ugraph = LOGICAL(underlying)[0], *a = INTEGER(amat);
+int *path = NULL, *scratch = NULL, res = 0;
 
-  return ScalarLogical(c_has_path(start, stop, a, n, nodes, ugraph, notdirect,
-           debuglevel));
+  /* allocate buffers for c_has_path(). */
+  path = Calloc1D(n, sizeof(int));
+  scratch = Calloc1D(n, sizeof(int));
+
+  res = c_has_path(start, stop, a, n, nodes, ugraph, notdirect,
+          path, scratch, debuglevel);
+
+  Free1D(path);
+  Free1D(scratch);
+
+  return ScalarLogical(res);
 
 }/*HAS_DAG_PATH*/
 
 int c_has_path(int start, int stop, int *amat, int n, SEXP nodes,
-    int ugraph, int notdirect, int debuglevel) {
+    int ugraph, int notdirect, int *path, int *counter, int debuglevel) {
 
-int *counter = NULL, *path = NULL;
 int i = 0, a1 = 0, a2 = 0, path_pos = 0, cur = start;
 
   /* remove any arc between start and stop if asked to. */
@@ -31,9 +39,9 @@ int i = 0, a1 = 0, a2 = 0, path_pos = 0, cur = start;
   }/*THEN*/
 
   /* initialize the position counters for the rows of the adjacency matrix. */
-  counter = alloc1dcont(n);
+  memset(counter, '\0', n * sizeof(int));
   /* initialize the path array. */
-  path = alloc1dcont(n);
+  memset(path, '\0', n * sizeof(int));
 
   /* iterate until the other node is found. */
   while (cur != stop) {
@@ -152,15 +160,14 @@ there:
 }/*C_HAS_PATH*/
 
 int c_directed_path(int start, int stop, int *amat, int n, SEXP nodes,
-    int debuglevel) {
+    int *path, int *counter, int debuglevel) {
 
-int *counter = NULL, *path = NULL;
 int i = 0, path_pos = 0, cur = start;
 
   /* initialize the position counters for the rows of the adjacency matrix. */
-  counter = alloc1dcont(n);
+  memset(counter, '\0', n * sizeof(int));
   /* initialize the path array. */
-  path = alloc1dcont(n);
+  memset(path, '\0',  n * sizeof(int));
 
   /* iterate until the other node is found. */
   while (cur != stop) {
@@ -246,12 +253,13 @@ there:
 
 }/*C_DIRECTED_PATH*/
 
-int c_uptri3_path(short int *uptri, int from, int to, int nnodes, SEXP nodes, int debuglevel) {
+int c_uptri3_path(short int *uptri, int *depth, int from, int to, int nnodes,
+    SEXP nodes, int debuglevel) {
 
-int i = 0, j = 0, d = 0, *depth = NULL;
+int i = 0, j = 0, d = 0;
 
-  depth = alloc1dcont(nnodes);
-
+  /* reset the depth counter for all the nodes. */
+  memset(depth, '\0', nnodes * sizeof(int));
   depth[from] = 1;
 
   /* for each depth level... */
@@ -272,8 +280,11 @@ int i = 0, j = 0, d = 0, *depth = NULL;
 
       for (j = 0; j < nnodes; j++) {
 
+        /* ... not on the diagonal (which is not allocated by UPTRI) ... */
+        if (i == j)
+          continue;
         /* ... and it is adjacent to another node... */
-        if (!(uptri[UPTRI3(i + 1, j + 1, nnodes)] == 1) || (i == j))
+        if (!(uptri[UPTRI3(i + 1, j + 1, nnodes)] == 1))
           continue;
 
         /* ... that hasn't already been visited... */
@@ -313,5 +324,5 @@ int i = 0, j = 0, d = 0, *depth = NULL;
 
   return FALSE;
 
-}/*HAS_UPTRI3_PATH*/
+}/*C_UPTRI3_PATH*/
 

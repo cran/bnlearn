@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/blas.h"
 #include "include/covariance.h"
 #include "include/dataframe.h"
@@ -56,18 +55,11 @@ double temp = 0;
 double *mean = NULL, *mat = NULL;
 
   /* allocate mean vector and covariance matrix. */
-  mean = alloc1dreal(ncols);
-  mat = alloc1dreal(ncols * ncols);
+  mean = Calloc1D(ncols, sizeof(double));
+  mat = Calloc1D(ncols * ncols, sizeof(double));
 
   /* compute the mean values.  */
-  for (i = 0; i < ncols; i++) {
-
-    for (j = 0 ; j < nrows; j++)
-      mean[i] += data[i][j];
-
-    mean[i] /= nrows;
-
-  }/*FOR*/
+  c_meanvec(data, mean, nrows, ncols, 0);
 
   /* compute the covariance matrix... */
   c_covmat(data, mean, ncols, nrows, mat, 0);
@@ -105,6 +97,9 @@ double *mean = NULL, *mat = NULL;
   /* perform the final (pseudo)inversion. */
   c_ginv(tau, res_ncols, tau);
 
+  Free1D(mat);
+  Free1D(mean);
+
 }/*BUILD_TAU*/
 
 double cwpost(SEXP x, SEXP z, int iss, double phic) {
@@ -115,19 +110,19 @@ int rho = iss + ncols;
 double logscale = 0, logk = 0, xprod = 0, var_x = 0, zi_mu = 0, phi = 0;
 double *xx = REAL(x), *workspace = NULL;
 double res = 0, **zz = NULL, *zi = NULL, *mu = NULL, *delta_mu = NULL;
-double *tau = NULL, *invtau = NULL, *old_tau = NULL, *old_mu = NULL;
+double *tau = NULL, *inv_tau = NULL, *old_tau = NULL, *old_mu = NULL;
 
   /* allocate a workspace vector. */
-  workspace = alloc1dreal(tau_ncols);
+  workspace = Calloc1D(tau_ncols, sizeof(double));
 
   /* allocate and initialize the parent configuration. */
-  zi = alloc1dreal(ncols + 1);
+  zi = Calloc1D(ncols + 1, sizeof(double));
   zi[0] = 1;
 
   /* estimate mu and var_x. */
-  mu = alloc1dreal(tau_ncols);
-  old_mu = alloc1dreal(tau_ncols);
-  delta_mu = alloc1dreal(tau_ncols);
+  mu = Calloc1D(tau_ncols, sizeof(double));
+  old_mu = Calloc1D(tau_ncols, sizeof(double));
+  delta_mu = Calloc1D(tau_ncols, sizeof(double));
 
   for (i = 0; i < num; i++)
     mu[0] += xx[i];
@@ -141,17 +136,17 @@ double *tau = NULL, *invtau = NULL, *old_tau = NULL, *old_mu = NULL;
   phi = var_x * phic;
 
   /* allocate and initialize an array of pointers for the variables. */
-  zz = (double **) alloc1dpointer(ncols);
+  zz = (double **) Calloc1D(ncols, sizeof(double *));
   for (j = 0; j < ncols; j++)
     zz[j] = REAL(VECTOR_ELT(z, j));
 
   /* allocate and initialize tau. */
-  tau = alloc1dreal(tau_ncols * tau_ncols);
-  old_tau = alloc1dreal(tau_ncols * tau_ncols);
-  invtau = alloc1dreal(tau_ncols * tau_ncols);
+  tau = Calloc1D(tau_ncols * tau_ncols, sizeof(double));
+  old_tau = Calloc1D(tau_ncols * tau_ncols, sizeof(double));
+  inv_tau = Calloc1D(tau_ncols * tau_ncols, sizeof(double));
   build_tau(zz, tau, ncols, num, iss, phic);
   memcpy(old_tau, tau, tau_ncols * tau_ncols * sizeof(double));
-  c_ginv(tau, tau_ncols, invtau);
+  c_ginv(tau, tau_ncols, inv_tau);
 
   /* for each sample... */
   for (i = 0; i < num; i++) {
@@ -161,7 +156,7 @@ double *tau = NULL, *invtau = NULL, *old_tau = NULL, *old_mu = NULL;
       zi[j + 1] = zz[j][i];
 
     /* ... compute the Mahalanobis distance of z[i] ... */
-    xprod = c_quadratic(zi, &tau_ncols, invtau, zi, workspace);
+    xprod = c_quadratic(zi, &tau_ncols, inv_tau, zi, workspace);
 
     /* ... compute the scale factor ... */
     logscale = log(phi) + log1p(xprod);
@@ -184,11 +179,11 @@ double *tau = NULL, *invtau = NULL, *old_tau = NULL, *old_mu = NULL;
           tau[CMC(j, k, tau_ncols)] + zi[j] * zi[k];
 
     /* ... its inverse  ... */
-    c_finv(tau, &tau_ncols, invtau);
+    c_finv(tau, &tau_ncols, inv_tau);
 
     /* ... update the mu vector ... */
     memcpy(old_mu, mu, tau_ncols * sizeof(double));
-    c_rotate(invtau, old_tau, mu, &(xx[i]), zi, &tau_ncols, workspace);
+    c_rotate(inv_tau, old_tau, mu, &(xx[i]), zi, &tau_ncols, workspace);
 
     /* ... update rho (ISS + sample size evaluated at the current iteration) ... */
     rho++;
@@ -203,6 +198,16 @@ double *tau = NULL, *invtau = NULL, *old_tau = NULL, *old_mu = NULL;
              c_quadratic(delta_mu, &tau_ncols, old_tau, old_mu, workspace);
 
   }/*FOR*/
+
+  Free1D(workspace);
+  Free1D(zi);
+  Free1D(mu);
+  Free1D(old_mu);
+  Free1D(delta_mu);
+  Free1D(zz);
+  Free1D(tau);
+  Free1D(old_tau);
+  Free1D(inv_tau);
 
   return res;
 

@@ -33,18 +33,20 @@ leaf.nodes = function(x) {
 }#LEAF.NODES
 
 # check if a graph is acyclic.
-acyclic = function(x, debug = FALSE) {
+acyclic = function(x, directed = FALSE, debug = FALSE) {
 
   # check x's class.
   check.bn.or.fit(x)
-  # check debug.
+  # check debug and directed.
   check.logical(debug)
+  check.logical(directed)
 
   # fitted bayesian networks are always acylic.
   if (is(x, "bn.fit"))
     return(TRUE)
 
-  is.acyclic(arcs = x$arcs, nodes = names(x$nodes), debug = debug)
+  is.acyclic(arcs = x$arcs, nodes = names(x$nodes), debug = debug,
+    directed = directed)
 
 }#ACYCLIC
 
@@ -161,7 +163,7 @@ skeleton = function(x) {
 
 }#SKELETON
 
-# return a complete orientation of a graph.
+# return a complete orientation of a graph given a topological ordering.
 pdag2dag = function(x, ordering) {
 
   # check x's class.

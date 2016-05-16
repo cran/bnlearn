@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/matrix.h"
 
 /* Beware: this function is based on the assumption that each arc is unique
@@ -14,7 +13,7 @@ int *a = INTEGER(arcs);
 short int *checklist = NULL;
 
   /* allocate and initialize the checklist. */
-  checklist = allocstatus(UPTRI_MATRIX(n));
+  checklist = Calloc1D(UPTRI_MATRIX(n), sizeof(short int));
 
   for (i = 0; i < nrows; i++) {
 
@@ -28,11 +27,15 @@ short int *checklist = NULL;
 
       /* this arc or its opposite already present in the checklist; the graph
        * has at least an undirected arc, so return FALSE. */
+      Free1D(checklist);
+
       return ScalarLogical(FALSE);
 
     }/*THEN*/
 
   }/*FOR*/
+
+  Free1D(checklist);
 
   return ScalarLogical(TRUE);
 

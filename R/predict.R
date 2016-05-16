@@ -27,7 +27,7 @@ gaussian.prediction = function(node, fitted, data, debug = FALSE) {
 }#GAUSSIAN.PREDICTION
 
 # predicted values for discrete networks.
-discrete.prediction = function(node, fitted, data, debug = FALSE) {
+discrete.prediction = function(node, fitted, data, prob = FALSE, debug = FALSE) {
 
   parents = fitted[[node]]$parents
 
@@ -39,6 +39,7 @@ discrete.prediction = function(node, fitted, data, debug = FALSE) {
     .Call("dpred",
           fitted = fitted[[node]],
           ndata = nrow(data),
+          prob = prob,
           debug = debug)
 
   }#THEN
@@ -53,6 +54,7 @@ discrete.prediction = function(node, fitted, data, debug = FALSE) {
     .Call("cdpred",
           fitted = fitted[[node]],
           parents = config,
+          prob = prob,
           debug = debug)
 
   }#ELSE
@@ -116,7 +118,8 @@ naive.classifier = function(training, fitted, prior, data, prob = FALSE,
 }#NAIVE.CLASSIFIER
 
 # maximum a posteriori predictions.
-map.prediction = function(node, fitted, data, n, from, debug = FALSE) {
+map.prediction = function(node, fitted, data, n, from, prob = FALSE,
+    debug = FALSE) {
 
   .Call("mappred",
         node = node,
@@ -124,6 +127,7 @@ map.prediction = function(node, fitted, data, n, from, debug = FALSE) {
         data = data,
         n = as.integer(n),
         from = from,
+        prob = prob,
         debug = debug)
 
 }#MAP.PREDICTION

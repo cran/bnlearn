@@ -93,43 +93,6 @@ pdag2dag.backend = function(arcs, ordering) {
 
 }#PDAG2DAG.BACKEND
 
-# reconstruct the equivalence class of a network.
-cpdag.backend = function(x, moral = TRUE, debug = FALSE) {
-
-  nodes = names(x$nodes)
-
-  amat = .Call("cpdag",
-               arcs = x$arcs,
-               nodes = nodes,
-               moral = moral,
-               fix = FALSE,
-               debug = debug)
-
-  # update the arcs of the network.
-  x$arcs = amat2arcs(amat, nodes)
-
-  # update the network structure.
-  x$nodes = cache.structure(nodes, amat = amat)
-
-  return(x)
-
-}#CPDAG.BACKEND
-
-# reconstruct the arc set of the equivalence class of a network.
-cpdag.arc.backend = function(nodes, arcs, moral = TRUE, fix.directed = FALSE,
-    debug = FALSE) {
-
-  amat = .Call("cpdag",
-               arcs = arcs,
-               nodes = nodes,
-               moral = moral,
-               fix = fix.directed,
-               debug = debug)
-
-  return(amat2arcs(amat, nodes))
-
-}#CPDAG.ARCS.BACKEND
-
 # mutilated network graph used in likelihood weighting.
 mutilated.backend.bn = function(x, evidence) {
 
@@ -297,11 +260,11 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
 }#PERTURB.BACKEND
 
 # structural hamming distance backend.
-structural.hamming.distance = function(learned, true, debug = FALSE) {
+structural.hamming.distance = function(learned, true, wlbl = FALSE, debug = FALSE) {
 
   .Call("shd",
-        learned = cpdag.backend(learned),
-        golden = cpdag.backend(true),
+        learned = cpdag.backend(learned, wlbl = wlbl),
+        golden = cpdag.backend(true, wlbl = wlbl),
         debug = debug)
 
 }#STRUCTURAL.HAMMING.DISTANCE
@@ -345,30 +308,6 @@ tiers.backend = function(nodes, debug = FALSE) {
         debug = debug)
 
 }#TIERS.BACKEND
-
-# backend to get a DAG out of a CPDAG (still in the same equivalence class).
-cpdag.extension = function(x, debug = FALSE) {
-
-  nodes = names(x$nodes)
-
-  # update the arcs of the network.
-  x$arcs = cpdag.arc.extension(arcs = x$arcs, nodes = nodes, debug = debug)
-  # update the network structure.
-  x$nodes = cache.structure(nodes, arcs = x$arcs, debug = debug)
-
-  return(x)
-
-}#CPDAG.EXTENSION
-
-# backend to get a set of directed arcs out of a CPDAG.
-cpdag.arc.extension = function(arcs, nodes, debug = FALSE) {
-
-  .Call("pdag_extension",
-        arcs = arcs,
-        nodes = nodes,
-        debug = debug)
-
-}#CPDAG.ARC.EXTENSION
 
 # generate a subgraph spanning a subset of nodes.
 subgraph.backend = function(x, nodes) {

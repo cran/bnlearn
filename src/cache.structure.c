@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/matrix.h"
 
 #define BLANKET		 1
@@ -7,7 +6,7 @@
 #define PARENT		 3
 #define CHILD		 4
 
-static SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrows,
+SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrows,
     int *status, int debuglevel);
 
 /* compute the cached values for all nodes. */
@@ -23,7 +22,7 @@ int *status = NULL, *a = INTEGER(amat);
   setAttrib(bn, R_NamesSymbol, nodes);
 
   /* allocate and intialize the status vector. */
-  status = alloc1dcont(length_nodes);
+  status = Calloc1D(length_nodes, sizeof(int));
 
   if (isTRUE(debug))
     Rprintf("* (re)building cached information about network structure.\n");
@@ -43,6 +42,8 @@ int *status = NULL, *a = INTEGER(amat);
 
   UNPROTECT(1);
 
+  Free1D(status);
+
   return bn;
 
 }/*CACHE_STRUCTURE*/
@@ -53,12 +54,13 @@ SEXP cache_partial_structure(SEXP nodes, SEXP target, SEXP amat, SEXP debug) {
 int i = 0, debuglevel = LOGICAL(debug)[0], length_nodes = length(nodes);
 char *t = (char *)CHAR(STRING_ELT(target, 0));
 int *status = NULL, *a = INTEGER(amat);
+SEXP cached;
 
   if (isTRUE(debug))
     Rprintf("* (re)building cached information about node %s.\n", t);
 
   /* allocate and initialize the status vector. */
-  status = alloc1dcont(length_nodes);
+  status = Calloc1D(length_nodes, sizeof(int));
 
   /* iterate fo find the node position in the array.  */
   for (i = 0; i < length_nodes; i++)
@@ -66,27 +68,16 @@ int *status = NULL, *a = INTEGER(amat);
       break;
 
   /* return the corresponding part of the bn structure. */
-  return cache_node_structure(i, nodes, a, length_nodes, status, debuglevel);
+  cached = cache_node_structure(i, nodes, a, length_nodes, status, debuglevel);
+
+  Free1D(status);
+
+  return cached;
 
 }/*CACHE_PARTIAL_STRUCTURE*/
 
-/* compute the cached values for a single node (C-friendly). */
-SEXP c_cache_partial_structure(int target, SEXP nodes, SEXP amat, int *status, SEXP debug) {
-
-int debuglevel = LOGICAL(debug)[0], length_nodes = length(nodes);
-int *a = INTEGER(amat);
-
-  /* allocate and initialize the status vector. */
-  if (!(*status))
-    status = alloc1dcont(length_nodes);
-
-  /* return the corresponding part of the bn structure. */
-  return cache_node_structure(target, nodes, a, length_nodes, status, debuglevel);
-
-}/*C_CACHE_PARTIAL_STRUCTURE*/
-
 /* backend to compute the cached values for a single node. */
-static SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrows,
+SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrows,
     int *status, int debuglevel) {
 
 int i = 0, j = 0;

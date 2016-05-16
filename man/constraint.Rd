@@ -4,14 +4,16 @@
 \alias{iamb}
 \alias{fast.iamb}
 \alias{inter.iamb}
+\alias{mmpc}
+\alias{si.hiton.pc}
 \title{Constraint-based structure learning algorithms}
 \description{
 
   Learn the equivalence class of a directed acyclic graph (DAG) from data using
   the Grow-Shrink (GS), the Incremental Association (IAMB), the Fast Incremental
-  Association (Fast-IAMB) or the Interleaved Incremental Association
-  (Inter-IAMB) constraint-based algorithms.
-
+  Association (Fast-IAMB), the Interleaved Incremental Association (Inter-IAMB),
+  the Max-Min Parents and Children (MMPC) or the Semi-Interleaved HITON-PC 
+  constraint-based algorithms.
 }
 \usage{
 gs(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
@@ -26,6 +28,12 @@ fast.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
 inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
   alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE, strict = FALSE,
   undirected = FALSE)
+mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+  alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE, strict = FALSE,
+  undirected = TRUE)
+si.hiton.pc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+  alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE, strict = FALSE,
+  undirected = TRUE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
@@ -64,13 +72,13 @@ inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
 }
 \references{
 
-  \bold{for Grow-Shrink (GS):}
+  \bold{for GS:}
 
   Margaritis D (2003). \emph{Learning Bayesian Network Model Structure from
       Data}. Ph.D. thesis, School of Computer Science, Carnegie-Mellon
       University, Pittsburgh, PA. Available as Technical Report CMU-CS-03-153.
 
-  \bold{for Incremental Association (IAMB):}
+  \bold{for IAMB:}
 
   Tsamardinos I, Aliferis CF, Statnikov A (2003). "Algorithms for Large Scale
       Markov Blanket Discovery". In "Proceedings of the Sixteenth International
@@ -83,6 +91,25 @@ inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
       Optimal Feature Selection". In "ICDM '05: Proceedings of the Fifth IEEE
       International Conference on Data Mining", pp. 809-812. IEEE Computer
       Society.
+
+  \bold{for MMPC:}
+
+  Tsamardinos I, Aliferis CF, Statnikov A (2003). "Time and Sample
+      Efficient Discovery of Markov Blankets and Direct Causal Relations".
+      In "KDD '03: Proceedings of the Ninth ACM SIGKDD International
+      Conference on Knowledge Discovery and Data Mining", pp. 673-678. ACM.
+
+  Tsamardinos I, Brown LE, Aliferis CF (2006). "The Max-Min Hill-Climbing
+      Bayesian Network Structure Learning Algorithm". \emph{Machine Learning},
+      \strong{65}(1), 31-78.
+
+  \bold{for the Semi-Interleaved HITON-PC:}
+
+  Aliferis FC, Statnikov A, Tsamardinos I, Subramani M, Koutsoukos XD (2010).
+      "Local Causal and Markov Blanket Induction for Causal Discovery and
+      Feature Selection for Classification Part I: Algorithms and Empirical
+      Evaluation". \emph{Journal of Machine Learning Research}, \strong{11},
+      171-234.
 
 }
 \author{ Marco Scutari }

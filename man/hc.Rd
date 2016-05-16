@@ -69,7 +69,7 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ...,
 }
 \author{ Marco Scutari }
 \seealso{\link{constraint-based algorithms}, \link{hybrid algorithms}, \cr
-  \link{local discovery algorithms}.}
+  \link{local discovery algorithms}, \code{\link{alpha.star}}.}
 \keyword{multivariate}
 \keyword{models}
 \keyword{graphs}

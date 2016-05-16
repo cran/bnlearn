@@ -23,7 +23,7 @@ SEXP nodes = getAttrib(data, R_NamesSymbol);
 SEXP data_type(SEXP data) {
 
 int i = 0, numeric = 0, categorical = 0, ordinal = 0, ncols = length(data);
-SEXP column, class;
+SEXP column, class, nodes = getAttrib(data, R_NamesSymbol);
 
   for (i = 0; i  < ncols; i++) {
 
@@ -46,12 +46,14 @@ SEXP column, class;
             (strcmp(CHAR(STRING_ELT(class, 1)), "factor") == 0))
               ordinal++;
         else
-          error("variables must be either numeric, factors or ordered factors.");
+          error("variable %s is not supported in bnlearn (type: %s).",
+            NODE(i), type2char(TYPEOF(column)));
 
         break;
 
       default:
-        error("variables must be either numeric, factors or ordered factors.");
+          error("variable %s is not supported in bnlearn (type: %s).",
+            NODE(i), type2char(TYPEOF(column)));
 
     }/*SWITCH*/
 

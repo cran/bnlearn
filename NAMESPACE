@@ -60,6 +60,7 @@ export(
   "averaged.network",
   "rbn",
   "score",
+  "alpha.star",
   "ci.test",
   "as.bn",
   "as.bn.fit",
@@ -185,6 +186,7 @@ S3method(predict, "bn.naive")
 S3method(predict, "bn.tan")
 S3method("$<-", "bn.fit")
 S3method("[[<-", "bn.fit")
+S3method(mean, "bn.strength")
 
 exportClasses("bn", "bn.fit")
 exportMethods("nodes", "nodes<-", "degree")

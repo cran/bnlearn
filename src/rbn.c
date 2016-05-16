@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/sampling.h"
 #include "include/sets.h"
 #include "include/dataframe.h"
@@ -9,7 +8,7 @@
 void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int num, int ordinal,
     SEXP fixed);
 void rbn_discrete_cond(SEXP result, SEXP nodes, int cur, SEXP parents, SEXP cpt,
-    int num, int ordinal, SEXP fixed);
+    int num, int ordinal, SEXP fixed, int debuglevel);
 void rbn_gaussian(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
     int num, SEXP fixed);
 void rbn_mixedcg(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
@@ -54,7 +53,7 @@ SEXP parents, parent_vars;
   /* order the nodes according to their depth in the graph. */
   PROTECT(roots = root_nodes(fitted, FALSESEXP));
   PROTECT(node_depth = schedule(fitted, roots, FALSESEXP, FALSESEXP));
-  poset = alloc1dcont(nnodes);
+  poset = Calloc1D(nnodes, sizeof(int));
   for (i = 0; i < nnodes; i++)
     poset[i] = i;
   R_qsort_int_I(INTEGER(node_depth), poset, 1, nnodes);
@@ -193,12 +192,12 @@ SEXP parents, parent_vars;
 
         case CATEGORICAL:
           rbn_discrete_cond(result, nodes, cur, parent_vars, cpt, num, FALSE,
-            cur_fixed);
+            cur_fixed, debuglevel);
           break;
 
         case ORDINAL:
           rbn_discrete_cond(result, nodes, cur, parent_vars, cpt, num, TRUE,
-            cur_fixed);
+            cur_fixed, debuglevel);
           break;
 
         case GAUSSIAN:
@@ -219,6 +218,8 @@ SEXP parents, parent_vars;
   }/*FOR*/
 
   PutRNGstate();
+
+  Free1D(poset);
 
   UNPROTECT(has_fixed);
 
@@ -275,14 +276,17 @@ SEXP generated, lvls;
   }/*THEN*/
   else {
 
-    workplace = alloc1dcont(np);
+    workplace = Calloc1D(np, sizeof(int));
 
     /* duplicate the probability table to save the original copy from tampering. */
-    p = alloc1dreal(np);
+    p = Calloc1D(np, sizeof(double));
     memcpy(p, REAL(cpt), np * sizeof(double));
 
     /* perform the random sampling. */
     ProbSampleReplace(np, p, workplace, num, gen);
+
+    Free1D(workplace);
+    Free1D(p);
 
   }/*ELSE*/
 
@@ -290,7 +294,7 @@ SEXP generated, lvls;
 
 /* conditional discrete sampling. */
 void rbn_discrete_cond(SEXP result, SEXP nodes, int cur, SEXP parents, SEXP cpt,
-    int num, int ordinal, SEXP fixed) {
+    int num, int ordinal, SEXP fixed, int debuglevel) {
 
 int np = length(cpt), nlevels = 0, warn = 0;
 int *workplace = NULL, *configurations = NULL, *gen = NULL;
@@ -311,25 +315,28 @@ SEXP generated, lvls;
   }/*THEN*/
   else {
 
-    workplace = alloc1dcont(np);
+    workplace = Calloc1D(np, sizeof(int));
 
     /* allocate and initialize the parents' configurations. */
-    configurations = alloc1dcont(num);
+    configurations = Calloc1D(num, sizeof(int));
     cfg(parents, configurations, NULL);
 
     /* duplicate the probability table to save the original copy from tampering. */
-    p = alloc1dreal(np);
+    p = Calloc1D(np, sizeof(double));
     memcpy(p, REAL(cpt), np * sizeof(double));
     /* perform the random sampling. */
     CondProbSampleReplace(nlevels, length(cpt)/nlevels, p, configurations,
       workplace, num, gen, &warn);
 
+    Free1D(workplace);
+    Free1D(configurations);
+    Free1D(p);
+
   }/*ELSE*/
 
   /* warn when returning missing values. */
-  if (warn == TRUE)
-    warning("some configurations of the parents of %s are not present in the original data. NAs will be generated.",
-      NODE(cur));
+  if (warn && debuglevel > 0)
+    Rprintf("  > some parents configurations have undefined conditional distributions, NAs will be generated.");
 
 }/*RBN_DISCRETE_COND*/
 
@@ -421,9 +428,9 @@ SEXP generated;
     SEXP temp;
 
     /* separate discrete and continuous parents. */
-    gcol = Calloc(ngp, double *);
-    dcol = Calloc(ndp, int *);
-    nlvls = Calloc(ndp, int );
+    gcol = Calloc1D(ngp, sizeof(double *));
+    dcol = Calloc1D(ndp, sizeof(int *));
+    nlvls = Calloc1D(ndp, sizeof(int));
 
     for (i = 0; i < ngp; i++)
       gcol[i] = REAL(VECTOR_ELT(parents, gp[i] - 1));
@@ -437,14 +444,14 @@ SEXP generated;
     }/*FOR*/
 
     /* generate configurations from the discrete parents. */
-    config = Calloc(num, int);
+    config = Calloc1D(num, sizeof(int));
     c_fast_config(dcol, num, ndp, nlvls, config, &config_nlvl, 0);
 
     for (i = 0; i < num; i++) {
 
       /* get the right set of coefficients based on the configuration of the
        * discrete parents. */
-      beta_offset = beta + (ndp + 1) * config[i];
+      beta_offset = beta + (ngp + 1) * config[i];
       /* initialize with intercept and standard error. */
       gen[i] = beta_offset[0] + norm_rand() * sd[config[i]];
 
@@ -453,12 +460,12 @@ SEXP generated;
 
     }/*FOR*/
 
-    Free(gcol);
-    Free(dcol);
-    Free(nlvls);
-    Free(config);
+    Free1D(gcol);
+    Free1D(dcol);
+    Free1D(nlvls);
+    Free1D(config);
 
   }/*ELSE*/
 
-}/*RBN_GAUSSIAN*/
+}/*RBN_MIXEDCG*/
 

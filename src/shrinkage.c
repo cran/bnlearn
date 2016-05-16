@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/tests.h"
 #include "include/globals.h"
 #include "include/covariance.h"
@@ -20,9 +19,9 @@ double lambda = 0, target = 1/(double)(llx * lly);
 double res = 0;
 
   /* initialize the contingency table and the marginal frequencies. */
-  n = alloc2dreal(llx, lly);
-  ni = alloc1dreal(llx);
-  nj = alloc1dreal(lly);
+  n = (double **) Calloc2D(llx, lly, sizeof(double));
+  ni = Calloc1D(llx, sizeof(double));
+  nj = Calloc1D(lly, sizeof(double));
 
   /* compute the joint frequency of x and y. */
   for (k = 0; k < num; k++)
@@ -51,6 +50,10 @@ double res = 0;
       if (n[i][j] != 0)
         res += n[i][j] * log(n[i][j] / (ni[i] * nj[j]));
 
+  Free1D(ni);
+  Free1D(nj);
+  Free2D(n, llx);
+
   return res;
 
 }/*C_SHMI*/
@@ -68,10 +71,10 @@ double res = 0;
   *df = (double)(llx - 1) * (double)(lly - 1) * (double)(llz);
 
   /* initialize the contingency table and the marginal frequencies. */
-  n = alloc3dreal(llx, lly, llz);
-  ni = alloc2dreal(llx, llz);
-  nj = alloc2dreal(lly, llz);
-  nk = alloc1dreal(llz);
+  n = (double ***) Calloc3D(llx, lly, llz, sizeof(double));
+  ni = (double **) Calloc2D(llx, llz, sizeof(double));
+  nj = (double **) Calloc2D(lly, llz, sizeof(double));
+  nk = Calloc1D(llz, sizeof(double));
 
   /* compute the joint frequency of x, y, and z. */
   for (k = 0; k < num; k++)
@@ -116,6 +119,11 @@ double res = 0;
     }/*FOR*/
 
   }/*FOR*/
+
+  Free1D(nk);
+  Free2D(ni, llx);
+  Free2D(nj, lly);
+  Free3D(n, llx, lly);
 
   return res;
 
@@ -187,14 +195,23 @@ long double sum = 0, lambda = 0;
 
   }/*FOR*/
 
-  /* compute lambda, the shrinkage intensity, on a log-scale for numerical
-   * stability. */
-  lambda = exp(log(lambda) - log(sum * sum) + log((double)nobs) 
-             - 3 * log((double)(nobs - 1)));
+  if (lambda > MACHINE_TOL) {
 
-  /* truncate the shrinkage intensity in the [0,1] interval; this is not an
-   * error, but a measure to increase the quality of the shrinked estimate. */
-  TRUNCATE_LAMBDA(lambda);
+    /* compute lambda, the shrinkage intensity, on a log-scale for numerical
+     * stability (if lambda is equal to zero, just keep it as it is). */
+    lambda = exp(log(lambda) - log(sum * sum) + log((double)nobs)
+               - 3 * log((double)(nobs - 1)));
+
+    /* truncate the shrinkage intensity in the [0,1] interval; this is not an
+     * error, but a measure to increase the quality of the shrinked estimate. */
+    TRUNCATE_LAMBDA(lambda);
+
+  }/*THEN*/
+  else {
+
+    lambda = 0;
+
+  }/*ELSE*/
 
   return (double)lambda;
 
@@ -232,12 +249,23 @@ long double lambda = 0, sumcors = 0, sumvars = 0, temp = 0;
 
   }/*FOR*/
 
-  lambda = exp(log(sumvars) + log((double)n)  - 3 * log((double)(n - 1))
-             - log(sumcors));
+  if (sumvars > MACHINE_TOL) {
 
-  /* truncate the shrinkage intensity in the [0,1] interval; this is not an
-   * error, but a measure to increase the quality of the shrinked estimate. */
-  TRUNCATE_LAMBDA(lambda);
+    /* compute lambda, the shrinkage intensity, on a log-scale for numerical
+     * stability (if lambda is equal to zero, just keep it as it is). */
+    lambda = exp(log(sumvars) + log((double)n)  - 3 * log((double)(n - 1))
+               - log(sumcors));
+
+    /* truncate the shrinkage intensity in the [0,1] interval; this is not an
+     * error, but a measure to increase the quality of the shrinked estimate. */
+    TRUNCATE_LAMBDA(lambda);
+
+  }/*THEN*/
+  else {
+
+    lambda = 0;
+
+  }/*ELSE*/
 
   return (double)lambda;
 

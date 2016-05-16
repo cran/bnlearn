@@ -1,9 +1,9 @@
 #include "include/rcore.h"
 #include "include/dataframe.h"
-#include "include/allocations.h"
 #include "include/globals.h"
 #include "include/covariance.h"
 
+/* remove one variable in each highly-correlated pair. */
 SEXP dedup (SEXP data, SEXP threshold, SEXP debug) {
 
 int i = 0, j = 0, k = 0, dropped = 0;
@@ -16,10 +16,10 @@ long double sum = 0;
 SEXP result, colnames, nodes = getAttrib(data, R_NamesSymbol);
 
   /* set up a counter to flag the variables. */
-  drop = allocstatus(ncols);
+  drop = Calloc1D(ncols, sizeof(short int));
 
   /* extract the columns from the data frame. */
-  column = (double **) alloc1dpointer(ncols);
+  column = Calloc1D(ncols, sizeof(double *));
   for (j = 0; j < ncols; j++)
     column[j] = REAL(VECTOR_ELT(data, j));
 
@@ -27,14 +27,14 @@ SEXP result, colnames, nodes = getAttrib(data, R_NamesSymbol);
     Rprintf("* caching means.\n");
 
   /* cache the means. */
-  mean = alloc1dreal(ncols);
+  mean = Calloc1D(ncols, sizeof(double));
   c_meanvec(column, mean, nrows, ncols, 0);
 
   if (debuglevel > 0)
     Rprintf("* caching standard deviations.\n");
 
   /* cache the variances. */
-  sse = alloc1dreal(ncols);
+  sse = Calloc1D(ncols, sizeof(double));
   c_ssevec(column, sse, mean, nrows, ncols, 0);
 
   /* main loop. */
@@ -97,6 +97,11 @@ SEXP result, colnames, nodes = getAttrib(data, R_NamesSymbol);
 
   /* make it a data frame. */
   minimal_data_frame(result);
+
+  Free1D(drop);
+  Free1D(column);
+  Free1D(mean);
+  Free1D(sse);
 
   UNPROTECT(2);
 

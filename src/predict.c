@@ -1,6 +1,5 @@
 #include "include/rcore.h"
 #include "include/globals.h"
-#include "include/allocations.h"
 #include "include/dataframe.h"
 #include "include/sampling.h"
 #include "include/matrix.h"
@@ -52,7 +51,7 @@ SEXP result;
   res = REAL(result);
 
   /* dereference the columns of the data frame. */
-  columns = (double **) alloc1dpointer(ncols);
+  columns = (double **) Calloc1D(ncols, sizeof(double));
   for (i = 0; i < ncols; i++)
     columns[i] = REAL(VECTOR_ELT(parents, i));
 
@@ -80,49 +79,63 @@ SEXP result;
 
   UNPROTECT(1);
 
+  Free1D(columns);
+
   return result;
 
 }/*CGPRED*/
 
 /* predict the value of a discrete node without parents. */
-SEXP dpred(SEXP fitted, SEXP ndata, SEXP debug) {
+SEXP dpred(SEXP fitted, SEXP ndata, SEXP prob, SEXP debug) {
 
-int i = 0, nmax = 0, *n = INTEGER(ndata), length = 0;
-int *res = NULL, debuglevel = isTRUE(debug), *iscratch = NULL, *maxima = NULL;
-double *prob = NULL, *dscratch = NULL, *buf = NULL;
-SEXP ptab, result, tr_levels;
+int i = 0, nmax = 0, n = INT(ndata), length = 0;
+int *res = NULL, debuglevel = isTRUE(debug), include_prob = isTRUE(prob);
+int *iscratch = NULL, *maxima = NULL, tr_nlevels = 0;
+double *cpt = NULL, *dscratch = NULL, *buf = NULL, *pt = NULL;
+SEXP ptab, result, tr_levels, probtab = R_NilValue;
 
   /* get the probabilities of the multinomial distribution. */
   ptab = getListElement(fitted, "prob");
   length = length(ptab);
-  prob = REAL(ptab);
+  cpt = REAL(ptab);
 
   /* create the vector of indexes. */
-  iscratch = alloc1dcont(length);
+  iscratch = Calloc1D(length, sizeof(int));
   for (i = 0; i < length; i++)
     iscratch[i] = i + 1;
 
   /* create a scratch copy of the array. */
-  buf = alloc1dreal(length);
-  dscratch = alloc1dreal(length);
-  memcpy(dscratch, prob, length * sizeof(double));
+  buf = Calloc1D(length, sizeof(double));
+  dscratch = Calloc1D(length, sizeof(double));
+  memcpy(dscratch, cpt, length * sizeof(double));
 
   /* allocate the array for the indexes of the maxima. */
-  maxima = alloc1dcont(length);
+  maxima = Calloc1D(length, sizeof(int));
 
   /* find out the mode(s). */
   nmax = all_max(dscratch, length, maxima, iscratch, buf);
 
   /* allocate and initialize the return value. */
-  PROTECT(result = node2df(fitted, *n));
+  PROTECT(result = node2df(fitted, n));
   res = INTEGER(result);
   /* copy the levels for use in debuggging. */
   tr_levels = getAttrib(result, R_LevelsSymbol);
+  tr_nlevels = length(tr_levels);
+
+  /* allocate and initialize the table of the prediction probabilities. */
+  if (include_prob > 0) {
+
+    PROTECT(probtab = allocMatrix(REALSXP, tr_nlevels, n));
+    pt = REAL(probtab);
+    for (i = 0; i < n; i++)
+      memcpy(pt + i * tr_nlevels, cpt, tr_nlevels * sizeof(double));
+
+  }/*THEN*/
 
   if (nmax == 1) {
 
     /* copy the index of the mode in the return value. */
-    for (i = 0; i < *n; i++)
+    for (i = 0; i < n; i++)
       res[i] = maxima[0];
 
     if (debuglevel > 0) {
@@ -135,7 +148,7 @@ SEXP ptab, result, tr_levels;
 
       Rprintf("  ");
       for (i = 0; i < length(ptab); i++)
-        Rprintf("  %lf", prob[i]);
+        Rprintf("  %lf", cpt[i]);
       Rprintf("\n");
 
     }/*THEN*/
@@ -145,7 +158,7 @@ SEXP ptab, result, tr_levels;
 
     /* break ties: sample with replacement from all the maxima. */
     GetRNGstate();
-    SampleReplace(*n, nmax, res, maxima);
+    SampleReplace(n, nmax, res, maxima);
     PutRNGstate();
 
     if (debuglevel > 0) {
@@ -160,40 +173,60 @@ SEXP ptab, result, tr_levels;
 
   }/*ELSE*/
 
-  UNPROTECT(1);
+  if (include_prob > 0) {
+
+    /* set the levels of the target variable as rownames. */
+    setDimNames(probtab, tr_levels, R_NilValue);
+    /* add the posterior probabilities to the return value. */
+    setAttrib(result, BN_ProbSymbol, probtab);
+
+    UNPROTECT(2);
+
+  }/*THEN*/
+  else {
+
+    UNPROTECT(1);
+
+  }/*ELSE*/
+
+  Free1D(iscratch);
+  Free1D(buf);
+  Free1D(dscratch);
+  Free1D(maxima);
 
   return result;
 
 }/*DPRED*/
 
 /* predict the value of a discrete node with one or more parents. */
-SEXP cdpred(SEXP fitted, SEXP parents, SEXP debug) {
+SEXP cdpred(SEXP fitted, SEXP parents, SEXP prob, SEXP debug) {
 
-int i = 0, k = 0, ndata = length(parents), nrows = 0, ncols = 0;
+int i = 0, k = 0, n = length(parents), nrows = 0, ncols = 0;
 int *configs = INTEGER(parents), debuglevel = isTRUE(debug);
+int tr_nlevels = 0, include_prob = isTRUE(prob);
 int *iscratch = NULL, *maxima = NULL, *nmax = NULL, *res = NULL;
-double *prob = NULL, *dscratch = NULL, *buf = NULL;
-SEXP temp, result, tr_levels;
+double *cpt = NULL, *dscratch = NULL, *buf = NULL, *pt = NULL;
+SEXP temp, result, tr_levels, probtab = R_NilValue;
 
   /* get the probabilities of the multinomial distribution. */
   temp = getListElement(fitted, "prob");
   nrows = INT(getAttrib(temp, R_DimSymbol));
   ncols = length(temp) / nrows;
-  prob = REAL(temp);
+  cpt = REAL(temp);
 
   /* create the vector of indexes. */
-  iscratch = alloc1dcont(nrows);
+  iscratch = Calloc1D(nrows, sizeof(int));
 
   /* create a scratch copy of the array. */
-  buf = alloc1dreal(nrows);
-  dscratch = alloc1dreal(nrows * ncols);
-  memcpy(dscratch, prob, nrows * ncols * sizeof(double));
+  buf = Calloc1D(nrows, sizeof(double));
+  dscratch = Calloc1D(nrows * ncols, sizeof(double));
+  memcpy(dscratch, cpt, nrows * ncols * sizeof(double));
 
   /* allocate the array for the indexes of the maxima. */
-  maxima = alloc1dcont(nrows * ncols);
+  maxima = Calloc1D(nrows * ncols, sizeof(int));
 
   /* allocate the maxima counters. */
-  nmax = alloc1dcont(ncols);
+  nmax = Calloc1D(ncols, sizeof(int));
 
   /* get the mode for each configuration. */
   for (i = 0; i < ncols; i++) {
@@ -209,16 +242,25 @@ SEXP temp, result, tr_levels;
   }/*FOR*/
 
   /* allocate and initialize the return value. */
-  PROTECT(result = node2df(fitted, ndata));
+  PROTECT(result = node2df(fitted, n));
   res = INTEGER(result);
   /* copy the levels for use in debuggging. */
   tr_levels = getAttrib(result, R_LevelsSymbol);
+  tr_nlevels = length(tr_levels);
+
+  /* allocate and initialize the table of the prediction probabilities. */
+  if (include_prob > 0) {
+
+    PROTECT(probtab = allocMatrix(REALSXP, tr_nlevels, n));
+    pt = REAL(probtab);
+
+  }/*THEN*/
 
   /* initialize the random seed, just in case we need it for tie breaking. */
   GetRNGstate();
 
   /* copy the index of the mode in the return value. */
-  for (i = 0; i < ndata; i++) {
+  for (i = 0; i < n; i++) {
 
     if (nmax[configs[i] - 1] == 1) {
 
@@ -234,7 +276,7 @@ SEXP temp, result, tr_levels;
 
         Rprintf("  ");
         for (int k = 0; k < nrows; k++)
-          Rprintf("  %lf", (prob + nrows * (configs[i] - 1))[k]);
+          Rprintf("  %lf", (cpt + nrows * (configs[i] - 1))[k]);
         Rprintf("\n");
 
       }/*THEN*/
@@ -258,12 +300,40 @@ SEXP temp, result, tr_levels;
 
     }/*ELSE*/
 
+    /* attach the prediction probabilities to the return value. */
+    if (include_prob) {
+
+      memcpy(pt + i * tr_nlevels, cpt + nrows * (configs[i] - 1),
+        tr_nlevels * sizeof(double));
+
+    }/*THEN*/
+
   }/*FOR*/
 
   /* save the state of the random number generator. */
   PutRNGstate();
 
-  UNPROTECT(1);
+  if (include_prob > 0) {
+
+    /* set the levels of the target variable as rownames. */
+    setDimNames(probtab, tr_levels, R_NilValue);
+    /* add the posterior probabilities to the return value. */
+    setAttrib(result, BN_ProbSymbol, probtab);
+
+    UNPROTECT(2);
+
+  }/*THEN*/
+  else {
+
+    UNPROTECT(1);
+
+  }/*ELSE*/
+
+  Free1D(iscratch);
+  Free1D(buf);
+  Free1D(dscratch);
+  Free1D(maxima);
+  Free1D(nmax);
 
   return result;
 
@@ -282,7 +352,7 @@ SEXP result;
   beta = REAL(getListElement(fitted, "coefficients"));
 
   /* dereference the columns of the data frame and get the sample size. */
-  columns = (double **) alloc1dpointer(np);
+  columns = (double **) Calloc1D(np, sizeof(double *));
   for (i = 0; i < np; i++)
     columns[i] = REAL(VECTOR_ELT(parents, i));
 
@@ -318,6 +388,8 @@ SEXP result;
 
   UNPROTECT(1);
 
+  Free1D(columns);
+
   return result;
 
 }/*CCGPRED*/
@@ -329,19 +401,18 @@ SEXP naivepred(SEXP fitted, SEXP data, SEXP parents, SEXP training, SEXP prior,
 
 int i = 0, j = 0, k = 0, n = 0, nvars = length(fitted), nmax = 0, tr_nlevels = 0;
 int *res = NULL, **ex = NULL, *ex_nlevels = NULL;
-int idx = 0, *tr_id = INTEGER(training);
+int idx = 0, *tr_id = INTEGER(training), include_prob = isTRUE(prob);
 int *iscratch = NULL, *maxima = NULL, *prn = NULL, debuglevel = isTRUE(debug);
-int *include_prob = LOGICAL(prob);
 double **cpt = NULL, *pr = NULL, *scratch = NULL, *buf = NULL, *pt = NULL;
 double sum = 0;
-SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue, dimnames;
+SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue;
 
   /* cache the node labels. */
   nodes = getAttrib(fitted, R_NamesSymbol);
 
   /* cache the pointers to all the variables. */
-  ex = (int **) alloc1dpointer(nvars);
-  ex_nlevels = alloc1dcont(nvars);
+  ex = (int **) Calloc1D(nvars, sizeof(int *));
+  ex_nlevels = Calloc1D(nvars, sizeof(int));
 
   for (i = 0; i < nvars; i++) {
 
@@ -368,11 +439,11 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue, dimname
   }/*THEN*/
 
   /* allocate the scratch space used to compute posterior probabilities. */
-  scratch = alloc1dreal(tr_nlevels);
-  buf = alloc1dreal(tr_nlevels);
+  scratch = Calloc1D(tr_nlevels, sizeof(double));
+  buf = Calloc1D(tr_nlevels, sizeof(double));
 
   /* cache the pointers to the conditional probability tables. */
-  cpt = (double **) alloc1dpointer(nvars);
+  cpt = (double **) Calloc1D(nvars, sizeof(double *));
 
   for (i = 0; i < nvars; i++)
     cpt[i] = REAL(getListElement(VECTOR_ELT(fitted, i), "prob"));
@@ -381,17 +452,17 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue, dimname
   prn = INTEGER(parents);
 
   /* create the vector of indexes. */
-  iscratch = alloc1dcont(tr_nlevels);
+  iscratch = Calloc1D(tr_nlevels, sizeof(int));
 
   /* allocate the array for the indexes of the maxima. */
-  maxima = alloc1dcont(tr_nlevels);
+  maxima = Calloc1D(tr_nlevels, sizeof(int));
 
   /* allocate the return value. */
   PROTECT(result = allocVector(INTSXP, n));
   res = INTEGER(result);
 
   /* allocate and initialize the table of the posterior probabilities. */
-  if (*include_prob > 0) {
+  if (include_prob > 0) {
 
     PROTECT(probtab = allocMatrix(REALSXP, tr_nlevels, n));
     pt = REAL(probtab);
@@ -475,7 +546,7 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue, dimname
 
     /* compute the posterior probabilities on the right scale, to attach them
      * to the return value. */
-    if (*include_prob) {
+    if (include_prob) {
 
       /* copy the log-probabilities from scratch. */
       memcpy(pt + i * tr_nlevels, scratch, tr_nlevels * sizeof(double));
@@ -539,16 +610,14 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue, dimname
   setAttrib(result, R_LevelsSymbol, tr_levels);
   setAttrib(result, R_ClassSymbol, tr_class);
 
-  if (*include_prob > 0) {
+  if (include_prob > 0) {
 
-    /* set the levels of the taregt variable as rownames. */
-    PROTECT(dimnames = allocVector(VECSXP, 2));
-    SET_VECTOR_ELT(dimnames, 0, tr_levels);
-    setAttrib(probtab, R_DimNamesSymbol, dimnames);
+    /* set the levels of the target variable as rownames. */
+    setDimNames(probtab, tr_levels, R_NilValue);
     /* add the posterior probabilities to the return value. */
     setAttrib(result, BN_ProbSymbol, probtab);
 
-    UNPROTECT(3);
+    UNPROTECT(2);
 
   }/*THEN*/
   else {
@@ -556,6 +625,14 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue, dimname
     UNPROTECT(1);
 
   }/*ELSE*/
+
+  Free1D(ex);
+  Free1D(ex_nlevels);
+  Free1D(scratch);
+  Free1D(buf);
+  Free1D(cpt);
+  Free1D(iscratch);
+  Free1D(maxima);
 
   return result;
 

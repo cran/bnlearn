@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/graph.h"
 #include "include/globals.h"
 #include "include/sampling.h"
@@ -17,7 +16,7 @@ static SEXP c_ide_cozman(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
 
 static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     int *degree, double *max, int *in_degree, double *max_in, int *out_degree,
-    double *max_out, int *cozman, int debuglevel);
+    double *max_out, int *cozman, int *path, int *scratch, int debuglevel);
 
 static void print_modelstring(SEXP bn);
 
@@ -26,21 +25,17 @@ SEXP empty_graph(SEXP nodes, SEXP num) {
 
 int i = 0, nnodes = length(nodes), *n = INTEGER(num);
 SEXP list, res, args, arcs, cached;
-SEXP dimnames, elnames, base, base2;
+SEXP elnames, base, base2;
 
   /* an empty list of optional arguments. */
   PROTECT(args = allocVector(VECSXP, 0));
-
-  /* names for the arc set columns. */
-  PROTECT(dimnames = allocVector(VECSXP, 2));
-  SET_VECTOR_ELT(dimnames, 1, mkStringVec(2, "from", "to"));
 
   /* names for the cached information. */
   PROTECT(elnames = mkStringVec(4, "mb", "nbr", "parents", "children"));
 
   /* allocate and initialize the arc set. */
   PROTECT(arcs = allocMatrix(STRSXP, 0, 2));
-  setAttrib(arcs, R_DimNamesSymbol, dimnames);
+  setDimNames(arcs, R_NilValue, mkStringVec(2, "from", "to"));
 
   /* allocate and initialize nodes' cached information. */
   PROTECT(base2 = allocVector(STRSXP, 0));
@@ -65,13 +60,13 @@ SEXP dimnames, elnames, base, base2;
     for (i = 0; i < *n; i++)
       SET_VECTOR_ELT(list, i, res);
 
-    UNPROTECT(9);
+    UNPROTECT(8);
     return list;
 
   }/*THEN*/
   else {
 
-    UNPROTECT(8);
+    UNPROTECT(7);
     return res;
 
   }/*ELSE*/
@@ -329,6 +324,7 @@ static SEXP c_ide_cozman(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
 int i = 0, k = 0, nnodes = length(nodes), *n = INTEGER(num);
 int changed = 0, *work = NULL, *arc = NULL, *a = NULL, *burn = INTEGER(burn_in);
 int *degree = NULL, *in_degree = NULL, *out_degree = NULL;
+int *path = NULL, *scratch = NULL;
 int debuglevel = isTRUE(debug), *cozman = LOGICAL(connected);
 double *max_in = REAL(max_in_degree), *max_out = REAL(max_out_degree),
   *max = REAL(max_degree);
@@ -356,13 +352,17 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
     a[CMC(i - 1, i, nnodes)] = 1;
 
   /* allocate the arrays needed by SampleNoReplace. */
-  arc = alloc1dcont(2);
-  work = alloc1dcont(nnodes);
+  arc = Calloc1D(2, sizeof(int));
+  work = Calloc1D(nnodes, sizeof(int));
+
+  /* allocate buffers for c_has_path(). */
+  path = Calloc1D(nnodes, sizeof(int));
+  scratch = Calloc1D(nnodes, sizeof(int));
 
   /* allocate and initialize the degree arrays. */
-  degree = alloc1dcont(nnodes);
-  in_degree = alloc1dcont(nnodes);
-  out_degree = alloc1dcont(nnodes);
+  degree = Calloc1D(nnodes, sizeof(int));
+  in_degree = Calloc1D(nnodes, sizeof(int));
+  out_degree = Calloc1D(nnodes, sizeof(int));
 
   for (i = 0; i < nnodes; i++) {
 
@@ -382,7 +382,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
       Rprintf("* current model (%d):\n", k + 1);
 
     changed = ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree, max_in,
-                out_degree, max_out, cozman, debuglevel);
+                out_degree, max_out, cozman, path, scratch, debuglevel);
 
     /* print the model string to allow a sane debugging experience; note that this
      * has a huge impact on performance, so use it with care. */
@@ -405,7 +405,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
           if (debuglevel > 0) \
             Rprintf("  > updating cached information about node %s.\n", NODE(cur)); \
           memset(work, '\0', nnodes * sizeof(int)); \
-          PROTECT(temp = c_cache_partial_structure(cur, nodes, amat, work, FALSESEXP)); \
+          PROTECT(temp = cache_node_structure(cur, nodes, a, nnodes, work, FALSE)); \
           SET_VECTOR_ELT(cached, cur, temp); \
           UNPROTECT(1);
 
@@ -428,7 +428,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
         Rprintf("* current model (%d):\n", *burn + k + 1);
 
       changed = ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree,
-                  max_in, out_degree, max_out, cozman, debuglevel);
+                  max_in, out_degree, max_out, cozman, path, scratch, debuglevel);
 
       if (changed || (k == 0)) {
 
@@ -494,6 +494,14 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
 
     PutRNGstate();
 
+    Free1D(path);
+    Free1D(scratch);
+    Free1D(arc);
+    Free1D(work);
+    Free1D(degree);
+    Free1D(in_degree);
+    Free1D(out_degree);
+
     UNPROTECT(5);
     return list;
 
@@ -504,7 +512,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
       Rprintf("* end of the burn-in.\n* current model (%d):\n", *burn + 1);
 
     ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree,
-      max_in, out_degree, max_out, cozman, debuglevel);
+      max_in, out_degree, max_out, cozman, path, scratch, debuglevel);
 
     /* generate the arc set and the cached information form the adjacency
      * matrix. */
@@ -521,6 +529,15 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
     PutRNGstate();
 
     UNPROTECT(5);
+
+    Free1D(path);
+    Free1D(scratch);
+    Free1D(arc);
+    Free1D(work);
+    Free1D(degree);
+    Free1D(in_degree);
+    Free1D(out_degree);
+
     return res;
 
   }/*ELSE*/
@@ -558,9 +575,9 @@ SEXP res, learning;
 
 static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     int *degree, double *max, int *in_degree, double *max_in, int *out_degree,
-    double *max_out, int *cozman, int debuglevel) {
+    double *max_out, int *cozman, int *path, int *scratch, int debuglevel) {
 
-int path = 0;
+int path_exists = 0;
 
   /* sample an arc (that is, two nodes different from each other). */
   SampleNoReplace(2, *nnodes, arc, work);
@@ -581,18 +598,18 @@ int path = 0;
        * from arc[0] to arc[1] other than arc[0] -> arc[1], the graph is still
        * connected. */
       amat[CMC(arc[0] - 1, arc[1] - 1, *nnodes)] = 0;
-      path = c_has_path(arc[0] - 1, arc[1] - 1, amat, *nnodes, nodes,
-               TRUE, FALSE, FALSE);
+      path_exists = c_has_path(arc[0] - 1, arc[1] - 1, amat, *nnodes, nodes,
+               TRUE, FALSE, path, scratch, FALSE);
       amat[CMC(arc[0] - 1, arc[1] - 1, *nnodes)] = 1;
 
     }/*THEN*/
     else {
 
-      path = 1;
+      path_exists = 1;
 
     }/*ELSE*/
 
-    if (path) {
+    if (path_exists) {
 
       if (debuglevel > 0)
         Rprintf("  @ removing arc %s -> %s.\n",
@@ -658,10 +675,10 @@ int path = 0;
 
     /* if there is a (directed) path from arc[1] to arc[0], adding arc[0] -> arc[1]
      * would create a cycle, so do not do it. */
-    path = c_has_path(arc[1] - 1, arc[0] - 1, amat, *nnodes,
-                     nodes, FALSE, FALSE, FALSE);
+    path_exists = c_has_path(arc[1] - 1, arc[0] - 1, amat, *nnodes,
+                    nodes, FALSE, FALSE, path, scratch, FALSE);
 
-    if (!path) {
+    if (!path_exists) {
 
       if (debuglevel > 0)
         Rprintf("  @ adding arc %s -> %s.\n", NODE(arc[0] - 1), NODE(arc[1] - 1));

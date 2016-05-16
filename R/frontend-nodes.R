@@ -79,7 +79,8 @@ parents = function(x, node) {
   for (p in to.be.dropped) {
 
     x = arc.operations(x = x, from = p, to = node, op = "drop",
-          check.cycles = FALSE, update = FALSE, debug = debug)
+          check.cycles = FALSE, check.illegal = FALSE, update = FALSE,
+          debug = debug)
 
   }#FOR
 
@@ -87,7 +88,8 @@ parents = function(x, node) {
   for (p in to.be.added) {
 
     x = arc.operations(x = x, from = p, to = node, op = "set",
-          check.cycles = TRUE, update = FALSE, debug = debug)
+          check.cycles = TRUE, check.illegal = TRUE, update = FALSE,
+          debug = debug)
 
   }#FOR
 
@@ -148,7 +150,8 @@ children = function(x, node) {
   for (child in to.be.dropped) {
 
     x = arc.operations(x = x, from = node, to = child, op = "drop",
-          check.cycles = FALSE, update = FALSE, debug = debug)
+          check.cycles = FALSE, check.illegal = FALSE, update = FALSE,
+          debug = debug)
 
   }#FOR
 
@@ -156,7 +159,8 @@ children = function(x, node) {
   for (child in to.be.added) {
 
     x = arc.operations(x = x, from = node, to = child, op = "set",
-          check.cycles = TRUE, update = FALSE, debug = debug)
+          check.cycles = TRUE, check.illegal = TRUE, update = FALSE,
+          debug = debug)
 
   }#FOR
 

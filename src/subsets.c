@@ -61,7 +61,7 @@ SEXP result;
    error("too many subsets of size %d.", r);
 
  /* allocate the scratch space and the return value. */
- id = Calloc(r, int);
+ id = Calloc1D(r, sizeof(int));
  PROTECT(result = allocMatrix(STRSXP, nsub, r));
 
   /* iterate over subsets. */
@@ -76,7 +76,7 @@ SEXP result;
 
   }/*FOR*/
 
-  Free(id);
+  Free1D(id);
   UNPROTECT(1);
 
   return result;

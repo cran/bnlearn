@@ -1,16 +1,16 @@
 
 # passthrough for bn objects.
 predict.bn  = function(object, node, data, method = "parents", ...,
-    debug = FALSE) {
+    prob = FALSE, debug = FALSE) {
 
   predict.bn.fit(object = bn.fit(object, data), node = node, data = data,
-    method = method, ..., debug = debug)
+    method = method, ..., prob = prob, debug = debug)
 
 }#PREDICT.BN
 
 # estimate the predicted values for a particular node.
 predict.bn.fit = function(object, node, data, method = "parents", ...,
-    debug = FALSE) {
+    prob = FALSE, debug = FALSE) {
 
   # check the data are there.
   check.data(data, allow.levels = TRUE)
@@ -18,6 +18,13 @@ predict.bn.fit = function(object, node, data, method = "parents", ...,
   check.nodes(nodes = node, graph = object, max.nodes = 1)
   # check the prediction method.
   check.prediction.method(method, data)
+  # check debug and prob.
+  check.logical(debug)
+  check.logical(prob)
+
+  if (prob && !is(object, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
+    stop("prediction probabilities are only available for discrete networks.")
+
   # warn about unused arguments.
   extra.args = list(...)
   check.unused.args(extra.args, prediction.extra.args[[method]])
@@ -30,11 +37,14 @@ predict.bn.fit = function(object, node, data, method = "parents", ...,
       subset = object[[node]]$parents)
 
     if (is(object, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
-      discrete.prediction(node = node, fitted = object, data = data, debug = debug)
+      discrete.prediction(node = node, fitted = object, data = data,
+        prob = prob, debug = debug)
     else if (is(object, "bn.fit.gnet"))
-      gaussian.prediction(node = node, fitted = object, data = data, debug = debug)
+      gaussian.prediction(node = node, fitted = object, data = data,
+        debug = debug)
     else if (is(object, "bn.fit.cgnet"))
-      mixedcg.prediction(node = node, fitted = object, data = data, debug = debug)
+      mixedcg.prediction(node = node, fitted = object, data = data,
+        debug = debug)
 
   }#THEN
   else if (method == "bayes-lw") {
@@ -56,7 +66,7 @@ predict.bn.fit = function(object, node, data, method = "parents", ...,
       stop("the number of observations to be sampled must be a positive integer number.")
 
     map.prediction(node = node, fitted = object, data = data, n = extra.args$n,
-      from = extra.args$from, debug = debug)
+      from = extra.args$from, prob = prob, debug = debug)
 
   }#THEN
 
@@ -73,7 +83,7 @@ predict.bn.naive = function(object, data, prior, ..., prob = FALSE, debug = FALS
   else
     check.bn.tan(object)
 
-  # check debug and prob
+  # check debug and prob.
   check.logical(debug)
   check.logical(prob)
 

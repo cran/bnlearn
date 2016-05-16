@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/matrix.h"
 
 /* check neighbourhood sets and markov blanets for consistency.. */
@@ -15,7 +14,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
   n = length(nodes);
 
   /* allocate and initialize the checklist. */
-  checklist = allocstatus(UPTRI_MATRIX(n));
+  checklist = Calloc1D(UPTRI_MATRIX(n), sizeof(short int));
 
   if (debuglevel > 0) {
 
@@ -89,10 +88,14 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
    * strict parameter. */
   if (!err) {
 
+    Free1D(checklist);
+
     return bn;
 
   }/*THEN*/
   else if (isTRUE(strict)) {
+
+    Free1D(checklist);
 
     if (checkmb)
       error("markov blankets are not symmetric.\n");
@@ -158,6 +161,8 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
     UNPROTECT(1);
   else
     UNPROTECT(2);
+
+  Free1D(checklist);
 
   return fixed;
 

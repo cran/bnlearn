@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/sampling.h"
 #include "include/globals.h"
 #include "include/covariance.h"
@@ -19,13 +18,6 @@ int j = 0, k = 0;
 double *yperm = NULL;
 double enough = ceil(alpha * B) + 1, xm = 0, ym = 0, xsse = 0, ysse = 0;
 int *perm = NULL, *work = NULL;
-
-  /* allocate the arrays needed by RandomPermutation. */
-  perm = alloc1dcont(num);
-  work = alloc1dcont(num);
-
-  /* allocate the array for the pemutations. */
-  yperm = alloc1dreal(num);
 
   /* cache the means of the two variables (invariant under permutation). */
   for (j = 0; j < num; j++) {
@@ -47,9 +39,17 @@ int *perm = NULL, *work = NULL;
 
     *observed = 0;
     *res = 1;
+
     return;
 
   }/*THEN*/
+
+  /* allocate the arrays needed by RandomPermutation. */
+  perm = Calloc1D(num, sizeof(int));
+  work = Calloc1D(num, sizeof(int));
+  /* allocate the array for the pemutations. */
+  yperm = Calloc1D(num, sizeof(double));
+
 
   /* initialize the random number generator. */
   GetRNGstate();
@@ -117,6 +117,10 @@ int *perm = NULL, *work = NULL;
   /* save the observed p-value. */
   *res /= B;
 
+  Free1D(perm);
+  Free1D(work);
+  Free1D(yperm);
+
 }/*C_GAUSS_MCARLO*/
 
 /* conditional Monte Carlo simulation for correlation-based tests. */
@@ -130,18 +134,13 @@ double enough = ceil(alpha * B) + 1;
 double *mean = NULL, *covariance = NULL, *covariance_backup = NULL;
 double *u = NULL, *d = NULL, *vt = NULL;
 
-  /* allocate the matrices needed for the SVD decomposition. */
-  u = alloc1dreal(ncols * ncols);
-  d = alloc1dreal(ncols);
-  vt = alloc1dreal(ncols * ncols);
-
   /* cache the means of the variables (they are invariant under permutation). */
-  mean = alloc1dreal(ncols);
+  mean = Calloc1D(ncols, sizeof(double));
   /* compute the mean values  */
   c_meanvec(column, mean, num, ncols, 0);
 
   /* allocate and initialize the covariance matrix. */
-  covariance = alloc1dreal(ncols * ncols);
+  covariance = Calloc1D(ncols * ncols, sizeof(double));
   c_covmat(column, mean, ncols, num, covariance, 0);
 
   /* if at least one of the two variables is constant, they are independent. */
@@ -149,23 +148,30 @@ double *u = NULL, *d = NULL, *vt = NULL;
 
     *observed = 0;
     *pvalue = 1;
+
+    Free1D(mean);
+    Free1D(covariance);
+
     return;
 
   }/*THEN*/
 
+  /* allocate the matrices needed for the SVD decomposition. */
+  c_udvt(&u, &d, &vt, ncols);
+
   /* make a backup copy that will not be touched by permutations. */
-  covariance_backup = alloc1dreal(ncols * ncols);
+  covariance_backup = Calloc1D(ncols * ncols, sizeof(double));
   memcpy(covariance_backup, covariance, ncols * ncols * sizeof(double));
 
   /* substitute the original data with the fake column that will be permuted. */
-  yperm = alloc1dreal(num);
+  yperm = Calloc1D(num, sizeof(double));
   yorig = column[1];
   memcpy(yperm, yorig, num * sizeof(double));
   column[1] = yperm;
 
    /* allocate the arrays needed by RandomPermutation. */
-  perm = alloc1dcont(num);
-  work = alloc1dcont(num);
+  perm = Calloc1D(num, sizeof(int));
+  work = Calloc1D(num, sizeof(int));
 
   /* initialize the random number generator. */
   GetRNGstate();
@@ -251,6 +257,16 @@ double *u = NULL, *d = NULL, *vt = NULL;
 
   /* save the observed p-value. */
   *pvalue /= B;
+
+  Free1D(u);
+  Free1D(d);
+  Free1D(vt);
+  Free1D(mean);
+  Free1D(covariance);
+  Free1D(perm);
+  Free1D(work);
+  Free1D(yperm);
+  Free1D(covariance_backup);
 
 }/*C_GAUSS_CMCARLO*/
 

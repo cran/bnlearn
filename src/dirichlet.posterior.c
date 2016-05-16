@@ -1,7 +1,6 @@
 #include "include/rcore.h"
 #include "include/sets.h"
 #include "include/dataframe.h"
-#include "include/allocations.h"
 #include "include/scores.h"
 
 /* posterior Dirichlet probability (covers BDe and K2 scores). */
@@ -32,7 +31,7 @@ double alpha = 0, res = 0;
   }/*ELSE*/
 
   /* initialize the contingency table. */
-  n = alloc1dcont(llx);
+  n = Calloc1D(llx, sizeof(int));
 
   /* compute the frequency table of x, disregarding experimental data. */
   if (exp == R_NilValue) {
@@ -64,6 +63,8 @@ double alpha = 0, res = 0;
   res += lgammafn((double)(*imaginary)) -
             lgammafn((double)(*imaginary + num));
 
+  Free1D(n);
+
   return res;
 
 }/*DPOST*/
@@ -93,8 +94,8 @@ double alpha = 0, res = 0;
   }/*ELSE*/
 
   /* initialize the contingency table. */
-  n = alloc2dcont(llx, lly);
-  nj = alloc1dcont(lly);
+  n = (int **) Calloc2D(llx, lly, sizeof(int));
+  nj = Calloc1D(lly, sizeof(int));
 
   /* compute the joint frequency of x and y. */
   if (exp == R_NilValue) {
@@ -139,6 +140,9 @@ double alpha = 0, res = 0;
   for (j = 0; j < lly; j++)
     res += lgammafn((double)imaginary / lly) -
               lgammafn(nj[j] + (double)imaginary / lly);
+
+  Free1D(nj);
+  Free2D(n, llx);
 
   return res;
 

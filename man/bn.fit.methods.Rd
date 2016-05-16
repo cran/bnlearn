@@ -35,7 +35,8 @@
 \method{coef}{bn.fit}(object, ...)
 \method{residuals}{bn.fit}(object, ...)
 \method{sigma}{bn.fit}(object, ...)
-\method{predict}{bn.fit}(object, node, data, method = "parents", ..., debug = FALSE)
+\method{predict}{bn.fit}(object, node, data, method = "parents", ..., prob = FALSE,
+  debug = FALSE)
 \method{logLik}{bn.fit}(object, data, nodes, by.sample = FALSE, ...)
 \method{AIC}{bn.fit}(object, data, ..., k = 1)
 \method{BIC}{bn.fit}(object, data, ...)
@@ -74,6 +75,9 @@
     vector containing the the log-likelihood of each observations in the
     sample. If \code{FALSE}, \code{logLik} returns a single value, the 
     likelihood of the whole sample.}
+  \item{prob}{a boolean value. If \code{TRUE} and \code{object} is a discrete
+    network, the probabilities used for prediction are attached to the
+    predicted values as an attribute called \code{prob}.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 
@@ -92,6 +96,8 @@
 
   \code{sigma} extracts the standard deviations of the residuals from Gaussian
   and conditional Gaussian networks and nodes.
+
+  \code{logLik} returns the log-likelihood for the observations in \code{data}.
 
   \code{predict} returns the predicted values for \code{node} given the data
   specified by \code{data} and the fitted network. Depending on the value of
@@ -128,7 +134,9 @@
 
   \code{predict} returns a numeric vector (for Gaussian and conditional
   Gaussian nodes), a factor (for categorical nodes) or an ordered factor (for
-  ordinal nodes).
+  ordinal nodes). If \code{prob = TRUE} and the network is discrete, the
+  probabilities used for prediction are attached to the predicted values as
+  an attribute called \code{prob}.
 
   \code{logLik} returns a numeric vector or a single numeric value, depending
   on the value of \code{by.sample}. \code{AIC} and \code{BIC} always return a

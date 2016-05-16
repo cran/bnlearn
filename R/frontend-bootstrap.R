@@ -70,8 +70,6 @@ boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
 
     check.cluster(cluster)
 
-    # enter in cluster-aware mode.
-    cluster.aware = TRUE
     # set up the slave processes.
     slaves.setup(cluster)
     # disable debugging, the slaves do not cat() here.
@@ -89,7 +87,7 @@ boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
           cpdag = cpdag, debug = debug)
 
   # add extra information for strength.plot().
-  res = structure(res, mode = "bootstrap", threshold = threshold(res),
+  res = structure(res, method = "bootstrap", threshold = threshold(res),
           class = c("bn.strength", class(res)))
 
   return(res)
@@ -97,7 +95,7 @@ boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
 }#BOOT.STRENGTH
 
 # perform cross-validation.
-bn.cv = function(data, bn, loss = NULL, k = 10, m, runs = 1, 
+bn.cv = function(data, bn, loss = NULL, k = 10, m, runs = 1,
     algorithm.args = list(), loss.args = list(), fit = "mle",
     fit.args = list(), method = "k-fold", cluster = NULL, debug = FALSE) {
 

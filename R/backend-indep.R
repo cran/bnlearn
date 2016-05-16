@@ -48,6 +48,17 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
 
 }#SECOND.PRINCIPLE
 
+# construct a fake markov blanket using all the nodes within distance 2.
+fake.markov.blanket = function(learn, target) {
+
+  mb = c(unlist(lapply(learn[[target]]$nbr,
+         function(cur) learn[[cur]]$nbr)), learn[[target]]$nbr)
+  mb = setdiff(unique(mb), target)
+
+  return(mb)
+
+}#FAKE.MARKOV.BLANKET
+
 # build the neighbourhood of a node from the markov blanket.
 neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
   backtracking = NULL, test, empty.dsep = TRUE, markov = TRUE, debug = FALSE) {

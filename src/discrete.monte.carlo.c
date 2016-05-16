@@ -1,12 +1,11 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/sampling.h"
 #include "include/tests.h"
 #include "include/matrix.h"
 
 /* initialize the table of log-factorials. */
 #define allocfact(n) \
-  fact = alloc1dreal(n + 1); \
+  fact = Calloc1D(n + 1, sizeof(double)); \
   fact[0] = 0.; \
   for(k = 1; k <= n; k++) \
     fact[k] = lgammafn((double) (k + 1));
@@ -27,7 +26,7 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
   /* allocate and compute the factorials needed by rcont2. */
   allocfact(num);
   /* allocate and initialize the workspace for rcont2. */
-  workspace = alloc1dcont(nc);
+  workspace = Calloc1D(nc, sizeof(int));
   /* initialize the contingency table and the marginal frequencies. */
   fill_2d_table(xx, yy, &n, &nrowt, &ncolt, nr, nc, num);
 
@@ -41,6 +40,13 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
     *observed = 0;
     *pvalue = 1;
+
+    Free2D(n, nr);
+    Free1D(nrowt);
+    Free1D(ncolt);
+    Free1D(fact);
+    Free1D(workspace);
+
     return;
 
   }/*THEN*/
@@ -160,6 +166,12 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
   else
     *pvalue /= B;
 
+  Free2D(n, nr);
+  Free1D(nrowt);
+  Free1D(ncolt);
+  Free1D(workspace);
+  Free1D(fact);
+
 }/*C_MCARLO*/
 
 /* conditional Monte Carlo and semiparametric discrete tests. */
@@ -174,7 +186,7 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
   /* allocate and compute the factorials needed by rcont2. */
   allocfact(num);
   /* allocate and initialize the workspace for rcont2. */
-  workspace = alloc1dcont(nc);
+  workspace = Calloc1D(nc, sizeof(int));
   /* initialize the contingency table and the marginal frequencies. */
   fill_3d_table(xx, yy, zz, &n, &nrowt, &ncolt, &ncond, nr, nc, nl, num);
 
@@ -190,6 +202,14 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
     *observed = 0;
     *pvalue = 1;
+
+    Free3D(n, nl, nr);
+    Free2D(nrowt, nl);
+    Free2D(ncolt, nl);
+    Free1D(ncond);
+    Free1D(fact);
+    Free1D(workspace);
+
     return;
 
   }/*THEN*/
@@ -316,6 +336,13 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
     *pvalue = pchisq(*observed, *df, FALSE, FALSE);
   else
     *pvalue /= B;
+
+  Free3D(n, nl, nr);
+  Free2D(nrowt, nl);
+  Free2D(ncolt, nl);
+  Free1D(ncond);
+  Free1D(workspace);
+  Free1D(fact);
 
 }/*C_CMCARLO*/
 

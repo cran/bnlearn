@@ -1,10 +1,10 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/sets.h"
 #include "include/tests.h"
 #include "include/dataframe.h"
 #include "include/globals.h"
 #include "include/covariance.h"
+#include "include/blas.h"
 
 #define SKIP_FIXED() \
     /* nothing to do if there are no more valid nodes.*/ \
@@ -14,42 +14,60 @@
 
 #define DISCRETE_CACHE() \
   /* allocate and initialize an array of pointers for the variables. */ \
-  column = (int **) alloc1dpointer(nz); \
+  column = (int **) Calloc1D(nz, sizeof(int *)); \
   for (i = 0; i < nz; i++) \
     column[i] = INTEGER(VECTOR_ELT(zz, i)); \
   /* allocate and compute the number of levels. */ \
-  nlvls = alloc1dcont(nz); \
+  nlvls = Calloc1D(nz, sizeof(int)); \
   for (i = 0; i < nz; i++) \
     nlvls[i] = NLEVELS(VECTOR_ELT(zz, i)); \
   /* allocate the parents' configurations. */ \
-  zptr = alloc1dcont(nobs);
+  zptr = Calloc1D(nobs, sizeof(int));
+
+#define FREE_DISCRETE_CACHE() \
+  Free1D(column); \
+  Free1D(nlvls); \
+  Free1D(zptr);
 
 #define GAUSSIAN_CACHE() \
   /* allocate and initialize an array of pointers for the variables. */ \
-  column = (double **) alloc1dpointer(nz); \
+  column = (double **) Calloc1D(nz, sizeof(double *)); \
   for (i = 0; i < nz; i++) \
     column[i] = REAL(VECTOR_ELT(zz, i)); \
   /* allocate and compute mean values and the covariance matrix. */ \
-  mean = alloc1dreal(nz); \
+  mean = Calloc1D(nz, sizeof(double)); \
   c_meanvec(column, mean, nobs, nz, 0);
 
+#define FREE_GAUSSIAN_CACHE() \
+  Free1D(column); \
+  Free1D(mean);
+
 #define GAUSSIAN_ALLOC() \
-  cov = alloc1dreal((nz + 1) * (nz + 1)); \
-  u = alloc1dreal((nz + 1) * (nz + 1)); \
-  d = alloc1dreal((nz + 1)); \
-  vt = alloc1dreal((nz + 1) * (nz + 1));
+  cov = Calloc1D((nz + 1) * (nz + 1), sizeof(double)); \
+  c_udvt(&u, &d, &vt, nz + 1);
+
+#define FREE_GAUSSIAN_ALLOC() \
+  Free1D(cov);
 
 #define ALLOC_DISCRETE_SUBSET() \
  /* allocate the subset. */ \
- subset = (int **) alloc1dpointer(nz - 1); \
- sublvls = alloc1dcont(nz - 1);
+ subset = (int **) Calloc1D(nz - 1, sizeof(int *)); \
+ sublvls = Calloc1D(nz - 1, sizeof(int));
+
+#define FREE_DISCRETE_SUBSET() \
+  Free1D(subset); \
+  Free1D(sublvls);
 
 #define ALLOC_GAUSSIAN_SUBSET() \
   /* allocate the subset. */ \
-  subset = (double **) alloc1dpointer(nz + 1); \
+  subset = (double **) Calloc1D(nz + 1, sizeof(double *)); \
   subset[0] = xptr; \
-  submean = alloc1dreal(nz + 1); \
-  submean[0] = c_mean(xptr, nobs); 
+  submean = Calloc1D(nz + 1, sizeof(double)); \
+  submean[0] = c_mean(xptr, nobs);
+
+#define FREE_GAUSSIAN_SUBSET() \
+  Free1D(subset); \
+  Free1D(submean);
 
 #define PREPARE_DISCRETE_SUBSET() \
     /* copy all valid variables in the subset but the current one. */ \
@@ -108,6 +126,11 @@
     }/*THEN*/ \
   }/*ELSE*/
 
+#define GAUSSIAN_FREE() \
+  Free1D(u); \
+  Free1D(vt); \
+  Free1D(d);
+
 /* parametric tests for discrete variables. */
 static void rrd_discrete(SEXP xx, SEXP zz, int *ff, SEXP x, SEXP z, int nobs,
     int nz, test_e test, double *pvalue, double alpha, int debuglevel) {
@@ -116,7 +139,6 @@ int i = 0, j = 0, k = 0, cur = 0, llx = NLEVELS(xx), lly = 0, llz = 0;
 int *xptr = INTEGER(xx), *yptr = NULL, *zptr = NULL, valid = nz;
 int **column = NULL, **subset = NULL, *sublvls = NULL, *nlvls = NULL;
 double statistic = 0, df = 0;
-void *memp = NULL;
 
   DISCRETE_CACHE();
   ALLOC_DISCRETE_SUBSET();
@@ -125,7 +147,6 @@ void *memp = NULL;
 
     SKIP_FIXED();
     PREPARE_DISCRETE_SUBSET();
-    memp = vmaxget();
 
     if (test == MI || test == MI_ADF || test == X2 || test == X2_ADF) {
 
@@ -152,9 +173,11 @@ void *memp = NULL;
     }/*THEN*/
 
     FLAG_AND_DEBUG();
-    vmaxset(memp);
 
   }/*FOR*/
+
+  FREE_DISCRETE_CACHE();
+  FREE_DISCRETE_SUBSET();
 
 }/*RRD_DISCRETE*/
 
@@ -234,6 +257,11 @@ double statistic = 0;
 
   }/*FOR*/
 
+  GAUSSIAN_FREE();
+  FREE_GAUSSIAN_CACHE();
+  FREE_GAUSSIAN_ALLOC();
+  FREE_GAUSSIAN_SUBSET();
+
 }/*RRD_GAUSTESTS*/
 
 /* conditional linear Gaussian test. */
@@ -247,8 +275,8 @@ double statistic = 0, df = 0, **gp = NULL;
 void *xptr = NULL, *yptr = NULL, **column = NULL;
 
   /* scan the parents for type and number of levels. */
-  column = Calloc(nz, void *);
-  nlvls = Calloc(nz, int);
+  column = Calloc1D(nz, sizeof(void *));
+  nlvls = Calloc1D(nz, sizeof(int));
   df2micg(zz, column, nlvls, &ndp, &ngp);
 
   /* dereference xx, whatever the type. */
@@ -276,15 +304,15 @@ void *xptr = NULL, *yptr = NULL, **column = NULL;
 
       if (nlvls[j] > 0)
         ndp++;
-      else 
+      else
         ngp++;
 
     }/*FOR*/
 
     /* split parents by type. */
-    gp = Calloc(ngp + 1, double *);
-    dp = Calloc(ndp + 1, int *);
-    dlvls = Calloc(ndp + 1, int);
+    gp = Calloc1D(ngp + 1, sizeof(double *));
+    dp = Calloc1D(ndp + 1, sizeof(int *));
+    dlvls = Calloc1D(ndp + 1, sizeof(int));
     for (j = 0, k = 0, l = 0; j < nz; j++) {
 
       if ((column[j] == NULL) || (i == j))
@@ -321,7 +349,7 @@ void *xptr = NULL, *yptr = NULL, **column = NULL;
      * configurations. */
     if (ndp  > 0) {
 
-      zptr = Calloc(nobs, int);
+      zptr = Calloc1D(nobs, sizeof(int));
       c_fast_config(dp + 1, nobs, ndp, dlvls + 1, zptr, &llz, 1);
 
     }/*THEN*/
@@ -330,7 +358,7 @@ void *xptr = NULL, *yptr = NULL, **column = NULL;
       zptr = NULL;
       llz = 0;
 
-    }
+    }/*ELSE*/
 
     if ((xtype == INTSXP) && (nlvls[i] > 0)) {
 
@@ -394,17 +422,17 @@ void *xptr = NULL, *yptr = NULL, **column = NULL;
 
     pvalue[cur++] = pchisq(statistic, df, FALSE, FALSE);
 
-    Free(gp);
-    Free(dp);
-    Free(dlvls);
-    Free(zptr);
+    Free1D(gp);
+    Free1D(dp);
+    Free1D(dlvls);
+    Free1D(zptr);
 
     FLAG_AND_DEBUG();
 
   }/*FOR*/
 
-  Free(column);
-  Free(nlvls);
+  Free1D(column);
+  Free1D(nlvls);
 
 }/*RRD_MICG*/
 
@@ -417,7 +445,6 @@ int i = 0, j = 0, k = 0, cur = 0, llx = NLEVELS(xx), lly = 0, llz = 0;
 int *xptr = INTEGER(xx), *yptr = NULL, *zptr = NULL, valid = nz;
 int **column = NULL, **subset = NULL, *sublvls = NULL, *nlvls = NULL;
 double statistic = 0, df = 0;
-void *memp = NULL;
 
   DISCRETE_CACHE();
   ALLOC_DISCRETE_SUBSET();
@@ -426,16 +453,17 @@ void *memp = NULL;
 
     SKIP_FIXED();
     PREPARE_DISCRETE_SUBSET();
-    memp = vmaxget();
 
     c_cmcarlo(xptr, llx, yptr, lly, zptr, llz, nobs, nperms, &statistic,
       pvalue + cur, threshold, test, &df);
     cur++;
 
     FLAG_AND_DEBUG();
-    vmaxset(memp);
 
   }/*FOR*/
+
+  FREE_DISCRETE_CACHE();
+  FREE_DISCRETE_SUBSET();
 
 }/*RRD_DPERM*/
 
@@ -464,6 +492,9 @@ double statistic = 0;
     FLAG_AND_DEBUG();
 
   }/*FOR*/
+
+  FREE_GAUSSIAN_CACHE();
+  FREE_GAUSSIAN_SUBSET();
 
 }/*RRD_GPERM*/
 
@@ -513,14 +544,14 @@ SEXP xx, zz, try, result;
   else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
 
     /* discrete permutation tests. */
-    rrd_dperm(xx, zz, ff, x, z, nobs, nz, test_type, pvalue, a, INT(B), 
+    rrd_dperm(xx, zz, ff, x, z, nobs, nz, test_type, pvalue, a, INT(B),
       IS_SMC(test_type) ? a : 1, debuglevel);
 
   }/*THEN*/
   else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
 
     /* continuous permutation tests. */
-    rrd_gperm(xx, zz, ff, x, z, nobs, nz, test_type, pvalue, a, INT(B), 
+    rrd_gperm(xx, zz, ff, x, z, nobs, nz, test_type, pvalue, a, INT(B),
       IS_SMC(test_type) ? a : 1, debuglevel);
 
   }/*THEN*/

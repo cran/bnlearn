@@ -22,6 +22,11 @@ si.hiton.pc.optimized = function(x, whitelist, blacklist, test,
 
   }#FOR
 
+  # make up a set of believable Markov blankets, using all the nodes within
+  # distance 2 from the target node (which is a superset).
+  for (node in nodes)
+    mb[[node]]$mb = fake.markov.blanket(mb, node)
+
   # check neighbourhood sets for consistency.
   mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
 
@@ -45,6 +50,11 @@ si.hiton.pc.backend = function(x, cluster = NULL, whitelist, blacklist,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug, empty.dsep = FALSE, markov = FALSE)
   names(mb) = nodes
+
+  # make up a set of believable Markov blankets, using all the nodes within
+  # distance 2 from the target node (which is a superset).
+  for (node in nodes)
+    mb[[node]]$mb = fake.markov.blanket(mb, node)
 
   # check neighbourhood sets for consistency.
   mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)

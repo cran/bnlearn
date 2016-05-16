@@ -1,20 +1,16 @@
 #include "include/rcore.h"
 #include "include/sets.h"
-#include "include/allocations.h"
+#include "include/tests.h"
 #include "include/dataframe.h"
 
 double dlik(SEXP x, double *nparams) {
 
-int i = 0, k = 0;
+int i = 0;
 int *n = NULL, *xx = INTEGER(x), llx = NLEVELS(x), num = length(x);
 double res = 0;
 
   /* initialize the contingency table. */
-  n = alloc1dcont(llx);
-
-  /* compute the joint frequency of x and y. */
-  for (k = 0; k < num; k++)
-    n[xx[k] - 1]++;
+  fill_1d_table(xx, &n, llx, num);
 
   /* compute the entropy from the joint and marginal frequencies. */
   for (i = 0; i < llx; i++)
@@ -24,6 +20,8 @@ double res = 0;
   /* we may want to store the number of parameters. */
   if (nparams)
     *nparams = llx - 1;
+
+  Free1D(n);
 
   return res;
 
@@ -38,8 +36,8 @@ int *xx = INTEGER(x), *yy = INTEGER(y);
 double res = 0;
 
   /* initialize the contingency table and the marginal frequencies. */
-  n = alloc2dcont(llx, lly);
-  nj = alloc1dcont(lly);
+  n = (int **) Calloc2D(llx, lly, sizeof(int));
+  nj = Calloc1D(lly, sizeof(int));
 
   /* compute the joint frequency of x and y. */
   for (k = 0; k < num; k++)
@@ -60,6 +58,9 @@ double res = 0;
   /* we may want to store the number of parameters. */
   if (nparams)
     *nparams = (llx - 1) * lly;
+
+  Free1D(nj);
+  Free2D(n, llx);
 
   return res;
 

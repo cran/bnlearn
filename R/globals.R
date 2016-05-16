@@ -15,7 +15,7 @@ resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g"
 asymptotic.tests = c("mi", "mi-adf", "mi-g", "x2", "x2-adf", "zf", "jt", "mi-sh",
   "mi-g-sh")
 
-available.discrete.scores = c("loglik", "aic", "bic", "bde", "bdes", "k2", "mbde")
+available.discrete.scores = c("loglik", "aic", "bic", "bde", "bds", "k2", "mbde")
 available.continuous.scores = c("loglik-g", "aic-g", "bic-g", "bge")
 available.mixedcg.scores = c("loglik-cg", "aic-cg", "bic-cg")
 available.scores = c(available.discrete.scores, available.continuous.scores,
@@ -91,7 +91,7 @@ test.labels = c(
 score.labels = c(
   'k2' = "Cooper & Herskovits' K2",
   'bde' = "Bayesian Dirichlet (BDe)",
-  'bdes' = "Sparse Bayesian Dirichlet (BDes)",
+  'bds' = "Bayesian Dirichlet Sparse (BDs)",
   'mbde' = "Bayesian Dirichlet (interventional data)",
   'aic' = "AIC (disc.)",
   'bic' = "BIC (disc.)",
@@ -108,8 +108,8 @@ score.labels = c(
 score.extra.args = list(
   "k2" = character(0),
   "bde" = c("prior", "beta", "iss"),
-  "bdes" = "iss",
-  "mbde" = c("iss", "exp"),
+  "bds" = c("prior", "beta", "iss"),
+  "mbde" = c("prior", "beta", "iss", "exp"),
   "aic" = c("k"),
   "bic" = c("k"),
   "bge" = c("prior", "beta", "iss", "phi"),
@@ -171,19 +171,22 @@ cpq.extra.args = list(
 
 discrete.loss.functions = c("logl", "pred", "pred-lw")
 continuous.loss.functions = c("logl-g", "cor", "cor-lw", "mse", "mse-lw")
-mixedcg.loss.functions = c("logl-cg")
+mixedcg.loss.functions = c("logl-cg", "cor-lw-cg", "mse-lw-cg", "pred-lw-cg")
 loss.functions = c(discrete.loss.functions, continuous.loss.functions,
   mixedcg.loss.functions)
 
 loss.labels = c(
   "logl" = "Log-Likelihood Loss (disc.)",
   "pred" = "Classification Error",
-  "pred-lw" = "Classification Error (Posterior)",
+  "pred-lw" = "Classification Error (Posterior, disc.)",
+  "pred-lw-cg" = "Classification Error (Posterior, cond. Gauss.)",
   "logl-g" = "Log-Likelihood Loss (Gauss.)",
   "cor" = "Predictive Correlation",
-  "cor-lw" = "Predictive Correlation (Posterior)",
+  "cor-lw" = "Predictive Correlation (Posterior, Gauss.)",
+  "cor-lw-cg" = "Predictive Correlation (Posterior, cond. Gauss.)",
   "mse" = "Mean Squared Error",
-  "mse-lw" = "Mean Squared Error (Posterior)",
+  "mse-lw" = "Mean Squared Error (Posterior, Gauss.)",
+  "mse-lw-cg" = "Mean Squared Error (Posterior, cond. Gauss.)",
   "logl-cg" = "Log-Likelihood Loss (cond. Gauss.)"
 )
 
@@ -191,11 +194,14 @@ loss.extra.args = list(
   "logl" = character(0),
   "pred" = "target",
   "pred-lw" = c("target", "n", "from"),
+  "pred-lw-cg" = c("target", "n", "from"),
   "logl-g" = character(0),
   "cor" = "target",
   "cor-lw" = c("target", "n", "from"),
+  "cor-lw-cg" = c("target", "n", "from"),
   "mse" = "target",
   "mse-lw" = c("target", "n", "from"),
+  "mse-lw-cg" = c("target", "n", "from"),
   "logl-cg" = character(0)
 )
 

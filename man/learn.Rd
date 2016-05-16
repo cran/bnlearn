@@ -11,7 +11,7 @@
 \usage{
 learn.mb(x, node, method, whitelist = NULL, blacklist = NULL, start = NULL,
   test = NULL, alpha = 0.05, B = NULL, debug = FALSE)
-learn.nbr(x, node, method, whitelist = NULL, blacklist = NULL, start = NULL,
+learn.nbr(x, node, method, whitelist = NULL, blacklist = NULL,
   test = NULL, alpha = 0.05, B = NULL, debug = FALSE)
 }
 \arguments{

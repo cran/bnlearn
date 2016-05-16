@@ -1,3 +1,46 @@
+bnlearn (4.0)
+
+  * fixed memory usage in aracne(), chow.liu() and tree.bayes() (thanks
+     Sunkyung Kim).
+  * rework memory management using calloc() and free() to avoid memory
+     leaks arising from R_alloc() and missing memory barriers.
+  * fixed a coefficients indexing bug in rbn() for conditional Gaussian
+     nodes (thanks Vladimir Manewitsch).
+  * added a mean() function to average bn.strength objects.
+  * fixed S4 method creation on package load on MacOS X (thanks Dietmar
+     Janetzko)
+  * fixed more corner cases in the Castelo & Siebes prior, and increased
+     numeric tolerance for prior probabilities.
+  * allow non-uniform priors for the "mbde" score (thanks Robert Ness)
+     and for "bdes".
+  * the "mode" attribute in bn.strength objects it now named "method".
+  * added posterior probabilities to the predictions for all discrete
+     networks (thanks ShangKun Deng).
+  * added the Steck's optimal ISS estimator for the BDe(u) score.
+  * fixed the assignment of standard deviation in fitted CLG networks
+     (thanks Rahul Swaminathan).
+  * handle zero lambdas in the shrinkage Gaussian mutual information
+     (thanks Piet Jones).
+  * fixed segfault when computing posterior predictions from networks with
+     NaNs in their conditional probability tables (thanks Giulio Caravagna).
+  * fixed the assignment of LASSO models from the penalized package to
+     fitted Gaussian networks (thanks Anthony Gualandri). 
+  * cpdag() now preserves the directions of arcs between continuous and
+     discrete nodes in conditional linear Gaussian networks, and optionally
+     also takes whitelists and blacklist into account (for any network).
+  * several checks are now in place to prevent the inclusion of illegal
+     arcs in conditional Gaussian networks.
+  * renamed the "ignore.cycles" argument to "check.cycles" in arcs<-() and
+     amat<-() for consistency with other functions such as set.arc().
+  * added an "undirected" argument to mmpc() and si.hiton.pc(), which can now
+     learn the CPDAG of the network instead of just the skeleton.
+  * added a "directed" argument to acyclic().
+  * removed unsupported argument "start" from learn.nbr().
+  * handle interventions correctly in boot.strength() when using the mixed
+     BDe score (thanks Petros Boutselis).
+  * "bdes" is now named "bds" (it is not score equivalent, so the "e" did
+    not belong).
+
 bnlearn (3.9)
 
   * fixed alpha threshold truncation bug in conditional independence tests
@@ -24,6 +67,8 @@ bnlearn (3.9)
      cpdist(..., method = "lw") and predict(..., method = "bayes-lw").
   * fixed Pearson's X^2 test, zero cells may have dropped too often in
      sparse contingency tables.
+  * fixed floating point rounding issues in the shrinkage estimator for the
+     Gaussian mutual information.
 
 bnlearn (3.8.1)
 

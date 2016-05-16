@@ -13,9 +13,9 @@ double lognum = 0, logden = 0, *mu = NULL, *sd = NULL;
   for (i = 0; i < num; i++)
     logden += dnorm(yy[i], ym, ysd, TRUE);
 
-  mu = Calloc(llx, double);
-  sd = Calloc(llx, double);
-  ni = Calloc(llx, int);
+  mu = Calloc1D(llx, sizeof(double));
+  sd = Calloc1D(llx, sizeof(double));
+  ni = Calloc1D(llx, sizeof(int));
 
   /* compute the conditional means and variances. */
   for (i = 0; i < num; i++) {
@@ -36,9 +36,9 @@ double lognum = 0, logden = 0, *mu = NULL, *sd = NULL;
   for (i = 0; i < num; i++)
     lognum += dnorm(yy[i], mu[xx[i] - 1], sd[xx[i] - 1], TRUE);
 
-  Free(mu);
-  Free(sd);
-  Free(ni);
+  Free1D(mu);
+  Free1D(sd);
+  Free1D(ni);
 
   return (lognum - logden) / num;
 
@@ -64,10 +64,10 @@ int *z1 = NULL, nz1 = 0;
     /* compute the denominator (model under the null). */
     logden = c_fast_ccgloglik(yy, xx, nx, num, z0, nz0);
     /* compute the numerator (model under the alternative). */
-    z1 = Calloc(num, int);
+    z1 = Calloc1D(num, sizeof(int));
     c_fast_config(zz, num, nz, nlvls, z1, &nz1, 1);
     lognum = c_fast_ccgloglik(yy, xx, nx, num, z1, nz1);
-    Free(z1);
+    Free1D(z1);
 
   }/*ELSE*/
 
@@ -99,7 +99,7 @@ double logden = 0, lognum = 0;
   else {
 
     /* combine zz and yy to get the configurations for the denominator. */
-    zz2 = Calloc(num, int);
+    zz2 = Calloc1D(num, sizeof(int));
     tt[0] = yy;
     tt[1] = zz;
     tlvls[0] = lly;
@@ -120,7 +120,7 @@ double logden = 0, lognum = 0;
     logden += c_cmicg(gp[i], gp + i + 1, ngp - i - 1, &xx , 1, zz2, llz2, &llx, num);
 
   if (zz)
-    Free(zz2);
+    Free1D(zz2);
 
   /* set the degrees of freedom. */
   if (df)

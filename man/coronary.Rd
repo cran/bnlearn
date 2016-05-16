@@ -50,7 +50,7 @@ data(coronary)
 # This is the undirected graphical model from Whittaker (1990).
 data(coronary)
 ug = empty.graph(names(coronary))
-arcs(ug, ignore.cycles = TRUE) = matrix(
+arcs(ug, check.cycles = FALSE) = matrix(
   c("Family", "M. Work", "M. Work", "Family",
     "M. Work", "P. Work", "P. Work", "M. Work",
     "M. Work", "Proteins", "Proteins", "M. Work",

@@ -6,21 +6,21 @@ loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
     result = entropy.loss(fitted = fitted, data = data, debug = debug)
 
   }#THEN
-  else if (loss %in% c("pred", "pred-lw")) {
+  else if (loss %in% c("pred", "pred-lw", "pred-lw-cg")) {
 
     result = classification.error(node = extra.args$target, fitted = fitted,
                prior = extra.args$prior, n = extra.args$n,
                from = extra.args$from, data = data, loss = loss, debug = debug)
 
   }#THEN
-  else if (loss %in% c("cor", "cor-lw")) {
+  else if (loss %in% c("cor", "cor-lw", "cor-lw-cg")) {
 
     result = predictive.correlation(node = extra.args$target, fitted = fitted,
                n = extra.args$n, from = extra.args$from, data = data,
                loss = loss, debug = debug)
 
   }#THEN
-  else if (loss %in% c("mse", "mse-lw")) {
+  else if (loss %in% c("mse", "mse-lw", "mse-lw-cg")) {
 
     result = mean.square.error(node = extra.args$target, fitted = fitted,
                n = extra.args$n, from = extra.args$from, data = data,
@@ -75,7 +75,7 @@ mean.square.error = function(node, fitted, n, from, data, loss, debug = FALSE) {
 
   if (loss == "mse")
     pred = gaussian.prediction(node, fitted, data)
-  else if (loss == "mse-lw")
+  else if (loss %in% c("mse-lw", "mse-lw-cg"))
     pred = map.prediction(node, fitted, data, n = n, from = from)
 
   return(list(loss = mean((data[, node] - pred)^2), predicted = pred,
@@ -89,7 +89,7 @@ predictive.correlation = function(node, fitted, n, from, data, loss,
 
   if (loss == "cor")
     pred = gaussian.prediction(node, fitted, data)
-  else if (loss == "cor-lw")
+  else if (loss %in% c("cor-lw", "cor-lw-cg"))
     pred = map.prediction(node, fitted, data, n = n, from = from)
 
   if (((loss == "cor") && length(fitted[[node]]$parents) == 0))
@@ -121,7 +121,7 @@ classification.error = function(node, fitted, prior = NULL, n, from, data,
     pred = naive.classifier(node, fitted, prior, data)
   else if (loss == "pred")
     pred = discrete.prediction(node, fitted, data)
-  else if (loss == "pred-lw")
+  else if (loss %in% c("pred-lw", "pred-lw-cg"))
     pred = map.prediction(node, fitted, data, n = n, from = from)
 
   l = .Call("class_err",

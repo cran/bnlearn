@@ -1,6 +1,5 @@
 #include "include/rcore.h"
 #include "include/matrix.h"
-#include "include/allocations.h"
 #include "include/dataframe.h"
 #include "include/globals.h"
 #include "include/graph.h"
@@ -80,7 +79,7 @@ SEXP nodes, try;
   UNPROTECT(1);
 
   /* find out which nodes are parents and which nodes are children. */
-  adjacent = allocstatus(nnodes);
+  adjacent = Calloc1D(nnodes, sizeof(short int));
 
   PROTECT(try = match(nodes, parents, 0));
   temp = INTEGER(try);
@@ -155,6 +154,8 @@ SEXP nodes, try;
 
   }/*FOR*/
 
+  Free1D(adjacent);
+
   return result;
 
 }/*CASTELO_PRIOR*/
@@ -164,7 +165,7 @@ SEXP castelo_completion(SEXP prior, SEXP nodes, SEXP learning)  {
 
 int i = 0, k = 0, cur = 0, narcs1 = 0, narcs2 = 0, nnodes = length(nodes);
 int *m1 = NULL, *m2 = NULL, *und = NULL, *aid = NULL, *poset = NULL, *id = NULL;
-double *d1 = NULL, *d2 = NULL, *p = NULL;
+double *d1 = NULL, *d2 = NULL, *p = NULL, tol = MACHINE_TOL;
 SEXP df, arc_id, undirected, a1, a2, match1, match2, prob;
 SEXP result, from, to, nid, dir1, dir2;
 
@@ -205,7 +206,7 @@ SEXP result, from, to, nid, dir1, dir2;
   d2 = REAL(dir2);
 
   /* sort the strength coefficients. */
-  poset = alloc1dcont(narcs1);
+  poset = Calloc1D(narcs1, sizeof(int));
   for (k = 0; k < narcs1; k++)
     poset[k] = k;
   R_qsort_int_I(aid, poset, 1, narcs1);
@@ -239,7 +240,7 @@ SEXP result, from, to, nid, dir1, dir2;
     /* check the probabilities do not exceed 1; fail only for large errors. */
     if (d1[k] + d2[k] > 1) {
 
-      if (d1[k] + d2[k] < 1 + 2 * MACHINE_TOL) {
+      if (d1[k] + d2[k] < 1.01) {
 
         d1[k] = d1[k] / (d1[k] + d2[k]);
         d2[k] = d2[k] / (d1[k] + d2[k]);
@@ -256,13 +257,20 @@ SEXP result, from, to, nid, dir1, dir2;
 
     }/*THEN*/
 
-    /* bound the probability of not including an arc away from zero, structure
-     * learning otherwise fails when starting from the empty graph and gets
-     * stuck very easily in general. */
-    if (isTRUE(learning) && (fabs(1 - d1[k] - d2[k]) < MACHINE_TOL)) {
+    /* shrink the probabilities away from 0 and 1, structure learning otherwise
+     * fails when starting from the empty graph and gets stuck very easily when
+     * starting from a non-empty graph (and in general). */
+    if (isTRUE(learning)) {
 
-      d1[k] = d1[k] - MACHINE_TOL;
-      d2[k] = d2[k] - MACHINE_TOL;
+      if ((d1[k] < tol) || (d1[k] > 1 - tol) ||
+          (d2[k] < tol) || (d2[k] > 1 - tol) ||
+          (1 - d1[k] - d2[k] < tol) || (1 - d1[k] - d2[k] > 1 - tol)) {
+
+        /* lambda is set to ensure the lowest probability is MACHINE_TOL. */
+        d1[k] = (1 - 3 * tol) * d1[k] + (3 * tol) * 1/3;
+        d2[k] = (1 - 3 * tol) * d2[k] + (3 * tol) * 1/3;
+
+      }/*THEN*/
 
     }/*THEN*/
 
@@ -281,6 +289,8 @@ SEXP result, from, to, nid, dir1, dir2;
   setAttrib(result, R_NamesSymbol,
     mkStringVec(5, "from", "to", "aid", "fwd", "bkwd"));
   PROTECT(df = minimal_data_frame(result));
+
+  Free1D(poset);
 
   UNPROTECT(11);
 

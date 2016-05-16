@@ -1,6 +1,5 @@
 #include "include/rcore.h"
 #include "include/blas.h"
-#include "include/allocations.h"
 #include "include/dataframe.h"
 #include "include/globals.h"
 
@@ -47,7 +46,7 @@ SEXP qr_x;
   qr = REAL(qr_x);
 
   /* allocate the fitted values. */
-  fitted = alloc1dreal(nrow);
+  fitted = Calloc1D(nrow, sizeof(double));
 
   /* estimate OLS using the QR decomposition. */
   c_qr_ols(qr, xx, nrow, ncol, fitted, &sd);
@@ -62,6 +61,8 @@ SEXP qr_x;
   /* we may want to store the number of parameters. */
   if (nparams)
     *nparams = ncol;
+
+  Free1D(fitted);
 
   UNPROTECT(1);
 

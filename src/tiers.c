@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/bn.h"
 
 SEXP tiers(SEXP nodes, SEXP debug) {
@@ -9,7 +8,7 @@ int *tier_size = NULL, debuglevel = isTRUE(debug), tier_start = 0, cur = 0;
 SEXP flattened, blacklist, temp;
 
   /* allocate the counters for tiers' sizes.*/
-  tier_size = alloc1dcont(ntiers);
+  tier_size = Calloc1D(ntiers, sizeof(int));
 
   if (!isString(nodes)) {
 
@@ -86,8 +85,10 @@ SEXP flattened, blacklist, temp;
 
   }/*FOR*/
 
-  /* allocate, initialize and set the column names. */
-  finalize_arcs(blacklist);
+  /* set the column names. */
+  setDimNames(blacklist, R_NilValue, mkStringVec(2, "from", "to"));
+
+  Free1D(tier_size);
 
   if (!isString(nodes))
     UNPROTECT(2);

@@ -33,8 +33,12 @@ bn.net = function(x, debug = FALSE) {
   # check x's class.
   check.fit(x)
 
+  # extract the arcs from the fitted network.
   net = empty.graph.backend(names(x))
   arcs(net) = fit2arcs(x)
+  # re-create the set of illegal arcs.
+  if (is(x, "bn.fit.cgnet"))
+    net$learning$illegal = list.cg.illegal.arcs(names(x), x)
 
   return(net)
 

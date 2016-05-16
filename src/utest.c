@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/globals.h"
 #include "include/tests.h"
 #include "include/dataframe.h"
@@ -21,12 +20,9 @@ static double ut_discrete(SEXP xx, SEXP yy, int nobs, int ntests,
 
 int i = 0, llx = 0, lly = NLEVELS(yy), *xptr = NULL, *yptr = INTEGER(yy);
 double statistic = 0;
-void *memp = NULL;
 SEXP xdata;
 
   for (i = 0; i < ntests; i++) {
-
-    memp = vmaxget();
 
     DISCRETE_SWAP_X();
 
@@ -54,8 +50,6 @@ SEXP xdata;
       pvalue[i] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
 
     }/*THEN*/
-
-    vmaxset(memp);
 
   }/*FOR*/
 
@@ -97,7 +91,6 @@ double xm = 0, ym = 0, xsd = 0, ysd = 0, statistic = 0;
 
   for (i = 0; i < ntests; i++) {
 
-    /* no allocations require a vmax{get,set}() call. */
     GAUSSIAN_SWAP_X();
     statistic = c_fast_cor(xptr, yptr, nobs, xm, ym, xsd, ysd);
 
@@ -139,7 +132,7 @@ static double ut_micg(SEXP xx, SEXP yy, int nobs, int ntests, double *pvalue,
 
 int i = 0, xtype = 0, ytype = TYPEOF(yy), llx = 0, lly = 0;
 double xm = 0, xsd = 0, ym = 0, ysd = 0, statistic = 0;
-void *xptr = NULL, *yptr = NULL, *memp = NULL;
+void *xptr = NULL, *yptr = NULL;
 SEXP xdata;
 
   if (ytype == INTSXP) {
@@ -165,8 +158,6 @@ SEXP xdata;
 
     if ((ytype == INTSXP) && (xtype == INTSXP)) {
 
-      memp = vmaxget();
-
       /* if both nodes are discrete, the test reverts back to a discrete
        * mutual information test. */
       xptr = INTEGER(xdata);
@@ -174,8 +165,6 @@ SEXP xdata;
       DISCRETE_SWAP_X();
       statistic = 2 * nobs * c_chisqtest(xptr, llx, yptr, lly, nobs, df, MI);
       pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
-
-      vmaxset(memp);
 
     }/*THEN*/
     else if ((ytype == REALSXP) && (xtype == REALSXP)) {
@@ -229,19 +218,14 @@ static double ut_dperm(SEXP xx, SEXP yy, int nobs, int ntests, double *pvalue,
 int i = 0, *xptr = NULL, *yptr = INTEGER(yy);
 int llx = 0, lly = NLEVELS(yy);
 double statistic = 0;
-void *memp = NULL;
 SEXP xdata;
 
   for (i = 0; i < ntests; i++) {
-
-    memp = vmaxget();
 
     DISCRETE_SWAP_X();
     statistic = 0;
     c_mcarlo(xptr, llx, yptr, lly, nobs, B, &statistic, pvalue + i,
       a, type, df);
-
-    vmaxset(memp);
 
   }/*FOR*/
 
@@ -255,17 +239,12 @@ static double ut_gperm(SEXP xx, SEXP yy, int nobs, int ntests, double *pvalue,
 
 int i = 0;
 double *yptr = REAL(yy), statistic = 0;
-void *memp = NULL;
 
   for (i = 0; i < ntests; i++) {
-
-    memp = vmaxget();
 
     statistic = 0;
     c_gauss_mcarlo(REAL(VECTOR_ELT(xx, i)), yptr, nobs, B, pvalue + i,
       a, type, &statistic);
-
-    vmaxset(memp);
 
   }/*FOR*/
 
@@ -316,7 +295,7 @@ SEXP xx, yy, result;
   }/*THEN*/
   else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
 
-    statistic = ut_dperm(xx, yy, nobs, ntests, pvalue, &df, test_type, INT(B), 
+    statistic = ut_dperm(xx, yy, nobs, ntests, pvalue, &df, test_type, INT(B),
                   IS_SMC(test_type) ? NUM(alpha) : 1);
 
   }/*THEN*/

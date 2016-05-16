@@ -7,7 +7,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   reset.test.counter()
 
   res = NULL
-  cluster.aware = FALSE
+  parallel = FALSE
 
   # check the data are there.
   check.data(x)
@@ -30,8 +30,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     check.cluster(cluster)
 
-    # enter in cluster-aware mode.
-    cluster.aware = TRUE
+    # enter in parallel mode.
+    parallel = TRUE
     # set up the slave processes.
     slaves.setup(cluster)
     # disable debugging, the slaves do not cat() here.
@@ -195,13 +195,15 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   }#ELSE
 
   # add tests performed by the slaves to the test counter.
-  if (cluster.aware)
+  if (parallel)
     res$learning$ntests = res$learning$ntests +
       sum(unlist(parallel::clusterEvalQ(cluster, test.counter())))
   # save the learning method used.
   res$learning$algo = method
   # save the 'optimized' flag.
   res$learning$optimized = optimized
+  # save arcs that are illegal according to parametric assumptions.
+  res$learning$illegal = check.arcs.against.assumptions(NULL, x, test)
 
   invisible(structure(res, class = "bn"))
 
@@ -325,7 +327,8 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   # set the metadata of the network in one stroke.
   res$learning = list(whitelist = whitelist, blacklist = blacklist,
     test = score, ntests = test.counter(),
-    algo = heuristic, args = extra.args, optimized = optimized)
+    algo = heuristic, args = extra.args, optimized = optimized,
+    illegal = check.arcs.against.assumptions(NULL, x, score))
 
   invisible(res)
 
@@ -389,7 +392,8 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
     ntests = res$learning$ntests + rst$learning$ntests, algo = method,
     args = c(res$learning$args, rst$learning$args), optimized = optimized,
     restrict = restrict, rstest = rst$learning$test, maximize = maximize,
-    maxscore = res$learning$test)
+    maxscore = res$learning$test,
+    illegal = check.arcs.against.assumptions(NULL, x, rst$learning$test))
 
   invisible(res)
 
@@ -445,7 +449,7 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
   res$learning = list(whitelist = whitelist, blacklist = blacklist,
     test = as.character(mi.estimator.tests[estimator]), alpha = 0.05,
     ntests = nnodes * (nnodes - 1) / 2, algo = method,
-    args = list(estimator = estimator), optimized = NULL)
+    args = list(estimator = estimator))
 
   invisible(res)
 
@@ -737,8 +741,7 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
   res$learning$algo = method
   # set the metadata of the network in one stroke.
   res$learning = list(whitelist = whitelist, blacklist = blacklist,
-    test = test, ntests = ntests, algo = method, args = extra.args,
-    optimized = NULL)
+    test = test, ntests = ntests, algo = method, args = extra.args)
   # set the trainign variable, for use by predict() & co.
   res$learning$args$training = training
 

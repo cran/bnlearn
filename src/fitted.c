@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/bn.h"
 
 /* get root or leaf nodes of the graph. */
@@ -18,7 +17,7 @@ SEXP temp, temp2, nodes, node_data, labels, result;
   /* get the nodes' labels. */
   labels = getAttrib(nodes, R_NamesSymbol);
   /* allocate and initialize a status vector. */
-  status = allocstatus(length(nodes));
+  status = Calloc1D(length(nodes), sizeof(short int));
 
   for (i = 0; i < length(nodes); i++) {
 
@@ -68,6 +67,8 @@ SEXP temp, temp2, nodes, node_data, labels, result;
 
   UNPROTECT(1);
 
+  Free1D(status);
+
   return result;
 
 }/*ROOT_NODES*/
@@ -94,7 +95,7 @@ SEXP labels, node_data, children, result;
   /* allocate the arc set. */
   PROTECT(result = allocMatrix(STRSXP, narcs, 2));
   /* set the column names. */
-  finalize_arcs(result);
+  setDimNames(result, R_NilValue, mkStringVec(2, "from", "to"));
 
   /* second pass: initialize the return value. */
   for (i = 0; i <  length(bn); i++) {
@@ -152,7 +153,7 @@ SEXP mb, labels, try, temp, node_data;
   labels = getAttrib(bn, R_NamesSymbol);
   nnodes = length(labels);
   /* allocate and initialize a status vector. */
-  status = allocstatus(nnodes);
+  status = Calloc1D(nnodes, sizeof(short int));
 
   /* match the label of the target node. */
   PROTECT(try = match(labels, target, 0));
@@ -189,6 +190,8 @@ SEXP mb, labels, try, temp, node_data;
       SET_STRING_ELT(mb, j++, STRING_ELT(labels, i));
 
   UNPROTECT(1);
+
+  Free1D(status);
 
   return mb;
 

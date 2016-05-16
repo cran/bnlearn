@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 
 SEXP arcs2uelist(SEXP arcs, SEXP nodes, SEXP nid, SEXP sublist, SEXP parents);
 SEXP arcs2welist(SEXP arcs, SEXP nodes, SEXP weights, SEXP nid, SEXP sublist,
@@ -36,7 +35,7 @@ SEXP try, elist, edges, edge_weights, temp, temp_name = R_NilValue;
     PROTECT(temp_name = mkStringVec(2, "edges", "weight"));
 
   /* allocate the scratch space to keep track adjacent nodes. */
-  adjacent = alloc1dcont(nnodes);
+  adjacent = Calloc1D(nnodes, sizeof(int));
 
   /* match the node labels in the arc set. */
   PROTECT(try = match(nodes, arcs, 0));
@@ -106,6 +105,8 @@ SEXP try, elist, edges, edge_weights, temp, temp_name = R_NilValue;
 
   }/*FOR*/
 
+  Free1D(adjacent);
+
   if (sub > 0)
     UNPROTECT(3);
   else
@@ -133,7 +134,7 @@ SEXP try, elist, edges, temp, temp_name = R_NilValue;
     PROTECT(temp_name = mkString("edges"));
 
   /* allocate the scratch space to keep track of adjacent nodes. */
-  adjacent = alloc1dcont(nnodes);
+  adjacent = Calloc1D(nnodes, sizeof(int));
 
   /* match the node labels in the arc set. */
   PROTECT(try = match(nodes, arcs, 0));
@@ -192,6 +193,8 @@ SEXP try, elist, edges, temp, temp_name = R_NilValue;
     UNPROTECT(1);
 
   }/*FOR*/
+
+  Free1D(adjacent);
 
   if (sub > 0)
     UNPROTECT(3);

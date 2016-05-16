@@ -96,21 +96,28 @@ bn.cv(data, bn, loss = NULL, k = 10, m, runs = 1, algorithm.args = list(),
       in a discrete network. Frequentist predictions are used, so the values of the
       target node are predicted using only the information present in its local
       distribution (from its parents).
-    \item \emph{Posterior Classification Error} (\code{pred-lw}): similar to
-      the above, but predictions are computed from an arbitrary set of nodes
-      using likelihood weighting to obtain Bayesian posterior estimates.
+    \item \emph{Posterior Classification Error} (\code{pred-lw} and
+      \code{pred-lw-cg}): similar to the above, but predictions are computed
+      from an arbitrary set of nodes using likelihood weighting to obtain
+      Bayesian posterior estimates. \code{pred-lw} applies to discrete Bayesian
+      networks, \code{pred-lw-cg} to (discrete nodes in) hybrid networks.
     \item \emph{Predictive Correlation} (\code{cor}): the \emph{correlation}
       between the observed and the predicted values for a single node in a
       Gaussian Bayesian network.
-    \item \emph{Posterior Predictive Correlation} (\code{cor-lw}): similar to
-      the above, but predictions are computed from an arbitrary set of nodes
-      using likelihood weighting to obtain Bayesian posterior estimates.
+    \item \emph{Posterior Predictive Correlation} (\code{cor-lw} and
+      \code{cor-lw-cg}): similar to the above, but predictions are computed from
+      an arbitrary set of nodes using likelihood weighting to obtain Bayesian
+      posterior estimates. \code{cor-lw} applies to Gaussian networks and
+      \code{cor-lw-cg} to (continuous nodes in) hybrid networks.
     \item \emph{Mean Squared Error} (\code{mse}): the \emph{mean squared error}
       between the observed and the predicted values for a single node in a
       Gaussian Bayesian network.
-    \item \emph{Posterior Mean Squared Error} (\code{mse-lw}): similar to
-      the above, but predictions are computed from an arbitrary set of nodes
-      using likelihood weighting to obtain Bayesian posterior estimates.
+    \item \emph{Posterior Mean Squared Error} (\code{mse-lw} and
+      \code{mse-lw-cg}): similar to the above, but predictions are computed from
+      an arbitrary set of nodes using likelihood weighting to obtain Bayesian
+      posterior estimates. \code{mse-lw} applies to Gaussian networks and
+      \code{mse-lw-cg} to (continuous nodes in) hybrid networks.
+
 
   }
 
@@ -122,12 +129,14 @@ bn.cv(data, bn, loss = NULL, k = 10, m, runs = 1, algorithm.args = list(),
       prediction in all loss functions but \code{logl}, \code{logl-g} and
       \code{logl-cg}.
     \item \code{from}: a vector of character strings, the labels of the nodes
-      used to predict the \code{target} node in \code{pred-lw}, \code{cor-lw}
-      and \code{mse-lw}. The default is to use all the other nodes in the
-      network. Loss functions \code{pred}, \code{cor} and \code{mse} implicitly
-      predict only from the parents of the \code{target} node.
+      used to predict the \code{target} node in \code{pred-lw}, \code{pred-lw-cg},
+      \code{cor-lw}, \code{cor-lw-cg}, \code{mse-lw} and \code{mse-lw-cg}. The
+      default is to use all the other nodes in the network. Loss functions
+      \code{pred}, \code{cor} and \code{mse} implicitly predict only from the
+      parents of the \code{target} node.
     \item \code{n}: a positive integer, the number of particles used by
-      likelihood weighting for \code{pred-lw}, \code{cor-lw} and \code{mse-lw}.
+      likelihood weighting for \code{pred-lw}, \code{pred-lw-cg}, \code{cor-lw},
+      \code{cor-lw-cg}, \code{mse-lw} and \code{mse-lw-cg}.
       The default value is \code{500}.
 
   }

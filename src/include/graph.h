@@ -16,10 +16,10 @@ SEXP schedule(SEXP bn, SEXP root_nodes, SEXP reverse, SEXP debug);
 
 /* from path.c */
 int c_has_path(int start, int stop, int *amat, int n, SEXP nodes,
-    int ugraph, int notdirect, int debuglevel);
+    int ugraph, int notdirect,  int *path, int *counter, int debuglevel);
 int c_directed_path(int start, int stop, int *amat, int n, SEXP nodes,
-    int debuglevel);
-int c_uptri3_path(short int *uptri, int from, int to, int nnodes,
+    int *path, int *counter, int debuglevel);
+int c_uptri3_path(short int *uptri, int *depth, int from, int to, int nnodes,
     SEXP nodes, int debuglevel);
 
 /* from hash.c */

@@ -6,13 +6,14 @@
 
 void tabu_add(double *cache_value, int *ad, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,
-    int *narcs, int debuglevel);
+    int *narcs, int *path, int *scratch, int debuglevel);
 void tabu_del(double *cache_value, int *w, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,
     int *narcs, int debuglevel);
 void tabu_rev(double *cache_value, int *b, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, int *update, SEXP tabu_list,
-    int *cur, int *narcs, double *mp, double *np, int debuglevel);
+    int *cur, int *narcs, double *mp, double *np, int *path, int *scratch,
+    int debuglevel);
 
 /* create a numerical compact representation of a network structure (akin to
  * a hash, but not quite) to allow fast comparison and low memory usage. */
@@ -95,6 +96,7 @@ SEXP tabu_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
 int nnodes = length(nodes), narcs = 0, i = 0, j = 0;
 int *am = NULL, *ad = NULL, *w = NULL, *b = NULL, debuglevel = isTRUE(debug);
 int *cur = NULL, counter = 0, update = 1, from = 0, to = 0;
+int *path = NULL, *scratch = NULL;
 double *cache_value = NULL, max = NUM(baseline);
 double *mp = REAL(maxp), *np = REAL(nparents);
 SEXP bestop;
@@ -105,6 +107,10 @@ SEXP bestop;
 
   /* allocate and initialize a dummy FALSE object. */
   SET_VECTOR_ELT(bestop, 0, ScalarLogical(FALSE));
+
+  /* allocate buffers for c_has_path(). */
+  path = Calloc1D(nnodes, sizeof(int));
+  scratch = Calloc1D(nnodes, sizeof(int));
 
   /* save pointers to the numeric/integer matrices. */
   cache_value = REAL(cache);
@@ -132,7 +138,7 @@ SEXP bestop;
 
   /* test neighbours by arc addition. */
   tabu_add(cache_value, ad, am, bestop, nodes, &nnodes, &from, &to, &max,
-    tabu_list, cur, &narcs, debuglevel);
+    tabu_list, cur, &narcs, path, scratch, debuglevel);
 
   if (debuglevel > 0) {
 
@@ -163,12 +169,15 @@ SEXP bestop;
 
   /* test neighbours by arc reversal. */
   tabu_rev(cache_value, b, am, bestop, nodes, &nnodes, &from, &to, &max,
-    &update, tabu_list, cur, &narcs, mp, np, debuglevel);
+    &update, tabu_list, cur, &narcs, mp, np, path, scratch, debuglevel);
 
   /* update the reference scores. */
   REAL(reference)[to] += cache_value[CMC(from, to, nnodes)];
   if (update == 2)
     REAL(reference)[from] += cache_value[CMC(to, from, nnodes)];
+
+  Free1D(path);
+  Free1D(scratch);
 
   UNPROTECT(1);
 
@@ -179,7 +188,7 @@ SEXP bestop;
 /* try to add an arc to the current network, minding the tabu list. */
 void tabu_add(double *cache_value, int *ad, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,
-    int *narcs, int debuglevel) {
+    int *narcs, int *path, int *scratch, int debuglevel) {
 
 int i = 0, j = 0, idx = 0;
 double temp = 0, tol = MACHINE_TOL;
@@ -208,7 +217,8 @@ double temp = 0, tol = MACHINE_TOL;
        * networks stored in the tabu list. */
       if (temp - *max > tol) {
 
-        if (c_has_path(j, i, am, *nnodes, nodes, FALSE, FALSE, FALSE)) {
+        if (c_has_path(j, i, am, *nnodes, nodes, FALSE, FALSE, path, scratch,
+              FALSE)) {
 
           if (debuglevel > 0)
             Rprintf("    > not adding, introduces cycles in the graph.\n");
@@ -333,7 +343,8 @@ double temp = 0, tol = MACHINE_TOL;
 /* try to reverse an arc in the current network, minding the tabu list. */
 void tabu_rev(double *cache_value, int *b, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, int *update, SEXP tabu_list,
-    int *cur, int *narcs, double *mp, double *np, int debuglevel) {
+    int *cur, int *narcs, double *mp, double *np, int *path, int *scratch,
+    int debuglevel) {
 
 int i = 0, j = 0, idx = 0;
 double temp = 0, tol = MACHINE_TOL;
@@ -369,7 +380,8 @@ double temp = 0, tol = MACHINE_TOL;
 
       if (temp - *max > tol) {
 
-        if (c_has_path(i, j, am, *nnodes, nodes, FALSE, TRUE, FALSE)) {
+        if (c_has_path(i, j, am, *nnodes, nodes, FALSE, TRUE, path, scratch,
+              FALSE)) {
 
           if (debuglevel > 0)
             Rprintf("    > not reversing, introduces cycles in the graph.\n");

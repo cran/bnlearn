@@ -12,7 +12,7 @@
 
 }
 \usage{
-cpdag(x, moral = TRUE, debug = FALSE)
+cpdag(x, moral = TRUE, wlbl = FALSE, debug = FALSE)
 cextend(x, strict = TRUE, debug = FALSE)
 vstructs(x, arcs = FALSE, moral = TRUE, debug = FALSE)
 moral(x, debug = FALSE)
@@ -23,6 +23,9 @@ moral(x, debug = FALSE)
     one v-structure are returned instead of the v-structures themselves.}
   \item{moral}{a boolean value. If \code{TRUE} we define a v-structure as in
     Pearl (2000); if \code{FALSE}, as in Koller and Friedman (2009). See below.}
+  \item{wlbl}{a boolean value. If \code{TRUE} arcs whose directions have been
+    fixed by a whitelist or a by blacklist are preserved when constructing
+    the CPDAG.}
   \item{strict}{a boolean value. If no consistent extension is possible and
     \code{strict} is \code{TRUE}, an error is generated; otherwise a partially
     extended graph is returned with a warning.}
@@ -47,6 +50,10 @@ moral(x, debug = FALSE)
   shielded and unshielded colliders (respectively \emph{moral v-structures} and
   \emph{immoral v-structures}); the latter requires v-structures to be 
   unshielded colliders.
+
+  Note that arcs whose directions are dictated by the parametric assumptions of
+  conditional linear Gaussian networks are preserved as directed arcs in
+  \code{cpdag}.
 
 }
 \value{

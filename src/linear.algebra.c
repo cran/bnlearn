@@ -19,26 +19,35 @@ int lwork = -1, *iwork = NULL;
 char jobz = 'A';
 double tmp = 0, *work = NULL;
 
-  iwork = (int *)Calloc(8 * (*mindim), int);
+  iwork = Calloc1D(8 * (*mindim), sizeof(int));
 
   /* ask for the optimal size of the work array. */
   F77_CALL(dgesdd)(&jobz, nrows, ncols, A, nrows, D, U, nrows,
                    V, mindim, &tmp, &lwork, iwork, errcode);
 
   lwork = (int)tmp;
-  work = (double *)Calloc(lwork, double);
+  work = Calloc1D(lwork, sizeof(double));
 
   /* actual call */
   F77_NAME(dgesdd)(&jobz, nrows, ncols, A, nrows, D, U, nrows,
                    V, mindim, work, &lwork, iwork, errcode);
 
-  Free(work);
-  Free(iwork);
+  Free1D(work);
+  Free1D(iwork);
 
   if (*errcode && strict)
     error("an error (%d) occurred in the call to dgesdd().\n", *errcode);
 
 }/*C_SVD*/
+
+/* helper function to allocate U, D and Vt for SVD. */
+void c_udvt(double **u, double **d, double **vt, int ncols) {
+
+  *u = Calloc1D(ncols * ncols, sizeof(double));
+  *d = Calloc1D(ncols, sizeof(double));
+  *vt = Calloc1D(ncols * ncols, sizeof(double));
+
+}/*C_UDVT*/
 
 /* C-level function to compute Moore-Penrose Generalized Inverse of a square matrix. */
 void c_ginv(double *covariance, int ncols, double *mpinv) {
@@ -48,13 +57,11 @@ double *u = NULL, *d = NULL, *vt = NULL, *backup = NULL;
 double sv_tol = 0, zero = 0, one = 1;
 char transa = 'N', transb = 'N';
 
-  u = Calloc(ncols * ncols, double);
-  d = Calloc(ncols, double);
-  vt = Calloc(ncols * ncols, double);
+  c_udvt(&u, &d, &vt, ncols);
 
   if (covariance != mpinv) {
 
-    backup = Calloc(ncols * ncols, double);
+    backup = Calloc1D(ncols * ncols, sizeof(double));
     memcpy(backup, covariance, ncols * ncols * sizeof(double));
 
   }/*THEN*/
@@ -82,13 +89,13 @@ char transa = 'N', transb = 'N';
   if (covariance != mpinv) {
 
     memcpy(covariance, backup, ncols * ncols * sizeof(double));
-    Free(backup);
+    Free1D(backup);
 
   }/*THEN*/
 
-  Free(u);
-  Free(d);
-  Free(vt);
+  Free1D(u);
+  Free1D(d);
+  Free1D(vt);
 
   if (errcode)
     error("an error (%d) occurred in the call to c_ginv().\n", errcode);
@@ -269,9 +276,9 @@ double tol = MACHINE_TOL, *qraux = NULL, *work = NULL;
   }/*THEN*/
 
   /* allocate the working space. */
-  qraux = (double *)Calloc(ncol, double);
-  work = (double *)Calloc(2 * ncol, double);
-  pivot = (int *)Calloc(ncol, int);
+  qraux = Calloc1D(ncol, sizeof(double));
+  work = Calloc1D(2 * ncol, sizeof(double));
+  pivot = Calloc1D(ncol, sizeof(int));
   for (i = 0; i < ncol; i++)
     pivot[i] = i + 1;
 
@@ -295,9 +302,9 @@ double tol = MACHINE_TOL, *qraux = NULL, *work = NULL;
     *sd += (y[i] - fitted[i]) * (y[i] - fitted[i]);
   *sd = sqrt(*sd / (nrow - 1));
 
-  Free(pivot);
-  Free(work);
-  Free(qraux);
+  Free1D(pivot);
+  Free1D(work);
+  Free1D(qraux);
 
 }/*C_QR_OLS*/
 

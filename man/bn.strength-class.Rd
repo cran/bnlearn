@@ -27,8 +27,8 @@
 
   \itemize{
 
-    \item \code{mode}: a character string, the criterion used to compute the
-      strength coefficient. It can be equal to \code{test}, \code{score} or
+    \item \code{method}: a character string, the method used to compute the
+      strength coefficients. It can be equal to \code{test}, \code{score} or
       \code{bootstrap}.
     \item \code{threshold}: a numeric value, the threshold used to determine
       if a strength coefficient is significant.

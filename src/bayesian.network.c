@@ -6,7 +6,7 @@ SEXP nbr2arcs(SEXP nbr) {
 
 int i = 0, j = 0, k = 0, narcs = 0;
 int length_names = 0;
-SEXP arcs, dimnames, temp, names;
+SEXP arcs, temp, names;
 
   /* get the names of the nodes. */
   names = getAttrib(nbr, R_NamesSymbol);
@@ -23,19 +23,15 @@ SEXP arcs, dimnames, temp, names;
 
   }/*FOR*/
 
-  /* allocate colnames. */
-  PROTECT(dimnames = allocVector(VECSXP, 2));
-  SET_VECTOR_ELT(dimnames, 1, mkStringVec(2, "from", "to"));
-
   /* if there are no arcs, return an empty arc set. */
   if (narcs == 0) {
 
     /* allocate an empty arc set. */
     PROTECT(arcs = allocMatrix(STRSXP, 0, 2));
     /* set the column names. */
-    setAttrib(arcs, R_DimNamesSymbol, dimnames);
+    setDimNames(arcs, R_NilValue, mkStringVec(2, "from", "to"));
 
-    UNPROTECT(2);
+    UNPROTECT(1);
 
     return arcs;
 
@@ -45,7 +41,7 @@ SEXP arcs, dimnames, temp, names;
     /* allocate the arc set. */
     PROTECT(arcs = allocMatrix(STRSXP, narcs, 2));
     /* set the column names. */
-    setAttrib(arcs, R_DimNamesSymbol, dimnames);
+    setDimNames(arcs, R_NilValue, mkStringVec(2, "from", "to"));
 
   }/*ELSE*/
 
@@ -66,7 +62,7 @@ SEXP arcs, dimnames, temp, names;
 
   }/*FOR*/
 
-  UNPROTECT(2);
+  UNPROTECT(1);
 
   return arcs;
 

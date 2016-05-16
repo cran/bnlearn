@@ -65,7 +65,7 @@ nnodes(x)
 
 ## arcs
 arcs(x)
-arcs(x, ignore.cycles = FALSE, debug = FALSE) <- value
+arcs(x, check.cycles = TRUE, check.illegal = TRUE, debug = FALSE) <- value
 directed.arcs(x)
 undirected.arcs(x)
 incoming.arcs(x, node)
@@ -77,7 +77,7 @@ narcs(x)
 
 ## adjacency matrix
 amat(x)
-amat(x, ignore.cycles = FALSE, debug = FALSE) <- value
+amat(x, check.cycles = TRUE, check.illegal = TRUE, debug = FALSE) <- value
 
 ## graphs
 nparams(x, data, effective = FALSE, debug = FALSE)
@@ -106,8 +106,11 @@ blacklist(x)
     two columns (optionally labeled "from" and "to", for \code{arcs}).}
   \item{data}{a data frame containing the data the Bayesian network was learned
     from. It's only needed if \code{x} is an object of class \code{bn}.}
-  \item{ignore.cycles}{a boolean value. If \code{TRUE} the returned network will
+  \item{check.cycles}{a boolean value. If \code{FALSE} the returned network will
     not be checked for cycles.}
+  \item{check.illegal}{a boolean value. If \code{TRUE} arcs that break the 
+    parametric assumptions of \code{x}, such as those from continuous to
+    discrete nodes in conditional Gaussian networks, cause an error.}
   \item{effective}{a boolean value. If \code{TRUE} the number of non-zero free
     parameters is returned, that is, the effective degrees of freedom of the
     network; otherwise the theoretical number of parameters is returned.}

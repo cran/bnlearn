@@ -42,7 +42,7 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
 
   # compute arc weights from the bn.strength object.
   arc.weights = strength2lwd(strength = str, threshold = threshold,
-                  cutpoints = cutpoints, mode = attr(strength, "mode"),
+                  cutpoints = cutpoints, method = attr(strength, "method"),
                   arcs = x$arcs, debug = debug)
 
   # return the graph object for further customization, not NULL.
@@ -169,7 +169,7 @@ plot.bn.strength = function(x, draw.threshold = TRUE, main = NULL,
   if (!is(x, "bn.strength"))
     stop("x must be a 'bn.strength' object.")
   # only arc strengths computed as confidence through bootstrap are supported.
-  if (attr(x, "mode") != "bootstrap")
+  if (attr(x, "method") != "bootstrap")
     stop("only arc strengths obtained through bootstrap are supported.")
 
   # match the dots arguments.

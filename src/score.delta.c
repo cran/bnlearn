@@ -297,7 +297,7 @@ SEXP fake_nodes, real_nodes, target;
   }/*THEN*/
   else {
 
-    /* create a fake network with the updated structure, including children!. */
+    /* create a fake network with the updated structure, including children. */
     PROTECT(fake = score_delta_helper(network, arc, op, TRUE, TRUE));
     /* find out which nodes to update from the fake structure. */
     fake_nodes = getListElement(fake, "nodes");
@@ -347,7 +347,8 @@ SEXP score_delta_monolithic(SEXP arc, SEXP network, SEXP data, SEXP score,
 
 const char *s = CHAR(STRING_ELT(score, 0));
 
-  if ((strcmp(s, "bde") == 0) || (strcmp(s, "bge") == 0)) {
+  if ((strcmp(s, "bde") == 0) || (strcmp(s, "bge") == 0) ||
+      (strcmp(s, "bds") == 0) || (strcmp(s, "mbde") == 0)) {
 
     const char *prior = CHAR(STRING_ELT(getListElement(extra, "prior"), 0));
 

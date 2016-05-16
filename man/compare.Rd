@@ -6,21 +6,24 @@
 \title{Compare two different Bayesian networks}
 \description{
 
-  Compare two different Bayesian networks; compute the Structural Hamming
-  Distance (SHD) between them or the Hamming distance between their skeletons.
+  Compare two different Bayesian networks; compute their Structural Hamming
+  Distance (SHD) or the Hamming distance between their skeletons.
 
 }
 \usage{
 compare(target, current, arcs = FALSE)
 \method{all.equal}{bn}(target, current, ...)
 
-shd(learned, true, debug = FALSE)
+shd(learned, true, wlbl = FALSE, debug = FALSE)
 hamming(learned, true, debug = FALSE)
 }
 \arguments{
   \item{target, learned}{an object of class \code{bn}.}
   \item{current, true}{another object of class \code{bn}.}
   \item{\dots}{extra arguments from the generic method (currently ignored).}
+  \item{wlbl}{a boolean value. If \code{TRUE} arcs whose directions have been
+    fixed by a whitelist or a by blacklist are preserved when constructing
+    the CPDAGs of \code{learned} and \code{true}.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
   \item{arcs}{a boolean value. See below.}

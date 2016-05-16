@@ -1,20 +1,49 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/matrix.h"
 #include "include/graph.h"
 
-#define GOOD 1
-#define BAD  0
+/* utility function to build the return value. */
+static SEXP build_return_array(SEXP nodes, short int *skip, int nrows,
+    int check_status, SEXP return_nodes) {
 
-static SEXP build_return_array(SEXP nodes, short int *status,
-    int nrows, int check_status, SEXP return_nodes);
+int i = 0, j = 0;
+SEXP res;
 
-/*
- * Implementation  based on the proof of proposition 1.4.2
- * in "Digraphs Theory, Algorithms and Applications" by
- * Bang-Jensen and Gutin, page 13.
- */
+  if (check_status < 3) {
 
+    if (isTRUE(return_nodes))
+      return allocVector(STRSXP, 0);
+    else
+      return ScalarLogical(TRUE);
+
+  }/*THEN*/
+  else {
+
+    if (isTRUE(return_nodes)) {
+
+      PROTECT(res = allocVector(STRSXP, check_status));
+
+      for (i = 0; i < nrows; i++)
+        if (skip[i] == FALSE)
+          SET_STRING_ELT(res, j++, STRING_ELT(nodes, i));
+
+      UNPROTECT(1);
+
+      return res;
+
+    }/*THEN*/
+    else {
+
+      return ScalarLogical(FALSE);
+
+    }/*ELSE*/
+
+  }/*ELSE*/
+
+}/*BUILD_RETURN_ARRAY*/
+
+/* implementation based on the proof of proposition 1.4.2 in "Digraphs Theory, 
+ * Algorithms and Applications" by Bang-Jensen and Gutin, page 13. */
 SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes,
     SEXP directed, SEXP debug) {
 
@@ -22,9 +51,9 @@ int i = 0, j = 0, z = 0;
 int nrows = length(nodes);
 int check_status = nrows, check_status_old = nrows;
 int *rowsums = NULL, *colsums = NULL, *crossprod = NULL, *a = NULL;
-int debuglevel = isTRUE(debug);
-short int *status = NULL;
-SEXP amat;
+int *path = NULL, *scratch = NULL, debuglevel = isTRUE(debug);
+short int *skip = NULL;
+SEXP amat, res;
 
   /* build the adjacency matrix from the arc set.  */
   if (debuglevel > 0)
@@ -47,10 +76,14 @@ SEXP amat;
   }/*THEN*/
 
   /* initialize the status, {row,col}sums and crossprod arrays. */
-  status = allocstatus(nrows);
-  rowsums = alloc1dcont(nrows);
-  colsums = alloc1dcont(nrows);
-  crossprod = alloc1dcont(nrows);
+  skip = Calloc1D(nrows, sizeof(short int));
+  rowsums = Calloc1D(nrows, sizeof(int));
+  colsums = Calloc1D(nrows, sizeof(int));
+  crossprod = Calloc1D(nrows, sizeof(int));
+
+  /* allocate buffers for c_has_path(). */
+  path = Calloc1D(nrows, sizeof(int));
+  scratch = Calloc1D(nrows, sizeof(int));
 
   if (debuglevel > 0)
     Rprintf("* checking whether the partially directed graph is acyclic.\n");
@@ -68,7 +101,7 @@ start:
     for (i = 0; i < nrows; i++) {
 
       /* skip known-good nodes. */
-      if (status[i] == GOOD) continue;
+      if (skip[i] == TRUE) continue;
 
       /* reset and update row and column totals. */
       rowsums[i] = colsums[i] = crossprod[i] = 0;
@@ -103,7 +136,7 @@ there:
         rowsums[i] = colsums[i] = crossprod[i] = 0;
 
         /* mark the node as good. */
-        status[i] = GOOD;
+        skip[i] = TRUE;
         check_status--;
 
       }/*THEN*/
@@ -149,8 +182,7 @@ there:
       if (debuglevel > 0)
         Rprintf("@ at least three nodes are needed to have a cycle.\n");
 
-      UNPROTECT(1);
-      return build_return_array(nodes, status, nrows, check_status, return_nodes);
+      goto end;
 
     }/*THEN*/
 
@@ -170,8 +202,8 @@ there:
              * there's a path is always found (the arc itself). */
             a[CMC(i, j, nrows)] = a[CMC(j, i, nrows)] = 0;
 
-            if(!c_has_path(i, j, INTEGER(amat), nrows, nodes, FALSE, TRUE, FALSE) &&
-               !c_has_path(j, i, INTEGER(amat), nrows, nodes, FALSE, TRUE, FALSE)) {
+            if(!c_has_path(i, j, INTEGER(amat), nrows, nodes, FALSE, TRUE, path, scratch, FALSE) &&
+               !c_has_path(j, i, INTEGER(amat), nrows, nodes, FALSE, TRUE, path, scratch, FALSE)) {
 
               if (debuglevel > 0)
                 Rprintf("@ arc %s - %s is not part of any cycle, removing.\n", NODE(i), NODE(j));
@@ -184,17 +216,15 @@ there:
             else {
 
               /* at least one cycle is really present; give up and return.  */
-              UNPROTECT(1);
-              return build_return_array(nodes, status, nrows, check_status, return_nodes);
+              goto end;
 
             }/*ELSE*/
 
           }/*THEN*/
 
-      /* give up if there are no undirected arcs, cycles composed
-       * entirely by directed arcs are never false positives. */
-      UNPROTECT(1);
-      return build_return_array(nodes, status, nrows, check_status, return_nodes);
+      /* give up if there are no undirected arcs, cycles composed entirely by
+       * directed arcs are never false positives. */
+      goto end;
 
     }/*THEN*/
     else {
@@ -205,49 +235,20 @@ there:
 
   }/*FOR*/
 
+end:
+
+  res = build_return_array(nodes, skip, nrows, check_status, return_nodes);
+
+  Free1D(skip);
+  Free1D(rowsums);
+  Free1D(colsums);
+  Free1D(crossprod);
+  Free1D(path);
+  Free1D(scratch);
+
   UNPROTECT(1);
-  return build_return_array(nodes, status, nrows, check_status, return_nodes);
+
+  return res;
 
 }/*IS_PDAG_ACYCLIC*/
-
-/* utility function to build the return value. */
-
-static SEXP build_return_array(SEXP nodes, short int *status, int nrows,
-    int check_status, SEXP return_nodes) {
-
-int i = 0, j = 0;
-SEXP res;
-
-  if (check_status < 3) {
-
-    if (isTRUE(return_nodes))
-      return allocVector(STRSXP, 0);
-    else
-      return ScalarLogical(TRUE);
-
-  }/*THEN*/
-  else {
-
-    if (isTRUE(return_nodes)) {
-
-      PROTECT(res = allocVector(STRSXP, check_status));
-
-      for (i = 0; i < nrows; i++)
-        if (status[i] == BAD)
-          SET_STRING_ELT(res, j++, STRING_ELT(nodes, i));
-
-      UNPROTECT(1);
-
-      return res;
-
-    }/*THEN*/
-    else {
-
-      return ScalarLogical(FALSE);
-
-    }/*ELSE*/
-
-  }/*ELSE*/
-
-}/*BUILD_RETURN_ARRAY*/
 

@@ -37,3 +37,12 @@ cs.completed.prior = function(beta, nodes, learning = FALSE) {
 
 }#CS.COMPLETED.PRIOR
 
+alpha.star.backend = function(x, data, debug) {
+
+  .Call("alpha_star",
+    x = x,
+    data = data,
+    debug = debug)
+
+}#ALPHA.STAR.BACKEND
+

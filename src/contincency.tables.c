@@ -1,5 +1,16 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
+
+/* initialize a one-dimensional contingency table. */
+void fill_1d_table(int *xx, int **n, int llx, int num) {
+
+int i = 0;
+
+  *n = Calloc1D(llx, sizeof(int));
+
+  for (i = 0; i < num; i++)
+    (*n)[xx[i] - 1]++;
+
+}/*FILL_1D_TABLE*/
 
 /* initialize a two-dimensional contingency table and the marginals. */
 void fill_2d_table(int *xx, int *yy, int ***n, int **ni, int **nj, int llx,
@@ -7,9 +18,9 @@ void fill_2d_table(int *xx, int *yy, int ***n, int **ni, int **nj, int llx,
 
 int i = 0, j = 0, k = 0;
 
-  *n = alloc2dcont(llx, lly);
-  *ni = alloc1dcont(llx);
-  *nj = alloc1dcont(lly);
+  *n = (int **) Calloc2D(llx, lly, sizeof(int));
+  *ni = (int *) Calloc1D(llx, sizeof(int));
+  *nj = (int *) Calloc1D(lly, sizeof(int));
 
   /* compute the joint frequency of x and y. */
   for (k = 0; k < num; k++)
@@ -32,10 +43,10 @@ void fill_3d_table(int *xx, int *yy, int *zz, int ****n, int ***ni, int ***nj,
 
 int i = 0, j = 0, k = 0;
 
-  *n = alloc3dcont(llz, llx, lly);
-  *ni = alloc2dcont(llz, llx);
-  *nj = alloc2dcont(llz, lly);
-  *nk = alloc1dcont(llz);
+  *n = (int ***) Calloc3D(llz, llx, lly, sizeof(int));
+  *ni = (int **) Calloc2D(llz, llx, sizeof(int));
+  *nj = (int **) Calloc2D(llz, lly, sizeof(int));
+  *nk = (int *) Calloc1D(llz, sizeof(int));
 
   /* compute the joint frequency of x, y, and z. */
   for (k = 0; k < num; k++)

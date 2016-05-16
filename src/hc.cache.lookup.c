@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/globals.h"
 #include "include/graph.h"
 #include "include/scores.h"
@@ -14,7 +13,6 @@ int *colsum = NULL, nnodes = length(nodes), lupd = length(updated);
 int *a = NULL, *upd = NULL, *b = NULL, debuglevel = isTRUE(debug);
 int i = 0, j = 0, k = 0;
 double *cache_value = NULL;
-void *p = NULL;
 SEXP arc, delta, op, temp;
 
   /* save a pointer to the adjacency matrix, the blacklist and the
@@ -30,7 +28,7 @@ SEXP arc, delta, op, temp;
    * zero means no parent nodes. */
   if (isTRUE(equivalence)) {
 
-    colsum = alloc1dcont(nnodes);
+    colsum = Calloc1D(nnodes, sizeof(int));
 
     for (i = 0; i < nnodes; i++)
       for (j = 0; j < nnodes; j++)
@@ -101,11 +99,9 @@ there:
          SET_STRING_ELT(op, 0, mkChar("drop"));
 
        /* checkpoint allocated memory. */
-       p = vmaxget();
        /* evaluate the call to score.delta() for the arc. */
        PROTECT(temp = score_delta(arc, network, data, score, delta, reference,
          op, extra, decomposability));
-       vmaxset(p);
 
        cache_value[CMC(i, j, nnodes)] = NUM(VECTOR_ELT(temp, 1));
        UNPROTECT(1);
@@ -120,6 +116,10 @@ there:
   }/*FOR*/
 
   UNPROTECT(3);
+
+  if (isTRUE(equivalence))
+    Free1D(colsum);
+
   return cache;
 
 }/*HC_CACHE_FILL*/
@@ -130,7 +130,7 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
 
 int nnodes = length(nodes), i = 0, j = 0;
 int *am = NULL, *ad = NULL, *w = NULL, *b = NULL, debuglevel = isTRUE(debug);
-int counter = 0, update = 1, from = 0, to = 0;
+int counter = 0, update = 1, from = 0, to = 0, *path = NULL, *scratch = NULL;
 double *cache_value = NULL, temp = 0, max = 0, tol = MACHINE_TOL;
 double *mp = REAL(maxp), *np = REAL(nparents);
 SEXP bestop;
@@ -141,6 +141,10 @@ SEXP bestop;
 
   /* allocate and initialize a dummy FALSE object. */
   SET_VECTOR_ELT(bestop, 0, ScalarLogical(FALSE));
+
+  /* allocate buffers for c_has_path(). */
+  path = Calloc1D(nnodes, sizeof(int));
+  scratch = Calloc1D(nnodes, sizeof(int));
 
   /* save pointers to the numeric/integer matrices. */
   cache_value = REAL(cache);
@@ -183,7 +187,8 @@ SEXP bestop;
        * does not introduce cycles in the graph. */
       if (temp - max > tol) {
 
-        if (c_has_path(j, i, am, nnodes, nodes, FALSE, FALSE, FALSE)) {
+        if (c_has_path(j, i, am, nnodes, nodes, FALSE, FALSE, path, scratch,
+              FALSE)) {
 
           if (debuglevel > 0)
             Rprintf("    > not adding, introduces cycles in the graph.\n");
@@ -307,7 +312,8 @@ SEXP bestop;
 
       if (temp - max > tol) {
 
-        if (c_has_path(i, j, am, nnodes, nodes, FALSE, TRUE, FALSE)) {
+        if (c_has_path(i, j, am, nnodes, nodes, FALSE, TRUE, path, scratch,
+              FALSE)) {
 
           if (debuglevel > 0)
             Rprintf("    > not reversing, introduces cycles in the graph.\n");
@@ -340,6 +346,9 @@ SEXP bestop;
   REAL(reference)[to] += cache_value[CMC(from, to, nnodes)];
   if (update == 2)
     REAL(reference)[from] += cache_value[CMC(to, from, nnodes)];
+
+  Free1D(path);
+  Free1D(scratch);
 
   UNPROTECT(1);
 
@@ -383,7 +392,7 @@ SEXP try, result = R_NilValue, result2;
   /* compute the number the parents of each node, unless provided. */
   if (nparents == R_NilValue) {
 
-    np = alloc1dreal(dims);
+    np = Calloc1D(dims, sizeof(double));
     for (i = 0; i < dims; i++)
       for (j = 0; j < dims; j++)
         np[j] = a[CMC(i, j, dims)];
@@ -445,6 +454,9 @@ SEXP try, result = R_NilValue, result2;
   FLIP_FROM_LIST(blacklist, 0);
   /* and, last but not least, the whitelist gets involved. */
   FLIP_FROM_LIST(whitelist, 1);
+
+  if (nparents == R_NilValue)
+    Free1D(np);
 
   /* return either the adjacency matrix or the arc set. */
   if (isTRUE(convert)) {

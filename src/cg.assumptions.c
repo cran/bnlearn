@@ -11,8 +11,8 @@ SEXP result, try, undirected;
 
   /* preallocate an array for the typeiable types, to be used to avoid
    * duplicate VECTOR_ELT() calls and thus probe each node just once. */
-  vartype = Calloc(nnodes, int);
-  arc_ok = Calloc(narcs, int);
+  vartype = Calloc1D(nnodes, sizeof(int));
+  arc_ok = Calloc1D(narcs, sizeof(int));
   /* match the nodes in the arcs to the data. */
   PROTECT(try = match(nodes, arcs, 0));
   t = INTEGER(try);
@@ -44,8 +44,8 @@ SEXP result, try, undirected;
     /* if the arc violates the assumptions and it's directed, throw an error. */
     if (!und[i]) {
 
-      Free(vartype);
-      Free(arc_ok);
+      Free1D(vartype);
+      Free1D(arc_ok);
       UNPROTECT(2);
 
       error("arc %s -> %s violates the assumptions of the model.",
@@ -78,29 +78,55 @@ SEXP result, try, undirected;
   }/*FOR*/
 
   UNPROTECT(1);
-  Free(vartype);
-  Free(arc_ok);
+  Free1D(vartype);
+  Free1D(arc_ok);
 
   return arcs;
 
 }/*ARCS_CG_ASSUMPTIONS*/
 
-
 /* enumerate arcs that violate conditional Gaussian assumptions. */
-SEXP cg_banned_arcs(SEXP nodes, SEXP data) {
+SEXP cg_banned_arcs(SEXP nodes, SEXP variables) {
 
 int i = 0, j = 0, k = 0, ndp = 0, nnodes = length(nodes), *type = NULL;
+const char *class = CHAR(STRING_ELT(getAttrib(variables, R_ClassSymbol), 0));
+const char *var_class = NULL;
 SEXP split, dpar, gpar, arcs;
 
-  /* cache the variables' types. */
-  type = Calloc(nnodes, int);
+  /* cache the variables' types from data frames and fitted networks. */
+  type = Calloc1D(nnodes, sizeof(int));
 
-  for (i = 0; i < nnodes; i++) {
+  if (strcmp(class, "data.frame") == 0) {
 
-    type[i] = TYPEOF(VECTOR_ELT(data, i));
-    ndp += (type[i] == INTSXP);
+    for (i = 0; i < nnodes; i++) {
 
-  }/*FOR*/
+      type[i] = TYPEOF(VECTOR_ELT(variables, i));
+      ndp += (type[i] == INTSXP);
+
+    }/*FOR*/
+
+  }/*THEN*/
+  else {
+
+    for (i = 0; i < nnodes; i++) {
+
+      var_class = CHAR(STRING_ELT(getAttrib(VECTOR_ELT(variables, i), R_ClassSymbol), 0));
+
+      if (strcmp(var_class, "bn.fit.dnode") == 0) {
+
+        type[i] = INTSXP;
+        ndp++;
+
+      }/*THEN*/
+      else {
+
+        type[i] = REALSXP;
+
+      }/*ELSE*/
+
+    }/*FOR*/
+
+  }/*ELSE*/
 
   PROTECT(split = allocVector(VECSXP, 2));
   PROTECT(dpar = allocVector(STRSXP, ndp));
@@ -116,7 +142,7 @@ SEXP split, dpar, gpar, arcs;
 
   arcs = tiers(split, FALSESEXP);
 
-  Free(type);
+  Free1D(type);
   UNPROTECT(3);
 
   return arcs;

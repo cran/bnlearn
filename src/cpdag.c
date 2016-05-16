@@ -1,6 +1,5 @@
 #include "include/rcore.h"
 #include "include/graph.h"
-#include "include/allocations.h"
 #include "include/matrix.h"
 
 #define ABSENT     0
@@ -10,7 +9,6 @@
 #define UNCHANGED  0
 #define CHANGED    1
 
-static void fix_all_directed(int *a, int *nnodes);
 static void scan_graph(int *a, SEXP nodes, int *nnodes,
     short int *collider, int debuglevel);
 static void mark_vstructures(int *a, SEXP nodes, int *nnodes,
@@ -23,9 +21,6 @@ static int prevent_additional_vstructures(int *a, SEXP nodes,
     int *nnodes, short int *collider, int debuglevel);
 static void renormalize_amat(int *a, int *nnodes);
 static SEXP amat2vstructs(int *a, SEXP nodes, int *nnodes, short int *collider);
-static void is_a_sink(int *a, int node, int *k, int nnodes, int *nbr,
-    short int *matched);
-static int all_adjacent(int *a, int node, int k, int nnodes, int *nbr);
 
 /* return the v-structures present in the graph. */
 SEXP vstructures(SEXP arcs, SEXP nodes, SEXP return_arcs, SEXP moral, SEXP debug) {
@@ -41,7 +36,7 @@ SEXP amat, result;
   a = INTEGER(amat);
 
   /* allocate and initialize a status vector to identify the colliders. */
-  collider = allocstatus(nnodes);
+  collider = Calloc1D(nnodes, sizeof(short int));
 
   /* STEP 1: scan the graph. */
   scan_graph(a, nodes, &nnodes, collider, debuglevel);
@@ -64,6 +59,8 @@ SEXP amat, result;
 
   UNPROTECT(2);
 
+  Free1D(collider);
+
   return result;
 
 }/*VSTRUCTURES*/
@@ -71,7 +68,7 @@ SEXP amat, result;
 static SEXP amat2vstructs(int *a, SEXP nodes, int *nnodes, short int *collider) {
 
 int i = 0, j = 0, k = 0, nvstructs = 0, counter = 0, row = 0;
-SEXP result, dimnames;
+SEXP result;
 
   for (i = 0; i < *nnodes; i++) {
 
@@ -95,9 +92,7 @@ SEXP result, dimnames;
   PROTECT(result = allocMatrix(STRSXP, nvstructs, 3));
 
   /* allocate and the colnames. */
-  PROTECT(dimnames = allocVector(VECSXP, 2));
-  SET_VECTOR_ELT(dimnames, 1, mkStringVec(3, "X", "Z", "Y"));
-  setAttrib(result, R_DimNamesSymbol, dimnames);
+  setDimNames(result, R_NilValue, mkStringVec(3, "X", "Z", "Y"));
 
   for (i = 0; i < *nnodes; i++) {
 
@@ -129,17 +124,110 @@ SEXP result, dimnames;
 
   }/*FOR*/
 
-  UNPROTECT(2);
+  UNPROTECT(1);
 
   return result;
 
 }/*AMAT2VSTRUCTS*/
 
-SEXP cpdag(SEXP arcs, SEXP nodes, SEXP moral, SEXP fix, SEXP debug) {
+static int fix_wlbl(int *a, int nnodes, SEXP nodes, SEXP whitelist,
+  SEXP blacklist, int debuglevel) {
+
+int i = 0, j = 0, *w = NULL, *b = NULL;
+SEXP wl, bl;
+
+  if ((whitelist == R_NilValue) && (blacklist == R_NilValue)) {
+
+    /* skipping STEP 2, just propagate the directions from the arcs that are
+     * directed (this is for learning algorithms, to preserve whitelisted and
+     * blacklisted arcs). */
+
+    for (i = 0; i < nnodes; i++) {
+
+      for (j = 0; j < nnodes; j++) {
+
+        if ((a[CMC(i, j, nnodes)] == PRESENT) && (a[CMC(j, i, nnodes)] == ABSENT))
+          a[CMC(i, j, nnodes)] = FIXED;
+        if ((a[CMC(i, j, nnodes)] == ABSENT) && (a[CMC(j, i, nnodes)] == PRESENT))
+          a[CMC(j, i, nnodes)] = FIXED;
+
+      }/*FOR*/
+
+    }/*FOR*/
+
+    return TRUE;
+
+  }/*THEN*/
+  else {
+
+    /* do not skip STEP 2, but fix the directions in the whitelist and remove
+       the arcs in the blacklist. */
+
+    if (whitelist != R_NilValue) {
+
+      PROTECT(wl = arcs2amat(whitelist, nodes));
+      w = INTEGER(wl);
+
+      for (i = 0; i < nnodes; i++) {
+        for (j = 0; j < nnodes; j++) {
+
+          /* if a directed arc is in the whitelist, fix its direction. */
+          if ((a[CMC(i, j, nnodes)] == PRESENT) && (a[CMC(j, i, nnodes)] == ABSENT) &&
+              (w[CMC(i, j, nnodes)] == PRESENT)) {
+
+            if (debuglevel > 0)
+              Rprintf("* fixing arc %s -> %s from the whitelist.\n", NODE(i), NODE(j));
+
+            a[CMC(i, j, nnodes)] = FIXED;
+
+          }/*THEN*/
+
+        }/*FOR*/
+      }/*FOR*/
+
+      UNPROTECT(1);
+
+    }/*THEN*/
+        
+    if (blacklist != R_NilValue) {
+
+      PROTECT(bl = arcs2amat(blacklist, nodes));
+      b = INTEGER(bl);
+
+      for (i = 0; i < nnodes; i++) {
+        for (j = 0; j < nnodes; j++) {
+
+          /* if a directed arc is in the blacklist, and the opposite is in
+           * the graph, fix the direction of the arc in the graph  */
+          if ((a[CMC(i, j, nnodes)] == PRESENT) && (b[CMC(j, i, nnodes)] == PRESENT) &&
+              (b[CMC(i, j, nnodes)] == ABSENT)) {
+
+            if (debuglevel > 0)
+              Rprintf("* fixing arc %s -> %s from the blacklist.\n", NODE(i), NODE(j));
+
+            a[CMC(i, j, nnodes)] = FIXED;
+
+          }/*THEN*/
+
+        }/*FOR*/
+      }/*FOR*/
+
+      UNPROTECT(1);
+
+    }/*THEN*/
+
+  }/*ELSE*/
+
+  return FALSE;
+
+}/*FIX_WLBL*/
+
+SEXP cpdag(SEXP arcs, SEXP nodes, SEXP moral, SEXP fix, SEXP whitelist,
+    SEXP blacklist, SEXP illegal, SEXP debug) {
 
 int i = 0, changed = 0, nnodes = length(nodes);
 short int *collider = NULL;
-int *a = NULL, debuglevel = isTRUE(debug);
+int *a = NULL, debuglevel = isTRUE(debug), all_fixed = FALSE;
 SEXP amat;
 
   /* build the adjacency matrix and dereference it. */
@@ -147,21 +235,27 @@ SEXP amat;
   a = INTEGER(amat);
 
   /* allocate and initialize a status vector to identify the colliders. */
-  collider = allocstatus(nnodes);
+  collider = Calloc1D(nnodes, sizeof(short int));
 
-  /* STEP 1: scan the graph. */
+  /* STEP 1a: scan the graph. */
   scan_graph(a, nodes, &nnodes, collider, debuglevel);
 
-  if (isTRUE(fix)) {
+  /* STEP 1b: fix arcs whose direction is determined by parametric assumptions
+   * (the illegal argument works like a blacklist). */
+  if (illegal != R_NilValue) {
 
-    /* skipping STEP 2, just propagate the directions from the arcs that are
-     * diredcted (this is for learning algorithms, to preserve whitelisted and
-     * blacklisted arcs). */
+   if (debuglevel > 0)
+     Rprintf("* setting the directions determined by parametric assumptions (step 1b).\n", i);
 
-    fix_all_directed(a, &nnodes);
+    fix_wlbl(a, nnodes, nodes, R_NilValue, illegal, FALSE);
 
   }/*THEN*/
-  else {
+
+  /* STEP 1c: fix arcs according to the whitelist and the blacklist. */
+  if (isTRUE(fix))
+    all_fixed = fix_wlbl(a, nnodes, nodes, whitelist, blacklist, debuglevel);
+
+  if (!all_fixed) {
 
     /* STEP 2: all the arcs not part of a v-structure are now undirected. */
     mark_vstructures(a, nodes, &nnodes, collider, debuglevel);
@@ -170,7 +264,7 @@ SEXP amat;
     if (isTRUE(moral))
       unmark_shielded(a, nodes, &nnodes, collider, debuglevel);
 
-  }/*ELSE*/
+  }/*THEN*/
 
   /* STEP 3: orient some more edges without introducing cycles or new
    * v-structures in the graph. */
@@ -206,28 +300,11 @@ SEXP amat;
 
   UNPROTECT(1);
 
+  Free1D(collider);
+
   return amat;
 
 }/*CPDAG*/
-
-static void fix_all_directed(int *a, int *nnodes) {
-
-int i = 0, j = 0;
-
-  for (i = 0; i < *nnodes; i++) {
-
-    for (j = 0; j < *nnodes; j++) {
-
-      if ((a[CMC(i, j, *nnodes)] == PRESENT) && (a[CMC(j, i, *nnodes)] == ABSENT))
-        a[CMC(i, j, *nnodes)] = FIXED;
-      if ((a[CMC(i, j, *nnodes)] == ABSENT) && (a[CMC(j, i, *nnodes)] == PRESENT))
-        a[CMC(j, i, *nnodes)] = FIXED;
-
-    }/*FOR*/
-
-  }/*FOR*/
-
-}/*FIX_ALL_DIRECTED*/
 
 static void scan_graph(int *a, SEXP nodes, int *nnodes,
     short int *collider, int debuglevel) {
@@ -414,6 +491,11 @@ static int prevent_cycles(int *a, SEXP nodes, int *nnodes, short int *collider,
     int debuglevel) {
 
 int i = 0, j = 0, changed = UNCHANGED, n = *nnodes;
+int *path = NULL, *scratch = NULL;
+
+  /* allocate buffers for c_directed_path(). */
+  path = Calloc1D(n, sizeof(int));
+  scratch = Calloc1D(n, sizeof(int));
 
   for (j = 0; j < n; j++) {
 
@@ -422,7 +504,7 @@ int i = 0, j = 0, changed = UNCHANGED, n = *nnodes;
       if ((a[CMC(i, j, n)] != PRESENT) || (a[CMC(j, i, n)] != PRESENT))
         continue;
 
-      if (c_directed_path(i, j, a, n, nodes, 0)) {
+      if (c_directed_path(i, j, a, n, nodes, path, scratch, 0)) {
 
         a[CMC(i, j, n)] = FIXED;
         a[CMC(j, i, n)] = ABSENT;
@@ -433,7 +515,7 @@ int i = 0, j = 0, changed = UNCHANGED, n = *nnodes;
         changed = CHANGED;
 
       }/*THEN*/
-      else if (c_directed_path(j, i, a, n, nodes, 0)) {
+      else if (c_directed_path(j, i, a, n, nodes, path, scratch, 0)) {
 
         a[CMC(i, j, n)] = ABSENT;
         a[CMC(j, i, n)] = FIXED;
@@ -449,6 +531,9 @@ int i = 0, j = 0, changed = UNCHANGED, n = *nnodes;
 
   }/*FOR*/
 
+  Free1D(path);
+  Free1D(scratch);
+
   return changed;
 
 }/*PREVENT_CYCLES*/
@@ -459,8 +544,8 @@ static int prevent_additional_vstructures(int *a, SEXP nodes, int *nnodes,
 int i = 0, j = 0;
 short int *has_parent = NULL, *has_neighbour = NULL;
 
-  has_parent = allocstatus(*nnodes);
-  has_neighbour = allocstatus(*nnodes);
+  has_parent = Calloc1D(*nnodes, sizeof(short int));
+  has_neighbour = Calloc1D(*nnodes, sizeof(short int));
 
   for (j = 0; j < *nnodes; j++) {
 
@@ -517,11 +602,17 @@ short int *has_parent = NULL, *has_neighbour = NULL;
 
       }/*FOR*/
 
+      Free1D(has_neighbour);
+      Free1D(has_parent);
+
       return CHANGED;
 
     }/*THEN*/
 
   }/*FOR*/
+
+  Free1D(has_neighbour);
+  Free1D(has_parent);
 
   return UNCHANGED;
 
@@ -533,181 +624,4 @@ static void renormalize_amat(int *a, int *nnodes) {
     a[i] = (a[i] > 1) ? 1 : a[i];
 
 }/*RENORMALIZE_AMAT*/
-
-/* construct a consistent DAG extension of a CPDAG. */
-SEXP pdag_extension(SEXP arcs, SEXP nodes, SEXP debug) {
-
-int i = 0, j = 0, k = 0, t = 0, nnodes = length(nodes);
-int changed = 0, left = nnodes;
-int *a = NULL, *nbr = NULL, debuglevel = isTRUE(debug);
-short int *matched = NULL;
-SEXP amat, result;
-
-  /* build and dereference the adjacency matrix. */
-  PROTECT(amat = arcs2amat(arcs, nodes));
-  a = INTEGER(amat);
-
-  /* aqllocate and initialize the neighbours and matched vectors. */
-  nbr = alloc1dcont(nnodes);
-  matched = allocstatus(nnodes);
-
-  for (t = 0; t < nnodes; t++) {
-
-    if (debuglevel > 0) {
-
-      Rprintf("----------------------------------------------------------------\n");
-      Rprintf("> performing pass %d.\n", t + 1);
-      Rprintf("> candidate nodes: ");
-        for (j = 0; j < nnodes; j++)
-          if (matched[j] == 0)
-            Rprintf("%s ", NODE(j));
-      Rprintf("\n");
-
-    }/*THEN*/
-
-    for (i = 0; i < nnodes; i++) {
-
-      /* if the node is already ok, skip it. */
-      if (matched[i] != 0)
-        continue;
-
-      /* check whether the node is a sink. */
-      is_a_sink(a, i, &k, nnodes, nbr, matched);
-
-      /* if the node is not a sink move on. */
-      if (k == -1) {
-
-        if (debuglevel > 0)
-          Rprintf("  * node %s is not a sink.\n", NODE(i));
-
-        continue;
-
-      }/*THEN*/
-      else {
-
-        if (debuglevel > 0)
-          Rprintf("  * node %s is a sink.\n", NODE(i));
-
-      }/*ELSE*/
-
-      if (!all_adjacent(a, i, k, nnodes, nbr)) {
-
-        if (debuglevel > 0)
-          Rprintf("  * not all nodes linked to %s by an undirected arc are adjacent.\n", NODE(i));
-
-        continue;
-
-      }/*THEN*/
-      else {
-
-        if (debuglevel > 0) {
-
-          if (k == 0)
-            Rprintf("  * no node is linked to %s by an undirected arc.\n", NODE(i));
-          else
-            Rprintf("  * all nodes linked to %s by an undirected arc are adjacent.\n", NODE(i));
-
-        }/*THEN*/
-
-      }/*ELSE*/
-
-      /* the current node meets all the conditions, direct all the arcs towards it. */
-      if (k == 0) {
-
-        if (debuglevel > 0)
-          Rprintf("  @ no undirected arc to direct towards %s.\n", NODE(i));
-
-      }/*THEN*/
-      else {
-
-        for (j = 0; j < k; j++)
-          a[CMC(i, nbr[j], nnodes)] = 0;
-
-        if (debuglevel > 0)
-          Rprintf("  @ directing all incident undirected arcs towards %s.\n", NODE(i));
-
-      }/*ELSE*/
-
-      /* set the changed flag. */
-      changed = 1;
-
-      /* exclude the node from later iterations. */
-      matched[i] = 1;
-      left--;
-
-    }/*FOR*/
-
-    /* if nothing changed in the last iteration or there are no more candidate
-     * nodes, there is nothing else to do. */
-    if ((changed == 0) || (left == 0))
-      break;
-    else
-      changed = 0;
-
-  }/*FOR*/
-
-  /* build the new arc set from the adjacency matrix. */
-  PROTECT(result = amat2arcs(amat, nodes));
-
-  UNPROTECT(2);
-
-  return result;
-
-}/*PDAG_EXTENSION*/
-
-static void is_a_sink(int *a, int node, int *k, int nnodes, int *nbr,
-    short int *matched) {
-
-int j = 0;
-
-  /* check whether the current node has outgoing arcs. */
-  for (j = 0, *k = 0; j < nnodes; j++) {
-
-    if (matched[j] != 0)
-      continue;
-
-    if ((a[CMC(j, node, nnodes)] == 0) && (a[CMC(node, j, nnodes)] == 1)) {
-
-      /* this node is not a candidate, go to the next one. */
-      *k = -1;
-
-      break;
-
-    }/*THEN*/
-    else if ((a[CMC(j, node, nnodes)] == 1) && (a[CMC(node, j, nnodes)] == 1)) {
-
-      /* get the nodes which are linked to the current one by an
-       * undirected arc. */
-      nbr[(*k)++] = j;
-
-    }/*THEN*/
-
-  }/*FOR*/
-
-}/*IS_A_SINK*/
-
-static int all_adjacent(int *a, int node, int k, int nnodes, int *nbr) {
-
-int j = 0, l = 0;
-
-  for (j = 0; j < k; j++) {
-
-    for (l = j + 1; l < k; l++) {
-
-      if ((a[CMC(nbr[j], nbr[l], nnodes)] == 0) &&
-          (a[CMC(nbr[l], nbr[j], nnodes)] == 0)) {
-
-        /* this node is not a candidate, go to the next one. */
-        return FALSE;
-
-      }/*THEN*/
-
-    }/*FOR*/
-
-  }/*FOR*/
-
-  return TRUE;
-
-}/*ALL_ADJACENT*/
-
 

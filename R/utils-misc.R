@@ -163,8 +163,18 @@ cptattr = function(cpt) {
 cgsd = function(resid, configs, p) {
 
   resid = noattr(resid, ok = character(0))
-  mult = function(x, p)
-           ifelse(missing(p), 1, sqrt((length(x) - 1) / (length(x) - p)))
+  mult = function(x, p) {
+
+    n = length(x)
+
+    if (missing(p))
+      return(1)
+    else if (n <= p)
+      return(0)
+    else
+      return(sqrt((n - 1) / (n - p)))
+
+  }#MULT
 
   if (missing(configs) || is.null(configs)) {
 
@@ -188,10 +198,20 @@ cgsd = function(resid, configs, p) {
 # wrapper around coefficients() to avoid dispatch.
 minimal.coefficients = function(x) {
 
-  if (is(x, "penfit"))
-    c(x@unpenalized, x@penalized)
-  else
+  if (is(x, "penfit")) {
+
+    # discard zero coefficients from LASSO models.
+    if ((x@lambda2 == 0) &&(x@lambda1 > 0))
+      c(x@unpenalized, x@penalized[x@penalized != 0])
+    else
+      c(x@unpenalized, x@penalized)
+
+  }#THEN
+  else {
+
     coefficients(x)
+
+  }#ELSE
 
 }#MINIMAL.COEFFICIENTS
 
@@ -214,5 +234,4 @@ minimal.fitted = function(x) {
     fitted(x)
 
 }#MINIMAL.FITTED
-
 

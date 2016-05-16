@@ -1,6 +1,5 @@
 #include "include/rcore.h"
 #include "include/matrix.h"
-#include "include/allocations.h"
 #include "include/graph.h"
 #include "include/tests.h"
 #include "include/bn.h"
@@ -30,27 +29,27 @@
          SET_STRING_ELT(arcs, k + (rows), STRING_ELT(nodes, i)); \
          k++; \
       }/*THEN*/ \
-    } /*FOR*/ \
-  } /*FOR*/ \
-  finalize_arcs(arcs); \
+    }/*FOR*/ \
+  }/*FOR*/ \
+  setDimNames(arcs, R_NilValue, mkStringVec(2, "from", "to")); \
   UNPROTECT(1);
 
 #define DEREFERENCE_DATA_FRAME() \
   if (DISCRETE_NETWORK(*est)) { \
-    columns = alloc1dpointer(ncols); \
+    columns = Calloc1D(ncols, sizeof(int *)); \
     for (i = 0; i < ncols; i++) \
       columns[i] = INTEGER(VECTOR_ELT(data, i)); \
-    nlevels = alloc1dcont(ncols); \
+    nlevels = Calloc1D(ncols, sizeof(int)); \
     for (i = 0; i < ncols; i++) \
       nlevels[i] = NLEVELS2(data, i); \
-  } /*THEN*/ \
+  }/*THEN*/ \
   else { \
-    columns = (void **) alloc1dpointer(ncols); \
+    columns = Calloc1D(ncols, sizeof(double *)); \
     for (i = 0; i < ncols; i++) \
       columns[i] = REAL(VECTOR_ELT(data, i)); \
-    means = alloc1dreal(ncols); \
+    means = Calloc1D(ncols, sizeof(double)); \
     c_meanvec((double **)columns, means, num, ncols, 0); \
-    sse = alloc1dreal(ncols); \
+    sse = Calloc1D(ncols, sizeof(double)); \
     c_ssevec((double **)columns, sse, means, num, ncols, 0); \
   }/*ELSE*/
 
@@ -136,8 +135,8 @@ SEXP arcs, nodes, wlist, blist;
   DEREFERENCE_DATA_FRAME()
 
   /* allocate the mutual information matrix and the status vector. */
-  mim = alloc1dreal(UPTRI3_MATRIX(ncols));
-  exclude = allocstatus(UPTRI3_MATRIX(ncols));
+  mim = Calloc1D(UPTRI3_MATRIX(ncols), sizeof(double));
+  exclude = Calloc1D(UPTRI3_MATRIX(ncols), sizeof(short int));
 
   /* compute the pairwise mutual information coefficients. */
   if (debuglevel > 0)
@@ -267,6 +266,16 @@ SEXP arcs, nodes, wlist, blist;
 
   CONVERT_TO_ARC_SET(exclude, 1, 2 * narcs);
 
+  Free1D(mim);
+  Free1D(exclude);
+  Free1D(columns);
+  if (nlevels != NULL)
+    Free1D(nlevels);
+  if (means != NULL)
+    Free1D(means);
+  if (sse != NULL)
+    Free1D(sse);
+
   return arcs;
 
 }/*ARACNE*/
@@ -286,8 +295,8 @@ SEXP chow_liu(SEXP data, SEXP nodes, SEXP estimator, SEXP whitelist,
     SEXP blacklist, SEXP conditional, SEXP debug) {
 
 int i = 0, j = 0, k = 0, debug_coord[2], ncols = length(data);
-int num = length(VECTOR_ELT(data, i)), narcs = 0, nwl = 0, nbl = 0;
-int *nlevels = NULL, *clevels = NULL, *est = INTEGER(estimator);
+int num = length(VECTOR_ELT(data, 0)), narcs = 0, nwl = 0, nbl = 0;
+int *nlevels = NULL, clevels = 0, *est = INTEGER(estimator), *depth = NULL;
 int *wl = NULL, *bl = NULL, *poset = NULL, debuglevel = isTRUE(debug);
 void **columns = NULL, *cond = NULL;
 short int *include = NULL;
@@ -301,22 +310,21 @@ SEXP arcs, wlist, blist;
   if (conditional != R_NilValue) {
 
     cond = (void *) INTEGER(conditional);
-    clevels = alloc1dcont(1);
-    *clevels = NLEVELS(conditional);
+    clevels = NLEVELS(conditional);
 
   }/*THEN*/
 
   /* allocate the mutual information matrix and the status vector. */
-  mim = alloc1dreal(UPTRI3_MATRIX(ncols));
-  include = allocstatus(UPTRI3_MATRIX(ncols));
+  mim = Calloc1D(UPTRI3_MATRIX(ncols), sizeof(double));
+  include = Calloc1D(UPTRI3_MATRIX(ncols), sizeof(short int));
 
   /* compute the pairwise mutual information coefficients. */
   if (debuglevel > 0)
     Rprintf("* computing pairwise mutual information coefficients.\n");
 
-  mi_matrix(mim, columns, ncols, nlevels, &num, cond, clevels, means, sse, est);
+  mi_matrix(mim, columns, ncols, nlevels, &num, cond, &clevels, means, sse, est);
 
-  LIST_MUTUAL_INFORMATION_COEFS()
+  LIST_MUTUAL_INFORMATION_COEFS();
 
   /* add whitelisted arcs first. */
   if ((!isNull(whitelist)) && (length(whitelist) > 0)) {
@@ -368,10 +376,12 @@ SEXP arcs, wlist, blist;
   }/*THEN*/
 
   /* sort the mutual information coefficients and keep track of the elements' index.  */
-  poset = alloc1dcont(UPTRI3_MATRIX(ncols));
+  poset = Calloc1D(UPTRI3_MATRIX(ncols), sizeof(int));
   for (i = 0; i < UPTRI3_MATRIX(ncols); i++)
     poset[i] = i;
   R_qsort_I(mim, poset, 1, UPTRI3_MATRIX(ncols));
+
+  depth = Calloc1D(ncols, sizeof(int));
 
   for (i = UPTRI3_MATRIX(ncols) - 1; i > 0; i--) {
 
@@ -402,7 +412,8 @@ SEXP arcs, wlist, blist;
 
     }/*THEN*/
 
-    if (c_uptri3_path(include, debug_coord[0], debug_coord[1], ncols, nodes, FALSE)) {
+    if (c_uptri3_path(include, depth, debug_coord[0], debug_coord[1], ncols,
+          nodes, FALSE)) {
 
       if (debuglevel > 0) {
 
@@ -439,6 +450,18 @@ SEXP arcs, wlist, blist;
 
   CONVERT_TO_ARC_SET(include, 0, 2 * (ncols - 1));
 
+  Free1D(depth);
+  Free1D(mim);
+  Free1D(include);
+  Free1D(poset);
+  Free1D(columns);
+  if (nlevels != NULL)
+    Free1D(nlevels);
+  if (means != NULL)
+    Free1D(means);
+  if (sse != NULL)
+    Free1D(sse);
+
   return arcs;
 
 }/*CHOW_LIU*/
@@ -459,7 +482,7 @@ SEXP try, try2, result;
   PROTECT(try2 = match(nodes, root, 0));
 
   /* allocate and initialize the statust vector. */
-  depth = alloc1dcont(nnodes);
+  depth = Calloc1D(nnodes, sizeof(int));
   depth[INT(try2) - 1] = 1;
 
   if (debuglevel > 0)
@@ -517,6 +540,8 @@ SEXP try, try2, result;
   }/*FOR*/
 
   UNPROTECT(3);
+
+  Free1D(depth);
 
   return result;
 

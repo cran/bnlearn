@@ -164,23 +164,6 @@ double *res = NULL, *source = NULL;
 
 }/*QR_MATRIX*/
 
-/* set the column names on arc sets. */
-SEXP finalize_arcs(SEXP arcs) {
-
-SEXP dimnames;
-
-  /* allocate column names. */
-  PROTECT(dimnames = allocVector(VECSXP, 2));
-  SET_VECTOR_ELT(dimnames, 1, mkStringVec(2, "from", "to"));
-  /* set the column names. */
-  setAttrib(arcs, R_DimNamesSymbol, dimnames);
-
-  UNPROTECT(1);
-
-  return arcs;
-
-}/*FINALIZE_ARCS*/
-
 /* inverse function of the UPTRI3() macro. */
 void INV_UPTRI3(int x, int n, int *res) {
 
@@ -189,11 +172,16 @@ int c = 0, r = 0, cn = n - 1;
   for (r = 0; r < n; r++) {
 
     if (x < cn) {
+
       c = n - (cn - x);
       break;
-    }
-    else
+
+    }/*THEN*/
+    else {
+
       cn += n - (r + 2);
+
+    }/*ELSE*/
 
   }/*FOR*/
 
@@ -277,4 +265,15 @@ SEXP vec;
 
 }/*MKSTRINGVEC*/
 
+/* set row and column names. */
+void setDimNames(SEXP obj, SEXP rownames, SEXP colnames) {
 
+SEXP dimnames;
+
+  PROTECT(dimnames = allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(dimnames, 0, rownames);
+  SET_VECTOR_ELT(dimnames, 1, colnames);
+  setAttrib(obj, R_DimNamesSymbol, dimnames);
+  UNPROTECT(1);
+
+}/*SETDIMNAMES*/

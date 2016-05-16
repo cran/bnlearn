@@ -128,26 +128,26 @@ SEXP cur;
     }/*FOR*/
 
   }/*THEN*/
-  else if (strcmp(s, "bde") == 0) {
+  else if ((strcmp(s, "bde") == 0) || (strcmp(s, "bds") == 0)) {
 
     SEXP iss = getListElement(extra_args, "iss");
     SEXP prior = getListElement(extra_args, "prior");
     SEXP beta = getListElement(extra_args, "beta");
 
-    /* Bayesian Dirichlet equivalent score (BDe). */
+    /* Bayesian Dirichlet equivalent score (BDe) and sparse score (BDs). */
     for (i = 0; i < ntargets; i++) {
 
       SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
       DEBUG_BEFORE();
       res[i] = dirichlet_node(cur, network, data, iss, prior, beta, R_NilValue,
-                 FALSE, debuglevel);
+                 (strcmp(s, "bds") == 0), debuglevel);
 
     }/*FOR*/
 
   }/*THEN*/
   else if (strcmp(s, "k2") == 0) {
 
-    /* Bayesian Dirichlet equivalent score (BDe). */
+    /* K2 score. */
     for (i = 0; i < ntargets; i++) {
 
       SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
@@ -175,32 +175,19 @@ SEXP cur;
     }/*FOR*/
 
   }/*THEN*/
-  else if (strcmp(s, "bdes") == 0) {
-
-    SEXP iss = getListElement(extra_args, "iss");
-
-    /* Bayesian Dirichlet equivalent sparse score (BDes). */
-    for (i = 0; i < ntargets; i++) {
-
-      SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
-      DEBUG_BEFORE();
-      res[i] = dirichlet_node(cur, network, data, iss, R_NilValue, R_NilValue,
-                 R_NilValue, TRUE, debuglevel);
-
-    }/*FOR*/
-
-  }/*THEN*/
   else if (strcmp(s, "mbde") == 0) {
 
     SEXP iss = getListElement(extra_args, "iss");
     SEXP exp = getListElement(extra_args, "exp");
+    SEXP prior = getListElement(extra_args, "prior");
+    SEXP beta = getListElement(extra_args, "beta");
 
     /* Mixture Bayesian Dirichlet equivalent score (mBDe). */
     for (i = 0; i < ntargets; i++) {
 
       SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
       DEBUG_BEFORE();
-      res[i] = dirichlet_node(cur, network, data, iss, R_NilValue, R_NilValue, exp,
+      res[i] = dirichlet_node(cur, network, data, iss, prior, beta, exp,
                  FALSE, debuglevel);
 
     }/*FOR*/

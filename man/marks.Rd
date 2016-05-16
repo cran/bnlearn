@@ -44,7 +44,7 @@ data(marks)
 # This is the undirected graphical model from Edwards (2000).
 data(marks)
 ug = empty.graph(names(marks))
-arcs(ug, ignore.cycles = TRUE) = matrix(
+arcs(ug, check.cycles = FALSE) = matrix(
   c("MECH", "VECT", "MECH", "ALG", "VECT", "MECH", "VECT", "ALG",
     "ALG",  "MECH", "ALG", "VECT", "ALG",  "ANL", "ALG",  "STAT",
     "ANL",  "ALG", "ANL",  "STAT", "STAT", "ALG", "STAT", "ANL"),

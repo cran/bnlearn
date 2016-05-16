@@ -1,6 +1,5 @@
 #include "include/rcore.h"
 #include "include/matrix.h"
-#include "include/allocations.h"
 #include "include/graph.h"
 #include "include/bn.h"
 
@@ -54,9 +53,9 @@ SEXP node_data, current, nodes, result, temp;
   nodes = getAttrib(node_data, R_NamesSymbol);
 
   /* allocate and initialize parents' and neighbours' counters. */
-  nnbr = alloc1dcont(nnodes);
+  nnbr = Calloc1D(nnodes, sizeof(int));
   if (*moralize > 0)
-    nparents = alloc1dcont(nnodes);
+    nparents = Calloc1D(nnodes, sizeof(int));
 
   /* first pass: count neighbours, parents and resulting arcs. */
   for (i = 0; i < nnodes; i++) {
@@ -104,7 +103,7 @@ SEXP node_data, current, nodes, result, temp;
   /* allocate the return value. */
   PROTECT(result = allocMatrix(STRSXP, narcs, 2));
   /* allocate and set the column names. */
-  finalize_arcs(result);
+  setDimNames(result, R_NilValue, mkStringVec(2, "from", "to"));
 
   /* second pass: fill the return value. */
   for (i = 0; i < nnodes; i++) {
@@ -145,6 +144,10 @@ SEXP node_data, current, nodes, result, temp;
     }/*FOR*/
 
   }/*FOR*/
+
+  Free1D(nnbr);
+  if (*moralize > 0)
+    Free1D(nparents);
 
   UNPROTECT(1);
 

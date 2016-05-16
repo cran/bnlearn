@@ -119,6 +119,7 @@ void c_gauss_cmcarlo(double **column, int ncols, int num, int B,
     double *observed, double *pvalue, double alpha, test_e test);
 
 /* from contingency.tables.c */
+void fill_1d_table(int *xx, int **n, int llx, int num);
 void fill_2d_table(int *xx, int *yy, int ***n, int **ni, int **nj, int llx,
     int lly, int num);
 void fill_3d_table(int *xx, int *yy, int *zz, int ****n, int ***ni, int ***nj,

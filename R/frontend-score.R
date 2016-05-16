@@ -74,6 +74,24 @@ logLik.bn = function(object, data, ...) {
 
 }#LOGLIK.BN
 
+alpha.star = function(x, data, debug = FALSE) {
+
+  # check x's class.
+  check.bn(x)
+  # the original data set is needed.
+  check.data(data)
+  # check the network against the data.
+  check.bn.vs.data(x, data)
+  # check debug.
+  check.logical(debug)
+  # no score if the graph is partially directed.
+  if (is.pdag(x$arcs, names(x$nodes)))
+    stop("the graph is only partially directed.")
+
+  alpha.star.backend(x = x, data = data, debug = debug)
+
+}#ALPHA.STAR
+
 # infer the direction of an ipothetic arc between two specified nodes.
 choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) {
 

@@ -3,6 +3,7 @@
 \alias{boot.strength}
 \alias{custom.strength}
 \alias{averaged.network}
+\alias{mean.bn.strength}
 \title{Measure arc strength}
 \description{
 
@@ -19,12 +20,15 @@ boot.strength(data, cluster = NULL, R = 200, m = nrow(data),
   algorithm, algorithm.args = list(), cpdag = TRUE, debug = FALSE)
 # strength of all possible arcs, from a list of custom networks.
 custom.strength(networks, nodes, weights = NULL, cpdag = TRUE, debug = FALSE)
+# average arc strengths.
+\method{mean}{bn.strength}(x, ..., weights = NULL)
 
 # averaged network structure.
 averaged.network(strength, nodes, threshold)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}.}
+  \item{x}{an object of class \code{bn.strength} (for \code{mean}) or of
+    class \code{bn} (for all other functions).}
   \item{networks}{a list, containing either object of class \code{bn} or arc
     sets (matrices or data frames with two columns, optionally labeled "from"
     and "to").}
@@ -44,8 +48,9 @@ averaged.network(strength, nodes, threshold)
   \item{R}{a positive integer, the number of bootstrap replicates.}
   \item{m}{a positive integer, the size of each bootstrap replicate.}
   \item{weights}{a vector of non-negative numbers, to be used as weights
-    when averaging network structures to compute strength coefficients. If 
-    \code{NULL}, weights are assumed to be uniform.}
+    when averaging arc strengths (in \code{mean}) or network structures (in
+    \code{custom.strength}) to compute strength coefficients. If \code{NULL},
+    weights are assumed to be uniform.}
   \item{cpdag}{a boolean value. If \code{TRUE} the (PDAG of) the equivalence
     class is used instead of the network structure itself. It should make it
     easier to identify score-equivalent arcs.}
@@ -56,10 +61,11 @@ averaged.network(strength, nodes, threshold)
     documentation of each algorithm for details.}
   \item{algorithm.args}{a list of extra arguments to be passed to the learning
     algorithm.}
-  \item{\dots}{additional tuning parameters for the network score (if
-    \code{criterion} is the label of a score function, see \code{\link{score}}
-    for details), the conditional independence test (currently the only one is
-    \code{B}, the number of permutations).}
+  \item{\dots}{in \code{arc.strength}, the additional tuning parameters for
+    the network score (if \code{criterion} is the label of a score function,
+    see \code{\link{score}} for details), the conditional independence test
+    (currently the only one is \code{B}, the number of permutations). In
+    \code{mean}, additional objects of class \code{bn.strength} to average.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }
@@ -84,6 +90,15 @@ averaged.network(strength, nodes, threshold)
   parameters depending on the choice of the score, see \code{\link{score}} for
   details.
 
+  \code{boot.strength} estimates the strength of each arc as its empirical
+  frequency over a set of networks learned from bootstrap samples. It computes
+  the probability of each arc (modulo its direction) and the probabilities of
+  each arc's directions conditional on the arc being present in the graph (in
+  either direction).
+
+  \code{custom.strength} takes a list of networks and estimates arc strength
+  in the same way as \code{boot.strength}.
+
   Model averaging is supported for objects of class \code{bn.strength} returned
   by \code{\link{boot.strength}} or by \code{\link{custom.strength}}. The
   returned network contains the arcs whose strength is greater than the 
@@ -94,16 +109,16 @@ averaged.network(strength, nodes, threshold)
 \note{
 
   \code{averaged.network} typically returns a completely directed graph; an arc
-  can be undirected if and only if the probabiliy of each of its directions is
+  can be undirected if and only if the probability of each of its directions is
   exactly 0.5. This may happen, for example, if the arc is undirected in all
   the networks being averaged.
 
 }
 \value{
 
-  \code{arc.strength}, \code{boot.strength} and \code{custom.strength} return
-  an object of class \code{bn.strength}; \code{boot.strength} and 
-  \code{custom.strength} also include information about the relative 
+  \code{arc.strength}, \code{boot.strength}, \code{custom.strength} and
+  \code{mean} return an object of class \code{bn.strength}; \code{boot.strength}
+  and \code{custom.strength} also include information about the relative 
   probabilities of arc directions.
 
   \code{averaged.network} returns an object of class \code{bn}.

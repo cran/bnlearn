@@ -148,12 +148,9 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
       # be remapped to match the bootstrap sample.
       if ((algorithm.args$score == "mbde") && !is.null(algorithm.args$exp)) {
 
-        algorithm.args$exp = lapply(algorithm.args$exp, function(x) {
-
-          x = match(x, resampling)
-          x = x[!is.na(x)]
-
-        })
+        algorithm.args$exp =
+          lapply(algorithm.args$exp,
+            function(x) which(resampling %in% x))
 
       }#THEN
 
@@ -163,9 +160,10 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
       # learn the network structure from the bootstrap sample.
       net = do.call(algorithm, c(list(x = replicate), algorithm.args))
 
-      # switch to the equivalence class if asked to.
+      # switch to the equivalence class if asked to, but preserving whitelisted
+      # and blacklisted arcs.
       if (cpdag)
-        net = cpdag.backend(net, moral = TRUE, debug = FALSE)
+        net = cpdag.backend(net, moral = TRUE, wlbl = TRUE, debug = FALSE)
 
       if (debug) {
 
@@ -317,7 +315,7 @@ match.arcs.and.strengths = function(arcs, nodes, strengths, keep = FALSE) {
 }#MATCH.ARCS.AND.STRENGTH
 
 # convert an arc strength object to the corresponding line widths for plotting.
-strength2lwd = function(strength, threshold, cutpoints, mode, arcs = NULL,
+strength2lwd = function(strength, threshold, cutpoints, method, arcs = NULL,
     debug = FALSE) {
 
   # sanitize user-defined cut points, if any.
@@ -341,10 +339,10 @@ strength2lwd = function(strength, threshold, cutpoints, mode, arcs = NULL,
 
   }#THEN
 
-  if (mode %in% c("test", "bootstrap")) {
+  if (method %in% c("test", "bootstrap")) {
 
     # bootstrap probabilities work like p-values, only reversed.
-    if (mode == "bootstrap") {
+    if (method == "bootstrap") {
 
       strength = 1 - strength
       threshold = 1 - threshold
@@ -363,7 +361,7 @@ strength2lwd = function(strength, threshold, cutpoints, mode, arcs = NULL,
     arc.weights = length(cutpoints) - arc.weights
 
   }#THEN
-  else if (mode == "score") {
+  else if (method == "score") {
 
     # score deltas are defined on a reversed scale (the more negative
     # the better); change their sign (and that of the threshold)
@@ -393,7 +391,7 @@ strength2lwd = function(strength, threshold, cutpoints, mode, arcs = NULL,
   if (debug) {
 
     cat("* using cut points for strength intervals:\n")
-    if (mode == "boot")
+    if (method == "boot")
       print(1 - cutpoints)
     else
       print(cutpoints)
@@ -435,3 +433,12 @@ threshold = function(strength, method = "l1") {
 
 }#THRESHOLD
 
+# weighted average of bn.strength objects.
+mean.strength = function(strength, nodes, weights) {
+
+  .Call("mean_strength",
+        strength = strength,
+        nodes = nodes,
+        weights = weights)
+
+}#MEAN.STRENGTH

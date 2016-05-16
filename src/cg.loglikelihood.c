@@ -4,7 +4,6 @@
 #include "include/dataframe.h"
 #include "include/globals.h"
 #include "include/matrix.h"
-#include "include/allocations.h"
 #include "include/blas.h"
 
 double ccgloglik(SEXP x, SEXP parents, int *type, int np, int ndp,
@@ -16,10 +15,10 @@ double res = 0, **gp = NULL;
 SEXP temp;
 
   /* extract the discrete parents and build configurations. */
-  dp = Calloc(ndp, int *);
-  gp = Calloc(ngp, double *);
-  config = Calloc(nobs, int);
-  nlevels = Calloc(ndp, int);
+  dp = Calloc1D(ndp, sizeof(int *));
+  gp = Calloc1D(ngp, sizeof(double *));
+  config = Calloc1D(nobs, sizeof(int));
+  nlevels = Calloc1D(ndp, sizeof(int));
   for (i = 0, j = 0, k = 0; i < np; i++)
     if (type[i] == INTSXP) {
 
@@ -41,10 +40,10 @@ SEXP temp;
   if (nparams)
     *nparams = nconfig * (ngp + 1);
 
-  Free(dp);
-  Free(gp);
-  Free(config);
-  Free(nlevels);
+  Free1D(dp);
+  Free1D(gp);
+  Free1D(config);
+  Free1D(nlevels);
 
   return res;
 
@@ -62,9 +61,9 @@ long double sd = 0;
   if (!config) {
 
     /* allocate the array of continuous columns (plus the intercept). */
-    subset = Calloc(nobs * (ngp + 1), double);
+    subset = Calloc1D(nobs * (ngp + 1), sizeof(double));
     /* allocate the fitted values and the response variable. */
-    fitted = Calloc(nobs, double);
+    fitted = Calloc1D(nobs, sizeof(double));
     /* initialize the intercept. */
     for (j = 0; j < nobs; j++)
       subset[CMC(j, 0, batch)] = 1;
@@ -81,8 +80,8 @@ long double sd = 0;
       for (j = 0; j < nobs; j++)
         res += dnorm(xx[j], fitted[j], (double)sd, TRUE);
 
-    Free(subset);
-    Free(fitted);
+    Free1D(subset);
+    Free1D(fitted);
 
   }/*THEN*/
   else {
@@ -100,10 +99,10 @@ long double sd = 0;
         continue;
 
       /* allocate the array of continuous columns (plus the intercept). */
-      subset = Calloc(batch * (ngp + 1), double);
+      subset = Calloc1D(batch * (ngp + 1), sizeof(double));
       /* allocate the fitted values and the response variable. */
-      fitted = Calloc(batch, double);
-      response = Calloc(batch, double);
+      fitted = Calloc1D(batch, sizeof(double));
+      response = Calloc1D(batch, sizeof(double));
       /* initialize the intercept. */
       for (j = 0; j < batch; j++)
         subset[CMC(j, 0, batch)] = 1;
@@ -126,9 +125,9 @@ long double sd = 0;
         for (j = 0; j < batch; j++)
           res += dnorm(response[j], fitted[j], (double)sd, TRUE);
 
-      Free(subset);
-      Free(fitted);
-      Free(response);
+      Free1D(subset);
+      Free1D(fitted);
+      Free1D(response);
 
       /* if the log-likelihood has degenerated into a point mass, there's no
        * reason to go on with more batches. */
@@ -174,7 +173,7 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
     PROTECT(parent_vars = c_dataframe_column(data, parents, FALSE, FALSE));
     /* find out which kind of parents the node has, and count discrete parents
      * (all the others are continuous). */
-    type = alloc1dcont(nparents);
+    type = Calloc1D(nparents, sizeof(int));
 
     for (i = 0; i < nparents; i++) {
 
@@ -211,6 +210,8 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
                    nparams);
 
     }/*ELSE*/
+
+    Free1D(type);
 
     UNPROTECT(1);
 

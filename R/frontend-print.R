@@ -265,7 +265,18 @@ print.bn.kcv = function(x, print.loss = TRUE, ...) {
 
   }#ELSE
 
-  wcat("  number of subsets:                    ", length(x))
+  if (a$method == "k-fold") {
+
+    wcat("  number of folds:                      ", length(x))
+
+  }#THEN
+  else if (a$method == "hold-out") {
+
+    wcat("  number of splits:                     ", length(x))
+    wcat("  size of the test subset:              ", length(x[[1]]$test))
+
+  }#ELSE
+
   wcat("  loss function:                        ", loss.labels[a$loss])
 
   if ("target" %in% loss.extra.args[[a$loss]])

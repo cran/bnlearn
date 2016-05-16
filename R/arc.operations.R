@@ -1,7 +1,7 @@
 
-# Parameter sanitization for arc operations.
-arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE,
-    debug = FALSE) {
+# parameter sanitization for arc operations.
+arc.operations = function(x, from, to, op = NULL, check.cycles,
+    check.illegal, update = TRUE, debug = FALSE) {
 
   available.ops = c("set", "drop", "reverse", "seted", "droped")
 
@@ -22,11 +22,14 @@ arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE,
   check.logical(check.cycles)
   check.logical(update)
 
-  # add/reverse/orient the arc.
+  # add/reverse/orient the arc (or the edge).
   if (op == "set") {
 
     if (debug)
       cat("* setting arc", from, "->", to, ".\n")
+    if (check.illegal && is.listed(x$learning$illegal, c(from, to)))
+      stop("arc ", from, " -> ", to,
+        " is not valid due to the parametric assumptions of the network.")
 
     x$arcs = set.arc.direction(from, to, x$arcs, debug = debug)
 
@@ -43,6 +46,9 @@ arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE,
 
     if (debug)
       cat("* reversing any arc between ", from, "and", to, ".\n")
+    if (check.illegal && is.listed(x$learning$illegal, c(to, from)))
+      stop("arc ", to, " -> ", from,
+        " is not valid due to the parametric assumptions of the network.")
 
     x$arcs = reverse.arc.backend(from, to, x$arcs, debug = debug)
 
@@ -51,6 +57,9 @@ arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE,
 
     if (debug)
       cat("* setting undirected arc", from, "-", to, ".\n")
+    if (check.illegal && is.listed(x$learning$illegal, c(to, from), either = TRUE))
+      stop("undirected arc ", to, " - ", from,
+        " is not valid due to the parametric assumptions of the network.")
 
     x$arcs = set.edge.backend(from, to, x$arcs, debug = debug)
 
@@ -64,9 +73,10 @@ arc.operations = function(x, from, to, op = NULL, check.cycles, update = TRUE,
 
   }#THEN
 
-  # check whether the graph is still acyclic; not needed if an arc is dropped.
+  # check whether the graph contains directed cycles; not needed if an arc
+  # is dropped.
   if (check.cycles && (op != "drop"))
-    if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
+    if (!is.acyclic(x$arcs, names(x$nodes), debug = debug, directed = TRUE))
       stop("the resulting graph contains cycles.")
 
   # update the network structure.

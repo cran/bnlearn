@@ -213,8 +213,8 @@ hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
 
     # update the network structure.
     start = arc.operations(start, from = bestop$from, to = bestop$to,
-              op = bestop$op, check.cycles = FALSE, update = TRUE,
-              debug = FALSE)
+              op = bestop$op, check.cycles = FALSE, check.illegal = FALSE,
+              update = TRUE, debug = FALSE)
 
     # set the nodes whose cached score deltas are to be updated.
     if (bestop$op == "reverse")

@@ -8,17 +8,18 @@
 \title{Drop, add or set the direction of an arc or an edge}
 \description{
 
-  Drop, add or set the direction of an arc or an edge.
+  Drop, add or set the direction of a directed arc or an undirected arc (also
+  known as edge).
 
 }
 \usage{
 # arc operations.
-set.arc(x, from, to, check.cycles = TRUE, debug = FALSE)
+set.arc(x, from, to, check.cycles = TRUE, check.illegal = TRUE, debug = FALSE)
 drop.arc(x, from, to, debug = FALSE)
-reverse.arc(x, from, to, check.cycles = TRUE, debug = FALSE)
+reverse.arc(x, from, to, check.cycles = TRUE, check.illegal = TRUE, debug = FALSE)
 
 # edge (i.e. undirected arc) operations
-set.edge(x, from, to, check.cycles = TRUE, debug = FALSE)
+set.edge(x, from, to, check.cycles = TRUE, check.illegal = TRUE, debug = FALSE)
 drop.edge(x, from, to, debug = FALSE)
 }
 \arguments{
@@ -27,6 +28,9 @@ drop.edge(x, from, to, debug = FALSE)
   \item{to}{a character string, the label of another node.}
   \item{check.cycles}{a boolean value. If \code{TRUE} the graph is tested for
     acyclicity; otherwise the graph is returned anyway.}
+  \item{check.illegal}{a boolean value. If \code{TRUE} arcs that break the 
+    parametric assumptions of \code{x}, such as those from continuous to
+    discrete nodes in conditional Gaussian networks, cause an error.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }

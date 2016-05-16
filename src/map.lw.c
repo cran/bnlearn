@@ -1,7 +1,8 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/dataframe.h"
 #include "include/sampling.h"
+#include "include/globals.h"
+#include "include/matrix.h"
 
 static double posterior_mean(double *x, double *wgt, int n, int debuglevel) {
 
@@ -28,14 +29,21 @@ long double wsum = 0, wtot = 0;
 }/*POSTERIOR_MEAN*/
 
 static int posterior_mode(int *x, double *wgt, int n, long double *counts,
-    SEXP levels, int nlvls, int debuglevel) {
+    SEXP levels, int nlvls, int *drop, int debuglevel) {
 
 int k = 0, res = 0;
 
   memset(counts, '\0', nlvls * sizeof(long double));
 
-  for (k = 0; k < n; k++)
-    counts[x[k] - 1] += wgt[k];
+  for (k = 0; k < n; k++) {
+
+    /* c_rbn_master() may generate NAs, disregard and print a warning. */
+    if (x[k] == NA_INTEGER)
+      (*drop)++;
+    else
+      counts[x[k] - 1] += wgt[k];
+
+  }/*FOR*/
 
   res = ld_which_max(counts, nlvls);
 
@@ -59,15 +67,17 @@ int k = 0, res = 0;
 
 /* predict the values of one or more variables given one or more variables by
  * maximum a posteriori (MAP). */
-SEXP mappred(SEXP node, SEXP fitted, SEXP data, SEXP n, SEXP from, SEXP debug) {
+SEXP mappred(SEXP node, SEXP fitted, SEXP data, SEXP n, SEXP from, SEXP prob,
+    SEXP debug) {
 
-int i = 0, j = 0, k = 0, nobs = 0, nev = 0, nlvls = 0;
+int i = 0, j = 0, nobs = 0, nev = 0, nlvls = 0, drop = 0;
 int *vartypes = NULL, nsims = INT(n), debuglevel = isTRUE(debug);
+int include_prob = INT(prob);
 void **varptrs = NULL, **evptrs = NULL, *pred = NULL, *res = NULL;
 SEXP result, colnames, evidence, evmatch, temp = R_NilValue;
-SEXP cpdist, predicted, lvls = R_NilValue;
-double *wgt = NULL;
-long double *lvls_counts = NULL;
+SEXP cpdist, predicted, lvls = R_NilValue, probtab = R_NilValue;
+double *wgt = NULL, *pt = NULL;
+long double *lvls_counts = NULL, lvls_tot = 0;
 
   /* extract the names of the variables in the data. */
   colnames = getAttrib(data, R_NamesSymbol);
@@ -77,13 +87,13 @@ long double *lvls_counts = NULL;
   PROTECT(evmatch = match(colnames, from, 0));
 
   /* cache variable types and pointers. */
-  vartypes = alloc1dcont(nev);
-  varptrs = alloc1dpointer(nev);
-  for (j = 0, k = 0; j < nev; j++) {
+  vartypes = Calloc1D(nev, sizeof(int));
+  varptrs = (void **) Calloc1D(nev, sizeof(void *));
+  for (j = 0; j < nev; j++) {
 
     temp = VECTOR_ELT(data, INTEGER(evmatch)[j] - 1);
-    vartypes[k] = TYPEOF(temp);
-    varptrs[k++] = DATAPTR(temp);
+    vartypes[j] = TYPEOF(temp);
+    varptrs[j] = DATAPTR(temp);
 
   }/*FOR*/
 
@@ -95,7 +105,7 @@ long double *lvls_counts = NULL;
   setAttrib(evidence, R_NamesSymbol, from);
 
   /* cache pointers to the elements of the evidence .*/
-  evptrs = alloc1dpointer(nev);
+  evptrs = (void **) Calloc1D(nev, sizeof(void *));
 
   for (j = 0; j < nev; j++) {
 
@@ -119,12 +129,20 @@ long double *lvls_counts = NULL;
 
     lvls = getAttrib(result, R_LevelsSymbol);
     nlvls = length(lvls);
-    lvls_counts = allocldouble(nlvls);
+    lvls_counts = Calloc1D(nlvls, sizeof(long double));
+
+    if (include_prob > 0) {
+
+      PROTECT(probtab = allocMatrix(REALSXP, nlvls, nobs));
+      pt = REAL(probtab);
+      memset(pt, '\0', nobs * nlvls * sizeof(double));
+
+    }/*THEN*/
 
   }/*THEN*/
 
   /* allocate the weights. */
-  wgt = alloc1dreal(nsims);
+  wgt = Calloc1D(nsims, sizeof(double));
 
   /* allocate sratch space for the random samplings. */
   PROTECT(cpdist = fit2df(fitted, nsims));
@@ -179,14 +197,55 @@ long double *lvls_counts = NULL;
 
         /* pick the most frequent value. */
         ((int *)res)[i] = posterior_mode((int *)pred, wgt, nsims, lvls_counts,
-                            lvls, nlvls, debuglevel);
+                            lvls, nlvls, &drop, debuglevel);
+
+        /* compute the posterior probabilities on the right scale, to attach
+         * them to the return value. */
+        if (include_prob > 0) {
+
+          for (j = 0, lvls_tot = 0; j < nlvls; j++) {
+
+            pt[CMC(j, i, nlvls)] = lvls_counts[j];
+            lvls_tot += lvls_counts[j];
+
+          }/*FOR*/
+
+          for (j = 0; j < nlvls; j++)
+            pt[CMC(j, i, nlvls)] /= lvls_tot;
+
+        }/*THEN*/
+
         break;
 
     }/*SWITCH*/
 
   }/*FOR*/
 
-  UNPROTECT(4);
+  if (include_prob > 0) {
+
+    /* set the levels of the taregt variable as rownames. */
+    setDimNames(probtab, lvls, R_NilValue);
+    /* add the posterior probabilities to the return value. */
+    setAttrib(result, BN_ProbSymbol, probtab);
+
+    UNPROTECT(5);
+
+  }/*THEN*/
+  else {
+
+    UNPROTECT(4);
+
+  }/*ELSE*/
+
+  Free1D(vartypes);
+  Free1D(varptrs);
+  Free1D(evptrs);
+  Free1D(wgt);
+  if (TYPEOF(result) == INTSXP)
+    Free1D(lvls_counts);
+
+  if (drop > 0)
+    warning("dropping %d observations because generated samples are NAs.", drop);
 
   return result;
 

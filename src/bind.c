@@ -11,7 +11,7 @@ SEXP res;
   /* allocate the return value. */
   PROTECT(res = allocMatrix(STRSXP, m1 + m2, 2));
   /* allocate and initialize the column names. */
-  finalize_arcs(res);
+  setDimNames(res, R_NilValue, mkStringVec(2, "from", "to"));
 
   /* copy the elements of the first matrix. */
   for (i  = 0; i < m1; i++)

@@ -40,6 +40,12 @@ model2network(string, ordering = NULL, debug = FALSE)
   structures may be easily exported to and imported from that package (via the
   \code{model2network} function).
 
+  The format of the model strings is as follows. The local structure of each
+  node is enclosed in square brackets ("\code{[]}"); the first string is the
+  label of that node. The parents of the node (if any) are listed after a
+  ("\code{|}") and separated by colons ("\code{:}"). All nodes (including
+  isolated and root nodes) must be listed.
+
 }
 \value{
 

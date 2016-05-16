@@ -1,6 +1,7 @@
 
-crossvalidation = function(data, bn, loss = NULL, k = 5, m = m, algorithm.args,
-    loss.args, fit, fit.args, method, cluster = NULL, debug = FALSE) {
+crossvalidation = function(data, bn, loss = NULL, k = 10,
+    m = ceiling(nrow(data)/10), algorithm.args, loss.args, fit, fit.args,
+    method, cluster = NULL, debug = FALSE) {
 
   n = nrow(data)
 
@@ -22,7 +23,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 5, m = m, algorithm.args,
   else if (method == "hold-out") {
 
     # sample m observations without replacement.
-    kcv = lapply(seq(k), function(x) sample(n, m)) 
+    kcv = lapply(seq(k), function(x) sample(n, m))
     # all test sets have the same length, a dummy works just fine.
     kcv.length = rep(m, k)
 
@@ -118,7 +119,7 @@ bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
   if (loss %in% c("logl", "logl-g", "logl-cg") &&
       !is.dag(arcs = bn$arcs, nodes = names(bn$nodes))) {
 
-    bn = cpdag.extension(cpdag.backend(bn))
+    bn = cpdag.extension(cpdag.backend(bn, wlbl = TRUE))
 
   }#THEN
 

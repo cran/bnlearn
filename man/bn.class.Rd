@@ -97,6 +97,9 @@
 
     \item \code{optimized}: whether additional optimizations have been used in
       the learning algorithm (a boolean value).
+    \item \code{illegal}: arcs that are illegal according to the parametric
+      assumptions used to learn the network structure (a two-column matrix,
+      whose columns are labeled \code{from} and \code{to}).
     \item \code{restrict}: the label of the constraint-based algorithm used in
       the \dQuote{Restrict} phase of a hybrid learning algorithm (a character
       string).

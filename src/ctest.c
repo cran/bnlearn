@@ -1,10 +1,10 @@
 #include "include/rcore.h"
 #include "include/sets.h"
-#include "include/allocations.h"
 #include "include/dataframe.h"
 #include "include/tests.h"
 #include "include/covariance.h"
 #include "include/globals.h"
+#include "include/blas.h"
 
 #define DISCRETE_SWAP_X() \
       xdata = VECTOR_ELT(xx, i); \
@@ -18,19 +18,17 @@
 
 #define GAUSSIAN_COLUMN_CACHE() \
     /* allocate and initialize an array of pointers for the variables. */ \
-    column = (double **) alloc1dpointer(ncols); \
+    column = Calloc1D(ncols, sizeof(double *)); \
     column[1] = REAL(yy); \
     for (i = 0; i < nsx; i++) \
       column[i + 2] = REAL(VECTOR_ELT(zz, i));
 
 #define GAUSSIAN_CACHE() \
     /* allocate the covariance matrix. */ \
-    cov = alloc1dreal(ncols * ncols); \
-    basecov = alloc1dreal(ncols * ncols); \
+    cov = Calloc1D(ncols * ncols, sizeof(double)); \
+    basecov = Calloc1D(ncols * ncols, sizeof(double)); \
     /* allocate the matrices needed for the SVD decomposition. */ \
-    u = alloc1dreal(ncols * ncols); \
-    d = alloc1dreal(ncols); \
-    vt = alloc1dreal(ncols * ncols); \
+    c_udvt(&u, &d, &vt, ncols); \
     GAUSSIAN_COLUMN_CACHE();
 
 #define GAUSSIAN_PCOR_CACHE() \
@@ -46,13 +44,20 @@
       /* extract and de-reference the i-th variable. */ \
       column[0] = REAL(VECTOR_ELT(xx, 0)); \
       /* allocate and compute mean values and the covariance matrix. */ \
-      mean = alloc1dreal(ncols); \
+      mean = Calloc1D(ncols, sizeof(double)); \
       c_meanvec(column, mean, nobs, ncols, 0); \
       c_covmat(column, mean, ncols, nobs, cov, 0);
 
 #define COMPUTE_PCOR() \
         /* compute the partial correlation and the test statistic. */ \
         statistic = c_fast_pcor(cov, u, d, vt, ncols, TRUE);
+
+#define GAUSSIAN_FREE() \
+  Free1D(u); \
+  Free1D(vt); \
+  Free1D(d); \
+  Free1D(cov); \
+  Free1D(basecov);
 
 /* parametric tests for discrete variables. */
 static double ct_discrete(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
@@ -61,14 +66,11 @@ static double ct_discrete(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
 int i = 0, llx = 0, lly = NLEVELS(yy), llz = 0;
 int *xptr = NULL, *yptr = INTEGER(yy), *zptr = NULL;
 double statistic = 0;
-void *memp = NULL;
 SEXP xdata, config;
 
   DISCRETE_CACHE();
 
   for (i = 0; i < ntests; i++) {
-
-    memp = vmaxget();
 
     DISCRETE_SWAP_X();
 
@@ -97,8 +99,6 @@ SEXP xdata, config;
 
     }/*THEN*/
 
-    vmaxset(memp);
-
   }/*FOR*/
 
   UNPROTECT(1);
@@ -119,7 +119,7 @@ double *u = NULL, *d = NULL, *vt = NULL, *cov = NULL, *basecov = 0;
   if (test == COR)
     *df = nobs - ncols;
   else if ((test == MI_G) || (test == MI_G_SH))
-    *df = 1; 
+    *df = 1;
 
   if (((test == COR) && (*df < 1)) || ((test == ZF) && (nobs - ncols < 2))) {
 
@@ -140,14 +140,12 @@ double *u = NULL, *d = NULL, *vt = NULL, *cov = NULL, *basecov = 0;
   if (ntests > 1) {
 
     /* allocate and compute mean values and the covariance matrix. */
-    mean = alloc1dreal(ncols);
+    mean = Calloc1D(ncols, sizeof(double));
     c_meanvec(column, mean, nobs, ncols, 1);
     c_covmat(column, mean, ncols, nobs, cov, 1);
     memcpy(basecov, cov, ncols * ncols * sizeof(double));
 
     for (i = 0; i < ntests; i++) {
-
-      /* no allocations require a vmax{get,set}() call. */
 
       GAUSSIAN_PCOR_CACHE();
 
@@ -222,6 +220,11 @@ double *u = NULL, *d = NULL, *vt = NULL, *cov = NULL, *basecov = 0;
 
   }/*ELSE*/
 
+  GAUSSIAN_FREE();
+
+  Free1D(mean);
+  Free1D(column);
+
   return statistic;
 
 }/*CT_GAUSTESTS*/
@@ -252,13 +255,13 @@ SEXP xdata;
   }/*ELSE*/
 
   /* extract the conditioning variables and cache their types. */
-  columns = Calloc(nsx, void *);
-  nlvls = Calloc(nsx, int);
+  columns = Calloc1D(nsx, sizeof(void *));
+  nlvls = Calloc1D(nsx, sizeof(int));
   df2micg(zz, columns, nlvls, &ndp, &ngp);
 
-  dp = Calloc(ndp + 1, int *);
-  gp = Calloc(ngp + 1, double *);
-  dlvls = Calloc(ndp + 1, int);
+  dp = Calloc1D(ndp + 1, sizeof(int *));
+  gp = Calloc1D(ngp + 1, sizeof(double *));
+  dlvls = Calloc1D(ndp + 1, sizeof(int));
   for (i = 0, j = 0, k = 0; i < nsx; i++)
     if (nlvls[i] > 0) {
 
@@ -276,7 +279,7 @@ SEXP xdata;
    * there no discrete parents, for the means of the continuous parents. */
   if (ndp > 0) {
 
-    zptr = Calloc(nobs, int);
+    zptr = Calloc1D(nobs, sizeof(int));
     c_fast_config(dp + 1, nobs, ndp, dlvls + 1, zptr, &llz, 1);
 
   }/*THEN*/
@@ -356,12 +359,12 @@ SEXP xdata;
 
   }/*FOR*/
 
-  Free(columns);
-  Free(nlvls);
-  Free(dlvls);
-  Free(zptr);
-  Free(dp);
-  Free(gp);
+  Free1D(columns);
+  Free1D(nlvls);
+  Free1D(dlvls);
+  Free1D(zptr);
+  Free1D(dp);
+  Free1D(gp);
 
   return statistic;
 
@@ -374,21 +377,16 @@ static double ct_dperm(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
 int i = 0, *xptr = NULL, *yptr = INTEGER(yy), *zptr = NULL;
 int llx = 0, lly = NLEVELS(yy), llz = 0;
 double statistic = 0;
-void *memp = NULL;
 SEXP xdata, config;
 
   DISCRETE_CACHE();
 
   for (i = 0; i < ntests; i++) {
 
-    memp = vmaxget();
-
     DISCRETE_SWAP_X();
     statistic = 0;
     c_cmcarlo(xptr, llx, yptr, lly, zptr, llz, nobs, B, &statistic,
       pvalue + i, a, type, df);
-
-    vmaxset(memp);
 
   }/*FOR*/
 
@@ -404,13 +402,10 @@ static double ct_gperm(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
 
 int i = 0, nsx = length(zz), ncols = nsx + 2;
 double **column = NULL, *yptr = REAL(yy), statistic = 0;
-void *memp = NULL;
 
   GAUSSIAN_COLUMN_CACHE();
 
   for (i = 0; i < ntests; i++) {
-
-    memp = vmaxget();
 
     /* swap the first column and restore the second, which is that undergoing
      * permutation (backward compatibility from set random seed). */
@@ -421,9 +416,9 @@ void *memp = NULL;
     c_gauss_cmcarlo(column, ncols, nobs, B, &statistic, pvalue + i,
       a, type);
 
-    vmaxset(memp);
-
   }/*FOR*/
+
+  Free1D(column);
 
   return statistic;
 

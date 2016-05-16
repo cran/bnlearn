@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/dataframe.h"
 #include "include/globals.h"
 #include "include/matrix.h"
@@ -9,16 +8,18 @@ double c_gloss(int *cur, SEXP cur_parents, double *coefs, double *sd,
     void **columns, SEXP nodes, int ndata, double *per_sample,
     int allow_singular);
 double c_dloss(int *cur, SEXP cur_parents, int *configs, double *prob,
-    SEXP data, SEXP nodes, int ndata, int nlevels, double *per_sample);
+    SEXP data, SEXP nodes, int ndata, int nlevels, double *per_sample,
+    int *dropped);
 double c_cgloss(int *cur, SEXP cur_parents, SEXP dparents, SEXP gparents,
     SEXP dlevels, double *coefs, double *sd, void **columns, SEXP nodes,
-    int ndata, double *per_sample, int allow_singular);
+    int ndata, double *per_sample, int allow_singular, int *dropped);
 double c_entropy_loss(SEXP fitted, SEXP orig_data, int ndata, int by,
-    double *res_sample, SEXP keep, int allow_singular, int debuglevel);
+    double *res_sample, SEXP keep, int allow_singular, int warnlevel,
+    int debuglevel);
 
 #define UPDATE_LOSS(cond) \
       if (cond) \
-        dropped++; \
+        (*dropped)++; \
       else \
         result += logprob; \
       if (per_sample) \
@@ -41,7 +42,7 @@ SEXP result_sample = R_NilValue;
   }/*THEN*/
 
   loss = c_entropy_loss(fitted, data, ndata, *by, res_sample, keep,
-                  TRUE, isTRUE(debug));
+                  TRUE, TRUE, isTRUE(debug));
 
   if (*by)
     UNPROTECT(1);
@@ -51,9 +52,10 @@ SEXP result_sample = R_NilValue;
 }/*ENTROPY_LOSS*/
 
 double c_entropy_loss(SEXP fitted, SEXP orig_data, int ndata, int by,
-    double *res_sample, SEXP keep, int allow_singular, int debuglevel) {
+    double *res_sample, SEXP keep, int allow_singular, int warnlevel,
+    int debuglevel) {
 
-int i = 0, k = 0, nnodes = length(fitted), nlevels = 0;
+int i = 0, k = 0, nnodes = length(fitted), nlevels = 0, dropped = 0;
 int *configs = NULL, *to_keep = NULL;
 double result = 0, cur_loss = 0;
 const char *class = NULL;
@@ -74,20 +76,23 @@ SEXP data, fit_class, cur_node, nodes, coefs, sd, parents, try;
   class = CHAR(STRING_ELT(fit_class, length(fit_class) - 1));
 
   /* dereference the data set's columns. */
-  columns = alloc1dpointer(nnodes);
+  columns = Calloc1D(nnodes, sizeof(void *));
   for (i = 0; i < nnodes; i++)
     columns[i] = (void *) DATAPTR(VECTOR_ELT(data, i));
 
   /* allocate an array for parents' configurations. */
   if (strcmp(class, "bn.fit.gnet") != 0)
-    configs = alloc1dcont(ndata);
+    configs = Calloc1D(ndata, sizeof(int));
 
   /* iterate over the nodes. */
-  for (i = 0; i < nnodes; i++) {
+  for (i = 0, k = 0; i < nnodes; i++) {
 
     if (i == to_keep[k] - 1) {
 
-      k++;
+      /* prevent k from overflowing but do not break out of the loop, to allow
+       * the debuggin output to cover all the nodes. */
+      if (k < length(try) - 1)
+        k++;
 
     }/*THEN*/
     else {
@@ -124,7 +129,7 @@ SEXP data, fit_class, cur_node, nodes, coefs, sd, parents, try;
       nlevels = INT(getAttrib(coefs, R_DimSymbol));
 
       cur_loss = c_dloss(&i, parents, configs, REAL(coefs), data, nodes,
-                   ndata, nlevels, res_sample);
+                   ndata, nlevels, res_sample, &dropped);
 
     }/*THEN*/
     else if (strcmp(class, "bn.fit.cgnode") == 0) {
@@ -139,9 +144,13 @@ SEXP data, fit_class, cur_node, nodes, coefs, sd, parents, try;
 
       cur_loss = c_cgloss(&i, parents, dparents, gparents, dlevels,
                    REAL(coefs), REAL(sd), columns, nodes, ndata, res_sample,
-                   allow_singular);
+                   allow_singular, &dropped);
 
     }/*THEN*/
+
+    /* print a warning if data were dropped. */
+    if ((warnlevel > 0) && (dropped > 0))
+      warning("%d observations were dropped because the corresponding probabilities for node %s were 0 or NaN.", dropped, NODE(i));
 
     if (debuglevel > 0)
       Rprintf("  > log-likelihood loss for node %s is %lf.\n", NODE(i), cur_loss);
@@ -150,6 +159,10 @@ SEXP data, fit_class, cur_node, nodes, coefs, sd, parents, try;
     result += cur_loss;
 
   }/*FOR*/
+
+  Free1D(columns);
+  if (strcmp(class, "bn.fit.gnet") != 0)
+    Free1D(configs);
 
   UNPROTECT(2);
   return result;
@@ -205,9 +218,10 @@ SEXP try;
 
 /* multinomial loss for a single node. */
 double c_dloss(int *cur, SEXP cur_parents, int *configs, double *prob,
-    SEXP data, SEXP nodes, int ndata, int nlevels, double *per_sample) {
+    SEXP data, SEXP nodes, int ndata, int nlevels, double *per_sample,
+    int *dropped) {
 
-int i = 0, dropped = 0, *obs = NULL;
+int i = 0, *obs = NULL;
 double logprob = 0, result = 0;
 SEXP temp_df;
 
@@ -243,11 +257,7 @@ SEXP temp_df;
   }/*ELSE*/
 
   /* switch to the negentropy. */
-  result /= -(ndata - dropped);
-
-  /* print a warning if data were dropped. */
-  if (dropped > 0)
-    warning("%d observations were dropped because the corresponding probabilities for node %s were 0 or NaN.", dropped, NODE(*cur));
+  result /= -(ndata - *dropped);
 
   return result;
 
@@ -256,9 +266,9 @@ SEXP temp_df;
 /* conditional Gaussian loss for a single node. */
 double c_cgloss(int *cur, SEXP cur_parents, SEXP dparents, SEXP gparents,
     SEXP dlevels, double *coefs, double *sd, void **columns, SEXP nodes,
-    int ndata, double *per_sample, int allow_singular) {
+    int ndata, double *per_sample, int allow_singular, int *dropped) {
 
-int i = 0, j = 0, *p = NULL, nparents = length(cur_parents), dropped = 0;
+int i = 0, j = 0, *p = NULL, nparents = length(cur_parents);
 int **dpar = NULL, *config = NULL;
 int *ddp = INTEGER(dparents), *ggp = INTEGER(gparents);
 int ndpar = length(dparents), ngpar = length(gparents), *nlvls = NULL;
@@ -277,20 +287,20 @@ SEXP try;
   }/*THEN*/
   else {
 
-    dpar = Calloc(ndpar, int *);
+    dpar = Calloc1D(ndpar, sizeof(int *));
     for (i = 0; i < ndpar; i++)
       dpar[i] = columns[p[ddp[i] - 1] - 1];
-    nlvls = Calloc(ndpar, int);
+    nlvls = Calloc1D(ndpar, sizeof(int));
     for (i = 0; i < ndpar; i++)
       nlvls[i] = length(VECTOR_ELT(dlevels, i));
-    config = Calloc(ndata, int);
+    config = Calloc1D(ndata, sizeof(int));
     c_fast_config(dpar, ndata, ndpar, nlvls, config, NULL, 1);
 
   }/*ELSE*/
   /* extract the continuous parents. */
   if (ngpar > 0) {
 
-    gpar = Calloc(ngpar, double *);
+    gpar = Calloc1D(ngpar, sizeof(double *));
     for (i = 0; i < ngpar; i++)
       gpar[i] = columns[p[ggp[i] - 1] - 1];
 
@@ -314,7 +324,7 @@ SEXP try;
         mean += gpar[j][i] * coefs_offset[j + 1];
 
       /* compute the log-likelihood of this observation. */
-      if ((*(sd + config[i]) < MACHINE_TOL) && !allow_singular)
+      if ((*(sd + config[i] - 1) < MACHINE_TOL) && !allow_singular)
         logprob = dnorm(((double *)columns[*cur])[i], mean, MACHINE_TOL, TRUE);
       else
         logprob = dnorm(((double *)columns[*cur])[i], mean, *(sd + config[i] - 1), TRUE);
@@ -327,23 +337,19 @@ SEXP try;
 
   UNPROTECT(1);
 
-  if (ngpar)
-    Free(gpar);
+  if (ngpar > 0)
+    Free1D(gpar);
 
   if (dpar) {
 
-    Free(config);
-    Free(nlvls);
-    Free(dpar);
+    Free1D(config);
+    Free1D(nlvls);
+    Free1D(dpar);
 
   }/*THEN*/
 
   /* switch to the negentropy. */
-  result /= -(ndata - dropped);
-
-  /* print a warning if data were dropped. */
-  if (dropped > 0)
-    warning("%d observations were dropped because the corresponding probabilities for node %s were 0 or NaN.", dropped, NODE(*cur));
+  result /= -(ndata - *dropped);
 
   return result;
 

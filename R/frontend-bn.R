@@ -54,21 +54,23 @@ ntests = function(x) {
 }#NTESTS
 
 # structural hamming distance.
-shd = function(learned, true, debug = FALSE) {
+shd = function(learned, true, wlbl = FALSE, debug = FALSE) {
 
   # check x's class.
   check.bn(learned)
   check.bn(true)
-  # check debug.
+  # check debug and wlbl.
   check.logical(debug)
+  check.logical(wlbl)
   # the two networks must have the same node set.
   match.bn(learned, true)
 
-  structural.hamming.distance(learned = learned, true = true, debug = debug)
+  structural.hamming.distance(learned = learned, true = true, wlbl = wlbl,
+    debug = debug)
 
 }#SHD
 
-# hamming distance and related quantities.
+# Hamming distance.
 hamming = function(learned, true, debug = FALSE) {
 
   # check learned's and true's class.
@@ -112,18 +114,19 @@ blacklist = function(x) {
 }#BLACKLIST
 
 # reconstruct the equivalence class of a network.
-cpdag = function(x, moral = TRUE, debug = FALSE) {
+cpdag = function(x, moral = TRUE, wlbl = FALSE, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
-  # check moral and debug.
+  # check moral, debug and wlbl.
   check.logical(moral)
   check.logical(debug)
-  # check whether the graph is acclic, to be sure to return a DAG.
+  check.logical(wlbl)
+  # check whether the graph is acyclic, to be sure to return a DAG.
   if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
     stop("the specified network contains cycles.")
 
-  cpdag.backend(x = x, moral = moral, debug = debug)
+  cpdag.backend(x = x, moral = moral, fix = FALSE, wlbl = wlbl, debug = debug)
 
 }#CPDAG
 

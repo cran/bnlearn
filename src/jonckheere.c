@@ -1,6 +1,5 @@
 #include "include/rcore.h"
 #include "include/globals.h"
-#include "include/allocations.h"
 #include "include/tests.h"
 
 static double c_jt_stat(int **n, int *ni, int llx, int lly);
@@ -18,6 +17,10 @@ double stat = 0, mean = 0, var = 0;
   stat = c_jt_stat(n, ni, llx, lly);
   mean = c_jt_mean(num, ni, llx);
   var = c_jt_var(num, ni, llx, nj, lly);
+
+  Free2D(n, llx);
+  Free1D(ni);
+  Free1D(nj);
 
   /* standardize before returning so to make the test invariant to
    * the order of the variables; if the variance is zero return zero
@@ -48,6 +51,11 @@ double stat = 0, var = 0, tvar = 0;
       tvar += var;
 
   }/*FOR*/
+
+  Free3D(n, llz, llx);
+  Free2D(nrowt, llz);
+  Free2D(ncolt, llz);
+  Free1D(ncond);
 
   /* guard against divide-by-zero errors and standardize the result. */
   return (tvar < MACHINE_TOL) ? 0 : stat / sqrt(tvar);

@@ -220,7 +220,7 @@ lattice.cv.bwplot = function(means, labels, losses, main, xlab, ylab,
   # check whether lattice is loaded, and try to load if it is not.
   if (!requireNamespace("lattice"))
     stop("this function requires the lattice package.")
-  
+ 
   # check the labels of the cross-validation objects, if any.
   if (!missing(xlab)) {
 
@@ -264,7 +264,7 @@ lattice.cv.bwplot = function(means, labels, losses, main, xlab, ylab,
 
            # connect the median points of the boxplots.
            if (connect)
-             lattice::panel.average(..., fun = median, col.line = "black") 
+             lattice::panel.average(..., fun = median, col.line = "black")
 
          },
          par.settings = list(box.umbrella = list(lty = 1, col = "black"),

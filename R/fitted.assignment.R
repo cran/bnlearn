@@ -77,7 +77,7 @@ fitted.assignment.backend = function(x, name, value) {
     new$coefficients = noattr(value$coef)
 
     # replace the residuals' standard deviation.
-    new$sd = structure(noattr(new$sd), names = colnames(value$coef))
+    new$sd = structure(noattr(value$sd), names = colnames(value$coef))
 
     # replace the residuals, padding with NAs if needed.
     if (is.null(value$resid))

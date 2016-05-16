@@ -13,19 +13,41 @@ arcs = function(x) {
 }#ARCS
 
 # rebuild the network structure using a new set fo arcs.
-"arcs<-" = function(x, ignore.cycles = FALSE, debug = FALSE, value) {
+"arcs<-" = function(x, check.cycles = TRUE, check.illegal = TRUE, debug = FALSE,
+    value) {
 
   # check x's class.
   check.bn(x)
   # a set of arcs is needed.
   if (missing(value))
     stop("no arc specified.")
+  # check logical arguments.
+  check.logical(check.cycles)
+  check.logical(check.illegal)
+  check.logical(debug)
   # sanitize the set of arcs.
   value = check.arcs(value, nodes = names(x$nodes))
-  # check whether the the graph is acyclic.
-  if (!ignore.cycles)
-    if (!is.acyclic(nodes = names(x$nodes), arcs = value, debug = debug))
+  # check whether the the graph contains directed cycles.
+  if (check.cycles)
+    if (!is.acyclic(nodes = names(x$nodes), arcs = value, debug = debug,
+           directed = TRUE))
       stop("the specified network contains cycles.")
+  # check whether any arc is illegal.
+  if (check.illegal) {
+
+    illegal = which.listed(value, x$learning$illegal)
+
+    if (any(illegal)) {
+
+      illegal = apply(value[illegal, , drop = FALSE], 1,
+                  function(x) { paste(" (", x[1], ", ", x[2], ")", sep = "")  })
+
+      stop("the following arcs are not valid due to the parametric assumptions of the network:",
+        illegal, ".")
+
+    }#THEN
+
+  }#THEN
 
   # update the arcs of the network.
   x$arcs = value
@@ -133,7 +155,7 @@ reversible.arcs = function(x) {
 
   return(x$arcs[which.listed(x$arcs, undirected.arcs(cp)), ])
 
-}#COMPELLED.ARCS
+}#REVERSIBLE.ARCS
 
 # return the number of arcs in the graph.
 narcs = function(x) {
@@ -146,10 +168,11 @@ narcs = function(x) {
 }#NARCS
 
 # set an arc direction manually.
-set.arc = function(x, from, to, check.cycles = TRUE, debug = FALSE) {
+set.arc = function(x, from, to, check.cycles = TRUE, check.illegal = TRUE,
+    debug = FALSE) {
 
   arc.operations(x = x, from = from, to = to, op = "set",
-    check.cycles = check.cycles, debug = debug)
+    check.cycles = check.cycles, check.illegal = check.illegal, debug = debug)
 
 }#SET.ARC
 
@@ -157,23 +180,25 @@ set.arc = function(x, from, to, check.cycles = TRUE, debug = FALSE) {
 drop.arc = function(x, from, to, debug = FALSE) {
 
   arc.operations(x = x, from = from, to = to, op = "drop",
-    check.cycles = FALSE, debug = debug)
+    check.cycles = FALSE, check.illegal = FALSE, debug = debug)
 
 }#DROP.ARC
 
 # reverse an arc in the graph.
-reverse.arc = function(x, from, to, check.cycles = TRUE, debug = FALSE) {
+reverse.arc = function(x, from, to, check.cycles = TRUE, check.illegal = TRUE,
+    debug = FALSE) {
 
   arc.operations(x = x, from = from, to = to, op = "reverse",
-    check.cycles = check.cycles, debug = debug)
+    check.cycles = check.cycles, check.illegal = check.illegal, debug = debug)
 
 }#REVERSE.ARC
 
 # set an undirected arc.
-set.edge = function(x, from, to, check.cycles = TRUE, debug = FALSE) {
+set.edge = function(x, from, to, check.cycles = TRUE, check.illegal = TRUE,
+    debug = FALSE) {
 
   arc.operations(x = x, from = from, to = to, op = "seted",
-    check.cycles = check.cycles, debug = debug)
+    check.cycles = check.cycles, check.illegal = check.illegal, debug = debug)
 
 }#SET.EDGE
 
@@ -181,7 +206,7 @@ set.edge = function(x, from, to, check.cycles = TRUE, debug = FALSE) {
 drop.edge = function(x, from, to, debug = FALSE) {
 
   arc.operations(x = x, from = from, to = to, op = "droped",
-    check.cycles = FALSE, debug = debug)
+    check.cycles = FALSE, check.illegal = FALSE, debug = debug)
 
 }#DROP.EDGE
 

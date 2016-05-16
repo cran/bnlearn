@@ -1,6 +1,5 @@
 #include "include/rcore.h"
 #include "include/matrix.h"
-#include "include/allocations.h"
 
 /* get the number of parameters of the whole network (mixed case, also handles
  * discrete and Gaussian networks). */
@@ -16,7 +15,7 @@ SEXP nodes = R_NilValue, node_data, parents, temp;
   nnodes = length(node_data);
   nodes = getAttrib(node_data, R_NamesSymbol);
   /* cache the number of levels of each variables (zero = continuous). */
-  nlevels = Calloc(nnodes, int);
+  nlevels = Calloc1D(nnodes, sizeof(int));
   for (i = 0; i < nnodes; i++) {
 
     temp = VECTOR_ELT(data, i);
@@ -55,7 +54,7 @@ SEXP nodes = R_NilValue, node_data, parents, temp;
 
   }/*FOR*/
 
-  Free(nlevels);
+  Free1D(nlevels);
 
   return ScalarReal(all_params);
 

@@ -7,7 +7,24 @@
 #include <R_ext/Linpack.h>
 #include <R_ext/Utils.h>
 
-/* utility macros */
+/* memory allocation. */
+void *Calloc1D(size_t R, size_t size);
+void **Calloc2D(size_t R, size_t C, size_t size);
+void ***Calloc3D(size_t R, size_t C, size_t L, size_t size);
+void BN_Free1D(void *p);
+void BN_Free2D(void **p, size_t R);
+void BN_Free3D(void ***p, size_t R, size_t C);
+#define Free1D(p) \
+  BN_Free1D((void *)p); \
+  p = NULL;
+#define Free2D(p, R) \
+  BN_Free2D((void **)p, R); \
+  p = NULL;
+#define Free3D(p, R, C) \
+  BN_Free3D((void ***)p, R, C); \
+  p = NULL;
+
+/* utility macros. */
 #define isTRUE(logical) ((LOGICAL(logical)[0]) == TRUE)
 #define INT(x) INTEGER(x)[0]
 #define NUM(x) REAL(x)[0]
@@ -25,6 +42,7 @@ SEXP unique(SEXP array);
 SEXP dupe(SEXP array);
 SEXP mkRealVec(int n, ...);
 SEXP int2fac(SEXP vector, int *nlevels);
+void setDimNames(SEXP obj, SEXP rownames, SEXP colnames);
 
 /* from strings.c */
 SEXP string_delete(SEXP array, SEXP string, int *idx);

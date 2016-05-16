@@ -98,7 +98,7 @@ SEXP result, try, node, dup;
   }/*ELSE*/
 
   /* allocate, initialize and set the column names. */
-  finalize_arcs(result);
+  setDimNames(result, R_NilValue, mkStringVec(2, "from", "to"));
 
   if (uniq_rows == 0)
     UNPROTECT(1);

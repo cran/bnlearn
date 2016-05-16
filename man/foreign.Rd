@@ -48,7 +48,7 @@ write.dot(file, graph)
   DOT files can be read by Graphviz, Gephi and a variety of other programs.
 
   Please note that these functions work on a "best effort" basis, as the parsing
-  of these formats have been implementing by reverse engineering the file format
+  of these formats have been implemented by reverse engineering the file format
   from publicly available examples.
 
 }
@@ -71,7 +71,7 @@ write.dot(file, graph)
 
   Netica, \url{http://www.norsys.com/netica.html}.
 
-  Graphviz, \url{http://www.graphviz.org}.
+  Graphviz, \url{https://github.com/ellson/graphviz}.
 
   Gephi, \url{http://gephi.org}.
 

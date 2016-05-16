@@ -14,7 +14,7 @@
 }
 \usage{
 # check whether the graph is acyclic/completely directed.
-acyclic(x, debug = FALSE)
+acyclic(x, directed = FALSE, debug = FALSE)
 directed(x)
 # check whether there is a path between two nodes.
 path(x, from, to, direct = TRUE, underlying.graph = FALSE, debug = FALSE)
@@ -38,6 +38,9 @@ subgraph(x, nodes)
   \item{ordering}{the labels of all the nodes in the graph; their order is the
     node ordering used to set the direction of undirected arcs.}
   \item{nodes}{the labels of the nodes that induce the subgraph.}
+  \item{directed}{a boolean value. If \code{TRUE} only completely directed
+    cycles are considered; otherwise undirected arcs will also be considered
+    and treated as arcs present in both directions.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }

@@ -3,6 +3,7 @@
 SEXP r_svd(SEXP matrix, SEXP strict);
 SEXP r_det(SEXP matrix, int scale);
 double c_det(double *matrix, int *rows);
+void c_udvt(double **u, double **d, double **vt, int ncols);
 void c_svd(double *A, double *U, double *D, double *V, int *nrows, int *ncols,
     int *mindim, int strict, int *errcode);
 void c_ginv(double *covariance, int ncols, double *mpinv);

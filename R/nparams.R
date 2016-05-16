@@ -1,7 +1,7 @@
 
+# number of parameters for a DAG and an associated data set.
 nparams.backend = function(x, data, debug = FALSE) {
 
-  # handles all of discrete, Gaussian and conditional Gaussian networks.
   .Call("nparams_cgnet",
         graph = x,
         data = minimal.data.frame.column(data, names(x$nodes)),
@@ -9,6 +9,7 @@ nparams.backend = function(x, data, debug = FALSE) {
 
 }#NPARAMS.BACKEND
 
+# number of parameters for a fitted network.
 nparams.fitted = function(x, effective = FALSE, debug = FALSE) {
 
   .Call("nparams_fitted",

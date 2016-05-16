@@ -7,7 +7,7 @@ SEXP arcs2amat(SEXP arcs, SEXP nodes) {
 
 int k = 0, nrows = length(arcs) / 2, dims = length(nodes);
 int *res = NULL, *coords = NULL;
-SEXP result, dimnames, try;
+SEXP result, try;
 
   /* allocate and initialize the adjacency matrix. */
   PROTECT(result = allocMatrix(INTSXP, dims, dims));
@@ -15,15 +15,12 @@ SEXP result, dimnames, try;
   memset(res, '\0', sizeof(int) * dims * dims);
 
   /* allocate rownames and colnames. */
-  PROTECT(dimnames = allocVector(VECSXP, 2));
-  SET_VECTOR_ELT(dimnames, 0, nodes);
-  SET_VECTOR_ELT(dimnames, 1, nodes);
-  setAttrib(result, R_DimNamesSymbol, dimnames);
+  setDimNames(result, nodes, nodes);
 
   /* nothing to do if there are no arcs. */
   if (nrows == 0) {
 
-    UNPROTECT(2);
+    UNPROTECT(1);
     return result;
 
   }/*THEN*/
@@ -36,7 +33,7 @@ SEXP result, dimnames, try;
   for (k = 0; k < nrows; k++)
     res[CMC(coords[k] - 1, coords[k + nrows] - 1, dims)] = 1;
 
-  UNPROTECT(3);
+  UNPROTECT(2);
 
   return result;
 
@@ -63,24 +60,19 @@ SEXP arcs;
   /* if there are no arcs, return an empty arc set. */
   if (narcs == 0) {
 
-    /* allocate an empty arc set. */
-    PROTECT(arcs = allocMatrix(STRSXP, 0, 2));
-    /* set the column names. */
-    finalize_arcs(arcs);
-
-    UNPROTECT(1);
-
-    return arcs;
+    /* allocate and return an empty arc set. */
+    return allocMatrix(STRSXP, 0, 2);
 
   }/*THEN*/
   else {
 
     /* allocate the arc set. */
     PROTECT(arcs = allocMatrix(STRSXP, narcs, 2));
-    /* set the column names. */
-    finalize_arcs(arcs);
 
   }/*ELSE*/
+
+  /* set the column names. */
+  setDimNames(arcs, R_NilValue, mkStringVec(2, "from", "to"));
 
   /* fill the arc set from the adjacency matrix. */
   for (i = 0; i < nrows; i++) {

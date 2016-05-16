@@ -49,7 +49,7 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
             test = criterion, B = B, debug = debug)
 
     # add extra information for strength.plot().
-    res = structure(res, mode = "test", threshold = alpha)
+    res = structure(res, method = "test", threshold = alpha)
 
   }#THEN
   else if (criterion %in% available.scores) {
@@ -62,7 +62,7 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
             extra = extra.args, debug = debug)
 
     # add extra information for strength.plot().
-    res = structure(res, mode = "score", threshold = 0)
+    res = structure(res, method = "score", threshold = 0)
 
   }#THEN
 
@@ -97,7 +97,7 @@ custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
           arcs = NULL, weights = weights, debug = debug)
 
   # add extra information for strength.plot().
-  res = structure(res, mode = "bootstrap", threshold = threshold(res),
+  res = structure(res, method = "bootstrap", threshold = threshold(res),
           class = c("bn.strength", class(res)))
 
   return(res)
@@ -111,7 +111,7 @@ averaged.network = function(strength, nodes, threshold) {
   # check the strength parameter.
   check.bn.strength(strength)
   # this works only with bootstrapped networks.
-  if (attributes(strength)$mode != "bootstrap")
+  if (attributes(strength)$method != "bootstrap")
     stop("only arc strength computed from bootstrapped networks are supported.")
   # check the strength threshold.
   threshold = check.threshold(threshold, strength)
@@ -141,4 +141,48 @@ averaged.network = function(strength, nodes, threshold) {
   return(avg)
 
 }#AVERAGED.NETWORK
+
+# average multiple bn.strength objects.
+mean.bn.strength = function(x, ..., weights = NULL) {
+
+  # check the bn.strength objects.
+  strength = c(list(x), list(...))
+
+  method = character(length(strength))
+  nodes = unique(c(x[, "from"], x[, "to"]))
+
+  for (s in seq_along(strength)) {
+
+    # check the nodes are the same, and that the object has the right structure.
+    check.bn.strength(strength[[s]], nodes = nodes)
+    # check the objects have the same number of arcs.
+    if (length(strength[[s]][, "from"]) != length(x[, "from"]))
+      stop("the bn.strength objects have different numbers of arcs.")
+    # check that the objects have the same arcs.
+    if (!all(which.listed(as.matrix(strength[[s]][, c("from", "to")]),
+                         as.matrix(x[, c("from", "to")]))))
+      stop("the bn.strength objects have different arcs.")
+
+    method[s] = attr(strength[[s]], "method")
+
+  }#FOR
+
+  # check all strengths are either score differences, p-values or
+  # strength/direction probabilities.
+  if (any(method != method[1]))
+    stop("all the bn.strength objects must be computed from either a score, ",
+      "a conditional independence test, or bootstrap resampling.")
+
+  # check the weights.
+  weights = check.weights(weights, length(strength))
+  # average the objects.
+  res = mean.strength(strength, nodes, weights)
+  # set the attributes of the return value.
+  attributes(res) = attributes(x)
+  if (attr(res, "method") == "bootstrap")
+    attr(res, "threshold") = threshold(res)
+
+  return(res)
+
+}#MEAN.BN.STRENGTH
 

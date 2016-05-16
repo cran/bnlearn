@@ -1,5 +1,4 @@
 #include "include/rcore.h"
-#include "include/allocations.h"
 #include "include/tests.h"
 
 #define MI_PART(cell, xmarg, ymarg, zmarg) \
@@ -65,6 +64,10 @@ double res = 0;
   if (df)
     *df = adj ? df_adjust(ni, llx, nj, lly) : (llx - 1) * (lly - 1);
 
+  Free2D(n, llx);
+  Free1D(ni);
+  Free1D(nj);
+
   return res;
 
 }/*C_CHISQTEST*/
@@ -101,6 +104,11 @@ double res = 0;
   /* compute the degrees of freedom. */
   if (df)
     *df = adj ? cdf_adjust(ni, llx, nj, lly, llz) : (llx - 1) * (lly - 1) * llz;
+
+  Free3D(n, llz, llx);
+  Free2D(ni, llz);
+  Free2D(nj, llz);
+  Free1D(nk);
 
   return res;
 
