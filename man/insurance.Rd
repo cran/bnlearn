@@ -88,9 +88,6 @@ data(insurance)
       Networks with Hidden Variables". \emph{Machine Learning},
       \strong{29}(2-3), 213-244.
 
-  Elidan G (2001). "Bayesian Network Repository". \cr
-      \url{http://www.cs.huji.ac.il/site/labs/compbio/Repository}.
-
 }
 \note{
 

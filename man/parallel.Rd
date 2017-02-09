@@ -25,8 +25,8 @@
 # load the data.
 > data(learning.test)
 # call a learning function passing the cluster object (the
-# return value of the previous makeCluster() call) as a
-# parameter.
+# return value of the previous makeCluster() call) as an
+# argument.
 > res = gs(learning.test, cluster = cl)
 # note that the number of test is evenly divided between
 # the two nodes of the cluster.

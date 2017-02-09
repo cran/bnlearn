@@ -1,5 +1,7 @@
 #include "include/rcore.h"
 #include "include/tests.h"
+#include "include/scores.h"
+#include "include/fitted.h"
 
 #define ENTRY(key, value) if (strcmp(label, key) == 0) return value;
 
@@ -35,3 +37,49 @@ test_e test_label(const char *label) {
 
 }/*TEST_LABEL*/
 
+fitted_node_e r_fitted_node_label(SEXP class) {
+
+  if (c_is(class, "bn.fit.dnode"))
+    return DNODE;
+  else if (c_is(class, "bn.fit.onode"))
+    return ONODE;
+  else if (c_is(class, "bn.fit.gnode"))
+    return GNODE;
+  else if (c_is(class, "bn.fit.cgnode"))
+    return CGNODE;
+
+  return ENOFIT;
+
+}/*FITTED_NODE_LABEL*/
+
+score_e score_label(const char *label) {
+
+  ENTRY("loglik", LOGLIK);
+  ENTRY("aic", AIC);
+  ENTRY("bic", BIC);
+  ENTRY("bde", BDE);
+  ENTRY("bds", BDS);
+  ENTRY("k2", K2);
+  ENTRY("mbde", MBDE);
+  ENTRY("loglik-g", LOGLIK_G);
+  ENTRY("aic-g", AIC_G);
+  ENTRY("bic-g", BIC_G);
+  ENTRY("bge", BGE);
+  ENTRY("loglik-cg", LOGLIK_CG);
+  ENTRY("aic-cg", AIC_CG);
+  ENTRY("bic-cg", BIC_CG);
+
+  return ENOSCORE;
+
+}/*SCORE_LABEL*/
+
+gprior_e gprior_label(const char *label) {
+
+  ENTRY("uniform", UNIFORM);
+  ENTRY("vsp", VSP);
+  ENTRY("cs", CS);
+  ENTRY("marginal", MU);
+
+  return ENOPRIOR;
+
+}/*GPRIOR_LABEL*/

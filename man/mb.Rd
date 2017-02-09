@@ -29,6 +29,9 @@
 \alias{parents<-}
 \alias{children}
 \alias{children<-}
+\alias{spouses}
+\alias{ancestors}
+\alias{descendants}
 \alias{in.degree}
 \alias{out.degree}
 \alias{degree}
@@ -57,6 +60,9 @@ parents(x, node)
 parents(x, node, debug = FALSE) <- value
 children(x, node)
 children(x, node, debug = FALSE) <- value
+spouses(x, node)
+ancestors(x, node)
+descendants(x, node)
 in.degree(x, node)
 out.degree(x, node)
 root.nodes(x)
@@ -130,7 +136,8 @@ blacklist(x)
 \value{
 
   \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{children},
-  \code{root.nodes} and \code{leaf.nodes} return a vector of character strings.
+  \code{spouses}, \code{ancestors}, \code{descendants}, \code{root.nodes} and
+  \code{leaf.nodes} return a vector of character strings.
 
   \code{arcs}, \code{directed.arcs}, \code{undirected.arcs},
   \code{incoming.arcs}, \code{outgoing.arcs}, \code{incident.arcs}, \cr

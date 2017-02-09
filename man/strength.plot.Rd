@@ -14,11 +14,11 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL,
 \arguments{
   \item{x}{an object of class \code{bn}.}
   \item{strength}{an object of class \code{bn.strength} computed from the object
-    of class \code{bn} corresponding to the \code{x} parameter.}
+    of class \code{bn} corresponding to the \code{x} argument.}
   \item{threshold}{a numeric value. See below.}
   \item{cutpoints}{an array of numeric values. See below.}
   \item{highlight}{a list, see \code{\link{graphviz.plot}} for details.}
-  \item{layout}{a character string, the layout parameter to be passed to 
+  \item{layout}{a character string, the layout argument that will be passed to 
     \pkg{Rgraphviz}. Possible values are \code{dots}, \code{neato},
     \code{twopi}, \code{circo} and \code{fdp}. See \pkg{Rgraphviz} documentation
     for details.}
@@ -33,14 +33,14 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL,
 }
 \details{
 
-  The \code{threshold} parameter is used to determine which arcs are supported
+  The \code{threshold} argument is used to determine which arcs are supported
   strongly enough by the data to be deemed significant:
   \itemize{
     \item if arc strengths have been computed using conditional independence
       tests, any strength coefficient (which is the p-value of the test) lesser
       or equal than the threshold is considered significant. In this case the
       default value of \code{threshold} is equal to the value of the
-      \code{alpha} parameter used in the call to \code{arc.strength}, which in
+      \code{alpha} argument used in the call to \code{arc.strength}, which in
       turn defaults to the one used by the learning algorithm (if any) or to
       \code{0.05}.
     \item if arc strengths have been computed using network scores, any strength
@@ -57,7 +57,7 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL,
 
   Non-significant arcs are plotted as dashed lines.
 
-  The \code{cutpoints} parameter is an array of numeric values used to divide
+  The \code{cutpoints} argument is an array of numeric values used to divide
   the range of the strength coefficients into intervals. The interval each
   strength coefficient falls into determines the line width of the corresponding
   arc in the plot. The default intervals are delimited by

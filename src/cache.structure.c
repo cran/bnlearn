@@ -6,7 +6,7 @@
 #define PARENT		 3
 #define CHILD		 4
 
-SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrows,
+SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrow,
     int *status, int debuglevel);
 
 /* compute the cached values for all nodes. */
@@ -77,7 +77,7 @@ SEXP cached;
 }/*CACHE_PARTIAL_STRUCTURE*/
 
 /* backend to compute the cached values for a single node. */
-SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrows,
+SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrow,
     int *status, int debuglevel) {
 
 int i = 0, j = 0;
@@ -87,11 +87,11 @@ SEXP structure, mb, nbr, children, parents;
   if (debuglevel > 0)
     Rprintf("* node %s.\n", NODE(cur));
 
-  for (i = 0; i < nrows; i++) {
+  for (i = 0; i < nrow; i++) {
 
-    if (amat[CMC(cur, i, nrows)] == 1) {
+    if (amat[CMC(cur, i, nrow)] == 1) {
 
-      if (amat[CMC(i, cur, nrows)] == 0) {
+      if (amat[CMC(i, cur, nrow)] == 0) {
 
         /* if a[i,j] = 1 and a[j,i] = 0, then i -> j. */
         if (debuglevel > 0)
@@ -100,9 +100,9 @@ SEXP structure, mb, nbr, children, parents;
         status[i] = CHILD;
 
         /* check whether this child has any other parent. */
-        for (j = 0; j < nrows; j++) {
+        for (j = 0; j < nrow; j++) {
 
-          if ((amat[CMC(j, i, nrows)] == 1) && (amat[CMC(i, j, nrows)] == 0)
+          if ((amat[CMC(j, i, nrow)] == 1) && (amat[CMC(i, j, nrow)] == 0)
                 && (j != cur)) {
 
             /* don't mark a neighbour as in the markov blanket. */
@@ -133,7 +133,7 @@ SEXP structure, mb, nbr, children, parents;
     }/*THEN*/
     else {
 
-      if (amat[CMC(i, cur, nrows)] == 1) {
+      if (amat[CMC(i, cur, nrow)] == 1) {
 
         /* if a[i,j] = 0 and a[j,i] = 1, then i <- j. */
         if (debuglevel > 0)
@@ -148,7 +148,7 @@ SEXP structure, mb, nbr, children, parents;
   }/*FOR*/
 
   /* count how may nodes fall in each category. */
-  for (i = 0; i < nrows; i++) {
+  for (i = 0; i < nrow; i++) {
 
     switch(status[i]) {
 
@@ -191,25 +191,25 @@ SEXP structure, mb, nbr, children, parents;
 
   /* allocate and fill the "children" element of the list. */
   PROTECT(children = allocVector(STRSXP, num_children));
-  for (i = 0, j = 0; (i < nrows) && (j < num_children); i++)
+  for (i = 0, j = 0; (i < nrow) && (j < num_children); i++)
     if (status[i] == CHILD)
       SET_STRING_ELT(children, j++, STRING_ELT(nodes, i));
 
   /* allocate and fill the "parents" element of the list. */
   PROTECT(parents = allocVector(STRSXP, num_parents));
-  for (i = 0, j = 0; (i < nrows) && (j < num_parents); i++)
+  for (i = 0, j = 0; (i < nrow) && (j < num_parents); i++)
     if (status[i] == PARENT)
       SET_STRING_ELT(parents, j++, STRING_ELT(nodes, i));
 
   /* allocate and fill the "nbr" element of the list. */
   PROTECT(nbr = allocVector(STRSXP, num_neighbours));
-  for (i = 0, j = 0; (i < nrows) && (j < num_neighbours); i++)
+  for (i = 0, j = 0; (i < nrow) && (j < num_neighbours); i++)
     if (status[i] >= NEIGHBOUR)
       SET_STRING_ELT(nbr, j++, STRING_ELT(nodes, i));
 
   /* allocate and fill the "mb" element of the list. */
   PROTECT(mb = allocVector(STRSXP, num_blanket));
-  for (i = 0, j = 0; (i < nrows) && (j < num_blanket + num_neighbours); i++)
+  for (i = 0, j = 0; (i < nrow) && (j < num_blanket + num_neighbours); i++)
     if (status[i] >= BLANKET)
       SET_STRING_ELT(mb, j++, STRING_ELT(nodes, i));
 

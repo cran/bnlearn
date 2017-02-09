@@ -1,5 +1,6 @@
 #include "include/rcore.h"
 #include "include/dataframe.h"
+#include "include/fitted.h"
 
 /* in-place conversion of a list into a data frame. */
 SEXP minimal_data_frame(SEXP obj) {
@@ -110,31 +111,37 @@ int *idx = NULL, nnames = length(name), name_type = TYPEOF(name);
 /* create a data column from a standalone bn.fit.*node object. */
 SEXP node2df(SEXP target, int n) {
 
-const char *class = CHAR(STRING_ELT(getAttrib(target, R_ClassSymbol), 0));
+fitted_node_e node_type = r_fitted_node_label(target);
 SEXP result, res_levels;
 
-  if ((strcmp(class, "bn.fit.gnode") == 0) ||
-      (strcmp(class, "bn.fit.cgnode") == 0)) {
+  switch(node_type) {
 
-    return allocVector(REALSXP, n);
+    case GNODE:
+    case CGNODE:
 
-  }/*THEN*/
-  else {
+      return allocVector(REALSXP, n);
 
-    PROTECT(result = allocVector(INTSXP, n));
-    memset(INTEGER(result), '\0', n * sizeof(int));
-    if (strcmp(class, "bn.fit.onode") == 0)
-      setAttrib(result, R_ClassSymbol, mkStringVec(2, "ordered", "factor"));
-    else if (strcmp(class, "bn.fit.dnode") == 0)
-      setAttrib(result, R_ClassSymbol, mkString("factor"));
-    res_levels = getAttrib(getListElement(target, "prob"), R_DimNamesSymbol);
-    setAttrib(result, R_LevelsSymbol, VECTOR_ELT(res_levels, 0));
+    case DNODE:
+    case ONODE:
 
-    UNPROTECT(1);
+      PROTECT(result = allocVector(INTSXP, n));
+      memset(INTEGER(result), '\0', n * sizeof(int));
+      if (node_type == ONODE)
+        setAttrib(result, R_ClassSymbol, mkStringVec(2, "ordered", "factor"));
+      else if (node_type == DNODE)
+        setAttrib(result, R_ClassSymbol, mkString("factor"));
+      res_levels = getAttrib(getListElement(target, "prob"), R_DimNamesSymbol);
+      setAttrib(result, R_LevelsSymbol, VECTOR_ELT(res_levels, 0));
 
-    return result;
+      UNPROTECT(1);
 
-  }/*ELSE*/
+      return result;
+
+    default:
+      error("unknown node type (class: %s).",
+         CHAR(STRING_ELT(getAttrib(target, R_ClassSymbol), 0)));
+
+  }/*SWITCH*/
 
 }/*NODE2DF*/
 

@@ -149,12 +149,13 @@ graph.generation.extra.args = list(
   "averaged" = "threshold"
 )
 
-prior.distributions = c("uniform", "vsp", "cs")
+prior.distributions = c("uniform", "vsp", "cs", "marginal")
 
 prior.labels = c(
   "uniform" = "Uniform",
   "vsp" = "Variable Selection",
-  "cs" = "Castelo & Siebes"
+  "cs" = "Castelo & Siebes",
+  "marginal" = "Marginal Uniform"
 )
 
 cpq.algorithms = c("ls", "lw")
@@ -217,6 +218,20 @@ fitting.extra.args = list(
   "bayes" = "iss"
 )
 
+available.cv.methods = c("k-fold", "hold-out", "custom-folds")
+
+cv.labels = c(
+  "k-fold" = "k-Fold", 
+  "hold-out" = "Hold-Out",
+  "custom-folds" = "Custom Folds"
+)
+
+cv.extra.args = list(
+  "k-fold" = c("k", "runs"), 
+  "hold-out" = c("k", "m", "runs"),
+  "custom-folds" = c("folds")
+)
+
 available.prediction.methods = c("parents", "bayes-lw")
 
 prediction.labels = c(
@@ -227,6 +242,18 @@ prediction.labels = c(
 prediction.extra.args = list(
   "parents" = character(0),
   "bayes-lw" = c("n", "from")
+)
+
+available.imputation.methods = c("parents", "bayes-lw")
+
+imputation.extra.args = list(
+  "parents" = character(0),
+  "bayes-lw" = c("from")
+)
+
+imputation.labels = c(
+  "parents" = "Parents (Maximum Likelihood)",
+  "bayes-lw" = "Posterior Expectation (Likelihood Weighting)"
 )
 
 supported.clusters = c("MPIcluster", "PVMcluster","SOCKcluster")

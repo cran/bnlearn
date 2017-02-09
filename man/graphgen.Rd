@@ -31,7 +31,7 @@ random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
 
     \item \emph{full ordering} based generation (\code{ordered}): generates
       graphs whose node ordering is given by the order of the labels in the
-      \code{nodes} parameter. The same algorithm is used in the 
+      \code{nodes} argument. The same algorithm is used in the 
       \code{randomDAG} function in package \pkg{pcalg}.
     \item Ide's and Cozman's \emph{Generating Multi-connected DAGs} algorithm
       (\code{ic-dag}): generates graphs with a uniform probability 
@@ -43,7 +43,7 @@ random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
 
   }
 
-  Additional parameters for the \code{random.graph} function are:
+  Additional arguments for the \code{random.graph} function are:
 
   \itemize{
     \item \code{prob}: the probability of each arc to be present in a graph

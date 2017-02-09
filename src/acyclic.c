@@ -3,7 +3,7 @@
 #include "include/graph.h"
 
 /* utility function to build the return value. */
-static SEXP build_return_array(SEXP nodes, short int *skip, int nrows,
+static SEXP build_return_array(SEXP nodes, short int *skip, int nrow,
     int check_status, SEXP return_nodes) {
 
 int i = 0, j = 0;
@@ -23,7 +23,7 @@ SEXP res;
 
       PROTECT(res = allocVector(STRSXP, check_status));
 
-      for (i = 0; i < nrows; i++)
+      for (i = 0; i < nrow; i++)
         if (skip[i] == FALSE)
           SET_STRING_ELT(res, j++, STRING_ELT(nodes, i));
 
@@ -42,14 +42,14 @@ SEXP res;
 
 }/*BUILD_RETURN_ARRAY*/
 
-/* implementation based on the proof of proposition 1.4.2 in "Digraphs Theory, 
+/* implementation based on the proof of proposition 1.4.2 in "Digraphs Theory,
  * Algorithms and Applications" by Bang-Jensen and Gutin, page 13. */
 SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes,
     SEXP directed, SEXP debug) {
 
 int i = 0, j = 0, z = 0;
-int nrows = length(nodes);
-int check_status = nrows, check_status_old = nrows;
+int nrow = length(nodes);
+int check_status = nrow, check_status_old = nrow;
 int *rowsums = NULL, *colsums = NULL, *crossprod = NULL, *a = NULL;
 int *path = NULL, *scratch = NULL, debuglevel = isTRUE(debug);
 short int *skip = NULL;
@@ -68,37 +68,37 @@ SEXP amat, res;
     /* removing undirected arcs, so that only cycles made only of directed
      * arcs will make the function return TRUE. */
 
-    for (i = 0; i < nrows; i++)
-      for (j = 0; j < nrows; j++)
-        if ((a[CMC(i, j, nrows)] == 1) && (a[CMC(j, i, nrows)] == 1))
-          a[CMC(i, j, nrows)] = a[CMC(j, i, nrows)] = 0;
+    for (i = 0; i < nrow; i++)
+      for (j = 0; j < nrow; j++)
+        if ((a[CMC(i, j, nrow)] == 1) && (a[CMC(j, i, nrow)] == 1))
+          a[CMC(i, j, nrow)] = a[CMC(j, i, nrow)] = 0;
 
   }/*THEN*/
 
   /* initialize the status, {row,col}sums and crossprod arrays. */
-  skip = Calloc1D(nrows, sizeof(short int));
-  rowsums = Calloc1D(nrows, sizeof(int));
-  colsums = Calloc1D(nrows, sizeof(int));
-  crossprod = Calloc1D(nrows, sizeof(int));
+  skip = Calloc1D(nrow, sizeof(short int));
+  rowsums = Calloc1D(nrow, sizeof(int));
+  colsums = Calloc1D(nrow, sizeof(int));
+  crossprod = Calloc1D(nrow, sizeof(int));
 
   /* allocate buffers for c_has_path(). */
-  path = Calloc1D(nrows, sizeof(int));
-  scratch = Calloc1D(nrows, sizeof(int));
+  path = Calloc1D(nrow, sizeof(int));
+  scratch = Calloc1D(nrow, sizeof(int));
 
   if (debuglevel > 0)
     Rprintf("* checking whether the partially directed graph is acyclic.\n");
 
   /* even in the worst case scenario at least two nodes are marked as
-   * good at each iteration, so even ceil(nrows/2) iterations should be
+   * good at each iteration, so even ceil(nrow/2) iterations should be
    * enough. */
-  for (z = 0; z < nrows; z++) {
+  for (z = 0; z < nrow; z++) {
 
 start:
 
     if (debuglevel > 0)
       Rprintf("* beginning iteration %d.\n", z + 1);
 
-    for (i = 0; i < nrows; i++) {
+    for (i = 0; i < nrow; i++) {
 
       /* skip known-good nodes. */
       if (skip[i] == TRUE) continue;
@@ -107,11 +107,11 @@ start:
       rowsums[i] = colsums[i] = crossprod[i] = 0;
 
       /* compute row and column totals for the i-th node. */
-      for (j = 0; j < nrows; j++) {
+      for (j = 0; j < nrow; j++) {
 
-        rowsums[i] += a[CMC(i, j, nrows)];
-        colsums[i] += a[CMC(j, i, nrows)];
-        crossprod[i] += a[CMC(i, j, nrows)] * a[CMC(j, i, nrows)];
+        rowsums[i] += a[CMC(i, j, nrow)];
+        colsums[i] += a[CMC(j, i, nrow)];
+        crossprod[i] += a[CMC(i, j, nrow)] * a[CMC(j, i, nrow)];
 
       }/*FOR*/
 
@@ -130,8 +130,8 @@ there:
           Rprintf("  @ node %s is cannot be part of a cycle.\n", NODE(i));
 
         /* update the adjacency matrix and the row/column totals. */
-        for (j = 0; j < nrows; j++)
-          a[CMC(i, j, nrows)] = a[CMC(j, i, nrows)] = 0;
+        for (j = 0; j < nrow; j++)
+          a[CMC(i, j, nrow)] = a[CMC(j, i, nrow)] = 0;
 
         rowsums[i] = colsums[i] = crossprod[i] = 0;
 
@@ -144,7 +144,7 @@ there:
 
         /* find the other of the undirected arc. */
         for (j = 0; j < i; j++)
-          if (a[CMC(i, j, nrows)] * a[CMC(j, i, nrows)] == 1)
+          if (a[CMC(i, j, nrow)] * a[CMC(j, i, nrow)] == 1)
             break;
 
         /* safety check, just in case. */
@@ -157,7 +157,7 @@ there:
             Rprintf("  @ arc %s - %s is cannot be part of a cycle.\n", NODE(i), NODE(j));
 
           /* update the adjacency matrix and the row/column totals. */
-          a[CMC(i, j, nrows)] = a[CMC(j, i, nrows)] = 0;
+          a[CMC(i, j, nrow)] = a[CMC(j, i, nrow)] = 0;
           crossprod[i] = 0;
           rowsums[i]--;
           colsums[i]--;
@@ -194,16 +194,16 @@ there:
         Rprintf("@ no change in the last iteration.\n");
 
       /* give up and call c_has_path() to kill some undirected arcs. */
-      for (i = 0; i < nrows; i++)
+      for (i = 0; i < nrow; i++)
         for (j = 0; j < i; j++)
-          if (a[CMC(i, j, nrows)] * a[CMC(j, i, nrows)] == 1) {
+          if (a[CMC(i, j, nrow)] * a[CMC(j, i, nrow)] == 1) {
 
             /* remove the arc from the adjacency matrix while testing it,
              * there's a path is always found (the arc itself). */
-            a[CMC(i, j, nrows)] = a[CMC(j, i, nrows)] = 0;
+            a[CMC(i, j, nrow)] = a[CMC(j, i, nrow)] = 0;
 
-            if(!c_has_path(i, j, INTEGER(amat), nrows, nodes, FALSE, TRUE, path, scratch, FALSE) &&
-               !c_has_path(j, i, INTEGER(amat), nrows, nodes, FALSE, TRUE, path, scratch, FALSE)) {
+            if(!c_has_path(i, j, INTEGER(amat), nrow, nodes, FALSE, TRUE, path, scratch, FALSE) &&
+               !c_has_path(j, i, INTEGER(amat), nrow, nodes, FALSE, TRUE, path, scratch, FALSE)) {
 
               if (debuglevel > 0)
                 Rprintf("@ arc %s - %s is not part of any cycle, removing.\n", NODE(i), NODE(j));
@@ -237,7 +237,7 @@ there:
 
 end:
 
-  res = build_return_array(nodes, skip, nrows, check_status, return_nodes);
+  res = build_return_array(nodes, skip, nrow, check_status, return_nodes);
 
   Free1D(skip);
   Free1D(rowsums);

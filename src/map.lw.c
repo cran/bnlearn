@@ -4,22 +4,34 @@
 #include "include/globals.h"
 #include "include/matrix.h"
 
-static double posterior_mean(double *x, double *wgt, int n, int debuglevel) {
+static double posterior_mean(double *x, double *wgt, int n, int *drop,
+    int debuglevel) {
 
 int k = 0;
 long double wsum = 0, wtot = 0;
 
   for (k = 0; k < n; k++) {
 
-    wsum += x[k] * wgt[k];
-    wtot += wgt[k];
+    /* c_lw_weights() can generate NA and NaNs, disregard and print a warning. */
+    if ((wgt[k] == NA_REAL) || (ISNAN(wgt[k]))) {
+
+      (*drop)++;
+
+    }/*THEN*/
+    else {
+
+      wsum += x[k] * wgt[k];
+      wtot += wgt[k];
+
+    }/*ELSE*/
 
   }/*FOR*/
-  wsum /= wtot;
 
   /* if all weights are zero, the predicted value is NA.*/
   if (wtot == 0)
     wsum = NA_REAL;
+  else
+    wsum /= wtot;
 
   if (debuglevel > 0)
     Rprintf("  > prediction is %Lf.\n", wsum);
@@ -37,8 +49,9 @@ int k = 0, res = 0;
 
   for (k = 0; k < n; k++) {
 
-    /* c_rbn_master() may generate NAs, disregard and print a warning. */
-    if (x[k] == NA_INTEGER)
+    /* c_rbn_master() may generate NAs, and c_lw_weights() can generate NaNs as
+     * well, disregard and print a warning. */
+    if ((x[k] == NA_INTEGER) || (wgt[k] == NA_REAL) || (ISNAN(wgt[k])))
       (*drop)++;
     else
       counts[x[k] - 1] += wgt[k];
@@ -190,7 +203,7 @@ long double *lvls_counts = NULL, lvls_tot = 0;
 
         /* average the predicted values. */
         ((double *)res)[i] = posterior_mean((double *)pred, wgt, nsims,
-                               debuglevel);
+                               &drop, debuglevel);
         break;
 
       case INTSXP:

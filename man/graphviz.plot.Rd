@@ -14,7 +14,7 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
 \arguments{
   \item{x}{an object of class \code{bn} or \code{bn.fit}.}
   \item{highlight}{a list, see below.}
-  \item{layout}{a character string, the layout parameter to be passed to
+  \item{layout}{a character string, the layout argument that will be passed to
     \pkg{Rgraphviz}. Possible values are \code{dots}, \code{neato},
     \code{twopi}, \code{circo} and \code{fdp}. See \pkg{Rgraphviz}
     documentation for details.}
@@ -27,7 +27,8 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
 }
 \details{
 
-  The highlight parameter is a list with at least one of the following elements:
+  The \code{highlight} argument is a list with at least one of the following
+  elements:
 
   \itemize{
 
@@ -38,7 +39,7 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
 
   }
 
-  and optionally one or more of the following formatting parameters:
+  and optionally one or more of the following graphical parameters:
 
   \itemize{
 

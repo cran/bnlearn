@@ -171,9 +171,6 @@ data(hailfinder)
       Bayesian system for forecasting severe weather". \emph{International
       Journal of Forecasting}, \strong{12}(1), 57-71.
 
-  Elidan G (2001). "Bayesian Network Repository". \cr
-      \url{http://www.cs.huji.ac.il/site/labs/compbio/Repository}.
-
 }
 \note{
 

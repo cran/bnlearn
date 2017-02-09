@@ -35,5 +35,5 @@ void INV_UPTRI3(int x, int n, int *res);
 #define UPTRI3_MATRIX(n) (n) * ((n) - 1) / 2
 
 /* column-major coordinates for an arbitrary matrix. */
-#define CMC(i, j, nrows) ((i) + (j) * (nrows))
+#define CMC(i, j, nrow) ((i) + (j) * (nrow))
 

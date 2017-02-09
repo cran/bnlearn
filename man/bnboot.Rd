@@ -19,7 +19,8 @@ bn.boot(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
   \item{R}{a positive integer, the number of bootstrap replicates.}
   \item{m}{a positive integer, the size of each bootstrap replicate.}
   \item{sim}{a character string indicating the type of simulation required.
-    Possible values are \code{"ordinary"} (the default) and \code{"parametric"}.}
+    Possible values are \code{"ordinary"} (the default, for nonparametric
+    bootstrap) and \code{"parametric"}.}
   \item{algorithm}{a character string, the learning algorithm to be applied
     to the bootstrap replicates. Possible values are \code{gs}, \code{iamb},
     \code{fast.iamb}, \code{inter.iamb}, \code{mmpc}, \code{hc}, \code{tabu},

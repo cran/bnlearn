@@ -46,7 +46,8 @@
 
     \item \code{loss}: a character string, the label of the loss function.
     \item \code{mean}: the mean of the values of the loss function computed in
-      the \code{k} iterations of the cross-validation.
+      the \code{k} iterations of the cross-validation, which is printed as the
+      "expected loss" or averaged to compute the "average loss over the runs".
     \item \code{bn}: either a character string (the label of the learning
       algorithm to be applied to the training data in each iteration) or an
       object of class \code{bn} (a fixed network structure).

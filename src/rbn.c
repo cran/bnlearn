@@ -4,6 +4,7 @@
 #include "include/dataframe.h"
 #include "include/graph.h"
 #include "include/globals.h"
+#include "include/fitted.h"
 
 void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int num, int ordinal,
     SEXP fixed);
@@ -13,11 +14,6 @@ void rbn_gaussian(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
     int num, SEXP fixed);
 void rbn_mixedcg(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
     SEXP dpar, SEXP gpar, int num, SEXP fixed);
-
-#define CATEGORICAL      1
-#define ORDINAL          2
-#define GAUSSIAN         3
-#define MIXEDCG          4
 
 /* generate random observations from a bayesian network. */
 SEXP rbn_master(SEXP fitted, SEXP n, SEXP fix, SEXP debug) {
@@ -38,10 +34,10 @@ SEXP result;
 
 void c_rbn_master(SEXP fitted, SEXP result, SEXP n, SEXP fix, int debuglevel) {
 
-int num = INT(n), *poset = NULL, *mf = NULL, type = 0;
+int num = INT(n), *poset = NULL, *mf = NULL;
 int has_fixed = (TYPEOF(fix) != LGLSXP);
 int i = 0, k = 0, cur = 0, nnodes = length(fitted), nparents = 0;
-const char *cur_class = NULL;
+fitted_node_e cur_node_type = ENOFIT;
 SEXP nodes, roots, node_depth, cur_node, cur_fixed, match_fixed;
 SEXP cpt = R_NilValue, coefs = R_NilValue, sd = R_NilValue;
 SEXP dpar = R_NilValue, gpar = R_NilValue;
@@ -90,7 +86,7 @@ SEXP parents, parent_vars;
      * of its parents. */
     cur = poset[i];
     cur_node = VECTOR_ELT(fitted, cur);
-    cur_class = CHAR(STRING_ELT(getAttrib(cur_node, R_ClassSymbol), 0));
+    cur_node_type = r_fitted_node_label(cur_node);
     parents = getListElement(cur_node, "parents");
     nparents = length(parents);
 
@@ -102,34 +98,33 @@ SEXP parents, parent_vars;
       cur_fixed = R_NilValue;
 
     /* find out whether the node corresponds to an ordered factor or not. */
-    if (strcmp(cur_class, "bn.fit.onode") == 0) {
+    switch(cur_node_type) {
 
-      cpt = getListElement(cur_node, "prob");
-      type = ORDINAL;
+      case DNODE:
+        cpt = getListElement(cur_node, "prob");
+        break;
 
-    }/*THEN*/
-    else if (strcmp(cur_class, "bn.fit.dnode") == 0) {
+      case ONODE:
+        cpt = getListElement(cur_node, "prob");
+        break;
 
-      cpt = getListElement(cur_node, "prob");
-      type = CATEGORICAL;
+      case GNODE:
+        coefs = getListElement(cur_node, "coefficients");
+        sd = getListElement(cur_node, "sd");
+        break;
 
-    }/*THEN*/
-    else if (strcmp(cur_class, "bn.fit.gnode") == 0) {
+      case CGNODE:
+        coefs = getListElement(cur_node, "coefficients");
+        sd = getListElement(cur_node, "sd");
+        dpar = getListElement(cur_node, "dparents");
+        gpar = getListElement(cur_node, "gparents");
+        break;
 
-      coefs = getListElement(cur_node, "coefficients");
-      sd = getListElement(cur_node, "sd");
-      type = GAUSSIAN;
+      default:
+        error("unknown node type (class: %s).",
+           CHAR(STRING_ELT(getAttrib(cur_node, R_ClassSymbol), 0)));
 
-    }/*THEN*/
-    else if (strcmp(cur_class, "bn.fit.cgnode") == 0) {
-
-      coefs = getListElement(cur_node, "coefficients");
-      sd = getListElement(cur_node, "sd");
-      dpar = getListElement(cur_node, "dparents");
-      gpar = getListElement(cur_node, "gparents");
-      type = MIXEDCG;
-
-    }/*THEN*/
+    }/*SWITCH*/
 
     /* generate the random observations for the current node. */
     if (nparents == 0) {
@@ -144,24 +139,28 @@ SEXP parents, parent_vars;
 
       }/*THEN*/
 
-      switch(type) {
+      switch(cur_node_type) {
 
-        case CATEGORICAL:
+        case DNODE:
           rbn_discrete_root(result, cur, cpt, num, FALSE, cur_fixed);
           break;
 
-        case ORDINAL:
+        case ONODE:
           rbn_discrete_root(result, cur, cpt, num, TRUE, cur_fixed);
           break;
 
-        case GAUSSIAN:
+        case GNODE:
           rbn_gaussian(result, cur, NULL, coefs, sd, num, cur_fixed);
           break;
 
-        case MIXEDCG:
+        case CGNODE:
           /* this cannot happen, a conditional Gaussian node has at least
            * one discrete parent. */
           break;
+
+        default:
+          error("unknown node type (class: %s).",
+             CHAR(STRING_ELT(getAttrib(cur_node, R_ClassSymbol), 0)));
 
       }/*SWITCH*/
 
@@ -188,26 +187,30 @@ SEXP parents, parent_vars;
 
       PROTECT(parent_vars = dataframe_column(result, parents, FALSESEXP));
 
-      switch(type) {
+      switch(cur_node_type) {
 
-        case CATEGORICAL:
+        case DNODE:
           rbn_discrete_cond(result, nodes, cur, parent_vars, cpt, num, FALSE,
             cur_fixed, debuglevel);
           break;
 
-        case ORDINAL:
+        case ONODE:
           rbn_discrete_cond(result, nodes, cur, parent_vars, cpt, num, TRUE,
             cur_fixed, debuglevel);
           break;
 
-        case GAUSSIAN:
+        case GNODE:
           rbn_gaussian(result, cur, parent_vars, coefs, sd, num, cur_fixed);
           break;
 
-        case MIXEDCG:
+        case CGNODE:
           rbn_mixedcg(result, cur, parent_vars, coefs, sd, dpar, gpar, num,
             cur_fixed);
           break;
+
+        default:
+          error("unknown node type (class: %s).",
+             CHAR(STRING_ELT(getAttrib(cur_node, R_ClassSymbol), 0)));
 
       }/*SWITCH*/
 

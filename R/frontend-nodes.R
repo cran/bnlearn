@@ -171,6 +171,47 @@ children = function(x, node) {
 
 }#CHILDREN<-
 
+# get the spouses of a node.
+spouses = function(x, node) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  # a valid node is needed.
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
+
+  chld = children(x, node)
+  sp = sapply(chld, parents)
+
+  return(sp[sp != node])
+
+}#SPOUSES
+
+# get the ancestors of a node.
+ancestors = function(x, node) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  # a valid node is needed.
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
+
+  # the first element is the node itself, which is not its own ancestor.
+  return(schedule(x, start = node, reverse = TRUE)[-1])
+
+}#ANCESTORS
+
+# get the descendants of a node.
+descendants = function(x, node) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  # a valid node is needed.
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
+
+  # the first element is the node itself, which is not its own ancestor.
+  return(schedule(x, start = node)[-1])
+
+}#DESCENDANTS
+
 # get the in-degree of a node.
 in.degree = function(x, node) {
 

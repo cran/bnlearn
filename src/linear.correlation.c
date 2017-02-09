@@ -38,7 +38,7 @@ double tol = MACHINE_TOL;
 }/*C_FAST_COR2*/
 
 /* Partial Linear Correlation. */
-double c_fast_pcor(double *cov, double *u, double *d, double *vt, int ncols,
+double c_fast_pcor(double *cov, double *u, double *d, double *vt, int ncol,
     int strict) {
 
 int i = 0, errcode = 0;
@@ -46,7 +46,7 @@ double res = 0, k11 = 0, k12 = 0, k22 = 0;
 double tol = MACHINE_TOL, sv_tol = 0;
 
   /* compute the singular value decomposition of the covariance matrix. */
-  c_svd(cov, u, d, vt, &ncols, &ncols, &ncols, FALSE, &errcode);
+  c_svd(cov, u, d, vt, &ncol, &ncol, &ncol, FALSE, &errcode);
 
   if (errcode != 0) {
 
@@ -69,17 +69,17 @@ double tol = MACHINE_TOL, sv_tol = 0;
   }/*THEN*/
 
   /* set the threshold for the singular values as in corpcor. */
-  sv_tol = ncols * d[0] * tol * tol;
+  sv_tol = ncol * d[0] * tol * tol;
 
   /* compute the three elements of the pseudoinverse needed
    * for the partial correlation coefficient. */
-  for (i = 0; i < ncols; i++) {
+  for (i = 0; i < ncol; i++) {
 
     if (d[i] > sv_tol) {
 
-      k11 += u[CMC(0, i, ncols)] * vt[CMC(i, 0, ncols)] / d[i];
-      k12 += u[CMC(0, i, ncols)] * vt[CMC(i, 1, ncols)] / d[i];
-      k22 += u[CMC(1, i, ncols)] * vt[CMC(i, 1, ncols)] / d[i];
+      k11 += u[CMC(0, i, ncol)] * vt[CMC(i, 0, ncol)] / d[i];
+      k12 += u[CMC(0, i, ncol)] * vt[CMC(i, 1, ncol)] / d[i];
+      k22 += u[CMC(1, i, ncol)] * vt[CMC(i, 1, ncol)] / d[i];
 
     }/*THEN*/
 

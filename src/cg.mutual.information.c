@@ -2,6 +2,7 @@
 #include "include/scores.h"
 #include "include/sets.h"
 #include "include/tests.h"
+#include "include/covariance.h"
 
 /* unconditional mutual information, to be used in C code. */
 double c_micg(double *yy, double ym, double ysd, int *xx, int llx, int num) {
@@ -30,7 +31,9 @@ double lognum = 0, logden = 0, *mu = NULL, *sd = NULL;
   for (i = 0; i < num; i++)
     sd[xx[i] - 1] += (yy[i] - mu[xx[i] - 1]) * (yy[i] - mu[xx[i] - 1]);
   for (i = 0; i < llx; i++)
-    sd[i] = sqrt(sd[i] / (ni[i] - 1));
+    SD_GUARD(ni[i], 1, sd[i],
+      sd[i] = sqrt(sd[i] / (ni[i] - 1));
+    )
 
   /* compute the numerator (model under the alternative). */
   for (i = 0; i < num; i++)

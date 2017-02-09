@@ -44,8 +44,9 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
       # sanity check the distribution by comparing it to the network structure.
       if (is(dist[[node]]$coef, "matrix")) {
 
-        check.cgnode.vs.spec(dist[[node]], old = fitted[[node]]$parents,
-          node = node)
+        dist[[node]] =
+          check.cgnode.vs.spec(dist[[node]], old = fitted[[node]]$parents,
+            node = node, discrete = discrete[fitted[[node]]$parents])
         # set the correct class for method dispatch.
         class(fitted[[node]]) = "bn.fit.cgnode"
 
@@ -131,9 +132,6 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
         # identify discrete and continuous parents and configurations.
         parents = fitted[[node]]$parents
         configs = as.character(seq(from = 0, to = ncol(dist[[node]]$coef) - 1))
-        # store the new coefficients and standard deviations.
-        fitted[[node]]$coefficients = noattr(dist[[node]]$coef)
-        fitted[[node]]$sd = structure(noattr(dist[[node]]$sd), names = configs)
         # identify discrete and continuous parents.
         dparents = as.integer(which(discrete[parents]))
         gparents = as.integer(which(!discrete[parents]))
@@ -143,6 +141,9 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
         dlevels = sapply(parents[dparents],
           function(x) dimnames(dist[[x]])[[1]], simplify = FALSE)
         fitted[[node]]$dlevels = dlevels
+        # store the new coefficients and standard deviations.
+        fitted[[node]]$coefficients = noattr(dist[[node]]$coef)
+        fitted[[node]]$sd = structure(noattr(dist[[node]]$sd), names = configs)
         # reset columns names for the coefficients and names for sd.
         colnames(fitted[[node]]$coefficients) =
           names(fitted[[node]]$sd) = configs

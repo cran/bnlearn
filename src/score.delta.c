@@ -40,10 +40,18 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
     for (i = 0; i < length(cur_p); i++)
       SET_STRING_ELT(parents_to, i, STRING_ELT(cur_p, i));
     SET_STRING_ELT(parents_to, length(cur_p), STRING_ELT(arc, 0));
-
     SET_VECTOR_ELT(temp, 0, parents_to);
-    if (children)
-      SET_VECTOR_ELT(temp, 1, getListElement(cur_n, "children"));
+
+    if (children) {
+
+      /* make sure the other endpoint of the arc is not a parent and a child
+       * at the same time. */
+      cur_c = getListElement(cur_n, "children");
+      PROTECT(cur_c = string_delete(cur_c, mkString(from), NULL));
+      SET_VECTOR_ELT(temp, 1, cur_c);
+      UNPROTECT(1);
+
+    }/*THEN*/
 
     if (both) {
 
@@ -64,13 +72,18 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
       for (i = 0; i < length(cur_c); i++)
         SET_STRING_ELT(children_from, i, STRING_ELT(cur_c, i));
       SET_STRING_ELT(children_from, length(cur_c), STRING_ELT(arc, 1));
-
-      SET_VECTOR_ELT(temp, 0, getListElement(cur_n, "parents"));
       SET_VECTOR_ELT(temp, 1, children_from);
+
+      /* make sure the other endpoint of the arc is not a parent and a child
+       * at the same time. */
+      cur_p = getListElement(cur_n, "parents");
+      PROTECT(cur_p = string_delete(cur_p, mkString(to), NULL));
+      SET_VECTOR_ELT(temp, 0, cur_p);
+
       /* assign the first node. */
       SET_VECTOR_ELT(nodes, 0, temp);
 
-      UNPROTECT(1);
+      UNPROTECT(2);
 
     }/*THEN*/
     else {
@@ -167,8 +180,16 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
     SET_STRING_ELT(parents_from, length(cur_p), STRING_ELT(arc, 1));
 
     SET_VECTOR_ELT(temp, 0, parents_from);
-    if (children)
-      SET_VECTOR_ELT(temp, 1, getListElement(cur_n, "children"));
+    if (children) {
+
+      /* remove "to" from the children of "from". */
+      cur_c = getListElement(cur_n, "children");
+      PROTECT(cur_c = string_delete(cur_c, mkString(to), NULL));
+      SET_VECTOR_ELT(temp, 1, cur_c);
+      UNPROTECT(1);
+
+    }/*THEN*/
+
     SET_VECTOR_ELT(nodes, 0, duplicate(temp));
 
     /* remove "from" from the parents of "to". */
@@ -241,6 +262,7 @@ SEXP delta, fake, new_score, try, to_update;
   /* compute the updated scores with the fake newtork. */
   PROTECT(new_score = allocVector(REALSXP, length(to_update)));
   new = REAL(new_score);
+  memset(new, '\0', length(new_score) * sizeof(double));
   c_per_node_score(fake, data, score, to_update, extra, FALSE, new);
   /* update the test counter. */
   test_counter += length(new_score);
@@ -277,7 +299,7 @@ int *t = NULL;
 const char *o = CHAR(STRING_ELT(op, 0));
 double retval = 0, *new = 0, *old = NULL, new_prior = 0, old_prior = 0;
 SEXP fake, prior, cs_prior, order, try, delta, new_score;
-SEXP fake_nodes, real_nodes, target;
+SEXP fake_nodes, real_nodes, target, off_target, rev_arc, temp;
 
   /* get the prior specification. */
   prior = getListElement(extra, "prior");
@@ -287,76 +309,115 @@ SEXP fake_nodes, real_nodes, target;
   PROTECT(try = match(order, arc, 0));
   t = INTEGER(try);
 
-  if ((t[0] > t[1]) || (strcmp(o, "reverse") == 0)) {
+  /* create a fake network with the updated structure, including children. */
+  PROTECT(fake = score_delta_helper(network, arc, op, TRUE, TRUE));
+  /* find out which nodes to update from the fake structure. */
+  fake_nodes = getListElement(fake, "nodes");
+  PROTECT(target = allocVector(STRSXP, 1));
+  SET_STRING_ELT(target, 0, STRING_ELT(arc, 1));
+  PROTECT(off_target = allocVector(STRSXP, 1));
+  SET_STRING_ELT(off_target, 0, STRING_ELT(arc, 0));
+  /* compute the one score component that needs recomputing. */
+  PROTECT(new_score = allocVector(REALSXP, 2));
+  new = REAL(new_score);
+  memset(new, '\0', 2 * sizeof(double));
+  if (strcmp(o, "reverse") == 0)
+    c_per_node_score(fake, data, score, arc, extra, FALSE, new);
+  else
+    c_per_node_score(fake, data, score, target, extra, FALSE, new + 1);
+  /* update the test counter. */
+  test_counter++;
 
-    UNPROTECT(1);
+  if ((t[0] < t[1]) || (strcmp(o, "reverse") == 0)) {
 
-    return score_delta_decomposable(arc, network, data, score, score_delta,
-             reference_score, op, extra, TRUE);
+    new_prior = graph_prior_prob(prior, target, cs_prior, fake_nodes, FALSE);
+    new_prior += graph_prior_prob(prior, off_target, cs_prior, fake_nodes, FALSE);
+    real_nodes = getListElement(network, "nodes");
+    old_prior = graph_prior_prob(prior, target, cs_prior, real_nodes, FALSE);
+    old_prior += graph_prior_prob(prior, off_target, cs_prior, real_nodes, FALSE);
 
   }/*THEN*/
-  else {
 
-    /* create a fake network with the updated structure, including children. */
-    PROTECT(fake = score_delta_helper(network, arc, op, TRUE, TRUE));
-    /* find out which nodes to update from the fake structure. */
-    fake_nodes = getListElement(fake, "nodes");
-    PROTECT(target = allocVector(STRSXP, 1));
-    SET_STRING_ELT(target, 0, STRING_ELT(arc, 1));
-    /* compute the one score component that needs recomputing. */
-    PROTECT(new_score = allocVector(REALSXP, 2));
-    new = REAL(new_score);
-    c_per_node_score(fake, data, score, target, extra, FALSE, new + 1);
-    /* update the test counter. */
-    test_counter++;
+  /* when trying to add a new arc, make sure the prior from the reference
+   * score does not cover the reverse arc. */
+  if (strcmp(o, "set") == 0) {
 
-    /* update the prior of the other one. */
-    SET_STRING_ELT(target, 0, STRING_ELT(arc, 0));
+    real_nodes = getListElement(network, "nodes");
 
-    fake_nodes = VECTOR_ELT(fake_nodes, 0);
-    new_prior = graph_prior_prob(prior, target, fake_nodes, cs_prior, FALSE);
-    real_nodes = VECTOR_ELT(getListElement(network, "nodes"), t[0] - 1);
-    old_prior = graph_prior_prob(prior, target, real_nodes, cs_prior, FALSE);
+    temp = getListElement(real_nodes, (char *)CHAR(STRING_ELT(off_target, 0)));
+    temp = getListElement(temp, "parents");
 
-    old = REAL(reference_score);
-    new[0] = old[t[0] - 1] - old_prior + new_prior;
+    if (length(temp) > 0)
+      if (INT(match(temp, target, 0)) != 0) {
 
-    /* compute the difference. */
-    if (length(new_score) == 1)
-      retval = robust_score_difference(old[t[0] - 1], 0, new[0], 0);
-    else
-      retval = robust_score_difference(old[t[0] - 1], old[t[1] - 1], new[0], new[1]);
+      old_prior -= graph_prior_prob(prior, target, cs_prior, real_nodes, FALSE);
+      old_prior -= graph_prior_prob(prior, off_target, cs_prior, real_nodes, FALSE);
 
-    /* build the return value. */
-    PROTECT(delta = allocVector(VECSXP, 3));
-    SET_VECTOR_ELT(delta, 0, ScalarLogical(retval > 0));
-    SET_VECTOR_ELT(delta, 1, ScalarReal(retval));
-    SET_VECTOR_ELT(delta, 2, new_score);
-    setAttrib(delta, R_NamesSymbol, mkStringVec(3, "bool", "delta", "updates"));
+      PROTECT(rev_arc = allocVector(STRSXP, 2));
+      SET_STRING_ELT(rev_arc, 0, STRING_ELT(arc, 1));
+      SET_STRING_ELT(rev_arc, 1, STRING_ELT(arc, 0));
 
-    UNPROTECT(5);
+      PROTECT(real_nodes = score_delta_helper(network, rev_arc, mkString("drop"), TRUE, TRUE));      
+      real_nodes = getListElement(real_nodes, "nodes");
 
-    return delta;
+      old_prior += graph_prior_prob(prior, target, cs_prior, real_nodes, FALSE);
+      old_prior += graph_prior_prob(prior, off_target, cs_prior, real_nodes, FALSE);
 
-  }/*ELSE*/
+      UNPROTECT(2);
+
+    }/*THEN*/
+
+  }/*THEN*/
+
+
+  old = REAL(reference_score);
+  if (strcmp(o, "reverse") != 0)
+     new[0] = old[t[0] - 1] - old_prior + new_prior;
+  else
+     new[0] -= - old_prior + new_prior;
+
+  retval = robust_score_difference(old[t[0] - 1], old[t[1] - 1], new[0], new[1]);
+
+  /* build the return value. */
+  PROTECT(delta = allocVector(VECSXP, 3));
+  SET_VECTOR_ELT(delta, 0, ScalarLogical(retval > 0));
+  SET_VECTOR_ELT(delta, 1, ScalarReal(retval));
+  SET_VECTOR_ELT(delta, 2, new_score);
+  setAttrib(delta, R_NamesSymbol, mkStringVec(3, "bool", "delta", "updates"));
+
+  UNPROTECT(6);
+
+  return delta;
 
 }/*SCORE_DELTA_CS*/
 
 SEXP score_delta_monolithic(SEXP arc, SEXP network, SEXP data, SEXP score,
     SEXP score_delta, SEXP reference_score, SEXP op, SEXP extra) {
 
-const char *s = CHAR(STRING_ELT(score, 0));
+  switch(score_label(CHAR(STRING_ELT(score, 0)))) {
 
-  if ((strcmp(s, "bde") == 0) || (strcmp(s, "bge") == 0) ||
-      (strcmp(s, "bds") == 0) || (strcmp(s, "mbde") == 0)) {
+    case BDE:
+    case BDS:
+    case MBDE:
+    case BGE:
 
-    const char *prior = CHAR(STRING_ELT(getListElement(extra, "prior"), 0));
+      switch(gprior_label(CHAR(STRING_ELT(getListElement(extra, "prior"), 0)))) {
 
-    if (strcmp(prior, "cs") == 0)
-      return score_delta_cs(arc, network, data, score, score_delta,
-               reference_score, op, extra);
+        case CS:
+        case MU:
+          return score_delta_cs(arc, network, data, score, score_delta,
+                   reference_score, op, extra);
 
-  }/*THEN*/
+        default:
+          error("uknown prior in monolithic score function.");
+
+      }/*SWITCH*/
+
+
+    default:
+      error("unknown monolithic score function.");
+
+  }/*SWITCH*/
 
   return R_NilValue;
 

@@ -16,8 +16,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 4.0\cr
-    Date: \tab 2016-05-12\cr
+    Version: \tab 4.1\cr
+    Date: \tab 2016-02-09\cr
     License: \tab GPLv2 or later
 
   }
@@ -80,11 +80,11 @@
 
   \itemize{
 
-    \item an optimized implementation (used when the \code{optimized} parameter
+    \item an optimized implementation (used when the \code{optimized} argument
       is set to \code{TRUE}), which uses backtracking to initialize the
       learning process of each node.
     \item an unoptimized implementation (used when the \code{optimized}
-      parameter is set to \code{FALSE}) which is better at uncovering possible
+      argument is set to \code{FALSE}) which is better at uncovering possible
       erratic behaviour of the statistical tests.
     \item a cluster-aware implementation, which requires a running cluster set
       up with the \code{makeCluster} function from the \pkg{parallel} package.
@@ -352,7 +352,7 @@
   A is in the Markov blanket of B but not vice versa), or that some arc 
   directions conflict with each other.
 
-  The \code{strict} parameter enables some measure of error correction for such
+  The \code{strict} argument enables some measure of error correction for such
   inconsistencies, which may help to retrieve a good model when the learning
   process would otherwise fail:
 

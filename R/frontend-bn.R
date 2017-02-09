@@ -125,6 +125,14 @@ cpdag = function(x, moral = TRUE, wlbl = FALSE, debug = FALSE) {
   # check whether the graph is acyclic, to be sure to return a DAG.
   if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
     stop("the specified network contains cycles.")
+  # check that illegal arcs are not present in the DAG.
+  if (any(which.listed(x$arcs, x$learning$illegal)))
+    stop("illegal arcs present in the graph.")
+  # if whitelist and blacklist are to be enforced, check that they are
+  # consistent with the graph.
+  if (wlbl)
+    if (any(which.listed(x$arcs, x$learning$blacklist)))
+      stop("blacklisted arcs present in the graph.")
 
   cpdag.backend(x = x, moral = moral, fix = FALSE, wlbl = wlbl, debug = debug)
 
@@ -220,3 +228,19 @@ dsep = function(bn, x, y, z) {
   dseparation(bn = bn, x = x, y = y, z = z)
 
 }#DSEP
+
+# test the equality of two fitted networks.
+all.equal.bn.fit = function(target, current, ..., 
+    tolerance = sqrt(.Machine$double.eps)) {
+
+  # check the class of target and current.
+  check.fit(target)
+  check.fit(current)
+  # warn about unused arguments, but silently ignore those set by 
+  # all.equal.list() that are not in the generic function.
+  check.unused.args(list(...), c("use.names", "check.attributes"))
+
+  equal.backend.fit(target = target, current = current, tolerance = tolerance)
+
+}#ALL.EQUAL.BN.FIT
+

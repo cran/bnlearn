@@ -175,8 +175,8 @@ SEXP mb, labels, try, temp, node_data;
     if (status[j] != CHILD)
       continue;
 
-      node_data = VECTOR_ELT(bn, j);
-      MATCH_NODES("parents", BLANKET);
+    node_data = VECTOR_ELT(bn, j);
+    MATCH_NODES("parents", BLANKET);
 
   }/*FOR*/
 

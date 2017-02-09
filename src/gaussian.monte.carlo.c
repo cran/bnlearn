@@ -6,7 +6,7 @@
 #include "include/blas.h"
 #include "include/matrix.h"
 
-static double mc_fast_pcor(double *covariance, int ncols, double *u, double *d,
+static double mc_fast_pcor(double *covariance, int ncol, double *u, double *d,
     double *vt, int *errcode);
 static double mc_cov(double *xx, double *yy, double xm, double ym, int n);
 
@@ -124,7 +124,7 @@ int *perm = NULL, *work = NULL;
 }/*C_GAUSS_MCARLO*/
 
 /* conditional Monte Carlo simulation for correlation-based tests. */
-void c_gauss_cmcarlo(double **column, int ncols, int num, int B,
+void c_gauss_cmcarlo(double **column, int ncol, int num, int B,
     double *observed, double *pvalue, double alpha, test_e test) {
 
 int j = 0, k = 0, errcode = 0, *work = NULL, *perm = NULL;
@@ -135,16 +135,16 @@ double *mean = NULL, *covariance = NULL, *covariance_backup = NULL;
 double *u = NULL, *d = NULL, *vt = NULL;
 
   /* cache the means of the variables (they are invariant under permutation). */
-  mean = Calloc1D(ncols, sizeof(double));
+  mean = Calloc1D(ncol, sizeof(double));
   /* compute the mean values  */
-  c_meanvec(column, mean, num, ncols, 0);
+  c_meanvec(column, mean, num, ncol, 0);
 
   /* allocate and initialize the covariance matrix. */
-  covariance = Calloc1D(ncols * ncols, sizeof(double));
-  c_covmat(column, mean, ncols, num, covariance, 0);
+  covariance = Calloc1D(ncol * ncol, sizeof(double));
+  c_covmat(column, mean, num, ncol, covariance, 0);
 
   /* if at least one of the two variables is constant, they are independent. */
-  if ((covariance[CMC(0, 0, ncols)] == 0) || (covariance[CMC(1, 1, ncols)] == 0)) {
+  if ((covariance[CMC(0, 0, ncol)] == 0) || (covariance[CMC(1, 1, ncol)] == 0)) {
 
     *observed = 0;
     *pvalue = 1;
@@ -157,11 +157,11 @@ double *u = NULL, *d = NULL, *vt = NULL;
   }/*THEN*/
 
   /* allocate the matrices needed for the SVD decomposition. */
-  c_udvt(&u, &d, &vt, ncols);
+  c_udvt(&u, &d, &vt, ncol);
 
   /* make a backup copy that will not be touched by permutations. */
-  covariance_backup = Calloc1D(ncols * ncols, sizeof(double));
-  memcpy(covariance_backup, covariance, ncols * ncols * sizeof(double));
+  covariance_backup = Calloc1D(ncol * ncol, sizeof(double));
+  memcpy(covariance_backup, covariance, ncol * ncol * sizeof(double));
 
   /* substitute the original data with the fake column that will be permuted. */
   yperm = Calloc1D(num, sizeof(double));
@@ -179,7 +179,7 @@ double *u = NULL, *d = NULL, *vt = NULL;
   /* pick up the observed value of the test statistic, then generate a set of
      random permutations (all variable but the second are fixed) and check how
      many tests are greater (in absolute value) than the original one.*/
-  *observed = mc_fast_pcor(covariance, ncols, u, d, vt, &errcode);
+  *observed = mc_fast_pcor(covariance, ncol, u, d, vt, &errcode);
 
   if (errcode)
     error("an error (%d) occurred in the call to dgesvd().\n", errcode);
@@ -195,11 +195,11 @@ double *u = NULL, *d = NULL, *vt = NULL;
       yperm[k] = yorig[perm[k] - 1];
 
     /* restore the covariance matrix from the good copy. */
-    memcpy(covariance, covariance_backup, ncols * ncols * sizeof(double));
+    memcpy(covariance, covariance_backup, ncol * ncol * sizeof(double));
     /* update the relevant covariances. */
-    c_update_covmat(column, mean, 1, ncols, num, covariance);
+    c_update_covmat(column, mean, 1, num, ncol, covariance);
 
-    permuted = mc_fast_pcor(covariance, ncols, u, d, vt, &errcode);
+    permuted = mc_fast_pcor(covariance, ncol, u, d, vt, &errcode);
 
     if (errcode != 0)
       error_counter++;
@@ -231,7 +231,7 @@ double *u = NULL, *d = NULL, *vt = NULL;
     case MC_ZF:
     case SMC_ZF:
       /* check whether the sample size is big enough for the transform. */
-      if (num - 1 - ncols < 1) {
+      if (num - 1 - ncol < 1) {
 
         warning("sample size too small to compute the Fisher's Z transform.");
         *observed = 0;
@@ -239,7 +239,7 @@ double *u = NULL, *d = NULL, *vt = NULL;
       }/*THEN*/
       else {
 
-        *observed = cor_zf_trans(*observed, (double)num - ncols);
+        *observed = cor_zf_trans(*observed, (double)num - ncol);
 
       }/*ELSE*/
 
@@ -284,33 +284,33 @@ double sum = 0;
 
 }/*MC_COV*/
 
-static double mc_fast_pcor(double *covariance, int ncols, double *u, double *d,
+static double mc_fast_pcor(double *covariance, int ncol, double *u, double *d,
     double *vt, int *errcode) {
 
 int i = 0, coord1 = 0, coord2 = 0;
 double k11 = 0, k12 = 0, k22 = 0;
 double res = 0, tol = MACHINE_TOL, sv_tol = 0;
 
-  c_svd(covariance, u, d, vt, &ncols, &ncols, &ncols, FALSE, errcode);
+  c_svd(covariance, u, d, vt, &ncol, &ncol, &ncol, FALSE, errcode);
 
   if (*errcode != 0)
     return 0;
 
   /* set the threshold for the singular values as in corpcor. */
-  sv_tol = ncols * d[0] * tol * tol;
+  sv_tol = ncol * d[0] * tol * tol;
 
   /* compute the three elements of the pseudoinverse needed
    * for the partial correlation coefficient. */
-  for (i = 0; i < ncols; i++) {
+  for (i = 0; i < ncol; i++) {
 
     if (d[i] > sv_tol) {
 
-      coord1 = CMC(0, i, ncols);
-      coord2 = CMC(i, 1, ncols);
+      coord1 = CMC(0, i, ncol);
+      coord2 = CMC(i, 1, ncol);
 
-      k11 += u[coord1] * vt[CMC(i, 0, ncols)] / d[i];
+      k11 += u[coord1] * vt[CMC(i, 0, ncol)] / d[i];
       k12 += u[coord1] * vt[coord2] / d[i];
-      k22 += u[CMC(1, i, ncols)] * vt[coord2] / d[i];
+      k22 += u[CMC(1, i, ncol)] * vt[coord2] / d[i];
 
     }/*THEN*/
 

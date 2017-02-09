@@ -52,91 +52,54 @@ SEXP temp;
 double c_fast_ccgloglik(double *xx, double **gp, int ngp, int nobs, int *config,
     int nconfig) {
 
-int i = 0, j = 0, k = 0, l = 0, batch = 0;
-double res = 0, *subset = NULL, *fitted = NULL, *response = NULL;
-long double sd = 0;
+int i = 0, j = 0;
+double res = 0, *fitted = NULL, *sd = NULL;
+
+  /* allocate the fitted values and the standard error. */
+  fitted = Calloc1D(nobs, sizeof(double));
+  sd = Calloc1D((!config) ? 1 : nconfig, sizeof(double));
 
   /* if the regression is conditional on config, iterate over its values,
    * otherwise fit using the whole sample. */
   if (!config) {
 
-    /* allocate the array of continuous columns (plus the intercept). */
-    subset = Calloc1D(nobs * (ngp + 1), sizeof(double));
-    /* allocate the fitted values and the response variable. */
-    fitted = Calloc1D(nobs, sizeof(double));
-    /* initialize the intercept. */
-    for (j = 0; j < nobs; j++)
-      subset[CMC(j, 0, batch)] = 1;
-    /* copy the data from the continuous parents. */
-    for (k = 0; k < ngp; k++)
-      memcpy(subset + (k + 1) * nobs, gp[k], nobs * sizeof(double));
+    c_ols(gp, xx, nobs, ngp, fitted, NULL, NULL, sd);
 
-    /* estimate OLS using the QR decomposition. */
-    c_qr_ols(subset, xx, nobs, ngp + 1, fitted, &sd);
     /* compute the log-likelihood (singular models haze zero density). */
-    if (sd < MACHINE_TOL)
+    if (*sd < MACHINE_TOL)
       res = R_NegInf;
     else
       for (j = 0; j < nobs; j++)
-        res += dnorm(xx[j], fitted[j], (double)sd, TRUE);
-
-    Free1D(subset);
-    Free1D(fitted);
+        res += dnorm(xx[j], fitted[j], *sd, TRUE);
 
   }/*THEN*/
   else {
 
-    /* iterate over the configurations. */
-    for (i = 1; i <= nconfig; i++) {
+    c_cls(gp, xx, config, nobs, ngp, nconfig, fitted, NULL, NULL, sd);
 
-      /* count how many observations have this parents' configuration. */
-      for (j = 0, batch = 0; j < nobs; j++)
-        if (config[j] == i)
-          batch++;
+    /* if any standard error is zero, the model is singular and has density
+     * zero. */
+    for (i = 0; i < nconfig; i++) {
 
-      /* no observations for this configuration, skip. */
-      if (batch == 0)
-        continue;
+      if (sd[i] < MACHINE_TOL) {
 
-      /* allocate the array of continuous columns (plus the intercept). */
-      subset = Calloc1D(batch * (ngp + 1), sizeof(double));
-      /* allocate the fitted values and the response variable. */
-      fitted = Calloc1D(batch, sizeof(double));
-      response = Calloc1D(batch, sizeof(double));
-      /* initialize the intercept. */
-      for (j = 0; j < batch; j++)
-        subset[CMC(j, 0, batch)] = 1;
-      /* copy the data from the continuous parents. */
-      for (k = 0; k < ngp; k++)
-        for (j = 0, l = 0; j < nobs; j++)
-          if (config[j] == i)
-            subset[CMC(l++, k + 1, batch)] = gp[k][j];
-      /* do the same with the response variable. */
-      for (j = 0, l = 0; j < nobs; j++)
-        if (config[j] == i)
-           response[l++] = xx[j];
-
-      /* estimate OLS using the QR decomposition. */
-      c_qr_ols(subset, response, batch, ngp + 1, fitted, &sd);
-      /* compute the log-likelihood (singular models haze zero density). */
-      if (sd < MACHINE_TOL)
         res = R_NegInf;
-      else
-        for (j = 0; j < batch; j++)
-          res += dnorm(response[j], fitted[j], (double)sd, TRUE);
+        goto end;
 
-      Free1D(subset);
-      Free1D(fitted);
-      Free1D(response);
-
-      /* if the log-likelihood has degenerated into a point mass, there's no
-       * reason to go on with more batches. */
-      if (!R_FINITE(res))
-        break;
+     }/*FOR*/
 
     }/*FOR*/
 
+    /* if the model is not singular compute the log-likelihood. */
+    for (j = 0; j < nobs; j++)
+      res += dnorm(xx[j], fitted[j], sd[config[j] - 1], TRUE);
+
   }/*ELSE*/
+
+end:
+
+  Free1D(fitted);
+  Free1D(sd);
 
   return res;
 

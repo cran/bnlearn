@@ -10,7 +10,7 @@
 
 }
 \usage{
-score(x, data, type = NULL, ..., debug = FALSE)
+score(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
 
 \method{logLik}{bn}(object, data, ...)
 \method{AIC}{bn}(object, data, ..., k = 1)
@@ -24,18 +24,21 @@ score(x, data, type = NULL, ..., debug = FALSE)
     specified, the default score is the \emph{Bayesian Information Criterion}
     for both discrete and continuous data sets. See 
     \code{\link{bnlearn-package}} for details.}
+  \item{by.node}{a boolean value. If \code{TRUE} and the score is decomposable,
+    the function returns the individual node contributions to the score;
+    otherwise it returns their sum (the overall score of \code{x}).}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
   \item{\dots}{extra arguments from the generic method (for the \code{AIC} and
     \code{logLik} functions, currently ignored) or additional tuning parameters
     (for the \code{score} function).}
-  \item{k}{a numeric value, the penalty per parameter to be used; the default
+  \item{k}{a numeric value, the penalty coefficient to be used; the default
     \code{k = 1} gives the expression used to compute the AIC in the context of
     scoring Bayesian networks.}
 }
 \details{
 
-  Additional parameters of the \code{score} function:
+  Additional arguments of the \code{score} function:
 
   \itemize{
 
@@ -48,7 +51,7 @@ score(x, data, type = NULL, ..., debug = FALSE)
       have been artificially manipulated). Each element of the list must be
       named after one of the nodes, and must contain a numeric vector with 
       indexes of the observations whose value has been manipulated for that node.
-    \item \code{k}: the penalty per parameter to be used by the AIC and BIC 
+    \item \code{k}: the penalty coefficient to be used by the AIC and BIC 
       scores. The default value is \code{1} for AIC and \code{log(nrow(data))/2}
       for BIC.
     \item \code{phi}: the prior phi matrix formula to use in the Bayesian
@@ -124,7 +127,9 @@ score(x, data, type = NULL, ..., debug = FALSE)
 }
 \value{
 
-  A numeric value, the score of the Bayesian network.
+  For \code{score} with \code{by.node = TRUE}, a vector of numeric values, the
+  individual node contributions to the score of the Bayesian network.
+  Otherwise, a single numeric value, the score of the Bayesian network.
 
 }
 \examples{

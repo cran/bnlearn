@@ -1,0 +1,96 @@
+\name{impute}
+\alias{impute}
+\alias{predict.bn.fit}
+\title{Predict or Impute Missing Data from a Bayesian Network}
+\description{
+
+  Impute missing values in a data set from a Bayesian network.
+
+}
+\usage{
+\method{predict}{bn.fit}(object, node, data, method = "parents", ..., prob = FALSE,
+  debug = FALSE)
+
+impute(object, data, method = "parents", ..., debug = FALSE)
+}
+\arguments{
+  \item{object}{an object of class \code{bn.fit} for \code{impute}; or an
+    object of class \code{bn} or \code{bn.fit} for \code{predict}.}
+  \item{data}{a data frame containing the data to be imputed. Complete
+    observations will be ignored.}
+  \item{node}{a character string, the label of a node.}
+  \item{method}{a character string, the method used to impute the missing
+    values or predict new ones.}
+  \item{\dots}{additional arguments for the imputation method. See below.}
+  \item{prob}{a boolean value. If \code{TRUE} and \code{object} is a discrete
+    network, the probabilities used for prediction are attached to the
+    predicted values as an attribute called \code{prob}.}
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
+    printed; otherwise the function is completely silent.}
+}
+\details{
+
+  \code{predict} returns the predicted values for \code{node} given the data
+  specified by \code{data} and the fitted network. Depending on the value of
+  \code{method}, the predicted values are computed as follows.
+  \itemize{
+    \item \code{parents}: the predicted values are computed by plugging in
+      the new values for the parents of \code{node} in the local probability
+      distribution of \code{node} extracted from \code{fitted}.
+    \item \code{bayes-lw}: the predicted values are computed by averaging
+      likelihood weighting simulations performed using all the available nodes
+      as evidence (obviously, with the exception of the node whose values we
+      are predicting). The number of random samples which are averaged for each
+      new observation is controlled by the \code{n} optional argument; the
+      default is \code{500}. If the variable being predicted is discrete, the
+      predicted level is that with the highest conditional probability. If the
+      variable is continuous, the predicted value is the expected value of the
+      conditional distribution. The variables that are used to compute the
+      predicted values can be specified with the \code{from} optional argument;
+      the default is to use all the relevant variables from the data.
+  }
+
+  \code{impute} is based on \code{predict}, and can impute missing values
+  with the same \code{methods} (\code{parents} and \code{bayes-lw}). The
+  latter can take an additional argument \code{n} with the number of random
+  samples which are averaged for each observation.
+
+}
+\note{
+
+  Ties in prediction are broken using \emph{Bayesian tie breaking}, i.e.
+  sampling at random from the tied values. Therefore, setting the random seed
+  is required to get reproducible results.
+
+  \code{predict} accepts either a \code{bn} or a \code{bn.fit} object as its
+  first argument. For the former, the parameters of the network are fitted on
+  \code{data}, that is, the observations whose class labels the function is
+  trying to predict.
+
+}
+\value{
+
+  \code{predict} returns a numeric vector (for Gaussian and conditional
+  Gaussian nodes), a factor (for categorical nodes) or an ordered factor (for
+  ordinal nodes). If \code{prob = TRUE} and the network is discrete, the
+  probabilities used for prediction are attached to the predicted values as
+  an attribute called \code{prob}.
+
+  \code{impute} returns a data frame with the same structure as \code{data}.
+
+}
+\examples{
+with.missing.data = gaussian.test
+with.missing.data[sample(nrow(with.missing.data), 500), "F"] = NA
+fitted = bn.fit(model2network("[A][B][E][G][C|A:B][D|B][F|A:D:E:G]"),
+           gaussian.test)
+imputed = impute(fitted, with.missing.data)
+
+training = bn.fit(model2network("[A][B][E][G][C|A:B][D|B][F|A:D:E:G]"),
+           gaussian.test[1:2000, ])
+test = gaussian.test[2001:nrow(gaussian.test), ]
+predicted = predict(training, node = "F", data = test)
+}
+\author{ Marco Scutari }
+\keyword{multivariate}
+\keyword{models}

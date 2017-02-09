@@ -12,7 +12,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
   # check whether the score is score-equivalent.
   score.equivalence = is.score.equivalent(score, nodes, extra.args)
   # check whether the score is decomposable.
-  score.decomposability = is.score.decomposable(score, nodes, extra.args)
+  score.decomposability = is.score.decomposable(score, extra.args)
   # allocate the cache matrix.
   cache = matrix(0, nrow = n.nodes, ncol = n.nodes)
   # nodes to be updated (all of them in the first iteration).
@@ -215,6 +215,11 @@ hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
     start = arc.operations(start, from = bestop$from, to = bestop$to,
               op = bestop$op, check.cycles = FALSE, check.illegal = FALSE,
               update = TRUE, debug = FALSE)
+
+    if ("prior" %in% names(extra.args) && extra.args$prior %in% c("cs", "marginal"))
+      reference.score[c(bestop$from, bestop$to)] =
+        per.node.score(network = start, score = score,
+          targets = c(bestop$from, bestop$to), extra.args = extra.args, data = x)
 
     # set the nodes whose cached score deltas are to be updated.
     if (bestop$op == "reverse")

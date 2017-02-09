@@ -18,17 +18,17 @@
 
 #define GAUSSIAN_COLUMN_CACHE() \
     /* allocate and initialize an array of pointers for the variables. */ \
-    column = Calloc1D(ncols, sizeof(double *)); \
+    column = Calloc1D(ncol, sizeof(double *)); \
     column[1] = REAL(yy); \
     for (i = 0; i < nsx; i++) \
       column[i + 2] = REAL(VECTOR_ELT(zz, i));
 
 #define GAUSSIAN_CACHE() \
     /* allocate the covariance matrix. */ \
-    cov = Calloc1D(ncols * ncols, sizeof(double)); \
-    basecov = Calloc1D(ncols * ncols, sizeof(double)); \
+    cov = Calloc1D(ncol * ncol, sizeof(double)); \
+    basecov = Calloc1D(ncol * ncol, sizeof(double)); \
     /* allocate the matrices needed for the SVD decomposition. */ \
-    c_udvt(&u, &d, &vt, ncols); \
+    c_udvt(&u, &d, &vt, ncol); \
     GAUSSIAN_COLUMN_CACHE();
 
 #define GAUSSIAN_PCOR_CACHE() \
@@ -37,20 +37,20 @@
         /* update the corresponding mean in the cache. */ \
         c_update_meanvec(column, mean, 0, nobs); \
         /* update the covariance matrix. */ \
-        memcpy(cov, basecov, ncols * ncols * sizeof(double)); \
-        c_update_covmat(column, mean, 0, ncols, nobs, cov); \
+        memcpy(cov, basecov, ncol * ncol * sizeof(double)); \
+        c_update_covmat(column, mean, 0, nobs, ncol, cov); \
 
 #define GAUSSIAN_PCOR_NOCACHE() \
       /* extract and de-reference the i-th variable. */ \
       column[0] = REAL(VECTOR_ELT(xx, 0)); \
       /* allocate and compute mean values and the covariance matrix. */ \
-      mean = Calloc1D(ncols, sizeof(double)); \
-      c_meanvec(column, mean, nobs, ncols, 0); \
-      c_covmat(column, mean, ncols, nobs, cov, 0);
+      mean = Calloc1D(ncol, sizeof(double)); \
+      c_meanvec(column, mean, nobs, ncol, 0); \
+      c_covmat(column, mean, nobs, ncol, cov, 0);
 
 #define COMPUTE_PCOR() \
         /* compute the partial correlation and the test statistic. */ \
-        statistic = c_fast_pcor(cov, u, d, vt, ncols, TRUE);
+        statistic = c_fast_pcor(cov, u, d, vt, ncol, TRUE);
 
 #define GAUSSIAN_FREE() \
   Free1D(u); \
@@ -111,17 +111,17 @@ SEXP xdata, config;
 static double ct_gaustests(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
     double *pvalue, double *df, test_e test) {
 
-int i = 0, nsx = length(zz), ncols = nsx + 2;
+int i = 0, nsx = length(zz), ncol = nsx + 2;
 double transform = 0, **column = NULL, *mean = NULL, statistic = 0, lambda = 0;
 double *u = NULL, *d = NULL, *vt = NULL, *cov = NULL, *basecov = 0;
 
   /* compute the degrees of freedom for correlation and mutual information. */
   if (test == COR)
-    *df = nobs - ncols;
+    *df = nobs - ncol;
   else if ((test == MI_G) || (test == MI_G_SH))
     *df = 1;
 
-  if (((test == COR) && (*df < 1)) || ((test == ZF) && (nobs - ncols < 2))) {
+  if (((test == COR) && (*df < 1)) || ((test == ZF) && (nobs - ncol < 2))) {
 
     /* if there are not enough degrees of freedom, return independence. */
     warning("trying to do a conditional independence test with zero degrees of freedom.");
@@ -140,10 +140,10 @@ double *u = NULL, *d = NULL, *vt = NULL, *cov = NULL, *basecov = 0;
   if (ntests > 1) {
 
     /* allocate and compute mean values and the covariance matrix. */
-    mean = Calloc1D(ncols, sizeof(double));
-    c_meanvec(column, mean, nobs, ncols, 1);
-    c_covmat(column, mean, ncols, nobs, cov, 1);
-    memcpy(basecov, cov, ncols * ncols * sizeof(double));
+    mean = Calloc1D(ncol, sizeof(double));
+    c_meanvec(column, mean, nobs, ncol, 1);
+    c_covmat(column, mean, nobs, ncol, cov, 1);
+    memcpy(basecov, cov, ncol * ncol * sizeof(double));
 
     for (i = 0; i < ntests; i++) {
 
@@ -165,8 +165,8 @@ double *u = NULL, *d = NULL, *vt = NULL, *cov = NULL, *basecov = 0;
       }/*THEN*/
       else if (test == MI_G_SH) {
 
-        lambda = covmat_lambda(column, mean, cov, nobs, ncols);
-        covmat_shrink(cov, ncols, lambda);
+        lambda = covmat_lambda(column, mean, cov, nobs, ncol);
+        covmat_shrink(cov, ncol, lambda);
         COMPUTE_PCOR();
         statistic = 2 * nobs * cor_mi_trans(statistic);
         pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
@@ -175,7 +175,7 @@ double *u = NULL, *d = NULL, *vt = NULL, *cov = NULL, *basecov = 0;
       else if (test == ZF) {
 
         COMPUTE_PCOR();
-        statistic = cor_zf_trans(statistic, (double)nobs - ncols);
+        statistic = cor_zf_trans(statistic, (double)nobs - ncol);
         pvalue[i] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
 
       }/*THEN*/
@@ -203,8 +203,8 @@ double *u = NULL, *d = NULL, *vt = NULL, *cov = NULL, *basecov = 0;
     }/*THEN*/
     else if (test == MI_G_SH) {
 
-      lambda = covmat_lambda(column, mean, cov, nobs, ncols);
-      covmat_shrink(cov, ncols, lambda);
+      lambda = covmat_lambda(column, mean, cov, nobs, ncol);
+      covmat_shrink(cov, ncol, lambda);
       COMPUTE_PCOR();
       statistic = 2 * nobs * cor_mi_trans(statistic);
       pvalue[0] = pchisq(statistic, *df, FALSE, FALSE);
@@ -213,7 +213,7 @@ double *u = NULL, *d = NULL, *vt = NULL, *cov = NULL, *basecov = 0;
     else if (test == ZF) {
 
       COMPUTE_PCOR();
-      statistic = cor_zf_trans(statistic, (double)nobs - ncols);
+      statistic = cor_zf_trans(statistic, (double)nobs - ncol);
       pvalue[0] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
 
     }/*THEN*/
@@ -400,7 +400,7 @@ SEXP xdata, config;
 static double ct_gperm(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
     double *pvalue, double *df, test_e type, int B, double a) {
 
-int i = 0, nsx = length(zz), ncols = nsx + 2;
+int i = 0, nsx = length(zz), ncol = nsx + 2;
 double **column = NULL, *yptr = REAL(yy), statistic = 0;
 
   GAUSSIAN_COLUMN_CACHE();
@@ -413,7 +413,7 @@ double **column = NULL, *yptr = REAL(yy), statistic = 0;
     column[1] = yptr;
 
     statistic = 0;
-    c_gauss_cmcarlo(column, ncols, nobs, B, &statistic, pvalue + i,
+    c_gauss_cmcarlo(column, ncol, nobs, B, &statistic, pvalue + i,
       a, type);
 
   }/*FOR*/

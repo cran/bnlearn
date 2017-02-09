@@ -54,6 +54,13 @@ arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
 
 }#ARCS.RBIND
 
+minimal.table = function(x) {
+
+  .Call("minimal_table",
+        x = x);
+
+}#MINIMAL.TABLE
+
 minimal.data.frame = function(lst) {
 
   .Call("minimal_data_frame",
@@ -69,14 +76,6 @@ minimal.data.frame.column = function(dataframe, column, drop = TRUE) {
         drop = drop)
 
 }#MINIMAL.DATA.FRAME.COLUMN
-
-minimal.qr.matrix = function(dataframe, column) {
-
-  .Call("qr_matrix",
-        dataframe = dataframe,
-        column = column)
-
-}#MINIMAL.QR.MATRIX
 
 # flatten 2-dimensional 1xc tables.
 flatten.2d.table = function(x) {
@@ -100,7 +99,7 @@ explode = function(x) {
 
   repeat {
 
-    if(!any(sapply(l, is.recursive)))
+    if (!any(sapply(l, is.recursive)))
       break
     else
       l = unlist(lapply(l, as.list))
@@ -160,38 +159,12 @@ cptattr = function(cpt) {
 }#CPTATTR
 
 # conditional standard deviation.
-cgsd = function(resid, configs, p) {
+cgsd = function(x, configs = NULL, p = 1L) {
 
-  resid = noattr(resid, ok = character(0))
-  mult = function(x, p) {
-
-    n = length(x)
-
-    if (missing(p))
-      return(1)
-    else if (n <= p)
-      return(0)
-    else
-      return(sqrt((n - 1) / (n - p)))
-
-  }#MULT
-
-  if (missing(configs) || is.null(configs)) {
-
-    sd = sd(resid) * mult(resid, p)
-
-  }#THEN
-  else {
-
-    sd = by(data = resid, INDICES = configs,
-             FUN = function(x) { sd(x) * mult(x, p) })
-
-  }#ELSE
-
-  # replace NA values with zeroes.
-  sd[is.na(sd)] = 0
-
-  return(noattr(sd))
+  .Call("cgsd",
+        x = x,
+        strata = configs,
+        nparams = p)
 
 }#CGSD
 
@@ -235,3 +208,45 @@ minimal.fitted = function(x) {
 
 }#MINIMAL.FITTED
 
+# check labels for various arguments.
+check.label = function(arg, choices, labels, argname, see) {
+
+  if (!is.string(arg))
+    stop("the ", argname, " must be a single character string.")
+
+  if (arg %in% choices)
+    return(invisible(NULL))
+
+  # concatenate valid values, optinally with labels.
+  if (missing(labels)) {
+
+    choices = paste(paste('"', choices, '"', sep = ""), collapse = ", ")
+
+  }#THEN
+  else {
+
+    labels = paste("(", labels[choices], ")", sep = "")
+    choices = paste('"', choices, '"', sep = "")
+    nl = length(labels)
+    choices = paste(choices, labels, collapse = ", ")
+
+  }#THEN
+
+  # mention the most relevant manual page.
+  if (missing(see))
+    see = character(0)
+  else
+    see = paste(" See ?", see, " for details.", sep = "")
+
+  # build the error message.
+  errmsg = paste("valid ", argname, "(s) are ", choices, ".", see, sep = "")
+
+  # print make sure that it is not truncated if possible at all.
+  errlen = unlist(options("warning.length"), use.names = FALSE)
+  options("warning.length" = max(1000, min(8170, nchar(errmsg) + 20)))
+
+  stop(errmsg)
+
+  options("warning.length" = errlen)
+
+}#MINIMAL.CHECK.LABEL

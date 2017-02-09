@@ -143,24 +143,26 @@ check.data.frame.finite = function(x) {
 
 # check the data set.
 check.data = function(x, allowed.types = available.data.types,
-    allow.levels = FALSE) {
+    allow.levels = FALSE, allow.missing = FALSE) {
 
   # check the data are there.
   if (missing(x))
     stop("the data are missing.")
   # x must be a data frame.
-  if(!is.data.frame(x))
+  if (!is.data.frame(x))
     stop("the data must be in a data frame.")
+  # x must be a data frame with at least one column.
+  if (ncol(x) == 0)
+    stop("the data must be in a data frame with at least one column.")
   # check the data for NULL/NaN/NA.
-  if (missing.data(x))
+  if (!allow.missing && missing.data(x))
     stop("the data set contains NULL/NaN/NA values.")
   # check which type of data we are dealing with.
   type = data.type(x)
 
   # check whether the variables are either all continuous or all discrete.
-  if (type %!in% allowed.types)
-    stop("valid data types are:\n",
-      sprintf("    * %s.\n", data.type.labels[allowed.types]))
+  check.label(type, choices = allowed.types, labels = data.type.labels,
+    argname = "data type")
 
   # checks specific to a particular data type.
   if (type %in% discrete.data.types) {
@@ -174,7 +176,7 @@ check.data = function(x, allowed.types = available.data.types,
 
       # warn about levels with zero frequencies, it's not necessarily wrong
       # (data frame subsetting) but sure is fishy.
-      if (!allow.levels && any(table(x[, col]) == 0))
+      if (!allow.levels && any(minimal.table(x[, col, drop = FALSE]) == 0))
         warning("variable ", col, " has levels that are not observed in the data.")
 
     }#FOR
@@ -482,7 +484,7 @@ check.customlist = function(custom, nodes) {
   # check
   if (!is(custom, "list"))
     stop("networks must be a list of objects of class 'bn' or of arc sets.")
-  if(!all(sapply(custom, function(x) { is(x, "bn") || is(x, "matrix") })))
+  if (!all(sapply(custom, function(x) { is(x, "bn") || is(x, "matrix") })))
     stop("x must be a list of objects of class 'bn' or of arc sets.")
 
   validate = function(custom, nodes) {
@@ -521,12 +523,9 @@ check.score = function(score, data) {
 
   if (!is.null(score)) {
 
-    # check it's a single character string.
-    check.string(score)
-    # check the score/test label.
-    if (score %!in% available.scores)
-      stop("valid scores are:\n",
-           sprintf("    %-15s %s\n", names(score.labels), score.labels))
+    # check the score label.
+    check.label(score, choices = available.scores, labels = score.labels,
+      argname = "score", see = "bnlearn-package")
     # check if it's the right score for the data (discrete, continuous, mixed).
     if ((type %!in% discrete.data.types) &&
          (score %in% available.discrete.scores))
@@ -566,7 +565,8 @@ is.score.equivalent = function(score, nodes, extra) {
   if (score %in% c("aic", "aic-g", "bic", "bic-g"))
     return(TRUE)
   # BDe and BGe are score equivalent if they have uniform priors (e.g. BDeu and BGeu).
-  else if ((score %in% c("bde", "bge")) && (extra$prior == "uniform"))
+  else if ((score %in% c("bde", "bge")) &&
+           (extra$prior %in% c("uniform", "marginal")))
     return(TRUE)
 
   # a conservative default.
@@ -575,10 +575,11 @@ is.score.equivalent = function(score, nodes, extra) {
 }#IS.SCORE.EQUIVALENT
 
 # check whether a score is decomposable.
-is.score.decomposable = function(score, nodes, extra) {
+is.score.decomposable = function(score, extra) {
 
   # Castelo & Siebes prior is not decomposable.
-  if ((score %in% c("bde", "bds", "mbde", "bge")) && (extra$prior == "cs"))
+  if ((score %in% c("bde", "bds", "mbde", "bge")) &&
+      (extra$prior %in% c("cs", "marginal")))
     return(FALSE)
 
   # a sensible default.
@@ -594,13 +595,9 @@ check.test = function(test, data) {
 
   if (!missing(test) && !is.null(test)) {
 
-    # check it's a single character string.
-    check.string(test)
-    # check the score/test label.
-    orig.length = unlist(options("warning.length" = 4000))
-    if (test %!in% available.tests)
-      stop("valid tests are:\n", sprintf("    %-15s %s\n",
-           names(test.labels), test.labels))
+    # check the test label.
+    check.label(test, choices = available.tests, labels = test.labels,
+      argname = "conditional independence test", see = "bnlearn-package")
     # check if it's the right test for the data (discrete, continuous).
     if ((type != "ordered") && (test %in% available.ordinal.tests))
       stop("test '", test, "' may be used with ordinal data only.")
@@ -610,7 +607,6 @@ check.test = function(test, data) {
       stop("test '", test, "' may be used with continuous data only.")
     if ((type != "mixed-cg") && (test %in% available.mixedcg.tests))
       stop("test '", test, "' may be used with a mixture of continuous and discrete data only.")
-    options("warning.length" = orig.length)
 
     return(test)
 
@@ -632,18 +628,23 @@ check.test = function(test, data) {
 
 check.criterion = function(criterion, data) {
 
-  # check it's a single character string.
-  check.string(criterion)
-  # check criterion's label.
-  if (criterion %in% available.tests)
-    criterion = check.test(criterion, data)
-  else if (criterion %in% available.scores)
-    criterion = check.score(criterion, data)
-  else
-    stop("valid tests are:\n",
-         sprintf("    %-15s %s\n", names(test.labels), test.labels),
-         "  valid scores are:\n",
-         sprintf("    %-15s %s\n", names(score.labels), score.labels))
+  if (!missing(criterion) && !is.null(criterion)) {
+
+    # check and return errors from minimal.check.labels().
+    check.label(criterion, choices = c(available.tests, available.scores),
+      labels = c(test.labels, score.labels), argname = "criterion",
+      see = "bnlearn-package")
+
+  }#THEN
+  else {
+
+    # set the defaults using check.score() and check.test().
+    if (criterion %in% available.tests)
+      criterion = check.test(criterion, data)
+    else if (criterion %in% available.scores)
+      criterion = check.score(criterion, data)
+
+  }#ELSE
 
   return(criterion)
 
@@ -657,12 +658,10 @@ check.loss = function(loss, data, bn) {
 
   if (!is.null(loss)) {
 
-    # check it's a single character string.
-    check.string(loss)
-    # check the score/test label.
-    if (loss %!in% loss.functions)
-      stop("valid loss functions are:\n",
-           sprintf("    %-15s %s\n", names(loss.labels), loss.labels))
+    # check the loss function.
+    check.label(loss, choices = loss.functions, labels = loss.labels,
+      argname = "loss function", see = "bn.cv")
+
     if ((type %!in% discrete.data.types) && (loss %in% discrete.loss.functions))
       stop("loss function '", loss, "' may be used with discrete data only.")
     if ((type != "continuous") && (loss %in% continuous.loss.functions))
@@ -697,13 +696,10 @@ check.fitting.method = function(method, data) {
 
   if (!is.null(method)) {
 
-    # check it's a single character string.
-    check.string(method)
-    # check the score/test label.
-    if (method %!in% available.fitting.methods)
-      stop("valid fitting methods are:\n",
-           sprintf("    %-15s %s\n", names(fitting.labels), fitting.labels))
-    # bayesian parameter estimation is implemented only for discrete data.
+    # check the fitting method.
+    check.label(method, choices = available.fitting.methods,
+      labels = fitting.labels, argname = "fitting method", see = "bn.fit")
+    # Bayesian parameter estimation is implemented only for discrete data.
     if ((type %in% c("continuous", "mixed-cg")) && (method == "bayes"))
       stop("Bayesian parameter estimation for (conditional) Gaussian Bayesian networks is not implemented.")
 
@@ -721,14 +717,10 @@ check.fitting.method = function(method, data) {
 # check the method used for prediction.
 check.prediction.method = function(method, data) {
 
-  if (!is.null(method)) {
+  if (!missing(method) && !is.null(method)) {
 
-    # check it's a single character string.
-    check.string(method)
-    # check the score/test label.
-    if (method %!in% available.prediction.methods)
-      stop("valid prediction methods are:\n",
-        sprintf("    %-15s %s\n", names(prediction.labels), prediction.labels))
+    check.label(method, choices = available.prediction.methods,
+      labels = prediction.labels, argname = "prediction method", see = "predict")
 
     return(method)
 
@@ -744,22 +736,18 @@ check.prediction.method = function(method, data) {
 # check the method used to discretize the data.
 check.discretization.method = function(method) {
 
-  if (!is.null(method)) {
+  if (!missing(method) && !is.null(method)) {
 
-    # check it's a single character string.
-    check.string(method)
-    # check the score/test label.
-    if (method %!in% available.discretization.methods)
-      stop("valid discretization methods are:\n",
-           sprintf("    %-15s %s\n", names(discretization.labels),
-                   discretization.labels))
+    check.label(method, choices = available.discretization.methods,
+      labels = discretization.labels, argname = "discretization method",
+      see = "discretize")
 
     return(method)
 
   }#THEN
   else {
 
-      return("quantile")
+    return("quantile")
 
   }#ELSE
 
@@ -771,15 +759,11 @@ check.mi.estimator = function(estimator, data) {
   # check which type of data we are dealing with.
   type = data.type(data)
 
-  if (!is.null(estimator)) {
+  if (!missing(estimator) && !is.null(estimator)) {
 
-    # check it's a single character string.
-    check.string(estimator)
-    # check the score/estimator label.
-    if (estimator %!in% available.mi)
-      stop("valid estimators are:\n",
-           sprintf("    %-15s %s\n", names(mi.estimator.labels),
-                   mi.estimator.labels))
+    check.label(estimator, choices = available.mi,
+      labels = mi.estimator.labels, argname = "mutual information estimator")
+
     # check if it's the right estimator for the data (discrete, continuous).
     if ((type %!in% discrete.data.types) &&
         (estimator %in% available.discrete.mi))
@@ -800,6 +784,25 @@ check.mi.estimator = function(estimator, data) {
   }#ELSE
 
 }#CHECK.MI.ESTIMATOR
+
+# check the method used for cross-validation.
+check.cv.method = function(method) {
+
+  if (!missing(method) && !is.null(method)) {
+
+    check.label(method, choices = available.cv.methods,
+      labels = cv.labels, argname = "cross-validation method", see = "bn.cv")
+
+    return(method)
+
+  }#THEN
+  else {
+
+    return("k-fold")
+
+  }#ELSE
+
+}#CHECK.CV.METHOD
 
 # is the data of a particular type?
 data.type = function(data) {
@@ -831,7 +834,7 @@ check.iss = function(iss, network, data) {
     # computation stops with the following error:
     # Error in solve.default(phi[A, A]) :
     #   Lapack routine dgesv: system is exactly singular
-    if((type == "continuous") && (iss < 3))
+    if ((type == "continuous") && (iss < 3))
       stop("the imaginary sample size must be a numeric value greater than 3.")
 
   }#THEN
@@ -856,8 +859,8 @@ check.phi = function(phi, network, data) {
 
   if (!is.null(phi)) {
 
-    if (phi %!in% c("heckerman", "bottcher"))
-      stop("unknown phi definition, should be either 'heckerman' or 'bottcher'.")
+    check.label(phi, choices = c("heckerman", "bottcher"),
+      argname = "phi definition")
 
   }#THEN
   else {
@@ -896,7 +899,7 @@ check.experimental = function(exp, network, data) {
       # just kill empty elements.
       if (length(exp[[var]]) == 0)
         exp[[var]] = NULL
-      # also, convert evetything to integers to make things simpler at the
+      # also, convert everything to integers to make things simpler at the
       # C level.
       exp[[var]] = as.integer(exp[[var]])
 
@@ -936,7 +939,7 @@ check.penalty = function(k, network, data, score) {
     if (!is.null(network$learning$args$k) && (score == network$learning$test))
       k = network$learning$args$k
     else
-      k = ifelse((score %in% c("aic", "aic-g")), 1, log(nrow(data))/2)
+      k = ifelse(grepl("^aic", score), 1, log(nrow(data))/2)
 
   }#ELSE
 
@@ -977,6 +980,7 @@ check.graph.sparsity = function(beta, prior, network, data, learning = FALSE) {
 
   default.beta =
     list("uniform" = NULL, "vsp" = 1/ncol(data),
+      "marginal" = structure(c(0.25, 0.50, 0.25), nodes = names(network$nodes)),
       "cs" = cs.completed.prior(data.frame(character(0), character(0),
              numeric(0)), names(data)))
 
@@ -992,10 +996,16 @@ check.graph.sparsity = function(beta, prior, network, data, learning = FALSE) {
   }#THEN
   else {
 
-    if (prior == "uniform") {
+    if (prior %in% c("uniform")) {
 
       warning("unused argument beta.")
       beta = NULL
+
+    }#THEN
+    else if (prior == "marginal") {
+
+      warning("unused argument beta.")
+      beta = default.beta[[prior]]
 
     }#THEN
     else if (prior == "vsp") {
@@ -1246,8 +1256,105 @@ check.bootstrap.args = function(extra.args, network, data) {
 
 }#CHECK.BOOTSTRAP.ARGS
 
+# sanitize the extra arguments passed to cross-validation methods.
+check.cv.args = function(method, extra.args, data) {
+
+  n = nrow(data)
+
+  if (method %in% c("k-fold", "hold-out")) {
+
+    # check the number of splits.
+    if (!is.null(extra.args$k)) {
+
+      if (!is.positive.integer(extra.args$k))
+        stop("the number of splits must be a positive integer number.")
+      if (extra.args$k == 1)
+        stop("the number of splits must be at least 2.")
+      if (n < extra.args$k)
+        stop("insufficient sample size for ", extra.args$k, " subsets.")
+
+    }#THEN
+    else {
+
+      extra.args$k = 10
+
+    }#ELSE
+
+    # check the number of runs.
+    if (!is.null(extra.args$runs)) {
+
+      if (!is.positive.integer(extra.args$runs))
+        stop("the number of runs must be a positive integer number.")
+
+    }#TTHEN
+    else {
+
+      extra.args$runs = 1
+
+    }#ELSE
+
+  }#THEN
+
+  if (method == "hold-out") {
+
+    # check the size of the test subsets in hold-put cross-validation.
+    if (!is.null(extra.args$m)) {
+
+      if (!is.positive.integer(extra.args$m))
+        stop("the size of the test subset must be a positive integer number.")
+      if (extra.args$m >= n)
+        stop("insufficient sample size for a test subset of size ",
+          extra.args$m, ".")
+
+    }#THEN
+    else {
+
+      extra.args$m = ceiling(n / 10)
+
+    }#ELSE
+
+  }#THEN
+
+  if (method == "custom-folds") {
+
+    if (!is.null(extra.args$folds)) {
+
+      if (!is.list(extra.args$folds))
+        stop("folds must be specified via a list of indices.")
+      if (length(extra.args$folds) < 2)
+        stop("at least two folds are needed.")
+      if (any(sapply(extra.args$folds, length) == 0))
+        stop("some folds contain no observations.")
+      if (any(!sapply(extra.args$folds, is.positive.vector)))
+        stop("observation indices must be positive integer numbers.")
+
+      merged = unlist(extra.args$folds)
+
+      if (any(duplicated(merged)))
+        stop("some observations are included in more than one fold.")
+      if (any(merged > n))
+        stop("observation indices are too high (sample size is ", n, ").")
+      if (length(merged) != n)
+        stop("not all observations are assigned to a fold.")
+
+    }#THEN
+    else {
+
+      stop("custom folds are missing, with no default.")
+
+    }#ELSE
+
+  }#THEN
+
+  # warn about unused arguments.
+  check.unused.args(extra.args, cv.extra.args[[method]])
+
+  return(extra.args)
+
+}#CHECK.CV.ARGS
+
 # sanitize the extra arguments passed to the conditional probability algorithms.
-check.cpq.args = function(fitted, extra.args, method, action) {
+check.cpq.args = function(fitted, event, extra.args, method, action) {
 
   if (method %in% c("ls", "lw")) {
 
@@ -1301,6 +1408,10 @@ check.cpq.args = function(fitted, extra.args, method, action) {
     if (!is.null(extra.args$query.nodes)) {
 
       check.nodes(extra.args$query.nodes, graph = fitted)
+
+      # make sure the nodes to be simulated are included.
+      if (action == "cpdist")
+        extra.args$query.nodes = c(event, extra.args$query.nodes)
 
     }#THEN
 
@@ -1431,16 +1542,11 @@ check.discretization.args = function(method, data, breaks, extra.args) {
 
       if (!is.null(extra.args$idisc)) {
 
-        idisc = extra.args$idisc
-
-        # check it's a single character string.
-        check.string(idisc)
-        # check the score/test label.
         other.methods = available.discretization.methods[available.discretization.methods != "hartemink"]
-        if (idisc %!in% other.methods)
-          stop("valid initial discretization methods are:\n",
-               sprintf("    %-15s %s\n", other.methods,
-                       discretization.labels[other.methods]))
+
+        check.label(extra.args$idisc, choices = other.methods,
+          labels = discretization.labels, argname = "initial discretization method",
+          see = "discretize")
 
       }#THEN
       else {
@@ -1635,7 +1741,7 @@ check.amat = function(amat, nodes) {
   if (!all((amat == 0L) | (amat == 1L)))
     stop("all the elements of an adjacency matrix must be equal to either 0 or 1.")
   # no arcs from a node to itself.
-  if(any(diag(amat) != 0))
+  if (any(diag(amat) != 0))
     stop("the elements on the diagonal must be zero.")
 
   return(amat)
@@ -2015,7 +2121,7 @@ check.fit.node.vs.data = function(fitted, data) {
       else
         node.levels = dimnames(fitted$prob)[[node]]
 
-      if(!identical(data.levels, node.levels))
+      if (!identical(data.levels, node.levels))
         stop("the levels of node '", node, "' do not match the levels of the ",
              "corresponding variable in the data.")
 
@@ -2049,21 +2155,9 @@ check.lty = function(lty) {
 # check the label of a learning algorithm.
 check.learning.algorithm = function(algorithm, class = "all", bn) {
 
+  # select the right class of algorithms.
   ok = character(0)
 
-  if (missing(algorithm) || is.null(algorithm)) {
-
-    # use the one specified by the bn object as the default.
-    if (missing(bn))
-      stop("the learning algorithm must be a character string.")
-    else if (is(bn, "bn"))
-      algorithm = bn$learning$algo
-
-  }#THEN
-  else if (!is.string(algorithm))
-    stop("the learning algorithm must be a character string.")
-
-  # select the right class of algorithms.
   if ("constraint" %in% class)
     ok = c(ok, constraint.based.algorithms)
   if ("markov.blanket" %in% class)
@@ -2079,9 +2173,21 @@ check.learning.algorithm = function(algorithm, class = "all", bn) {
   if ("all" %in% class)
     ok = available.learning.algorithms
 
-  if (algorithm %!in% ok)
-       stop("valid learning algorithms are:\n",
-            sprintf("    %-15s %s\n", ok, method.labels[ok]))
+  if (missing(algorithm) || is.null(algorithm)) {
+
+    # use the one specified by the bn object as the default.
+    if (missing(bn))
+      stop("the learning algorithm must be a character string.")
+    else if (is(bn, "bn"))
+      algorithm = bn$learning$algo
+
+  }#THEN
+  else {
+
+    check.label(algorithm, choices = ok, labels = method.labels,
+      argname = "learning algorithm", see = "bnlearn-package")
+
+  }#ELSE
 
   return(algorithm)
 
@@ -2285,13 +2391,14 @@ check.fit.gnode.spec = function(x, node) {
   if (!is.null(x$sd)) {
 
     if (!is.nonnegative.vector(x$sd))
-      stop("sd must be a non-negative number, the standard deviation of the ",
+      stop("sd must be non-negative, the standard deviation(s) of the ",
         "residuals of node ", node, ".")
 
     if ((length(dim(x$coef)) == 2) && (length(x$sd) != ncol(x$coef)) ||
-        (length(dim(x$coef)) == 1) && (length(x$sd) > 1) ||
         (length(dim(x$sd)) > 1))
       stop("the dimensions of sd and coef do not match.")
+    if ((length(dim(x$coef)) %in% c(0, 1)) && (length(x$sd) > 1))
+      stop("sd chould be a single non-negative number.")
 
     if (!is.null(x$resid) && (length(x$sd) == 1)) {
 
@@ -2353,12 +2460,25 @@ check.gnode.vs.spec = function(new, old, node) {
     # same number of coefficients.
     if (length(new$coef) != length(old$coefficients))
       stop("wrong number of coefficients for node ", old$node, ".")
-    # if the new coefficients have labels, they must match.
-    if (!is.null(names(new$coef)))
+    # same regression coefficients.
+    if (!is.null(names(new$coef))) {
+
+      # if the new coefficients have labels, they must match.
       check.nodes(names(new$coef), graph = names(old$coefficients),
         min.nodes = length(names(old$coefficients)))
-    else
-      names(new$coef) = names(old$coef)
+      # reorder the coefficients to match.
+      new$coef = new$coef[names(old$coefficients)]
+
+    }#THEN
+    else {
+
+      # copy the names from the spec.
+      names(new$coef) = names(old$coefficients)
+
+    }#ELSE
+    # same number of standard errors (fixed to 1).
+    if (length(new$sd) != 1)
+      stop("wrong number of standard errors for node ", old$node, ".")
     # same number of residuals.
     if (!is.null(new$resid))
       if (length(new$resid) != length(old$residuals))
@@ -2377,6 +2497,9 @@ check.gnode.vs.spec = function(new, old, node) {
     # same number of coefficients.
     if (length(new$coef) != length(old))
       stop("wrong number of coefficients for node ", node, ".")
+    # same number of standard errors (fixed to 1).
+    if (length(new$sd) != 1)
+      stop("wrong number of standard errors for node ", node, ".")
     # if the new coefficients have labels, they must match.
     if (!is.null(names(new$coef)))
       check.nodes(names(new$coef), graph = old, min.nodes = length(old))
@@ -2390,7 +2513,7 @@ check.gnode.vs.spec = function(new, old, node) {
 }#CHECK.GNODE.VS.SPEC
 
 # check one bn.fit.gnode against another.
-check.cgnode.vs.spec = function(new, old, node) {
+check.cgnode.vs.spec = function(new, old, node, discrete) {
 
   if (is(old, "bn.fit.cgnode")) {
 
@@ -2400,10 +2523,38 @@ check.cgnode.vs.spec = function(new, old, node) {
       stop("the regression coefficients for node ", old$node, " must be ",
            "in a matrix with one column for each discrete parent and one ",
            "coefficient for each continuous parent.")
-    # if the new coefficients have labels, they must match.
-    if (!is.null(rownames(new$coef)))
+    # right row names for the coefficients.
+    if (!is.null(rownames(new$coef))) {
+
+      # if the new coefficients have labels, they must match.
       check.nodes(rownames(new$coef), graph = rownames(old$coefficients),
         min.nodes = length(rownames(old$coefficients)))
+      # reorder the coefficients to match.
+      new$coef = new$coef[rownames(old$coefficients), , drop = FALSE]
+
+    }#THEN
+    else {
+
+      # copy the names from the spec.
+      rownames(new$coef) = rownames(old$coefficients)
+
+    }#ELSE
+    # right column names for the coefficients.
+    if (!is.null(colnames(new$coef))) {
+
+      # if the new coefficients have labels, they must match.
+      check.nodes(colnames(new$coef), graph = colnames(old$coefficients),
+        min.nodes = length(colnames(old$coefficients)))
+      # reorder the coefficients to match.
+      new$coef = new$coef[, colnames(old$coefficients), drop = FALSE]
+
+    }#THEN
+    else {
+
+      # copy the names from the spec.
+      colnames(new$coef) = colnames(old$coefficients)
+
+    }#ELSE
     # same number of residuals.
     if (!is.null(new$resid))
       if (length(new$resid) != length(old$residuals))
@@ -2413,12 +2564,55 @@ check.cgnode.vs.spec = function(new, old, node) {
       if (length(new$fitted) != length(old$fitted.values))
         stop("wrong number of fitted values for node ", old$node, ".")
 
+    if (!is.null(new$dlevels)) {
+
+      old.dparents = names(old$dlevels)
+      new.dparents = names(new$dlevels)
+
+      # different sets of discrete parents.
+      if (!setequal(old.dparents, new.dparents))
+        stop("different discrete parents for node ", old$node, ".")
+      # identical sets of discrete parents, but in a different order; match
+      # configurations.
+      old.config = old$dlevels
+      new.config = new$dlevels
+      for (i in seq_along(old.config))
+        old.config[[i]] = paste(old.dparents[i], old.config[[i]], sep = ":")
+      for (i in seq_along(new.config))
+        new.config[[i]] = paste(new.dparents[i], new.config[[i]], sep = ":")
+
+      old.config = interaction(expand.grid(old.config))
+      new.config = interaction(expand.grid(new.config)[old.dparents])
+      map = match(old.config, new.config)
+
+      # reorder coefficients, standard errors and configurations.
+      new$sd = new$sd[map]
+      new$coef = new$coef[, map]
+      new$dlevels = new$dlevels[old.dparents]
+      colnames(new$coef) = names(new$sd) = names(old$sd)
+
+    }#THEN
+
   }#THEN
   else {
 
     # nothing useful can possibly be checked from the parent labels.
 
+    if (!is.null(rownames(new$coef))) {
+
+      check.nodes(rownames(new$coef), graph = rownames(old[!discrete]),
+        min.nodes = length(which(!discrete)) + 1)
+
+    }#THEN
+    else {
+
+      rownames(new$coef) = c("(Intercept)", old[!discrete])
+
+    }#ELSE
+
   }#ELSE
+
+  return(new)
 
 }#CHECK.CGNODE.SPEC
 
@@ -2479,13 +2673,52 @@ check.dnode.vs.spec = function(new, old, node, cpt.levels) {
 
   if (is(old, c("bn.fit.dnode", "bn.fit.onode"))) {
 
-    # same dimensions.
-    if (!identical(dim(new), dim(old$prob)))
-      stop("wrong dimensions for node ", old$node, ".")
-    # if the new CPT has labels, they must match (and be in the same order too).
-    if (!is.null(dimnames(new)))
-      if (!identical(dimnames(new), dimnames(old$prob)))
-        stop("wrong levels for node ", old$node, ".")
+    # now that we are sure that the dimensions are the right ones, reorder
+    # them to follow the ordering of the parents in the network.
+    ndnn = dimnames(new)
+    odnn = dimnames(old$prob)
+
+    if (!is.null(ndnn)) {
+
+      # if the new CPT has dimension names, they must match (and be in the same
+      # order too).
+      if (ndims > 1) {
+
+        if (!setequal(names(odnn), names(ndnn)))
+          stop("wrong dimension names for node", old$node, ".")
+
+        new = aperm(new, match(names(ndnn), names(odnn)))
+        ndnn = dimnames(new)
+
+      }#THEN
+
+      # check labels in the same way, if present.
+      if (any(!sapply(ndnn, is.null))) {
+
+        dnn.check = sapply(seq_along(ndnn),
+                      function(i) setequal(ndnn[[i]], odnn[[i]]))
+
+        if (!all(dnn.check))
+          stop("wrong levels for node ", old$node, ".")
+
+        new = do.call(`[`, c(list(new), odnn))
+
+      }#THEN
+      else {
+
+        if (!identical(dim(new), dim(old$prob)))
+          stop("wrong dimensions for node ", old$node, ".")
+
+      }#ELSE
+
+    }#THEN
+    else {
+
+      # same dimensions (there is nothing else to check).
+      if (!identical(dim(new), dim(old$prob)))
+        stop("wrong dimensions for node ", old$node, ".")
+
+    }#ELSE
 
   }#THEN
   else {
@@ -2502,7 +2735,7 @@ check.dnode.vs.spec = function(new, old, node, cpt.levels) {
     else {
 
       # check whether all the CPT inclues all the relevant variables.
-      if(!setequal(names(dimnames(new)), c(node, old)))
+      if (!setequal(names(dimnames(new)), c(node, old)))
         stop("wrong dimensions for node ", node, ".")
       # now that we are sure that the dimensions are the right ones, reorder
       # them to follow the ordering of the parents in the network.
@@ -2532,7 +2765,7 @@ check.mutilated.evidence = function(evidence, graph) {
   if (identical(evidence, TRUE))
     return(TRUE)
   # check whether evidence is a named list.
-  if(!is(evidence, "list"))
+  if (!is(evidence, "list"))
     stop("evidence must be a list with elements named after the nodes in the graph.")
   # check the node labels in evidence.
   check.nodes(names(evidence), graph = graph)
@@ -2568,7 +2801,7 @@ check.mutilated.evidence = function(evidence, graph) {
          if (!is.real.vector(ev) || (length(ev) %!in% 1:2))
            stop("the evidence ", fixed, " must be a real number or a finite interval.")
          storage.mode(ev) = "double"
-         # amke sure interval boundaries are in the right order.
+         # make sure interval boundaries are in the right order.
          evidence[[fixed]] = sort(ev)
 
        }#THEN

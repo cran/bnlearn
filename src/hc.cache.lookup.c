@@ -301,6 +301,8 @@ SEXP bestop;
 
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, nnodes)] + cache_value[CMC(j, i, nnodes)];
+      /* nuke small values and negative zeroes. */
+      if (fabs(temp) < tol) temp = 0;
 
       if (debuglevel > 0) {
 

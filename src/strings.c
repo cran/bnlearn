@@ -35,6 +35,14 @@ SEXP try, new_array;
   if (idx)
     *idx = *t;
 
+  if (*t == 0) {
+
+    UNPROTECT(1);
+
+    return array;
+
+  }/*THEN*/
+
   /*allocate the new arra. */
   PROTECT(new_array = allocVector(STRSXP, n - 1));
 

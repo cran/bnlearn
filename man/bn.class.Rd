@@ -19,16 +19,18 @@
 
     \itemize{
 
-      \item \code{whitelist}: a sanitized copy of the \code{whitelist}
-        parameter (a two-column matrix, whose columns are labeled \code{from}
-        and \code{to}).
-      \item \code{blacklist}: a sanitized copy of the \code{blacklist}
-        parameter (a two-column matrix, whose columns are labeled \code{from}
-        and \code{to}).
+      \item \code{whitelist}: a copy of the \code{whitelist} argument (a
+        two-column matrix, whose columns are labeled \code{from} and \code{to})
+        as transformed by sanitization functions.
+      \item \code{blacklist}: a copy of the \code{blacklist} argument (a
+        two-column matrix, whose columns are labeled \code{from} and \code{to})
+        as transformed by sanitization functions.
       \item \code{test}: the label of the conditional independence test used by
-        the learning algorithm (a character string). The label of the network
-        score is used for score-based and hybrid algorithms, and "none" for 
-        randomly generated graphs.
+        the learning algorithm (a character string); the label of the network
+        score is used for score-based algorithms; the label of the newtork score
+        used in the \dQuote{Maximize} phase of hybrid algorithms; "none" for
+        randomly generated graphs. For hybrid algorithms, \code{test} always
+        has the same value as \code{maxscore} (see below).
       \item \code{ntests}: the number of conditional independence tests or
         score comparisons used in the learning (an integer value).
       \item \code{algo}: the label of the learning algorithm or the random
@@ -45,7 +47,7 @@
             used by the \code{bge} and \code{bde} scores.
           \item \code{phi}: a character string, either \code{heckerman} or
             \code{bottcher}; used by the \code{bge} score.
-          \item \code{k}: a positive numeric value, the penalty per parameter
+          \item \code{k}: a positive numeric value, the penalty coefficient
             used by the \code{aic}, \code{aic-g}, \code{bic} and \code{bic-g}
             scores.
           \item \code{prob}: the probability of each arc to be present in a

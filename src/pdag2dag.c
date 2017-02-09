@@ -145,18 +145,22 @@ SEXP node_data, current, nodes, result, temp;
 
   }/*FOR*/
 
+
   Free1D(nnbr);
-  if (*moralize > 0)
+  if (*moralize > 0) {
+
+    /* be really sure not to return duplicate arcs in moral graphs when
+     * shielded parents are present (the "shielding" nodes are counted
+     * twice). */
+    result = c_unique_arcs(result, nodes, FALSE);
+
     Free1D(nparents);
+
+  }/*THEN*/
 
   UNPROTECT(1);
 
-  /* be really sure not to return duplicate arcs in moral graphs when shielded
-   * parents are present (the "shielding" nodes are counted twice). */
-  if (*moralize > 0)
-    return c_unique_arcs(result, nodes, FALSE);
-  else
-    return result;
+  return result;
 
 }/*DAG2UG*/
 

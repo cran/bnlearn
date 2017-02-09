@@ -63,9 +63,9 @@ SEXP ctest(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP B, SEXP alpha,
 /* from discrete.tests.c */
 double c_chisqtest(int *xx, int llx, int *yy, int lly, int num, double *df,
     test_e test);
-double mi_kernel(int **n, int *nrowt, int *ncolt, int nrows, int ncols,
+double mi_kernel(int **n, int *nrowt, int *ncolt, int nrow, int ncol,
     int length);
-double x2_kernel(int **n, int *nrowt, int *ncolt, int nrows, int ncols,
+double x2_kernel(int **n, int *nrowt, int *ncolt, int nrow, int ncol,
     int length);
 double c_cchisqtest(int *xx, int llx, int *yy, int lly, int *zz, int llz,
     int num, double *df, test_e test);
@@ -105,8 +105,8 @@ double c_shmi(int *xx, int llx, int *yy, int lly, int num);
 double c_shcmi(int *xx, int llx, int *yy, int lly, int *zz, int llz,
     int num, double *df);
 double covmat_lambda(double **column, double *mean, double *var, int n,
-    int ncols);
-void covmat_shrink(double *var, int ncols, double lambda);
+    int ncol);
+void covmat_shrink(double *var, int ncol, double lambda);
 
 /* from {discrete,gaussian}.monte.carlo.c */
 void c_mcarlo(int *xx, int nr, int *yy, int nc, int num, int B,
@@ -115,7 +115,7 @@ void c_cmcarlo(int *xx, int nr, int *yy, int nc, int *zz, int nl, int num,
     int B, double *observed, double *pvalue, double alpha, test_e test, double *df);
 void c_gauss_mcarlo(double *xx, double *yy, int num, int B, double *res,
     double alpha, test_e test, double *observed);
-void c_gauss_cmcarlo(double **column, int ncols, int num, int B,
+void c_gauss_cmcarlo(double **column, int ncol, int num, int B,
     double *observed, double *pvalue, double alpha, test_e test);
 
 /* from contingency.tables.c */

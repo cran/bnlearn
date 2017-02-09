@@ -88,7 +88,7 @@ arc.strength.score = function(network, data, score, extra, debug = FALSE) {
   reference.score = per.node.score(network = network, score = score,
                       targets = nodes, extra.args = extra, data = data)
   # check whether the score is decomposable.
-  decomp = is.score.decomposable(score, nodes, extra)
+  decomp = is.score.decomposable(score, extra)
 
   if (debug) {
 

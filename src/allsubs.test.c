@@ -241,7 +241,7 @@ double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
 
       PREPARE_GAUSSIAN_SUBSET();
       /* compute the covariance matrix. */
-      c_covmat(subcol, submean, cursize + nf + 2, nobs, cov, 0);
+      c_covmat(subcol, submean, nobs, cursize + nf + 2, cov, 0);
 
       if (test == COR) {
 

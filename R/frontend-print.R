@@ -80,10 +80,12 @@ print.bn = function(x, ...) {
     if ("prior" %in% params)
       wcat("  graph prior:                          ", prior.labels[x$learning$args$prior])
     if ("beta" %in% params)
-      if (x$learning$args$prior != "cs")
-        wcat("  beta sparsity parameter:              ", format(x$learning$args$beta))
-      else
+      if (x$learning$args$prior == "cs")
         wcat("  beta sparsity parameter:              ", "Completed Prior over Arcs")
+      else if (x$learning$args$prior == "marginal")
+        wcat("  beta sparsity parameter:              ", paste(x$learning$args$beta, collapse = " / "))
+      else
+        wcat("  beta sparsity parameter:              ", format(x$learning$args$beta))
     if ("alpha" %in% params)
       wcat("  alpha threshold:                      ", format(x$learning$args$alpha))
     if ("B" %in% params)

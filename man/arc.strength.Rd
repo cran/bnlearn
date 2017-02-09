@@ -77,7 +77,7 @@ averaged.network(strength, nodes, threshold)
   If \code{criterion} is a conditional independence test, the strength is a
   p-value (so the lower the value, the stronger the relationship). The
   conditional independence test would be that to drop the arc from the
-  network. The only possible additional parameter is \code{B}, the number
+  network. The only possible additional argument is \code{B}, the number
   of permutations to be generated for each permutation test.
 
   If \code{criterion} is the label of a score function, the strength is
@@ -87,7 +87,7 @@ averaged.network(strength, nodes, threshold)
   present. Negative values correspond to decreases in the network score and
   positive values correspond to increases in the network score (the stronger
   the relationship, the more negative the difference). There may be additional
-  parameters depending on the choice of the score, see \code{\link{score}} for
+  aguments depending on the choice of the score, see \code{\link{score}} for
   details.
 
   \code{boot.strength} estimates the strength of each arc as its empirical

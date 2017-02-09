@@ -2,13 +2,13 @@
 schedule = function(x, start = NULL, reverse = FALSE, debug = FALSE) {
 
   if (is.null(start))
-    nodes = root.leaf.nodes(x, leaf = reverse)
+    roots = root.leaf.nodes(x, leaf = reverse)
   else
-    nodes = start
+    roots = start
 
   to.do = .Call("schedule",
                 bn = x,
-                root.nodes = nodes,
+                root.nodes = roots,
                 reverse = reverse,
                 debug = debug)
 

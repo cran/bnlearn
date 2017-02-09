@@ -8,7 +8,7 @@
 
 }
 \usage{
-data(gaussian.test)
+data(clgaussian.test)
 }
 \format{
 

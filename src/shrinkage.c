@@ -219,16 +219,16 @@ long double sum = 0, lambda = 0;
 
 /* compute the shrinkage intensity lambda for a covariance matrix. */
 double covmat_lambda(double **column, double *mean, double *var, int n,
-    int ncols) {
+    int ncol) {
 
 int i = 0, j = 0, k = 0, cur = 0;
 long double lambda = 0, sumcors = 0, sumvars = 0, temp = 0;
 
-  for (i = 0; i < ncols; i++) {
+  for (i = 0; i < ncol; i++) {
 
-    for (j = i; j < ncols; j++) {
+    for (j = i; j < ncol; j++) {
 
-      cur = CMC(i, j, ncols);
+      cur = CMC(i, j, ncol);
 
       if (i != j) {
 
@@ -272,14 +272,14 @@ long double lambda = 0, sumcors = 0, sumvars = 0, temp = 0;
 }/*COVMAT_LAMBDA*/
 
 /* shrink the covariance matrix (except the diagonal, which stays the same). */
-void covmat_shrink(double *var, int ncols, double lambda) {
+void covmat_shrink(double *var, int ncol, double lambda) {
 
 int i = 0, j = 0;
 
-  for (i = 0; i < ncols; i++)
-    for (j = 0; j < ncols; j++)
+  for (i = 0; i < ncol; i++)
+    for (j = 0; j < ncol; j++)
       if (i != j)
-        var[CMC(i, j, ncols)] *= 1 - lambda;
+        var[CMC(i, j, ncol)] *= 1 - lambda;
 
 }/*COVMAT_SHRINK*/
 

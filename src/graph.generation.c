@@ -660,7 +660,7 @@ int path_exists = 0;
         if (out_degree[arc[0] - 1] >= *max_out)
           Rprintf("  > node %s already has out-degree %d, max is %lf.\n",
             NODE(arc[0] - 1), out_degree[arc[0] - 1], *max_out);
-        if (in_degree[arc[1]] >= *max_in)
+        if (in_degree[arc[1] - 1] >= *max_in)
           Rprintf("  > node %s already has in-degree %d, max is %lf.\n",
             NODE(arc[1] - 1), in_degree[arc[1] - 1], *max_in);
 

@@ -10,7 +10,7 @@
 
 }
 \usage{
-bn.cv(data, bn, loss = NULL, k = 10, m, runs = 1, algorithm.args = list(),
+bn.cv(data, bn, loss = NULL, ..., algorithm.args = list(),
   loss.args = list(), fit = "mle", fit.args = list(), method = "k-fold",
   cluster = NULL, debug = FALSE)
 
@@ -28,12 +28,6 @@ bn.cv(data, bn, loss = NULL, k = 10, m, runs = 1, algorithm.args = list(),
     for Bayesian networks classifiers; otherwise, the \emph{Log-Likelihood
     Loss} for both discrete and continuous data sets. See below for 
     additional details.}
-  \item{k}{a positive integer number, the number of groups into which the
-    data will be split.}
-  \item{m}{a positive integer number, the size of the test set in hold-out
-    cross-validation.}
-  \item{runs}{a positive integer number, the number of times cross-validation
-    will be run.}
   \item{algorithm.args}{a list of extra arguments to be passed to the learning
     algorithm.}
   \item{loss.args}{a list of extra arguments to be passed to the loss function
@@ -42,8 +36,8 @@ bn.cv(data, bn, loss = NULL, k = 10, m, runs = 1, algorithm.args = list(),
     parameters of the newtork. See \code{\link{bn.fit}} for details.}
   \item{fit.args}{additional arguments for the parameter estimation procedure,
     see again \code{\link{bn.fit}} for details.}
-  \item{method}{a character string, either \code{k-fold} or \code{hold-out}.
-    See below for details.}
+  \item{method}{a character string, either \code{k-fold}, \code{custom-folds}
+    or \code{hold-out}. See below for details.}
   \item{cluster}{an optional cluster object from package \pkg{parallel}. See
     \code{\link{parallel integration}} for details and a simple example.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
@@ -59,8 +53,7 @@ bn.cv(data, bn, loss = NULL, k = 10, m, runs = 1, algorithm.args = list(),
 }
 \section{Cross-Validation Strategies}{
 
-  The following cross-validation strategies are implemented:
-
+  The following cross-validation methods are implemented:
   \itemize{
 
     \item \emph{k-fold}: the \code{data} are split in \code{k} subsets of equal
@@ -68,6 +61,10 @@ bn.cv(data, bn, loss = NULL, k = 10, m, runs = 1, algorithm.args = list(),
       as well) on the other \code{k - 1} subsets and the loss function is then
       computed using that subset. Loss estimates for each of the \code{k}
       subsets are then combined to give an overall loss for \code{data}.
+    \item \emph{custom-folds}: the data are manually partitioned by the user
+      into subsets, which are then used as in k-fold cross-validation. Subsets
+      are not constrained to have the same size, and every observation must be
+      assigned to one subset.
     \item \emph{hold-out}: \code{k} subsamples of size \code{m} are sampled
       independently without replacement from the \code{data}. For each subsample,
       \code{bn} is fitted (and possibly learned) on the remaining
@@ -78,6 +75,22 @@ bn.cv(data, bn, loss = NULL, k = 10, m, runs = 1, algorithm.args = list(),
 
   If either cross-validation is used with multiple \code{runs}, the overall
   loss is the averge of the loss estimates from the different runs.
+
+  To clarify, cross-validation methods accept the following optional arguments:
+  \itemize{
+
+    \item \code{k}: a positive integer number, the number of groups into which the
+      data will be split (in k-fold cross-validation) or the number of times
+      the data will be split in training and test samples (in hold-out
+      cross-validation).
+    \item \code{m}: a positive integer number, the size of the test set in
+      hold-out cross-validation.
+    \item \code{runs}: a positive integer number, the number of times
+      k-fold or hold-out cross-validation will be run.
+    \item \code{folds}: a list in which element corresponds to one fold and
+      contains the indices for the observations that are included to that fold.
+
+  }
 
 }
 \section{Loss Functions}{
@@ -92,10 +105,9 @@ bn.cv(data, bn, loss = NULL, k = 10, m, runs = 1, algorithm.args = list(),
     \item \emph{Gaussian Log-Likelihood Loss} (\code{logl-g}): the negated expected
       log-likelihood for Gaussian Bayesian networks.
     \item \emph{Classification Error} (\code{pred}): the \emph{prediction error}
-      for a single node 
-      in a discrete network. Frequentist predictions are used, so the values of the
-      target node are predicted using only the information present in its local
-      distribution (from its parents).
+      for a single node in a discrete network. Frequentist predictions are used,
+      so the values of the target node are predicted using only the information
+      present in its local distribution (from its parents).
     \item \emph{Posterior Classification Error} (\code{pred-lw} and
       \code{pred-lw-cg}): similar to the above, but predictions are computed
       from an arbitrary set of nodes using likelihood weighting to obtain
@@ -171,14 +183,21 @@ bn.cv(data, bn, loss = NULL, k = 10, m, runs = 1, algorithm.args = list(),
 }
 \examples{
 bn.cv(learning.test, 'hc', loss = "pred", loss.args = list(target = "F"))
+
+folds = list(1:2000, 2001:3000, 3001:5000)
+bn.cv(learning.test, 'hc', loss = "logl", method = "custom-folds",
+  folds = folds)
+
 bn.cv(gaussian.test, 'mmhc', method = "hold-out", k = 5, m = 50, runs = 2)
 
+\dontrun{
 gaussian.subset = gaussian.test[1:50, ]
 cv.gs = bn.cv(gaussian.subset, 'gs', runs = 10)
 cv.iamb = bn.cv(gaussian.subset, 'iamb', runs = 10)
 cv.inter = bn.cv(gaussian.subset, 'inter.iamb', runs = 10)
 plot(cv.gs, cv.iamb, cv.inter, 
   xlab = c("Grow-Shrink", "IAMB", "Inter-IAMB"), connect = TRUE)
+}
 }
 \keyword{nonparametric}
 \keyword{multivariate}

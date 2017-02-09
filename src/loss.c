@@ -3,6 +3,7 @@
 #include "include/globals.h"
 #include "include/matrix.h"
 #include "include/sets.h"
+#include "include/fitted.h"
 
 double c_gloss(int *cur, SEXP cur_parents, double *coefs, double *sd,
     void **columns, SEXP nodes, int ndata, double *per_sample,
@@ -58,9 +59,10 @@ double c_entropy_loss(SEXP fitted, SEXP orig_data, int ndata, int by,
 int i = 0, k = 0, nnodes = length(fitted), nlevels = 0, dropped = 0;
 int *configs = NULL, *to_keep = NULL;
 double result = 0, cur_loss = 0;
-const char *class = NULL;
+fitted_node_e node_type = ENOFIT;
 void **columns = NULL;
-SEXP data, fit_class, cur_node, nodes, coefs, sd, parents, try;
+SEXP data, cur_node, nodes, coefs, sd, parents, try;
+SEXP dparents, gparents, dlevels;
 
   /* get the node labels. */
   nodes = getAttrib(fitted, R_NamesSymbol);
@@ -71,17 +73,13 @@ SEXP data, fit_class, cur_node, nodes, coefs, sd, parents, try;
   to_keep = INTEGER(try);
   R_isort(to_keep, length(try));
 
-  /* determine the class of the fitted network. */
-  fit_class = getAttrib(fitted, R_ClassSymbol);
-  class = CHAR(STRING_ELT(fit_class, length(fit_class) - 1));
-
   /* dereference the data set's columns. */
   columns = Calloc1D(nnodes, sizeof(void *));
   for (i = 0; i < nnodes; i++)
     columns[i] = (void *) DATAPTR(VECTOR_ELT(data, i));
 
   /* allocate an array for parents' configurations. */
-  if (strcmp(class, "bn.fit.gnet") != 0)
+  if (!c_is(fitted, "bn.fit.gnet"))
     configs = Calloc1D(ndata, sizeof(int));
 
   /* iterate over the nodes. */
@@ -104,6 +102,8 @@ SEXP data, fit_class, cur_node, nodes, coefs, sd, parents, try;
 
     }/*ELSE*/
 
+    /* reset the counter for the dropped observations. */
+    dropped = 0;
     /* get the current node. */
     cur_node = VECTOR_ELT(fitted, i);
     /* get the parents of the node. */
@@ -111,42 +111,49 @@ SEXP data, fit_class, cur_node, nodes, coefs, sd, parents, try;
     /* get the parameters (regression coefficients and residuals' standard
      * deviation for Gaussian nodes, conditional probabilities for discrete
      * nodes), and compute the loss. */
-    class = CHAR(STRING_ELT(getAttrib(cur_node, R_ClassSymbol), 0));
+    node_type = r_fitted_node_label(cur_node);
 
-    if (strcmp(class, "bn.fit.gnode") == 0) {
+    switch(node_type) {
 
-      coefs = getListElement(cur_node, "coefficients");
-      sd = getListElement(cur_node, "sd");
+      case DNODE:
+      case ONODE:
+        coefs = getListElement(cur_node, "prob");
+        nlevels = INT(getAttrib(coefs, R_DimSymbol));
 
-      cur_loss = c_gloss(&i, parents, REAL(coefs), REAL(sd), columns, nodes,
-                   ndata, res_sample, allow_singular);
+        cur_loss = c_dloss(&i, parents, configs, REAL(coefs), data, nodes,
+                     ndata, nlevels, res_sample, &dropped);
 
-    }/*THEN*/
-    else if ((strcmp(class, "bn.fit.dnode") == 0) ||
-             (strcmp(class, "bn.fit.onode") == 0)) {
+        break;
 
-      coefs = getListElement(cur_node, "prob");
-      nlevels = INT(getAttrib(coefs, R_DimSymbol));
 
-      cur_loss = c_dloss(&i, parents, configs, REAL(coefs), data, nodes,
-                   ndata, nlevels, res_sample, &dropped);
+      case GNODE:
+        coefs = getListElement(cur_node, "coefficients");
+        sd = getListElement(cur_node, "sd");
 
-    }/*THEN*/
-    else if (strcmp(class, "bn.fit.cgnode") == 0) {
+        cur_loss = c_gloss(&i, parents, REAL(coefs), REAL(sd), columns, nodes,
+                     ndata, res_sample, allow_singular);
 
-      SEXP dparents, gparents, dlevels;
+        break;
 
-      coefs = getListElement(cur_node, "coefficients");
-      sd = getListElement(cur_node, "sd");
-      dparents = getListElement(cur_node, "dparents");
-      gparents = getListElement(cur_node, "gparents");
-      dlevels = getListElement(cur_node, "dlevels");
+      case CGNODE:
 
-      cur_loss = c_cgloss(&i, parents, dparents, gparents, dlevels,
-                   REAL(coefs), REAL(sd), columns, nodes, ndata, res_sample,
-                   allow_singular, &dropped);
+        coefs = getListElement(cur_node, "coefficients");
+        sd = getListElement(cur_node, "sd");
+        dparents = getListElement(cur_node, "dparents");
+        gparents = getListElement(cur_node, "gparents");
+        dlevels = getListElement(cur_node, "dlevels");
 
-    }/*THEN*/
+        cur_loss = c_cgloss(&i, parents, dparents, gparents, dlevels,
+                     REAL(coefs), REAL(sd), columns, nodes, ndata, res_sample,
+                     allow_singular, &dropped);
+
+        break;
+
+      default:
+        error("unknown node type (class: %s).",
+           CHAR(STRING_ELT(getAttrib(cur_node, R_ClassSymbol), 0)));
+
+    }/*SWITCH*/
 
     /* print a warning if data were dropped. */
     if ((warnlevel > 0) && (dropped > 0))
@@ -161,7 +168,7 @@ SEXP data, fit_class, cur_node, nodes, coefs, sd, parents, try;
   }/*FOR*/
 
   Free1D(columns);
-  if (strcmp(class, "bn.fit.gnet") != 0)
+  if (!c_is(fitted, "bn.fit.gnet"))
     Free1D(configs);
 
   UNPROTECT(2);

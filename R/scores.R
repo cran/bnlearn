@@ -1,14 +1,5 @@
 
-# compute the score of a bayesian network.
-network.score = function(network, data, score, extra.args, debug = FALSE) {
-
-  sum(per.node.score(network = network, data = data, score = score,
-    targets = names(network$nodes), extra.args = extra.args,
-    debug = debug))
-
-}#NETWORK.SCORE
-
-# compute single nodes' contributions to the network score.
+# compute individual node contributions to the network score.
 per.node.score = function(network, data, score, targets, extra.args,
     debug = FALSE) {
 
@@ -37,7 +28,8 @@ cs.completed.prior = function(beta, nodes, learning = FALSE) {
 
 }#CS.COMPLETED.PRIOR
 
-alpha.star.backend = function(x, data, debug) {
+# compute the optimal imaginary sample size for a discrete network.
+alpha.star.backend = function(x, data, debug = FALSE) {
 
   .Call("alpha_star",
     x = x,

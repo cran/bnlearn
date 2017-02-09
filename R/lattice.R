@@ -220,7 +220,7 @@ lattice.cv.bwplot = function(means, labels, losses, main, xlab, ylab,
   # check whether lattice is loaded, and try to load if it is not.
   if (!requireNamespace("lattice"))
     stop("this function requires the lattice package.")
- 
+
   # check the labels of the cross-validation objects, if any.
   if (!missing(xlab)) {
 

@@ -2,6 +2,7 @@
 #include "include/blas.h"
 #include "include/dataframe.h"
 #include "include/globals.h"
+#include "include/covariance.h"
 
 double glik(SEXP x, double *nparams) {
 
@@ -15,9 +16,11 @@ long double sd = 0;
   xm /= num;
 
   /* compute the standard deviation. */
-  for (i = 0; i < num; i++)
-    sd += (xx[i] - xm) * (xx[i] - xm);
-  sd = sqrt(sd / (num - 1));
+  SD_GUARD(num, 1, sd,
+    for (i = 0; i < num; i++)
+      sd += (xx[i] - xm) * (xx[i] - xm);
+    sd = sqrt(sd / (num - 1));
+  )
 
   /* compute the log-likelihood (singular models haze zero density). */
   if (sd < MACHINE_TOL)
@@ -36,22 +39,21 @@ long double sd = 0;
 
 double cglik(SEXP x, SEXP data, SEXP parents, double *nparams) {
 
-int i = 0, nrow = length(x), ncol = length(parents) + 1;
-double *xx = REAL(x), *qr = NULL, res = 0, *fitted = NULL;
-long double sd = 0;
-SEXP qr_x;
+int i = 0, nrow = length(x), ncol = length(parents);
+double *xx = REAL(x), **dd = NULL, res = 0, *fitted = NULL, sd = 0;
+SEXP data_x;
 
-  /* prepare the data for the QR decomposition. */
-  PROTECT(qr_x = qr_matrix(data, parents));
-  qr = REAL(qr_x);
-
+  /* dereference the data and prepare it for the QR decomposition. */
+  PROTECT(data_x = c_dataframe_column(data, parents, FALSE, FALSE));
+  dd = Calloc1D(ncol, sizeof(double *));
+  for (i = 0; i < ncol; i++)
+    dd[i] = REAL(VECTOR_ELT(data_x, i));
   /* allocate the fitted values. */
   fitted = Calloc1D(nrow, sizeof(double));
 
-  /* estimate OLS using the QR decomposition. */
-  c_qr_ols(qr, xx, nrow, ncol, fitted, &sd);
+  c_ols(dd, xx, nrow, ncol, fitted, NULL, NULL, &sd);
 
-  /* compute the log-likelihood (singular models haze zero density). */
+  /* compute the log-likelihood (singular models have zero density). */
   if (sd < MACHINE_TOL)
     res = R_NegInf;
   else
@@ -60,9 +62,10 @@ SEXP qr_x;
 
   /* we may want to store the number of parameters. */
   if (nparams)
-    *nparams = ncol;
+    *nparams = ncol + 1;
 
   Free1D(fitted);
+  Free1D(dd);
 
   UNPROTECT(1);
 

@@ -124,7 +124,7 @@ SEXP res, rownames, from, to, str, dir;
 /* reduce multiple boostrap strength R objects. */
 SEXP bootstrap_reduce(SEXP x) {
 
-int i = 0, j = 0, reps = length(x), nrows = 0;
+int i = 0, j = 0, reps = length(x), nrow = 0;
 double *str = NULL, *dir = NULL, *temp = NULL;
 SEXP result, df, strength, direction;
 
@@ -139,15 +139,15 @@ SEXP result, df, strength, direction;
   SET_VECTOR_ELT(result, 0, VECTOR_ELT(df, 0));
   SET_VECTOR_ELT(result, 1, VECTOR_ELT(df, 1));
   /* get the number of rows. */
-  nrows = length(VECTOR_ELT(df, 0));
+  nrow = length(VECTOR_ELT(df, 0));
   /* allocate the remaining two columns. */
-  PROTECT(strength = allocVector(REALSXP, nrows));
+  PROTECT(strength = allocVector(REALSXP, nrow));
   str = REAL(strength);
-  PROTECT(direction = allocVector(REALSXP, nrows));
+  PROTECT(direction = allocVector(REALSXP, nrow));
   dir = REAL(direction);
   /* just copy over strength and direction. */
-  memcpy(str, REAL(VECTOR_ELT(df, 2)), nrows * sizeof(double));
-  memcpy(dir, REAL(VECTOR_ELT(df, 3)), nrows * sizeof(double));
+  memcpy(str, REAL(VECTOR_ELT(df, 2)), nrow * sizeof(double));
+  memcpy(dir, REAL(VECTOR_ELT(df, 3)), nrow * sizeof(double));
 
   for (i = 1; i < reps; i++) {
 
@@ -155,17 +155,17 @@ SEXP result, df, strength, direction;
     df = VECTOR_ELT(x, i);
     /* accumulate strength. */
     temp = REAL(VECTOR_ELT(df, 2));
-    for (j = 0; j < nrows; j++)
+    for (j = 0; j < nrow; j++)
       str[j] += temp[j];
     /* accumulate direction. */
     temp = REAL(VECTOR_ELT(df, 3));
-    for (j = 0; j < nrows; j++)
+    for (j = 0; j < nrow; j++)
       dir[j] += temp[j];
 
   }/*FOR*/
 
   /* normalize dividing by the number of data frames. */
-  for (j = 0; j < nrows; j++) {
+  for (j = 0; j < nrow; j++) {
 
     str[j] /= reps;
     dir[j] /= reps;

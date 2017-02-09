@@ -5,7 +5,7 @@
 /* convert an arc set to an adjacency matrix. */
 SEXP arcs2amat(SEXP arcs, SEXP nodes) {
 
-int k = 0, nrows = length(arcs) / 2, dims = length(nodes);
+int k = 0, nrow = length(arcs) / 2, dims = length(nodes);
 int *res = NULL, *coords = NULL;
 SEXP result, try;
 
@@ -18,7 +18,7 @@ SEXP result, try;
   setDimNames(result, nodes, nodes);
 
   /* nothing to do if there are no arcs. */
-  if (nrows == 0) {
+  if (nrow == 0) {
 
     UNPROTECT(1);
     return result;
@@ -30,8 +30,8 @@ SEXP result, try;
   coords = INTEGER(try);
 
   /* iterate over the arcs. */
-  for (k = 0; k < nrows; k++)
-    res[CMC(coords[k] - 1, coords[k + nrows] - 1, dims)] = 1;
+  for (k = 0; k < nrow; k++)
+    res[CMC(coords[k] - 1, coords[k + nrow] - 1, dims)] = 1;
 
   UNPROTECT(2);
 
@@ -42,16 +42,16 @@ SEXP result, try;
 /* convert an adjacency matrix to an arc set. */
 SEXP amat2arcs(SEXP amat, SEXP nodes) {
 
-int i = 0, j = 0, k = 0, nrows = length(nodes), narcs = 0;
+int i = 0, j = 0, k = 0, nrow = length(nodes), narcs = 0;
 int *a = INTEGER(amat);
 SEXP arcs;
 
   /* count the number of arcs in the adjacency matrix. */
-  for (i = 0; i < nrows; i++) {
+  for (i = 0; i < nrow; i++) {
 
-    for (j = 0; j < nrows; j++) {
+    for (j = 0; j < nrow; j++) {
 
-      if (a[CMC(i, j, nrows)] == 1) narcs++;
+      if (a[CMC(i, j, nrow)] == 1) narcs++;
 
     }/*FOR*/
 
@@ -75,13 +75,13 @@ SEXP arcs;
   setDimNames(arcs, R_NilValue, mkStringVec(2, "from", "to"));
 
   /* fill the arc set from the adjacency matrix. */
-  for (i = 0; i < nrows; i++) {
+  for (i = 0; i < nrow; i++) {
 
-    for (j = 0; j < nrows; j++) {
+    for (j = 0; j < nrow; j++) {
 
       /* colnames and rownames are completely ignored. This kills some corner
            cases present in the old R code.  */
-      if (a[CMC(i, j, nrows)] == 1) {
+      if (a[CMC(i, j, nrow)] == 1) {
 
          SET_STRING_ELT(arcs, k, STRING_ELT(nodes, i));
          SET_STRING_ELT(arcs, k + 1 * narcs, STRING_ELT(nodes, j));

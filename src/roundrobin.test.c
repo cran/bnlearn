@@ -72,7 +72,7 @@
 #define PREPARE_DISCRETE_SUBSET() \
     /* copy all valid variables in the subset but the current one. */ \
     for (j = 0, k = 0; j < nz; j++) { \
-      if (column[j] == NULL) \
+      if (!(column[j])) \
         continue; \
       if (j == i) { \
         yptr = column[j]; \
@@ -89,7 +89,7 @@
 #define PREPARE_GAUSSIAN_SUBSET() \
     /* copy all valid variables in the subset but the current one. */ \
     for (j = 0, k = 2; j < nz; j++) { \
-      if (column[j] == NULL) \
+      if (!(column[j])) \
         continue; \
       if (j == i) { \
         subset[1] = column[j]; \
@@ -107,7 +107,7 @@
       Rprintf("    > node %s is independent from %s given ", \
         CHAR(STRING_ELT(x, 0)), CHAR(STRING_ELT(z, i))); \
       for (j = 0; j < nz; j++) \
-        if ((j != i) && (column[j] != NULL)) \
+        if ((j != i) && (column[j])) \
           Rprintf("%s ", CHAR(STRING_ELT(z, j))); \
       Rprintf("(p-value: %g).\n", pvalue[cur - 1]); \
     }/*THEN*/ \
@@ -120,7 +120,7 @@
       Rprintf("    > node %s is dependent on %s given ", \
         CHAR(STRING_ELT(x, 0)), CHAR(STRING_ELT(z, i))); \
       for (j = 0; j < nz; j++) \
-        if ((j != i) && (column[j] != NULL)) \
+        if ((j != i) && (column[j])) \
           Rprintf("%s ", CHAR(STRING_ELT(z, j))); \
       Rprintf("(p-value: %g).\n", pvalue[cur - 1]); \
     }/*THEN*/ \
@@ -220,7 +220,7 @@ double statistic = 0;
     PREPARE_GAUSSIAN_SUBSET();
 
     /* compute the covariance matrix. */
-    c_covmat(subset, submean, valid + 1, nobs, cov, 0);
+    c_covmat(subset, submean, nobs, valid + 1, cov, 0);
 
     if (test == COR) {
 
@@ -299,7 +299,7 @@ void *xptr = NULL, *yptr = NULL, **column = NULL;
     /* count how many discrete and continuous parents are in the subset. */
     for (j = 0, ndp = 0, ngp = 0; j < nz; j++) {
 
-      if ((column[j] == NULL) || (i == j))
+      if (!(column[j]) || (i == j))
         continue;
 
       if (nlvls[j] > 0)
@@ -315,7 +315,7 @@ void *xptr = NULL, *yptr = NULL, **column = NULL;
     dlvls = Calloc1D(ndp + 1, sizeof(int));
     for (j = 0, k = 0, l = 0; j < nz; j++) {
 
-      if ((column[j] == NULL) || (i == j))
+      if (!(column[j]) || (i == j))
         continue;
 
       if (nlvls[j] > 0) {

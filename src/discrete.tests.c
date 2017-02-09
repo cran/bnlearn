@@ -115,14 +115,14 @@ double res = 0;
 }/*C_CCHISQTEST*/
 
 /* compute the mutual information from the joint and marginal frequencies. */
-double mi_kernel(int **n, int *nrowt, int *ncolt, int nrows, int ncols,
+double mi_kernel(int **n, int *nrowt, int *ncolt, int nrow, int ncol,
     int length) {
 
 int i = 0, j = 0;
 double res = 0;
 
-  for (i = 0; i < nrows; i++)
-    for (j = 0; j < ncols; j++)
+  for (i = 0; i < nrow; i++)
+    for (j = 0; j < ncol; j++)
       res += MI_PART(n[i][j], nrowt[i], ncolt[j], length);
 
   return res;
@@ -130,14 +130,14 @@ double res = 0;
 }/*MI_KERNEL*/
 
 /* compute Pearson's X^2 coefficient from the joint and marginal frequencies. */
-double x2_kernel(int **n, int *nrowt, int *ncolt, int nrows, int ncols,
+double x2_kernel(int **n, int *nrowt, int *ncolt, int nrow, int ncol,
     int length) {
 
 int i = 0, j = 0;
 double res = 0, expected = 0;
 
-  for (i = 0; i < nrows; i++)
-    for (j = 0; j < ncols; j++) {
+  for (i = 0; i < nrow; i++)
+    for (j = 0; j < ncol; j++) {
 
       expected = nrowt[i] * (double)ncolt[j] / length;
 

@@ -66,7 +66,7 @@ moral(x, debug = FALSE)
   is the consistent extension of \code{x}.
 
   \code{vstructs} returns a matrix with either 2 or 3 columns, according to the
-  value of the \code{arcs} parameter.
+  value of the \code{arcs} argument.
 
 }
 \references{

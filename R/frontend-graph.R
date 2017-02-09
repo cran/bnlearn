@@ -132,6 +132,7 @@ ordering2blacklist = function(nodes) {
 
 }#ORDERING2BLACKLIST
 
+# generate a valid blacklist from a partial node ordering. 
 tiers2blacklist = function(nodes) {
 
   # check the node labels.
@@ -153,7 +154,7 @@ tiers2blacklist = function(nodes) {
 
 }#TIERS2BLACKLIST
 
-# return the skeleton of a (partially) directed graph
+# return the skeleton of a (partially) directed graph.
 skeleton = function(x) {
 
   # check x's class.
@@ -192,7 +193,7 @@ all.equal.bn = function(target, current, ...) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  equal.backend(target, current)
+  equal.backend.bn(target, current)
 
 }#ALL.EQUAL.BN
 

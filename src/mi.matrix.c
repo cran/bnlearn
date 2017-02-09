@@ -11,17 +11,17 @@
 
 #define LIST_MUTUAL_INFORMATION_COEFS() \
   if (debuglevel > 0) { \
-    for (i = 0; i < ncols; i++) \
-      for (j = i + 1; j < ncols; j++) \
+    for (i = 0; i < ncol; i++) \
+      for (j = i + 1; j < ncol; j++) \
         Rprintf("  > mutual information between %s and %s is %lf.\n", \
-          NODE(i), NODE(j), mim[UPTRI3(i + 1, j + 1, ncols)]); \
+          NODE(i), NODE(j), mim[UPTRI3(i + 1, j + 1, ncol)]); \
   }/*THEN*/
 
 #define CONVERT_TO_ARC_SET(ind, drop, rows) \
   PROTECT(arcs = allocMatrix(STRSXP, (rows), 2)); \
-  for (i = 0, k = 0; i < ncols; i++) { \
-    for (j = i + 1; j < ncols; j++) { \
-      if (ind[UPTRI3(i + 1, j + 1, ncols)] != drop) { \
+  for (i = 0, k = 0; i < ncol; i++) { \
+    for (j = i + 1; j < ncol; j++) { \
+      if (ind[UPTRI3(i + 1, j + 1, ncol)] != drop) { \
          SET_STRING_ELT(arcs, k, STRING_ELT(nodes, i)); \
          SET_STRING_ELT(arcs, k + (rows), STRING_ELT(nodes, j)); \
          k++; \
@@ -36,21 +36,21 @@
 
 #define DEREFERENCE_DATA_FRAME() \
   if (DISCRETE_NETWORK(*est)) { \
-    columns = Calloc1D(ncols, sizeof(int *)); \
-    for (i = 0; i < ncols; i++) \
+    columns = Calloc1D(ncol, sizeof(int *)); \
+    for (i = 0; i < ncol; i++) \
       columns[i] = INTEGER(VECTOR_ELT(data, i)); \
-    nlevels = Calloc1D(ncols, sizeof(int)); \
-    for (i = 0; i < ncols; i++) \
+    nlevels = Calloc1D(ncol, sizeof(int)); \
+    for (i = 0; i < ncol; i++) \
       nlevels[i] = NLEVELS2(data, i); \
   }/*THEN*/ \
   else { \
-    columns = Calloc1D(ncols, sizeof(double *)); \
-    for (i = 0; i < ncols; i++) \
+    columns = Calloc1D(ncol, sizeof(double *)); \
+    for (i = 0; i < ncol; i++) \
       columns[i] = REAL(VECTOR_ELT(data, i)); \
-    means = Calloc1D(ncols, sizeof(double)); \
-    c_meanvec((double **)columns, means, num, ncols, 0); \
-    sse = Calloc1D(ncols, sizeof(double)); \
-    c_ssevec((double **)columns, sse, means, num, ncols, 0); \
+    means = Calloc1D(ncol, sizeof(double)); \
+    c_meanvec((double **)columns, means, num, ncol, 0); \
+    sse = Calloc1D(ncol, sizeof(double)); \
+    c_ssevec((double **)columns, sse, means, num, ncol, 0); \
   }/*ELSE*/
 
 /* compute all the pairwise mutual information coefficients between the variables. */
@@ -63,7 +63,7 @@ int i = 0, j = 0;
 
     case DISCRETE_MAXIMUM_LIKELIHOOD:
 
-      if (cond == NULL) {
+      if (!cond) {
 
         for (i = 0; i < dim; i++) {
 
@@ -120,8 +120,8 @@ int i = 0, j = 0;
 /* ARACNE structure learning algorithm. */
 SEXP aracne(SEXP data, SEXP estimator, SEXP whitelist, SEXP blacklist, SEXP debug) {
 
-int i = 0, j = 0, k = 0, coord = 0, ncols = length(data);
-int num = length(VECTOR_ELT(data, i)), narcs = ncols * (ncols - 1) / 2;
+int i = 0, j = 0, k = 0, coord = 0, ncol = length(data);
+int num = length(VECTOR_ELT(data, i)), narcs = ncol * (ncol - 1) / 2;
 int *nlevels = NULL, *est = INTEGER(estimator), *wl = NULL, *bl = NULL;
 int debuglevel = isTRUE(debug);
 void **columns = NULL;
@@ -135,39 +135,39 @@ SEXP arcs, nodes, wlist, blist;
   DEREFERENCE_DATA_FRAME()
 
   /* allocate the mutual information matrix and the status vector. */
-  mim = Calloc1D(UPTRI3_MATRIX(ncols), sizeof(double));
-  exclude = Calloc1D(UPTRI3_MATRIX(ncols), sizeof(short int));
+  mim = Calloc1D(UPTRI3_MATRIX(ncol), sizeof(double));
+  exclude = Calloc1D(UPTRI3_MATRIX(ncol), sizeof(short int));
 
   /* compute the pairwise mutual information coefficients. */
   if (debuglevel > 0)
     Rprintf("* computing pairwise mutual information coefficients.\n");
 
-  mi_matrix(mim, columns, ncols, nlevels, &num, NULL, NULL, means, sse, est);
+  mi_matrix(mim, columns, ncol, nlevels, &num, NULL, NULL, means, sse, est);
 
   LIST_MUTUAL_INFORMATION_COEFS()
 
   /* compare all the triplets. */
-  for (i = 0; i < ncols; i++) {
+  for (i = 0; i < ncol; i++) {
 
-    for (j = i + 1; j < ncols; j++) {
+    for (j = i + 1; j < ncol; j++) {
 
-      for (k = 0; k < ncols; k++) {
+      for (k = 0; k < ncol; k++) {
 
         if ((k == i) || (k == j))
           continue;
 
         /* cache the UPTRI3 coordinates of the arc. */
-        coord = UPTRI3(i + 1, j + 1, ncols);
+        coord = UPTRI3(i + 1, j + 1, ncol);
 
         /* if MI(X, Y) < min(MI(X, Z), MI(Z, Y)) drop arc X - Y. */
-        if ((mim[coord] < mim[UPTRI3(i + 1, k + 1, ncols)]) &&
-            (mim[coord] < mim[UPTRI3(j + 1, k + 1, ncols)])) {
+        if ((mim[coord] < mim[UPTRI3(i + 1, k + 1, ncol)]) &&
+            (mim[coord] < mim[UPTRI3(j + 1, k + 1, ncol)])) {
 
           if (debuglevel > 0) {
 
             Rprintf("* dropping arc %s - %s because of %s, %lf < min(%lf, %lf)\n",
-              NODE(i), NODE(j), NODE(k), mim[UPTRI3(i + 1, j + 1, ncols)],
-              mim[UPTRI3(i + 1, k + 1, ncols)], mim[UPTRI3(j + 1, k + 1, ncols)]);
+              NODE(i), NODE(j), NODE(k), mim[UPTRI3(i + 1, j + 1, ncol)],
+              mim[UPTRI3(i + 1, k + 1, ncol)], mim[UPTRI3(j + 1, k + 1, ncol)]);
 
           }/*THEN*/
 
@@ -269,11 +269,11 @@ SEXP arcs, nodes, wlist, blist;
   Free1D(mim);
   Free1D(exclude);
   Free1D(columns);
-  if (nlevels != NULL)
+  if (nlevels)
     Free1D(nlevels);
-  if (means != NULL)
+  if (means)
     Free1D(means);
-  if (sse != NULL)
+  if (sse)
     Free1D(sse);
 
   return arcs;
@@ -294,7 +294,7 @@ static int chow_liu_blacklist(int *blacklist, int *length, int *hash) {
 SEXP chow_liu(SEXP data, SEXP nodes, SEXP estimator, SEXP whitelist,
     SEXP blacklist, SEXP conditional, SEXP debug) {
 
-int i = 0, j = 0, k = 0, debug_coord[2], ncols = length(data);
+int i = 0, j = 0, k = 0, debug_coord[2], ncol = length(data);
 int num = length(VECTOR_ELT(data, 0)), narcs = 0, nwl = 0, nbl = 0;
 int *nlevels = NULL, clevels = 0, *est = INTEGER(estimator), *depth = NULL;
 int *wl = NULL, *bl = NULL, *poset = NULL, debuglevel = isTRUE(debug);
@@ -315,14 +315,14 @@ SEXP arcs, wlist, blist;
   }/*THEN*/
 
   /* allocate the mutual information matrix and the status vector. */
-  mim = Calloc1D(UPTRI3_MATRIX(ncols), sizeof(double));
-  include = Calloc1D(UPTRI3_MATRIX(ncols), sizeof(short int));
+  mim = Calloc1D(UPTRI3_MATRIX(ncol), sizeof(double));
+  include = Calloc1D(UPTRI3_MATRIX(ncol), sizeof(short int));
 
   /* compute the pairwise mutual information coefficients. */
   if (debuglevel > 0)
     Rprintf("* computing pairwise mutual information coefficients.\n");
 
-  mi_matrix(mim, columns, ncols, nlevels, &num, cond, &clevels, means, sse, est);
+  mi_matrix(mim, columns, ncol, nlevels, &num, cond, &clevels, means, sse, est);
 
   LIST_MUTUAL_INFORMATION_COEFS();
 
@@ -376,20 +376,20 @@ SEXP arcs, wlist, blist;
   }/*THEN*/
 
   /* sort the mutual information coefficients and keep track of the elements' index.  */
-  poset = Calloc1D(UPTRI3_MATRIX(ncols), sizeof(int));
-  for (i = 0; i < UPTRI3_MATRIX(ncols); i++)
+  poset = Calloc1D(UPTRI3_MATRIX(ncol), sizeof(int));
+  for (i = 0; i < UPTRI3_MATRIX(ncol); i++)
     poset[i] = i;
-  R_qsort_I(mim, poset, 1, UPTRI3_MATRIX(ncols));
+  R_qsort_I(mim, poset, 1, UPTRI3_MATRIX(ncol));
 
-  depth = Calloc1D(ncols, sizeof(int));
+  depth = Calloc1D(ncol, sizeof(int));
 
-  for (i = UPTRI3_MATRIX(ncols) - 1; i > 0; i--) {
+  for (i = UPTRI3_MATRIX(ncol) - 1; i > 0; i--) {
 
     /* get back the coordinates from the position in the half-matrix. */
-    INV_UPTRI3(poset[i], ncols, debug_coord);
+    INV_UPTRI3(poset[i], ncol, debug_coord);
 
     /* already included all the arcs we had to, exiting. */
-    if (narcs >= ncols - 1)
+    if (narcs >= ncol - 1)
       break;
     /* arc already present in the graph, nothing to do. */
     if (include[poset[i]] == 1)
@@ -412,7 +412,7 @@ SEXP arcs, wlist, blist;
 
     }/*THEN*/
 
-    if (c_uptri3_path(include, depth, debug_coord[0], debug_coord[1], ncols,
+    if (c_uptri3_path(include, depth, debug_coord[0], debug_coord[1], ncol,
           nodes, FALSE)) {
 
       if (debuglevel > 0) {
@@ -444,22 +444,22 @@ SEXP arcs, wlist, blist;
     UNPROTECT(1);
 
   /* sanity check for blacklist-related madnes. */
-  if (narcs != ncols - 1)
+  if (narcs != ncol - 1)
     error("learned %d arcs instead of %d, this is not a tree spanning all the nodes.",
-      narcs, ncols - 1);
+      narcs, ncol - 1);
 
-  CONVERT_TO_ARC_SET(include, 0, 2 * (ncols - 1));
+  CONVERT_TO_ARC_SET(include, 0, 2 * (ncol - 1));
 
   Free1D(depth);
   Free1D(mim);
   Free1D(include);
   Free1D(poset);
   Free1D(columns);
-  if (nlevels != NULL)
+  if (nlevels)
     Free1D(nlevels);
-  if (means != NULL)
+  if (means)
     Free1D(means);
-  if (sse != NULL)
+  if (sse)
     Free1D(sse);
 
   return arcs;

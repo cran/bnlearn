@@ -160,6 +160,10 @@ choose.direction.test = function(x, arc, data, test, alpha, B, debug = FALSE) {
   # because if they, too, are parents of the node to be tested
   # they _do_ belong there; if they are not, the node distribution
   # does not depend on them so they are largely irrelevant.
+  if (any(arc %in% undirected.arcs(x)))
+    warning("the graph is not completely directed around ", arc[1], " and ",
+      arc[2], ", treating nodes connected by undirected arcs as parents.")
+
   choose.direction.test.pvalue = function(arc) {
 
     if (!is.legal.arc(arc, test, data)) {
@@ -208,6 +212,9 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug = FALSE
   # because if they, too, are parents of the node to be tested
   # they _do_ belong there; if they are not, the node distribution
   # does not depend on them so they are largely irrelevant.
+  if (any(arc %in% undirected.arcs(x)))
+    warning("the graph is not completely directed around ", arc[1], " and ",
+      arc[2], ", treating nodes connected by undirected arcs as parents.")
 
   x$nodes[[arc[1]]]$parents = parents.backend(x$arcs, arc[1], undirected = TRUE)
   x$nodes[[arc[2]]]$parents = parents.backend(x$arcs, arc[2], undirected = TRUE)
@@ -218,7 +225,7 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug = FALSE
   reference.score = per.node.score(network = x, score = score,
                       targets = arc, extra.args = extra.args, data = data)
   # check whether the score is decomposable.
-  decomp = is.score.decomposable(score, names(x$nodes), extra.args)
+  decomp = is.score.decomposable(score, extra.args)
 
   # compare the scores of the two networks.
   choose.direction.score.delta = function(arc) {
@@ -230,7 +237,7 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug = FALSE
 
     if (debug) {
 
-      cat("  > initial score for node", arc[1], "is", reference.score[arc[1]], ".\n")
+      cat("  > initial score for node", arc[2], "is", reference.score[arc[2]], ".\n")
       if (is.legal.arc(arc, score, data))
         cat("  > score delta for arc", arc[1], "->", arc[2], "is", better$delta, ".\n")
       else

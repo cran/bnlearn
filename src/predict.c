@@ -37,7 +37,7 @@ SEXP result;
 /* predict the value of a gaussian node with one or more parents. */
 SEXP cgpred(SEXP fitted, SEXP parents, SEXP debug)  {
 
-int i = 0, j = 0, ndata = length(VECTOR_ELT(parents, 0)), ncols = length(parents);
+int i = 0, j = 0, ndata = length(VECTOR_ELT(parents, 0)), ncol = length(parents);
 int debuglevel = isTRUE(debug);
 double *res = NULL, *coefs = NULL;
 double **columns = NULL;
@@ -51,8 +51,8 @@ SEXP result;
   res = REAL(result);
 
   /* dereference the columns of the data frame. */
-  columns = (double **) Calloc1D(ncols, sizeof(double));
-  for (i = 0; i < ncols; i++)
+  columns = (double **) Calloc1D(ncol, sizeof(double));
+  for (i = 0; i < ncol; i++)
     columns[i] = REAL(VECTOR_ELT(parents, i));
 
   for (i = 0; i < ndata; i++) {
@@ -60,7 +60,7 @@ SEXP result;
     /* compute the mean value for this observation. */
     res[i] = coefs[0];
 
-    for (j = 0; j < ncols; j++)
+    for (j = 0; j < ncol; j++)
       res[i] += columns[j][i] * coefs[j + 1];
 
     if (debuglevel > 0) {
@@ -69,7 +69,7 @@ SEXP result;
         i + 1, res[i]);
 
       Rprintf("    (%lf) + (%lf) * (%lf)", coefs[0], columns[0][i], coefs[1]);
-      for (j = 1; j < ncols; j++)
+      for (j = 1; j < ncol; j++)
         Rprintf(" + (%lf) * (%lf)", columns[j][i], coefs[j + 1]);
       Rprintf("\n");
 
@@ -201,7 +201,7 @@ SEXP ptab, result, tr_levels, probtab = R_NilValue;
 /* predict the value of a discrete node with one or more parents. */
 SEXP cdpred(SEXP fitted, SEXP parents, SEXP prob, SEXP debug) {
 
-int i = 0, k = 0, n = length(parents), nrows = 0, ncols = 0;
+int i = 0, k = 0, n = length(parents), nrow = 0, ncol = 0;
 int *configs = INTEGER(parents), debuglevel = isTRUE(debug);
 int tr_nlevels = 0, include_prob = isTRUE(prob);
 int *iscratch = NULL, *maxima = NULL, *nmax = NULL, *res = NULL;
@@ -210,33 +210,33 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
 
   /* get the probabilities of the multinomial distribution. */
   temp = getListElement(fitted, "prob");
-  nrows = INT(getAttrib(temp, R_DimSymbol));
-  ncols = length(temp) / nrows;
+  nrow = INT(getAttrib(temp, R_DimSymbol));
+  ncol = length(temp) / nrow;
   cpt = REAL(temp);
 
   /* create the vector of indexes. */
-  iscratch = Calloc1D(nrows, sizeof(int));
+  iscratch = Calloc1D(nrow, sizeof(int));
 
   /* create a scratch copy of the array. */
-  buf = Calloc1D(nrows, sizeof(double));
-  dscratch = Calloc1D(nrows * ncols, sizeof(double));
-  memcpy(dscratch, cpt, nrows * ncols * sizeof(double));
+  buf = Calloc1D(nrow, sizeof(double));
+  dscratch = Calloc1D(nrow * ncol, sizeof(double));
+  memcpy(dscratch, cpt, nrow * ncol * sizeof(double));
 
   /* allocate the array for the indexes of the maxima. */
-  maxima = Calloc1D(nrows * ncols, sizeof(int));
+  maxima = Calloc1D(nrow * ncol, sizeof(int));
 
   /* allocate the maxima counters. */
-  nmax = Calloc1D(ncols, sizeof(int));
+  nmax = Calloc1D(ncol, sizeof(int));
 
   /* get the mode for each configuration. */
-  for (i = 0; i < ncols; i++) {
+  for (i = 0; i < ncol; i++) {
 
     /* initialize the vector of indexes. */
-    for (k = 0; k < nrows; k++)
+    for (k = 0; k < nrow; k++)
       iscratch[k] = k + 1;
 
     /* find out the mode(s). */
-    nmax[i] = all_max(dscratch + i * nrows, nrows, maxima + i * nrows,
+    nmax[i] = all_max(dscratch + i * nrow, nrow, maxima + i * nrow,
                 iscratch, buf);
 
   }/*FOR*/
@@ -264,7 +264,7 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
 
     if (nmax[configs[i] - 1] == 1) {
 
-      res[i] = maxima[CMC(0, configs[i] - 1, nrows)];
+      res[i] = maxima[CMC(0, configs[i] - 1, nrow)];
 
       if (debuglevel > 0) {
 
@@ -275,8 +275,8 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
             i + 1, CHAR(STRING_ELT(tr_levels, res[i] - 1)));
 
         Rprintf("  ");
-        for (int k = 0; k < nrows; k++)
-          Rprintf("  %lf", (cpt + nrows * (configs[i] - 1))[k]);
+        for (int k = 0; k < nrow; k++)
+          Rprintf("  %lf", (cpt + nrow * (configs[i] - 1))[k]);
         Rprintf("\n");
 
       }/*THEN*/
@@ -285,7 +285,7 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
     else {
 
       /* break ties: sample with replacement from all the maxima. */
-      SampleReplace(1, nmax[configs[i] - 1], res + i, maxima + (configs[i] - 1) * nrows);
+      SampleReplace(1, nmax[configs[i] - 1], res + i, maxima + (configs[i] - 1) * nrow);
 
       if (debuglevel > 0) {
 
@@ -293,7 +293,7 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
           nmax[configs[i] - 1], i + 1);
         Rprintf("  > tied levels are:");
         for (k = 0; k < nmax[configs[i] - 1]; k++)
-          Rprintf(" %s", CHAR(STRING_ELT(tr_levels, maxima[CMC(k, configs[i] - 1, nrows)] - 1)));
+          Rprintf(" %s", CHAR(STRING_ELT(tr_levels, maxima[CMC(k, configs[i] - 1, nrow)] - 1)));
         Rprintf(".\n");
 
       }/*THEN*/
@@ -303,7 +303,7 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
     /* attach the prediction probabilities to the return value. */
     if (include_prob) {
 
-      memcpy(pt + i * tr_nlevels, cpt + nrows * (configs[i] - 1),
+      memcpy(pt + i * tr_nlevels, cpt + nrow * (configs[i] - 1),
         tr_nlevels * sizeof(double));
 
     }/*THEN*/
@@ -344,7 +344,7 @@ SEXP ccgpred(SEXP fitted, SEXP configurations, SEXP parents, SEXP debug) {
 
 int i = 0, j = 0, ndata = length(configurations);
 int *config = INTEGER(configurations), debuglevel = isTRUE(debug);
-int cur_config = 0, np = length(parents), nrows = np + 1;
+int cur_config = 0, np = length(parents), nrow = np + 1;
 double *res = NULL, *beta = NULL, *beta_offset = NULL, **columns = NULL;
 SEXP result;
 
@@ -364,7 +364,7 @@ SEXP result;
 
     /* find out which conditional regression to use for prediction. */
     cur_config = config[i] - 1;
-    beta_offset = beta + cur_config * nrows;
+    beta_offset = beta + cur_config * nrow;
 
     /* compute the mean value for this observation. */
     res[i] = beta_offset[0];

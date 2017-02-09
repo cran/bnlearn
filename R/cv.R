@@ -1,7 +1,7 @@
 
 crossvalidation = function(data, bn, loss = NULL, k = 10,
-    m = ceiling(nrow(data)/10), algorithm.args, loss.args, fit, fit.args,
-    method, cluster = NULL, debug = FALSE) {
+    m = ceiling(nrow(data)/10), folds, algorithm.args, loss.args, fit,
+    fit.args, method, cluster = NULL, debug = FALSE) {
 
   n = nrow(data)
 
@@ -26,6 +26,14 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
     kcv = lapply(seq(k), function(x) sample(n, m))
     # all test sets have the same length, a dummy works just fine.
     kcv.length = rep(m, k)
+
+  }#THEN
+  else if (method == "custom-folds") {
+
+    # the folds are the custom folds specified by the user.
+    kcv = folds
+    # store the length of each test set.
+    kcv.length = sapply(kcv, length)
 
   }#THEN
 

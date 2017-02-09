@@ -13,7 +13,7 @@ SEXP unique_arcs(SEXP arcs, SEXP nodes, SEXP warn) {
 /* C-level interface to unique_arcs. */
 SEXP c_unique_arcs(SEXP arcs, SEXP nodes, int warnlevel) {
 
-int i = 0, j = 0, k = 0, nrows = 0, uniq_rows = 0, n = length(nodes);
+int i = 0, j = 0, k = 0, nrow = 0, uniq_rows = 0, n = length(nodes);
 int *checklist = NULL;
 SEXP result, try, node, dup;
 
@@ -21,10 +21,10 @@ SEXP result, try, node, dup;
 
     /* use NULL as a special jolly value which returns all possible arcs
      * given the specified node ordering. */
-    nrows = n * (n - 1)/2;
+    nrow = n * (n - 1)/2;
 
     /* allocate the return value. */
-    PROTECT(result = allocMatrix(STRSXP, nrows, 2));
+    PROTECT(result = allocMatrix(STRSXP, nrow, 2));
 
     /* fill in the nodes' labels. */
     for (i = 0; i < n; i++) {
@@ -33,8 +33,8 @@ SEXP result, try, node, dup;
 
       for (j = i + 1; j < n; j++) {
 
-        SET_STRING_ELT(result, CMC(k, 0, nrows), node);
-        SET_STRING_ELT(result, CMC(k, 1, nrows), STRING_ELT(nodes, j));
+        SET_STRING_ELT(result, CMC(k, 0, nrow), node);
+        SET_STRING_ELT(result, CMC(k, 1, nrow), STRING_ELT(nodes, j));
         k++;
 
       }/*FOR*/
@@ -51,7 +51,7 @@ SEXP result, try, node, dup;
   else {
 
     /* there really is a non-empty arc set, process it. */
-    nrows = length(arcs)/2;
+    nrow = length(arcs)/2;
 
     /* match the node labels in the arc set. */
     PROTECT(try = arc_hash(arcs, nodes, FALSE, FALSE));
@@ -60,12 +60,12 @@ SEXP result, try, node, dup;
     checklist = INTEGER(dup);
 
     /* count how many are not. */
-    for (i = 0; i < nrows; i++)
+    for (i = 0; i < nrow; i++)
       if (checklist[i] == 0)
         uniq_rows++;
 
     /* if there is no duplicate arc simply return the original arc set. */
-    if (uniq_rows == nrows) {
+    if (uniq_rows == nrow) {
 
       UNPROTECT(2);
       return arcs;
@@ -75,18 +75,18 @@ SEXP result, try, node, dup;
 
       /* warn the user if told to do so. */
       if (warnlevel > 0)
-        warning("removed %d duplicate arcs.", nrows - uniq_rows);
+        warning("removed %d duplicate arcs.", nrow - uniq_rows);
 
       /* allocate and initialize the return value. */
       PROTECT(result = allocMatrix(STRSXP, uniq_rows, 2));
 
       /* store the correct arcs in the return value. */
-      for (i = 0, k = 0; i < nrows; i++) {
+      for (i = 0, k = 0; i < nrow; i++) {
 
         if (checklist[i] == 0) {
 
           SET_STRING_ELT(result, k, STRING_ELT(arcs, i));
-          SET_STRING_ELT(result, k + uniq_rows, STRING_ELT(arcs, i + nrows));
+          SET_STRING_ELT(result, k + uniq_rows, STRING_ELT(arcs, i + nrow));
           k++;
 
         }/*THEN*/
@@ -112,7 +112,7 @@ SEXP result, try, node, dup;
 /* determine which arcs are undirected. */
 SEXP which_undirected(SEXP arcs, SEXP nodes) {
 
-int i = 0, nrows = length(arcs)/2, nlvls = 0;
+int i = 0, nrow = length(arcs)/2, nlvls = 0;
 int *coords = NULL, *id = NULL;
 SEXP result, labels, try, arc_id;
 
@@ -129,13 +129,13 @@ SEXP result, labels, try, arc_id;
   coords = INTEGER(try);
 
   /* initialize the checklist. */
-  PROTECT(arc_id = allocVector(INTSXP, nrows));
+  PROTECT(arc_id = allocVector(INTSXP, nrow));
   id = INTEGER(arc_id);
 
   /* fill the checklist with the UPTRI() coordinates, which uniquely
    * identify an arc modulo its direction. */
-  for (i = 0; i < nrows; i++)
-    id[i] = UPTRI(coords[i], coords[i + nrows], nlvls);
+  for (i = 0; i < nrow; i++)
+    id[i] = UPTRI(coords[i], coords[i + nrow], nlvls);
 
   PROTECT(result = dupe(arc_id));
 

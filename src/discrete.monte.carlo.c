@@ -10,7 +10,7 @@
   for(k = 1; k <= n; k++) \
     fact[k] = lgammafn((double) (k + 1));
 
-static double mc_jt(int **n, int *nrowt, int nrows, int ncols, int length);
+static double mc_jt(int **n, int *nrowt, int nrow, int ncol, int length);
 static double mc_cjt(int ***n, int **nrowt, int *ncond, int nr, int nc, int nl);
 static double mc_cvjt(int **nrowt, int **ncolt, int *ncond, int nr, int nc,
     int nl);
@@ -347,19 +347,19 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 }/*C_CMCARLO*/
 
 /* unconditional Jonckheere-Terpstra test statistic. */
-static double mc_jt(int **n, int *nrowt, int nrows, int ncols, int length) {
+static double mc_jt(int **n, int *nrowt, int nrow, int ncol, int length) {
 
 int i = 0, j = 0, s = 0, t = 0;
 double res = 0, nrt2 = 0, wi = 0, w = 0;
-double mean = c_jt_mean(length, nrowt, nrows);
+double mean = c_jt_mean(length, nrowt, nrow);
 
-  for (i = 1; i < nrows; i++) {
+  for (i = 1; i < nrow; i++) {
 
     nrt2 = (double)(nrowt[i]) * ((double)(nrowt[i]) + 1)/2;
 
     for (j = 0; j < i; j++) {
 
-      for (s = 0, w = 0; s < ncols; s++) {
+      for (s = 0, w = 0; s < ncol; s++) {
 
         for (t = 0, wi = 0; t < s; t++)
           wi += n[i][t] + n[j][t];

@@ -34,7 +34,7 @@ subgraph(x, nodes)
     \code{from} and \code{to} when looking for a path.}
   \item{underlying.graph}{a boolean value. If \code{TRUE} the underlying
     undirected graph is used instead of the (directed) one from the \code{x}
-    parameter.}
+    argument.}
   \item{ordering}{the labels of all the nodes in the graph; their order is the
     node ordering used to set the direction of undirected arcs.}
   \item{nodes}{the labels of the nodes that induce the subgraph.}

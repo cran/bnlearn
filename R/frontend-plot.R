@@ -177,7 +177,7 @@ plot.bn.strength = function(x, draw.threshold = TRUE, main = NULL,
 
   # handle the title.
   if (is.null(main))
-    main = paste("threshold = ", attr(x, "threshold"))
+    main = paste("threshold = ", round(attr(x, "threshold"), digits = 3))
 
   # draw the plot.
   do.call(plot, c(list(x = ecdf(x$strength), xlim = c(-0.1, 1.1), ylim = c(0, 1),

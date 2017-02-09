@@ -7,7 +7,7 @@
 SEXP dedup (SEXP data, SEXP threshold, SEXP debug) {
 
 int i = 0, j = 0, k = 0, dropped = 0;
-int ncols = length(data), nrows = length(VECTOR_ELT(data, 0));
+int ncol = length(data), nrow = length(VECTOR_ELT(data, 0));
 int debuglevel = isTRUE(debug);
 short int *drop = NULL;
 double **column = NULL, *mean = NULL, *sse = NULL;
@@ -16,29 +16,29 @@ long double sum = 0;
 SEXP result, colnames, nodes = getAttrib(data, R_NamesSymbol);
 
   /* set up a counter to flag the variables. */
-  drop = Calloc1D(ncols, sizeof(short int));
+  drop = Calloc1D(ncol, sizeof(short int));
 
   /* extract the columns from the data frame. */
-  column = Calloc1D(ncols, sizeof(double *));
-  for (j = 0; j < ncols; j++)
+  column = Calloc1D(ncol, sizeof(double *));
+  for (j = 0; j < ncol; j++)
     column[j] = REAL(VECTOR_ELT(data, j));
 
   if (debuglevel > 0)
     Rprintf("* caching means.\n");
 
   /* cache the means. */
-  mean = Calloc1D(ncols, sizeof(double));
-  c_meanvec(column, mean, nrows, ncols, 0);
+  mean = Calloc1D(ncol, sizeof(double));
+  c_meanvec(column, mean, nrow, ncol, 0);
 
   if (debuglevel > 0)
     Rprintf("* caching standard deviations.\n");
 
   /* cache the variances. */
-  sse = Calloc1D(ncols, sizeof(double));
-  c_ssevec(column, sse, mean, nrows, ncols, 0);
+  sse = Calloc1D(ncol, sizeof(double));
+  c_ssevec(column, sse, mean, nrow, ncol, 0);
 
   /* main loop. */
-  for (j = 0; j < ncols - 1; j++) {
+  for (j = 0; j < ncol - 1; j++) {
 
     /* skip variables already flagged for removal. */
     if (drop[j])
@@ -46,16 +46,16 @@ SEXP result, colnames, nodes = getAttrib(data, R_NamesSymbol);
 
     if (debuglevel > 0)
       Rprintf("* looking at %s with %d variables still to check.\n",
-        NODE(j), ncols - (j + 1));
+        NODE(j), ncol - (j + 1));
 
-    for (k = j + 1; k < ncols; k++) {
+    for (k = j + 1; k < ncol; k++) {
 
       /* skip variables already flagged for removal. */
       if (drop[k])
         continue;
 
       /* compute the covariance. */
-      for (i = 0, sum = 0; i < nrows; i++)
+      for (i = 0, sum = 0; i < nrow; i++)
         sum += (column[j][i] - mean[j]) * (column[k][i] - mean[k]);
 
       /* safety check against "divide by zero" errors. */
@@ -82,10 +82,10 @@ SEXP result, colnames, nodes = getAttrib(data, R_NamesSymbol);
   }/*FOR*/
 
   /* set up the return value. */
-  PROTECT(result = allocVector(VECSXP, ncols - dropped));
-  PROTECT(colnames = allocVector(STRSXP, ncols - dropped));
+  PROTECT(result = allocVector(VECSXP, ncol - dropped));
+  PROTECT(colnames = allocVector(STRSXP, ncol - dropped));
 
-  for (j = 0, k = 0; j < ncols; j++)
+  for (j = 0, k = 0; j < ncol; j++)
     if (!drop[j]) {
 
       SET_STRING_ELT(colnames, k, STRING_ELT(nodes, j));

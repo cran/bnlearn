@@ -144,7 +144,7 @@ mutilated.backend.fitted = function(x, evidence) {
         cur$residuals = rep(0, length(cur$residuals))
 
     }#THEN
-    else if(is(cur, c("bn.fit.dnode", "bn.fit.onode"))) {
+    else if (is(cur, c("bn.fit.dnode", "bn.fit.onode"))) {
 
       # reset the conditional distribution.
       cur$prob = as.table(structure((dimnames(cur$prob)[[1]] == fix) + 0,
@@ -292,13 +292,77 @@ vstructures = function(x, arcs, moral = TRUE, debug = FALSE) {
 }#VSTRUCTURES
 
 # test equality of two graphs (nodes and arcs).
-equal.backend = function(target, current) {
+equal.backend.bn = function(target, current) {
 
-  .Call("all_equal",
+  .Call("all_equal_bn",
         target = target,
         current = current)
 
 }#EQUAL.BACKEND
+
+# test equality of two fitted networks (structure and parameters).
+equal.backend.fit = function(target, current, tolerance) {
+
+  # check whether the networks have the same nodes.
+  nodes.target = nodes(target)
+  nodes.current = nodes(current)
+
+  if (!setequal(nodes.target, nodes.current))
+    return("Different node sets")
+
+  for (node in nodes.target) {
+
+    # extract the nodes from the structure.
+    tnode = target[[node]]
+    cnode = current[[node]]
+    # check whether the nodes follow the same distribution.
+    target.type = class(tnode)
+    current.type = class(cnode)
+
+    # check whether the parameters of the local distribution are the same.
+    if (target.type != current.type)
+      return(paste("Different distributions for node", node))
+
+    if (target.type %in% c("bn.fit.dnode", "bn.fit.onode")) {
+
+      tprob = tnode$prob
+      cprob = cnode$prob
+
+      # sanity check the target distribuution by comparing it to the old one.
+      tprob = check.dnode.vs.spec(tprob, cnode)
+
+      # checking that the conditional probability tables are identical.
+      if (!isTRUE(all.equal(tprob, cprob, tolerance = tolerance)))
+        return(paste("Different probabilities for node", node))
+
+    }#THEN
+    else if (target.type %in% c("bn.fit.gnode", "bn.fit.cgnode")) {
+
+      tparams = list(coef = tnode$coefficients, sd = tnode$sd,
+                  dlevels = tnode$dlevels)
+
+      if (target.type == "bn.fit.gnode")
+        tparams = check.gnode.vs.spec(tparams, cnode)
+      if (target.type == "bn.fit.cgnode")
+        tparams = check.cgnode.vs.spec(tparams, cnode)
+
+      # checking that the regression coefficients are identical.
+      if (!isTRUE(all.equal(tparams$coef, cnode$coefficients, tolerance = tolerance)))
+        return(paste("Different regression coefficients for node", node))
+      # checking that the standard deviations are identical.
+      if (!isTRUE(all.equal(tparams$sd, cnode$sd, tolerance = tolerance)))
+        return(paste("Different standard errors for node", node))
+
+      # do not check fitted values, residuals and configurations, or networks
+      # fitted from different data sets will never be considered equal.
+
+    }#THEN
+
+  }#FOR
+
+  return(TRUE)
+
+}#EQUAL.BACKEND.FIT
 
 # blacklists based on tiers and orderings.
 tiers.backend = function(nodes, debug = FALSE) {

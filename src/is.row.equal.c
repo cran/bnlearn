@@ -1,20 +1,20 @@
 #include "include/rcore.h"
 
-#define ARC(i,col) CHAR(STRING_ELT(data, i + col * nrows))
+#define ARC(i,col) CHAR(STRING_ELT(data, i + col * nrow))
 
 /* which elements of "data" match "array"? */
 SEXP is_row_equal(SEXP data, SEXP array) {
 
-int i = 0, nrows = length(data) / 2;
+int i = 0, nrow = length(data) / 2;
 const char *from = CHAR(STRING_ELT(array, 0));
 const char *to = CHAR(STRING_ELT(array, 1));
 SEXP res;
 
   /* allocate the return value, which is an array holding a
    * logical value for each arc in the arc set. */
-  PROTECT(res = allocVector(LGLSXP, nrows));
+  PROTECT(res = allocVector(LGLSXP, nrow));
 
-  for (i = 0; i < nrows; i++) {
+  for (i = 0; i < nrow; i++) {
 
     /* check the first element; if it does no match skip the second one. */
     if (!strcmp(from, ARC(i, 0)) ) {
@@ -47,12 +47,12 @@ SEXP res;
 }/*IS_ROW_EQUAL*/
 
 #undef ARC
-#define ARC(i,col) CHAR(STRING_ELT(set, i + col * nrows))
+#define ARC(i,col) CHAR(STRING_ELT(set, i + col * nrow))
 
 /* does "arc" match any elements of "set"? */
 SEXP is_listed(SEXP arc, SEXP set, SEXP either, SEXP both, SEXP debug) {
 
-int i = 0, matched = 0, nrows = length(set) / 2;
+int i = 0, matched = 0, nrow = length(set) / 2;
 const char *from = CHAR(STRING_ELT(arc, 0));
 const char *to = CHAR(STRING_ELT(arc, 1));
 int debuglevel = isTRUE(debug);
@@ -61,7 +61,7 @@ int debuglevel = isTRUE(debug);
   if (isNull(set))
     return ScalarLogical(FALSE);
 
-  for (i = 0; i < nrows; i++) {
+  for (i = 0; i < nrow; i++) {
 
     if (debuglevel > 0)
       Rprintf("* checking %s -> %s\n", ARC(i, 0), ARC(i, 1));

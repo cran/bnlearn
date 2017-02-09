@@ -387,8 +387,8 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
           optimized = optimized, debug = debug)
 
   # set the metadata of the network in one stroke.
-  res$learning = list(whitelist = res$learning$whitelist,
-    blacklist = res$learning$blacklist, test = res$learning$test,
+  res$learning = list(whitelist = rst$learning$whitelist,
+    blacklist = rst$learning$blacklist, test = res$learning$test,
     ntests = res$learning$ntests + rst$learning$ntests, algo = method,
     args = c(res$learning$args, rst$learning$args), optimized = optimized,
     restrict = restrict, rstest = rst$learning$test, maximize = maximize,

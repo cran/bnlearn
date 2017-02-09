@@ -15,10 +15,11 @@
   \item{draw.threshold}{a boolean value. If \code{TRUE}, a dashed vertical line
     is drawn at the threshold.}
   \item{main,xlab,ylab}{character strings, the main title and the axes labels.}
-  \item{\dots}{other graphical parameters.}
+  \item{\dots}{other graphical parameters to be passed through to plotting
+    functions.}
 }
 \note{
-  The \code{xlim} and \code{ylim} graphical parameters are always overridden.
+  The \code{xlim} and \code{ylim} arguments are always overridden.
 }
 \examples{
 data(learning.test)

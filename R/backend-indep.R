@@ -274,7 +274,7 @@ vstruct.apply = function(arcs, vs, nodes, strict, debug = FALSE) {
     temp = set.arc.direction(v["y"], v["x"], arcs)
     temp = set.arc.direction(v["z"], v["x"], temp)
 
-    if(!is.acyclic(temp, nodes, directed = TRUE)) {
+    if (!is.acyclic(temp, nodes, directed = TRUE)) {
 
       if (debug) {
 

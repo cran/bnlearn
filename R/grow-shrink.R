@@ -47,7 +47,7 @@ grow.shrink = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
-  mb = smartLapply(cluster, as.list(nodes), gs.markov.blanket, data = x,
+  mb = smartSapply(cluster, as.list(nodes), gs.markov.blanket, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
@@ -56,7 +56,7 @@ grow.shrink = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
   mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
 
   # 2. [Compute Graph Structure]
-  mb = smartLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+  mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug)
   names(mb) = nodes

@@ -34,6 +34,9 @@ export(
   "parents<-",
   "children",
   "children<-",
+  "spouses",
+  "ancestors",
+  "descendants",
   "root.nodes",
   "leaf.nodes",
   "nnodes",
@@ -101,6 +104,7 @@ export(
   "dsep",
   "discretize",
   "dedup",
+  "impute",
   "configs",
   "relevant",
   "read.bif",
@@ -128,6 +132,7 @@ importFrom("graphics", "abline", "arrows", "lines", "plot", "points",
 S3method(as.bn, fit)
 
 S3method(all.equal, bn)
+S3method(all.equal, bn.fit)
 S3method(print, bn)
 S3method(plot, bn)
 S3method(AIC, bn)

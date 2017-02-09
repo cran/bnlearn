@@ -1,17 +1,18 @@
 #include "include/rcore.h"
+#include "include/fitted.h"
 
 SEXP data_frame_finite(SEXP data) {
 
-int i = 0, j = 0, ncols = length(data), nrows = length(VECTOR_ELT(data, 0));
+int i = 0, j = 0, ncol = length(data), nrow = length(VECTOR_ELT(data, 0));
 double *xx = 0;
 SEXP nodes = getAttrib(data, R_NamesSymbol);
 
-  for (i = 0; i < ncols; i++) {
+  for (i = 0; i < ncol; i++) {
 
     xx = REAL(VECTOR_ELT(data, i));
 
-    for (j = 0; j < nrows; j++)
-      if (!R_FINITE(xx[j]))
+    for (j = 0; j < nrow; j++)
+      if (!R_FINITE(xx[j]) && !ISNAN(xx[j]))
         error("columns %s contains non-finite values.", NODE(i));
 
   }/*FOR*/
@@ -22,10 +23,10 @@ SEXP nodes = getAttrib(data, R_NamesSymbol);
 
 SEXP data_type(SEXP data) {
 
-int i = 0, numeric = 0, categorical = 0, ordinal = 0, ncols = length(data);
-SEXP column, class, nodes = getAttrib(data, R_NamesSymbol);
+int i = 0, numeric = 0, categorical = 0, ordinal = 0, ncol = length(data);
+SEXP column, nodes = getAttrib(data, R_NamesSymbol);
 
-  for (i = 0; i  < ncols; i++) {
+  for (i = 0; i  < ncol; i++) {
 
     column = VECTOR_ELT(data, i);
 
@@ -36,15 +37,10 @@ SEXP column, class, nodes = getAttrib(data, R_NamesSymbol);
         break;
 
       case INTSXP:
-        class = getAttrib(column, R_ClassSymbol);
-
-        if ((length(class) == 1) &&
-            (strcmp(CHAR(STRING_ELT(class, 0)), "factor") == 0))
-              categorical++;
-        else if ((length(class) == 2) &&
-            (strcmp(CHAR(STRING_ELT(class, 0)), "ordered") == 0) &&
-            (strcmp(CHAR(STRING_ELT(class, 1)), "factor") == 0))
-              ordinal++;
+        if (c_is(column, "ordered"))
+          ordinal++;
+        else if (c_is(column, "factor"))
+          categorical++;
         else
           error("variable %s is not supported in bnlearn (type: %s).",
             NODE(i), type2char(TYPEOF(column)));
@@ -83,7 +79,7 @@ SEXP column, class, nodes = getAttrib(data, R_NamesSymbol);
 SEXP fitted_vs_data (SEXP fitted, SEXP data, SEXP subset) {
 
 int i = 0, j = 0, *tn = NULL, *tv = NULL;
-const char *cur_node_class = NULL;
+fitted_node_e cur_node_type = ENOFIT;
 SEXP nodes, vars, try_nodes, try_vars, temp, cur_node, cur_node_levels;
 SEXP cur_var, cur_var_levels, cur_var_class;
 
@@ -100,20 +96,18 @@ SEXP cur_var, cur_var_levels, cur_var_class;
 
     cur_var = VECTOR_ELT(data, tv[i] - 1);
     cur_node = VECTOR_ELT(fitted, tn[i] - 1);
-    cur_node_class = CHAR(STRING_ELT(getAttrib(cur_node, R_ClassSymbol), 0));
+    cur_node_type = r_fitted_node_label(cur_node);
 
     switch(TYPEOF(cur_var)) {
 
       case REALSXP:
-        if ((strcmp(cur_node_class, "bn.fit.gnode") != 0) &&
-            (strcmp(cur_node_class, "bn.fit.cgnode") != 0))
+        if ((cur_node_type != GNODE) && (cur_node_type != CGNODE))
           error("node %s is discrete but variable %s in the data is continuous.",
             NODE(i), NODE(i));
         break;
 
       case INTSXP:
-        if ((strcmp(cur_node_class, "bn.fit.dnode") != 0) &&
-            (strcmp(cur_node_class, "bn.fit.onode") != 0))
+        if ((cur_node_type != DNODE) && (cur_node_type == ONODE))
           error("node %s is continuous but variable %s in the data is discrete.",
             NODE(i), NODE(i));
 
@@ -121,12 +115,10 @@ SEXP cur_var, cur_var_levels, cur_var_class;
          * versa. */
         cur_var_class = getAttrib(cur_var, R_ClassSymbol);
 
-        if ((strcmp(cur_node_class, "bn.fit.dnode") == 0) &&
-            (length(cur_var_class) == 2))
+        if ((cur_node_type == DNODE) && (length(cur_var_class) == 2))
           warning("node %s is categorical but variable %s in the data is ordinal.",
             NODE(i), NODE(i));
-        else if ((strcmp(cur_node_class, "bn.fit.onode") == 0) &&
-                 (length(cur_var_class) == 1))
+        else if ((cur_node_type == ONODE) && (length(cur_var_class) == 1))
           warning("node %s is ordinal but variable %s in the data is categorical.",
             NODE(i), NODE(i));
 

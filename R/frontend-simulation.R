@@ -43,9 +43,9 @@ rbn.default = function(x, n = 1, ...) {
 random.graph = function(nodes, num = 1, method = "ordered", ..., debug = FALSE) {
 
   # check the generation method.
-  if (method %!in% graph.generation.algorithms)
-    stop("valid generation methods are:",
-      paste0(" '", graph.generation.algorithms, "'"), ".")
+  check.label(method, choices = graph.generation.algorithms,
+    labels = graph.generation.labels, argname = "graph generation method",
+    see = "random.graph")
   # check the node labels.
   check.nodes(nodes)
   # check the number of graph to generate.
@@ -82,9 +82,8 @@ cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ...,
   if (missing(evidence))
     stop("the expression describing the evidence is missing.")
   # check the generation method.
-  if (method %!in% cpq.algorithms)
-    stop("valid conditional probability query methods are:\n",
-      sprintf("    %-10s %s\n", cpq.algorithms, cpq.labels[cpq.algorithms]))
+  check.label(method, choices = cpq.algorithms, labels = cpq.labels,
+    argname = "query method", see = "cpquery")
   # check the cluster.
   if (!is.null(cluster)) {
 
@@ -100,8 +99,8 @@ cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ...,
 
   }#THEN
 
-  extra.args = check.cpq.args(fitted = fitted, extra.args = list(...),
-                 method = method, action = "cpquery")
+  extra.args = check.cpq.args(fitted = fitted, event = NULL, 
+                 extra.args = list(...), method = method, action = "cpquery")
 
   # deparse the expression for the event before passing it to
   # the backend and beyond.
@@ -149,9 +148,8 @@ cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
   # check debug.
   check.logical(debug)
   # check the generation method.
-  if (method %!in% cpq.algorithms)
-    stop("valid conditional probability query methods are:\n",
-      sprintf("    %-10s %s\n", cpq.algorithms, cpq.labels[cpq.algorithms]))
+  check.label(method, choices = cpq.algorithms, labels = cpq.labels,
+    argname = "sampling method", see = "cpdist")
   # check the cluster.
   if (!is.null(cluster)) {
 
@@ -167,8 +165,8 @@ cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
 
   }#THEN
 
-  extra.args = check.cpq.args(fitted = fitted, extra.args = list(...),
-                 method = method, action = "cpdist")
+  extra.args = check.cpq.args(fitted = fitted, event = nodes,
+                 extra.args = list(...), method = method, action = "cpdist")
 
   if (method == "ls") {
 

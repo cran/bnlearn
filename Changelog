@@ -1,3 +1,33 @@
+bnlearn (4.1)
+
+  * fixed memory corruption in dsep() (thanks Dominik Muller).
+  * added the marginal uniform prior.
+  * fixed the optimized score cache for the Castelo & Siebes and for the
+     marginal uniform priors, which were affected by several subtle bugs.
+  * bn.cv() now implements a "custom-folds" method that allows to manually
+     specify which observation belongs to each fold, and folds are not
+     constrained to have the same size.
+  * fixed checks in the C code involving R objects' classes; they failed
+     when additional, optional classes were present (thanks Claudia Vitolo).
+  * fixed cpdag() handling of illegal arcs that are part of shielded
+     colliders (thanks Vladimir Manewitsch).
+  * removed misleading warning about conflicting v-structures from cpdag().
+  * rsmax2() and mmhc() now return whitelists and blacklists as they are
+     at the beginning restrict phase (thanks Vladimir Manewitsch).
+  * bn.fit() can now fit local distributions in parallel, and has been mostly
+     reimplemented in C for speed (thanks Claudia Vitolo).
+  * added an impute() function to impute missing values from a bn.fit object.
+  * fixed loss functions for data in which observations have to be dropped
+     for various nodes (thanks Manuel Gomez Olmedo).
+  * added an all.equal() method to compare bn.fit objects.
+  * added a "by.node" argument to score() for decomposable scores (thanks
+     Behjati Shahab).
+  * added warning about partially direct graphs in choose.direction() and
+     improved its debugging output (thanks Wei Kong).
+  * added spouses(), ancestors() and descendats().
+  * fixed a segfault in predict(..., method = "lw") with discrete BNS and
+     sparse CPTs that included NaNs.
+
 bnlearn (4.0)
 
   * fixed memory usage in aracne(), chow.liu() and tree.bayes() (thanks

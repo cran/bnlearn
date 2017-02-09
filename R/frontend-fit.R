@@ -1,6 +1,7 @@
 
 # fit the parameters of the bayesian network for a given network stucture.
-bn.fit = function(x, data, method = "mle", ..., debug = FALSE) {
+bn.fit = function(x, data, cluster = NULL, method = "mle", ...,
+  keep.fitted = TRUE, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
@@ -21,9 +22,29 @@ bn.fit = function(x, data, method = "mle", ..., debug = FALSE) {
   check.fitting.method(method, data)
   # check the extra arguments.
   extra.args = check.fitting.args(method, x, data, list(...))
+  # check debug and keep.fitted.
+  check.logical(debug)
+  check.logical(keep.fitted)
 
-  bn.fit.backend(x = x, data = data, method = method, extra.args = extra.args,
-    debug = debug)
+  # check the cluster.
+  if (!is.null(cluster)) {
+
+    check.cluster(cluster)
+
+    # set up the slave processes.
+    slaves.setup(cluster)
+    # disable debugging, the slaves do not cat() here.
+    if (debug) {
+
+      warning("disabling debugging output for parallel computing.")
+      debug = FALSE
+
+    }#THEN
+
+  }#THEN
+
+  bn.fit.backend(x = x, data = data, cluster = cluster, method = method,
+    extra.args = extra.args, keep.fitted = keep.fitted, debug = debug)
 
 }#BN.FIT
 
@@ -208,12 +229,18 @@ logLik.bn.fit = function(object, data, nodes, by.sample = FALSE, ...) {
 # AIC method for class 'bn.fit'.
 AIC.bn.fit = function(object, data, ..., k = 1) {
 
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
   logLik(object, data) - k * nparams(object)
 
 }#AIC.BN.FIT
 
 # BIC method for class 'bn.fit'.
 BIC.bn.fit = function(object, data, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
 
   logLik(object, data) - log(nrow(data))/2 * nparams(object)
 

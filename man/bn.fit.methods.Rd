@@ -5,7 +5,6 @@
 \alias{coef.bn.fit}
 \alias{residuals.bn.fit}
 \alias{sigma.bn.fit}
-\alias{predict.bn.fit}
 \alias{logLik.bn.fit}
 \alias{AIC.bn.fit}
 \alias{BIC.bn.fit}
@@ -35,8 +34,6 @@
 \method{coef}{bn.fit}(object, ...)
 \method{residuals}{bn.fit}(object, ...)
 \method{sigma}{bn.fit}(object, ...)
-\method{predict}{bn.fit}(object, node, data, method = "parents", ..., prob = FALSE,
-  debug = FALSE)
 \method{logLik}{bn.fit}(object, data, nodes, by.sample = FALSE, ...)
 \method{AIC}{bn.fit}(object, data, ..., k = 1)
 \method{BIC}{bn.fit}(object, data, ...)
@@ -62,24 +59,16 @@
 \arguments{
   \item{object}{an object of class \code{bn.fit}, \code{bn.fit.dnode},
     \code{bn.fit.gnode}, \code{bn.fit.cgnode} or \code{bn.fit.onode}.}
-  \item{node}{a character string, the label of a node.}
   \item{nodes}{a vector of character strings, the label of a nodes whose
     log-likelihood components are to be computed.}
   \item{data}{a data frame containing the variables in the model.}
-  \item{method}{a character string, the method used to estimate predictions.
-    See below.}
-  \item{\dots}{additional arguments. See below.}
-  \item{k}{a numeric value, the penalty per parameter to be used; the default
+  \item{\dots}{additional arguments, currently ignored.}
+  \item{k}{a numeric value, the penalty coefficient to be used; the default
     \code{k = 1} gives the expression used to compute AIC.}
   \item{by.sample}{a boolean value. If \code{TRUE}, \code{logLik} returns a
     vector containing the the log-likelihood of each observations in the
     sample. If \code{FALSE}, \code{logLik} returns a single value, the 
     likelihood of the whole sample.}
-  \item{prob}{a boolean value. If \code{TRUE} and \code{object} is a discrete
-    network, the probabilities used for prediction are attached to the
-    predicted values as an attribute called \code{prob}.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
 
 }
 \details{
@@ -99,44 +88,8 @@
 
   \code{logLik} returns the log-likelihood for the observations in \code{data}.
 
-  \code{predict} returns the predicted values for \code{node} given the data
-  specified by \code{data} and the fitted network. Depending on the value of
-  \code{method}, the predicted values are computed as follows.
-  \itemize{
-    \item \code{parents}: the predicted values are computed by plugging in
-      the new values for the parents of \code{node} in the local probability
-      distribution of \code{node} extracted from \code{fitted}.
-    \item \code{bayes-lw}: the predicted values are computed by averaging
-      likelihood weighting simulations performed using all the available nodes
-      as evidence (obviously, with the exception of the node whose values we
-      are predicting). The number of random samples which are averaged for each
-      new observation is controlled by the \code{n} optional argument; the
-      default is \code{500}. If the variable being predicted is discrete, the
-      predicted level is that with the highest  conditional probability. If the
-      variable is continuous, the predicted value is the expected value of the
-      conditional distribution.
-  }
-
-}
-\note{
-
-  Ties in prediction are broken using \emph{Bayesian tie breaking}, i.e.
-  sampling at random from the tied values. Therefore, setting the random seed
-  is required to get reproducible results.
-
-  \code{predict} accepts either a \code{bn} or a \code{bn.fit} object as its
-  first argument. For the former, the parameters of the network are fitted on
-  \code{data}, that is, the observations whose class labels the function is
-  trying to predict.
-
 }
 \value{
-
-  \code{predict} returns a numeric vector (for Gaussian and conditional
-  Gaussian nodes), a factor (for categorical nodes) or an ordered factor (for
-  ordinal nodes). If \code{prob = TRUE} and the network is discrete, the
-  probabilities used for prediction are attached to the predicted values as
-  an attribute called \code{prob}.
 
   \code{logLik} returns a numeric vector or a single numeric value, depending
   on the value of \code{by.sample}. \code{AIC} and \code{BIC} always return a

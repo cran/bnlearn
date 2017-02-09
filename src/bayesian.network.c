@@ -69,7 +69,7 @@ SEXP arcs, temp, names;
 }/*NBR2ARCS*/
 
 /* backend for the all.equal() function for bn objects. */
-SEXP all_equal(SEXP target, SEXP current) {
+SEXP all_equal_bn(SEXP target, SEXP current) {
 
 int nnodes = 0,  narcs = 0;
 int *t = NULL, *c = NULL;

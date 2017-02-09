@@ -212,7 +212,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
   }#ELSE
 
   # restore the original global graphical settings.
-   graph::graph.par(graph.par.dump)
+  graph::graph.par(graph.par.dump)
 
   # return (invisibly) the graph object, to allow further customizations.
   invisible(graph.plot)

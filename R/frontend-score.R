@@ -1,6 +1,6 @@
 
 # compute the score of a network.
-score = function(x, data, type = NULL, ..., debug = FALSE) {
+score = function(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
@@ -8,7 +8,8 @@ score = function(x, data, type = NULL, ..., debug = FALSE) {
   check.data(data)
   # check the network against the data.
   check.bn.vs.data(x, data)
-  # check debug.
+  # check debug and by.node.
+  check.logical(by.node)
   check.logical(debug)
   # no score if the graph is partially directed.
   if (is.pdag(x$arcs, names(x$nodes)))
@@ -19,10 +20,18 @@ score = function(x, data, type = NULL, ..., debug = FALSE) {
   # expand and sanitize score-specific arguments.
   extra.args = check.score.args(score = type, network = x,
                  data = data, extra.args = list(...), learning = FALSE)
+  # check that the score is decomposable when returning node contributions.
+  if (by.node && !is.score.decomposable(type, extra.args))
+    stop("the score is not decomposable, node contributions are not defined.")
 
-  # compute the network score.
-  network.score(network = x, data = data, score = type,
-    extra.args = extra.args, debug = debug)
+  # compute the node contributions to the network score.
+  local = per.node.score(network = x, data = data, score = type,
+            targets = names(x$nodes), extra.args = extra.args, debug = debug)
+
+  if (by.node)
+    return(local)
+  else
+    return(sum(local))
 
 }#SCORE
 

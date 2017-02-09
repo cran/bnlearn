@@ -50,13 +50,13 @@ SEXP temp, result;
 void cfg(SEXP parents, int *configurations, int *nlevels) {
 
 int i = 0, **columns = NULL, *levels = NULL;
-int ncols = length(parents), nrows = length(VECTOR_ELT(parents, 0));
+int ncol = length(parents), nrow = length(VECTOR_ELT(parents, 0));
 SEXP temp;
 
   /* dereference the columns of the data frame. */
-  columns = (int **) Calloc1D(ncols, sizeof(int *));
-  levels = Calloc1D(ncols, sizeof(int));
-  for (i = 0; i < ncols; i++) {
+  columns = (int **) Calloc1D(ncol, sizeof(int *));
+  levels = Calloc1D(ncol, sizeof(int));
+  for (i = 0; i < ncol; i++) {
 
     temp = VECTOR_ELT(parents, i);
     columns[i] = INTEGER(temp);
@@ -64,31 +64,31 @@ SEXP temp;
 
   }/*FOR*/
 
-  c_fast_config(columns, nrows, ncols, levels, configurations, nlevels, 0);
+  c_fast_config(columns, nrow, ncol, levels, configurations, nlevels, 0);
 
   Free1D(columns);
   Free1D(levels);
 
 }/*CFG*/
 
-void c_fast_config(int **columns, int nrows, int ncols, int *levels, int *configurations,
+void c_fast_config(int **columns, int nrow, int ncol, int *levels, int *configurations,
     int *nlevels, int offset) {
 
 int i = 0, j = 0, cfgmap = 0;
 long long *cumlevels = NULL, nl = 0;
 
   /* create the cumulative products of the number of levels. */
-  cumlevels = Calloc1D(ncols, sizeof(long long));
+  cumlevels = Calloc1D(ncol, sizeof(long long));
 
   /* set the first one to 1 ... */
   cumlevels[0] = 1;
 
   /* ... then compute the following ones. */
-  for (j = 1; j < ncols; j++)
+  for (j = 1; j < ncol; j++)
     cumlevels[j] = cumlevels[j - 1] * levels[j - 1];
 
   /* compute the number of possible configurations. */
-  nl = cumlevels[ncols - 1] * levels[ncols - 1];
+  nl = cumlevels[ncol - 1] * levels[ncol - 1];
 
   if (nl >= INT_MAX)
     error("attempting to create a factor with more than INT_MAX levels.");
@@ -98,12 +98,12 @@ long long *cumlevels = NULL, nl = 0;
   if (nlevels)
     *nlevels = nl;
 
-  for (i = 0; i < nrows; i++) {
+  for (i = 0; i < nrow; i++) {
 
     /* reset the configuration mapping of the new row. */
     cfgmap = 0;
 
-    for (j = 0; j < ncols; j++) {
+    for (j = 0; j < ncol; j++) {
 
       if (columns[j][i] == NA_INTEGER) {
 

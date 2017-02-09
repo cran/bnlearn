@@ -1,6 +1,7 @@
 #include "include/rcore.h"
 #include "include/graph.h"
 #include "include/globals.h"
+#include "include/fitted.h"
 
 /* sanitize an arc set using the conditional Gaussian assumptions. */
 SEXP arcs_cg_assumptions(SEXP arcs, SEXP nodes, SEXP data) {
@@ -89,14 +90,13 @@ SEXP result, try, undirected;
 SEXP cg_banned_arcs(SEXP nodes, SEXP variables) {
 
 int i = 0, j = 0, k = 0, ndp = 0, nnodes = length(nodes), *type = NULL;
-const char *class = CHAR(STRING_ELT(getAttrib(variables, R_ClassSymbol), 0));
-const char *var_class = NULL;
+fitted_node_e var_type = ENOFIT;
 SEXP split, dpar, gpar, arcs;
 
   /* cache the variables' types from data frames and fitted networks. */
   type = Calloc1D(nnodes, sizeof(int));
 
-  if (strcmp(class, "data.frame") == 0) {
+  if (c_is(variables, "data.frame")) {
 
     for (i = 0; i < nnodes; i++) {
 
@@ -110,9 +110,9 @@ SEXP split, dpar, gpar, arcs;
 
     for (i = 0; i < nnodes; i++) {
 
-      var_class = CHAR(STRING_ELT(getAttrib(VECTOR_ELT(variables, i), R_ClassSymbol), 0));
+      var_type = r_fitted_node_label(VECTOR_ELT(variables, i));
 
-      if (strcmp(var_class, "bn.fit.dnode") == 0) {
+      if (var_type == DNODE) {
 
         type[i] = INTSXP;
         ndp++;

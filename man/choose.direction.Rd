@@ -34,6 +34,10 @@ choose.direction(x, arc, data, criterion = NULL, ..., debug = FALSE)
   the network structure to the CPDAG representation of the equivalence class it
   belongs to).
 
+  If \code{criterion} is a test or a score function, any node connected to one
+  of the nodes in \code{arc} by an undirected arc is treated as a parent of
+  that node (with a warning).
+
 }
 \value{
 

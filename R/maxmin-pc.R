@@ -40,13 +40,13 @@ maxmin.pc = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
   nodes = names(x)
 
   # 1. [Forward Phase (I)]
-  mb = smartLapply(cluster, as.list(nodes), maxmin.pc.forward.phase, data = x,
+  mb = smartSapply(cluster, as.list(nodes), maxmin.pc.forward.phase, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, optimized = FALSE, debug = debug)
   names(mb) = nodes
 
   # 2. [Backward Phase (II)]
-  mb = smartLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+  mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, markov = FALSE, debug = debug)
   names(mb) = nodes

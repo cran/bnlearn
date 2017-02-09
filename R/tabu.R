@@ -12,7 +12,7 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
   # check whether the score is score-equivalent.
   score.equivalence = is.score.equivalent(score, nodes, extra.args)
   # check whether the score is decomposable.
-  score.decomposability = is.score.decomposable(score, nodes, extra.args)
+  score.decomposability = is.score.decomposable(score, extra.args)
   # allocate the cache matrix.
   cache = matrix(0, nrow = n.nodes, ncol = n.nodes)
   # nodes to be updated (all of them in the first iteration).
@@ -163,8 +163,8 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
       if (debug) {
 
         cat("----------------------------------------------------------------\n")
-        cat("* network score did not increase for", loss.iter,
-              "iterations, looking for a minimal decrease :\n")
+        cat("* network score did not increase (for", loss.iter,
+              "times), looking for a minimal decrease :\n")
 
       }#THEN
 
@@ -184,13 +184,15 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
                      debug = debug)
 
       # it might be that there are no more legal operations.
-      if(bestop$op == FALSE) {
+      if (bestop$op == FALSE) {
 
        if (debug) {
+
          cat("----------------------------------------------------------------\n")
          cat("* no more possible operations.\n")
          cat("@ stopping at iteration", iter, ".\n")
-         }#THEN
+
+       }#THEN
 
        # reset the return value to the best network ever found.
        if (loss.iter > 0)

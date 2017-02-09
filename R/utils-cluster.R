@@ -35,13 +35,14 @@ slaves.setup = function(cluster) {
 
 }#SLAVE.SETUP
 
-# smart parLapply() that falls back to standard lapply().
-smartLapply = function(cl, ...) {
+# smart parSapply() that falls back to standard sapply(), but with defaults to
+# simplify = FALSE.
+smartSapply = function(cl, ..., simplify = FALSE, USE.NAMES = TRUE) {
 
   if (is.null(cl))
-    lapply(...)
+    sapply(..., simplify = simplify, USE.NAMES = USE.NAMES)
   else
-    parallel::parLapply(cl = cl, ...)
+    parallel::parSapply(cl = cl, ..., simplify = simplify, USE.NAMES = USE.NAMES)
 
 }#SMARTLAPPLY
 

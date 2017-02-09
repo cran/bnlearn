@@ -21,10 +21,11 @@
   \item{highlight}{a vector of character strings, representing the labels of
     the nodes (and corresponding arcs) to be highlighted.}
   \item{color}{an integer or character string (the highlight colour).}
-  \item{\dots}{other parameters to be passed through to plotting functions.}
+  \item{\dots}{other graphical parameters to be passed through to plotting
+    functions.}
 }
 \note{
-  The following graphical parameters are always overridden:
+  The following arguments are always overridden:
   \itemize{
     \item \code{axes} is set to \code{FALSE}.
     \item \code{xlab} is set to an empty string.

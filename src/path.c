@@ -2,10 +2,10 @@
 #include "include/matrix.h"
 #include "include/graph.h"
 
-SEXP has_pdag_path(SEXP from, SEXP to, SEXP amat, SEXP nrows, SEXP nodes,
+SEXP has_pdag_path(SEXP from, SEXP to, SEXP amat, SEXP nrow, SEXP nodes,
     SEXP underlying, SEXP exclude_direct, SEXP debug) {
 
-int start = INT(from) - 1, stop = INT(to) - 1, n = INT(nrows);
+int start = INT(from) - 1, stop = INT(to) - 1, n = INT(nrow);
 int debuglevel = LOGICAL(debug)[0], notdirect = LOGICAL(exclude_direct)[0],
       ugraph = LOGICAL(underlying)[0], *a = INTEGER(amat);
 int *path = NULL, *scratch = NULL, res = 0;
@@ -114,7 +114,7 @@ there:
     }/*THEN*/
     else {
 
-      /* inrement the counter to get to the next node to check, unless
+      /* increment the counter to get to the next node to check, unless
        * that one was the last. */
       if (counter[cur] < n)
         counter[cur]++;
@@ -217,7 +217,7 @@ there:
     }/*THEN*/
     else {
 
-      /* inrement the counter to get to the next node to check, unless
+      /* increment the counter to get to the next node to check, unless
        * that one was the last. */
       if (counter[cur] < n)
         counter[cur]++;

@@ -10,7 +10,8 @@
 
 }
 \usage{
-bn.fit(x, data, method = "mle", \dots, debug = FALSE)
+bn.fit(x, data, cluster = NULL, method = "mle", \dots, keep.fitted = TRUE,
+  debug = FALSE)
 custom.fit(x, dist, ordinal)
 bn.net(x, debug = FALSE)
 }
@@ -18,6 +19,8 @@ bn.net(x, debug = FALSE)
   \item{x}{an object of class \code{bn} (for \code{bn.fit} and \code{custom.fit})
     or an object of class \code{bn.fit} (for \code{bn.net}).}
   \item{data}{a data frame containing the variables in the model.}
+  \item{cluster}{an optional cluster object from package \pkg{parallel}. See
+    \code{\link{parallel integration}} for details and a simple example.}
   \item{dist}{a named list, with element for each node of \code{x}. See below.}
   \item{method}{a character string, either \code{mle} for \emph{Maximum
     Likelihood parameter estimation} or \code{bayes} for \emph{Bayesian
@@ -27,6 +30,10 @@ bn.net(x, debug = FALSE)
   \item{ordinal}{a vector of character strings, the labels of the discrete
     nodes which should be saved as ordinal random variables
     (\code{bn.fit.onode}) instead of unordered  factors (\code{bn.fit.dnode}).}
+  \item{keep.fitted}{a boolean value. If \code{TRUE}, the object returned by
+    \code{bn.fit} will contain fitted values and residuals for all Gaussian and
+    conditional Gaussian nodes, and the configurations of the discrete parents
+    for conditional Gaussian nodes.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }

@@ -47,55 +47,55 @@ double res = 0, *xx = REAL(x);
 
 }/*WPOST*/
 
-void build_tau(double **data, double *tau, int ncols, int nrows,
+void build_tau(double **data, double *tau, int ncol, int nrow,
     int iss, double phi) {
 
-int i = 0, j = 0, res_ncols = ncols + 1;
+int i = 0, j = 0, res_ncol = ncol + 1;
 double temp = 0;
 double *mean = NULL, *mat = NULL;
 
   /* allocate mean vector and covariance matrix. */
-  mean = Calloc1D(ncols, sizeof(double));
-  mat = Calloc1D(ncols * ncols, sizeof(double));
+  mean = Calloc1D(ncol, sizeof(double));
+  mat = Calloc1D(ncol * ncol, sizeof(double));
 
   /* compute the mean values.  */
-  c_meanvec(data, mean, nrows, ncols, 0);
+  c_meanvec(data, mean, nrow, ncol, 0);
 
   /* compute the covariance matrix... */
-  c_covmat(data, mean, ncols, nrows, mat, 0);
+  c_covmat(data, mean, nrow, ncol, mat, 0);
   /* ... multiply it by the phi coefficient... */
-  for (i = 0; i < ncols; i++)
-    for (j = 0; j < ncols; j++)
-      mat[CMC(i, j, ncols)] *= phi;
+  for (i = 0; i < ncol; i++)
+    for (j = 0; j < ncol; j++)
+      mat[CMC(i, j, ncol)] *= phi;
 
   /* ... compute the pseudoinverse... */
-  c_ginv(mat, ncols, mat);
+  c_ginv(mat, ncol, mat);
 
   /* ... and store it in the bottom-right corner of the tau matrix. */
-  for (i = 1; i < res_ncols; i++)
-    for (j = 1; j < res_ncols; j++)
-      tau[CMC(i, j, res_ncols)] = mat[CMC(i - 1, j - 1, ncols)];
+  for (i = 1; i < res_ncol; i++)
+    for (j = 1; j < res_ncol; j++)
+      tau[CMC(i, j, res_ncol)] = mat[CMC(i - 1, j - 1, ncol)];
 
   /* fill the top-right and bottom-left corners. */
-  for (i = 1; i < ncols + 1; i++) {
+  for (i = 1; i < ncol + 1; i++) {
 
     temp = 0;
 
-    for (j = 0; j < ncols; j++)
-      temp += mean[j] * mat[CMC(j, i - 1, ncols)];
+    for (j = 0; j < ncol; j++)
+      temp += mean[j] * mat[CMC(j, i - 1, ncol)];
 
-    tau[CMC(i, 0, res_ncols)] = tau[CMC(0, i, res_ncols)] = -temp;
+    tau[CMC(i, 0, res_ncol)] = tau[CMC(0, i, res_ncol)] = -temp;
 
   }/*FOR*/
 
   /* fill the top-left corner. */
-  for (i = 1; i < res_ncols; i++)
-    tau[CMC(0, 0, res_ncols)] += - mean[i - 1] * tau[CMC(i, 0, res_ncols)];
+  for (i = 1; i < res_ncol; i++)
+    tau[CMC(0, 0, res_ncol)] += - mean[i - 1] * tau[CMC(i, 0, res_ncol)];
 
-  tau[CMC(0, 0, res_ncols)] += 1/((double) iss);
+  tau[CMC(0, 0, res_ncol)] += 1/((double) iss);
 
   /* perform the final (pseudo)inversion. */
-  c_ginv(tau, res_ncols, tau);
+  c_ginv(tau, res_ncol, tau);
 
   Free1D(mat);
   Free1D(mean);
@@ -105,24 +105,24 @@ double *mean = NULL, *mat = NULL;
 double cwpost(SEXP x, SEXP z, int iss, double phic) {
 
 int i = 0, j = 0, k = 0;
-int ncols = length(z), num = length(x), tau_ncols = length(z) + 1;
-int rho = iss + ncols;
+int ncol = length(z), num = length(x), tau_ncol = length(z) + 1;
+int rho = iss + ncol;
 double logscale = 0, logk = 0, xprod = 0, var_x = 0, zi_mu = 0, phi = 0;
 double *xx = REAL(x), *workspace = NULL;
 double res = 0, **zz = NULL, *zi = NULL, *mu = NULL, *delta_mu = NULL;
 double *tau = NULL, *inv_tau = NULL, *old_tau = NULL, *old_mu = NULL;
 
   /* allocate a workspace vector. */
-  workspace = Calloc1D(tau_ncols, sizeof(double));
+  workspace = Calloc1D(tau_ncol, sizeof(double));
 
   /* allocate and initialize the parent configuration. */
-  zi = Calloc1D(ncols + 1, sizeof(double));
+  zi = Calloc1D(ncol + 1, sizeof(double));
   zi[0] = 1;
 
   /* estimate mu and var_x. */
-  mu = Calloc1D(tau_ncols, sizeof(double));
-  old_mu = Calloc1D(tau_ncols, sizeof(double));
-  delta_mu = Calloc1D(tau_ncols, sizeof(double));
+  mu = Calloc1D(tau_ncol, sizeof(double));
+  old_mu = Calloc1D(tau_ncol, sizeof(double));
+  delta_mu = Calloc1D(tau_ncol, sizeof(double));
 
   for (i = 0; i < num; i++)
     mu[0] += xx[i];
@@ -136,27 +136,27 @@ double *tau = NULL, *inv_tau = NULL, *old_tau = NULL, *old_mu = NULL;
   phi = var_x * phic;
 
   /* allocate and initialize an array of pointers for the variables. */
-  zz = (double **) Calloc1D(ncols, sizeof(double *));
-  for (j = 0; j < ncols; j++)
+  zz = (double **) Calloc1D(ncol, sizeof(double *));
+  for (j = 0; j < ncol; j++)
     zz[j] = REAL(VECTOR_ELT(z, j));
 
   /* allocate and initialize tau. */
-  tau = Calloc1D(tau_ncols * tau_ncols, sizeof(double));
-  old_tau = Calloc1D(tau_ncols * tau_ncols, sizeof(double));
-  inv_tau = Calloc1D(tau_ncols * tau_ncols, sizeof(double));
-  build_tau(zz, tau, ncols, num, iss, phic);
-  memcpy(old_tau, tau, tau_ncols * tau_ncols * sizeof(double));
-  c_ginv(tau, tau_ncols, inv_tau);
+  tau = Calloc1D(tau_ncol * tau_ncol, sizeof(double));
+  old_tau = Calloc1D(tau_ncol * tau_ncol, sizeof(double));
+  inv_tau = Calloc1D(tau_ncol * tau_ncol, sizeof(double));
+  build_tau(zz, tau, ncol, num, iss, phic);
+  memcpy(old_tau, tau, tau_ncol * tau_ncol * sizeof(double));
+  c_ginv(tau, tau_ncol, inv_tau);
 
   /* for each sample... */
   for (i = 0; i < num; i++) {
 
     /* ... extract the values of the parents ... */
-    for (j = 0; j < ncols; j++)
+    for (j = 0; j < ncol; j++)
       zi[j + 1] = zz[j][i];
 
     /* ... compute the Mahalanobis distance of z[i] ... */
-    xprod = c_quadratic(zi, &tau_ncols, inv_tau, zi, workspace);
+    xprod = c_quadratic(zi, &tau_ncol, inv_tau, zi, workspace);
 
     /* ... compute the scale factor ... */
     logscale = log(phi) + log1p(xprod);
@@ -164,38 +164,38 @@ double *tau = NULL, *inv_tau = NULL, *old_tau = NULL, *old_mu = NULL;
     logk -= 0.5 * (logscale + log(M_PI));
 
     /* and then the score for the variable. */
-    for (j = 0, zi_mu = 0; j < tau_ncols; j++)
+    for (j = 0, zi_mu = 0; j < tau_ncol; j++)
       zi_mu += zi[j] * mu[j];
 
     res += logk - 0.5 * (1 + rho) *
              log1p((xx[i] - zi_mu) * (xx[i] - zi_mu) / exp(logscale));
 
     /* For the next iteration, update the tau matrix ... */
-    memcpy(old_tau, tau, tau_ncols * tau_ncols * sizeof(double));
+    memcpy(old_tau, tau, tau_ncol * tau_ncol * sizeof(double));
 
-    for (j = 0; j < tau_ncols; j++)
-      for (k = j; k < tau_ncols; k++)
-        tau[CMC(j, k, tau_ncols)] = tau[CMC(k, j, tau_ncols)] =
-          tau[CMC(j, k, tau_ncols)] + zi[j] * zi[k];
+    for (j = 0; j < tau_ncol; j++)
+      for (k = j; k < tau_ncol; k++)
+        tau[CMC(j, k, tau_ncol)] = tau[CMC(k, j, tau_ncol)] =
+          tau[CMC(j, k, tau_ncol)] + zi[j] * zi[k];
 
     /* ... its inverse  ... */
-    c_finv(tau, &tau_ncols, inv_tau);
+    c_finv(tau, &tau_ncol, inv_tau);
 
     /* ... update the mu vector ... */
-    memcpy(old_mu, mu, tau_ncols * sizeof(double));
-    c_rotate(inv_tau, old_tau, mu, &(xx[i]), zi, &tau_ncols, workspace);
+    memcpy(old_mu, mu, tau_ncol * sizeof(double));
+    c_rotate(inv_tau, old_tau, mu, &(xx[i]), zi, &tau_ncol, workspace);
 
     /* ... update rho (ISS + sample size evaluated at the current iteration) ... */
     rho++;
 
     /* ... and update phi. */
-    for (j = 0; j < tau_ncols; j++)
+    for (j = 0; j < tau_ncol; j++)
       delta_mu[j] = old_mu[j] - mu[j];
-    for (j = 0, zi_mu = 0; j < tau_ncols; j++)
+    for (j = 0, zi_mu = 0; j < tau_ncol; j++)
       zi_mu += zi[j] * mu[j];
 
     phi += (xx[i] - zi_mu) * xx[i] +
-             c_quadratic(delta_mu, &tau_ncols, old_tau, old_mu, workspace);
+             c_quadratic(delta_mu, &tau_ncol, old_tau, old_mu, workspace);
 
   }/*FOR*/
 
@@ -238,7 +238,7 @@ SEXP nodes, node_t, parents, parent_vars, data_t;
   /* extract the node's column from the data frame. */
   data_t = c_dataframe_column(data, target, TRUE, FALSE);
   /* compute the prior probability component for the node. */
-  prior_prob = graph_prior_prob(prior, target, node_t, beta, debuglevel);
+  prior_prob = graph_prior_prob(prior, target, beta, nodes, debuglevel);
 
   if (length(parents) == 0) {
 

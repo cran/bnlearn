@@ -3,53 +3,65 @@
 #include "include/dataframe.h"
 #include "include/globals.h"
 #include "include/graph.h"
+#include "include/scores.h"
 
 double castelo_prior(SEXP beta, SEXP target, SEXP parents, SEXP children,
     int debuglevel);
+double marginal_prior(SEXP target, SEXP parents, SEXP children,
+    SEXP node_cache, SEXP nodes, int debuglevel);
 
-double graph_prior_prob(SEXP prior, SEXP target, SEXP cache, SEXP beta,
+double graph_prior_prob(SEXP prior, SEXP target, SEXP beta, SEXP cache,
     int debuglevel) {
 
 double *b = NULL, prob = 0;
-const char *pr = NULL;
-SEXP parents, children;
+SEXP nodes, parents, children, target_cache;
 
   /* check which prior should be computed, and use the uniform one
    * if none is specified.*/
   if (prior ==  R_NilValue)
     return 0;
-  else
-    pr = CHAR(STRING_ELT(prior, 0));
 
-  /* match the label of the prior. */
-  if (strcmp(pr, "uniform") == 0) {
+  /* extract the cached information about the target node. */
+  target_cache = getListElement(cache, (char *)CHAR(STRING_ELT(target, 0)));
+
+  switch(gprior_label(CHAR(STRING_ELT(prior, 0)))) {
 
     /* constant prior, log(1) = 0 for backward compatibility. */
-    prob = 0;
-
-  }/*THEN*/
-  else if (strcmp(pr, "vsp") == 0) {
-
-    parents = getListElement(cache, "parents");
+    case UNIFORM:
+      prob = 0;
+      break;
 
     /* variable selection prior, each arc has independent beta probability
-     * fo inclusion. */
-    b = REAL(beta);
-    prob = length(parents) * log(*b / (1 - *b));
-
-  }/*THEN*/
-  else if (strcmp(pr, "cs") == 0) {
-
-    parents = getListElement(cache, "parents");
-    children = getListElement(cache, "children");
+     * for inclusion. */
+    case VSP:
+      parents = getListElement(target_cache, "parents");
+      b = REAL(beta);
+      prob = length(parents) * log(*b / (1 - *b));
+      break;
 
     /* completed prior from Castelo and Siebes. */
-    if (beta == R_NilValue)
-      prob = 0;
-   else
-      prob = castelo_prior(beta, target, parents, children, debuglevel);
+    case CS:
+      parents = getListElement(target_cache, "parents");
+      children = getListElement(target_cache, "children");
 
-  }/*THEN*/
+      if (beta == R_NilValue)
+        prob = 0;
+      else
+        prob = castelo_prior(beta, target, parents, children, debuglevel);
+      break;
+
+    /* marignal uniform prior. */
+    case MU:
+      parents = getListElement(target_cache, "parents");
+      children = getListElement(target_cache, "children");
+      nodes = getAttrib(beta, BN_NodesSymbol);
+      prob = marginal_prior(target, parents, children, cache, nodes, debuglevel);
+      break;
+
+    default:
+      error("unknown graph prior.");
+
+  }/*SWITCH*/
 
   return prob;
 
@@ -297,4 +309,72 @@ SEXP result, from, to, nid, dir1, dir2;
   return df;
 
 }/*CASTELO_COMPLETION*/
+
+double marginal_prior(SEXP target, SEXP parents, SEXP children, 
+    SEXP node_cache, SEXP nodes, int debuglevel) {
+
+int i = 0, t = 0, nnodes = length(nodes);
+int *temp = NULL;
+double prior = 0, result = 0;
+short int *adjacent = NULL;
+SEXP try;
+
+  /* match the target node. */
+  PROTECT(try = match(nodes, target, 0));
+  t = INT(try);
+  UNPROTECT(1);
+
+  /* find out which nodes are parents and which nodes are children. */
+  adjacent = Calloc1D(nnodes, sizeof(short int));
+
+  PROTECT(try = match(nodes, parents, 0));
+  temp = INTEGER(try);
+  for (i = 0; i < length(try); i++)
+    adjacent[temp[i] - 1] = PARENT;
+  UNPROTECT(1);
+
+  PROTECT(try = match(nodes, children, 0));
+  temp = INTEGER(try);
+  for (i = 0; i < length(try); i++)
+    adjacent[temp[i] - 1] = CHILD;
+  UNPROTECT(1);
+
+  /* prior probabilities table lookup. */
+  for (i = t + 1; i <= nnodes; i++) {
+
+    /* look up the prior probability. */
+    prior = (adjacent[i - 1] > 0) ? 0.25 : 0.50;
+
+    if (debuglevel > 0) {
+
+      switch(adjacent[i - 1]) {
+
+        case PARENT:
+          Rprintf("  > found arc %s -> %s, prior pobability is %lf.\n",
+            NODE(i - 1), NODE(t - 1), prior);
+          break;
+        case CHILD:
+          Rprintf("  > found arc %s -> %s, prior probability is %lf.\n",
+            NODE(t - 1), NODE(i - 1), prior);
+          break;
+        default:
+          Rprintf("  > no arc between %s and %s, prior probability is %lf.\n",
+            NODE(t - 1), NODE(i - 1), prior);
+
+      }/*SWITCH*/
+
+    }/*THEN*/
+
+    /* move to log-scale and divide by the non-informative log(1/3), so that
+     * the contribution of each arc whose prior has not been specified by the
+     * user is zero; overflow is likely otherwise. */
+    result += log(prior / ((double)1/3));
+
+  }/*FOR*/
+
+  Free1D(adjacent);
+
+  return result;
+
+}/*MARGINAL_PRIOR*/
 

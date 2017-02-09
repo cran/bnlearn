@@ -40,13 +40,13 @@ si.hiton.pc.backend = function(x, cluster = NULL, whitelist, blacklist,
   nodes = names(x)
 
   # 1. [Forward Phase (I)]
-  mb = smartLapply(cluster, as.list(nodes), si.hiton.pc.heuristic, data = x,
+  mb = smartSapply(cluster, as.list(nodes), si.hiton.pc.heuristic, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, debug = debug)
   names(mb) = nodes
 
   # 2. [Backward Phase (II)]
-  mb = smartLapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+  mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, debug = debug, empty.dsep = FALSE, markov = FALSE)
   names(mb) = nodes

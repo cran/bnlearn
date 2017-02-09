@@ -112,3 +112,38 @@ predict.bn.naive = function(object, data, prior, ..., prob = FALSE, debug = FALS
 # estimate the predicted values for a TAN classfier.
 predict.bn.tan = predict.bn.naive
 
+# impute missing data from a bn.fit object.
+impute = function(object, data, method = "parents", ..., debug = FALSE) {
+
+  # check the data are there.
+  check.data(data, allow.levels = TRUE, allow.missing = TRUE)
+  # check whether the data agree with the bayesian network.
+  check.fit.vs.data(object, data)
+  # check the imputation method.
+  check.label(method, choices = available.imputation.methods, 
+    labels = imputation.labels, argname = "imputation method", see = "impute")
+  # check debug and prob.
+  check.logical(debug)
+
+  extra.args = list(...)
+  check.unused.args(extra.args, imputation.extra.args[[method]])
+
+  if (method == "parents") {
+
+    impute.backend.parents(fitted = object, data = data, debug = debug)
+
+  }#THEN
+  else if (method == "bayes-lw") {
+
+    if (is.null(extra.args$n))
+      extra.args$n = 500
+    else if (!is.positive.integer(extra.args$n))
+      stop("the number of observations to be sampled must be a positive integer number.")
+
+    impute.backend.map(fitted = object, data = data, n = extra.args$n,
+      debug = debug)
+
+  }#THEN
+
+}#IMPUTE
+

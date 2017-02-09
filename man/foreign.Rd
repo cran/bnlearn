@@ -43,7 +43,7 @@ write.dot(file, graph)
   \code{read.dsc} and \code{read.net}.
 
   HUGIN can import and export NET files; Netica can read (but not write) DSC
-  files; and Genie can read and write both DSC and NET files.
+  files; and GeNIe can read and write both DSC and NET files.
 
   DOT files can be read by Graphviz, Gephi and a variety of other programs.
 
@@ -64,16 +64,6 @@ write.dot(file, graph)
 \references{
 
   Bayesian Network Repository, \url{http://www.bnlearn.com/bnrepository}.
-
-  Genie, \url{http://genie.sis.pitt.edu}.
-
-  HUGIN Expert, \url{http://www.hugin.com}.
-
-  Netica, \url{http://www.norsys.com/netica.html}.
-
-  Graphviz, \url{https://github.com/ellson/graphviz}.
-
-  Gephi, \url{http://gephi.org}.
 
 }
 \author{ Marco Scutari }

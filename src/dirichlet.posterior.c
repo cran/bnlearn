@@ -166,7 +166,7 @@ SEXP nodes, node_t, data_t, exp_data, parents, parent_vars, config;
   /* extract the list of eperimental data. */
   exp_data = c_dataframe_column(experimental, target, TRUE, FALSE);
   /* compute the prior probability component for the node. */
-  prior_prob = graph_prior_prob(prior, target, node_t, beta, debuglevel);
+  prior_prob = graph_prior_prob(prior, target, beta, nodes, debuglevel);
 
   if (length(parents) == 0) {
 
