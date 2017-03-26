@@ -1,5 +1,5 @@
 6327dbb8a6020d71adee9cb6936ccbe3 *Changelog
-193265f4818b6ff4b2e740f909114bd8 *DESCRIPTION
+855e98daecf50328080612dfb52a3016 *DESCRIPTION
 ff3fa5b21a23b494ee0943b0a4bc15f2 *NAMESPACE
 708f700deea0489d5baadc34ec2fa60b *R/aracne.R
 0cc417438560eefa77c83926d3542554 *R/arc.operations.R
@@ -84,7 +84,7 @@ b8e1aa1d127b842752c1e709c429ff52 *data/alarm.rda
 c62712c804b0065735c8665563b2e1bf *data/learning.test.rda
 9b2ec166c67ab6a19bef76249f292f3a *data/lizards.rda
 e6314a9c19cc6fd2053306493cd6d3cc *data/marks.rda
-1feca423ea462b0638b525338e24f4f8 *inst/CITATION
+5f0a0e140ceeeede6cd727d472c769c5 *inst/CITATION
 c47e5369e36de74a10b94b5b783dab6c *inst/bibtex/bnlearn.bib
 b9f02d2050c10045b37d6008391ab38b *inst/network.scripts/clgaussian.test.R
 6502998c502cf4790dc7e56decdde3a9 *inst/network.scripts/gaussian.test.R
@@ -103,7 +103,7 @@ fcdfa566a2d4b99e9da2a28111eb2057 *man/bn.fit.plots.Rd
 d9ed4c5075fce038facab7bcbb03c52d *man/bn.kcv.class.Rd
 a0d20756ebac14f429a0ae54fee92891 *man/bn.strength-class.Rd
 97915f2199e41e4a64128b13f4ec5925 *man/bnboot.Rd
-ce01e4df4ea93d4e3f5ba1f6b3a828c2 *man/bnlearn-package.Rd
+d1117cd062e9781edcc3d9ab557b6593 *man/bnlearn-package.Rd
 c72446e71b5d4cbf62c82a063103fbc3 *man/choose.direction.Rd
 854571a3eea2555f498e1aaed8e3657f *man/ci.test.Rd
 071f7e1dd9f4a41ed984645d81059141 *man/clgaussian-test.Rd

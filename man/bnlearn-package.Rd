@@ -16,8 +16,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 4.1\cr
-    Date: \tab 2016-02-09\cr
+    Version: \tab 4.1.1\cr
+    Date: \tab 2016-03-24\cr
     License: \tab GPLv2 or later
 
   }
@@ -385,6 +385,11 @@
   Scutari M (2010). "Learning Bayesian Networks with the bnlearn R Package".
       Journal of Statistical Software, \strong{35}(3), 1-22. URL
       http://www.jstatsoft.org/v35/i03/.
+
+  Scutari M (20107). "Bayesian Network Constraint-Based Structure Learning
+      Algorithms: Parallel and Optimized Implementations in the bnlearn R
+      Package". Journal of Statistical Software, \strong{77}(2), 1-20.
+      URL http://www.jstatsoft.org/v77/i02/.
 
   Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
       Principles and Techniques}. MIT Press.
