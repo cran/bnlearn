@@ -66,5 +66,8 @@ choose.direction(res, learning.test, arc = c("D", "E"), criterion = "bootstrap",
   debug = TRUE)
 }}
 \seealso{\code{\link{score}}, \code{\link{arc.strength}}.}
-\author{ Marco Scutari }
-\keyword{htest}
+\author{Marco Scutari}
+\keyword{network scores}
+\keyword{independence tests}
+\keyword{resampling}
+\keyword{convenience functions}

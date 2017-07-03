@@ -75,7 +75,7 @@ long double sse = 0;
 
   if (resid) {
 
-    if (fitted) 
+    if (fitted)
       for (i  = 0; i < nrow; i++)
         resid[i] = y[i] - fitted[i];
     else {

@@ -46,6 +46,6 @@ library(gRain)
 a = bn.fit(hc(learning.test), learning.test)
 b = as.grain(a)
 c = as.bn.fit(b)}}
-\author{ Marco Scutari }
+\author{Marco Scutari}
 \keyword{utilities}
-\keyword{multivariate}
+\keyword{interfaces to other packages}

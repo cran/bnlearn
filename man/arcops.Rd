@@ -28,7 +28,7 @@ drop.edge(x, from, to, debug = FALSE)
   \item{to}{a character string, the label of another node.}
   \item{check.cycles}{a boolean value. If \code{TRUE} the graph is tested for
     acyclicity; otherwise the graph is returned anyway.}
-  \item{check.illegal}{a boolean value. If \code{TRUE} arcs that break the 
+  \item{check.illegal}{a boolean value. If \code{TRUE} arcs that break the
     parametric assumptions of \code{x}, such as those from continuous to
     discrete nodes in conditional Gaussian networks, cause an error.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
@@ -38,7 +38,7 @@ drop.edge(x, from, to, debug = FALSE)
 
   The \code{set.arc} function operates in the following way:
   \itemize{
-    \item if there is no arc between \code{from} and \code{to}, the arc 
+    \item if there is no arc between \code{from} and \code{to}, the arc
       \code{from} \eqn{\rightarrow}{->} \code{to} is added.
     \item if there is an undirected arc between \code{from} and \code{to}, its
       direction is set to \code{from} \eqn{\rightarrow}{->} \code{to}.
@@ -85,7 +85,7 @@ drop.edge(x, from, to, debug = FALSE)
       action is taken.
     \item if there is an undirected arc between \code{from} and \code{to}, it
       is removed.
-    \item if there is a directed arc between \code{from} and \code{to}, no 
+    \item if there is a directed arc between \code{from} and \code{to}, no
       action is taken.
   }
 
@@ -105,6 +105,5 @@ drop.arc(res, "A", "B")
 drop.edge(res, "A", "B")
 reverse.arc(res, "A", "D")
 }
-\author{ Marco Scutari }
-\keyword{utilities}
+\author{Marco Scutari}
 \keyword{graphs}

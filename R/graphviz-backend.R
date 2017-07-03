@@ -16,7 +16,7 @@ check.Rgraphviz = function() {
 
 # unified backend for the graphviz calls.
 graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
-    layout = "dot", shape = "circle", main = NULL, sub = NULL) {
+    layout = "dot", shape = "circle", main = NULL, sub = NULL, render = TRUE) {
 
   graphviz.layouts = c("dot", "neato", "twopi", "circo", "fdp")
   node.shapes = c("ellipse", "circle", "rectangle")
@@ -119,11 +119,9 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
   graph.obj = new("graphNEL", nodes = nodes, edgeL = arcs2elist(arcs, nodes),
                 edgemode = 'directed')
 
-  # dump the global graphical settings.
-  graph.par.dump = graph::graph.par()
-
   # set the title and the subtitle.
-  graph::graph.par(list(graph = list(main = main, sub = sub)))
+  graph::graphRenderInfo(graph.obj)[["main"]] = main
+  graph::graphRenderInfo(graph.obj)[["sub"]] = sub
 
   # set graph layout and global parameters.
   if (shape %in% c("ellipse", "rectangle")) {
@@ -197,22 +195,23 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
 
   }#THEN
 
-  # do the actual plotting.
-  if (nrow(arcs) > 0) {
+  if (render) {
 
-    Rgraphviz::renderGraph(graph.plot)
+    # do the actual plotting.
+    if (nrow(arcs) > 0) {
+
+      Rgraphviz::renderGraph(graph.plot)
+
+    }#THEN
+    else {
+
+      # use a NOP function to render arcs, the default renderEdges() raises an
+      # error if the graph is empty.
+      Rgraphviz::renderGraph(graph.plot, drawEdges = function(x) {})
+
+    }#ELSE
 
   }#THEN
-  else {
-
-    # use a NOP function to render arcs, the default renderEdges() raises an
-    # error if the graph is empty.
-    Rgraphviz::renderGraph(graph.plot, drawEdges = function(x) {})
-
-  }#ELSE
-
-  # restore the original global graphical settings.
-  graph::graph.par(graph.par.dump)
 
   # return (invisibly) the graph object, to allow further customizations.
   invisible(graph.plot)

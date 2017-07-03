@@ -112,18 +112,15 @@ node.ordering = function(x, debug = FALSE) {
     if (is.pdag(x$arcs, names(x$nodes)))
       stop("the graph is only partially directed.")
 
-  schedule(x, debug = debug)
+  topological.ordering(x, debug = debug)
 
 }#NODE.ORDERING
 
 # generate a valid blacklist from a partial node ordering.
 ordering2blacklist = function(nodes) {
 
-  if (is(nodes, "bn") || is(nodes, "bn.fit")) {
-
-    nodes = schedule(nodes)
-
-  }#THEN
+  if (is(nodes, "bn") || is(nodes, "bn.fit"))
+    nodes = topological.ordering(nodes)
 
   # check the node labels.
   check.nodes(nodes)
@@ -132,7 +129,7 @@ ordering2blacklist = function(nodes) {
 
 }#ORDERING2BLACKLIST
 
-# generate a valid blacklist from a partial node ordering. 
+# generate a valid blacklist from a partial node ordering.
 tiers2blacklist = function(nodes) {
 
   # check the node labels.
@@ -158,7 +155,11 @@ tiers2blacklist = function(nodes) {
 skeleton = function(x) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
+
+  # go back to the network structure if needed.
+  if (is(x, "bn.fit"))
+    x = bn.net(x)
 
   dag2ug.backend(x, moral = FALSE)
 
@@ -208,49 +209,8 @@ compare = function(target, current, arcs = FALSE) {
   # check debug.
   check.logical(arcs)
 
-  # cache some useful quantities.
-  nodes = names(target$nodes)
-  nnodes = length(target$nodes)
-
-  # separate directed and undirected arcs in the target network.
-  which.dir = which.directed(target$arcs, nodes)
-  target.dir = target$arcs[which.dir, , drop = FALSE]
-  target.und = target$arcs[!which.dir, , drop = FALSE]
-  # separate directed and undirected arcs in the current network.
-  which.dir = which.directed(current$arcs, nodes)
-  current.dir = current$arcs[which.dir, , drop = FALSE]
-  current.und = current$arcs[!which.dir, , drop = FALSE]
-
-  # treat directed and undirected arcs separately; directed arcs are
-  # compared in both presence and direction.
-  which.tp.dir = which.listed(target.dir, current.dir)
-  which.tp.und = which.listed(target.und, current.und)
-  which.fn.dir = !which.listed(target.dir, current.dir)
-  which.fn.und = !which.listed(target.und, current.und)
-  which.fp.dir = !which.listed(current.dir, target.dir)
-  which.fp.und = !which.listed(current.und, target.und)
-
-  if (arcs) {
-
-    # return the arcs corresponding to each category.
-    tp = arcs.rbind(target.dir[which.tp.dir, , drop = FALSE],
-                    target.und[which.tp.und, , drop = FALSE])
-    fn = arcs.rbind(target.dir[which.fn.dir, , drop = FALSE],
-                    target.und[which.fn.und, , drop = FALSE])
-    fp = arcs.rbind(current.dir[which.fp.dir, , drop = FALSE],
-                    current.und[which.fp.und, , drop = FALSE])
-
-  }#THEN
-  else {
-
-    # return the counts for each category.
-    tp = length(which(which.tp.dir)) + length(which(which.tp.und))/2
-    fn = length(which(which.fn.dir)) + length(which(which.fn.und))/2
-    fp = length(which(which.fp.dir)) + length(which(which.fp.und))/2
-
-  }#ELSE
-
-  return(list(tp = tp, fp = fp, fn = fn))
+  compare.backend(target$arcs, current$arcs,
+    nodes = names(target$nodes), arcs = arcs)
 
 }#COMPARE
 

@@ -49,7 +49,7 @@ data(hailfinder)
       with levels \code{Cloudy}, \code{PC} and \code{Clear}.
     \item \code{CldShadeOth} (\emph{cloud shading, other}): a three-level factor
       with levels \code{Cloudy}, \code{PC} and \code{Clear}.
-    \item \code{AMInstabMt} (\emph{AM instability in the mountains}): a 
+    \item \code{AMInstabMt} (\emph{AM instability in the mountains}): a
       three-level factor with levels \code{None}, \code{Weak} and \code{Strong}.
     \item \code{InsInMt} (\emph{instability in the mountains}): a three-level
       factor with levels \code{None}, \code{Weak} and \code{Strong}.
@@ -70,14 +70,14 @@ data(hailfinder)
     \item \code{CapChange} (\emph{capping change}): a three-level factor with
       levels \code{Decreasing}, \code{LittleChange} and \code{Increasing}.
     \item \code{LoLevMoistAd} (\emph{low-level moisture advection}): a
-      four-level factor with levels \code{StrongPos}, \code{WeakPos}, 
+      four-level factor with levels \code{StrongPos}, \code{WeakPos},
       \code{Neutral} and \code{Negative}.
     \item \code{InsChange} (\emph{instability change}):  three-level factor with
       levels \code{Decreasing}, \code{LittleChange} and \code{Increasing}.
     \item \code{MountainFcst} (\emph{mountains (region 1) forecast}): a
       three-level factor with levels \code{XNIL}, \code{SIG} and \code{SVR}.
-    \item \code{Date} (\emph{date}): a six-level factor with levels 
-      \code{May15_Jun14}, \code{Jun15_Jul1}, \code{Jul2_Jul15}, 
+    \item \code{Date} (\emph{date}): a six-level factor with levels
+      \code{May15_Jun14}, \code{Jun15_Jul1}, \code{Jul2_Jul15},
       \code{Jul16_Aug10}, \code{Aug11_Aug20} and \code{Aug20_Sep15}.
     \item \code{Scenario} (\emph{scenario}): an eleven-level factor with levels
       \code{A}, \code{B}, \code{C}, \code{D}, \code{E}, \code{F}, \code{G},
@@ -121,7 +121,7 @@ data(hailfinder)
       four-level factor with levels \code{None}, \code{Slight}, \code{Moderate}
       and \code{Strong}.
     \item \code{ScnRelPlFcst} (\emph{scenario relevant to plains forecast}): an
-      eleven-level factor with levels \code{A}, \code{B}, \code{C}, \code{D}, 
+      eleven-level factor with levels \code{A}, \code{B}, \code{C}, \code{D},
       \code{E}, \code{F}, \code{G}, \code{H}, \code{I}, \code{J} and \code{K}.
     \item \code{PlainsFcst} (\emph{plains forecast}): a three-level factor with
       levels \code{XNIL}, \code{SIG} and \code{SVR}.
@@ -130,7 +130,7 @@ data(hailfinder)
     \item \code{R5Fcst} (\emph{region 5 forecast}): a three-level factor with
       levels \code{XNIL}, \code{SIG} and \code{SVR}.
     \item \code{Dewpoints} (\emph{dewpoints}): a seven-level factor with levels
-      \code{LowEverywhere}, \code{LowAtStation}, \code{LowSHighN}, 
+      \code{LowEverywhere}, \code{LowAtStation}, \code{LowSHighN},
       \code{LowNHighS}, \code{LowMtsHighPl}, \code{HighEverywher}, \code{Other}.
     \item \code{LowLLapse} (\emph{low-level lapse rate}): a four-level factor
       with levels \code{CloseToDryAd}, \code{Steep}, \code{ModerateOrLe} and
@@ -178,10 +178,10 @@ data(hailfinder)
 
 }
 \examples{
-# load the data and build the correct network from the model string.
+# load the data.
 data(hailfinder)
-res = empty.graph(names(hailfinder))
-modelstring(res) = paste("[N07muVerMo][SubjVertMo][QGVertMotion][SatContMoist][RaoContMoist]",
+# create and plot the network structure.
+modelstring = paste("[N07muVerMo][SubjVertMo][QGVertMotion][SatContMoist][RaoContMoist]",
   "[VISCloudCov][IRCloudCover][AMInstabMt][WndHodograph][MorningBound][LoLevMoistAd][Date]",
   "[MorningCIN][LIfr12ZDENSd][AMDewptCalPl][LatestCIN][LLIW]",
   "[CombVerMo|N07muVerMo:SubjVertMo:QGVertMotion][CombMoisture|SatContMoist:RaoContMoist]",
@@ -198,9 +198,8 @@ modelstring(res) = paste("[N07muVerMo][SubjVertMo][QGVertMotion][SatContMoist][R
   "[CompPlFcst|AreaMesoALS:CldShadeOth:Boundaries:CldShadeConv][CapChange|CompPlFcst]",
   "[InsChange|CompPlFcst:LoLevMoistAd][CapInScen|CapChange:AMCINInScen]",
   "[InsSclInScen|InsChange:AMInsWliScen][R5Fcst|MountainFcst:N34StarFcst]",
-  "[PlainsFcst|CapInScen:InsSclInScen:CurPropConv:ScnRelPlFcst]",
-  sep = "")
-\dontrun{
-# there are too many nodes for plot(), use graphviz.plot().
-graphviz.plot(res)}}
+  "[PlainsFcst|CapInScen:InsSclInScen:CurPropConv:ScnRelPlFcst]", sep = "")
+dag = model2network(modelstring)
+\dontrun{graphviz.plot(dag, shape = "ellipse")}
+}
 \keyword{datasets}

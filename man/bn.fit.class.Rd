@@ -92,5 +92,5 @@
   in an additional attribute named \code{training}.
 
 }
-\author{ Marco Scutari }
-\keyword{ classes }
+\author{Marco Scutari}
+\keyword{classes}

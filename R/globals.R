@@ -15,8 +15,12 @@ resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g"
 asymptotic.tests = c("mi", "mi-adf", "mi-g", "x2", "x2-adf", "zf", "jt", "mi-sh",
   "mi-g-sh")
 
-available.discrete.scores = c("loglik", "aic", "bic", "bde", "bds", "k2", "mbde")
-available.continuous.scores = c("loglik-g", "aic-g", "bic-g", "bge")
+available.discrete.bayesian.scores = c("bde", "bds", "bdj", "k2", "mbde", "bdla")
+available.discrete.scores = 
+  c("loglik", "aic", "bic", available.discrete.bayesian.scores)
+available.continuous.bayesian.scores = c("bge")
+available.continuous.scores =
+  c("loglik-g", "aic-g", "bic-g", available.continuous.bayesian.scores)
 available.mixedcg.scores = c("loglik-cg", "aic-cg", "bic-cg")
 available.scores = c(available.discrete.scores, available.continuous.scores,
   available.mixedcg.scores)
@@ -29,6 +33,7 @@ markov.blanket.algorithms = c("gs", "iamb", "fast.iamb", "inter.iamb")
 local.search.algorithms = c("mmpc", "si.hiton.pc")
 constraint.based.algorithms = c(markov.blanket.algorithms, local.search.algorithms)
 score.based.algorithms = c("hc", "tabu")
+em.algorithms = c("sem")
 hybrid.algorithms = c("rsmax2", "mmhc")
 mim.based.algorithms = c("chow.liu", "aracne")
 classifiers = c("naive.bayes", "tree.bayes")
@@ -45,6 +50,7 @@ method.labels = c(
   'rnd' = "random/generated",
   'hc' = "Hill-Climbing",
   'tabu' = "Tabu Search",
+  'sem' = "Structural EM",
   'mmpc' = "Max-Min Parent Children",
   'si.hiton.pc' = "Semi-Interleaved HITON-PC",
   'rsmax2' = "Two-Phase Restricted Maximization",
@@ -92,7 +98,9 @@ score.labels = c(
   'k2' = "Cooper & Herskovits' K2",
   'bde' = "Bayesian Dirichlet (BDe)",
   'bds' = "Bayesian Dirichlet Sparse (BDs)",
+  'bdj' = "Bayesian Dirichlet, Jeffrey's prior",
   'mbde' = "Bayesian Dirichlet (interventional data)",
+  'bdla' = "Bayesian Dirichlet, Locally Averaged",
   'aic' = "AIC (disc.)",
   'bic' = "BIC (disc.)",
   'loglik' = "Log-Likelihood (disc.)",
@@ -109,7 +117,9 @@ score.extra.args = list(
   "k2" = character(0),
   "bde" = c("prior", "beta", "iss"),
   "bds" = c("prior", "beta", "iss"),
+  "bdj" = c("prior", "beta"),
   "mbde" = c("prior", "beta", "iss", "exp"),
+  "bdla" = c("prior", "beta", "l"),
   "aic" = c("k"),
   "bic" = c("k"),
   "bge" = c("prior", "beta", "iss", "phi"),
@@ -221,13 +231,13 @@ fitting.extra.args = list(
 available.cv.methods = c("k-fold", "hold-out", "custom-folds")
 
 cv.labels = c(
-  "k-fold" = "k-Fold", 
+  "k-fold" = "k-Fold",
   "hold-out" = "Hold-Out",
   "custom-folds" = "Custom Folds"
 )
 
 cv.extra.args = list(
-  "k-fold" = c("k", "runs"), 
+  "k-fold" = c("k", "runs"),
   "hold-out" = c("k", "m", "runs"),
   "custom-folds" = c("folds")
 )
@@ -248,7 +258,7 @@ available.imputation.methods = c("parents", "bayes-lw")
 
 imputation.extra.args = list(
   "parents" = character(0),
-  "bayes-lw" = c("from")
+  "bayes-lw" = c("from", "n")
 )
 
 imputation.labels = c(
@@ -280,6 +290,8 @@ fitted.from.data = c(
   "mixed-do" = "bn.fit.donet"
 )
 
+available.strength.methods = c("test", "score", "bootstrap")
+
 discrete.data.types = c("factor", "ordered", "mixed-do")
 continuous.data.types = c("continuous")
 mixed.data.types = c("mixed-cg")
@@ -300,7 +312,7 @@ fitted.node.types = c("bn.fit.dnode", "bn.fit.onode", "bn.fit.gnode",
 # global test counter.
 reset.test.counter = function() {
 
-  invisible(.Call("reset_test_counter"))
+  invisible(.Call(call_reset_test_counter))
 
 }#RESET.TEST.COUNTER
 
@@ -309,13 +321,13 @@ increment.test.counter = function(i = 1) {
   if (!is.real.number(i))
     stop("the increment must be a single real number.")
 
-  invisible(.Call("increment_test_counter", i))
+  invisible(.Call(call_increment_test_counter, i))
 
 }#INCREMENT.TEST.COUNTER
 
 test.counter = function() {
 
-  return(.Call("get_test_counter"))
+  return(.Call(call_get_test_counter))
 
 }#TEST.COUNTER
 

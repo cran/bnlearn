@@ -24,7 +24,7 @@ tiers2blacklist(nodes)
 \details{
 
   \code{ordering2blacklist} takes a vector of character strings (the labels of
-  the nodes), which specifies a complete node ordering. An object of class 
+  the nodes), which specifies a complete node ordering. An object of class
   \code{bn} or \code{bn.fit}; in that case, the node ordering is derived by
   the graph. In both cases, the blacklist returned by \code{ordering2blacklist}
   contains all the possible arcs that violate the specified node ordering.
@@ -67,6 +67,7 @@ ntests(gs(learning.test, blacklist = ordering2blacklist(ord)))
 
 tiers2blacklist(list(LETTERS[1:3], LETTERS[4:6]))
 }
-\author{ Marco Scutari }
-\keyword{utilities}
-\keyword{multivariate}
+\author{Marco Scutari}
+\keyword{convenience functions}
+\keyword{structure learning}
+\keyword{graphs}

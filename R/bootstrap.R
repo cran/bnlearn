@@ -150,7 +150,7 @@ averaged.network.backend = function(strength, nodes, threshold) {
   else {
 
     # update the arcs of the network, minding cycles.
-    e$arcs = .Call("smart_network_averaging",
+    e$arcs = .Call(call_smart_network_averaging,
                    arcs = candidate.arcs,
                    nodes = nodes,
                    weights = strength$strength[significant])

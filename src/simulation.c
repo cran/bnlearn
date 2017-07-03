@@ -1,7 +1,7 @@
 #include "include/rcore.h"
 
 /* find out the partial ordering of the nodes of a DAG. */
-SEXP schedule(SEXP bn, SEXP root_nodes, SEXP reverse, SEXP debug) {
+SEXP topological_ordering(SEXP bn, SEXP root_nodes, SEXP reverse, SEXP debug) {
 
 int *depth = NULL, *matched = NULL, debuglevel = isTRUE(debug);
 int d = 0, i = 0, j = 0, changed = 0, nnodes = 0;

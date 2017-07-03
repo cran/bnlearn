@@ -1,3 +1,39 @@
+bnlearn (4.2)
+
+  * added a tuning parameter for the inclusion probability to the marginal
+     uniform graph prior.
+  * added a Bayesian Dirichlet score using Jeffrey's prior (from Joe Suzuki).
+  * allow fractional imaginary sample sizes for posterior scores.
+  * allow imaginary sample sizes in (0, 1] for discrete posterior scores,
+     to explore asymptotic results.
+  * set the default imaginary sample size for discrete networks to 1, following
+     recommendations from the literature.
+  * moral(), cpdag(), skeleton() and vstructs() now accept bn.fit objects in
+     addition to bn objects.
+  * fixed a segfault in cpdist(..., method = "lw") caused by all weights
+    being equal to NaN (thanks David Chen).
+  * changed the default value of the "optimized" argument to "FALSE" in
+     constraint-based algorithms.
+  * changed the arguments of mmhc() and rsmax2() to improve their flexibility
+     and to allow separate "optimized" values for the restrict and maximize
+     phases.
+  * fixed sanitization of fitted networks containing ordinal discrete
+     variables (thanks David Chen).
+  * improved argument sanitization in custom.fit() and model string functions.
+  * added a BF() function to compute Bayes factors.
+  * added a graphviz.compare() function to visually compare network structures.
+  * implemented the locally averaged Bayesian Dirichlet score.
+  * custom.strength() now accepts bn.kcv and bn.kcv objects and computes arc
+     strengths from the networks learned by bn.cv() in the context of
+     cross-validation.
+  * fixed multiple bugs in cextend() and cpdag() that could result in the
+     creation of additional v-structures.
+  * implemented the Structural EM algorithm.
+  * fixed multiple bugs triggered by missing values in predict() (thanks
+     Oussama Bouldjedri).
+  * implemented an as.prediction() function that exports objects of class
+     bn.strength to the ROCR package.
+
 bnlearn (4.1)
 
   * fixed memory corruption in dsep() (thanks Dominik Muller).

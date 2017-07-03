@@ -5,7 +5,7 @@
 
 SEXP cpdist_lw(SEXP fitted, SEXP nodes, SEXP n, SEXP fix, SEXP debug) {
 
-int nsims = INT(n);
+int nsims = INT(n), max_id = 0;
 double *weights = NULL;
 SEXP result, simulation, wgt, from;
 
@@ -23,7 +23,11 @@ SEXP result, simulation, wgt, from;
   from = getAttrib(fix, R_NamesSymbol);
   c_lw_weights(fitted, simulation, nsims, weights, from, FALSE);
 
-  /* all weights are zero, the event is impossible. */
+  /* all weights are zero or NA, the event is impossible. */
+  max_id = d_which_max(weights, nsims);
+
+  if (max_id == NA_INTEGER)
+    error("all weights are NA, the probability of the evidence is impossible to compute.");
   if (weights[d_which_max(weights, nsims) - 1] == 0)
     error("all weights are zero, the evidence has probability zero.");
 

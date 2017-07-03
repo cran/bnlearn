@@ -68,11 +68,11 @@ relevant = function(target, context, data, test, alpha, B, debug = FALSE) {
   # check the data.
   check.data(data, allowed.types = c(discrete.data.types, continuous.data.types))
   # a valid node is needed.
-  check.nodes(nodes = target, graph = data, max.nodes = 1)
+  check.nodes(nodes = target, graph = names(data), max.nodes = 1)
   # an optional valid node is needed.
   if (!missing(context)) {
 
-    check.nodes(nodes = context, graph = data)
+    check.nodes(nodes = context, graph = names(data))
 
     if (length(intersect(target, context)) > 0)
       stop("target and context nodes must be disjoint sets.")

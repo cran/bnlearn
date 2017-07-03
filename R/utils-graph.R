@@ -4,7 +4,7 @@
 has.path = function(from, to, nodes, amat, exclude.direct = FALSE,
     underlying.graph = FALSE, debug = FALSE) {
 
-  .Call("has_pdag_path",
+  .Call(call_has_pdag_path,
         from = which(nodes == from),
         to = which(nodes == to),
         amat = amat,
@@ -34,26 +34,16 @@ mb2arcs = function(mb, nodes) {
 # get the root/leaf nodes of a graph.
 root.leaf.nodes = function(x, leaf = FALSE) {
 
-  .Call("root_nodes",
+  .Call(call_root_nodes,
         bn = x,
         check = as.integer(leaf))
 
 }#ROOT.NODES.BACKEND
 
-# get the parents of a node.
-parents.backend = function(arcs, node, undirected = FALSE) {
-
-  if (!undirected)
-    arcs[(arcs[, "to"] == node) & which.directed(arcs), "from"]
-  else
-    arcs[(arcs[, "to"] == node), "from"]
-
-}#PARENTS.BACKEND
-
 # backend of mb() for bn.fit objects.
 mb.fitted = function(x, node) {
 
-  .Call("fitted_mb",
+  .Call(call_fitted_mb,
         bn = x,
         target = node)
 
@@ -64,7 +54,7 @@ dag2ug.backend = function(x, moral = FALSE, debug = FALSE) {
 
   nodes = names(x$nodes)
 
-  arcs = .Call("dag2ug",
+  arcs = .Call(call_dag2ug,
                bn = x,
                moral = moral,
                debug = debug)
@@ -81,7 +71,7 @@ dag2ug.backend = function(x, moral = FALSE, debug = FALSE) {
 # return a complete orientation of a graph.
 pdag2dag.backend = function(arcs, ordering) {
 
-  arcs = .Call("pdag2dag",
+  arcs = .Call(call_pdag2dag,
                arcs = arcs,
                nodes = ordering)
 
@@ -262,7 +252,7 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
 # structural hamming distance backend.
 structural.hamming.distance = function(learned, true, wlbl = FALSE, debug = FALSE) {
 
-  .Call("shd",
+  .Call(call_shd,
         learned = cpdag.backend(learned, wlbl = wlbl),
         golden = cpdag.backend(true, wlbl = wlbl),
         debug = debug)
@@ -272,7 +262,7 @@ structural.hamming.distance = function(learned, true, wlbl = FALSE, debug = FALS
 # hamming distance backend.
 hamming.distance = function(learned, true, debug = FALSE) {
 
-  .Call("shd",
+  .Call(call_shd,
         learned = dag2ug.backend(learned),
         golden = dag2ug.backend(true),
         debug = debug)
@@ -282,7 +272,7 @@ hamming.distance = function(learned, true, debug = FALSE) {
 # backend for extracting v-structures from a network.
 vstructures = function(x, arcs, moral = TRUE, debug = FALSE) {
 
-  .Call("vstructures",
+  .Call(call_vstructures,
         arcs = x$arcs,
         nodes = names(x$nodes),
         return.arcs = arcs,
@@ -294,7 +284,7 @@ vstructures = function(x, arcs, moral = TRUE, debug = FALSE) {
 # test equality of two graphs (nodes and arcs).
 equal.backend.bn = function(target, current) {
 
-  .Call("all_equal_bn",
+  .Call(call_all_equal_bn,
         target = target,
         current = current)
 
@@ -303,14 +293,13 @@ equal.backend.bn = function(target, current) {
 # test equality of two fitted networks (structure and parameters).
 equal.backend.fit = function(target, current, tolerance) {
 
-  # check whether the networks have the same nodes.
-  nodes.target = nodes(target)
-  nodes.current = nodes(current)
+  # check whether the networks have the same structure.
+  same.structure = all.equal(bn.net(target), bn.net(current))
 
-  if (!setequal(nodes.target, nodes.current))
-    return("Different node sets")
+  if (!isTRUE(same.structure))
+    return(same.structure)
 
-  for (node in nodes.target) {
+  for (node in nodes(target)) {
 
     # extract the nodes from the structure.
     tnode = target[[node]]
@@ -329,7 +318,7 @@ equal.backend.fit = function(target, current, tolerance) {
       cprob = cnode$prob
 
       # sanity check the target distribuution by comparing it to the old one.
-      tprob = check.dnode.vs.spec(tprob, cnode)
+      tprob = check.dnode.vs.dnode(tprob, cnode)
 
       # checking that the conditional probability tables are identical.
       if (!isTRUE(all.equal(tprob, cprob, tolerance = tolerance)))
@@ -342,9 +331,9 @@ equal.backend.fit = function(target, current, tolerance) {
                   dlevels = tnode$dlevels)
 
       if (target.type == "bn.fit.gnode")
-        tparams = check.gnode.vs.spec(tparams, cnode)
+        tparams = check.gnode.vs.gnode(tparams, cnode)
       if (target.type == "bn.fit.cgnode")
-        tparams = check.cgnode.vs.spec(tparams, cnode)
+        tparams = check.cgnode.vs.cgnode(tparams, cnode)
 
       # checking that the regression coefficients are identical.
       if (!isTRUE(all.equal(tparams$coef, cnode$coefficients, tolerance = tolerance)))
@@ -367,7 +356,7 @@ equal.backend.fit = function(target, current, tolerance) {
 # blacklists based on tiers and orderings.
 tiers.backend = function(nodes, debug = FALSE) {
 
-  .Call("tiers",
+  .Call(call_tiers,
         nodes = nodes,
         debug = debug)
 
@@ -400,7 +389,7 @@ dseparation = function(bn, x, y, z) {
     return(TRUE)
 
   # construct the upper closure of the query nodes.
-  upper.closure = schedule(bn, start = c(x, y, z), reverse = TRUE)
+  upper.closure = topological.ordering(bn, start = c(x, y, z), reverse = TRUE)
   ucgraph = subgraph.backend(bn, upper.closure)
   # get its moral graph.
   mgraph = dag2ug.backend(ucgraph, moral = TRUE)
@@ -414,3 +403,49 @@ dseparation = function(bn, x, y, z) {
   return(!connected)
 
 }#DSEPARATION
+
+# compare the arcs in two graphs.
+compare.backend = function(target.arcs, current.arcs, nodes, arcs = FALSE) {
+
+  # separate directed and undirected arcs in the target network.
+  which.dir = which.directed(target.arcs, nodes)
+  target.dir = target.arcs[which.dir, , drop = FALSE]
+  target.und = target.arcs[!which.dir, , drop = FALSE]
+  # separate directed and undirected arcs in the current network.
+  which.dir = which.directed(current.arcs, nodes)
+  current.dir = current.arcs[which.dir, , drop = FALSE]
+  current.und = current.arcs[!which.dir, , drop = FALSE]
+
+  # treat directed and undirected arcs separately; directed arcs are
+  # compared in both presence and direction.
+  which.tp.dir = which.listed(target.dir, current.dir)
+  which.tp.und = which.listed(target.und, current.und)
+  which.fn.dir = !which.listed(target.dir, current.dir)
+  which.fn.und = !which.listed(target.und, current.und)
+  which.fp.dir = !which.listed(current.dir, target.dir)
+  which.fp.und = !which.listed(current.und, target.und)
+
+  if (arcs) {
+
+    # return the arcs corresponding to each category.
+    tp = arcs.rbind(target.dir[which.tp.dir, , drop = FALSE],
+                    target.und[which.tp.und, , drop = FALSE])
+    fn = arcs.rbind(target.dir[which.fn.dir, , drop = FALSE],
+                    target.und[which.fn.und, , drop = FALSE])
+    fp = arcs.rbind(current.dir[which.fp.dir, , drop = FALSE],
+                    current.und[which.fp.und, , drop = FALSE])
+
+  }#THEN
+  else {
+
+    # return the counts for each category.
+    tp = length(which(which.tp.dir)) + length(which(which.tp.und))/2
+    fn = length(which(which.fn.dir)) + length(which(which.fn.und))/2
+    fp = length(which(which.fp.dir)) + length(which(which.fp.und))/2
+
+  }#ELSE
+
+  return(list(tp = tp, fp = fp, fn = fn))
+
+}#COMPARE.BACKEND
+

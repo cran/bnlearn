@@ -10,6 +10,9 @@ int j = 0;
   /* check whether the current node has outgoing arcs. */
   for (j = 0, *k = 0; j < nnodes; j++) {
 
+    /* nodes that has satisfied the conditions and had their undirected arcs
+     * changed into directed arcs should be ignored in later iterations, along
+     * with any incident arcs. */
     if (matched[j] != 0)
       continue;
 
@@ -21,10 +24,10 @@ int j = 0;
       break;
 
     }/*THEN*/
-    else if ((a[CMC(j, node, nnodes)] == 1) && (a[CMC(node, j, nnodes)] == 1)) {
+    else if ((a[CMC(j, node, nnodes)] == 1) || (a[CMC(node, j, nnodes)] == 1)) {
 
-      /* get the nodes which are linked to the current one by an
-       * undirected arc. */
+      /* save adjacent nodes (connected by either an undirected or a directed
+       * arc). */
       nbr[(*k)++] = j;
 
     }/*THEN*/
@@ -39,12 +42,23 @@ int j = 0, l = 0;
 
   for (j = 0; j < k; j++) {
 
-    for (l = j + 1; l < k; l++) {
+    /* for every node that is connected to the current node by an undirected
+     * arc, we need to check that that node is adjacent to all other nodes
+     * that are adjacent to the current node; the implication is that we can
+     * skip nodes that are connected to the current node by a directed arc. */
+    if ((a[CMC(nbr[j], node, nnodes)] == 0) ||
+        (a[CMC(node, nbr[j], nnodes)] == 0))
+      continue;
+
+    for (l = 0; l < k; l++) {
+
+      if (l == j)
+        continue;
 
       if ((a[CMC(nbr[j], nbr[l], nnodes)] == 0) &&
           (a[CMC(nbr[l], nbr[j], nnodes)] == 0)) {
 
-        /* this node is not a candidate, go to the next one. */
+        /* this node violates the condition above. */
         return FALSE;
 
       }/*THEN*/
@@ -94,7 +108,8 @@ SEXP amat, result;
       if (matched[i] != 0)
         continue;
 
-      /* check whether the node is a sink. */
+      /* check whether the node is a sink (that is, whether is does not have
+       * any child). */
       is_a_sink(a, i, &k, nnodes, nbr, matched);
 
       /* if the node is not a sink move on. */

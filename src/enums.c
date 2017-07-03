@@ -59,8 +59,10 @@ score_e score_label(const char *label) {
   ENTRY("bic", BIC);
   ENTRY("bde", BDE);
   ENTRY("bds", BDS);
+  ENTRY("bdj", BDJ);
   ENTRY("k2", K2);
   ENTRY("mbde", MBDE);
+  ENTRY("bdla", BDLA);
   ENTRY("loglik-g", LOGLIK_G);
   ENTRY("aic-g", AIC_G);
   ENTRY("bic-g", BIC_G);

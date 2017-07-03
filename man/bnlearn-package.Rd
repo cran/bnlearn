@@ -16,8 +16,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 4.1.1\cr
-    Date: \tab 2016-03-24\cr
+    Version: \tab 4.2\cr
+    Date: \tab 2017-06-30\cr
     License: \tab GPLv2 or later
 
   }
@@ -42,7 +42,7 @@
   in the reduced space) at the same time.
 
   Several functions for parameter estimation, parametric inference, bootstrap,
-  cross-validation and stochastic simulation are available. Furthermore, 
+  cross-validation and stochastic simulation are available. Furthermore,
   advanced plotting capabilities are implemented on top of the \pkg{Rgraphviz}
   and \pkg{lattice} packages.
 
@@ -56,7 +56,7 @@
   Maintainer: Marco Scutari \email{marco.scutari@gmail.com}
 
 }
-\section{Available constraint-based learning algorithms}{
+\section{Available Constraint-Based Learning Algorithms}{
 
   \itemize{
 
@@ -88,7 +88,6 @@
       erratic behaviour of the statistical tests.
     \item a cluster-aware implementation, which requires a running cluster set
       up with the \code{makeCluster} function from the \pkg{parallel} package.
-      See \link{parallel integration} for a sample usage.
 
   }
 
@@ -98,7 +97,7 @@
   scales linearly with the size of the data set.
 
 }
-\section{Available score-based learning algorithms}{
+\section{Available Score-based Learning Algorithms}{
 
   \itemize{
 
@@ -107,7 +106,7 @@
       implementation uses score caching, score decomposability and score
       equivalence to reduce the number of duplicated tests.
     \item \emph{Tabu Search} (\code{\link{tabu}}): a modified hill-climbing
-      able to escape local optima by selecting a network that minimally 
+      able to escape local optima by selecting a network that minimally
       decreases the score function.
 
   }
@@ -116,7 +115,7 @@
   implemented for both algorithms.
 
 }
-\section{Available hybrid learning algorithms}{
+\section{Available Hybrid Learning Algorithms}{
 
   \itemize{
 
@@ -131,7 +130,7 @@
   }
 
 }
-\section{Other (constraint-based) local discovery algorithms}{
+\section{Other (Constraint-Based) Local Discovery Algorithms}{
 
   These algorithms learn the structure of the undirected graph underlying the
   Bayesian network, which is known as the \emph{skeleton} of the network or the
@@ -147,7 +146,7 @@
       selected in the previous iterations.
     \item \emph{Hiton Parents and Children} (\code{\link{si.hiton.pc}}): a fast
       forward selection technique for neighbourhood detection designed to
-      exclude nodes early based on the marginal association. The implementation 
+      exclude nodes early based on the marginal association. The implementation
       follows the Semi-Interleaved variant of the algorithm.
     \item \emph{Chow-Liu} (\code{\link{chow.liu}}): an application of the
       minimum-weight spanning tree and the information inequality. It learns
@@ -161,7 +160,7 @@
   cluster-aware) like other constraint-based algorithms.
 
 }
-\section{Bayesian Network classifiers}{
+\section{Bayesian Network Classifiers}{
 
   The algorithms are aimed at classification, and favour predictive power over
   the ability to recover the correct network structure. The implementation in
@@ -179,7 +178,7 @@
   }
 
 }
-\section{Available (conditional) independence tests}{
+\section{Available (Conditional) Independence Tests}{
 
   The conditional independence tests used in \emph{constraint-based} algorithms
   in practice are statistical tests on the data set. Available tests (and the
@@ -258,7 +257,7 @@
   }
 
 }
-\section{Available network scores}{
+\section{Available Network Scores}{
 
   Available scores (and the respective labels) are:
 
@@ -275,9 +274,16 @@
           and is also known as \emph{Schwarz Information Criterion}.
         \item the logarithm of the \emph{Bayesian Dirichlet equivalent} score
           (\code{bde}), a score equivalent Dirichlet posterior density.
+        \item the logarithm of the \emph{Bayesian Dirichlet sparse} score
+          (\code{bds}), a sparsity-inducing Dirichlet posterior density
+          (not score equivalent).
+        \item the logarithm of the \emph{Bayesian Dirichlet} score with
+          \emph{Jeffrey's prior} (not score equivalent).
         \item the logarithm of the modified \emph{Bayesian Dirichlet equivalent}
           score (\code{mbde}) for mixtures of experimental and observational
           data (not score equivalent).
+        \item the logarithm of the \emph{locally averaged Bayesian Dirichlet}
+          score (\code{bdla}, not score equivalent).
         \item the logarithm of the \emph{K2} score (\code{k2}), a Dirichlet
           posterior density (not score equivalent).
 
@@ -311,7 +317,7 @@
   }
 
 }
-\section{Whitelist and blacklist support}{
+\section{Whitelist and Blacklist Support}{
 
   All learning algorithms support arc whitelisting and blacklisting:
 
@@ -328,7 +334,7 @@
       the learning algorithm.
   }
 
-  Any arc whitelisted and blacklisted at the same time is assumed to be 
+  Any arc whitelisted and blacklisted at the same time is assumed to be
   whitelisted, and is thus removed from the blacklist.
 
   In algorithms that learn undirected graphs, such as ARACNE and Chow-Liu, an
@@ -336,7 +342,7 @@
   undirected arc.
 
 }
-\section{Error detection and correction: the strict mode}{
+\section{Error Detection and Correction: the Strict Mode}{
 
   Optimized implementations of constraint-based algorithms rely heavily on
   backtracking to reduce the number of tests needed by the learning algorithm.
@@ -349,7 +355,7 @@
   algorithms the learning of the Markov blanket and neighbourhood of each node
   is completely independent from the rest of the learning process. Thus it may
   happen that the Markov blanket or the neighbourhoods are not symmetric (i.e.
-  A is in the Markov blanket of B but not vice versa), or that some arc 
+  A is in the Markov blanket of B but not vice versa), or that some arc
   directions conflict with each other.
 
   The \code{strict} argument enables some measure of error correction for such
@@ -367,7 +373,7 @@
       \item nodes which cause asymmetries in any Markov blanket are removed from
         that Markov blanket; they are treated as false positives.
       \item nodes which cause asymmetries in any neighbourhood are removed from
-        that neighbourhood; again they are treated as false positives (see 
+        that neighbourhood; again they are treated as false positives (see
         Tsamardinos, Brown and Aliferis, 2006).
     }
     Each correction results in a warning.
@@ -464,4 +470,4 @@ res = gs(learning.test, optimized = FALSE, strict = TRUE, debug = TRUE)
 # or disable strict mode to let the algorithm fix errors on the fly:
 res = gs(learning.test, optimized = FALSE, strict = FALSE, debug = TRUE)
 }}
-\keyword{ package }
+\keyword{package}

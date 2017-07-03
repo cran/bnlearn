@@ -89,7 +89,22 @@ custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
   # check the node labels.
   check.nodes(nodes)
   # check networks.
-  check.customlist(networks, nodes = nodes)
+  if (is(networks, c("bn.kcv", "bn.kcv.list"))) {
+
+    extract = function(x) bn.net(x$fitted)
+
+    if (is(networks, "bn.kcv"))
+      networks = lapply(networks, extract)
+    else if (is(networks, "bn.kcv.list")) {
+
+      networks = lapply(networks, function(x) lapply(x, extract))
+      networks = do.call("c", networks)
+
+    }#THEN
+
+  }#THEN
+  else
+    check.customlist(networks, nodes = nodes)
   # check the weights.
   weights = check.weights(weights, length(networks))
 
@@ -108,16 +123,13 @@ custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
 # significance threshold.
 averaged.network = function(strength, nodes, threshold) {
 
-  # check the strength parameter.
-  check.bn.strength(strength)
-  # this works only with bootstrapped networks.
-  if (attributes(strength)$method != "bootstrap")
-    stop("only arc strength computed from bootstrapped networks are supported.")
   # check the strength threshold.
   threshold = check.threshold(threshold, strength)
   # check nodes.
   if (missing(nodes)) {
 
+    # check the strength parameter.
+    check.bn.strength(strength, valid = "bootstrap")
     # use the bn.strength object to get a node set.
     nodes = unique(c(strength[, "from"], strength[, "to"]))
 
@@ -126,8 +138,8 @@ averaged.network = function(strength, nodes, threshold) {
 
     # sanitize the node set.
     check.nodes(nodes = nodes)
-    # double-check whther the bn.strength object agrees with the node set.
-    check.bn.strength(strength, nodes = nodes)
+    # check the strength object and whether it agrees with the node set.
+    check.bn.strength(strength, nodes = nodes, valid = "bootstrap")
 
   }#ELSE
 

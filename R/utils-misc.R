@@ -18,7 +18,7 @@ subsets = function(elems, size) {
   if ((length(elems) == 0) || (size == 0))
     return(matrix(character(0), nrow = 0, ncol = 0))
 
-  .Call("r_subsets",
+  .Call(call_subsets,
         elems = elems,
         size = as.integer(size))
 
@@ -37,7 +37,7 @@ smaller = function(a, b) {
 # build an array containing the configurations of the variables.
 configurations = function(data, factor = TRUE, all = TRUE) {
 
-  .Call("configurations",
+  .Call(call_configurations,
         data = data,
         factor = factor,
         all = all)
@@ -47,7 +47,7 @@ configurations = function(data, factor = TRUE, all = TRUE) {
 # rbind-like function for arc sets.
 arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
 
-  .Call("arcs_rbind",
+  .Call(call_arcs_rbind,
         matrix1 = matrix1,
         matrix2 = matrix2,
         reverse2 = reverse2)
@@ -56,21 +56,21 @@ arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
 
 minimal.table = function(x) {
 
-  .Call("minimal_table",
+  .Call(call_minimal_table,
         x = x);
 
 }#MINIMAL.TABLE
 
 minimal.data.frame = function(lst) {
 
-  .Call("minimal_data_frame",
+  .Call(call_minimal_data_frame,
         obj = lst)
 
 }#MINIMAL.DATA.FRAME
 
 minimal.data.frame.column = function(dataframe, column, drop = TRUE) {
 
-  .Call("dataframe_column",
+  .Call(call_dataframe_column,
         dataframe = dataframe,
         column = column,
         drop = drop)
@@ -113,7 +113,7 @@ explode = function(x) {
 # normalize a conditional probability table.
 normalize.cpt = function(x) {
 
-  .Call("normalize_cpt",
+  .Call(call_normalize_cpt,
         cpt = x)
 
 }#NORMALIZE.CPT
@@ -161,7 +161,7 @@ cptattr = function(cpt) {
 # conditional standard deviation.
 cgsd = function(x, configs = NULL, p = 1L) {
 
-  .Call("cgsd",
+  .Call(call_cgsd,
         x = x,
         strata = configs,
         nparams = p)
@@ -208,45 +208,22 @@ minimal.fitted = function(x) {
 
 }#MINIMAL.FITTED
 
-# check labels for various arguments.
-check.label = function(arg, choices, labels, argname, see) {
+# subset an n-dimensional matrix in a programmatic way.
+ndsubset = function(x, indices) {
 
-  if (!is.string(arg))
-    stop("the ", argname, " must be a single character string.")
+  if (length(dim(x)) > 1) {
 
-  if (arg %in% choices)
-    return(invisible(NULL))
-
-  # concatenate valid values, optinally with labels.
-  if (missing(labels)) {
-
-    choices = paste(paste('"', choices, '"', sep = ""), collapse = ", ")
+    index = as.list(structure(rep(TRUE, length(dim(x))), names = names(dimnames(x))))
+    index[names(indices)] = indices
 
   }#THEN
   else {
 
-    labels = paste("(", labels[choices], ")", sep = "")
-    choices = paste('"', choices, '"', sep = "")
-    nl = length(labels)
-    choices = paste(choices, labels, collapse = ", ")
+    index = indices
 
-  }#THEN
+  }#ELSE
 
-  # mention the most relevant manual page.
-  if (missing(see))
-    see = character(0)
-  else
-    see = paste(" See ?", see, " for details.", sep = "")
+  do.call(`[`, c(list(x), index))
 
-  # build the error message.
-  errmsg = paste("valid ", argname, "(s) are ", choices, ".", see, sep = "")
+}#NDSUBSET
 
-  # print make sure that it is not truncated if possible at all.
-  errlen = unlist(options("warning.length"), use.names = FALSE)
-  options("warning.length" = max(1000, min(8170, nchar(errmsg) + 20)))
-
-  stop(errmsg)
-
-  options("warning.length" = errlen)
-
-}#MINIMAL.CHECK.LABEL

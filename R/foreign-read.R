@@ -945,7 +945,7 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 # match braces to delimit blocks.
 match.brace = function(lines, start, open = "{", close = "}") {
 
-  .Call("match_brace",
+  .Call(call_match_brace,
         lines = lines,
         start = start,
         open = open,

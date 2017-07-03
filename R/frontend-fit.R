@@ -268,10 +268,12 @@ BIC.bn.fit = function(object, data, ...) {
 }#$<-.BN.FIT
 
 # create a bn.fit object for user-specified local distributions.
-custom.fit = function(x, dist, ordinal) {
+custom.fit = function(x, dist, ordinal, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
+  # check debug.
+  check.logical(debug)
   # cache node labels.
   nodes = names(x$nodes)
   nnodes = length(nodes)
@@ -290,22 +292,13 @@ custom.fit = function(x, dist, ordinal) {
     stop("wrong number of conditional probability distributions.")
   check.nodes(names(dist), nodes, min.nodes = nnodes)
 
-  # only discrete nodes can be parameterized by a CPT, all the others are lists
-  # with multiple elements.
-  discrete = sapply(dist, is.ndmatrix)
-
-  # check ordinal ...
+  # check ordinal.
   if (missing(ordinal))
     ordinal = character(0)
   else
     check.nodes(ordinal, graph = nodes)
-  # ... and that nodes that are supposed to be ordinal are discrete in the
-  # first place.
-  if (!all(discrete[ordinal]))
-    stop("node(s)", paste0(" '", names(discrete[!discrete[ordinal]]), "'"),
-      " are set to be ordinal but are not discrete.")
 
-  custom.fit.backend(x = x, dist = dist, discrete = discrete, ordinal = ordinal)
+  custom.fit.backend(x = x, dist = dist, ordinal = ordinal, debug = debug)
 
 }#CUSTOM.FIT
 

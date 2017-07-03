@@ -33,6 +33,5 @@ dsep(bn, "A", "B", "C")
 bn = model2network("[A][C][B|A:C]")
 dsep(bn, "A", "B", "C")
 }
-\author{ Marco Scutari }
+\author{Marco Scutari}
 \keyword{graphs}
-\keyword{multivariate}

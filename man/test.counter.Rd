@@ -29,5 +29,5 @@ test.counter()
 reset.test.counter()
 test.counter()
 }
-\author{ Marco Scutari }
-\keyword{utilities}
+\author{Marco Scutari}
+\keyword{convenience functions}

@@ -1,17 +1,18 @@
 \name{impute}
 \alias{impute}
 \alias{predict.bn.fit}
-\title{Predict or Impute Missing Data from a Bayesian Network}
+\title{Predict or impute missing data from a Bayesian network}
 \description{
 
-  Impute missing values in a data set from a Bayesian network.
+  Impute missing values in a data set or predict a variable from a Bayesian
+  network.
 
 }
 \usage{
 \method{predict}{bn.fit}(object, node, data, method = "parents", ..., prob = FALSE,
   debug = FALSE)
 
-impute(object, data, method = "parents", ..., debug = FALSE)
+impute(object, data, method, ..., debug = FALSE)
 }
 \arguments{
   \item{object}{an object of class \code{bn.fit} for \code{impute}; or an
@@ -20,7 +21,7 @@ impute(object, data, method = "parents", ..., debug = FALSE)
     observations will be ignored.}
   \item{node}{a character string, the label of a node.}
   \item{method}{a character string, the method used to impute the missing
-    values or predict new ones.}
+    values or predict new ones. The default value is \code{parents}.}
   \item{\dots}{additional arguments for the imputation method. See below.}
   \item{prob}{a boolean value. If \code{TRUE} and \code{object} is a discrete
     network, the probabilities used for prediction are attached to the
@@ -80,17 +81,30 @@ impute(object, data, method = "parents", ..., debug = FALSE)
 
 }
 \examples{
+# missing data imputation.
 with.missing.data = gaussian.test
 with.missing.data[sample(nrow(with.missing.data), 500), "F"] = NA
 fitted = bn.fit(model2network("[A][B][E][G][C|A:B][D|B][F|A:D:E:G]"),
            gaussian.test)
 imputed = impute(fitted, with.missing.data)
 
+# predicting a variable in the test set.
 training = bn.fit(model2network("[A][B][E][G][C|A:B][D|B][F|A:D:E:G]"),
            gaussian.test[1:2000, ])
 test = gaussian.test[2001:nrow(gaussian.test), ]
 predicted = predict(training, node = "F", data = test)
+
+# obtain the conditional probabilities for the values of a single variable
+# given a subset of the rest, they are computed to determine the predicted
+# values.
+fitted = bn.fit(model2network("[A][C][F][B|A][D|A:C][E|B:F]"), learning.test)
+evidence = data.frame(A = factor("a", levels = levels(learning.test$A)),
+                      F = factor("b", levels = levels(learning.test$F)))
+predicted = predict(fitted, "C", evidence,
+              method = "bayes-lw", prob = TRUE)
+attr(predicted, "prob")
 }
-\author{ Marco Scutari }
-\keyword{multivariate}
-\keyword{models}
+\author{Marco Scutari}
+\keyword{inference}
+\keyword{missing data}
+\keyword{data preprocessing}

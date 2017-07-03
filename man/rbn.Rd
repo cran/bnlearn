@@ -47,7 +47,7 @@ par(mfrow = c(1,2))
 plot(res)
 sim = rbn(res, 500, learning.test)
 plot(gs(sim))}}
-\author{ Marco Scutari }
+\author{Marco Scutari}
 \seealso{\code{\link{bn.boot}}, \code{\link{bn.cv}}.}
-\keyword{utilities}
-\keyword{multivariate}
+\keyword{inference}
+\keyword{simulation}

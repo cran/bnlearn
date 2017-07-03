@@ -59,7 +59,7 @@ random.graph.backend = function(num, nodes, method, extra.args, debug = FALSE) {
 # generate a random directed acyclic graph.
 ordered.graph = function(num, nodes, prob) {
 
-  .Call("ordered_graph",
+  .Call(call_ordered_graph,
         nodes = nodes,
         num = as.integer(num),
         prob = prob)
@@ -72,7 +72,7 @@ ordered.graph = function(num, nodes, prob) {
 ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
     max.out.degree, max.degree, connected, debug = FALSE) {
 
-  .Call("ide_cozman_graph",
+  .Call(call_ide_cozman_graph,
         nodes = nodes,
         num = as.integer(num),
         burn.in = as.integer(burn.in),
@@ -87,7 +87,7 @@ ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,
 # generate an empty 'bn' object given a set of nodes.
 empty.graph.backend = function(nodes, num = 1) {
 
-  .Call("empty_graph",
+  .Call(call_empty_graph,
         nodes = nodes,
         num = as.integer(num))
 

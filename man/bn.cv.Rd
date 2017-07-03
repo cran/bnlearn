@@ -6,7 +6,7 @@
 \description{
 
   Perform a k-fold or hold-out cross-validation for a learning algorithm or a
-  fixed network structure. 
+  fixed network structure.
 
 }
 \usage{
@@ -26,7 +26,7 @@ bn.cv(data, bn, loss = NULL, ..., algorithm.args = list(),
   \item{loss}{a character string, the label of a loss function. If none is
     specified, the default loss function is the \emph{Classification Error}
     for Bayesian networks classifiers; otherwise, the \emph{Log-Likelihood
-    Loss} for both discrete and continuous data sets. See below for 
+    Loss} for both discrete and continuous data sets. See below for
     additional details.}
   \item{algorithm.args}{a list of extra arguments to be passed to the learning
     algorithm.}
@@ -38,8 +38,7 @@ bn.cv(data, bn, loss = NULL, ..., algorithm.args = list(),
     see again \code{\link{bn.fit}} for details.}
   \item{method}{a character string, either \code{k-fold}, \code{custom-folds}
     or \code{hold-out}. See below for details.}
-  \item{cluster}{an optional cluster object from package \pkg{parallel}. See
-    \code{\link{parallel integration}} for details and a simple example.}
+  \item{cluster}{an optional cluster object from package \pkg{parallel}.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
   \item{x}{an object of class \code{bn.kcv} or \code{bn.kcv.list} returned by
@@ -173,14 +172,13 @@ bn.cv(data, bn, loss = NULL, ..., algorithm.args = list(),
   of class \code{bn.kcv} if \code{runs} is equal to 1.
 
 }
-\author{ Marco Scutari }
-\seealso{\code{\link{bn.boot}}, \code{\link{rbn}}, \code{\link{bn.kcv-class}}.}
 \references{
 
   Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
       Principles and Techniques}. MIT Press.
 
 }
+\seealso{\code{\link{bn.boot}}, \code{\link{rbn}}, \code{\link{bn.kcv-class}}.}
 \examples{
 bn.cv(learning.test, 'hc', loss = "pred", loss.args = list(target = "F"))
 
@@ -195,9 +193,9 @@ gaussian.subset = gaussian.test[1:50, ]
 cv.gs = bn.cv(gaussian.subset, 'gs', runs = 10)
 cv.iamb = bn.cv(gaussian.subset, 'iamb', runs = 10)
 cv.inter = bn.cv(gaussian.subset, 'inter.iamb', runs = 10)
-plot(cv.gs, cv.iamb, cv.inter, 
+plot(cv.gs, cv.iamb, cv.inter,
   xlab = c("Grow-Shrink", "IAMB", "Inter-IAMB"), connect = TRUE)
 }
 }
-\keyword{nonparametric}
-\keyword{multivariate}
+\author{Marco Scutari}
+\keyword{resampling}

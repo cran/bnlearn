@@ -12,20 +12,19 @@
 \usage{
 bn.fit(x, data, cluster = NULL, method = "mle", \dots, keep.fitted = TRUE,
   debug = FALSE)
-custom.fit(x, dist, ordinal)
+custom.fit(x, dist, ordinal, debug = FALSE)
 bn.net(x, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn} (for \code{bn.fit} and \code{custom.fit})
     or an object of class \code{bn.fit} (for \code{bn.net}).}
   \item{data}{a data frame containing the variables in the model.}
-  \item{cluster}{an optional cluster object from package \pkg{parallel}. See
-    \code{\link{parallel integration}} for details and a simple example.}
+  \item{cluster}{an optional cluster object from package \pkg{parallel}.}
   \item{dist}{a named list, with element for each node of \code{x}. See below.}
   \item{method}{a character string, either \code{mle} for \emph{Maximum
     Likelihood parameter estimation} or \code{bayes} for \emph{Bayesian
     parameter estimation} (currently implemented only for discrete data).}
-  \item{...}{additional arguments for the parameter estimation prcoedure, see
+  \item{...}{additional arguments for the parameter estimation procedure, see
     below.}
   \item{ordinal}{a vector of character strings, the labels of the discrete
     nodes which should be saved as ordinal random variables
@@ -40,7 +39,7 @@ bn.net(x, debug = FALSE)
 \details{
 
   \code{bn.fit} fits the parameters of a Bayesian network given its structure
-  and a data set; \code{bn.net} returns the structure underlying a fitted 
+  and a data set; \code{bn.net} returns the structure underlying a fitted
   Bayesian network.
 
   An in-place replacement method is available to change the parameters of each
@@ -61,7 +60,7 @@ bn.net(x, debug = FALSE)
 
   \code{custom.fit} takes a set of user-specified distributions and their
   parameters and uses them to build a \code{bn.fit} object. Its purpose is to
-  specify a Bayesian network (complete with the parameters, not only the 
+  specify a Bayesian network (complete with the parameters, not only the
   structure) using knowledge from experts in the field instead of learning it
   from a data set. The distributions must be passed to the function in a list,
   with elements named after the nodes of the network structure \code{x}. Each
@@ -151,5 +150,5 @@ distC = list(coef = matrix(c(1.2, 2.3, 3.4, 4.5), ncol = 2,
           sd = c(0.3, 0.6))
 cgfit = custom.fit(net, dist = list(A = cptA, B = distB, C = distC))
 }
-\author{ Marco Scutari }
-\keyword{multivariate}
+\author{Marco Scutari}
+\keyword{parameter learning}

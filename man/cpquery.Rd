@@ -22,8 +22,7 @@ mutilated(x, evidence)
   \item{event, evidence}{see below.}
   \item{nodes}{a vector of character strings, the labels of the nodes whose
     conditional distribution we are interested in.}
-  \item{cluster}{an optional cluster object from package \pkg{parallel}. See
-    \code{\link{parallel integration}} for details and a simple example.}
+  \item{cluster}{an optional cluster object from package \pkg{parallel}.}
   \item{method}{a character string, the method used to perform the conditional
     probability query. Currently only \emph{logic sampling} (\code{ls}, the
     default) and \emph{likelihood weighting} (\code{lw}) are implemented.}
@@ -61,7 +60,7 @@ mutilated(x, evidence)
   \itemize{
 
     \item \code{n}: a positive integer number, the number of random observations
-      to generate from \code{fitted}. The default value is 
+      to generate from \code{fitted}. The default value is
       \code{5000 * log10(nparams.fitted(fitted))} for discrete and coditional
       Gaussian networks and \code{500 * nparams.fitted(fitted)} for Gaussian
       networks.
@@ -75,7 +74,7 @@ mutilated(x, evidence)
       so \code{cpquery} and \code{cpdist} try to identify which nodes are used
       in \code{event} and \code{evidence} and reduce the network to their upper
       closure. \code{query.nodes} may be used to manually specify these nodes
-      when automatic identification fails; there is no reason to use it 
+      when automatic identification fails; there is no reason to use it
       otherwise.
 
   }
@@ -150,21 +149,26 @@ data(learning.test)
 fitted = bn.fit(hc(learning.test), learning.test)
 # the result should be around 0.025.
 cpquery(fitted, (B == "b"), (A == "a"))
-# for a single observation, predict the value of a single
-# variable conditional on the others.
+# programmatically build a conditional probability query...
 var = names(learning.test)
 obs = 2
-str = paste("(", names(learning.test)[-3], "=='",
-        sapply(learning.test[obs,-3], as.character), "')",
+str = paste("(", names(learning.test)[-3], " == '",
+        sapply(learning.test[obs, -3], as.character), "')",
         sep = "", collapse = " & ")
 str
-str2 = paste("(", names(learning.test)[3], "=='",
+str2 = paste("(", names(learning.test)[3], " == '",
          as.character(learning.test[obs, 3]), "')", sep = "")
 str2
-cpquery(fitted, eval(parse(text = str2)), eval(parse(text = str)))
-# do the same with likelihood weighting
+
+cmd = paste("cpquery(fitted, ", str2, ", ", str, ")", sep = "")
+eval(parse(text = cmd))
+# ... but note that predict works better in this particular case.
+attr(predict(fitted, "C", learning.test[obs, -3], prob = TRUE), "prob")
+# do the same with likelihood weighting.
 cpquery(fitted, event = eval(parse(text = str2)),
   evidence = as.list(learning.test[2, -3]), method = "lw")
+attr(predict(fitted, "C", learning.test[obs, -3],
+               method = "bayes-lw", prob = TRUE), "prob")
 # conditional distribution of A given C == "c".
 table(cpdist(fitted, "A", (C == "c")))
 
@@ -176,5 +180,6 @@ cpquery(fitted,
   event = ((A >= 0) & (A <= 1)) & ((B >= 0) & (B <= 3)),
   evidence = (C + D < 10))
 }
-\author{ Marco Scutari }
-\keyword{multivariate}
+\author{Marco Scutari}
+\keyword{inference}
+\keyword{simulation}

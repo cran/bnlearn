@@ -49,5 +49,5 @@ par(oma = rep(0, 4), mar = rep(0, 4), mai = rep(0, 4),
 plot(res)
 }
 \seealso{\code{\link{graphviz.plot}}.}
-\author{ Marco Scutari }
-\keyword{hplot}
+\author{Marco Scutari}
+\keyword{plots}

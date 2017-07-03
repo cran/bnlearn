@@ -17,7 +17,7 @@ data(insurance)
 
     \item \code{GoodStudent} (\emph{good student}): a two-level factor with
       levels \code{False} and \code{True}.
-    \item \code{Age} (\emph{age}): a three-level factor with levels 
+    \item \code{Age} (\emph{age}): a three-level factor with levels
       \code{Adolescent}, \code{Adult} and \code{Senior}.
     \item \code{SocioEcon} (\emph{socio-economic status}): a four-level factor
       with levels \code{Prole}, \code{Middle}, \code{UpperMiddle} and
@@ -38,7 +38,7 @@ data(insurance)
       \code{SuperLuxury}.
     \item \code{DrivQuality} (\emph{driving quality}): a three-level factor with
       levels \code{Poor}, \code{Normal} and \code{Excellent}.
-    \item \code{Mileage} (\emph{mileage}): a four-level factor with levels 
+    \item \code{Mileage} (\emph{mileage}): a four-level factor with levels
       \code{FiveThou}, \code{TwentyThou}, \code{FiftyThou} and \code{Domino}.
     \item \code{Antilock} (\emph{ABS}): a two-level factor with levels
       \code{False} and \code{True}.
@@ -49,7 +49,7 @@ data(insurance)
     \item \code{ThisCarCost} (\emph{costs for the insured car}): a four-level
       factor with levels \code{Thousand}, \code{TenThou}, \code{HundredThou}
       and \code{Million}.
-    \item \code{Theft} (\emph{theft}): a two-level factor with levels 
+    \item \code{Theft} (\emph{theft}): a two-level factor with levels
       \code{False} and \code{True}.
     \item \code{CarValue} (\emph{value of the car}): a five-level factor with
       levels \code{FiveThou}, \code{TenThou}, \code{TwentyThou},
@@ -59,22 +59,22 @@ data(insurance)
     \item \code{AntiTheft} (\emph{anti-theft system}): a two-level factor with
       levels \code{False} and \code{True}.
     \item \code{PropCost} (\emph{ratio of the cost for the two cars}): a
-      four-level factor with levels \code{Thousand}, \code{TenThou}, 
+      four-level factor with levels \code{Thousand}, \code{TenThou},
       \code{HundredThou} and \code{Million}.
     \item \code{OtherCarCost} (\emph{costs for the other car}): a four-level
       factor with levels \code{Thousand}, \code{TenThou}, \code{HundredThou}
       and \code{Million}.
-    \item \code{OtherCar} (\emph{other cars involved in the accident}): a 
+    \item \code{OtherCar} (\emph{other cars involved in the accident}): a
       two-level factor with levels \code{False} and \code{True}.
     \item \code{MedCost} (\emph{cost of the medical treatment}): a four-level
       factor with levels \code{Thousand}, \code{TenThou}, \code{HundredThou}
       and \code{Million}.
     \item \code{Cushioning} (\emph{cushioning}): a four-level factor with
       levels \code{Poor}, \code{Fair}, \code{Good} and \code{Excellent}.
-    \item \code{Airbag} (\emph{airbag}): a two-level factor with levels 
+    \item \code{Airbag} (\emph{airbag}): a two-level factor with levels
       \code{False} and \code{True}.
     \item \code{ILiCost} (\emph{inspection cost}): a four-level factor with
-      levels \code{Thousand}, \code{TenThou}, \code{HundredThou} and 
+      levels \code{Thousand}, \code{TenThou}, \code{HundredThou} and
       \code{Million}.
     \item \code{DrivHist} (\emph{driving history}): a three-level factor with
       levels \code{Zero}, \code{One} and \code{Many}.
@@ -95,10 +95,10 @@ data(insurance)
 
 }
 \examples{
-# load the data and build the correct network from the model string.
+# load the data.
 data(insurance)
-res = empty.graph(names(insurance))
-modelstring(res) = paste("[Age][Mileage][SocioEcon|Age][GoodStudent|Age:SocioEcon]",
+# create and plot the network structure.
+modelstring = paste("[Age][Mileage][SocioEcon|Age][GoodStudent|Age:SocioEcon]",
   "[RiskAversion|Age:SocioEcon][OtherCar|SocioEcon][VehicleYear|SocioEcon:RiskAversion]",
   "[MakeModel|SocioEcon:RiskAversion][SeniorTrain|Age:RiskAversion]",
   "[HomeBase|SocioEcon:RiskAversion][AntiTheft|SocioEcon:RiskAversion]",
@@ -111,7 +111,7 @@ modelstring(res) = paste("[Age][Mileage][SocioEcon|Age][GoodStudent|Age:SocioEco
   "[MedCost|Age:Accident:Cushioning][ILiCost|Accident]",
   "[ThisCarCost|ThisCarDam:Theft:CarValue][PropCost|ThisCarCost:OtherCarCost]",
   sep = "")
-\dontrun{
-# there are too many nodes for plot(), use graphviz.plot().
-graphviz.plot(res)}}
+dag = model2network(modelstring)
+\dontrun{graphviz.plot(dag, shape = "ellipse")}
+}
 \keyword{datasets}

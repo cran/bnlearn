@@ -3,7 +3,7 @@
 score.delta = function(arc, network, data, score, score.delta,
     reference.score, op, extra, decomposable = TRUE) {
 
-  .Call("score_delta",
+  .Call(call_score_delta,
         arc = arc,
         network = network,
         data = data,
@@ -20,7 +20,7 @@ score.delta = function(arc, network, data, score, score.delta,
 arcs.to.be.added = function(amat, nodes, blacklist = NULL, whitelist = NULL,
     nparents = NULL, maxp = Inf, arcs = TRUE) {
 
-  .Call("hc_to_be_added",
+  .Call(call_hc_to_be_added,
         arcs = amat,
         blacklist = blacklist,
         whitelist = whitelist,

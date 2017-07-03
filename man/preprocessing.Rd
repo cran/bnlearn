@@ -80,5 +80,5 @@ d2 = dedup(gaussian.test)
       Technology.
 
 }
-\author{ Marco Scutari }
-\keyword{manip}
+\author{Marco Scutari}
+\keyword{data preprocessing}

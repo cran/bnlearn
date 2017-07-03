@@ -3,7 +3,7 @@
 arcs2elist = function(arcs, nodes, weights = NULL, nid = TRUE, sublist = TRUE,
     parents = FALSE) {
 
-  .Call("arcs2elist",
+  .Call(call_arcs2elist,
         arcs = arcs,
         nodes = nodes,
         weigths = weights,
@@ -16,7 +16,7 @@ arcs2elist = function(arcs, nodes, weights = NULL, nid = TRUE, sublist = TRUE,
 # convert an edge list into an arc set.
 elist2arcs = function(elist) {
 
-  .Call("elist2arcs",
+  .Call(call_elist2arcs,
         elist = elist)
 
 }#ELIST2ARCS

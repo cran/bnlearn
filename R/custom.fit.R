@@ -1,6 +1,6 @@
 
 # create a bn.fit object for user-specified local distributions.
-custom.fit.backend = function(x, dist, discrete, ordinal) {
+custom.fit.backend = function(x, dist, discrete, ordinal, debug = FALSE) {
 
   # cache node labels.
   nodes = names(x$nodes)
@@ -12,20 +12,37 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
     fitted[[node]] = list(node = node, parents = x$nodes[[node]]$parents,
                        children = x$nodes[[node]]$children)
 
-  # first self-check each local distribution.
-  nconfig = nresid = nfitted = structure(rep(NA, nnodes), names = nodes)
+  for (node in topological.ordering(x)) {
 
-  for (node in nodes) {
+    # extract the labels of the parents of the node.
+    node.parents = x$nodes[[node]]$parents
 
-    if (discrete[node]) {
+    if (debug) {
 
-      dist[[node]] = check.fit.dnode.spec(dist[[node]], node = node)
+      cat("* processing node", node, ".\n")
+      if (length(node.parents) > 0)
+        cat("  > found parents:", node.parents, ".\n")
+
+    }#THEN
+
+    if (is.ndmatrix(dist[[node]])) {
+
+      # first self-check the local distribution.
+      dist[[node]] = check.dnode(dist[[node]], node = node)
+      # check thee distribution against that of the parents.
+      dist[[node]] = check.dnode.vs.parents(node, new = dist[[node]],
+                       parents = fitted[node.parents])
+      # store the new CPT in the bn.fit object.
+      fitted[[node]]$prob = normalize.cpt(dist[[node]])
       # set the correct class for method dispatch.
       class(fitted[[node]]) =
         ifelse(node %in% ordinal, "bn.fit.onode", "bn.fit.dnode")
 
     }#THEN
     else {
+
+      if (node %in% ordinal)
+        stop("node", node, " is set to be ordinal but are not discrete.")
 
       # transparently convert regression models' objects.
       if (is(dist[[node]], c("lm", "glm", "penfit"))) {
@@ -40,178 +57,121 @@ custom.fit.backend = function(x, dist, discrete, ordinal) {
 
       }#THEN
 
-      dist[[node]] = check.fit.gnode.spec(dist[[node]], node = node)
+      dist[[node]] = check.gnode(dist[[node]], node = node)
       # sanity check the distribution by comparing it to the network structure.
       if (is(dist[[node]]$coef, "matrix")) {
 
         dist[[node]] =
-          check.cgnode.vs.spec(dist[[node]], old = fitted[[node]]$parents,
-            node = node, discrete = discrete[fitted[[node]]$parents])
+          check.cgnode.vs.parents(node, new = dist[[node]],
+                         parents = fitted[node.parents])
+
+        # identify discrete and continuous parents and configurations.
+        configs = as.character(seq(from = 0, to = ncol(dist[[node]]$coef) - 1))
+        # identify discrete and continuous parents.
+        fitted[[node]]$dparents = dist[[node]]$dparents
+        fitted[[node]]$gparents = dist[[node]]$gparents
+        # include the levels of the discrete parents.
+        fitted[[node]]$dlevels = dist[[node]]$dlevels
+        # store the new coefficients and standard deviations.
+        fitted[[node]]$coefficients = noattr(dist[[node]]$coef)
+        fitted[[node]]$sd = noattr(dist[[node]]$sd, ok = "names")
+
         # set the correct class for method dispatch.
         class(fitted[[node]]) = "bn.fit.cgnode"
-
-        if ("configs" %in% names(dist[[node]]))
-          nconfig[node] = length(dist[[node]]$configs)
 
       }#THEN
       else {
 
-        dist[[node]] = check.gnode.vs.spec(dist[[node]],
-                         old = fitted[[node]]$parents, node = node)
+        dist[[node]] = check.gnode.vs.parents(node, new = dist[[node]],
+                         parents = fitted[node.parents])
+        # store the new coefficients and standard deviations.
+        fitted[[node]]$coefficients = noattr(dist[[node]]$coef, ok = "names")
+        fitted[[node]]$sd = noattr(dist[[node]]$sd)
         # set the correct class for method dispatch.
         class(fitted[[node]]) = "bn.fit.gnode"
 
       }#ELSE
 
-      if ("resid" %in% names(dist[[node]]))
-        nresid[node] = length(dist[[node]]$resid)
-      if ("fitted" %in% names(dist[[node]]))
-        nfitted[node] = length(dist[[node]]$fitted)
-
     }#ELSE
+
+   if (debug)
+     cat("  > the node has class", class(fitted[[node]]), ".\n")
 
   }#FOR
 
-  # guess the correct secondary class ("bn.fit.*net").
-  secondary.class = guess.fitted.class(fitted)
+  # include fitted values, residuals and configurations if appropriate.
+  fitted = full.spec.backend(fitted, dist)
+  # guess the correct secondary class ("bn.fit.*net") and return.
+  return(structure(fitted, class = c("bn.fit", determine.fitted.class(fitted))))
 
-  # check whether there is a coherent set of fitted values and residuals.
-  if (!all(discrete)) {
+}#CUSTOM.FIT.BACKEND
 
-    nresid = unique(nresid[!discrete])
-    nfitted = unique(nfitted[!discrete])
-    nconfig = unique(nconfig[sapply(fitted, class) == "bn.fit.cgnode"])
+# check whether to include fitted values, residuals and configurations.
+full.spec.backend = function(fitted, dist) {
+
+  nodes.class = sapply(fitted, class)
+  gnodes = names(nodes.class[nodes.class == "bn.fit.gnode"])
+  cgnodes = names(nodes.class[nodes.class == "bn.fit.cgnode"])
+  both = c(gnodes, cgnodes)
+
+  if (length(both) > 0) {
+
+    # check whether there is a coherent set of fitted values and residuals.
+    nresid = unique(sapply(dist[both], function(n) length(n$resid)))
+    nfitted = unique(sapply(dist[both], function(n) length(n$fitted)))
+    nconfig = unique(sapply(dist[cgnodes], function(n) length(n$configs)))
 
     # all nodes must have residuals and fitted values of the same length.
-    full.spec = all(!is.na(nresid) & !is.na(nfitted)) &&
-                (length(nresid) == 1) && (length(nfitted) == 1)
-    if (full.spec)
-      full.spec = full.spec && (nresid == nfitted)
+    full.spec = (length(nresid) == 1) && (length(nfitted) == 1) && 
+                    all((nresid > 0) && (nfitted > 0) && (nresid == nfitted))
     # further check discrete parents' configurations for bn.fit.cgnet.
-    if (full.spec && (secondary.class == "bn.fit.cgnet")) {
-
-      full.spec = full.spec && all(!is.na(nconfig)) && (length(nconfig) == 1)
-
-      if (full.spec)
-        full.spec = full.spec && (nconfig == nfitted)
-
-    }#THEN
+    if (full.spec && (length(cgnodes) > 0)) 
+      full.spec = full.spec && (length(nconfig) == 1) &&
+                    all((nconfig > 0) && (nconfig == nfitted))
 
     # do not trigger a warning if no residuals or fitted values are specified.
-    if (!full.spec && any(!is.na(nresid) | !is.na(nfitted)))
+    if (!full.spec && (any(nresid > 0) || any(nfitted > 0)))
       warning("different nodes have different number of residuals or fitted values, disregarding.")
 
   }#THEN
 
   # cross-check distributions for consistency and populate the bn.fit object.
-  for (node in nodes) {
+  for (node in both) {
 
-    if (is(fitted[[node]], c("bn.fit.dnode", "bn.fit.onode"))) {
+    if (node %in% cgnodes) {
 
-      # cross-check the levels of each node across all CPTs.
-      cpt.levels = lapply(dist, function(x) dimnames(x)[[1]])
+      # save the configurations of the discrete parents.
+      if (full.spec)
+        fitted[[node]]$configs = noattr(dist[[node]]$configs)
+      else
+        fitted[[node]]$configs = factor(NA, levels = seq(from = 0,
+          to = prod(sapply(fitted[[node]]$dlevels, length)) - 1L))
 
-      for (cpd in names(dist)[discrete]) {
+    }#THEN
 
-        # sanity check the new object by comparing it to the old one.
-        dist[[cpd]] = check.dnode.vs.spec(dist[[cpd]], old = fitted[[cpd]]$parents,
-                        node = cpd, cpt.levels = cpt.levels)
-        # all parents of discrete nodes must be discrete nodes themselves.
-        if (any(!discrete[fitted[[cpd]]$parents]))
-          stop("node ", node, " is discrete but has continuous parents.")
-        # store the new CPT in the bn.fit object.
-        fitted[[cpd]]$prob = normalize.cpt(dist[[cpd]])
+    if (full.spec) {
 
-      }#FOR
+      fitted[[node]]$residuals =
+        noattr(dist[[node]]$resid, ok = character(0))
+      fitted[[node]]$fitted.values =
+        noattr(dist[[node]]$fitted, ok = character(0))
 
     }#THEN
     else {
 
-      if (is(fitted[[node]], "bn.fit.cgnode")) {
-
-        # identify discrete and continuous parents and configurations.
-        parents = fitted[[node]]$parents
-        configs = as.character(seq(from = 0, to = ncol(dist[[node]]$coef) - 1))
-        # identify discrete and continuous parents.
-        dparents = as.integer(which(discrete[parents]))
-        gparents = as.integer(which(!discrete[parents]))
-        fitted[[node]]$dparents = dparents
-        fitted[[node]]$gparents = gparents
-        # include the levels of the discrete parents
-        dlevels = sapply(parents[dparents],
-          function(x) dimnames(dist[[x]])[[1]], simplify = FALSE)
-        fitted[[node]]$dlevels = dlevels
-        # store the new coefficients and standard deviations.
-        fitted[[node]]$coefficients = noattr(dist[[node]]$coef)
-        fitted[[node]]$sd = structure(noattr(dist[[node]]$sd), names = configs)
-        # reset columns names for the coefficients and names for sd.
-        colnames(fitted[[node]]$coefficients) =
-          names(fitted[[node]]$sd) = configs
-        # save the configurations of the discrete parents.
-        if (full.spec) {
-
-          # check the number of the discrete parents' configurations is right.
-          if (prod(sapply(dlevels, length)) != nlevels(dist[[node]]$configs))
-            stop("number of discrete parents configurations for node ", node,
-              " is ", nlevels(dist[[node]]$configs), " but should be ",
-              prod(sapply(dlevels, length)), ".")
-
-          if (any(levels(dist[[node]]$configs) != configs)) {
-
-            # wrong levels, or wrong order: warn and rename.
-            warning("remapping levels of the discrete parents configurations ",
-              "for node ", node, ".")
-
-            levels(dist[[node]]$configs) = configs
-
-          }#THEN
-
-          fitted[[node]]$configs = noattr(dist[[node]]$configs)
-
-        }#THEN
-        else
-          fitted[[node]]$configs = factor(NA, levels = seq(from = 0,
-            to = prod(sapply(fitted[[node]]$dlevels, length)) - 1L))
-
-      }#THEN
-      else if (is(fitted[[node]], "bn.fit.gnode")) {
-
-        # all parents of Gaussian nodes must be continuous nodes.
-        if (any(discrete[fitted[[node]]$parents]))
-         stop("node ", node,
-           " is Gaussian (not conditional Gaussian) but has discrete parents.")
-
-        # store the new coefficients and standard deviations.
-        fitted[[node]]$coefficients = noattr(dist[[node]]$coef, ok = "names")
-        fitted[[node]]$sd = noattr(dist[[node]]$sd)
-
-      }#THEN
-
-      if (full.spec) {
-
-        fitted[[node]]$residuals = noattr(dist[[node]]$resid,
-                                     ok = character(0))
-        fitted[[node]]$fitted.values = noattr(dist[[node]]$fitted,
-                                         ok = character(0))
-
-      }#THEN
-      else {
-
-        fitted[[node]]$residuals = as.numeric(NA)
-        fitted[[node]]$fitted.values = as.numeric(NA)
-
-      }#ELSE
+      fitted[[node]]$residuals = as.numeric(NA)
+      fitted[[node]]$fitted.values = as.numeric(NA)
 
     }#ELSE
 
   }#FOR
 
-  return(structure(fitted, class = c("bn.fit", secondary.class)))
+  return(fitted)
 
-}#CUSTOM.FIT
+}#FULL.SPEC.BACKEND
 
 # return the corect class based on the node classes.
-guess.fitted.class = function(fitted) {
+determine.fitted.class = function(fitted) {
 
   nnodes = length(fitted)
 

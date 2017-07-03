@@ -6,7 +6,7 @@
 #include "include/scores.h"
 
 /* posterior wishart probability for the BGe score. */
-double wpost(SEXP x, int iss, double phic) {
+double wpost(SEXP x, double iss, double phic) {
 
 int i = 0, n = length(x);
 double mu = 0, phi = 0, tau = 0, rho = 0;
@@ -48,7 +48,7 @@ double res = 0, *xx = REAL(x);
 }/*WPOST*/
 
 void build_tau(double **data, double *tau, int ncol, int nrow,
-    int iss, double phi) {
+    double iss, double phi) {
 
 int i = 0, j = 0, res_ncol = ncol + 1;
 double temp = 0;
@@ -92,7 +92,7 @@ double *mean = NULL, *mat = NULL;
   for (i = 1; i < res_ncol; i++)
     tau[CMC(0, 0, res_ncol)] += - mean[i - 1] * tau[CMC(i, 0, res_ncol)];
 
-  tau[CMC(0, 0, res_ncol)] += 1/((double) iss);
+  tau[CMC(0, 0, res_ncol)] += 1 / iss;
 
   /* perform the final (pseudo)inversion. */
   c_ginv(tau, res_ncol, tau);
@@ -102,7 +102,7 @@ double *mean = NULL, *mat = NULL;
 
 }/*BUILD_TAU*/
 
-double cwpost(SEXP x, SEXP z, int iss, double phic) {
+double cwpost(SEXP x, SEXP z, double iss, double phic) {
 
 int i = 0, j = 0, k = 0;
 int ncol = length(z), num = length(x), tau_ncol = length(z) + 1;
@@ -216,7 +216,7 @@ double *tau = NULL, *inv_tau = NULL, *old_tau = NULL, *old_mu = NULL;
 double wishart_node(SEXP target, SEXP x, SEXP data, SEXP isize, SEXP phi, SEXP prior,
     SEXP beta, int debuglevel) {
 
-int iss = INT(isize);
+double iss = NUM(isize);
 int n = length(VECTOR_ELT(data, 0));
 char *phi_str = (char *)CHAR(STRING_ELT(phi, 0));
 char *t = (char *)CHAR(STRING_ELT(target, 0));
@@ -225,10 +225,9 @@ SEXP nodes, node_t, parents, parent_vars, data_t;
 
   /* compute the phi multiplier. */
   if (strcmp(phi_str, "bottcher") == 0)
-    phi_coef = (double)(n - 1) / (double)(n) * (double)(iss - 1);
+    phi_coef = (double)(n - 1) / (double)(n) * (iss - 1);
   else
-    phi_coef = (double)(n - 1) / (double)n * (double)(iss) /
-                 (double) (iss + 1) * (double)(iss - 2);
+    phi_coef = (double)(n - 1) / (double)n * (iss) / (iss + 1) * (iss - 2);
 
   /* get the node cached information. */
   nodes = getListElement(x, "nodes");

@@ -42,5 +42,5 @@
   manipulated as a standard data frame.
 
 }
-\author{ Marco Scutari }
-\keyword{ classes }
+\author{Marco Scutari}
+\keyword{classes}

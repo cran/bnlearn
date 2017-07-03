@@ -1,125 +1,71 @@
 export(
-  "gs",
-  "iamb",
-  "inter.iamb",
-  "fast.iamb",
-  "mmpc",
-  "si.hiton.pc",
-  "chow.liu",
-  "aracne",
-  "hc",
-  "tabu",
-  "rsmax2",
-  "mmhc",
-  "learn.mb",
-  "learn.nbr",
-  "naive.bayes",
-  "tree.bayes",
-  "compare",
-  "hamming",
-  "shd",
-  "mb",
-  "nbr",
-  "arcs",
-  "arcs<-",
-  "directed.arcs",
-  "undirected.arcs",
-  "incoming.arcs",
-  "outgoing.arcs",
-  "incident.arcs",
-  "compelled.arcs",
-  "reversible.arcs",
-  "narcs",
-  "parents",
-  "parents<-",
-  "children",
-  "children<-",
-  "spouses",
-  "ancestors",
-  "descendants",
-  "root.nodes",
-  "leaf.nodes",
-  "nnodes",
-  "in.degree",
-  "out.degree",
-  "amat",
-  "amat<-",
-  "nparams",
-  "ntests",
-  "whitelist",
-  "blacklist",
-  "modelstring",
-  "modelstring<-",
-  "model2network",
-  "set.arc",
-  "drop.arc",
-  "reverse.arc",
-  "set.edge",
-  "drop.edge",
-  "choose.direction",
-  "arc.strength",
-  "boot.strength",
-  "custom.strength",
-  "averaged.network",
-  "rbn",
-  "score",
-  "alpha.star",
-  "ci.test",
-  "as.bn",
-  "as.bn.fit",
-  "as.grain",
-  "as.graphNEL",
-  "as.graphAM",
-  "acyclic",
-  "directed",
-  "path",
-  "node.ordering",
-  "subgraph",
-  "skeleton",
-  "pdag2dag",
-  "ordering2blacklist",
-  "tiers2blacklist",
-  "empty.graph",
-  "random.graph",
-  "bn.boot",
-  "bn.cv",
-  "graphviz.plot",
-  "strength.plot",
-  "bn.fit",
-  "custom.fit",
-  "bn.fit.qqplot",
-  "bn.fit.histogram",
-  "bn.fit.xyplot",
-  "bn.fit.barchart",
+  # constraint-based structure learning algorithms.
+  "gs", "iamb", "inter.iamb", "fast.iamb", "mmpc", "si.hiton.pc",
+  # local structure learning algorithms.
+  "chow.liu", "aracne", "relevant",
+  # score-based structure learning algorithms.
+  "hc", "tabu", "structural.em",
+  # hybrid structure learning algorithms.
+  "rsmax2", "mmhc",
+  # learning neighbours and Markov blankets.
+  "learn.mb", "learn.nbr",
+  # Bayesian network classifiers.
+  "naive.bayes", "tree.bayes",
+  # whitelists and blacklists.
+  "whitelist", "blacklist", "ordering2blacklist", "tiers2blacklist",
+  # functions to compare network structures.
+  "compare", "hamming", "shd", "choose.direction",
+  # get neighbours and Markov blankets.
+  "mb", "nbr",
+  # get, set and count arcs and edges.
+  "arcs", "arcs<-", "directed.arcs", "undirected.arcs", "incoming.arcs",
+  "outgoing.arcs", "incident.arcs", "compelled.arcs", "reversible.arcs",
+  "narcs", "in.degree", "out.degree", "set.arc", "drop.arc", "reverse.arc",
+  "set.edge", "drop.edge",
+  # get, set and count sets of nodes: parents, children, etc.
+  "parents", "parents<-", "children", "children<-", "spouses", "ancestors",
+  "descendants", "root.nodes", "leaf.nodes", "nnodes",
+  # get and set adjacency matrices.
+  "amat", "amat<-",
+  # model string formulas.
+  "modelstring", "modelstring<-", "model2network",
+  # arc strength and model averaging.
+  "arc.strength", "boot.strength", "custom.strength", "averaged.network",
+  # networks scores and conditional independence tests.
+  "score", "alpha.star", "BF", "ci.test",
+  # resampling and Bayesian networks.
+  "bn.boot", "bn.cv",
+  # notable network structures transforms.
+  "skeleton", "pdag2dag", "cpdag", "cextend", "moral", "mutilated",
+  # v-structures and d-separation.
+  "vstructs", "dsep",
+  # plotting network structures.
+  "graphviz.plot", "strength.plot", graphviz.compare, 
+  # fitted Bayesian networks.
+  "bn.fit", "custom.fit", "bn.net",
+  # plotting fitted Bayesian networks.
+  "bn.fit.qqplot", "bn.fit.histogram", "bn.fit.xyplot", "bn.fit.barchart",
   "bn.fit.dotplot",
-  "bn.net",
-  "sigma",
+  # simulation facilities.
+  "empty.graph", "random.graph", "cpdist", "rbn",
+  # data preprocessing and imputation.
+  "discretize", "dedup", "impute",
+  # inference.
   "cpquery",
-  "cpdist",
-  "cpdag",
-  "cextend",
-  "vstructs",
-  "moral",
-  "mutilated",
-  "dsep",
-  "discretize",
-  "dedup",
-  "impute",
-  "configs",
-  "relevant",
-  "read.bif",
-  "write.bif",
-  "read.dsc",
-  "write.dsc",
-  "read.net",
-  "write.net",
+  # import/export functions for varous file formats.
+  "read.bif", "write.bif", "read.dsc", "write.dsc", "read.net", "write.net",
   "write.dot",
-  "test.counter",
-  "increment.test.counter",
-  "reset.test.counter"
+  # utility functions to manipulate test/score counters.
+  "test.counter", "increment.test.counter", "reset.test.counter",
+  # assorted functions involving network structures.
+  "acyclic", "directed", "path", "node.ordering", "subgraph",
+  # assorted functions to extract information.
+  "configs", "nparams", "ntests", "sigma",
+  # assorted conversion functions.
+  "as.bn", "as.bn.fit", "as.grain", "as.graphNEL", "as.graphAM", "as.prediction"
 )
 
-useDynLib(bnlearn)
+useDynLib(bnlearn, .registration = TRUE)
 
 importFrom("methods", "new", "setClass", "setGeneric", "setMethod")
 importFrom("stats", "logLik", "AIC", "BIC", "coefficients", "complete.cases",
@@ -129,32 +75,34 @@ importFrom("grDevices", "col2rgb", "colors")
 importFrom("graphics", "abline", "arrows", "lines", "plot", "points",
   "strheight", "strwidth", "text")
 
-S3method(as.bn, fit)
+S3method(as.bn, "fit")
 
-S3method(all.equal, bn)
-S3method(all.equal, bn.fit)
-S3method(print, bn)
-S3method(plot, bn)
-S3method(AIC, bn)
-S3method(AIC, bn.fit)
-S3method(BIC, bn)
-S3method(BIC, bn.fit)
-S3method(logLik, bn)
-S3method(logLik, bn.fit)
-S3method(rbn, bn)
-S3method(rbn, bn.fit)
-S3method(rbn, default)
-S3method(as.bn, character)
-S3method(as.character, bn)
-S3method(as.grain, bn.fit)
-S3method(as.bn, grain)
-S3method(as.bn.fit, grain)
-S3method(as.graphNEL, bn)
-S3method(as.bn, graphNEL)
-S3method(as.graphNEL, bn.fit)
-S3method(as.graphAM, bn)
-S3method(as.bn, graphAM)
-S3method(as.graphAM, bn.fit)
+S3method(all.equal, "bn")
+S3method(all.equal, "bn.fit")
+S3method(print, "bn")
+S3method(plot, "bn")
+S3method(AIC, "bn")
+S3method(AIC, "bn.fit")
+S3method(BIC, "bn")
+S3method(BIC, "bn.fit")
+S3method(logLik, "bn")
+S3method(logLik, "bn.fit")
+S3method(rbn, "bn")
+S3method(rbn, "bn.fit")
+S3method(rbn, "default")
+S3method(as.bn, "character")
+S3method(as.character, "bn")
+S3method(as.grain, "bn.fit")
+S3method(as.bn, "grain")
+S3method(as.bn.fit, "grain")
+S3method(as.graphNEL, "bn")
+S3method(as.bn, "graphNEL")
+S3method(as.graphNEL, "bn.fit")
+S3method(as.graphAM, "bn")
+S3method(as.bn, "graphAM")
+S3method(as.graphAM, "bn.fit")
+S3method(as.prediction, "bn.strength")
+S3method(print, "bn.tan")
 S3method(print, "bn.fit")
 S3method(print, "bn.fit.dnode")
 S3method(print, "bn.fit.onode")

@@ -18,7 +18,8 @@ vstructs(x, arcs = FALSE, moral = TRUE, debug = FALSE)
 moral(x, debug = FALSE)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}.}
+  \item{x}{an object of class \code{bn} or \code{bn.fit} (with the exception of
+    \code{cextend}, which only accepts objects of class \code{bn}).}
   \item{arcs}{a boolean value. If \code{TRUE} the arcs that are part of at least
     one v-structure are returned instead of the v-structures themselves.}
   \item{moral}{a boolean value. If \code{TRUE} we define a v-structure as in
@@ -38,9 +39,9 @@ moral(x, debug = FALSE)
   defined in literature. The original definition from Pearl (2000), which is
   still followed by most texts and papers, states that the two parents in the
   v-structure must not be connected by an arc. However, Koller and Friedman
-  (2009) call that a \emph{immoral v-structure} and call a \emph{moral 
+  (2009) call that a \emph{immoral v-structure} and call a \emph{moral
   v-structure} a v-structure in which the parents are linked by an arc. This
-  mirrors the \emph{unshielded} versus \emph{shielded collider} naming 
+  mirrors the \emph{unshielded} versus \emph{shielded collider} naming
   convention, but it is confusing.
 
   Setting \code{moral} to \code{FALSE} in \code{cpdag} and \code{vstructs} makes
@@ -48,7 +49,7 @@ moral(x, debug = FALSE)
   default value of \code{TRUE}, on the other hand, makes those functions follow
   the definition from Pearl (2000). The former call \emph{v-structures} both
   shielded and unshielded colliders (respectively \emph{moral v-structures} and
-  \emph{immoral v-structures}); the latter requires v-structures to be 
+  \emph{immoral v-structures}); the latter requires v-structures to be
   unshielded colliders.
 
   Note that arcs whose directions are dictated by the parametric assumptions of
@@ -88,6 +89,6 @@ res = gs(learning.test)
 cpdag(res)
 vstructs(res)
 }
-\author{ Marco Scutari }
+\author{Marco Scutari}
 \keyword{graphs}
-\keyword{multivariate}
+\keyword{structure learning}

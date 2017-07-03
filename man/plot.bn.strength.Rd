@@ -30,5 +30,5 @@ netlist = lapply(start, function(net) {
 arcs = custom.strength(netlist, nodes = names(learning.test), cpdag = FALSE)
 plot(arcs)
 }
-\author{ Marco Scutari }
-\keyword{hplot}
+\author{Marco Scutari}
+\keyword{plots}

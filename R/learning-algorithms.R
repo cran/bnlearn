@@ -1,8 +1,8 @@
 
 # constraint-based learning algorithms.
 bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = "mi", alpha = 0.05, B = NULL, method = "gs", debug = FALSE,
-    optimized = TRUE, strict = TRUE, undirected = FALSE) {
+    test = NULL, alpha = NULL, B = NULL, method = "gs", debug = FALSE,
+    optimized = FALSE, strict = FALSE, undirected = FALSE) {
 
   reset.test.counter()
 
@@ -211,7 +211,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 # score-based learning algorithms.
 greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
-    score = "aic", heuristic = "hc", expand, optimized = FALSE, debug = FALSE) {
+    score = NULL, heuristic = "hc", ..., optimized = TRUE, debug = FALSE) {
 
   # check the data are there.
   check.data(x)
@@ -223,9 +223,10 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   check.logical(debug)
 
   # check unused arguments in misc.args.
-  misc.args = expand[names(expand) %in% method.extra.args[[heuristic]]]
-  extra.args = expand[names(expand) %in% score.extra.args[[score]]]
-  check.unused.args(expand, c(method.extra.args[[heuristic]], score.extra.args[[score]]))
+  extra = list(...)
+  misc.args = extra[names(extra) %in% method.extra.args[[heuristic]]]
+  extra.args = extra[names(extra) %in% score.extra.args[[score]]]
+  check.unused.args(extra, c(method.extra.args[[heuristic]], score.extra.args[[score]]))
 
   # expand and check the max.iter parameter (common to all algorithms).
   max.iter = check.max.iter(misc.args$max.iter)
@@ -336,8 +337,8 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
 # hybrid learning algorithms.
 hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
-    restrict = "mmpc", maximize = "hc", restrict.args = list(), score = NULL,
-    maximize.args = list(), optimized = TRUE, debug = FALSE) {
+    restrict = "mmpc", maximize = "hc", restrict.args = list(),
+    maximize.args = list(), debug = FALSE) {
 
   nodes = names(x)
 
@@ -354,16 +355,27 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
 
   }#THEN
 
-  # restrict phase
+  ## restrict phase.
   if (restrict %in% constraint.based.algorithms) {
 
-    rst = bnlearn(x, cluster = NULL, whitelist = whitelist, blacklist = blacklist,
-            test = restrict.args$test, alpha = restrict.args$alpha,
-            B = restrict.args$B, method = restrict, debug = debug,
-            optimized = optimized, strict = restrict.args$strict, undirected = TRUE)
+    # merge the user-provided arguments with the defaults, making sure not to
+    # overwrite critical arguments.
+    critical.arguments = c("x", "method", "whitelist", "blacklist", "debug", "undirected")
+    named.arguments = names(formals(bnlearn))
+    named.arguments = setdiff(named.arguments, critical.arguments)
+    other.arguments = setdiff(names(restrict.args), named.arguments)
+    check.unused.args(other.arguments, character(0))
+
+    restrict.args[critical.arguments] = 
+      list(x, method = restrict, whitelist = whitelist, blacklist = blacklist,
+           debug = debug, undirected = TRUE)
+
+    rst = do.call("bnlearn", restrict.args)
 
   }#THEN
   else if (restrict %in% mim.based.algorithms) {
+
+    check.unused.args(restrict.args, "mi")
 
     rst = mi.matrix(x, whitelist = whitelist, blacklist = blacklist,
             method = restrict, mi = restrict.args$mi, debug = debug)
@@ -381,16 +393,26 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
 
   }#THEN
 
-  # maximize phase
-  res = greedy.search(x, start = NULL, whitelist = whitelist, blacklist = constraints,
-          score = score, heuristic = maximize, expand = maximize.args,
-          optimized = optimized, debug = debug)
+  ## maximize phase.
+  # merge the user-provided arguments with the defaults, making sure not to
+  # overwrite critical arguments.
+  critical.arguments = c("x", "start", "heuristic", "whitelist", "blacklist", "debug")
+  named.arguments = names(formals(greedy.search))
+  named.arguments = setdiff(named.arguments, critical.arguments)
+  check.unused.args(intersect(critical.arguments, names(maximize.args)), character(0))
+
+  maximize.args[critical.arguments] = 
+    list(x, start = NULL, heuristic = maximize, whitelist = whitelist, blacklist = constraints,
+         debug = debug)
+
+  res = do.call("greedy.search", maximize.args)
 
   # set the metadata of the network in one stroke.
   res$learning = list(whitelist = rst$learning$whitelist,
     blacklist = rst$learning$blacklist, test = res$learning$test,
     ntests = res$learning$ntests + rst$learning$ntests, algo = method,
-    args = c(res$learning$args, rst$learning$args), optimized = optimized,
+    args = c(res$learning$args, rst$learning$args), 
+    optimized = res$learning$optimized || rst$learning$optimized,
     restrict = restrict, rstest = rst$learning$test, maximize = maximize,
     maxscore = res$learning$test,
     illegal = check.arcs.against.assumptions(NULL, x, rst$learning$test))
@@ -682,7 +704,7 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
     if (missing(explanatory))
       explanatory = vars[vars != training]
     else
-      check.nodes(explanatory, graph = nodes)
+      check.nodes(explanatory, graph = explanatory)
 
   }#ELSE
 

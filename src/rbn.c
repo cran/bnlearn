@@ -48,7 +48,7 @@ SEXP parents, parent_vars;
 
   /* order the nodes according to their depth in the graph. */
   PROTECT(roots = root_nodes(fitted, FALSESEXP));
-  PROTECT(node_depth = schedule(fitted, roots, FALSESEXP, FALSESEXP));
+  PROTECT(node_depth = topological_ordering(fitted, roots, FALSESEXP, FALSESEXP));
   poset = Calloc1D(nnodes, sizeof(int));
   for (i = 0; i < nnodes; i++)
     poset[i] = i;
@@ -366,7 +366,7 @@ double *constant = REAL(fixed);
 
   }/*ELSE*/
 
-}/*RBN_DISCRETE_GAUSSIAN*/
+}/*RBN_GAUSSIAN_FIXED*/
 
 /* conditional and unconditional normal sampling. */
 void rbn_gaussian(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
@@ -405,7 +405,7 @@ SEXP generated;
 
 }/*RBN_GAUSSIAN*/
 
-/* conditional linear Gaussian sampleing. */
+/* conditional linear Gaussian sampling. */
 void rbn_mixedcg(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
     SEXP dpar, SEXP gpar, int num, SEXP fixed) {
 
@@ -451,6 +451,15 @@ SEXP generated;
     c_fast_config(dcol, num, ndp, nlvls, config, &config_nlvl, 0);
 
     for (i = 0; i < num; i++) {
+
+      /* if the configuration is missing, the random observation is also a
+       * missing value. */
+      if (config[i] == NA_INTEGER) {
+
+        gen[i] = NA_REAL;
+        continue;
+
+      }/*THEN*/
 
       /* get the right set of coefficients based on the configuration of the
        * discrete parents. */

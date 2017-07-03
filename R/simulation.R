@@ -1,12 +1,13 @@
 # do a partial ordering of the nodes of a graph.
-schedule = function(x, start = NULL, reverse = FALSE, debug = FALSE) {
+topological.ordering = function(x, start = NULL, reverse = FALSE, 
+    debug = FALSE) {
 
   if (is.null(start))
     roots = root.leaf.nodes(x, leaf = reverse)
   else
     roots = start
 
-  to.do = .Call("schedule",
+  to.do = .Call(call_topological_ordering,
                 bn = x,
                 root.nodes = roots,
                 reverse = reverse,
@@ -29,7 +30,7 @@ rbn.backend = function(x, n, data, fix = TRUE, debug = FALSE) {
   else
     fitted = x
 
-  .Call("rbn_master",
+  .Call(call_rbn_master,
         fitted = fitted,
         n = as.integer(n),
         fix = fix,

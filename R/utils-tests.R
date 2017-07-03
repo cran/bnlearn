@@ -5,7 +5,7 @@ is.dag = function(arcs, nodes) {
   if (nrow(arcs) == 0)
     return(TRUE)
 
-  .Call("is_dag",
+  .Call(call_is_dag,
         arcs = factor(arcs),
         nnodes = length(nodes))
 
@@ -18,7 +18,7 @@ is.pdag = function(arcs, nodes) !is.dag(arcs, nodes)
 is.acyclic = function(arcs, nodes, return.nodes = FALSE, directed = FALSE,
     debug = FALSE) {
 
-  .Call("is_pdag_acyclic",
+  .Call(call_is_pdag_acyclic,
         arcs = arcs,
         nodes = nodes,
         return_nodes = return.nodes,

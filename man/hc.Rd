@@ -67,9 +67,7 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ...,
     Computational Intelligence", Imperial College, London.
 
 }
-\author{ Marco Scutari }
+\author{Marco Scutari}
 \seealso{\link{constraint-based algorithms}, \link{hybrid algorithms}, \cr
   \link{local discovery algorithms}, \code{\link{alpha.star}}.}
-\keyword{multivariate}
-\keyword{models}
-\keyword{graphs}
+\keyword{structure learning}

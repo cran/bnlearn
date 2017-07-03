@@ -26,6 +26,8 @@ print.bn = function(x, ...) {
     cat("\n  Bayesian network learned via Pairwise Mutual Information methods\n\n")
   else if (x$learning$algo %in% classifiers)
     cat("\n  Bayesian network Classifier\n\n")
+  else if (x$learning$algo %in% em.algorithms)
+    cat("\n  Bayesian network learned from Missing Data\n\n")
   else
     cat("\n  Bayesian network learned via [unknown] methods\n\n")
 
@@ -49,7 +51,25 @@ print.bn = function(x, ...) {
 
   cat("\n")
 
-  if (x$learning$algo %!in% graph.generation.algorithms) {
+  if (x$learning$algo %in% graph.generation.algorithms) {
+
+    wcat("  generation algorithm:                 ", graph.generation.labels[x$learning$algo])
+
+    if ("prob" %in% params)
+      wcat("  arc sampling probability:             ", format(x$learning$args$prob))
+    if ("burn.in" %in% params)
+      wcat("  burn in length:                       ", format(x$learning$args$burn.in))
+    if ("max.in.degree" %in% params)
+      wcat("  maximum in-degree:                    ", format(x$learning$args$max.in.degree))
+    if ("max.out.degree" %in% params)
+      wcat("  maximum out-degree:                   ", format(x$learning$args$max.out.degree))
+    if ("max.degree" %in% params)
+      wcat("  maximum degree:                       ", format(x$learning$args$max.degree))
+    if ("threshold" %in% params)
+      wcat("  significance threshold:               ", format(x$learning$args$threshold))
+
+  }#THEN
+  else {
 
     wcat("  learning algorithm:                   ", method.labels[x$learning$algo])
 
@@ -76,14 +96,19 @@ print.bn = function(x, ...) {
       wcat("  score:                                ", score.labels[x$learning$maxscore])
 
     }#THEN
+    else if (x$learning$algo %in% em.algorithms) {
+
+      wcat("  score-based method:                   ", method.labels[x$learning$maximize])
+      wcat("  parameter learning method:            ", fitting.labels[x$learning$fit])
+      wcat("  imputation method:                    ", imputation.labels[x$learning$impute])
+
+    }#THEN
 
     if ("prior" %in% params)
       wcat("  graph prior:                          ", prior.labels[x$learning$args$prior])
     if ("beta" %in% params)
       if (x$learning$args$prior == "cs")
         wcat("  beta sparsity parameter:              ", "Completed Prior over Arcs")
-      else if (x$learning$args$prior == "marginal")
-        wcat("  beta sparsity parameter:              ", paste(x$learning$args$beta, collapse = " / "))
       else
         wcat("  beta sparsity parameter:              ", format(x$learning$args$beta))
     if ("alpha" %in% params)
@@ -92,6 +117,8 @@ print.bn = function(x, ...) {
       wcat("  permutations:                         ", format(x$learning$args$B))
     if ("iss" %in% params)
       wcat("  imaginary sample size:                ", format(x$learning$args$iss))
+    if ("l" %in% params)
+      wcat("  imaginary sample size stepping:       ", format(x$learning$args$l))
     if ("phi" %in% params)
       wcat("  phi matrix structure:                 ", x$learning$args$phi)
     if ("k" %in% params)
@@ -112,24 +139,6 @@ print.bn = function(x, ...) {
 
     if (!is.null(x$learning$optimized))
       wcat("  optimized:                            ", x$learning$optimized)
-
-  }#THEN
-  else {
-
-    wcat("  generation algorithm:                 ", graph.generation.labels[x$learning$algo])
-
-    if ("prob" %in% params)
-      wcat("  arc sampling probability:             ", format(x$learning$args$prob))
-    if ("burn.in" %in% params)
-      wcat("  burn in length:                       ", format(x$learning$args$burn.in))
-    if ("max.in.degree" %in% params)
-      wcat("  maximum in-degree:                    ", format(x$learning$args$max.in.degree))
-    if ("max.out.degree" %in% params)
-      wcat("  maximum out-degree:                   ", format(x$learning$args$max.out.degree))
-    if ("max.degree" %in% params)
-      wcat("  maximum degree:                       ", format(x$learning$args$max.degree))
-    if ("threshold" %in% params)
-      wcat("  significance threshold:               ", format(x$learning$args$threshold))
 
   }#ELSE
 
@@ -169,8 +178,43 @@ print.bn.fit = function(x, order, ...) {
 
 }#PRINT.BN.FIT
 
+# print method for class bn.tan.
+print.bn.tan = function(x, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  if (is(x, "bn"))
+    print.bn(x)
+  else if (is(x, "bn.fit")) {
+
+    training = attr(x, "training")
+
+    for (i in names(x)) {
+
+      if (length(x[[i]]$parents) >= 2)
+        print(x[[i]], perm = c(i, setdiff(x[[i]]$parents, training), training))
+      else
+        print(x[[i]])
+
+    }#FOR
+
+  }#THEN
+
+}#PRINT.BN.TAN
+
 # print method for class bn.fit.dnode.
-print.bn.fit.dnode = function(x, ...) {
+print.bn.fit.dnode = function(x, perm, ...) {
+
+  # check the perm argument.
+  if (!missing(perm)) {
+
+    check.nodes(perm[perm != x$node], graph = c(x$node, x$parents),
+      min.nodes = length(x$parents), max.nodes = length(x$parents))
+    if (x$node %!in% perm)
+      perm = c(x$node, perm)
+
+  }#THEN
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -181,7 +225,10 @@ print.bn.fit.dnode = function(x, ...) {
     cat("\n  Parameters of node", x$node, "(ordinal distribution)\n")
 
   cat("\nConditional probability table:\n", ifelse(length(x$parents) > 0, "\n", ""))
-  print(x$prob)
+  if (missing(perm))
+    print(x$prob)
+  else
+    print(aperm(x$prob, perm = perm))
 
   invisible(x)
 

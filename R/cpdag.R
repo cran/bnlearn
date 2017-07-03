@@ -8,7 +8,7 @@ cpdag.backend = function(x, moral = TRUE, fix = FALSE, wlbl = FALSE, debug = FAL
   if ((is.null(x$learning$whitelist)) && (is.null(x$learning$blacklist)))
     wlbl = FALSE
 
-  amat = .Call("cpdag",
+  amat = .Call(call_cpdag,
                arcs = x$arcs,
                nodes = nodes,
                moral = moral,
@@ -31,7 +31,7 @@ cpdag.backend = function(x, moral = TRUE, fix = FALSE, wlbl = FALSE, debug = FAL
 cpdag.arc.backend = function(nodes, arcs, moral = TRUE, fix.directed = FALSE,
     debug = FALSE) {
 
-  amat = .Call("cpdag",
+  amat = .Call(call_cpdag,
                arcs = arcs,
                nodes = nodes,
                moral = moral,
@@ -53,7 +53,7 @@ cpdag.extension = function(x, debug = FALSE) {
   # update the arcs of the network.
   x$arcs = cpdag.arc.extension(arcs = x$arcs, nodes = nodes, debug = debug)
   # update the network structure.
-  x$nodes = cache.structure(nodes, arcs = x$arcs, debug = debug)
+  x$nodes = cache.structure(nodes, arcs = x$arcs)
 
   return(x)
 
@@ -62,7 +62,7 @@ cpdag.extension = function(x, debug = FALSE) {
 # backend to get a set of directed arcs out of a CPDAG.
 cpdag.arc.extension = function(arcs, nodes, debug = FALSE) {
 
-  .Call("pdag_extension",
+  .Call(call_pdag_extension,
         arcs = arcs,
         nodes = nodes,
         debug = debug)

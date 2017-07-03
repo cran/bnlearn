@@ -35,7 +35,8 @@ SEXP temp, result;
     res = INTEGER(result);
 
     for (i = 0; i < length(result); i++)
-      res[i]++;
+      if (res[i] != NA_INTEGER)
+        res[i]++;
 
   }/*ELSE*/
 
@@ -115,12 +116,12 @@ long long *cumlevels = NULL, nl = 0;
 
         cfgmap += (columns[j][i] - 1) * cumlevels[j];
 
-     }/*ELSE*/
+      }/*ELSE*/
 
     }/*FOR*/
 
-  /* save the configuration in the array. */
-  configurations[i] = cfgmap + offset;
+  /* save the configuration, applying the offset to non-NA values. */
+  configurations[i] = cfgmap + offset * (cfgmap != NA_INTEGER);
 
   }/*FOR*/
 

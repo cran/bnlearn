@@ -25,7 +25,7 @@ chow.liu.backend = function(x, nodes, estimator, whitelist, blacklist,
 
   }#THEN
 
-  .Call("chow_liu",
+  .Call(call_chow_liu,
         data = x,
         nodes = nodes,
         estimator = estimator,

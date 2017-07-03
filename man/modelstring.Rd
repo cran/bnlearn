@@ -62,6 +62,5 @@ res2 = model2network(modelstring(res))
 res2
 all.equal(res, res2)
 }
-\author{ Marco Scutari }
-\keyword{utilities}
-\keyword{graphs}
+\author{Marco Scutari}
+\keyword{convenience functions}

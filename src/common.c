@@ -43,29 +43,36 @@ int i = 0;
 SEXP unique(SEXP array) {
 
 int *d = NULL, i = 0, k = 0, dup_counter = 0, n = length(array);
+int *res = NULL, *a = NULL;
 SEXP dup, result = R_NilValue;
 
   PROTECT(dup = duplicated(array, FALSE));
   d = LOGICAL(dup);
 
-  for (i = 0; i < n; i++)
-    if (d[i] == 0)
-      dup_counter++;
-
   switch(TYPEOF(array)) {
 
     case INTSXP:
 
-      PROTECT(result = allocVector(INTSXP, dup_counter));
-      int *res = INTEGER(result), *a = INTEGER(array);
+      a = INTEGER(array);
 
       for (i = 0; i < n; i++)
-        if (d[i] == 0)
+        if ((d[i] == 0) && (a[i] != NA_INTEGER))
+          dup_counter++;
+
+      PROTECT(result = allocVector(INTSXP, dup_counter));
+      res = INTEGER(result);
+
+      for (i = 0; i < n; i++)
+        if ((d[i] == 0) && (a[i] != NA_INTEGER))
           res[k++] = a[i];
 
       break;
 
     case STRSXP:
+
+      for (i = 0; i < n; i++)
+        if (d[i] == 0)
+          dup_counter++;
 
       PROTECT(result = allocVector(STRSXP, dup_counter));
 
@@ -111,7 +118,7 @@ SEXP result, temp;
 /* transform an integer vector into a factor. */
 SEXP int2fac(SEXP vector, int *nlevels) {
 
-int i = 0, *l = NULL;
+int i = 0, *l = NULL, *r = NULL, *v = INTEGER(vector);
 SEXP result, levels, lvls;
 
   if (!nlevels) {
@@ -129,8 +136,14 @@ SEXP result, levels, lvls;
 
   }/*ELSE*/
 
-  /* match the elements of the vector against the levels. */
+  /* match the elements of the vector against the levels, preserving NAs and
+   * setting to NA those elements that cannot be matched to a level. */
   PROTECT(result = match(levels, vector, 0));
+  r = INTEGER(result);
+
+  for (i = 0; i < length(result); i++)
+    if ((r[i] == 0) || (v[i] == NA_INTEGER))
+      r[i] = NA_INTEGER;
 
   /* set the levels of the factor. */
   PROTECT(lvls = coerceVector(levels, STRSXP));
@@ -333,7 +346,7 @@ SEXP table, dims, dimnames, cur;
   /* set the attributess for class and dimensions. */
   setAttrib(table, R_ClassSymbol, mkString("table"));
   setAttrib(table, R_DimSymbol, dims);
-  setAttrib(table, R_DimNamesSymbol, dimnames);   
+  setAttrib(table, R_DimNamesSymbol, dimnames);
 
   UNPROTECT(3);
 

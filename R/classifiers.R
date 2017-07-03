@@ -40,7 +40,7 @@ tan.backend = function(data, training, explanatory, whitelist, blacklist,
                     debug = debug)
 
   # set the directions of the arcs in the Chow-Liu tree.
-  chow.liu.arcs = .Call("tree_directions",
+  chow.liu.arcs = .Call(call_tree_directions,
                         arcs = chow.liu.arcs,
                         nodes = explanatory,
                         root = root,

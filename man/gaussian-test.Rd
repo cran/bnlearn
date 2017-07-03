@@ -22,10 +22,10 @@ data(gaussian.test)
 
 }
 \examples{
-# load the data and build the correct network from the model string.
+# load the data.
 data(gaussian.test)
-res = empty.graph(names(gaussian.test))
-modelstring(res) = "[A][B][E][G][C|A:B][D|B][F|A:D:E:G]"
-plot(res)
+# create and plot the network structure.
+dag = model2network("[A][B][E][G][C|A:B][D|B][F|A:D:E:G]")
+\dontrun{graphviz.plot(dag)}
 }
 \keyword{datasets}

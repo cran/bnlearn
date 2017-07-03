@@ -195,7 +195,7 @@ ancestors = function(x, node) {
   check.nodes(nodes = node, graph = x, max.nodes = 1)
 
   # the first element is the node itself, which is not its own ancestor.
-  return(schedule(x, start = node, reverse = TRUE)[-1])
+  return(topological.ordering(x, start = node, reverse = TRUE)[-1])
 
 }#ANCESTORS
 
@@ -208,7 +208,7 @@ descendants = function(x, node) {
   check.nodes(nodes = node, graph = x, max.nodes = 1)
 
   # the first element is the node itself, which is not its own ancestor.
-  return(schedule(x, start = node)[-1])
+  return(topological.ordering(x, start = node)[-1])
 
 }#DESCENDANTS
 

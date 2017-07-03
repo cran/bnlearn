@@ -12,33 +12,32 @@
   Learn the equivalence class of a directed acyclic graph (DAG) from data using
   the Grow-Shrink (GS), the Incremental Association (IAMB), the Fast Incremental
   Association (Fast-IAMB), the Interleaved Incremental Association (Inter-IAMB),
-  the Max-Min Parents and Children (MMPC) or the Semi-Interleaved HITON-PC 
+  the Max-Min Parents and Children (MMPC) or the Semi-Interleaved HITON-PC
   constraint-based algorithms.
 }
 \usage{
 gs(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE, strict = FALSE,
+  alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
   undirected = FALSE)
 iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE, strict = FALSE,
+  alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
   undirected = FALSE)
 fast.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE, strict = FALSE,
+  alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
   undirected = FALSE)
 inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE, strict = FALSE,
+  alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
   undirected = FALSE)
 mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE, strict = FALSE,
+  alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
   undirected = TRUE)
 si.hiton.pc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, optimized = TRUE, strict = FALSE,
+  alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
   undirected = TRUE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
-  \item{cluster}{an optional cluster object from package \pkg{parallel}. See
-    \code{\link{parallel integration}} for details and a simple example.}
+  \item{cluster}{an optional cluster object from package \pkg{parallel}.}
   \item{whitelist}{a data frame with two columns (optionally labeled "from"
     and "to"), containing a set of arcs to be included in the graph.}
   \item{blacklist}{a data frame with two columns (optionally labeled "from"
@@ -52,7 +51,7 @@ si.hiton.pc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
   \item{alpha}{a numeric value, the target nominal type I error rate.}
   \item{B}{a positive integer, the number of permutations considered for each
     permutation test. It will be ignored with a warning if the conditional
-    independence test specified by the \code{test} argument is not a 
+    independence test specified by the \code{test} argument is not a
     permutation test.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
@@ -112,9 +111,7 @@ si.hiton.pc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
       171-234.
 
 }
-\author{ Marco Scutari }
+\author{Marco Scutari}
 \seealso{\link{local discovery algorithms},
   \link{score-based algorithms}, \link{hybrid algorithms}.}
-\keyword{multivariate}
-\keyword{models}
-\keyword{graphs}
+\keyword{structure learning}

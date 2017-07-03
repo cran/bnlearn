@@ -11,7 +11,7 @@ formula.backend = function(x) {
   else
     base = x
 
-  paste(sapply(schedule(x),
+  paste(sapply(topological.ordering(x),
     function(node) {
 
       paste("[", node, ifelse(length(base[[node]]$parents) > 0, "|", ""),

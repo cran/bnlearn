@@ -62,7 +62,7 @@ tryMethod = function(f, signature, definition, generic) {
   # load the shared library.
   library.dynam("bnlearn", package = pkg, lib.loc = lib)
   # initialize stuff at the C level.
-  .Call("c_onLoad")
+  .Call(call_onLoad)
 
 }#.ONLOAD
 
@@ -70,7 +70,7 @@ tryMethod = function(f, signature, definition, generic) {
 .onUnload = function(libpath) {
 
   # initialize stuff at the C level.
-  .Call("c_onUnload")
+  .Call(call_onUnload)
   # unload the shared library.
   library.dynam.unload("bnlearn", libpath = libpath)
 

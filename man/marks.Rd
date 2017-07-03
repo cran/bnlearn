@@ -12,7 +12,7 @@ data(marks)
 }
 \format{
 
-  The \code{marks} data set contains the following variables, one for each 
+  The \code{marks} data set contains the following variables, one for each
   topic in the examination:
   \itemize{
 
@@ -50,5 +50,6 @@ arcs(ug, check.cycles = FALSE) = matrix(
     "ANL",  "ALG", "ANL",  "STAT", "STAT", "ALG", "STAT", "ANL"),
   ncol = 2, byrow = TRUE,
   dimnames = list(c(), c("from", "to")))
+\dontrun{graphviz.plot(ug)}
 }
 \keyword{datasets}

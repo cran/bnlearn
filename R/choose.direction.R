@@ -175,7 +175,7 @@ choose.direction.test = function(x, arc, data, test, alpha, B, debug = FALSE) {
 
     }#THEN
 
-    parents = parents.backend(x$arcs, arc[2], undirected = TRUE)
+    parents = x$nodes[[arc[2]]]$nbr
     a = indep.test(arc[1], arc[2], parents[parents != arc[1]], data = data,
           test = test, B = B, alpha = alpha)
 
@@ -216,8 +216,8 @@ choose.direction.score = function(x, data, arc, score, extra.args, debug = FALSE
     warning("the graph is not completely directed around ", arc[1], " and ",
       arc[2], ", treating nodes connected by undirected arcs as parents.")
 
-  x$nodes[[arc[1]]]$parents = parents.backend(x$arcs, arc[1], undirected = TRUE)
-  x$nodes[[arc[2]]]$parents = parents.backend(x$arcs, arc[2], undirected = TRUE)
+  x$nodes[[arc[1]]]$parents = x$nodes[[arc[1]]]$nbr
+  x$nodes[[arc[2]]]$parents = x$nodes[[arc[2]]]$nbr
   x$nodes[[arc[1]]]$parents = x$nodes[[arc[1]]]$parents[x$nodes[[arc[1]]]$parents != arc[2]]
   x$nodes[[arc[2]]]$parents = x$nodes[[arc[2]]]$parents[x$nodes[[arc[2]]]$parents != arc[1]]
 

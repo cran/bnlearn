@@ -7,8 +7,10 @@ typedef enum {
   BIC       =  3, /* BIC, discrete data. */
   BDE       =  4, /* Bayesian Dirichlet equivalent score. */
   BDS       =  5, /* Bayesian Dirichlet sparse score. */
-  K2        =  6, /* K2 score. */
-  MBDE      =  7, /* Bayesian Dirichlet equivalent score, interventional data.*/
+  BDJ       =  6, /* Bayesian Dirichlet with Jeffrey's prior. */
+  K2        =  7, /* K2 score. */
+  MBDE      =  8, /* Bayesian Dirichlet equivalent score, interventional data .*/
+  BDLA      =  9, /* Bayesian Dirichlet score, locally averaged. */
   LOGLIK_G  = 10, /* log-likelihood, Gaussian data. */
   AIC_G     = 11, /* AIC, Gaussian data. */
   BIC_G     = 12, /* BIC, Gaussian data. */
@@ -55,8 +57,10 @@ double c_fast_ccgloglik(double *xx, double **gp, int ngp, int nobs, int *config,
     int nconfig);
 double loglik_gnode(SEXP target, SEXP x, SEXP data, double *nparams, int debuglevel);
 double loglik_cgnode(SEXP target, SEXP x, SEXP data, double *nparams, int debuglevel);
-double dirichlet_node(SEXP target, SEXP x, SEXP data, SEXP iss, SEXP prior,
-    SEXP beta, SEXP experimental, int sparse, int debuglevel);
+double dirichlet_node(SEXP target, SEXP x, SEXP data, SEXP iss, int per_node,
+    SEXP prior, SEXP beta, SEXP experimental, int sparse, int debuglevel);
+double dirichlet_averaged_node(SEXP target, SEXP x, SEXP data, SEXP l,
+    SEXP prior, SEXP beta, int sparse, int debuglevel);
 double wishart_node(SEXP target, SEXP x, SEXP data, SEXP isize, SEXP phi,
     SEXP prior, SEXP beta, int debuglevel);
 

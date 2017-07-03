@@ -16,9 +16,8 @@ modelstring = function(x) {
 # set a specific network structure with the model string.
 "modelstring<-" = function(x, debug = FALSE, value) {
 
-  # check string's class.
-  if (!is(value, "character"))
-    stop("the model string must be a character string.")
+  # check value's class and format.
+  check.modelstring(value)
 
   model2network.backend(value, node.order = names(x$nodes), debug = debug)
 
@@ -38,9 +37,8 @@ as.character.bn = function(x, ...) {
 # generate an object of class bn from a model string.
 model2network = function(string, ordering = NULL, debug = FALSE) {
 
-  # check string's class.
-  if (!is(string, "character"))
-    stop("string must be a character string.")
+  # check string's class and format.
+  check.modelstring(string)
   # check the node ordering; NULL is ok this time, it lets the backend decide.
   if (!is.null(ordering))
     check.nodes(ordering)

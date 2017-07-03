@@ -41,19 +41,15 @@ data(lizards)
 
 }
 \examples{
-
-# load the data and build the correct network from the model string.
+# load the data.
 data(lizards)
-res = empty.graph(names(lizards))
-modelstring(res) = "[Species][Diameter|Species][Height|Species]"
-plot(res)
-table(lizards[, c(3,2,1)])
+# create and plot the network structure.
+dag = model2network("[Species][Diameter|Species][Height|Species]")
+\dontrun{graphviz.plot(dag, shape = "ellipse")}
 
-\dontrun{
 # This data set is useful as it offers nominal values for
 # the conditional mutual information and X^2 tests.
 ci.test("Height", "Diameter", "Species", test = "mi", data = lizards)
 ci.test("Height", "Diameter", "Species", test = "x2", data = lizards)
-}
 }
 \keyword{datasets}

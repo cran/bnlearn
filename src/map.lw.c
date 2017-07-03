@@ -12,8 +12,9 @@ long double wsum = 0, wtot = 0;
 
   for (k = 0; k < n; k++) {
 
-    /* c_lw_weights() can generate NA and NaNs, disregard and print a warning. */
-    if ((wgt[k] == NA_REAL) || (ISNAN(wgt[k]))) {
+    /* c_rbn_master() may generate NAs, c_lw_weights() can generate NA and NaNs
+       as well, disregard and print a warning. */
+    if (ISNAN(x[k]) || (wgt[k] == NA_REAL) || (ISNAN(wgt[k]))) {
 
       (*drop)++;
 
@@ -33,8 +34,14 @@ long double wsum = 0, wtot = 0;
   else
     wsum /= wtot;
 
-  if (debuglevel > 0)
-    Rprintf("  > prediction is %Lf.\n", wsum);
+  if (debuglevel > 0) {
+
+    if (ISNAN(wsum))
+      Rprintf("  > prediction is NA.\n");
+    else
+      Rprintf("  > prediction is %Lf.\n", wsum);
+
+  }/*THEN*/
 
   return (double)wsum;
 
@@ -43,7 +50,7 @@ long double wsum = 0, wtot = 0;
 static int posterior_mode(int *x, double *wgt, int n, long double *counts,
     SEXP levels, int nlvls, int *drop, int debuglevel) {
 
-int k = 0, res = 0;
+int k = 0, max_prob = 0;
 
   memset(counts, '\0', nlvls * sizeof(long double));
 
@@ -58,23 +65,23 @@ int k = 0, res = 0;
 
   }/*FOR*/
 
-  res = ld_which_max(counts, nlvls);
+  max_prob = ld_which_max(counts, nlvls);
 
   /* if all weights are zero, the predicted value is NA.*/
-  if (counts[res - 1] == 0)
-    res = NA_INTEGER;
+  if (counts[max_prob - 1] == 0)
+    max_prob = NA_INTEGER;
 
   if (debuglevel > 0) {
 
     Rprintf("  > prediction is '%s' with weight sums:\n",
-      res == NA_INTEGER ? "NA" : CHAR(STRING_ELT(levels, res - 1)));
+      max_prob == NA_INTEGER ? "NA" : CHAR(STRING_ELT(levels, max_prob - 1)));
     for (k = 0; k < nlvls; k++)
       Rprintf("%Lf ", counts[k]);
     Rprintf("\n");
 
   }/*THEN*/
 
-  return res;
+  return max_prob;
 
 }/*POSTERIOR_MODE*/
 
@@ -186,7 +193,7 @@ long double *lvls_counts = NULL, lvls_tot = 0;
 
     if (debuglevel > 0) {
 
-      Rprintf("* predicting observation %d conditional on:\n", i);
+      Rprintf("* predicting observation %d conditional on:\n", i + 1);
       PrintValue(evidence);
 
     }/*THEN*/

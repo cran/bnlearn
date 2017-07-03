@@ -34,7 +34,7 @@ void c_per_node_score(SEXP network, SEXP data, SEXP score, SEXP targets,
 int i = 0, ntargets = length(targets);
 score_e s = score_label(CHAR(STRING_ELT(score, 0)));
 double nparams = 0, *k = NULL;
-SEXP cur, iss, prior, beta, exp, phi;
+SEXP cur, iss, prior, beta, exp, phi, l;
 
   /* allocate dummy variable for the current node's label. */
   PROTECT(cur = allocVector(STRSXP, 1));
@@ -143,20 +143,25 @@ SEXP cur, iss, prior, beta, exp, phi;
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
-        res[i] = dirichlet_node(cur, network, data, iss, prior, beta, R_NilValue,
-                   (s == BDS), debuglevel);
+        res[i] = dirichlet_node(cur, network, data, iss, FALSE, prior, beta,
+                   R_NilValue, (s == BDS), debuglevel);
 
       }/*FOR*/
       break;
 
-    /* K2 score. */
+    /* Bayesian Dirichlet score with Jeffrey's prior, K2 score. */
+    case BDJ:
     case K2:
       for (i = 0; i < ntargets; i++) {
 
+        PROTECT(iss = (s == K2) ? ScalarReal(1) : ScalarReal(0.5));
+
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
-        res[i] = dirichlet_node(cur, network, data, R_NilValue, R_NilValue, R_NilValue,
-                   R_NilValue, FALSE, debuglevel);
+        res[i] = dirichlet_node(cur, network, data, iss, TRUE,
+                   R_NilValue, R_NilValue, R_NilValue, FALSE, debuglevel);
+
+        UNPROTECT(1);
 
       }/*FOR*/
       break;
@@ -190,8 +195,25 @@ SEXP cur, iss, prior, beta, exp, phi;
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
-        res[i] = dirichlet_node(cur, network, data, iss, prior, beta, exp,
+        res[i] = dirichlet_node(cur, network, data, iss, FALSE, prior, beta, exp,
                    FALSE, debuglevel);
+
+      }/*FOR*/
+      break;
+
+    /* Bayesian Dirichlet equivalent score, locally averaged. */
+    case BDLA:
+
+      prior = getListElement(extra_args, "prior");
+      beta = getListElement(extra_args, "beta");
+      l = getListElement(extra_args, "l");
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = dirichlet_averaged_node(cur, network, data, l, prior,
+                   beta, FALSE, debuglevel);
 
       }/*FOR*/
       break;

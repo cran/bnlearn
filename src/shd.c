@@ -19,7 +19,7 @@ SEXP temp, nodes, l, r;
   PROTECT(l = arcs2amat(temp, nodes));
   lrn = INTEGER(l);
 
-  /* get the arcs of the learned network. */
+  /* get the arcs of the golden standard network. */
   temp = getListElement(golden, "arcs");
   /* build the adjacency matrix. */
   PROTECT(r = arcs2amat(temp, nodes));

@@ -87,14 +87,14 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
 
     # add the hash of the network into the tabu list for future reference.
     # (BEWARE: in place modification of tabu.list!)
-    .Call("tabu_hash",
+    .Call(call_tabu_hash,
           amat = amat,
           nodes = nodes,
           tabu.list = tabu.list,
           current = current)
 
     # set up the score cache (BEWARE: in place modification!).
-    .Call("score_cache_fill",
+    .Call(call_score_cache_fill,
           nodes = nodes,
           data = x,
           network = start,
@@ -116,7 +116,7 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
                     maxp = maxp, arcs = FALSE)
 
     # get the best arc addition/removal/reversal.
-    bestop = .Call("tabu_step",
+    bestop = .Call(call_tabu_step,
                    amat = amat,
                    nodes = nodes,
                    added = to.be.added,
@@ -168,7 +168,7 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
 
       }#THEN
 
-      bestop = .Call("tabu_step",
+      bestop = .Call(call_tabu_step,
                      amat = amat,
                      nodes = nodes,
                      added = to.be.added,

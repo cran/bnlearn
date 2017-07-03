@@ -186,7 +186,7 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
 
     }#THEN
 
-    tos = parents.backend(arcs, x, TRUE)
+    tos = arcs[(arcs[, "to"] == x), "from"]
 
     if (length(tos) < 2)
       return(NULL)
@@ -312,7 +312,7 @@ vstruct.apply = function(arcs, vs, nodes, strict, debug = FALSE) {
 bn.recovery = function(bn, nodes, strict, filter = "AND", mb = FALSE,
     debug = FALSE) {
 
-  .Call("bn_recovery",
+  .Call(call_bn_recovery,
         bn = bn,
         strict = strict,
         mb = mb,
@@ -328,7 +328,7 @@ cache.structure = function(nodes, arcs, amat = NULL, debug = FALSE) {
   if (is.null(amat))
     amat = arcs2amat(arcs, nodes)
 
-  .Call("cache_structure",
+  .Call(call_cache_structure,
         nodes = nodes,
         amat = amat,
         debug = debug)
@@ -343,7 +343,7 @@ cache.partial.structure = function(nodes, target, arcs, amat = NULL,
   if (is.null(amat))
     amat = arcs2amat(arcs, nodes)
 
-  .Call("cache_partial_structure",
+  .Call(call_cache_partial_structure,
         nodes = nodes,
         target = target,
         amat = amat,

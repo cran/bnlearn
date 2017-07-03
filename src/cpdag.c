@@ -289,7 +289,7 @@ SEXP amat;
     if (!changed) {
 
       if (debuglevel > 0)
-        Rprintf("  > the graph is unchanged, skipping to the next step.\n");
+        Rprintf("  > the graph is unchanged, stopping.\n");
 
       break;
 
@@ -618,9 +618,12 @@ short int shielded = FALSE, flag = FALSE;
             if (!((a[CMC(k, j, nnodes)] >= PRESENT) && (a[CMC(j, k, nnodes)] == ABSENT)))
               continue;
 
-            /* if NODE(k) is a parent of NODE(j) and a parent of NODE(i), the
-             * collider is shielded. */
-            if ((a[CMC(k, i, nnodes)] >= PRESENT) && (a[CMC(i, k, nnodes)] >= PRESENT)) {
+            /* NODE(k) is a neighbour of NODE(i), not a parent, so there is no collider. */
+            if ((a[CMC(k, i, nnodes)] >= PRESENT) && (a[CMC(i, k, nnodes)] >= PRESENT))
+              continue;
+
+            /* if NODE(k) is a parent of NODE(j) and of NODE(i), the collider is shielded. */
+            if ((a[CMC(k, i, nnodes)] >= PRESENT) && (a[CMC(i, k, nnodes)] == ABSENT)) {
 
               shielded = TRUE;
 
@@ -637,7 +640,7 @@ short int shielded = FALSE, flag = FALSE;
           if (shielded) {
 
             if (debuglevel > 0)
-              Rprintf("  > arc %s - %s is part of a shielded collider, leave it undirected.\n", NODE(j), NODE(i));
+              Rprintf("  > arc %s - %s is no part of an unshielded collider, leave it undirected.\n", NODE(j), NODE(i));
 
           }/*THEN*/
           else {

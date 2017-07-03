@@ -55,5 +55,5 @@
   }
 
 }
-\author{ Marco Scutari }
-\keyword{ classes }
+\author{Marco Scutari}
+\keyword{classes}

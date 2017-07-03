@@ -186,3 +186,82 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
 
 }#CHOOSE.DIRECTION
 
+# compute the Bayes factor of two networks.
+BF = function(num, den, data, score, ..., log = TRUE) {
+
+  # check the two networks, individually and against each other.
+  check.bn(num)
+  check.bn(den)
+  match.bn(num, den)
+  nodes = names(num$nodes)
+  # check the data.
+  type = check.data(data)
+  # check the networks against the data.
+  check.bn.vs.data(num, data)
+  check.bn.vs.data(den, data)
+  # check the log argument.
+  check.logical(log)
+  # no score if at least one of the networks is partially directed.
+  if (is.pdag(num$arcs, names(num$nodes)))
+    stop("the graph in the numerator on the BF is only partially directed.")
+  if (is.pdag(den$arcs, names(den$nodes)))
+    stop("the graph in the denominator on the BF is only partially directed.")
+
+  # make sure the score function is suitable for computing a Bayes factor.
+  if (missing(score)) {
+
+    if (type %in% discrete.data.types)
+      score = "bde"
+    else if (type %in% continuous.data.types)
+      score = "bge"
+    else if (type %in% mixed.data.types)
+      score = "bic-cg"
+
+  }#THEN
+  else {
+
+    score = check.score(score, data,
+              allowed = c(available.discrete.bayesian.scores,
+                          available.continuous.bayesian.scores,
+                          grep("bic", available.scores, value = TRUE)))
+
+  }#ELSE
+
+  # expand and sanitize score-specific arguments.
+  extra.args = check.score.args(score = score, network = num,
+                 data = data, extra.args = list(...), learning = FALSE)
+
+  # if a graph prior is used, this in not a Bayes factor any longer.
+  if (!is.null(extra.args$prior) && extra.args$prior != "uniform")
+    warning("using a non-uniform graph prior means this is not a Bayes factor.")
+
+  # if the score is decomposable, compute the Bayes factor using only those
+  # local distributions that differ between the two networks; otherwise 
+  # compute it on the whole network.
+  if (is.score.decomposable(score, extra.args)) {
+
+    different = 
+      sapply(nodes, function(n) {
+        !setequal(num$nodes[[n]]$parents, den$nodes[[n]]$parents)
+      })
+    different = nodes[different]
+
+  }#THEN
+  else {
+
+    different = nodes
+
+  }#ELSE
+
+  logBF.num = per.node.score(num, data = data, score = score,
+                targets = different, extra.args = extra.args)
+  logBF.den = per.node.score(den, data = data, score = score,
+                targets = different, extra.args = extra.args)
+
+  # compute the Bayes factor on the log-scale, and taking the difference between
+  # local distributions before summing to minimise numeric problems.
+  logBF = sum(logBF.num - logBF.den)
+
+  return(ifelse(log, logBF, exp(logBF)))
+
+}#BF

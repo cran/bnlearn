@@ -357,7 +357,7 @@ SEXP fake_nodes, real_nodes, target, off_target, rev_arc, temp;
       SET_STRING_ELT(rev_arc, 0, STRING_ELT(arc, 1));
       SET_STRING_ELT(rev_arc, 1, STRING_ELT(arc, 0));
 
-      PROTECT(real_nodes = score_delta_helper(network, rev_arc, mkString("drop"), TRUE, TRUE));      
+      PROTECT(real_nodes = score_delta_helper(network, rev_arc, mkString("drop"), TRUE, TRUE));
       real_nodes = getListElement(real_nodes, "nodes");
 
       old_prior += graph_prior_prob(prior, target, cs_prior, real_nodes, FALSE);
@@ -398,7 +398,9 @@ SEXP score_delta_monolithic(SEXP arc, SEXP network, SEXP data, SEXP score,
 
     case BDE:
     case BDS:
+    case BDJ:
     case MBDE:
+    case BDLA:
     case BGE:
 
       switch(gprior_label(CHAR(STRING_ELT(getListElement(extra, "prior"), 0)))) {

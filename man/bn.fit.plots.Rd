@@ -59,5 +59,6 @@ bn.fit.dotplot(fitted, xlab = "Probabilities",
 \seealso{
   \code{\link{bn.fit}}, \code{\link{bn.fit class}}.
 }
-\author{ Marco Scutari }
-\keyword{hplot}
+\author{Marco Scutari}
+\keyword{interfaces to other packages}
+\keyword{plots}

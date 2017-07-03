@@ -9,33 +9,39 @@ sigma = function(object, ...) {
 
 as.grain = function(x) {
 
-  UseMethod("as.grain", x)
+  UseMethod("as.grain")
 
 }#AS.GRAIN
 
 as.bn = function(x) {
 
-  UseMethod("as.bn", x)
+  UseMethod("as.bn")
 
 }#AS.BN
 
 as.bn.fit = function(x) {
 
-  UseMethod("as.bn.fit", x)
+  UseMethod("as.bn.fit")
 
 }#AS.BN.FIT
 
 as.graphNEL = function(x) {
 
-  UseMethod("as.graphNEL", x)
+  UseMethod("as.graphNEL")
 
 }#AS.GRAPHNEL
 
 as.graphAM = function(x) {
 
-  UseMethod("as.graphAM", x)
+  UseMethod("as.graphAM")
 
 }#AS.GRAPHAM
+
+as.prediction = function(x, ...) {
+
+  UseMethod("as.prediction")
+
+}#AS.PREDICTION
 
 # convert a "bn.fit" object from bnlearn into a "grain" object.
 as.grain.bn.fit = function(x) {
@@ -73,7 +79,7 @@ as.grain.bn.fit = function(x) {
       warning("NaN conditional probabilities in ", node,
         ", replaced with a uniform distribution.")
 
-      values[is.na(values)] <- 1/dim(values)[1]
+      values[is.na(values)] = 1/dim(values)[1]
 
     }#THEN
 
@@ -127,7 +133,7 @@ as.bn.fit.grain = function(x) {
 
   }#FOR
 
-  return(structure(fitted, class = c("bn.fit", guess.fitted.class(fitted))))
+  return(structure(fitted, class = c("bn.fit", determine.fitted.class(fitted))))
 
 }#AS.BN.FIT.GRAIN
 
@@ -240,3 +246,53 @@ as.bn.graphNEL = function(x) {
 
 }#AS.BN.GRAPHNEL
 
+# generate the input for a ROC curve from arc strengths.
+as.prediction.bn.strength = function(x, true, ..., consider.direction = TRUE) {
+
+  # check whether ROCR is loaded.
+  if (!requireNamespace("ROCR"))
+    stop("This function requires the ROCR package.")
+
+  # check whether true is a bn object.
+  check.bn(true)
+  # check whether it encodes a completely directed graph.
+  nodes = names(true$nodes)
+  if (is.pdag(true$arcs, nodes))
+    stop("the graph is only partially directed.")
+  # check the arc strengths.
+  check.bn.strength(x, nodes = nodes, valid = "bootstrap")
+
+  # check consider.direction.
+  check.logical(consider.direction)
+   # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  # create a data frame with all possible arcs, and merge the arc strengths
+  # (with or without taking the direction into account.)
+  dd = structure(data.frame(subsets(nodes, 2)), names = c("from", "to"))
+
+  if(consider.direction) {
+
+    true.arcs.mat = true$arcs
+    x$pred = x$strength * x$direction
+
+  }#THEN
+  else {
+
+    true.arcs.mat = arcs(skeleton(true))
+    x$pred = x$strength
+
+  }#ELSE
+
+  # add a 0/1 indicator that encodes the arcs in the true network.
+  dd = merge(dd, x[, c("from", "to", "pred")], by = c("from", "to"))
+  true.arcs = data.frame(true.arcs.mat, label = 1)
+  dd = merge(dd, true.arcs, by = c("from", "to"), all.x = TRUE)
+  dd$label[is.na(dd$label)] = 0
+
+  # export the (true arcs, arc probabilities) pairs to the ROCR package.
+  pred = ROCR::prediction(dd$pred, dd$label)
+
+  return(pred)
+
+}#AS.PREDICTION.BN.STRENGTH

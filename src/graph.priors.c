@@ -7,7 +7,7 @@
 
 double castelo_prior(SEXP beta, SEXP target, SEXP parents, SEXP children,
     int debuglevel);
-double marginal_prior(SEXP target, SEXP parents, SEXP children,
+double marginal_prior(SEXP beta, SEXP target, SEXP parents, SEXP children,
     SEXP node_cache, SEXP nodes, int debuglevel);
 
 double graph_prior_prob(SEXP prior, SEXP target, SEXP beta, SEXP cache,
@@ -55,7 +55,8 @@ SEXP nodes, parents, children, target_cache;
       parents = getListElement(target_cache, "parents");
       children = getListElement(target_cache, "children");
       nodes = getAttrib(beta, BN_NodesSymbol);
-      prob = marginal_prior(target, parents, children, cache, nodes, debuglevel);
+      prob = marginal_prior(beta, target, parents, children, cache, nodes,
+               debuglevel);
       break;
 
     default:
@@ -310,12 +311,12 @@ SEXP result, from, to, nid, dir1, dir2;
 
 }/*CASTELO_COMPLETION*/
 
-double marginal_prior(SEXP target, SEXP parents, SEXP children, 
+double marginal_prior(SEXP beta, SEXP target, SEXP parents, SEXP children,
     SEXP node_cache, SEXP nodes, int debuglevel) {
 
 int i = 0, t = 0, nnodes = length(nodes);
 int *temp = NULL;
-double prior = 0, result = 0;
+double prior = 0, result = 0, b = NUM(beta);
 short int *adjacent = NULL;
 SEXP try;
 
@@ -343,7 +344,7 @@ SEXP try;
   for (i = t + 1; i <= nnodes; i++) {
 
     /* look up the prior probability. */
-    prior = (adjacent[i - 1] > 0) ? 0.25 : 0.50;
+    prior = (adjacent[i - 1] > 0) ? b / 2 : 1 - b;
 
     if (debuglevel > 0) {
 

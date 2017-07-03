@@ -34,7 +34,7 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   \item{blacklist}{a data frame with two columns (optionally labeled "from"
     and "to"), containing a set of arcs not to be included in the graph.}
   \item{mi}{a character string, the estimator used for the mutual information
-    coefficients for the Chow-Liu algorithm in TAN. Possible values are 
+    coefficients for the Chow-Liu algorithm in TAN. Possible values are
     \code{mi} (discrete mutual information) and \code{mi-g} (Gaussian mutual
     information).}
   \item{root}{a character string, the label of the explanatory variable to be
@@ -43,7 +43,7 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   \item{prob}{a boolean value. If \code{TRUE} the posterior probabilities used
     for prediction are attached to the predicted values as an attribute called
     \code{prob}.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is 
+  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }
 \details{
@@ -126,5 +126,6 @@ fitted = bn.fit(bn, training.set)
 pred = predict(fitted, test.set)
 table(pred, test.set[, "A"])
 }
-\author{ Marco Scutari }
-\keyword{multivariate}
+\author{Marco Scutari}
+\keyword{structure learning}
+\keyword{classifiers}

@@ -12,7 +12,7 @@ SEXP c_unique_arcs(SEXP arcs, SEXP nodes, int warnlevel);
 SEXP root_nodes(SEXP bn, SEXP leaves);
 
 /* from simulation.c */
-SEXP schedule(SEXP bn, SEXP root_nodes, SEXP reverse, SEXP debug);
+SEXP topological_ordering(SEXP bn, SEXP root_nodes, SEXP reverse, SEXP debug);
 
 /* from path.c */
 int c_has_path(int start, int stop, int *amat, int n, SEXP nodes,

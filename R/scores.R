@@ -3,7 +3,7 @@
 per.node.score = function(network, data, score, targets, extra.args,
     debug = FALSE) {
 
-  .Call("per_node_score",
+  .Call(call_per_node_score,
         network = network,
         data = data,
         score = score,
@@ -16,7 +16,7 @@ per.node.score = function(network, data, score, targets, extra.args,
 # complete a prior over arcs as per Castelo and Siebes.
 cs.completed.prior = function(beta, nodes, learning = FALSE) {
 
-  beta = .Call("castelo_completion",
+  beta = .Call(call_castelo_completion,
                prior = beta,
                nodes = nodes,
                learning = learning)
@@ -31,7 +31,7 @@ cs.completed.prior = function(beta, nodes, learning = FALSE) {
 # compute the optimal imaginary sample size for a discrete network.
 alpha.star.backend = function(x, data, debug = FALSE) {
 
-  .Call("alpha_star",
+  .Call(call_alpha_star,
     x = x,
     data = data,
     debug = debug)

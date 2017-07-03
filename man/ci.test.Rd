@@ -1,9 +1,9 @@
 \name{ci.test}
 \alias{ci.test}
-\title{Independence and Conditional Independence Tests}
+\title{Independence and conditional independence tests}
 \description{
 
-  Perform either an independence test or a conditional independence test.
+  Perform an independence or a conditional independence test.
 
 }
 \usage{
@@ -21,12 +21,12 @@ ci.test(x, y, z, data, test, B, debug = FALSE)
   \item{test}{a character string, the label of the conditional independence
     test to be used in the algorithm. If none is specified, the default test
     statistic is the \emph{mutual information} for categorical variables, the
-    Jonckheere-Terpstra test for ordered factors and the \emph{linear 
+    Jonckheere-Terpstra test for ordered factors and the \emph{linear
     correlation} for continuous variables. See \code{\link{bnlearn-package}}
     for details.}
   \item{B}{a positive integer, the number of permutations considered for each
     permutation test. It will be ignored with a warning if the conditional
-    independence test specified by the \code{test} argument is not a 
+    independence test specified by the \code{test} argument is not a
     permutation test.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
@@ -92,5 +92,5 @@ attach(learning.test)
 ci.test(x = F , y = B, z = data.frame(C, D))
 }
 \seealso{\code{\link{choose.direction}}, \code{\link{arc.strength}}.}
-\author{ Marco Scutari }
-\keyword{htest}
+\author{Marco Scutari}
+\keyword{independence tests}

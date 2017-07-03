@@ -1,6 +1,6 @@
 \name{relevant}
 \alias{relevant}
-\title{Identify Relevant Nodes Without Learning the Bayesian network}
+\title{Identify relevant nodes without learning the Bayesian network}
 \description{
 
   Identify all the nodes relevant to compute all the conditional probability
@@ -60,6 +60,5 @@ relevant("A", context = "B", data = learning.test,)
       on Uncertainty in Artificial Intelligence (UAI2006)", pp. 367-374.
 
 }
-\author{ Marco Scutari }
-\keyword{multivariate}
-\keyword{models}
+\author{Marco Scutari}
+\keyword{local learning}

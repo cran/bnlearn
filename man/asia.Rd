@@ -64,10 +64,10 @@ data(asia)
 
 }
 \examples{
-# load the data and build the correct network from the model string.
+# load the data.
 data(asia)
-res = empty.graph(names(asia))
-modelstring(res) = "[A][S][T|A][L|S][B|S][D|B:E][E|T:L][X|E]"
-plot(res)
+# create and plot the network structure.
+dag = model2network("[A][S][T|A][L|S][B|S][D|B:E][E|T:L][X|E]")
+\dontrun{graphviz.plot(dag)}
 }
 \keyword{datasets}

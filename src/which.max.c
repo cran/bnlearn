@@ -86,6 +86,16 @@ double tol = MACHINE_TOL;
   /* sort the elements of the array. */
   rsort_with_index(buf, indexes, length);
 
+  /* if both the first and the last element are NAs, then all elements are NAs
+   * and there is no maximum. */
+  if (ISNAN(buf[0]) && ISNAN(buf[length - 1])) {
+
+    for (i = 0; i < length; i++)
+      maxima[i] = NA_INTEGER;
+    return 0;
+
+  }/*THEN*/
+
   /* count the number of maxima (considering numeric tolerance). */
   for (i = length - 1; i >= 0; i--)
     if (buf[i] < buf[length - 1] - tol)

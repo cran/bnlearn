@@ -1,6 +1,6 @@
 \name{alpha.star}
 \alias{alpha.star}
-\title{Estimate the Optimal Imaginary Sample Size for BDe(u)}
+\title{Estimate the optimal imaginary sample size for BDe(u)}
 \description{
 
   Estimate the optimal value of the imaginary sample size for the BDe score,
@@ -25,7 +25,7 @@
 }
 \examples{
 data(learning.test)
-dag = hc(learning.test, score = "bic") 
+dag = hc(learning.test, score = "bic")
 
 for (i in 1:3) {
 
@@ -41,6 +41,6 @@ for (i in 1:3) {
       on Uncertainty in Artificial Intelligence (UAI2008)", pp. 511-518.
 
 }
-\author{ Marco Scutari }
-\keyword{multivariate}
-\keyword{models}
+\author{Marco Scutari}
+\keyword{structure learning}
+\keyword{network scores}

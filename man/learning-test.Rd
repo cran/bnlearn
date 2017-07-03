@@ -37,10 +37,10 @@ data(learning.test)
 
 }
 \examples{
-# load the data and build the correct network from the model string.
+# load the data.
 data(learning.test)
-res = empty.graph(names(learning.test))
-modelstring(res) = "[A][C][F][B|A][D|A:C][E|B:F]"
-plot(res)
+# create and plot the network structure.
+dag = model2network("[A][C][F][B|A][D|A:C][E|B:F]")
+\dontrun{graphviz.plot(dag)}
 }
 \keyword{datasets}

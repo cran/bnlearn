@@ -114,7 +114,7 @@ blacklist(x)
     from. It's only needed if \code{x} is an object of class \code{bn}.}
   \item{check.cycles}{a boolean value. If \code{FALSE} the returned network will
     not be checked for cycles.}
-  \item{check.illegal}{a boolean value. If \code{TRUE} arcs that break the 
+  \item{check.illegal}{a boolean value. If \code{TRUE} arcs that break the
     parametric assumptions of \code{x}, such as those from continuous to
     discrete nodes in conditional Gaussian networks, cause an error.}
   \item{effective}{a boolean value. If \code{TRUE} the number of non-zero free
@@ -130,7 +130,12 @@ blacklist(x)
   parents (Chickering, 1995). For Gaussian Bayesian networks the distribution
   of each node can be viewed as a linear regression, so it has a number of
   parameters equal to the number of the parents of the node plus one (the
-  intercept) as per Neapolitan (2003).
+  intercept) as per Neapolitan (2003). For conditional linear Gaussian networks,
+  the number of parameters of discrete and Gaussian nodes is as above. The
+  number of parameters of conditional Gaussian nodes is equal to \code{1} plus
+  the number of continuous parents (who get one regression coefficient each,
+  plus the intercept) times the number of configurations of the discrete parents
+  (each configuration has an associated regression model).
 
 }
 \value{
@@ -189,6 +194,6 @@ leaf.nodes(res)
 res = set.arc(res, "A", "B")
 nparams(res, learning.test)
 }
-\author{ Marco Scutari }
-\keyword{utilities}
+\author{Marco Scutari}
+\keyword{convenience functions}
 \keyword{graphs}

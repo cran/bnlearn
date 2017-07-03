@@ -39,9 +39,7 @@ chow.liu(x, whitelist = NULL, blacklist = NULL, mi = NULL, debug = FALSE)
       Bioinformatics}, \strong{7}(Suppl 1):S7.
 
 }
-\author{ Marco Scutari }
+\author{Marco Scutari}
 \seealso{\link{constraint-based algorithms}, \link{score-based algorithms},
   \link{hybrid algorithms}.}
-\keyword{multivariate}
-\keyword{models}
-\keyword{graphs}
+\keyword{local learning}

@@ -65,7 +65,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
     nparents = colSums(amat)
 
     # set up the score cache (BEWARE: in place modification!).
-    .Call("score_cache_fill",
+    .Call(call_score_cache_fill,
           nodes = nodes,
           data = x,
           network = start,
@@ -87,7 +87,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
                     maxp = maxp, arcs = FALSE)
 
     # get the best arc addition/removal/reversal.
-    bestop = .Call("hc_opt_step",
+    bestop = .Call(call_hc_opt_step,
                    amat = amat,
                    nodes = nodes,
                    added = to.be.added,

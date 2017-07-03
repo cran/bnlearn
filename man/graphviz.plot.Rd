@@ -67,5 +67,6 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
 
 }
 \seealso{\code{\link{plot.bn}}.}
-\author{ Marco Scutari }
-\keyword{hplot}
+\author{Marco Scutari}
+\keyword{interfaces to other packages}
+\keyword{plots}

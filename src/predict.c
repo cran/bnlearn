@@ -3,6 +3,7 @@
 #include "include/dataframe.h"
 #include "include/sampling.h"
 #include "include/matrix.h"
+#include "include/fitted.h"
 
 /* predict the value of a gaussian node without parents. */
 SEXP gpred(SEXP fitted, SEXP ndata, SEXP debug) {
@@ -262,7 +263,15 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
   /* copy the index of the mode in the return value. */
   for (i = 0; i < n; i++) {
 
-    if (nmax[configs[i] - 1] == 1) {
+    if (nmax[configs[i] - 1] == 0) {
+
+      res[i] = NA_INTEGER;
+
+      if (debuglevel > 0)
+        Rprintf("  > prediction for observation %d is NA because the probabilities are missing.\n");
+
+    }/*THEN*/
+    else if (nmax[configs[i] - 1] == 1) {
 
       res[i] = maxima[CMC(0, configs[i] - 1, nrow)];
 
@@ -405,7 +414,7 @@ int idx = 0, *tr_id = INTEGER(training), include_prob = isTRUE(prob);
 int *iscratch = NULL, *maxima = NULL, *prn = NULL, debuglevel = isTRUE(debug);
 double **cpt = NULL, *pr = NULL, *scratch = NULL, *buf = NULL, *pt = NULL;
 double sum = 0;
-SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue;
+SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
 
   /* cache the node labels. */
   nodes = getAttrib(fitted, R_NamesSymbol);
@@ -416,6 +425,9 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue;
 
   for (i = 0; i < nvars; i++) {
 
+    if (i == *tr_id - 1)
+      continue;
+
     temp = VECTOR_ELT(data, i);
     ex[i] = INTEGER(temp);
     ex_nlevels[i] = NLEVELS(temp);
@@ -423,10 +435,10 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue;
   }/*FOR*/
 
   /* get the training variable and its levels. */
-  n = length(VECTOR_ELT(data, 0));
-  tr = getListElement(VECTOR_ELT(fitted, *tr_id - 1), "prob");
+  n = length(VECTOR_ELT(data, (*tr_id - 1 != 0) ? 0 : 1));
+  tr_node = VECTOR_ELT(fitted, *tr_id - 1);
+  tr = getListElement(tr_node, "prob");
   tr_levels = VECTOR_ELT(getAttrib(tr, R_DimNamesSymbol), 0);
-  tr_class = getAttrib(VECTOR_ELT(data, *tr_id - 1), R_ClassSymbol);
   tr_nlevels = length(tr_levels);
   /* get the prior distribution. */
   pr = REAL(prior);
@@ -561,7 +573,15 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue;
 
     }/*THEN*/
 
-    if (nmax == 1) {
+    if (nmax == 0) {
+
+      res[i] = NA_INTEGER;
+
+      if (debuglevel > 0)
+        Rprintf("  > prediction for observation %d is NA because the probabilities are missing.\n");
+
+    }/*THEN*/
+    else if (nmax == 1) {
 
       res[i] = maxima[0];
 
@@ -608,7 +628,22 @@ SEXP temp, tr, tr_levels, tr_class, result, nodes, probtab = R_NilValue;
 
   /* add back the attributes and the class to the return value. */
   setAttrib(result, R_LevelsSymbol, tr_levels);
-  setAttrib(result, R_ClassSymbol, tr_class);
+
+  switch(r_fitted_node_label(tr_node)) {
+
+    case DNODE:
+      setAttrib(result, R_ClassSymbol, mkString("factor"));
+      break;
+
+    case ONODE:
+      setAttrib(result, R_ClassSymbol, mkStringVec(2, "ordered", "factor"));
+      break;
+
+    default:
+      error("unknown node type (class: %s).",
+         CHAR(STRING_ELT(getAttrib(tr_node, R_ClassSymbol), 0)));
+
+  }/*SWITCH*/
 
   if (include_prob > 0) {
 

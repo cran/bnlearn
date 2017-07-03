@@ -176,7 +176,7 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
       # for each direction, so that when summing up strength and direction
       # they get counted once instead of twice.
       # BEWARE: in-place modification of prob!
-      .Call("bootstrap_strength_counters",
+      .Call(call_bootstrap_strength_counters,
             prob = prob,
             weight = 1,
             arcs = net$arcs,
@@ -187,7 +187,7 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
     # rescale the counters to probabilities.
     prob = prob / R
 
-    res = .Call("bootstrap_arc_coefficients",
+    res = .Call(call_bootstrap_arc_coefficients,
                 prob = prob,
                 nodes = nodes)
 
@@ -207,7 +207,7 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
             data = data, m = m, arcs = arcs, algorithm = algorithm,
             algorithm.args = algorithm.args, cpdag = cpdag, debug = debug)
 
-    .Call("bootstrap_reduce",
+    .Call(call_bootstrap_reduce,
           x = res)
 
   }#THEN
@@ -256,7 +256,7 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
     # for each direction, so that when summing up strength and direction
     # they get counted once instead of twice.
     # BEWARE: in-place modification of prob!
-    .Call("bootstrap_strength_counters",
+    .Call(call_bootstrap_strength_counters,
           prob = prob,
           weight = weights[r],
           arcs = net.arcs,
@@ -267,7 +267,7 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
   # rescale the counters to probabilities.
   prob = prob / weight.sum
 
-  res = .Call("bootstrap_arc_coefficients",
+  res = .Call(call_bootstrap_arc_coefficients,
               prob = prob,
               nodes = nodes)
 
@@ -436,7 +436,7 @@ threshold = function(strength, method = "l1") {
 # weighted average of bn.strength objects.
 mean.strength = function(strength, nodes, weights) {
 
-  .Call("mean_strength",
+  .Call(call_mean_strength,
         strength = strength,
         nodes = nodes,
         weights = weights)

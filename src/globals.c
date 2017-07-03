@@ -7,7 +7,7 @@ SEXP BN_MethodSymbol;
 SEXP BN_WeightsSymbol;
 SEXP TRUESEXP, FALSESEXP;
 
-SEXP c_onLoad() {
+SEXP onLoad() {
 
   /* initialize symbols in .onLoad(), to do that only once. */
   BN_ModelstringSymbol = install("modelstring");
@@ -24,7 +24,7 @@ SEXP c_onLoad() {
 
 }/*C_ONLOAD*/
 
-SEXP c_onUnload() {
+SEXP onUnload() {
 
   R_ReleaseObject(TRUESEXP);
   R_ReleaseObject(FALSESEXP);

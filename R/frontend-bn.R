@@ -117,11 +117,16 @@ blacklist = function(x) {
 cpdag = function(x, moral = TRUE, wlbl = FALSE, debug = FALSE) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
   # check moral, debug and wlbl.
   check.logical(moral)
   check.logical(debug)
   check.logical(wlbl)
+
+  # go back to the network structure if needed.
+  if (is(x, "bn.fit"))
+    x = bn.net(x)
+
   # check whether the graph is acyclic, to be sure to return a DAG.
   if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
     stop("the specified network contains cycles.")
@@ -164,15 +169,19 @@ cextend = function(x, strict = TRUE, debug = FALSE) {
 
 }#CEXTEND
 
-# report v-structures in the network.
+# return the v-structures in a network.
 vstructs = function(x, arcs = FALSE, moral = TRUE, debug = FALSE) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
   # check debug, moral and arcs.
   check.logical(arcs)
   check.logical(moral)
   check.logical(debug)
+
+  # go back to the network structure if needed.
+  if (is(x, "bn.fit"))
+    x = bn.net(x)
 
   vstructures(x = x, arcs = arcs, moral = moral, debug = debug)
 
@@ -182,9 +191,13 @@ vstructs = function(x, arcs = FALSE, moral = TRUE, debug = FALSE) {
 moral = function(x, debug = FALSE) {
 
   # check x's class.
-  check.bn(x)
+  check.bn.or.fit(x)
   # check debug.
   check.logical(debug)
+
+  # go back to the network structure if needed.
+  if (is(x, "bn.fit"))
+    x = bn.net(x)
 
   dag2ug.backend(x = x, moral = TRUE, debug = debug)
 
@@ -230,13 +243,13 @@ dsep = function(bn, x, y, z) {
 }#DSEP
 
 # test the equality of two fitted networks.
-all.equal.bn.fit = function(target, current, ..., 
+all.equal.bn.fit = function(target, current, ...,
     tolerance = sqrt(.Machine$double.eps)) {
 
   # check the class of target and current.
   check.fit(target)
   check.fit(current)
-  # warn about unused arguments, but silently ignore those set by 
+  # warn about unused arguments, but silently ignore those set by
   # all.equal.list() that are not in the generic function.
   check.unused.args(list(...), c("use.names", "check.attributes"))
 

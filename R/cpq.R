@@ -109,8 +109,9 @@ reduce.fitted = function(fitted, event, evidence, nodes, method, debug) {
     nodes = names(fitted)
     nodes.event = nodes[nodes %in% explode(event)]
     nodes.evidence = nodes[nodes %in% explode(evidence)]
-    upper.closure = schedule(fitted, start = union(nodes.evidence, nodes.event),
-                      reverse = TRUE)
+    upper.closure =
+      topological.ordering(fitted, start = union(nodes.evidence, nodes.event),
+                           reverse = TRUE)
 
     # check whether something went horribly wrong in getting the node labels
     # and the upper closure.
@@ -147,7 +148,7 @@ reduce.fitted = function(fitted, event, evidence, nodes, method, debug) {
   else {
 
     # construct the upper closure of the query nodes.
-    upper.closure = schedule(fitted, start = nodes, reverse = TRUE)
+    upper.closure = topological.ordering(fitted, start = nodes, reverse = TRUE)
 
     if (debug) {
 
@@ -392,7 +393,7 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
     if (isTRUE(evidence))
       return(rep(1, nrow(data)))
     else
-      .Call("lw_weights",
+      .Call(call_lw_weights,
             fitted = fitted,
             data = data,
             keep = names(evidence),
@@ -460,7 +461,7 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
 # weighting.
 weighting.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) {
 
-  .Call("cpdist_lw",
+  .Call(call_cpdist_lw,
         fitted = fitted,
         nodes = nodes,
         n = as.integer(n),

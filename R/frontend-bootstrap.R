@@ -95,7 +95,7 @@ boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
 }#BOOT.STRENGTH
 
 # perform cross-validation.
-bn.cv = function(data, bn, loss = NULL, ..., 
+bn.cv = function(data, bn, loss = NULL, ...,
     algorithm.args = list(), loss.args = list(), fit = "mle",
     fit.args = list(), method = "k-fold", cluster = NULL, debug = FALSE) {
 

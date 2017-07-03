@@ -1,7 +1,7 @@
 \name{alarm}
 \docType{data}
 \alias{alarm}
-\title{ALARM Monitoring System (synthetic) data set}
+\title{ALARM monitoring system (synthetic) data set}
 \description{
 
   The ALARM ("A Logical Alarm Reduction Mechanism") is a Bayesian network
@@ -58,9 +58,9 @@ data(alarm)
       factor with levels \code{TRUE} and \code{FALSE}.
     \item \code{PMB} (\emph{pulmonary embolus}): a two-level factor with levels
       \code{TRUE} and \code{FALSE}.
-    \item \code{INT} (\emph{intubation}): a three-level factor with levels 
+    \item \code{INT} (\emph{intubation}): a three-level factor with levels
       \code{NORMAL}, \code{ESOPHAGEAL} and \code{ONESIDED}.
-    \item \code{KINK} (\emph{kinked tube}): a two-level factor with levels 
+    \item \code{KINK} (\emph{kinked tube}): a two-level factor with levels
       \code{TRUE} and \code{FALSE}.
     \item \code{DISC} (\emph{disconnection}): a two-level factor with levels
       \code{TRUE} and \code{FALSE}.
@@ -76,7 +76,7 @@ data(alarm)
       \code{LOW}, \code{NORMAL} and \code{HIGH}.
     \item \code{ERCA} (\emph{electrocauter}): a two-level factor with levels
       \code{TRUE} and \code{FALSE}.
-    \item \code{SHNT} (\emph{shunt}): a two-level factor with levels 
+    \item \code{SHNT} (\emph{shunt}): a two-level factor with levels
       \code{NORMAL} and \code{HIGH}.
     \item \code{PVS} (\emph{pulmonary venous oxygen saturation}): a three-level
       factor with levels \code{LOW}, \code{NORMAL} and \code{HIGH}.
@@ -108,17 +108,17 @@ data(alarm)
 
 }
 \examples{
-# load the data and build the correct network from the model string.
+# load the data.
 data(alarm)
-res = empty.graph(names(alarm))
-modelstring(res) = paste("[HIST|LVF][CVP|LVV][PCWP|LVV][HYP][LVV|HYP:LVF]",
+# create and plot the network structure.
+modelstring = paste("[HIST|LVF][CVP|LVV][PCWP|LVV][HYP][LVV|HYP:LVF]",
   "[LVF][STKV|HYP:LVF][ERLO][HRBP|ERLO:HR][HREK|ERCA:HR][ERCA]",
   "[HRSA|ERCA:HR][ANES][APL][TPR|APL][ECO2|ACO2:VLNG][KINK]",
   "[MINV|INT:VLNG][FIO2][PVS|FIO2:VALV][SAO2|PVS:SHNT][PAP|PMB][PMB]",
   "[SHNT|INT:PMB][INT][PRSS|INT:KINK:VTUB][DISC][MVS][VMCH|MVS]",
   "[VTUB|DISC:VMCH][VLNG|INT:KINK:VTUB][VALV|INT:VLNG][ACO2|VALV]",
   "[CCHL|ACO2:ANES:SAO2:TPR][HR|CCHL][CO|HR:STKV][BP|CO:TPR]", sep = "")
-\dontrun{
-# there are too many nodes for plot(), use graphviz.plot().
-graphviz.plot(res)}}
+dag = model2network(modelstring)
+\dontrun{graphviz.plot(dag)}
+}
 \keyword{datasets}

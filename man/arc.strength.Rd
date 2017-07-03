@@ -31,14 +31,13 @@ averaged.network(strength, nodes, threshold)
     class \code{bn} (for all other functions).}
   \item{networks}{a list, containing either object of class \code{bn} or arc
     sets (matrices or data frames with two columns, optionally labeled "from"
-    and "to").}
+    and "to"); or an object of class \code{bn.kcv} or \code{bn.kcv.list}.}
   \item{data}{a data frame containing the data the Bayesian network was
     learned from.}
-  \item{cluster}{an optional cluster object from package \pkg{parallel}. See
-    \code{\link{parallel integration}} for details and a simple example.}
+  \item{cluster}{an optional cluster object from package \pkg{parallel}.}
   \item{strength}{an object of class \code{bn.strength}, see below.}
   \item{threshold}{a numeric value, the minimum strength required for an
-    arc to be included in the averaged network. The default value is the 
+    arc to be included in the averaged network. The default value is the
     \code{threshold} attribute of the \code{strength} argument.}
   \item{nodes}{a vector of character strings, the labels of the nodes in the
     network. In \code{\link{averaged.network}}, it defaults to the set of the
@@ -82,7 +81,7 @@ averaged.network(strength, nodes, threshold)
 
   If \code{criterion} is the label of a score function, the strength is
   measured by the score gain/loss which would be caused by the arc's removal.
-  In other words, it is the difference between the score of the network 
+  In other words, it is the difference between the score of the network
   including the arc and the score of the network in which the arc is not
   present. Negative values correspond to decreases in the network score and
   positive values correspond to increases in the network score (the stronger
@@ -101,8 +100,8 @@ averaged.network(strength, nodes, threshold)
 
   Model averaging is supported for objects of class \code{bn.strength} returned
   by \code{\link{boot.strength}} or by \code{\link{custom.strength}}. The
-  returned network contains the arcs whose strength is greater than the 
-  \code{threshold} attribute of the \code{bn.strength} object passed to 
+  returned network contains the arcs whose strength is greater than the
+  \code{threshold} attribute of the \code{bn.strength} object passed to
   \code{averaged.network}.
 
 }
@@ -118,7 +117,7 @@ averaged.network(strength, nodes, threshold)
 
   \code{arc.strength}, \code{boot.strength}, \code{custom.strength} and
   \code{mean} return an object of class \code{bn.strength}; \code{boot.strength}
-  and \code{custom.strength} also include information about the relative 
+  and \code{custom.strength} also include information about the relative
   probabilities of arc directions.
 
   \code{averaged.network} returns an object of class \code{bn}.
@@ -166,5 +165,7 @@ modelstring(averaged.network(arcs))
 }
 \seealso{\code{\link{strength.plot}}, \code{\link{choose.direction}},
   \code{\link{score}}, \code{\link{ci.test}}.}
-\author{ Marco Scutari }
-\keyword{htest}
+\author{Marco Scutari}
+\keyword{network scores}
+\keyword{independence tests}
+\keyword{structure learning}

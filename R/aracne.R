@@ -21,7 +21,7 @@ aracne.backend = function(x, estimator, whitelist, blacklist, debug = FALSE) {
 
   }#THEN
 
-  .Call("aracne",
+  .Call(call_aracne,
         data = x,
         estimator = estimator,
         whitelist = whitelist,

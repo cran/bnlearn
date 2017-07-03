@@ -8,7 +8,7 @@
 \alias{as.graphNEL.bn.fit}
 \alias{as.graphAM.bn}
 \alias{as.graphAM.bn.fit}
-\title{ Import and export networks from the graph package }
+\title{Import and export networks from the graph package}
 \description{
 
   Convert \code{bn} and \code{bn.fit} objects to \code{graphNEL} and
@@ -45,6 +45,6 @@ library(graph)
 a = bn.fit(hc(learning.test), learning.test)
 b = as.graphNEL(a)
 c = as.bn(b)}}
-\author{ Marco Scutari }
+\author{Marco Scutari}
 \keyword{utilities}
-\keyword{multivariate}
+\keyword{interfaces to other packages}

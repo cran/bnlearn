@@ -25,8 +25,8 @@ pdag2dag(x, ordering)
 subgraph(x, nodes)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}. \code{acyclic}, \code{directed} and
-    \code{path} also accept objects of class \code{bn.fit}.}
+  \item{x}{an object of class \code{bn}. \code{skeleton}, \code{acyclic},
+    \code{directed} and \code{path} also accept objects of class \code{bn.fit}.}
   \item{from}{a character string, the label of a node.}
   \item{to}{a character string, the label of a node (different from
     \code{from}).}
@@ -68,6 +68,5 @@ res
 directed(res)
 skeleton(res)
 }
-\author{ Marco Scutari }
-\keyword{utilities}
+\author{Marco Scutari}
 \keyword{graphs}

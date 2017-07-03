@@ -3,7 +3,7 @@
 # in y).
 indep.test = function(x, y, sx, data, test, B = 0L, alpha = 1, learning = TRUE) {
 
-  .Call("indep_test",
+  .Call(call_indep_test,
         x = x,
         y = y,
         sx = sx[sx != ""],
@@ -24,7 +24,7 @@ allsubs.test = function(x, y, sx, fixed = character(0), data, test, B = 0L,
   if (missing(max))
     max = length(sx)
 
-  .Call("allsubs_test",
+  .Call(call_allsubs_test,
         x = x,
         y = y,
         sx = sx,
@@ -46,7 +46,7 @@ roundrobin.test = function(x, z, fixed, data, test, B = 0L, alpha = 1,
   if (length(z) == 0)
     return(structure(numeric(0), names = character(0)))
 
-  .Call("roundrobin_test",
+  .Call(call_roundrobin_test,
         x = x,
         z = z,
         fixed = fixed,
@@ -61,7 +61,7 @@ roundrobin.test = function(x, z, fixed, data, test, B = 0L, alpha = 1,
 # Mutual Information (discrete data)
 mi.test = function(x, y, ndata, gsquare = TRUE, adjusted = FALSE) {
 
-  .Call("mi",
+  .Call(call_mi,
         x = x,
         y = y,
         gsquare = gsquare,

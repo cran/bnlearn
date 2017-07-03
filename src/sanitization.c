@@ -107,7 +107,7 @@ SEXP cur_var, cur_var_levels, cur_var_class;
         break;
 
       case INTSXP:
-        if ((cur_node_type != DNODE) && (cur_node_type == ONODE))
+        if ((cur_node_type != DNODE) && (cur_node_type != ONODE))
           error("node %s is continuous but variable %s in the data is discrete.",
             NODE(i), NODE(i));
 
@@ -136,10 +136,9 @@ SEXP cur_var, cur_var_levels, cur_var_class;
           if (strcmp(CHAR(STRING_ELT(cur_var_levels, j)),
                      CHAR(STRING_ELT(cur_node_levels, j))) != 0)
             error("level %d of %s is '%s' in the node and '%s' in the data.",
-              j + 1, NODE(i), CHAR(STRING_ELT(cur_var_levels, j)),
-              CHAR(STRING_ELT(cur_node_levels, j)));
+              j + 1, NODE(i), CHAR(STRING_ELT(cur_node_levels, j)),
+              CHAR(STRING_ELT(cur_var_levels, j)));
 
-        /* check that levels are the same. */
         break;
 
       default:

@@ -3,12 +3,14 @@
 \alias{all.equal.bn}
 \alias{shd}
 \alias{hamming}
-\title{Compare two different Bayesian networks}
+\alias{graphviz.compare}
+\title{Compare two or more different Bayesian networks}
 \description{
 
   Compare two different Bayesian networks; compute their Structural Hamming
-  Distance (SHD) or the Hamming distance between their skeletons.
-
+  Distance (SHD) or the Hamming distance between their skeletons. Or
+  graphically compare them by plotting them side by side,
+  
 }
 \usage{
 compare(target, current, arcs = FALSE)
@@ -16,17 +18,62 @@ compare(target, current, arcs = FALSE)
 
 shd(learned, true, wlbl = FALSE, debug = FALSE)
 hamming(learned, true, debug = FALSE)
+
+graphviz.compare(x, ..., layout = "dot", shape = "circle", main = NULL, 
+  sub = NULL, diff = "from-first", diff.args = list())
 }
 \arguments{
   \item{target, learned}{an object of class \code{bn}.}
   \item{current, true}{another object of class \code{bn}.}
-  \item{\dots}{extra arguments from the generic method (currently ignored).}
+  \item{\dots}{extra arguments from the generic method (for \code{all.equal},
+    currently ignored); or a set of one or more objects of class \code{bn}
+    (for \code{graphviz.compare}).}
   \item{wlbl}{a boolean value. If \code{TRUE} arcs whose directions have been
     fixed by a whitelist or a by blacklist are preserved when constructing
     the CPDAGs of \code{learned} and \code{true}.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
   \item{arcs}{a boolean value. See below.}
+  \item{x}{an object of class \code{bn}.}
+  \item{layout}{a character string, the layout argument that will be passed to
+    \pkg{Rgraphviz}. Possible values are \code{dots}, \code{neato},
+    \code{twopi}, \code{circo} and \code{fdp}. See \pkg{Rgraphviz}
+    documentation for details.}
+  \item{shape}{a character string, the shape of the nodes. Can be \code{circle},
+    \code{ellipse} or \code{rectangle}.}
+  \item{main}{a vector of character strings, one for each network. They
+    are plotted at the top of the corresponding figure(s).}
+  \item{sub}{a vector of character strings, the subtitles that are plotted at
+    the bottom of the corresponding figure(s).}
+  \item{diff}{a character string, the label of the method used to compare and
+    format the figure(s) created by \code{graphviz.compare}. The default value
+    is \code{from-first}, se below for details.}
+  \item{diff.args}{a list of optional arguments to control the formatting of
+    the figure(s) created by \code{graphviz.compare}. See below for details.}
+}
+\details{
+
+  \code{graphviz.compare} can visualize differences between graphs in various
+  way depending on the value of the \code{diff} and \code{diff.args} arguments:
+  \itemize{
+
+    \item \code{none}: differences are not highlighted.
+    \item \code{from-first}: the first \code{bn} object, \code{x}, is taken as
+      the reference network. All the other networks, passed via the \code{\dots}
+      argument, are compared to that first network and their true positive,
+      false positive, false negative arcs relative to that first network are
+      highlighted. Colours, line types and line widths for each category of
+      arcs can be specified as the elements of a list via the \code{diff.args}
+      argument, with names \code{tp.col}, \code{tp.lty}, \code{tp.lwd},
+      \code{fp.col}, \code{fp.lty}, \code{fp.lwd}, \code{fn.col}, \code{fn.lty},
+      \code{tp.lwd}.
+
+  }
+
+  Regardless of the visualization, the nodes are arranged to be in the same
+  position for all the networks to make it easier to compare them. 
+
+
 }
 \note{
 
@@ -50,6 +97,9 @@ hamming(learned, true, debug = FALSE)
 
   \code{shd} and \code{hamming} return a non-negative integer number.
 
+  \code{graphviz.compare} plots one or more figures and returns \code{NULL}
+  invisibly.
+
 }
 \examples{
 data(learning.test)
@@ -59,6 +109,7 @@ e2 = model2network("[A][B][C|A:B][D|B][E|C:F][F|A]")
 shd(e2, e1, debug = TRUE)
 unlist(compare(e1,e2))
 compare(target = e1, current = e2, arcs = TRUE)
+graphviz.compare(e1, e2, diff = "none")
 }
 \references{
 
@@ -67,5 +118,7 @@ compare(target = e1, current = e2, arcs = TRUE)
       \strong{65}(1), 31-78.
 
 }
-\author{ Marco Scutari }
+\author{Marco Scutari}
 \keyword{graphs}
+\keyword{plots}
+\keyword{interfaces to other packages}

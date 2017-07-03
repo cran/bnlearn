@@ -9,7 +9,7 @@ gaussian.prediction = function(node, fitted, data, debug = FALSE) {
 
   if (length(parents) == 0) {
 
-    .Call("gpred",
+    .Call(call_gpred,
           fitted = fitted[[node]],
           ndata = nrow(data),
           debug = debug)
@@ -17,7 +17,7 @@ gaussian.prediction = function(node, fitted, data, debug = FALSE) {
   }#THEN
   else {
 
-    .Call("cgpred",
+    .Call(call_cgpred,
           fitted = fitted[[node]],
           parents = minimal.data.frame.column(data, parents, drop = FALSE),
           debug = debug)
@@ -36,7 +36,7 @@ discrete.prediction = function(node, fitted, data, prob = FALSE, debug = FALSE) 
 
   if (length(parents) == 0) {
 
-    .Call("dpred",
+    .Call(call_dpred,
           fitted = fitted[[node]],
           ndata = nrow(data),
           prob = prob,
@@ -51,7 +51,7 @@ discrete.prediction = function(node, fitted, data, prob = FALSE, debug = FALSE) 
     else
       config = configurations(minimal.data.frame.column(data, parents), factor = FALSE)
 
-    .Call("cdpred",
+    .Call(call_cdpred,
           fitted = fitted[[node]],
           parents = config,
           prob = prob,
@@ -82,7 +82,7 @@ mixedcg.prediction = function(node, fitted, data, debug = FALSE) {
     else
       config = configurations(minimal.data.frame.column(data, discrete.parents), factor = FALSE)
 
-    .Call("ccgpred",
+    .Call(call_ccgpred,
           fitted = fitted[[node]],
           configurations = config,
           parents = minimal.data.frame.column(data, continuous.parents, drop = FALSE),
@@ -106,7 +106,7 @@ naive.classifier = function(training, fitted, prior, data, prob = FALSE,
   if (debug)
     cat("* predicting values for node ", training, ".\n", sep = "")
 
-  .Call("naivepred",
+  .Call(call_naivepred,
         fitted = fitted,
         data = minimal.data.frame.column(data, nodes, drop = FALSE),
         parents = match(parents, nodes),
@@ -121,7 +121,7 @@ naive.classifier = function(training, fitted, prior, data, prob = FALSE,
 map.prediction = function(node, fitted, data, n, from, prob = FALSE,
     debug = FALSE) {
 
-  .Call("mappred",
+  .Call(call_mappred,
         node = node,
         fitted = fitted,
         data = data,

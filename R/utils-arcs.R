@@ -1,7 +1,7 @@
 # check which rows of a data frame or matrix are identical to an array.
 is.row.equal = function(data, array) {
 
-  .Call("is_row_equal",
+  .Call(call_is_row_equal,
         data = as.character(data),
         array = as.character(array))
 
@@ -10,7 +10,7 @@ is.row.equal = function(data, array) {
 # check whether an arc is present in a matrix or data frame (with 2 columns).
 is.listed = function(set, arc, either = FALSE, both = FALSE) {
 
-  .Call("is_listed",
+  .Call(call_is_listed,
         arc = as.character(arc),
         set = as.character(set),
         either = either,
@@ -25,7 +25,7 @@ is.blacklisted = is.listed
 # which arcs are undirected?
 which.undirected = function(arcs, nodes = NULL) {
 
-  .Call("which_undirected",
+  .Call(call_which_undirected,
         arcs = arcs,
         nodes = nodes)
 
@@ -205,16 +205,16 @@ reverse.arc.backend = function(from, to, arcs, debug = FALSE) {
 }#REVERSE.ARC.BACKEND
 
 # which arcs are {white,black}listed?
-which.listed = function(arcs, list) {
+which.listed = function(arcs, list, either = FALSE, both = FALSE) {
 
-  apply(arcs, 1, function(arc) { is.listed(list, arc) })
+  apply(arcs, 1, function(arc) { is.listed(list, arc, either, both) })
 
 }#WHICH.LISTED
 
 # convert a set of neighbourhoods to an arc set.
 nbr2arcs = function(nbr) {
 
-  .Call("nbr2arcs",
+  .Call(call_nbr2arcs,
         nbr = nbr)
 
 }#NBR2ARCS
@@ -223,7 +223,7 @@ nbr2arcs = function(nbr) {
 # ordering specified by the labels.
 unique.arcs = function(arcs, nodes, warn = FALSE) {
 
-  .Call("unique_arcs",
+  .Call(call_unique_arcs,
         arcs = arcs,
         nodes = nodes,
         warn = warn)
@@ -233,7 +233,7 @@ unique.arcs = function(arcs, nodes, warn = FALSE) {
 # return the arcs from an object of class bn.fit.
 fit2arcs = function(x) {
 
-  .Call("fit2arcs",
+  .Call(call_fit2arcs,
         x = x)
 
 }#FIT2ARCS
@@ -241,7 +241,7 @@ fit2arcs = function(x) {
 # return the size of the arc set from an object of class bn or bn.fit.
 narcs.backend = function(x) {
 
-  .Call("num_arcs",
+  .Call(call_num_arcs,
         x = x)
 
 }#NARCS.BACKEND

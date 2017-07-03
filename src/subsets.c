@@ -51,7 +51,7 @@ int i = 0, j = 0;
 }/*NEXT_SUBSET*/
 
 /* enumerate all subsets of a certain size (R interface). */
-SEXP r_subsets(SEXP elems, SEXP size) {
+SEXP subsets(SEXP elems, SEXP size) {
 
 int i = 0, k = 0, n = length(elems), r = INT(size), *id = NULL;
 double nsub = choose(n, r);

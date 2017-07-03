@@ -37,10 +37,13 @@ bn.fit.backend.discrete = function(dag, node, data, method, extra.args,
   # store the labels of the parents and the children to get them only once.
   parents = dag$nodes[[node]]$parents
   children = dag$nodes[[node]]$children
+  # is the data an ordered or unordered factor?
+  ordered.factor = is(data[, node], "ordered")
 
   if (debug) {
 
-    cat("* fitting parameters of node", node, "(discrete).\n")
+    cat("* fitting parameters of node", node,
+      ifelse(ordered.factor, "(ordinal).\n", "(discrete).\n"))
 
     if (length(parents) > 0)
       cat("  > found parents:", parents, "\n")
@@ -66,13 +69,13 @@ bn.fit.backend.discrete = function(dag, node, data, method, extra.args,
   # switch from joint to conditional probabilities.
   tab = prop.table(tab, margin = seq(length(parents) + 1)[-1])
   # this is to preserve the ordering of the factor.
-  class = ifelse(is(data[, node], "ordered"), "bn.fit.onode", "bn.fit.dnode")
+  class = ifelse(ordered.factor, "bn.fit.onode", "bn.fit.dnode")
 
   # marginal tables have no dimension names in bnlearn.
   tab = cptattr(tab)
 
   if (debug)
-    cat("  > fitted ", length(tab), 
+    cat("  > fitted ", length(tab),
       ifelse(length(parents) > 0, " conditional", " marginal"),
       " probabilities.\n", sep = "")
 

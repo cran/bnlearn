@@ -104,7 +104,7 @@ predictive.correlation = function(node, fitted, n, from, data, loss,
 entropy.loss = function(fitted, data, keep = names(fitted), by.sample = FALSE,
     debug = FALSE) {
 
-  list(loss = .Call("entropy_loss",
+  list(loss = .Call(call_entropy_loss,
                     fitted = fitted,
                     data = data,
                     by.sample = by.sample,
@@ -124,7 +124,7 @@ classification.error = function(node, fitted, prior = NULL, n, from, data,
   else if (loss %in% c("pred-lw", "pred-lw-cg"))
     pred = map.prediction(node, fitted, data, n = n, from = from)
 
-  l = .Call("class_err",
+  l = .Call(call_class_err,
             reference = minimal.data.frame.column(data, node),
             predicted = pred)
 

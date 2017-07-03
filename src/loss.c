@@ -242,7 +242,11 @@ SEXP temp_df;
 
     for (i = 0; i < ndata; i++) {
 
-      logprob = log(prob[CMC(obs[i] - 1, configs[i], nlevels)]);
+      /* propagate missing values from the parents configuration. */
+      if (configs[i] == NA_INTEGER)
+        logprob = NA_REAL;
+      else
+        logprob = log(prob[CMC(obs[i] - 1, configs[i], nlevels)]);
 
       UPDATE_LOSS(!R_FINITE(logprob) || ISNAN(logprob));
 
@@ -264,7 +268,10 @@ SEXP temp_df;
   }/*ELSE*/
 
   /* switch to the negentropy. */
-  result /= -(ndata - *dropped);
+  if (ndata > *dropped)
+    result /= -(ndata - *dropped);
+  else
+    result = NA_REAL;
 
   return result;
 
@@ -317,7 +324,7 @@ SEXP try;
 
     if (config[i] == NA_INTEGER) {
 
-      logprob = R_NaN;
+      logprob = NA_REAL;
 
     }/*THEN*/
     else {
@@ -356,7 +363,10 @@ SEXP try;
   }/*THEN*/
 
   /* switch to the negentropy. */
-  result /= -(ndata - *dropped);
+  if (ndata > *dropped)
+    result /= -(ndata - *dropped);
+  else
+    result = NA_REAL;
 
   return result;
 
@@ -381,7 +391,10 @@ double err = 0;
   }/*FOR*/
 
   /* rescale into a probability. */
-  err /= (ndata - dropped);
+  if (ndata > dropped)
+    err /= (ndata - dropped);
+  else
+    err = NA_REAL;
 
   /* print a warning if data were dropped. */
   if (dropped > 0)
