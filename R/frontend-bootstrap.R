@@ -100,7 +100,7 @@ bn.cv = function(data, bn, loss = NULL, ...,
     fit.args = list(), method = "k-fold", cluster = NULL, debug = FALSE) {
 
   # check the data are there.
-  check.data(data)
+  data.info = check.data(data)
   nodes = names(data)
   # check the cross-validation method.
   method = check.cv.method(method)
@@ -151,9 +151,18 @@ bn.cv = function(data, bn, loss = NULL, ...,
     check.bn.vs.data(bn, data)
     # check the loss function.
     loss = check.loss(loss, data, bn)
-    # no parameters if the network structure is only partially directed.
-    if (is.pdag(bn$arcs, nodes) && (loss == "pred"))
-      stop("the graph is only partially directed.")
+    # it is impossible to learn the parameters if the network structure is only
+    # partially directed and cannot be extended to a completely directed graph.
+    if (!is.dag(arcs = bn$arcs, nodes = nodes)) {
+
+      # try to extend the network into a completely directed graph.
+      bn = cpdag.extension(cpdag.backend(bn, wlbl = TRUE))
+
+      if (!is.dag(arcs = bn$arcs, nodes = nodes))
+        stop("the network from the 'bn' argument has no consistent extension.")
+
+    }#THEN
+
     # check bn.naive objects if any.
     if (is(bn, "bn.naive"))
       check.bn.naive(bn)
@@ -163,7 +172,7 @@ bn.cv = function(data, bn, loss = NULL, ...,
   }#THEN
   else {
 
-    stop("bn must be either the label of a learning algorithm or a bn object.")
+    stop("'bn' must be either the label of a learning algorithm or a bn object.")
 
   }#ELSE
 
@@ -174,10 +183,11 @@ bn.cv = function(data, bn, loss = NULL, ...,
 
   for (r in seq(actual.runs))
     result[[r]] = crossvalidation(data = data, bn = bn, loss = loss,
-                    k = extra.args$k, m = extra.args$m, folds = extra.args$folds,
+                    k = extra.args$k, m = extra.args$m,
+                    folds = extra.args$folds[[r]],
                     algorithm.args = algorithm.args, loss.args = loss.args,
                     fit = fit, fit.args = fit.args, method = method,
-                    cluster = cluster, debug = debug)
+                    cluster = cluster, data.info = data.info, debug = debug)
 
   # return a bn.kcv object (for a single run) or a bn.kcv.list object (for
   # multiple runs).
@@ -187,3 +197,17 @@ bn.cv = function(data, bn, loss = NULL, ...,
     return(result)
 
 }#BN.CV
+
+# extract loss values from bn.kcv and bn.kcv.list objects.
+loss = function(x) {
+
+  if (is(x, "bn.kcv"))
+    losses = attr(x, "mean")
+  else if (is(x, "bn.kcv.list"))
+    losses = sapply(x, function(x) attr(x, "mean"))
+  else
+    stop("x must be an object of class 'bn.kcv' or 'bn.kcv.list'.")
+
+  return(losses)
+
+}#LOSS

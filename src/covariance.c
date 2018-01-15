@@ -146,12 +146,18 @@ long double sum = 0;
 /* compute a single standard deviation. */
 void c_sd(double *xx, int nobs, int p, double mean, int compute, double *sd) {
 
-  SD_GUARD(nobs, p, *sd,
+  if (nobs == 0)
+    *sd = R_NaN;
+  else if (nobs <= p)
+    *sd = 0;
+  else {
+
      if (compute)
        mean = c_mean(xx, nobs);
 
     *sd = sqrt(c_sse(xx, mean, nobs) / (nobs - p));
-  )
+
+  }/*ELSE*/
 
 }/*C_SD*/
 
@@ -202,9 +208,12 @@ long double *ssr = NULL, *mm = NULL;
   /* compute the standard deviations appropriately. */
   for (i = 0; i < nstrata; i++) {
 
-    SD_GUARD(nnz[i], p, sd[i],
+    if (nnz[i] == 0)
+      sd[i] = R_NaN;
+    else if (nnz[i] <= p)
+      sd[i] = 0;
+    else
       sd[i] = sqrt(ssr[i] / (nnz[i] - p));
-    )
 
   }/*FOR*/
 

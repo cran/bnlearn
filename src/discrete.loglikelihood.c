@@ -12,7 +12,7 @@ double res = 0;
   /* initialize the contingency table. */
   fill_1d_table(xx, &n, llx, num);
 
-  /* compute the entropy from the joint and marginal frequencies. */
+  /* compute the entropy from the marginal frequencies. */
   for (i = 0; i < llx; i++)
     if (n[i] != 0)
       res += (double)n[i] * log((double)n[i] / num);

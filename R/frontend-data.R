@@ -5,7 +5,7 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
   # check the label of the discretization method.
   method = check.discretization.method(method)
   # general check on the data.
-  type = check.data(data)
+  data.info = check.data(data)
 
   # check the data.
   if (method %in% c("quantile", "interval")) {
@@ -32,7 +32,7 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
       stop("the return value must have at least two levels for each variable.")
 
     # check the data types.
-    if (type %in% discrete.data.types) {
+    if (data.info$type %in% discrete.data.types) {
 
       nlvls = unique(sapply(data, nlevels))
       # this is implicit in Hartemink's definition of the algorithm.
@@ -43,7 +43,7 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
         stop("too many breaks, at most ", nlvls, " required.")
 
     }#THEN
-    else if (type != "continuous") {
+    else if (data.info$type != "continuous") {
 
       stop("all variables must be continuous.")
 
@@ -64,6 +64,8 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
 
 # Pena's relevant nodes feature selection.
 relevant = function(target, context, data, test, alpha, B, debug = FALSE) {
+
+  warning("the 'relevant()' function is deprecated and will be removed in 2019.")
 
   # check the data.
   check.data(data, allowed.types = c(discrete.data.types, continuous.data.types))
@@ -101,7 +103,7 @@ relevant = function(target, context, data, test, alpha, B, debug = FALSE) {
 dedup = function(data, threshold = 0.90, debug = FALSE) {
 
   # check the data (only continuous data are supported).
-  type = check.data(data, allowed.types = continuous.data.types)
+  check.data(data, allowed.types = continuous.data.types)
   # check the correlation threshold.
   if (missing(threshold))
     threshold = 0.90

@@ -324,11 +324,7 @@ SEXP xdata;
 
       gp[0] = xptr;
       statistic = 2 * nobs * c_cmicg(yptr, gp, ngp + 1, NULL, 0, zptr, llz,
-                               dlvls, nobs);
-      /* one regression coefficient for each conditioning level is added;
-       * if all conditioning variables are continuous that's just one global
-       * regression coefficient. */
-      *df = (llz == 0) ? 1 : llz;
+                               dlvls, nobs, df);
 
     }/*THEN*/
     else if ((ytype == INTSXP) && (xtype == REALSXP)) {
@@ -336,12 +332,7 @@ SEXP xdata;
       dp[0] = yptr;
       dlvls[0] = lly;
       statistic = 2 * nobs * c_cmicg(xptr, gp + 1, ngp, dp, ndp + 1, zptr,
-                               llz, dlvls, nobs);
-
-      /* for each additional configuration of the discrete conditioning
-       * variables plus the discrete yptr, one whole set of regression
-       * coefficients (plus the intercept) is added. */
-      *df = (lly - 1) * ((llz == 0) ? 1 : llz)  * (ngp + 1);
+                               llz, dlvls, nobs, df);
 
     }/*THEN*/
     else if ((ytype == REALSXP) && (xtype == INTSXP)) {
@@ -349,9 +340,7 @@ SEXP xdata;
       dp[0] = xptr;
       dlvls[0] = llx;
       statistic = 2 * nobs * c_cmicg(yptr, gp + 1, ngp, dp, ndp + 1, zptr,
-                               llz, dlvls, nobs);
-      /* same as above, with xptr and yptr swapped. */
-      *df = (llx - 1) * ((llz == 0) ? 1 : llz) * (ngp + 1);
+                               llz, dlvls, nobs, df);
 
     }/*ELSE*/
 

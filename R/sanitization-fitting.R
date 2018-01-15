@@ -28,11 +28,20 @@ check.fitting.method = function(method, data) {
 # sanitize the extra arguments passed to fitting functions.
 check.fitting.args = function(method, network, data, extra.args) {
 
-  if (method == "bayes") {
+  if (has.argument(method, "replace.unidentifiable", fitting.extra.args)) {
+
+    if (is.null(extra.args$replace.unidentifiable))
+      extra.args$replace.unidentifiable = FALSE
+    else
+      check.logical(extra.args$replace.unidentifiable)
+
+  }#THEN
+
+  if (has.argument(method, "iss", fitting.extra.args)) {
 
     # check the imaginary sample size.
-    extra.args$iss = check.iss(iss = extra.args$iss,
-      network = network, data = data)
+    extra.args$iss = check.iss(iss = extra.args$iss, network = network,
+                       data = data)
 
   }#THEN
 
@@ -42,5 +51,4 @@ check.fitting.args = function(method, network, data, extra.args) {
   return(extra.args)
 
 }#CHECK.FITTING.ARGS
-
 

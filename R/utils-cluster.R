@@ -13,8 +13,7 @@ check.cluster = function(cluster) {
     return(TRUE)
   if (!is(cluster, supported.clusters))
     stop("cluster is not a valid cluster object.")
-  if (!requireNamespace("parallel"))
-    stop("this function requires the parallel package.")
+  check.and.load.package("parallel")
   if (!isClusterRunning(cluster))
     stop("the cluster is stopped.")
 
@@ -44,5 +43,5 @@ smartSapply = function(cl, ..., simplify = FALSE, USE.NAMES = TRUE) {
   else
     parallel::parSapply(cl = cl, ..., simplify = simplify, USE.NAMES = USE.NAMES)
 
-}#SMARTLAPPLY
+}#SMARTSAPPLY
 

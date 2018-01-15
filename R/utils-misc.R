@@ -54,10 +54,11 @@ arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
 
 }#ARCS.RBIND
 
-minimal.table = function(x) {
+minimal.table = function(x, with.missing = FALSE) {
 
   .Call(call_minimal_table,
-        x = x);
+        x = x,
+        missing = with.missing);
 
 }#MINIMAL.TABLE
 
@@ -226,4 +227,26 @@ ndsubset = function(x, indices) {
   do.call(`[`, c(list(x), index))
 
 }#NDSUBSET
+
+# make sure rounded probabilites sum up to one (largest remainder method).
+lrm.round = function (prob, digits = 3) {
+
+  # scale the probabilities so that the last significant digit is at 10^0.
+  scaled = prob * 10^digits
+  # separate integer and fractional parts, and the lost probability mass
+  integer.part = floor(scaled)
+  fractional.part = scaled - integer.part
+  # if the resulting number are round, the probabilities are alreay rounded.
+  if (isTRUE(all.equal(scaled, integer.part)))
+    return(prob)
+  # compute the lost probability mass, and where to add it back.
+  lost.prob = sum(scaled) - sum(integer.part)
+  add.back = order(fractional.part, decreasing = TRUE)[1:lost.prob]
+  # add it back.
+  integer.part[add.back] = integer.part[add.back] + 1
+
+  # rescale back before returning.
+  return(integer.part / 10^digits)
+
+}#LRM.ROUND
 

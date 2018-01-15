@@ -11,7 +11,7 @@
 \usage{
 structural.em(x, maximize = "hc", maximize.args = list(), fit = "mle", 
     fit.args = list(), impute, impute.args = list(), return.all = FALSE,
-    max.iter = 5, debug = FALSE)
+    start = NULL, max.iter = 5, debug = FALSE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
@@ -30,20 +30,32 @@ structural.em(x, maximize = "hc", maximize.args = list(), fit = "mle",
   \item{impute.args}{a list of arguments to be passed to the imputation method
     specified by \code{impute}.}
   \item{return.all}{a boolean value. See below for details.}
+  \item{start}{a \code{bn} or \code{bn.fit} object, the network used to perform
+    the first imputation and as a starting point for for the score-based
+    algorithm specified by \code{maximize}.}
   \item{max.iter}{an integer, the maximum number of iterations.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }
+\note{
+
+  If at least one of the variables in the data \code{x} does not contain any
+  observed value, the \code{start} network must be specified and it must be a
+  \code{bn.fit} object. Otherwise, \code{structural.em()} is unable to complete
+  the first \emph{maximization} step because it cannot fit the corresponding
+  local distribution(s).
+
+}
 \value{
 
-  If \code{return.all} is \code{FALSE}, \code{structural.em} returns an object
+  If \code{return.all} is \code{FALSE}, \code{structural.em()} returns an object
   of class \code{bn}. (See \code{\link{bn-class}} for details.)
 
-  If \code{return.all} is \code{TRUE}, \code{structural.em} returns a list with
-  three elements named \code{dag} (an object of class \code{bn}), \code{imputed}
-  (a data frame containing the imputed data from the last iteration) and
-  \code{fitted} (an object of class \code{bn.fit}, again from the last
-  iteration; see \code{\link{bn.fit-class}} for details).
+  If \code{return.all} is \code{TRUE}, \code{structural.em()} returns a list
+  with three elements named \code{dag} (an object of class \code{bn}),
+  \code{imputed} (a data frame containing the imputed data from the last
+  iteration) and \code{fitted} (an object of class \code{bn.fit}, again from
+  the last iteration; see \code{\link{bn.fit-class}} for details).
 
 }
 \references{

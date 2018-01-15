@@ -100,7 +100,7 @@ SEXP list, res, args, amat, arcs, cached, null, temp;
           else \
             a[CMC(i, j, nnodes)] = 0; \
 
-  /* return a list if more than one bn is generated. */
+  /* return a list if more than one network is generated. */
   if (*n > 1) {
 
     PROTECT(list = allocVector(VECSXP, *n));
@@ -216,7 +216,7 @@ SEXP amatA, amatB, args;
   SET_VECTOR_ELT(args, 2, max_out_degree);
   SET_VECTOR_ELT(args, 3, max_degree);
 
-  /* allocate and initialize the tow adjacency matrices. */
+  /* allocate and initialize the two adjacency matrices. */
   PROTECT(amatA = allocMatrix(INTSXP, 2, 2));
   a = INTEGER(amatA);
   memset(a, '\0', sizeof(int) * 4);
@@ -225,7 +225,7 @@ SEXP amatA, amatB, args;
   a = INTEGER(amatB);
   memset(a, '\0', sizeof(int) * 4);
   a[1] = 1;
-  /* generates the arc sets. */
+  /* generate the arc sets. */
   PROTECT(arcsA = amat2arcs(amatA, nodes));
   PROTECT(arcsB = amat2arcs(amatB, nodes));
   /* generate the cached node information. */

@@ -17,7 +17,7 @@ dsep(bn, x, y, z)
 }
 \value{
 
-  \code{dsep} returns \code{TRUE} if \code{x} and \code{y} are
+  \code{dsep()} returns \code{TRUE} if \code{x} and \code{y} are
   d-separated by \code{z}, and \code{FALSE} otherwise.
 
 }

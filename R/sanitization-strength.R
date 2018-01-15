@@ -84,3 +84,28 @@ check.threshold = function(threshold, strength) {
 
 }#CHECK.THRESHOLD
 
+# check a string that may be a score or a test label.
+check.criterion = function(criterion, data) {
+
+  if (!missing(criterion) && !is.null(criterion)) {
+
+    # check and return errors from minimal.check.labels().
+    check.label(criterion, choices = c(available.tests, available.scores),
+      labels = c(test.labels, score.labels), argname = "criterion",
+      see = "bnlearn-package")
+
+  }#THEN
+  else {
+
+    # set the defaults using check.score() and check.test().
+    if (criterion %in% available.tests)
+      criterion = check.test(criterion, data)
+    else if (criterion %in% available.scores)
+      criterion = check.score(criterion, data)
+
+  }#ELSE
+
+  return(criterion)
+
+}#CHECK.CRITERION
+

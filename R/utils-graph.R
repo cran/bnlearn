@@ -36,7 +36,7 @@ root.leaf.nodes = function(x, leaf = FALSE) {
 
   .Call(call_root_nodes,
         bn = x,
-        check = as.integer(leaf))
+        check = leaf)
 
 }#ROOT.NODES.BACKEND
 
@@ -137,8 +137,10 @@ mutilated.backend.fitted = function(x, evidence) {
     else if (is(cur, c("bn.fit.dnode", "bn.fit.onode"))) {
 
       # reset the conditional distribution.
-      cur$prob = as.table(structure((dimnames(cur$prob)[[1]] == fix) + 0,
-                   names = dimnames(cur$prob)[[1]]))
+      levels = dimnames(cur$prob)[[1]]
+      values = (levels %in% fix) + 0
+
+      cur$prob = as.table(structure(values / sum(values), names = levels))
 
     }#THEN
 

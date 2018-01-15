@@ -7,9 +7,9 @@ bn.fit = function(x, data, cluster = NULL, method = "mle", ...,
   check.bn(x)
   # check the data.
   if (is(x, c("bn.naive", "bn.tan")))
-    check.data(data, allowed.types = discrete.data.types)
+    data.info = check.data(data, allowed.types = discrete.data.types)
   else
-    check.data(data)
+    data.info = check.data(data, allow.missing = TRUE)
   # check whether the data agree with the bayesian network.
   check.bn.vs.data(x, data)
   # no parameters if the network structure is only partially directed.
@@ -44,7 +44,8 @@ bn.fit = function(x, data, cluster = NULL, method = "mle", ...,
   }#THEN
 
   bn.fit.backend(x = x, data = data, cluster = cluster, method = method,
-    extra.args = extra.args, keep.fitted = keep.fitted, debug = debug)
+    extra.args = extra.args, data.info = data.info, keep.fitted = keep.fitted,
+    debug = debug)
 
 }#BN.FIT
 

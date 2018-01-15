@@ -39,8 +39,8 @@ write.dot(file, graph)
 \note{
 
   All the networks present in the Bayesian Network Repository have associated
-  BIF, DSC and NET files that can be imported with \code{read.bif},
-  \code{read.dsc} and \code{read.net}.
+  BIF, DSC and NET files that can be imported with \code{read.bif()},
+  \code{read.dsc()} and \code{read.net()}.
 
   HUGIN can import and export NET files; Netica can read (but not write) DSC
   files; and GeNIe can read and write both DSC and NET files.
@@ -54,10 +54,10 @@ write.dot(file, graph)
 }
 \value{
 
-  \code{read.bif}, \code{read.dsc} and \code{read.net} return an object of class
+  \code{read.bif()}, \code{read.dsc()} and \code{read.net()} return an object of class
   \code{bn.fit}.
 
-  \code{write.bif}, \code{write.dsc}, \code{write.net} and \code{write.dot}
+  \code{write.bif()}, \code{write.dsc()}, \code{write.net()} and \code{write.dot()}
   return \code{NULL} invisibly.
 
 }

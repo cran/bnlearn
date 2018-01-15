@@ -20,10 +20,21 @@ fitted.assignment.backend = function(x, name, value) {
     if (is(value, c("lm", "glm", "penfit")) && is(to.replace, "bn.fit.gnode")) {
 
       # ordinary least squares, ridge, lasso, and elastic net.
-      value = list(coef = minimal.coefficients(value),
-                resid = minimal.residuals(value), fitted = minimal.fitted(value),
-                sd = cgsd(minimal.residuals(value),
-                       p = length(minimal.coefficients(value))))
+      coef = minimal.coefficients(value)
+      resid = minimal.residuals(value)
+      fitted = minimal.fitted(value)
+      sd = cgsd(resid[!is.na(resid)], p = length(coef))
+
+      # zap small values in low-order regressions to match fast.lm().
+      if ((length(coef) <= 3) && isTRUE(all.equal(sd, 0))) {
+
+        coef = zapsmall(coef)
+        sd = 0
+        resid = rep(0, length(resid))
+
+      }#THEN
+
+      value = list(coef = coef, resid = resid, fitted = fitted, sd = sd)
       # if the intercept is not there, set it to zero.
       if ("(Intercept)" %!in% names(value$coef))
         value$coef = c("(Intercept)" = 0, value$coef)

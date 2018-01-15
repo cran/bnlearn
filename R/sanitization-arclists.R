@@ -72,6 +72,9 @@ build.whitelist = function(whitelist, nodes, data, algo, criterion) {
 
 check.arcs.against.assumptions = function(arcs, data, criterion) {
 
+  if (is.null(criterion))
+    return(arcs)
+
   if (criterion %in% c(available.mixedcg.tests, available.mixedcg.scores)) {
 
     # arcs cannot point from continuous nodes to discrete nodes.

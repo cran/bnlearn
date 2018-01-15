@@ -221,6 +221,140 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
 
 }#ARC.STRENGTH.BOOT
 
+# compute an approximation of arc and direction strength from the Bayes factors
+# that can be computed from a single MAP network.
+bf.strength.backend = function(x, data, score, extra.args, precBits = 200, 
+  debug = FALSE) {
+
+  # construct all pairs of nodes.
+  nodes = names(x$nodes)
+  all.pairs = structure(subsets(nodes, 2), dimnames = list(NULL, c("from", "to")))
+  # prepare the return value.
+  all.arcs = expand.grid(to = nodes, from = nodes, stringsAsFactors = FALSE)
+  all.arcs = all.arcs[all.arcs$from != all.arcs$to, ]
+  all.arcs = data.frame(all.arcs[, 2:1], strength = numeric(nrow(all.arcs)),
+               direction = numeric(nrow(all.arcs)))
+
+  # if a score is not decomposable, we stil assume it is possible to compute
+  # score deltas by using only the two incident nodes as targets in
+  # per.node.score().
+  decomposable = is.score.decomposable(score, extra.args)
+  amat = amat(x)
+
+  if (debug) {
+
+    cat("----------------------------------------------------------------\n")
+    print(x)
+    cat("----------------------------------------------------------------\n")
+
+  }#THEN
+
+  for (i in seq(nrow(all.pairs))) {
+
+    arc = all.pairs[i, ]
+
+    if (debug)
+      cat("* considering the arc between", arc["from"], "and", arc["to"], ".\n")
+
+    # first compute the score of the arc without the arc; it is always possible
+    # to do that.
+    dag.base = drop.arc(x, arc["from"], arc["to"])
+    score.base = Rmpfr::mpfr(per.node.score(dag.base, data = data, score = score,
+                 targets = arc, extra.args = extra.args), precBits = precBits)
+
+    if (debug) {
+
+      cat("  > no arc between", arc["from"], "and", arc["to"],
+        ": base scores =", Rmpfr::asNumeric(score.base), ".\n")
+
+    }#THEN
+
+    try.arc = function(arc, score.base) {
+
+      if (!has.path(arc[2], arc[1], nodes, amat, exclude.direct = TRUE)) {
+
+        new.dag = set.arc(x, arc[1], arc[2], check.cycles = FALSE)
+
+        if (decomposable) {
+
+          new.score = Rmpfr::mpfr(per.node.score(new.dag, data = data,
+                       score = score, targets = arc[2], extra.args = extra.args),
+                       precBits = precBits)
+          bf = exp(sum(new.score - score.base[2]))
+
+        }#THEN
+        else {
+
+          new.score = Rmpfr::mpfr(per.node.score(new.dag, data = data,
+                       score = score, targets = arc, extra.args = extra.args),
+                       precBits = precBits)
+          bf = exp(sum(new.score - score.base))
+
+        }#ELSE
+
+        if (debug) {
+ 
+          cat("  > arc", arc[1], "->", arc[2], ": new score(s) =", 
+            Rmpfr::asNumeric(new.score), ", BF =",
+            Rmpfr::format(bf, digits = 4), ".\n")
+
+        }#THEN
+
+      }#THEN
+      else {
+
+        bf = Rmpfr::mpfr(0, precBits = precBits)
+
+        if (debug)
+          cat("  > arc", arc[1], "->", arc[2], ": cycles!\n")
+
+      }#ELSE
+
+      return(bf)
+
+    }#TRY.ARC
+
+    # try to add the arc in one direction (arbitrarily called "forward").
+    fw = try.arc(arc, score.base = score.base)
+    # try to add the arc in the other direction (arbitrarily called "backward").
+    bw = try.arc(rev(arc), score.base = rev(score.base))
+
+    num = c(bw = bw, no = 1, fw = fw)
+    norm = 1 + bw + fw
+
+    # handle corner cases in which unnormalized probabilities are not finite;
+    # probability is distributed uniformly over those that are infinite.
+    if (!is.finite(norm)) {
+
+      finite = is.finite(num)
+      num[finite] = 0
+      num[!finite] = 1/length(which(!finite))
+      norm = 1
+
+    }#THEN
+
+    # normalize and save arc strength and directions.
+    normalized = num / norm
+    strength = Rmpfr::asNumeric(normalized[1] + normalized[3])
+    if (normalized[2] == 1)
+      direction = 0
+    else
+      direction = Rmpfr::asNumeric(normalized[3] / (normalized[1] + normalized[3]))
+
+    all.arcs[(all.arcs$from == arc["from"]) & (all.arcs$to == arc["to"]),
+      c("strength", "direction")] = c(strength, direction)
+    all.arcs[(all.arcs$from == arc["to"]) & (all.arcs$to == arc["from"]),
+      c("strength", "direction")] = c(strength, 1 - direction)
+
+  }#FOR
+
+  return(structure(all.arcs, class = c("bn.strength", "data.frame"),
+    method = "bayes-factor", threshold = threshold(all.arcs),
+    row.names = seq(nrow(all.arcs))))
+
+}#BF.STRENGTH.BACKEND
+
+
 # compute arcs' strength as the relative frequency in a custom list of
 # network structures/arc sets.
 arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
@@ -339,10 +473,10 @@ strength2lwd = function(strength, threshold, cutpoints, method, arcs = NULL,
 
   }#THEN
 
-  if (method %in% c("test", "bootstrap")) {
+  if (method %in% c("test", "bootstrap", "bayes-factor")) {
 
     # bootstrap probabilities work like p-values, only reversed.
-    if (method == "bootstrap") {
+    if (method %in% c("bootstrap", "bayes-factor")) {
 
       strength = 1 - strength
       threshold = 1 - threshold

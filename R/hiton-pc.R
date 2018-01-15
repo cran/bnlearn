@@ -236,8 +236,10 @@ si.hiton.pc.backward = function(target, candidate, cpc, data, test, alpha, B, de
   if (debug)
     cat("* backward phase for candidate node", candidate, ".\n")
 
-  allsubs.test(x = target, y = candidate, sx = cpc, min = 1L, data = data,
-    test = test, alpha = alpha, B = B, debug = debug)[1] <= alpha
+  a = allsubs.test(x = target, y = candidate, sx = cpc, min = 1L, data = data,
+        test = test, alpha = alpha, B = B, debug = debug)
+
+  return(a["p.value"] <= alpha)
 
 }#SI.HITON.PC.BACKWARD
 

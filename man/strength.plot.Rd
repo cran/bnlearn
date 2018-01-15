@@ -40,7 +40,7 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL,
       tests, any strength coefficient (which is the p-value of the test) lesser
       or equal than the threshold is considered significant. In this case the
       default value of \code{threshold} is equal to the value of the
-      \code{alpha} argument used in the call to \code{arc.strength}, which in
+      \code{alpha} argument used in the call to \code{arc.strength()}, which in
       turn defaults to the one used by the learning algorithm (if any) or to
       \code{0.05}.
     \item if arc strengths have been computed using network scores, any strength

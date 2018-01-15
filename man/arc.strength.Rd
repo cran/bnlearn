@@ -2,6 +2,7 @@
 \alias{arc.strength}
 \alias{boot.strength}
 \alias{custom.strength}
+\alias{bf.strength}
 \alias{averaged.network}
 \alias{mean.bn.strength}
 \title{Measure arc strength}
@@ -20,6 +21,9 @@ boot.strength(data, cluster = NULL, R = 200, m = nrow(data),
   algorithm, algorithm.args = list(), cpdag = TRUE, debug = FALSE)
 # strength of all possible arcs, from a list of custom networks.
 custom.strength(networks, nodes, weights = NULL, cpdag = TRUE, debug = FALSE)
+# strength of all possible arcs, computed using Bayes factors.
+bf.strength(x, data, score, ..., debug = FALSE) 
+
 # average arc strengths.
 \method{mean}{bn.strength}(x, ..., weights = NULL)
 
@@ -27,13 +31,15 @@ custom.strength(networks, nodes, weights = NULL, cpdag = TRUE, debug = FALSE)
 averaged.network(strength, nodes, threshold)
 }
 \arguments{
-  \item{x}{an object of class \code{bn.strength} (for \code{mean}) or of
+  \item{x}{an object of class \code{bn.strength} (for \code{mean()}) or of
     class \code{bn} (for all other functions).}
   \item{networks}{a list, containing either object of class \code{bn} or arc
     sets (matrices or data frames with two columns, optionally labeled "from"
-    and "to"); or an object of class \code{bn.kcv} or \code{bn.kcv.list}.}
+    and "to"); or an object of class \code{bn.kcv} or \code{bn.kcv.list}
+    from \code{bn.cv()}.}
   \item{data}{a data frame containing the data the Bayesian network was
-    learned from.}
+    learned from (for \code{arc.strength()}) or that will be used to compute
+    the arc strengths (for \code{boot.strength()} and \code{bf.strength()}).}
   \item{cluster}{an optional cluster object from package \pkg{parallel}.}
   \item{strength}{an object of class \code{bn.strength}, see below.}
   \item{threshold}{a numeric value, the minimum strength required for an
@@ -42,13 +48,16 @@ averaged.network(strength, nodes, threshold)
   \item{nodes}{a vector of character strings, the labels of the nodes in the
     network. In \code{\link{averaged.network}}, it defaults to the set of the
     unique node labels in the \code{strength} argument.}
-  \item{criterion}{a character string, the label of a score function or an
-    independence test. See \code{\link{bnlearn-package}} for details.}
+  \item{criterion,score}{a character string. For \code{arc.strength()}, the
+    label of a score function or an independence test; see
+    \code{\link{bnlearn-package}} for details.} For \code{bf.strength()}, the
+    label of the score used to compute the Bayes factors; see \code{\link{BF}}
+    for details.
   \item{R}{a positive integer, the number of bootstrap replicates.}
   \item{m}{a positive integer, the size of each bootstrap replicate.}
   \item{weights}{a vector of non-negative numbers, to be used as weights
-    when averaging arc strengths (in \code{mean}) or network structures (in
-    \code{custom.strength}) to compute strength coefficients. If \code{NULL},
+    when averaging arc strengths (in \code{meani()}) or network structures (in
+    \code{custom.strength()}) to compute strength coefficients. If \code{NULL},
     weights are assumed to be uniform.}
   \item{cpdag}{a boolean value. If \code{TRUE} the (PDAG of) the equivalence
     class is used instead of the network structure itself. It should make it
@@ -60,7 +69,7 @@ averaged.network(strength, nodes, threshold)
     documentation of each algorithm for details.}
   \item{algorithm.args}{a list of extra arguments to be passed to the learning
     algorithm.}
-  \item{\dots}{in \code{arc.strength}, the additional tuning parameters for
+  \item{\dots}{in \code{arc.strength()}, the additional tuning parameters for
     the network score (if \code{criterion} is the label of a score function,
     see \code{\link{score}} for details), the conditional independence test
     (currently the only one is \code{B}, the number of permutations). In
@@ -70,7 +79,7 @@ averaged.network(strength, nodes, threshold)
 }
 \details{
 
-  \code{arc.strength} computes a measure of confidence or strength for each
+  \code{arc.strength()} computes a measure of confidence or strength for each
   arc, while keeping fixed the rest of the network structure.
 
   If \code{criterion} is a conditional independence test, the strength is a
@@ -89,38 +98,43 @@ averaged.network(strength, nodes, threshold)
   aguments depending on the choice of the score, see \code{\link{score}} for
   details.
 
-  \code{boot.strength} estimates the strength of each arc as its empirical
+  \code{boot.strength()} estimates the strength of each arc as its empirical
   frequency over a set of networks learned from bootstrap samples. It computes
   the probability of each arc (modulo its direction) and the probabilities of
   each arc's directions conditional on the arc being present in the graph (in
   either direction).
 
-  \code{custom.strength} takes a list of networks and estimates arc strength
+  \code{bf.strength()} estimates the strength of each arc using Bayes factors
+  to overcome the fact that Bayesian posterior scores are not normalised, and
+  uses the latter to estimate the probabilities of all possible states of an
+  arc given the rest of the network.
+
+  \code{custom.strength()} takes a list of networks and estimates arc strength
   in the same way as \code{boot.strength}.
 
   Model averaging is supported for objects of class \code{bn.strength} returned
-  by \code{\link{boot.strength}} or by \code{\link{custom.strength}}. The
-  returned network contains the arcs whose strength is greater than the
-  \code{threshold} attribute of the \code{bn.strength} object passed to
-  \code{averaged.network}.
+  by \code{\link{boot.strength}}, \code{\link{custom.strength}} and
+  \code{\link{bf.strength}}. The returned network contains the arcs whose 
+  strength is greater than the \code{threshold} attribute of the
+  \code{bn.strength} object passed to \code{averaged.network()}.
 
 }
 \note{
 
-  \code{averaged.network} typically returns a completely directed graph; an arc
-  can be undirected if and only if the probability of each of its directions is
-  exactly 0.5. This may happen, for example, if the arc is undirected in all
+  \code{averaged.network()} typically returns a completely directed graph; an
+  arc can be undirected if and only if the probability of each of its directions
+  is exactly 0.5. This may happen, for example, if the arc is undirected in all
   the networks being averaged.
 
 }
 \value{
 
-  \code{arc.strength}, \code{boot.strength}, \code{custom.strength} and
-  \code{mean} return an object of class \code{bn.strength}; \code{boot.strength}
-  and \code{custom.strength} also include information about the relative
-  probabilities of arc directions.
+  \code{arc.strength()}, \code{boot.strength()}, \code{custom.strength()},
+  \code{bf.strength()} and \code{mean()} return an object of class
+  \code{bn.strength}; \code{boot.strength()} and \code{custom.strength()} also
+  include information about the relative probabilities of arc directions.
 
-  \code{averaged.network} returns an object of class \code{bn}.
+  \code{averaged.network()} returns an object of class \code{bn}.
 
   See \code{\link{bn.strength class}} and \code{\link{bn-class}} for details.
 
@@ -162,6 +176,8 @@ arcs = custom.strength(netlist, nodes = names(learning.test),
 arcs[(arcs$strength > 0.85) & (arcs$direction >= 0.5), ]
 modelstring(averaged.network(arcs))
 }
+
+bf.strength(res, learning.test, score = "bds", prior = "marginal")
 }
 \seealso{\code{\link{strength.plot}}, \code{\link{choose.direction}},
   \code{\link{score}}, \code{\link{ci.test}}.}

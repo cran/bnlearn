@@ -44,29 +44,29 @@ moral(x, debug = FALSE)
   mirrors the \emph{unshielded} versus \emph{shielded collider} naming
   convention, but it is confusing.
 
-  Setting \code{moral} to \code{FALSE} in \code{cpdag} and \code{vstructs} makes
-  those functions follow the definition from Koller and Friedman (2009); the
-  default value of \code{TRUE}, on the other hand, makes those functions follow
-  the definition from Pearl (2000). The former call \emph{v-structures} both
-  shielded and unshielded colliders (respectively \emph{moral v-structures} and
-  \emph{immoral v-structures}); the latter requires v-structures to be
+  Setting \code{moral} to \code{FALSE} in \code{cpdag()} and \code{vstructs()}
+  makes those functions follow the definition from Koller and Friedman (2009);
+  the default value of \code{TRUE}, on the other hand, makes those functions
+  follow the definition from Pearl (2000). The former call \emph{v-structures}
+  both shielded and unshielded colliders (respectively \emph{moral v-structures}
+  and \emph{immoral v-structures}); the latter requires v-structures to be
   unshielded colliders.
 
   Note that arcs whose directions are dictated by the parametric assumptions of
   conditional linear Gaussian networks are preserved as directed arcs in
-  \code{cpdag}.
+  \code{cpdag()}.
 
 }
 \value{
 
-  \code{cpdag} returns an object of class \code{bn}, representing the
+  \code{cpdag()} returns an object of class \code{bn}, representing the
   equivalence class. \code{moral} on the other hand returns the moral graph.
   See \code{\link{bn-class}} for details.
 
-  \code{cextend} returns an object of class \code{bn}, representing a DAG that
+  \code{cextend()} returns an object of class \code{bn}, representing a DAG that
   is the consistent extension of \code{x}.
 
-  \code{vstructs} returns a matrix with either 2 or 3 columns, according to the
+  \code{vstructs()} returns a matrix with either 2 or 3 columns, according to the
   value of the \code{arcs} argument.
 
 }

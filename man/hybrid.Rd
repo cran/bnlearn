@@ -11,8 +11,8 @@
 
 }
 \usage{
-rsmax2(x, whitelist = NULL, blacklist = NULL, restrict, maximize = "hc",
-  restrict.args = list(), maximize.args = list(), debug = FALSE)
+rsmax2(x, whitelist = NULL, blacklist = NULL, restrict = "si.hiton.pc",
+  maximize = "hc", restrict.args = list(), maximize.args = list(), debug = FALSE)
 mmhc(x, whitelist = NULL, blacklist = NULL, restrict.args = list(),
   maximize.args = list(), debug = FALSE)
 }
@@ -39,8 +39,8 @@ mmhc(x, whitelist = NULL, blacklist = NULL, restrict.args = list(),
 }
 \note{
 
-  \code{mmhc} is simply \code{rshc} with \code{restrict} set to \code{mmpc} and
-  \code{maximize} set to \code{hc}.
+  \code{mmhc()} is simply \code{rsmax2()} with \code{restrict} set to
+  \code{mmpc} and \code{maximize} set to \code{hc}.
 
 }
 \value{

@@ -102,24 +102,27 @@ impute.backend.map = function(fitted, data, n, debug = FALSE) {
         cluster = NULL, debug = FALSE)
 
     # impute by posterior mode (discrete variables) or posterior expectation
-    # (continuous variables).
-    particles = lapply(particles, function(x, w) {
+    # (continuous variables); discard missing weights.
+    w = attr(particles, "weights")
+    w[is.na(w)] = 0
+
+    estimates = lapply(particles, function(x, w) {
 
       if (is.factor(x))
         names(which.max(by(w, INDICES = x, FUN = sum)))
       else if (is.numeric(x))
         weighted.mean(x = x, w = w)
 
-    }, w = attr(particles, "weights"))
+    }, w = w)
 
     if (debug) {
 
       cat("  > imputed value:", "\n")
-      print(data.frame(particles), row.names = FALSE)
+      print(data.frame(estimates), row.names = FALSE)
 
     }#THEN
 
-    data[j, to] = particles
+    data[j, to] = estimates
 
   }#FOR
 

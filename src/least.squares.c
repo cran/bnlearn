@@ -2,7 +2,6 @@
 #include "include/covariance.h"
 #include "include/blas.h"
 #include "include/globals.h"
-#include "include/matrix.h"
 
 /* fast implementation of least squares with just the intercept. */
 static void c_ols0(double *y, int nrow, double *fitted, double *resid,
@@ -82,7 +81,7 @@ long double sse = 0;
 
       if (singular)
         for (i  = 0; i < nrow; i++)
-          resid[i] = y[i] - a + b * x[0][i];
+          resid[i] = y[i] - a - b * x[0][i];
       else
         for (i  = 0; i < nrow; i++)
           resid[i] = y[i] - a;
@@ -93,7 +92,12 @@ long double sse = 0;
 
   if (sd) {
 
-    SD_GUARD(nrow, 2, *sd,
+    if (nrow == 0)
+      *sd = R_NaN;
+    else if (nrow <= 2)
+      *sd = 0;
+    else {
+
       if (resid)
         for (i = 0; i < nrow; i++)
           sse += resid[i] * resid[i];
@@ -111,363 +115,336 @@ long double sse = 0;
       }/*ELSE*/
 
       *sd = sqrt(sse / (nrow - 2));
-    )
+
+    }/*ELSE*/
 
   }/*THEN*/
 
 }/*C_OLS1*/
 
-/* compute least squares efficiently by special-casing whenever possible. */
-void c_ols(double **x, double *y, int nrow, int ncol, double *fitted,
-    double *resid, double *beta, double *sd) {
+/* fast implementation of least squares with two regression coefficients. */
+static void c_ols2(double **x, double *y, int nrow, double *fitted, double *resid,
+    double *beta, double *sd) {
 
-double *qr = NULL;
+int i = 0, singular1 = FALSE, singular2 = FALSE;
+double *m[3] = {y, *x, *(x + 1)}, a = 0, b1 = 0, b2 = 0, den = 0;
+double mean[3] = {0, 0, 0}, cov[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+long double sse = 0;
 
-  if (ncol == 0) {
+  /* the regression coefficients are computed using the closed form estimates
+   * for the two-variable regression, which are effectively the same as the
+   * corresponding partial correlation estimates. */
+  c_meanvec(m, mean, nrow, 3, 0);
+  c_covmat(m, mean, nrow, 3, cov, 0);
 
-    /* special case: null model. */
-    c_ols0(y, nrow, fitted, resid, beta, sd);
+  /* there are three possible collinear configurations:
+   *   1) the first variable is constant and collinear with the response;
+   *   2) the second variable is constant and collinear with the response;
+   *   3) the two variables are collinear with each other. */
+  singular1 = (fabs(cov[4]) < MACHINE_TOL);
+  singular2 = (fabs(cov[8]) < MACHINE_TOL) ||
+              (fabs(cov[5]) / sqrt(cov[4] * cov[8]) > 1 - MACHINE_TOL);
+
+  if (singular1 && !singular2) {
+
+    b1 = NA_REAL;
+    b2 = cov[2] / cov[8];
+    a =  mean[0] - b2 * mean[2];
 
   }/*THEN*/
-  else if (ncol == 1) {
+  else if (!singular1 && singular2) {
 
-    /* special case: simple regression. */
-    c_ols1(x, y, nrow, fitted, resid, beta, sd);
+    b1 = cov[1] / cov[4];
+    b2 = NA_REAL;
+    a =  mean[0] - b1 * mean[1];
+
+  }/*THEN*/
+  else if (singular1 && singular2) {
+
+    b1 = b2 = NA_REAL;
+    a = mean[0];
 
   }/*THEN*/
   else {
 
-    /* prepare the data for the QR decomposition. */
-    qr = Calloc1D(nrow * (ncol + 1), sizeof(double));
-    c_qr_matrix(qr, x, nrow, ncol);
-    /* general case: multiple regression. */
-    c_qr(qr, y, nrow, ncol + 1, fitted, resid, beta, sd);
+    den = (cov[4] * cov[8] - cov[5] * cov[5]);
+    b1 = (cov[8] * cov[1] - cov[5] * cov[2]) / den;
+    b2 = (cov[4] * cov[2] - cov[5] * cov[1]) / den;
+    a = mean[0] - b1 * mean[1] - b2 * mean[2];
 
-    Free1D(qr);
+  }/*THEN*/
 
-  }/*ELSE*/
+  if (beta) {
 
-}/*C_OLS*/
+    beta[0] = a;
+    beta[1] = b1;
+    beta[2] = b2;
 
-/* fast implementation of conditional least squares with just the intercept. */
-static void c_cls0(double *y, int *z, int nrow, int ncond, double *fitted,
-    double *resid, double *beta, double *sd) {
+  }/*THEN*/
 
-int i = 0, *nz = NULL;
-long double *means = NULL;
+  if (fitted) {
 
-  /* the matrix of regression coefficients contains the conditional mean given
-   * each configuration; estimate in a single pass (set to NaN if there a no
-   * observations for a particular observation). */
-  means = Calloc1D(ncond, sizeof(long double));
-  nz = Calloc1D(ncond, sizeof(int));
-
-  for (i = 0; i < nrow; i++) {
-
-    means[z[i] - 1] += y[i];
-    nz[z[i] - 1]++;
-
-  }/*FOR*/
-
-  for (i = 0; i < ncond; i++) {
-
-    if (nz[i] == 0)
-      means[i] = R_NaN;
+    if (singular1 && !singular2)
+      for (i = 0; i < nrow; i++)
+        fitted[i] = a + b2 * x[1][i];
+    else if (!singular1 && singular2)
+      for (i = 0; i < nrow; i++)
+        fitted[i] = a + b1 * x[0][i];
+    else if (singular1 && singular2)
+      for (i = 0; i < nrow; i++)
+        fitted[i] = a;
     else
-      means[i] /= nz[i];
+      for (i = 0; i < nrow; i++)
+        fitted[i] = a + b1 * x[0][i] + b2 * x[1][i];
 
-  }/*FOR*/
+  }/*THEN*/
 
-  if (beta)
-    for (i  = 0; i < ncond; i++)
-      beta[i] = means[i];
-  if (fitted)
-    for (i  = 0; i < nrow; i++)
-      fitted[i] = means[z[i] - 1];
-  if (resid)
-    for (i  = 0; i < nrow; i++)
-      resid[i] = y[i] - means[z[i] - 1];
-  if (sd)
-    c_cgsd(y, z, nz, nrow, ncond, 1, means, sd);
-
-  Free1D(nz);
-  Free1D(means);
-
-}/*C_CLS0*/
-
-/* fast implementation of conditional least squares with one regression
- * coefficient. */
-static void c_cls1(double **x, double *y, int *z, int nrow, int ncond,
-    double *fitted, double *resid, double *beta, double *sd) {
-
-int i = 0, *nz = NULL;
-double *cc = NULL;
-long double *mean_y = NULL, *mean_x = NULL, *var_x = NULL, *cov = NULL, *ssr = NULL;
-
-  /* first pass: compute the conditional means of y and x. */
-  mean_y = Calloc1D(ncond, sizeof(long double));
-  mean_x = Calloc1D(ncond, sizeof(long double));
-  var_x = Calloc1D(ncond, sizeof(long double));
-  cov = Calloc1D(ncond, sizeof(long double));
-  nz = Calloc1D(ncond, sizeof(int));
-  cc = Calloc1D(2 * ncond, sizeof(double));
-
-  for (i = 0; i < nrow; i++) {
-
-    mean_y[z[i] - 1] += y[i];
-    mean_x[z[i] - 1] += x[0][i];
-    nz[z[i] - 1]++;
-
-  }/*FOR*/
-
-  for (i = 0; i < ncond; i++) {
-
-    mean_y[i] /= nz[i];
-    mean_x[i] /= nz[i];
-
-  }/*FOR*/
-
-  /* second pass: compute the covariance between x and y and the variance of x. */
-  for (i = 0; i < nrow; i++) {
-
-    var_x[z[i] - 1] += (x[0][i] - mean_x[z[i] - 1]) * (x[0][i] - mean_x[z[i] - 1]);
-    cov[z[i] - 1] += (y[i] - mean_y[z[i] - 1]) * (x[0][i] - mean_x[z[i] - 1]);
-
-  }/*FOR*/
-
-  /* the regression coefficients are computed using the closed form estimators
-   * for simple regression (set to NaN if there a no observations for a
-   * particular observation). */
-  for (i = 0; i < ncond; i++) {
-
-    if (nz[i] == 0) {
-
-      cc[i * 2] = cc[i * 2 + 1] = R_NaN;
-
-    }/*THEN*/
-    else {
-
-      cc[i * 2 + 1] = (fabs(var_x[i]) < MACHINE_TOL) ? 0 : cov[i] / var_x[i];
-      cc[i * 2] = mean_y[i] - mean_x[i] * cc[i * 2 + 1];
-
-    }/*ELSE*/
-
-  }/*FOR*/
-
-  if (beta)
-    memcpy(beta, cc, 2 * ncond * sizeof(double));
-  if (fitted)
-    for (i  = 0; i < nrow; i++)
-      fitted[i] = cc[(z[i] - 1) * 2] + x[0][i] * cc[(z[i] - 1) * 2 + 1];
   if (resid) {
 
     if (fitted)
       for (i  = 0; i < nrow; i++)
         resid[i] = y[i] - fitted[i];
+    else {
+
+    if (singular1 && !singular2)
+      for (i  = 0; i < nrow; i++)
+        resid[i] = y[i] - a - b2 * x[1][i];
+    else if (!singular1 && singular2)
+      for (i  = 0; i < nrow; i++)
+        resid[i] = y[i] - a - b1 * x[0][i];
+    else if (singular1 && singular2)
+      for (i  = 0; i < nrow; i++)
+        resid[i] = y[i] - a;
     else
       for (i  = 0; i < nrow; i++)
-        resid[i] = y[i] - cc[(z[i] - 1) * 2] - x[0][i] * cc[(z[i] - 1) * 2 + 1];
+        resid[i] = y[i] - a - b1 * x[0][i] - b2 * x[1][i];
+
+    }/*ELSE*/
 
   }/*THEN*/
+
   if (sd) {
 
-    ssr = Calloc1D(ncond, sizeof(long double));
+    if (nrow == 0)
+      *sd = R_NaN;
+    else if (nrow <= 3)
+      *sd = 0;
+    else {
 
-    if (resid)
-      for (i  = 0; i < nrow; i++)
-        ssr[z[i] - 1] += resid[i] * resid[i];
-    else if (fitted)
-      for (i  = 0; i < nrow; i++)
-        ssr[z[i] - 1] += (y[i] - fitted[i]) * (y[i] - fitted[i]);
-    else
-      for (i  = 0; i < nrow; i++)
-        ssr[z[i] - 1] += (y[i] - cc[(z[i] - 1) * 2] - x[0][i] * cc[(z[i] - 1) * 2 + 1]) *
-               (y[i] - cc[(z[i] - 1) * 2] - x[0][i] * cc[(z[i] - 1) * 2 + 1]);
+      if (resid)
+        for (i = 0; i < nrow; i++)
+          sse += resid[i] * resid[i];
+      else if (fitted)
+        for (i = 0; i < nrow; i++)
+          sse += (y[i] - fitted[i]) * (y[i] - fitted[i]);
+      else {
 
-    for (i = 0; i < ncond; i++)
-      SD_GUARD(nz[i], 2, sd[i],
-        sd[i] = sqrt(ssr[i] / (nz[i] - 2));
-      )
+        if (singular1 && !singular2)
+          for (i = 0; i < nrow; i++)
+            sse += (y[i] - a - b2 * x[1][i]) * (y[i] - a - b2 * x[1][i]);
+        else if (!singular1 && singular2)
+          for (i = 0; i < nrow; i++)
+            sse += (y[i] - a - b1 * x[0][i]) * (y[i] - a - b1 * x[0][i]);
+        else if (singular1 && singular2)
+          for (i = 0; i < nrow; i++)
+            sse += (y[i] - a) * (y[i] - a);
+        else
+          for (i = 0; i < nrow; i++)
+            sse += (y[i] - a - b1 * x[0][i] - b2 * x[1][i]) * (y[i] - a - b1 * x[0][i] - b2 * x[1][i]);
 
-    Free1D(ssr);
+      }/*ELSE*/
+
+      *sd = sqrt(sse / (nrow - 3));
+
+    }/*ELSE*/
 
   }/*THEN*/
 
-  Free1D(cc);
-  Free1D(mean_y);
-  Free1D(mean_x);
-  Free1D(var_x);
-  Free1D(cov);
-  Free1D(nz);
+}/*C_OLS2*/
 
-}/*C_CLS1*/
+static void c_olsp(double **x, double *y, int nrow, int ncol, double *fitted,
+    double *resid, double *beta, double *sd) {
 
-/* general implementation of conditional least squares. */
-void c_clsp(double **x, double *y, int *z, int nrow, int ncol, int ncond,
-    double *fitted, double *resid, double *beta, double *sd) {
+double *qr = NULL;
 
-int i = 0, j = 0, *nz = NULL, *counter = NULL, qr_ncol = ncol + 1, **zid = NULL;
-double **qr_matrix = NULL, **yy = NULL, *ff = NULL, *rr = NULL;
+  /* prepare the data for the QR decomposition. */
+  qr = Calloc1D(nrow * (ncol + 1), sizeof(double));
+  c_qr_matrix(qr, x, nrow, ncol, NULL, nrow);
 
-  /* first pass: count how many observations for each conditioning. */
-  nz = Calloc1D(ncond, sizeof(int));
-  for (i = 0; i < nrow; i++)
-    nz[z[i] - 1]++;
+  /* general case: multiple regression without missing data. */
+  c_qr(qr, y, nrow, ncol + 1, fitted, resid, beta, sd);
+  Free1D(qr);
 
-  /* allocate the responses and the matrices to pass to c_qr(). */
-  yy = Calloc1D(ncond, sizeof(double *));
-  for (i = 0; i < ncond; i++)
-    yy[i] = Calloc1D(nz[i], sizeof(double));
+}/*C_OLSP*/
 
-  qr_matrix = Calloc1D(ncond, sizeof(double *));
-  for (i = 0; i < ncond; i++)
-    qr_matrix[i] = Calloc1D(nz[i] * qr_ncol, sizeof(double));
+/* fast implementation of least squares with just the intercept and with missing
+ * data. */
+static void c_ols0_with_missing(double *y, int nrow, double *fitted,
+    double *resid, double *beta, double *sd) {
 
-  /* set the intercept. */
-  for (i = 0; i < ncond; i++)
-   for (j = 0; j < nz[i]; j++)
-     qr_matrix[i][j] = 1;
+int i = 0, ncomplete = 0;
+long double mean = 0, rsd = 0;
 
-  /* second pass: copy the data into the matrices. */
-  counter = Calloc1D(ncond, sizeof(int));
-
+  /* scan the data to determine which observations are complete. */
   for (i = 0; i < nrow; i++) {
 
-    for (j = 1; j < qr_ncol; j++)
-      qr_matrix[z[i] - 1][CMC(counter[z[i] - 1], j, nz[z[i] - 1])] = x[j - 1][i];
+    if (!ISNAN(y[i])) {
 
-    yy[z[i] - 1][counter[z[i] - 1]] = y[i];
+      mean += y[i];
+      ncomplete++;
 
-    counter[z[i] - 1]++;
+    }/*THEN*/
 
   }/*FOR*/
 
-  /* track the indexes of the observations in each conditioning, if needed. */
-  if (fitted || resid) {
+  mean /= ncomplete;
 
-    zid = Calloc1D(ncond, sizeof(int *));
-    for (i = 0; i < ncond; i++)
-      zid[i] = Calloc1D(nz[i], sizeof(int));
+  if (sd) {
 
-    memset(counter, '\0', ncond * sizeof(int));
-    for (i = 0; i < nrow; i++)
-      zid[z[i] - 1][counter[z[i] - 1]++] = i;
+    if (ncomplete == 0)
+      *sd = R_NaN;
+    else if (ncomplete == 1)
+      *sd = 0;
+    else {
+
+      for (i = 0; i < nrow; i++)
+        if (!ISNAN(y[i]))
+          rsd += (y[i] - mean) * (y[i] - mean);
+
+      *sd = sqrt(rsd / (ncomplete - 1));
+
+    }/*ELSE*/
 
   }/*THEN*/
 
-  /* iterate over each conditioning and compute the QR decomposition. */
-  memset(counter, '\0', ncond * sizeof(int));
+  /* the only coefficient is the intercept, which is the mean of the response. */
+  if (beta)
+    *beta = mean;
+  if (fitted)
+    for (i = 0; i < nrow; i++)
+      fitted[i] = mean;
+  if (resid)
+    for (i  = 0; i < nrow; i++)
+      resid[i] = y[i] - mean;
 
-  for (i = 0; i < ncond; i++) {
+}/*C_OLS0_WITH_MISSING*/
 
-    /* special case: unobserved conditioning means everything in NaN. */
-    if (nz[i] == 0) {
+/* general implementation of ordinary least squares with missing data. */
+static void c_olsp_with_missing(double **x, double *y, int nrow, int ncol,
+    double *fitted, double *resid, double *beta, double *sd) {
 
-      if (beta)
-        for (j = 0; j < qr_ncol; j++)
-          beta[i * qr_ncol + j] = R_NaN;
-      if (sd)
-        sd[i] = R_NaN;
-      continue;
+int i = 0, j = 0, k = 0, check = 0, ncomplete = 0;
+int *complete = NULL;
+double *qr = 0, *new_y = 0;
+
+  /* scan the data to determine which observations are complete. */
+  complete = Calloc1D(nrow, sizeof(int));
+
+  for (i = 0; i < nrow; i++) {
+
+    /* the response is missing. */
+    check = !ISNAN(y[i]);
+
+    /* one of the explanatory variables are missing. */
+    for (j = 0; j < ncol; j++)
+      check &= !ISNAN(x[j][i]);
+
+    complete[i] = check;
+    ncomplete += check;
+
+  }/*FOR*/
+
+  /* prepare the data for the QR decomposition. */
+  qr = Calloc1D(ncomplete * (ncol + 1), sizeof(double));
+  c_qr_matrix(qr, x, nrow, ncol, complete, ncomplete);
+  new_y = Calloc1D(ncomplete, sizeof(double));
+  for (i = 0, k = 0; i < nrow; i++)
+    if (complete[i])
+      new_y[k++] = y[i];
+  /* general case: multiple regression with missing data. */
+  c_qr(qr, new_y, ncomplete, ncol + 1, fitted, resid, beta, sd);
+
+  /* rearrange the fitted values and the residuals to match the original data. */
+  if (fitted) {
+
+    for (i = nrow - 1, k = ncomplete - 1; i >= 0; i--) {
+
+      if (complete[i])
+        fitted[i] = fitted[k--];
+      else
+        fitted[i] = NA_REAL;
+
+    }/*FOR*/
+
+  }/*THEN*/
+
+  if (resid) {
+
+    for (i = nrow - 1, k = ncomplete - 1; i >= 0; i--) {
+
+      if (complete[i])
+        resid[i] = resid[k--];
+      else
+        resid[i] = NA_REAL;
+
+    }/*FOR*/
+
+  }/*THEN*/
+
+  Free1D(complete);
+  Free1D(new_y);
+  Free1D(qr);
+
+}/*C_OLSP_WITH_MISSING*/
+
+/* compute least squares efficiently by special-casing whenever possible. */
+void c_ols(double **x, double *y, int nrow, int ncol, double *fitted,
+    double *resid, double *beta, double *sd, int missing) {
+
+  if (!missing) {
+
+    if (ncol == 0) {
+
+      /* special case: null model. */
+      c_ols0(y, nrow, fitted, resid, beta, sd);
 
     }/*THEN*/
+    else if (ncol == 1) {
 
-    /* gcc cannot optimize the copying of fitted values and residuals if
-     * implemented as a loop with lots of conditionals, so treat each case
-     * separately. */
-    if (!fitted && !resid) {
-
-      c_qr(qr_matrix[i], yy[i], nz[i], qr_ncol, NULL, NULL,
-        (!beta) ? NULL : beta + i * qr_ncol, (!sd) ? NULL : sd + i);
-
-      continue;
+      /* special case: simple regression. */
+      c_ols1(x, y, nrow, fitted, resid, beta, sd);
 
     }/*THEN*/
-    else if (fitted && !resid) {
+    else if (ncol == 2) {
 
-      ff = Calloc1D(nz[i], sizeof(double));
-
-      c_qr(qr_matrix[i], yy[i], nz[i], qr_ncol, ff, NULL,
-        (!beta) ? NULL : beta + i * qr_ncol, (!sd) ? NULL : sd + i);
-
-      for (j = 0; j < nz[i]; j++)
-        fitted[zid[i][j]] = ff[j];
-
-      Free1D(ff);
-
-    }/*THEN*/
-    else if (!fitted && resid) {
-
-      rr = Calloc1D(nz[i], sizeof(double));
-
-      c_qr(qr_matrix[i], yy[i], nz[i], qr_ncol, NULL, rr,
-        (!beta) ? NULL : beta + i * qr_ncol, (!sd) ? NULL : sd + i);
-
-      for (j = 0; j < nz[i]; j++)
-        resid[zid[i][j]] = rr[j];
-
-      Free1D(rr);
+      /* special case: two regression coefficients. */
+      c_ols2(x, y, nrow, fitted, resid, beta, sd);
 
     }/*THEN*/
     else {
 
-      ff = Calloc1D(nz[i], sizeof(double));
-      rr = Calloc1D(nz[i], sizeof(double));
-
-      c_qr(qr_matrix[i], yy[i], nz[i], qr_ncol, ff, rr,
-        (!beta) ? NULL : beta + i * qr_ncol, (!sd) ? NULL : sd + i);
-
-      for (j = 0; j < nz[i]; j++) {
-
-        fitted[zid[i][j]] = ff[j];
-        resid[zid[i][j]] = rr[j];
-
-      }/*FOR*/
-
-      Free1D(ff);
-      Free1D(rr);
+      /* general case: multiple regression without missing data. */
+      c_olsp(x, y, nrow, ncol, fitted, resid, beta, sd);
 
     }/*ELSE*/
-
-  }/*FOR*/
-
-  /* post-process the regression coefficients and replace NAs with zeros, while
-   * leaving NaNs in place for unobserved conditionings. */
-  if (beta)
-    for (i = 0; i < ncond * qr_ncol; i++)
-      if (ISNA(beta[i]))
-        beta[i] = 0;
-
-  Free1D(nz);
-  Free1D(counter);
-  Free2D(yy, ncond);
-  Free2D(qr_matrix, ncond);
-  if (fitted || resid)
-    Free2D(zid, ncond);
-
-}/*C_CLSP*/
-
-/* compute conditional least squares efficiently by special-casing whenever
- * possible. */
-void c_cls(double **x, double *y, int *z, int nrow, int ncol, int ncond,
-    double *fitted, double *resid, double *beta, double *sd) {
-
-  if (ncol == 0) {
-
-    c_cls0(y, z, nrow, ncond, fitted, resid, beta, sd);
-
-  }/*THEN*/
-  else if (ncol == 1) {
-
-   c_cls1(x, y, z, nrow, ncond, fitted, resid, beta, sd);
 
   }/*THEN*/
   else {
 
-    c_clsp(x, y, z, nrow, ncol, ncond, fitted, resid, beta, sd);
+    if (ncol == 0) {
+
+      /* special case: null model. */
+      c_ols0_with_missing(y, nrow, fitted, resid, beta, sd);
+
+    }/*THEN*/
+    else {
+
+      /* general case: multiple regression with missing data. */
+      c_olsp_with_missing(x, y, nrow, ncol, fitted, resid, beta, sd);
+
+    }/*ELSE*/
 
   }/*ELSE*/
 
-}/*C_CLS*/
-
+}/*C_OLS*/
 

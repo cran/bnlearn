@@ -8,7 +8,7 @@
 \title{Drop, add or set the direction of an arc or an edge}
 \description{
 
-  Drop, add or set the direction of a directed arc or an undirected arc (also
+  Drop, add or set the direction of a directed or undirected arc (also
   known as edge).
 
 }
@@ -36,7 +36,7 @@ drop.edge(x, from, to, debug = FALSE)
 }
 \details{
 
-  The \code{set.arc} function operates in the following way:
+  The \code{set.arc()} function operates in the following way:
   \itemize{
     \item if there is no arc between \code{from} and \code{to}, the arc
       \code{from} \eqn{\rightarrow}{->} \code{to} is added.
@@ -48,7 +48,7 @@ drop.edge(x, from, to, debug = FALSE)
       action is taken.
   }
 
-  The \code{drop.arc} function operates in the following way:
+  The \code{drop.arc()} function operates in the following way:
   \itemize{
     \item if there is no arc between \code{from} and \code{to}, no action is
       taken.
@@ -56,7 +56,7 @@ drop.edge(x, from, to, debug = FALSE)
       \code{to}, it is dropped regardless of its direction.
   }
 
-  The \code{reverse.arc} function operates in the following way:
+  The \code{reverse.arc()} function operates in the following way:
   \itemize{
     \item if there is no arc between \code{from} and \code{to}, it returns an
       error.
@@ -68,7 +68,7 @@ drop.edge(x, from, to, debug = FALSE)
       is reversed.
   }
 
-  The \code{set.edge} function operates in the following way:
+  The \code{set.edge()} function operates in the following way:
   \itemize{
     \item if there is no arc between \code{from} and \code{to}, the undirected
       arc \code{from} - \code{to} is added.
@@ -79,7 +79,7 @@ drop.edge(x, from, to, debug = FALSE)
       replaced with the undirected arc \code{from} - \code{to}.
   }
 
-  The \code{drop.edge} function operates in the following way:
+  The \code{drop.edge()} function operates in the following way:
   \itemize{
     \item if there is no undirected arc between \code{from} and \code{to}, no
       action is taken.

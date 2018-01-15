@@ -25,7 +25,7 @@ graphviz.compare(x, ..., layout = "dot", shape = "circle", main = NULL,
 \arguments{
   \item{target, learned}{an object of class \code{bn}.}
   \item{current, true}{another object of class \code{bn}.}
-  \item{\dots}{extra arguments from the generic method (for \code{all.equal},
+  \item{\dots}{extra arguments from the generic method (for \code{all.equal()},
     currently ignored); or a set of one or more objects of class \code{bn}
     (for \code{graphviz.compare}).}
   \item{wlbl}{a boolean value. If \code{TRUE} arcs whose directions have been
@@ -46,14 +46,14 @@ graphviz.compare(x, ..., layout = "dot", shape = "circle", main = NULL,
   \item{sub}{a vector of character strings, the subtitles that are plotted at
     the bottom of the corresponding figure(s).}
   \item{diff}{a character string, the label of the method used to compare and
-    format the figure(s) created by \code{graphviz.compare}. The default value
+    format the figure(s) created by \code{graphviz.compare()}. The default value
     is \code{from-first}, se below for details.}
   \item{diff.args}{a list of optional arguments to control the formatting of
-    the figure(s) created by \code{graphviz.compare}. See below for details.}
+    the figure(s) created by \code{graphviz.compare()}. See below for details.}
 }
 \details{
 
-  \code{graphviz.compare} can visualize differences between graphs in various
+  \code{graphviz.compare()} can visualize differences between graphs in various
   way depending on the value of the \code{diff} and \code{diff.args} arguments:
   \itemize{
 
@@ -78,13 +78,13 @@ graphviz.compare(x, ..., layout = "dot", shape = "circle", main = NULL,
 \note{
 
   Note that SHD, as defined in the reference, is defined on CPDAGs; therefore
-  \code{cpdag} is called on both \code{learned} and \code{true} before computing
+  \code{cpdag()} is called on both \code{learned} and \code{true} before computing
   the distance.
 
 }
 \value{
 
-  \code{compare} returns a list containing the number of true positives
+  \code{compare()} returns a list containing the number of true positives
   (\code{tp}, the number of arcs in \code{current} also present in
   \code{target}), of false positives (\code{fp}, the number of arcs in
   \code{current} not present in \code{target}) and of false negatives
@@ -92,12 +92,12 @@ graphviz.compare(x, ..., layout = "dot", shape = "circle", main = NULL,
   \code{target}) if \code{arcs} is \code{FALSE}; or the corresponding arc sets
   if \code{arcs} is \code{TRUE}.
 
-  \code{all.equal} returns either \code{TRUE} or a character string describing
+  \code{all.equal()} returns either \code{TRUE} or a character string describing
   the differences between \code{target} and \code{current}.
 
-  \code{shd} and \code{hamming} return a non-negative integer number.
+  \code{shd()} and \code{hamming()} return a non-negative integer number.
 
-  \code{graphviz.compare} plots one or more figures and returns \code{NULL}
+  \code{graphviz.compare()} plots one or more figures and returns \code{NULL}
   invisibly.
 
 }

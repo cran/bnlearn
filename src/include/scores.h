@@ -1,23 +1,26 @@
 
 /* enum for scores, to be matched from the label string passed down from R. */
 typedef enum {
-  ENOSCORE  =  0, /* error code, no such score. */
-  LOGLIK    =  1, /* log-likelihood, discrete data. */
-  AIC       =  2, /* AIC, discrete data. */
-  BIC       =  3, /* BIC, discrete data. */
-  BDE       =  4, /* Bayesian Dirichlet equivalent score. */
-  BDS       =  5, /* Bayesian Dirichlet sparse score. */
-  BDJ       =  6, /* Bayesian Dirichlet with Jeffrey's prior. */
-  K2        =  7, /* K2 score. */
-  MBDE      =  8, /* Bayesian Dirichlet equivalent score, interventional data .*/
-  BDLA      =  9, /* Bayesian Dirichlet score, locally averaged. */
-  LOGLIK_G  = 10, /* log-likelihood, Gaussian data. */
-  AIC_G     = 11, /* AIC, Gaussian data. */
-  BIC_G     = 12, /* BIC, Gaussian data. */
-  BGE       = 13, /* Bayesian Gaussian equivalent score. */
-  LOGLIK_CG = 20, /* log-likelihood, conditional Gaussian data. */
-  AIC_CG    = 21, /* AIC, conditional Gaussian data. */
-  BIC_CG    = 22, /* BIC, conditional Gaussian data. */
+  ENOSCORE  =   0, /* error code, no such score. */
+
+  LOGLIK    =   1, /* log-likelihood, discrete data. */
+  AIC       =   2, /* AIC, discrete data. */
+  BIC       =   3, /* BIC, discrete data. */
+  BDE       =   4, /* Bayesian Dirichlet equivalent score. */
+  BDS       =   5, /* Bayesian Dirichlet sparse score. */
+  BDJ       =   6, /* Bayesian Dirichlet with Jeffrey's prior. */
+  K2        =   7, /* K2 score. */
+  MBDE      =   8, /* Bayesian Dirichlet equivalent score, interventional data .*/
+  BDLA      =   9, /* Bayesian Dirichlet score, locally averaged. */
+
+  LOGLIK_G  = 100, /* log-likelihood, Gaussian data. */
+  AIC_G     = 101, /* AIC, Gaussian data. */
+  BIC_G     = 102, /* BIC, Gaussian data. */
+  BGE       = 103, /* Bayesian Gaussian equivalent score. */
+
+  LOGLIK_CG = 200, /* log-likelihood, conditional Gaussian data. */
+  AIC_CG    = 201, /* AIC, conditional Gaussian data. */
+  BIC_CG    = 202, /* BIC, conditional Gaussian data. */
 } score_e;
 
 score_e score_label(const char *label);

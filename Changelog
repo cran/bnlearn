@@ -1,3 +1,47 @@
+bnlearn (4.3)
+
+  * the "strict" and "optimized" arguments of constraint-based algorims are
+     now deprecated and will be removed at the beginning of 2019.
+  * the relevant() function is now deprecated, and it will also be removed
+     at the beginning of 2019.
+  * improved and fixed a few bugs in the functions that import and export
+     bn and bn.fit objects to the graph package.
+  * fixed a bug in averaged.network(), which could result in inconsistent bn
+     objects when arcs were dropped to obtain an acyclic graph (thanks Shuonan
+     Chen).
+  * added a graphviz.chart() function to produce DAG-with-barchart-nodes plots.
+  * fixed the counting of the number of parameters of continuous and hybrid
+     networks, which did not take the residual standard errors into account
+     (thanks Jeffrey Hart). 
+  * improved handling of singular models in impute().
+  * added an import function for pcAlgo objects from pcalg.
+  * fixed bug in the sanitization of conditional Gaussian networks (thanks
+     Kostas Oikonomou).
+  * added a loss() function to extract the estimated loss values from the
+     objects returned by bn.cv() (thanks Dejan Neskovic).
+  * it is now possible to use data with missing values in bn.fit() and
+     nparams().
+  * added a "replace.unidentifiable" argument to bn.fit(..., method = "mle"),
+     to replace parameter estimates that are NA/NaN with zeroes (for
+     regression coefficients) and uniform probabilities (in conditional
+     probability tables).
+  * added a bf.strength() function to compute arc strengths using Bayes
+     factors.
+  * learn.{mb,nbr}() now work even if all nodes are blacklisted.
+  * assigning singular models from lm() to nodes in a bn.fit object will now
+     zapsmall() near-zero coefficients, standard errors and residuals to match
+     the estimates produced by bn.fit().
+  * bn.cv() now supports performing multiple runs with custom folds (different
+     for each run).
+  * improved sanitization in mutilated(), and updated its documentation.
+  * removed the bibTeX file with references, available at www.bnlearn.com.
+  * implemented the stable version of the PC algorithm.
+  * added a count.graph() function that implements a number of graph enumeration
+     results useful for studying graphical priors.
+  * fixed loss estimation in bn.cv() for non-extendable partially directed
+     graphs, now errors are produced instead of returning meaningless results
+     (thanks Derek Powell).
+
 bnlearn (4.2)
 
   * added a tuning parameter for the inclusion probability to the marginal
@@ -11,7 +55,7 @@ bnlearn (4.2)
   * moral(), cpdag(), skeleton() and vstructs() now accept bn.fit objects in
      addition to bn objects.
   * fixed a segfault in cpdist(..., method = "lw") caused by all weights
-    being equal to NaN (thanks David Chen).
+     being equal to NaN (thanks David Chen).
   * changed the default value of the "optimized" argument to "FALSE" in
      constraint-based algorithms.
   * changed the arguments of mmhc() and rsmax2() to improve their flexibility
@@ -28,11 +72,11 @@ bnlearn (4.2)
      cross-validation.
   * fixed multiple bugs in cextend() and cpdag() that could result in the
      creation of additional v-structures.
-  * implemented the Structural EM algorithm.
+  * implemented the Structural EM algorithm in structural.em().
   * fixed multiple bugs triggered by missing values in predict() (thanks
      Oussama Bouldjedri).
   * implemented an as.prediction() function that exports objects of class
-     bn.strength to the ROCR package.
+     bn.strength to the ROCR package (contributed by Robert Ness).
 
 bnlearn (4.1)
 

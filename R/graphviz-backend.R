@@ -1,36 +1,14 @@
 
-# load the Rgraphviz package, with minimal noise.
-check.Rgraphviz = function() {
-
-  # silence all warnings while looking for suggested packages.
-  warning.level  = as.numeric(options("warn"))
-  options("warn" = -1)
-
-  if (!requireNamespace("Rgraphviz"))
-    stop("this function requires the Rgraphviz package.")
-
-  # restore the original warning level.
-  options("warn" = warning.level)
-
-}#CHECK.RGRAPHVIZ
-
 # unified backend for the graphviz calls.
 graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
     layout = "dot", shape = "circle", main = NULL, sub = NULL, render = TRUE) {
 
-  graphviz.layouts = c("dot", "neato", "twopi", "circo", "fdp")
   node.shapes = c("ellipse", "circle", "rectangle")
   highlight.params = c("nodes", "arcs", "col", "fill", "lwd", "lty", "textCol")
   highlighting = FALSE
 
-  # check whether graphviz is loaded.
-  check.Rgraphviz()
-
   # sanitize the layout (to be passed to layoutGraph).
-  if (!is.string(layout))
-    stop("graph layout must be a character string.")
-  if (layout %!in% graphviz.layouts)
-    stop("valid layout schemes are:", paste0(" '", graphviz.layouts, "'"), ".")
+  check.label(layout, choices = graphviz.layouts, argname = "graph layout")
   # sanitize nodes' shape.
   if (!is.string(shape))
     stop("node shape must be a character string.")
@@ -51,7 +29,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
     highlighting = TRUE
 
     if (!is.list(highlight) || any(names(highlight) %!in% highlight.params))
-      stop("highlight must be a list with at least one of the following",
+      stop("highlight must be a list with a subset of the following",
            " elements:", paste0(" '", highlight.params, "'"), ".")
 
     if ("nodes" %in% names(highlight))
@@ -115,7 +93,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
 
   }#THEN
 
-  # create the graphAM object from the bn object.
+  # create the graphNEL object from the bn object.
   graph.obj = new("graphNEL", nodes = nodes, edgeL = arcs2elist(arcs, nodes),
                 edgemode = 'directed')
 

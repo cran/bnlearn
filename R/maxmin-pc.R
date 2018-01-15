@@ -171,9 +171,9 @@ maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B,
   sx = sx[-length(sx)]
 
   new.min.assoc = allsubs.test(x = x, y = y, sx = sx, fixed = last, data = data,
-                    test = test, B = B, alpha = alpha, debug = debug)[3]
+                    test = test, B = B, alpha = alpha, debug = debug)
 
-  min.assoc = max(min.assoc, new.min.assoc)
+  min.assoc = max(min.assoc, new.min.assoc["max.p.value"])
 
   if (debug)
     cat("    > node", x, "has a minimum association of", min.assoc, ".\n")

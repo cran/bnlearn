@@ -8,6 +8,8 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
   res = as.list(seq(R))
   # allocate the bayesian network to use for parametric bootstrap.
   net = NULL
+  # check the data early on.
+  data.info = check.data(data)
 
   # initialize the bayesian network used by the paramentric bootstrap.
   if (sim == "parametric") {
@@ -68,7 +70,8 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
     }#THEN
     else if (sim == "parametric") {
 
-      replicate = rbn.backend(x = net, n = m, data = data)
+      fitted = bn.fit.backend(net, data = data, data.info = data.info)
+      replicate = rbn.backend(fitted, n = m)
 
     }#ELSE
 
@@ -158,7 +161,7 @@ averaged.network.backend = function(strength, nodes, threshold) {
   }#ELSE
 
   # update the network structure.
-  e$nodes = cache.structure(nodes, arcs = candidate.arcs)
+  e$nodes = cache.structure(nodes, arcs = e$arcs)
 
   return(e)
 

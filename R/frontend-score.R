@@ -22,7 +22,7 @@ score = function(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE) {
                  data = data, extra.args = list(...), learning = FALSE)
   # check that the score is decomposable when returning node contributions.
   if (by.node && !is.score.decomposable(type, extra.args))
-    stop("the score is not decomposable, node contributions are not defined.")
+    stop("the score is not decomposable, node terms are not defined.")
 
   # compute the node contributions to the network score.
   local = per.node.score(network = x, data = data, score = type,
@@ -195,7 +195,7 @@ BF = function(num, den, data, score, ..., log = TRUE) {
   match.bn(num, den)
   nodes = names(num$nodes)
   # check the data.
-  type = check.data(data)
+  data.info = check.data(data)
   # check the networks against the data.
   check.bn.vs.data(num, data)
   check.bn.vs.data(den, data)
@@ -210,11 +210,11 @@ BF = function(num, den, data, score, ..., log = TRUE) {
   # make sure the score function is suitable for computing a Bayes factor.
   if (missing(score)) {
 
-    if (type %in% discrete.data.types)
+    if (data.info$type %in% discrete.data.types)
       score = "bde"
-    else if (type %in% continuous.data.types)
+    else if (data.info$type %in% continuous.data.types)
       score = "bge"
-    else if (type %in% mixed.data.types)
+    else if (data.info$type %in% mixed.data.types)
       score = "bic-cg"
 
   }#THEN

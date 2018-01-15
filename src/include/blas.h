@@ -17,10 +17,11 @@ void c_qr(double *qr, double *y, int nrow, int ncol, double *fitted,
 
 /* from least.squares.c */
 void c_ols(double **x, double *y, int nrow, int ncol, double *fitted,
-    double *resid, double *beta, double *sd);
+    double *resid, double *beta, double *sd, int missing);
 void c_cls(double **x, double *y, int *z, int nrow, int ncol, int ncond,
-    double *fitted, double *resid, double *beta, double *sd);
+    double *fitted, double *resid, double *beta, double *sd, int missing);
 
 /* from common.c */
-void c_qr_matrix(double *qr, double **x, int nrow, int ncol);
+void c_qr_matrix(double *qr, double **x, int nrow, int ncol, int *complete,
+    int ncomplete);
 

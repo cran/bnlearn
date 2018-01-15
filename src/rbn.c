@@ -38,24 +38,16 @@ int num = INT(n), *poset = NULL, *mf = NULL;
 int has_fixed = (TYPEOF(fix) != LGLSXP);
 int i = 0, k = 0, cur = 0, nnodes = length(fitted), nparents = 0;
 fitted_node_e cur_node_type = ENOFIT;
-SEXP nodes, roots, node_depth, cur_node, cur_fixed, match_fixed;
+SEXP nodes, cur_node, cur_fixed, match_fixed, parents, parent_vars;
 SEXP cpt = R_NilValue, coefs = R_NilValue, sd = R_NilValue;
 SEXP dpar = R_NilValue, gpar = R_NilValue;
-SEXP parents, parent_vars;
 
   /* allocate and initialize the return value. */
   nodes = getAttrib(fitted, R_NamesSymbol);
 
   /* order the nodes according to their depth in the graph. */
-  PROTECT(roots = root_nodes(fitted, FALSESEXP));
-  PROTECT(node_depth = topological_ordering(fitted, roots, FALSESEXP, FALSESEXP));
   poset = Calloc1D(nnodes, sizeof(int));
-  for (i = 0; i < nnodes; i++)
-    poset[i] = i;
-  R_qsort_int_I(INTEGER(node_depth), poset, 1, nnodes);
-
-  /* unprotect roots and node_depth, they are not needed any more. */
-  UNPROTECT(2);
+  topological_sort(fitted, poset, nnodes);
 
   /* match fixed nodes, if any, with the variables in the fitted network. */
   if (has_fixed) {

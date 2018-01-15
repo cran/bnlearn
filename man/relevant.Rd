@@ -43,7 +43,7 @@
 }
 \value{
 
-  \code{relevant} returns a vector of character strings, the labels of the
+  \code{relevant()} returns a vector of character strings, the labels of the
   relevant nodes.
 
 }

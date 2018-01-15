@@ -19,8 +19,8 @@
 }
 \value{
 
-  \code{alpha.star} returns a positive number, the optimal imaginary sample
-  size value.
+  \code{alpha.star()} returns a positive number, the estimated optimal imaginary
+  sample size value.
 
 }
 \examples{

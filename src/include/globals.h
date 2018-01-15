@@ -6,6 +6,7 @@ extern SEXP BN_NodesSymbol;
 extern SEXP BN_ProbSymbol;
 extern SEXP BN_MethodSymbol;
 extern SEXP BN_WeightsSymbol;
+extern SEXP BN_DsepsetSymbol;
 extern SEXP TRUESEXP, FALSESEXP;
 
 /* numerical constants */

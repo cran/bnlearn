@@ -372,13 +372,13 @@ SEXP hc_to_be_added(SEXP arcs, SEXP blacklist, SEXP whitelist, SEXP nparents,
 int i = 0, j = 0, narcs = 0, dims = length(nodes);
 int *a = NULL, *coords = NULL;
 double *mp = REAL(maxp), *np = NULL;
-short int duplicated = 0;
+short int referenced = 0;
 SEXP try, result = R_NilValue, result2;
 
   /* transform the arc set into an adjacency matrix, if it's not one already. */
   if (isInteger(arcs)) {
 
-    if ((duplicated = NAMED(arcs)) > 0)
+    if ((referenced = MAYBE_REFERENCED(arcs)))
       PROTECT(result = duplicate(arcs));
 
   }/*THEN*/
@@ -465,7 +465,7 @@ SEXP try, result = R_NilValue, result2;
 
     PROTECT(result2 = amat2arcs(result, nodes));
 
-    if ((duplicated > 0) || !isInteger(arcs))
+    if (referenced || !isInteger(arcs))
       UNPROTECT(2);
     else
       UNPROTECT(1);
@@ -474,7 +474,7 @@ SEXP try, result = R_NilValue, result2;
   }/*THEN*/
   else {
 
-    if ((duplicated > 0) || !isInteger(arcs))
+    if (referenced || !isInteger(arcs))
       UNPROTECT(1);
     return result;
 

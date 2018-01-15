@@ -1,14 +1,5 @@
 
 /* from covariance.c */
-#define SD_GUARD(n, p, ret, expr) \
-  if ((n) == 0) \
-    (ret) = R_NaN; \
-  else if ((n) <= (p)) \
-    (ret) = 0; \
-  else { \
-    expr; \
-  }/*SD_GUARD*/
-
 double c_sse(double *data, double mean, int nrow);
 double c_mean(double *data, int nrow);
 void c_meanvec(double **data, double *mean, int nrow, int ncol, int first);

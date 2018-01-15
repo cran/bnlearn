@@ -18,15 +18,15 @@ data(clgaussian.test)
 }
 \note{
 
-  The R script to generate data from this network is shipped in the
-  \file{network.scripts} directory of this package.
+  The R script to generate data from this network is available from
+  \url{http://www.bnlearn.com/documentation/networks}.
 
 }
 \examples{
-# load the data and build the correct network from the model string.
+# load the data.
 data(clgaussian.test)
-res = empty.graph(names(clgaussian.test))
-modelstring(res) = "[A][B][C][H][D|A:H][F|B:C][E|B:D][G|A:D:E:F]"
-plot(res)
+# create and plot the network structure.
+dag = model2network("[A][B][C][H][D|A:H][F|B:C][E|B:D][G|A:D:E:F]")
+\dontrun{graphviz.plot(dag)}
 }
 \keyword{datasets}

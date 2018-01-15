@@ -5,7 +5,8 @@
 #include "include/covariance.h"
 
 /* unconditional mutual information, to be used in C code. */
-double c_micg(double *yy, double ym, double ysd, int *xx, int llx, int num) {
+double c_micg(double *yy, double ym, double ysd, int *xx, int llx, int num,
+    double *df) {
 
 int i = 0, *ni = NULL;
 double lognum = 0, logden = 0, *mu = NULL, *sd = NULL;
@@ -30,14 +31,27 @@ double lognum = 0, logden = 0, *mu = NULL, *sd = NULL;
 
   for (i = 0; i < num; i++)
     sd[xx[i] - 1] += (yy[i] - mu[xx[i] - 1]) * (yy[i] - mu[xx[i] - 1]);
-  for (i = 0; i < llx; i++)
-    SD_GUARD(ni[i], 1, sd[i],
+  for (i = 0; i < llx; i++ ){
+
+    if (ni[i] == 0)
+      sd[i] = R_NaN;
+    else if (ni[i] == 1)
+      sd[i] = 0;
+    else
       sd[i] = sqrt(sd[i] / (ni[i] - 1));
-    )
+
+  }/*FOR*/
 
   /* compute the numerator (model under the alternative). */
   for (i = 0; i < num; i++)
     lognum += dnorm(yy[i], mu[xx[i] - 1], sd[xx[i] - 1], TRUE);
+
+  /* the discrete variable is a parent of the continuous variable, then the
+   * number of parameters is equal to one mean and one variance for each
+   * level of the discrete variable; and the degrees of freedom of the test
+   * are smaller by the one mean and variance under the null. */
+  if (df)
+    *df = 2 * (llx - 1);
 
   Free1D(mu);
   Free1D(sd);
@@ -49,7 +63,7 @@ double lognum = 0, logden = 0, *mu = NULL, *sd = NULL;
 
 /* conditional mutual information, to be used in C code. */
 double c_cmicg(double *yy, double **xx, int nx, int **zz, int nz, int *z0,
-    int nz0, int *nlvls, int num) {
+    int nz0, int *nlvls, int num, double *df) {
 
 double logden = 0, lognum = 0;
 int *z1 = NULL, nz1 = 0;
@@ -61,6 +75,13 @@ int *z1 = NULL, nz1 = 0;
     /* compute the numerator (model under the alternative). */
     lognum = c_fast_ccgloglik(yy, xx, nx, num, z0, nz0);
 
+    /* one regression coefficient for each conditioning level is added
+     * (and there are no new standard errors since there are no new discrete
+     * parents); if all conditioning variables are continuous that's just
+     * one global regression coefficient. */
+    if (df)
+      *df = (nz0 == 0) ? 1 : nz0;
+
   }/*THEN*/
   else {
 
@@ -71,6 +92,13 @@ int *z1 = NULL, nz1 = 0;
     c_fast_config(zz, num, nz, nlvls, z1, &nz1, 1);
     lognum = c_fast_ccgloglik(yy, xx, nx, num, z1, nz1);
     Free1D(z1);
+
+    /* for each additional configuration of the discrete conditioning
+     * variables plus the discrete yptr, one whole set of regression
+     * coefficients (plus the intercept and the standard error) is added.
+     * under H0: llz * (ngp + 2) vs under H1: (lly * llz) * (ngp + 2). */
+    if (df)
+      *df = (nlvls[0] - 1) * ((nz0 == 0) ? 1 : nz0) * (nx + 2);
 
   }/*ELSE*/
 
@@ -117,10 +145,10 @@ double logden = 0, lognum = 0;
   /* iterate over the continuous variables using the chain rule; using only the
    * first variable xx for the numerator and both xx and yy for the denomiator. */
   for (i = 0; i < ngp; i++)
-    lognum += c_cmicg(gp[i], gp + i + 1, ngp - i - 1, &xx , 1, zz, llz, &llx, num);
+    lognum += c_cmicg(gp[i], gp + i + 1, ngp - i - 1, &xx , 1, zz, llz, &llx, num, NULL);
 
   for (i = 0; i < ngp; i++)
-    logden += c_cmicg(gp[i], gp + i + 1, ngp - i - 1, &xx , 1, zz2, llz2, &llx, num);
+    logden += c_cmicg(gp[i], gp + i + 1, ngp - i - 1, &xx , 1, zz2, llz2, &llx, num, NULL);
 
   if (zz)
     Free1D(zz2);

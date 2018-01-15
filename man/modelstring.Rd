@@ -19,10 +19,10 @@ modelstring(x, debug = FALSE) <- value
 model2network(string, ordering = NULL, debug = FALSE)
 
 \method{as.character}{bn}(x, ...)
-\method{as.bn}{character}(x)
+\method{as.bn}{character}(x, ...)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}. \code{modelstring} (but not its
+  \item{x}{an object of class \code{bn}. \code{modelstring()} (but not its
     replacement form) accepts also objects of class \code{bn.fit}.}
   \item{string}{a character string describing the Bayesian network.}
   \item{ordering}{the labels of all the nodes in the graph; their order is the
@@ -35,8 +35,8 @@ model2network(string, ordering = NULL, debug = FALSE)
 }
 \details{
 
-  The strings returned by \code{modelstring} have the same format as the ones
-  returned by the \code{modelstring} function in package \pkg{deal}; network
+  The strings returned by \code{modelstringi()} have the same format as the ones
+  returned by the \code{modelstring()} function in package \pkg{deal}; network
   structures may be easily exported to and imported from that package (via the
   \code{model2network} function).
 
@@ -49,8 +49,8 @@ model2network(string, ordering = NULL, debug = FALSE)
 }
 \value{
 
-  \code{model2network} and \code{as.bn} return an object of class \code{bn};
-  \code{modelstring} and \code{as.character.bn} return a character string.
+  \code{model2network()} and \code{as.bn()} return an object of class \code{bn};
+  \code{modelstring()} and \code{as.character.bn()} return a character string.
 
 }
 \examples{

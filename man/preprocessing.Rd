@@ -15,8 +15,8 @@
   dedup(data, threshold, debug = FALSE)
 }
 \arguments{
-  \item{data}{a data frame containing numeric columns (for \code{dedup}) or a
-    combination of numeric or factor columns (for \code{}).}
+  \item{data}{a data frame containing numeric columns (for \code{dedup()}) or a
+    combination of numeric or factor columns (for \code{discretize()}).}
   \item{threshold}{a numeric value between zero and one, the absolute
     correlation used a threshold in screening highly correlated pairs.}
   \item{method}{a character string, either \code{interval} for \emph{interval
@@ -35,11 +35,11 @@
 }
 \details{
 
-  \code{discretize} takes a data frame of continuous variables as its first
+  \code{discretize()} takes a data frame of continuous variables as its first
   argument and returns a secdond data frame of discrete variables, transformed
   using of three methods: \code{interval}, \code{quantile} or \code{hartemink}.
 
-  \code{dedup} screens the data for pairs of highly correlated variables, and
+  \code{dedup()} screens the data for pairs of highly correlated variables, and
    discards one in each pair.
 
 }
@@ -50,7 +50,7 @@
   into discrete variables, all with the same number of levels (given by the
   \code{ibreaks} argument). Which of the other algorithms is used is specified
   by the \code{idisc} argument (\code{quantile} is the default). The
-  implementation in \code{bnlearn} also handles sets of discrete variables
+  implementation in \pkg{bnlearn} also handles sets of discrete variables
   with the same number of levels, which are treated as adjacent interval
   identifiers. This allows the user to perform the initial discretization
   with the algorithm of his choice, as long as all variables have the same
@@ -59,11 +59,11 @@
 }
 \value{
 
-  \code{discretize} returns a data frame with the same structure (number of
+  \code{discretize()} returns a data frame with the same structure (number of
   columns, column names, etc.) as \code{data}, containing the discretized
   variables.
 
-  \code{dedup} returns a data frame with a subset of the columns of \code{data}.
+  \code{dedup()} returns a data frame with a subset of the columns of \code{data}.
 
 }
 \examples{

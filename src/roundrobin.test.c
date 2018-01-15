@@ -385,12 +385,7 @@ void *xptr = NULL, *yptr = NULL, **column = NULL;
 
       gp[0] = xptr;
       statistic = 2 * nobs * c_cmicg(yptr, gp, ngp + 1, NULL, 0, zptr, llz,
-                             dlvls, nobs);
-
-      /* one regression coefficient for each conditioning level is added;
-       * if all conditioning variables are continuous that's just one global
-       * regression coefficient. */
-      df = (llz == 0) ? 1 : llz;
+                             dlvls, nobs, &df);
 
     }/*THEN*/
     else if ((xtype == REALSXP) && (nlvls[i] > 0)) {
@@ -398,12 +393,7 @@ void *xptr = NULL, *yptr = NULL, **column = NULL;
       dp[0] = yptr;
       dlvls[0] = lly;
       statistic = 2 * nobs * c_cmicg(xptr, gp + 1, ngp, dp, ndp + 1, zptr,
-                               llz, dlvls, nobs);
-
-      /* for each additional configuration of the discrete conditioning
-       * variables plus the discrete yptr, one whole set of regression
-       * coefficients (plus the intercept) is added. */
-      df = (lly - 1) * ((llz == 0) ? 1 : llz)  * (ngp + 1);
+                               llz, dlvls, nobs, &df);
 
     }/*THEN*/
     else if ((xtype == INTSXP) && (nlvls[i] == 0)) {
@@ -411,12 +401,7 @@ void *xptr = NULL, *yptr = NULL, **column = NULL;
         dp[0] = xptr;
         dlvls[0] = llx;
         statistic = 2 * nobs * c_cmicg(yptr, gp + 1, ngp, dp, ndp + 1, zptr,
-                                 llz, dlvls, nobs);
-
-        /* for each additional configuration of the discrete conditioning
-         * variables plus the discrete yptr, one whole set of regression
-         * coefficients (plus the intercept) is added. */
-        df = (llx - 1) * ((llz == 0) ? 1 : llz)  * (ngp + 1);
+                                 llz, dlvls, nobs, &df);
 
     }/*THEN*/
 
@@ -555,6 +540,9 @@ SEXP xx, zz, try, result;
       IS_SMC(test_type) ? a : 1, debuglevel);
 
   }/*THEN*/
+
+  /* increment the test counter. */
+  test_counter += nz;
 
   UNPROTECT(4);
 

@@ -5,8 +5,7 @@
 SEXP root_nodes(SEXP bn, SEXP leaves) {
 
 short int *status = NULL;
-int *get_leaves = INTEGER(leaves);
-int i = 0, k = 0, counter = 0;
+int i = 0, k = 0, counter = 0, get_leaves = isTRUE(leaves);
 SEXP temp, temp2, nodes, node_data, labels, result;
 
   /* get to the nodes' data. */
@@ -24,7 +23,7 @@ SEXP temp, temp2, nodes, node_data, labels, result;
     /* get the parents/children of this node. */
     node_data = VECTOR_ELT(nodes, i);
 
-    if (*get_leaves == FALSE)
+    if (get_leaves == FALSE)
       temp = getListElement(node_data, "parents");
     else
       temp = getListElement(node_data, "children");
@@ -38,7 +37,7 @@ SEXP temp, temp2, nodes, node_data, labels, result;
 
     if (!isNull(temp)) {
 
-      if (*get_leaves == FALSE)
+      if (get_leaves == FALSE)
         temp2 = getListElement(node_data, "children");
       else
         temp2 = getListElement(node_data, "parents");

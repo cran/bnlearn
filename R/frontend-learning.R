@@ -1,4 +1,15 @@
 
+# PC algorithm, the stable version.
+pc.stable = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, undirected = FALSE) {
+
+  bnlearn(x = x, cluster = cluster, whitelist = whitelist,
+    blacklist = blacklist, test = test, alpha = alpha, B = B,
+    method = "pc.stable", debug = debug, optimized = FALSE,
+    strict = FALSE, undirected = undirected)
+
+}#PC.CLASSIC
+
 # Grow-Shrink frontend.
 gs = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE,
@@ -113,7 +124,7 @@ tabu = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 }#TABU
 
 # Generic Restricted Maximization frontend.
-rsmax2 = function(x, whitelist = NULL, blacklist = NULL, restrict = "gs",
+rsmax2 = function(x, whitelist = NULL, blacklist = NULL, restrict = "si.hiton.pc",
     maximize = "hc", restrict.args = list(), maximize.args = list(), 
     debug = FALSE) {
 

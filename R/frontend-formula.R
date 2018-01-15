@@ -60,7 +60,10 @@ model2network = function(string, ordering = NULL, debug = FALSE) {
 }#MODEL2NETWORK
 
 # model-string-to-bn conversion function.
-as.bn.character = function(x) {
+as.bn.character = function(x, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
 
   model2network(x)
 

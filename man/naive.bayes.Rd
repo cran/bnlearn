@@ -48,7 +48,7 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
 }
 \details{
 
-  The \code{naive.bayes} functions creates the star-shaped Bayesian network
+  The \code{naive.bayes()} function creates the star-shaped Bayesian network
   form of a naive Bayes classifier; the training variable (the one holding the
   group each observation belongs to) is at the center of the star, and it has
   an outgoing arc for each explanatory variable.
@@ -56,7 +56,7 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   If \code{data} is specified, \code{explanatory} will be ignored and the
   labels of the explanatory variables will be extracted from the data.
 
-  \code{predict} performs a supervised classification of the observations by
+  \code{predict()} performs a supervised classification of the observations by
   assigning them to the group with the maximum posterior probability.
 
 }
@@ -69,11 +69,11 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   sampling at random from the tied values. Therefore, setting the random seed
   is required to get reproducible results.
 
-  \code{tan.tree} support whitelisting and blacklisting arcs but not their
+  \code{tan.tree()} supports whitelisting and blacklisting arcs but not their
   directions. Morevoer it is not possible to whitelist or blacklist arcs
   incident on \code{training}.
 
-  \code{predict} accepts either a \code{bn} or a \code{bn.fit} object as its
+  \code{predict()} accepts either a \code{bn} or a \code{bn.fit} object as its
   first argument. For the former, the parameters of the network are fitted on
   \code{data}, that is, the observations whose class labels the function is
   trying to predict.
@@ -81,12 +81,12 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
 }
 \value{
 
-  \code{naive.bayes} returns an object of class \code{c("bn.naive", "bn")},
-  which behaves like a normal \code{bn} object unless passed to \code{predict}.
-  \code{tree.bayes} returns an object of class \code{c("bn.tan", "bn")}, which
-  again behaves like a normal \code{bn} object unless passed to \code{predict}.
+  \code{naive.bayes()} returns an object of class \code{c("bn.naive", "bn")},
+  which behaves like a normal \code{bn} object unless passed to \code{predict()}.
+  \code{tree.bayes()} returns an object of class \code{c("bn.tan", "bn")}, which
+  again behaves like a normal \code{bn} object unless passed to \code{predict()}.
 
-  \code{predict} returns a factor with the same levels as the \code{training}
+  \code{predict()} returns a factor with the same levels as the \code{training}
   variable from \code{data}. If \code{prob = TRUE}, the posterior probabilities
   used for prediction are attached to the predicted values as an attribute
   called \code{prob}.

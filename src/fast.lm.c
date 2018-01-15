@@ -2,7 +2,8 @@
 #include "include/dataframe.h"
 #include "include/blas.h"
 
-SEXP fast_lm(SEXP data, SEXP node, SEXP parents, SEXP keep) {
+/* computationally efficient function to compute least squares. */
+SEXP fast_lm(SEXP data, SEXP node, SEXP parents, SEXP keep, SEXP missing) {
 
 int i = 0, n = 0, ncol = length(parents);
 double **x = NULL, *y = NULL;
@@ -41,7 +42,7 @@ SEXP data_x, result, response, coefficients, sd, residuals, fitted, coefnames;
     PROTECT(residuals = allocVector(REALSXP, n));
     /* estimate all relevant quantities via least squares. */
     c_ols(x, y, n, ncol, REAL(fitted), REAL(residuals),
-      REAL(coefficients), REAL(sd));
+      REAL(coefficients), REAL(sd), isTRUE(missing));
 
   }/*THEN*/
   else {
@@ -49,7 +50,8 @@ SEXP data_x, result, response, coefficients, sd, residuals, fitted, coefnames;
     /* fitted values and residuals are just dummy NAs. */
     fitted = residuals = ScalarReal(NA_REAL);
     /* estimate regression coefficients and standard error via least squares. */
-    c_ols(x, y, n, ncol, NULL, NULL, REAL(coefficients), REAL(sd));
+    c_ols(x, y, n, ncol, NULL, NULL, REAL(coefficients), REAL(sd),
+      isTRUE(missing));
 
   }/*ELSE*/
 
@@ -68,7 +70,9 @@ SEXP data_x, result, response, coefficients, sd, residuals, fitted, coefnames;
 
 }/*FAST_LM*/
 
-SEXP fast_cglm(SEXP data, SEXP node, SEXP parents, SEXP configs, SEXP keep) {
+/* computationally efficient function to compute conditional least squares. */
+SEXP fast_cglm(SEXP data, SEXP node, SEXP parents, SEXP configs, SEXP keep,
+    SEXP missing) {
 
 int i = 0, n = 0, *z = NULL, ncol = length(parents), nz = 0;
 double **x = NULL, *y = NULL;
@@ -115,7 +119,7 @@ SEXP data_x, result, confnames, dummy_configs;
     PROTECT(residuals = allocVector(REALSXP, n));
     /* estimate all relevant quantities via least squares. */
     c_cls(x, y, z, n, ncol, nz, REAL(fitted), REAL(residuals),
-      REAL(coefficients), REAL(sd));
+      REAL(coefficients), REAL(sd), isTRUE(missing));
 
   }/*THEN*/
   else {
@@ -128,7 +132,8 @@ SEXP data_x, result, confnames, dummy_configs;
     setAttrib(dummy_configs, R_LevelsSymbol, confnames);
     SET_VECTOR_ELT(result, 2, dummy_configs);
     /* estimate all relevant quantities via least squares. */
-    c_cls(x, y, z, n, ncol, nz, NULL, NULL, REAL(coefficients), REAL(sd));
+    c_cls(x, y, z, n, ncol, nz, NULL, NULL, REAL(coefficients), REAL(sd),
+      isTRUE(missing));
 
   }/*ELSE*/
 

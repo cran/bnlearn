@@ -1,6 +1,6 @@
 export(
   # constraint-based structure learning algorithms.
-  "gs", "iamb", "inter.iamb", "fast.iamb", "mmpc", "si.hiton.pc",
+  "gs", "iamb", "inter.iamb", "fast.iamb", "mmpc", "si.hiton.pc", "pc.stable",
   # local structure learning algorithms.
   "chow.liu", "aracne", "relevant",
   # score-based structure learning algorithms.
@@ -30,17 +30,18 @@ export(
   # model string formulas.
   "modelstring", "modelstring<-", "model2network",
   # arc strength and model averaging.
-  "arc.strength", "boot.strength", "custom.strength", "averaged.network",
+  "arc.strength", "boot.strength", "bf.strength", "custom.strength",
+  "averaged.network",
   # networks scores and conditional independence tests.
   "score", "alpha.star", "BF", "ci.test",
   # resampling and Bayesian networks.
-  "bn.boot", "bn.cv",
+  "bn.boot", "bn.cv", "loss",
   # notable network structures transforms.
   "skeleton", "pdag2dag", "cpdag", "cextend", "moral", "mutilated",
   # v-structures and d-separation.
   "vstructs", "dsep",
   # plotting network structures.
-  "graphviz.plot", "strength.plot", graphviz.compare, 
+  "graphviz.plot", "strength.plot", "graphviz.compare", "graphviz.chart",
   # fitted Bayesian networks.
   "bn.fit", "custom.fit", "bn.net",
   # plotting fitted Bayesian networks.
@@ -62,7 +63,9 @@ export(
   # assorted functions to extract information.
   "configs", "nparams", "ntests", "sigma",
   # assorted conversion functions.
-  "as.bn", "as.bn.fit", "as.grain", "as.graphNEL", "as.graphAM", "as.prediction"
+  "as.bn", "as.bn.fit", "as.grain", "as.graphNEL", "as.graphAM", "as.prediction",
+  # graph enumeration.
+  "count.graphs"
 )
 
 useDynLib(bnlearn, .registration = TRUE)
@@ -70,10 +73,10 @@ useDynLib(bnlearn, .registration = TRUE)
 importFrom("methods", "new", "setClass", "setGeneric", "setMethod")
 importFrom("stats", "logLik", "AIC", "BIC", "coefficients", "complete.cases",
   "cor", "dnorm", "ecdf", "fitted", "formula", "knots", "optimize", "quantile",
-  "residuals", "sd", "weighted.mean", "median")
+  "residuals", "sd", "weighted.mean", "median", "qunif")
 importFrom("grDevices", "col2rgb", "colors")
 importFrom("graphics", "abline", "arrows", "lines", "plot", "points",
-  "strheight", "strwidth", "text")
+  "strheight", "strwidth", "text", "plot.new", "title", "rect", "symbols")
 
 S3method(as.bn, "fit")
 
@@ -95,6 +98,7 @@ S3method(as.character, "bn")
 S3method(as.grain, "bn.fit")
 S3method(as.bn, "grain")
 S3method(as.bn.fit, "grain")
+S3method(as.bn, "pcAlgo")
 S3method(as.graphNEL, "bn")
 S3method(as.bn, "graphNEL")
 S3method(as.graphNEL, "bn.fit")

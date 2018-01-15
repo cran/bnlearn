@@ -2,6 +2,7 @@
 \alias{bn.cv}
 \alias{plot.bn.kcv}
 \alias{plot.bn.kcv.list}
+\alias{loss}
 \title{Cross-validation for Bayesian networks}
 \description{
 
@@ -17,6 +18,7 @@ bn.cv(data, bn, loss = NULL, ..., algorithm.args = list(),
 \method{plot}{bn.kcv}(x, ..., main, xlab, ylab, connect = FALSE)
 \method{plot}{bn.kcv.list}(x, ..., main, xlab, ylab, connect = FALSE)
 
+loss(x)
 }
 \arguments{
   \item{data}{a data frame containing the variables in the model.}
@@ -42,13 +44,13 @@ bn.cv(data, bn, loss = NULL, ..., algorithm.args = list(),
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
   \item{x}{an object of class \code{bn.kcv} or \code{bn.kcv.list} returned by
-    \code{bn.cv}.}
+    \code{bn.cv()}.}
   \item{...}{additional objects of class \code{bn.kcv} or \code{bn.kcv.list}
     to plot alongside the first.}
   \item{main, xlab, ylab}{the title of the plot, an array of labels for the
     boxplot, the label for the y axis.}
-  \item{connect}{a logical value. If TRUE, the medians points in the boxplots
-    will be connected by a segmented line.}
+  \item{connect}{a logical value. If \code{TRUE}, the medians points in the
+    boxplots will be connected by a segmented line.}
 }
 \section{Cross-Validation Strategies}{
 
@@ -87,7 +89,9 @@ bn.cv(data, bn, loss = NULL, ..., algorithm.args = list(),
     \item \code{runs}: a positive integer number, the number of times
       k-fold or hold-out cross-validation will be run.
     \item \code{folds}: a list in which element corresponds to one fold and
-      contains the indices for the observations that are included to that fold.
+      contains the indices for the observations that are included to that fold;
+      or a list with an element for each run, in which each element is itself a
+      list of the folds to be used for that run.
 
   }
 
@@ -168,8 +172,10 @@ bn.cv(data, bn, loss = NULL, ..., algorithm.args = list(),
 }
 \value{
 
-  An object of class \code{bn.kcv.list} if \code{runs} is at least 2, an object
-  of class \code{bn.kcv} if \code{runs} is equal to 1.
+  \code{bn.cv()} returns an object of class \code{bn.kcv.list} if \code{runs}
+  is at least 2, an object of class \code{bn.kcv} if \code{runs} is equal to 1.
+
+  \code{loss()} returns a numeric vector with a length equal to \code{runs}.
 
 }
 \references{
@@ -186,15 +192,28 @@ folds = list(1:2000, 2001:3000, 3001:5000)
 bn.cv(learning.test, 'hc', loss = "logl", method = "custom-folds",
   folds = folds)
 
-bn.cv(gaussian.test, 'mmhc', method = "hold-out", k = 5, m = 50, runs = 2)
+xval = bn.cv(gaussian.test, 'mmhc', method = "hold-out",
+         k = 5, m = 50, runs = 2)
+xval
+loss(xval)
 
 \dontrun{
+# comparing algorithms with multiple runs of cross-validation.
 gaussian.subset = gaussian.test[1:50, ]
 cv.gs = bn.cv(gaussian.subset, 'gs', runs = 10)
 cv.iamb = bn.cv(gaussian.subset, 'iamb', runs = 10)
 cv.inter = bn.cv(gaussian.subset, 'inter.iamb', runs = 10)
 plot(cv.gs, cv.iamb, cv.inter,
   xlab = c("Grow-Shrink", "IAMB", "Inter-IAMB"), connect = TRUE)
+
+# use custom folds.
+folds = split(sample(nrow(gaussian.subset)), seq(5))
+bn.cv(gaussian.subset, "hc", method = "custom-folds", folds = folds)
+
+# multiple runs, with custom folds.
+folds = replicate(5, split(sample(nrow(gaussian.subset)), seq(5)),
+          simplify = FALSE)
+bn.cv(gaussian.subset, "hc", method = "custom-folds", folds = folds)
 }
 }
 \author{Marco Scutari}

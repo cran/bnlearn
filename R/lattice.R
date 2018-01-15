@@ -2,8 +2,7 @@
 lattice.discrete.backend = function(fitted, type, xlab, ylab, main, ...) {
 
   # check whether lattice is loaded, and try to load if it is not.
-  if (!requireNamespace("lattice"))
-    stop("this function requires the lattice package.")
+  check.and.load.package("lattice")
 
   if (is(fitted, "bn.fit"))
     stop("only plots of single, discrete nodes are implemented.")
@@ -67,8 +66,7 @@ lattice.discrete.backend = function(fitted, type, xlab, ylab, main, ...) {
 lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
 
   # check whether lattice is loaded, and try to load if it is not.
-  if (!requireNamespace("lattice"))
-    stop("this function requires lattice.")
+  check.and.load.package("lattice")
 
   if (is(fitted, "bn.fit")) {
 
@@ -218,8 +216,7 @@ lattice.cv.bwplot = function(means, labels, losses, main, xlab, ylab,
     connect = FALSE) {
 
   # check whether lattice is loaded, and try to load if it is not.
-  if (!requireNamespace("lattice"))
-    stop("this function requires the lattice package.")
+  check.and.load.package("lattice")
 
   # check the labels of the cross-validation objects, if any.
   if (!missing(xlab)) {

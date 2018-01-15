@@ -1,5 +1,6 @@
 \name{constraint-based algorithms}
 \alias{constraint-based algorithms}
+\alias{pc.stable}
 \alias{gs}
 \alias{iamb}
 \alias{fast.iamb}
@@ -16,6 +17,8 @@
   constraint-based algorithms.
 }
 \usage{
+pc.stable(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+  alpha = 0.05, B = NULL, debug = FALSE, undirected = FALSE)
 gs(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
   alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
   undirected = FALSE)
@@ -70,6 +73,12 @@ si.hiton.pc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
 
 }
 \references{
+
+  \bold{for PC:}
+
+  Colombo D, Maathuis MH (2014). "Order-Independent Constraint-Based Causal
+      Structure Learning". \emph{Journal of Machine Learning Research},
+      \strong{15}, 3921-3962.
 
   \bold{for GS:}
 

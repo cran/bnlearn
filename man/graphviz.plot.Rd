@@ -50,7 +50,7 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
     \item \code{fill}: an integer or character string (the colour used as a
       background colour for the nodes). The default value is \code{white}.
     \item \code{lwd}: a positive number (the line width of highlighted arcs).
-      It overrides the line width settings in \code{strength.plot}. The
+      It overrides the line width settings in \code{strength.plot()}. The
       default value is to use the global settings of \pkg{Rgraphviz}.
     \item \code{lty}: the line type of highlighted arcs. Possible values are
       0, 1, 2, 3, 4, 5, 6, "blank", "solid", "dashed", "dotted", "dotdash",
@@ -62,7 +62,7 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
 }
 \value{
 
-  \code{graphviz.plot} returns invisibly the \code{graph} object produced by
+  \code{graphviz.plot()} returns invisibly the \code{graph} object produced by
   \pkg{Rgraphviz}.
 
 }

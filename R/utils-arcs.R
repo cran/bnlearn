@@ -150,7 +150,7 @@ drop.arc.backend = function(arcs, dropped, debug = FALSE) {
 
 }#DROP.ARC.BACKEND
 
-# drop an arc.
+# drop an edge.
 drop.edge.backend = function(arcs, dropped, debug = FALSE) {
 
   # the arc is there, undirected.

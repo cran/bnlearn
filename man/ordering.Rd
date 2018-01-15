@@ -23,13 +23,13 @@ tiers2blacklist(nodes)
 }
 \details{
 
-  \code{ordering2blacklist} takes a vector of character strings (the labels of
-  the nodes), which specifies a complete node ordering. An object of class
+  \code{ordering2blacklist()} takes a vector of character strings (the labels
+  of the nodes), which specifies a complete node ordering. An object of class
   \code{bn} or \code{bn.fit}; in that case, the node ordering is derived by
-  the graph. In both cases, the blacklist returned by \code{ordering2blacklist}
+  the graph. In both cases, the blacklist returned by \code{ordering2blacklist()}
   contains all the possible arcs that violate the specified node ordering.
 
-  \code{tiers2blacklist} takes (again) a vector of character strings (the
+  \code{tiers2blacklist()} takes (again) a vector of character strings (the
   labels of the nodes), which specifies a complete node ordering, or a list of
   character vectors, which specifies a partial node ordering. In the latter
   case, all arcs going from a node in a particular element of the list
@@ -39,17 +39,17 @@ tiers2blacklist(nodes)
 }
 \value{
 
-  \code{node.ordering} returns a vector of character strings, an ordered set of
+  \code{node.ordering()} returns a vector of character strings, an ordered set of
   node labels.
 
-  \code{ordering2blacklist} and \code{tiers2blacklist} return a sanitized
+  \code{ordering2blacklist()} and \code{tiers2blacklist()} return a sanitized
   \code{blacklist} (a two-column matrix, whose columns are labeled \code{from}
   and \code{to}).
 
 }
 \note{
 
-  \code{node.ordering} and \code{ordering2blacklist} support only completely
+  \code{node.ordering()} and \code{ordering2blacklist()} support only completely
   directed Bayesian networks.
 
 }

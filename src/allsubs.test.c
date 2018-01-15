@@ -18,8 +18,11 @@
               Rprintf("%s ", CHAR(STRING_ELT(sx, subset[i] - nf))); \
             Rprintf("(p-value: %g).\n", pvalue); \
           }/*THEN*/ \
+          PROTECT(retval = ast_prepare_retval(pvalue, min_pvalue, max_pvalue, \
+                             a, sx, subset, cursize, fixed, nf)); \
           UNWIND; \
-          return mkRealVec(3, pvalue, min_pvalue, max_pvalue); \
+          UNPROTECT(1); \
+          return retval; \
         }/*THEN*/ \
         else { \
           if (debuglevel > 0) { \
@@ -142,7 +145,43 @@
 #define PVALUE(testfun) \
         pvalue = testfun; \
         min_pvalue = pvalue < min_pvalue ? pvalue : min_pvalue; \
-        max_pvalue = pvalue > max_pvalue ? pvalue : max_pvalue;
+        max_pvalue = pvalue > max_pvalue ? pvalue : max_pvalue; \
+        /* increment the test counter. */ \
+        test_counter++;
+
+static SEXP ast_prepare_retval(double pvalue, double min_pvalue,
+  double max_pvalue, double alpha, SEXP sx, int *subset, int cursize,
+  SEXP fixed, int nf) {
+
+int i = 0, k = 0;
+SEXP retval, dsep_set;
+
+  PROTECT(retval = mkRealVec(3, pvalue, min_pvalue, max_pvalue));
+  setAttrib(retval, R_NamesSymbol,
+    mkStringVec(3, "p.value", "min.p.value", "max.p.value")); 
+
+  if (pvalue > alpha) {
+
+    PROTECT(dsep_set = allocVector(STRSXP, cursize + nf));
+    for (i = 0, k = 0; i < nf; i++)
+      SET_STRING_ELT(dsep_set, k++, STRING_ELT(fixed, i));
+    for (i = nf; i < cursize + nf; i++) \
+      SET_STRING_ELT(dsep_set, k++, STRING_ELT(sx, subset[i] - nf));
+    setAttrib(retval, BN_DsepsetSymbol, dsep_set);
+    UNPROTECT(1);
+
+  }/*THEN*/
+  else {
+
+    setAttrib(retval, BN_DsepsetSymbol, R_NilValue);
+
+  }/*ELSE*/
+
+  UNPROTECT(1);
+
+  return retval;
+
+}/*AST_PREPARE_RETVAL*/
 
 /* parametric tests for discrete variables. */
 static SEXP ast_discrete(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
@@ -153,10 +192,11 @@ int *xptr = INTEGER(xx), *yptr = INTEGER(yy), *zptr = NULL, *subset = NULL;
 int i = 0, cursize = 0, llx = NLEVELS(xx), lly = NLEVELS(yy), llz = 0;
 int **column = NULL, *nlvls = NULL, **subcol = NULL, *sublvls = NULL;
 double statistic = 0, pvalue = 0, df = 0, min_pvalue = 1, max_pvalue = 0;
+SEXP retval;
 
   DISCRETE_CACHE();
 
-  for (cursize = 1; cursize <= maxsize; cursize++) {
+  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
 
     ALLOC_DISCRETE_SUBSET();
 
@@ -199,7 +239,8 @@ double statistic = 0, pvalue = 0, df = 0, min_pvalue = 1, max_pvalue = 0;
 
   FREE_DISCRETE_CACHE();
 
-  return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
+  return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, R_NilValue,
+           NULL, 0, R_NilValue, 0);
 
 }/*AST_DISCRETE*/
 
@@ -212,11 +253,12 @@ int i = 0, cursize = 0, *subset = NULL, df = 0;
 double **column = NULL, *mean = NULL, **subcol = NULL, *submean = NULL;
 double *cov = NULL, *u = NULL, *d = NULL, *vt = NULL, lambda = 0;
 double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
+SEXP retval;
 
   GAUSSIAN_CACHE();
   GAUSSIAN_ALLOC();
 
-  for (cursize = 1; cursize <= maxsize; cursize++) {
+  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
 
     /* compute the degrees of freedom for correlation and mutual information. */
     if (test == COR)
@@ -285,7 +327,8 @@ double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
   FREE_GAUSSIAN_CACHE();
   FREE_GAUSSIAN_ALLOC();
 
-  return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
+  return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, R_NilValue,
+           NULL, 0, R_NilValue, 0);
 
 }/*AST_GAUSTESTS*/
 
@@ -299,6 +342,7 @@ int i = 0, j = 0, k = 0, *subset = NULL, *nlvls = NULL, **dp = NULL;
 int *zptr = NULL, llx = 0, lly = 0, llz = 0, *dlvls = NULL;
 double **gp = NULL, statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0, df = 0;
 void *xptr = 0, *yptr = 0, **columns = NULL;
+SEXP retval;
 
   /* scan the parents for type and number of levels. */
   columns = Calloc1D(nsx + nf, sizeof(void *));
@@ -337,7 +381,7 @@ void *xptr = 0, *yptr = 0, **columns = NULL;
 
   }/*THEN*/
 
-  for (cursize = 1; cursize <= maxsize; cursize++) {
+  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
 
     /* allocate and initialize the subset. */
     subset = Calloc1D(cursize + nf, sizeof(int));
@@ -404,12 +448,7 @@ void *xptr = 0, *yptr = 0, **columns = NULL;
 
         gp[0] = xptr;
         statistic = 2 * nobs * c_cmicg(yptr, gp, ngp + 1, NULL, 0, zptr, llz,
-                               dlvls, nobs);
-
-        /* one regression coefficient for each conditioning level is added;
-         * if all conditioning variables are continuous that's just one global
-         * regression coefficient. */
-        df = (llz == 0) ? 1 : llz;
+                               dlvls, nobs, &df);
 
       }/*THEN*/
       else { /* one variable is discrete, the other is continuous. */
@@ -417,12 +456,7 @@ void *xptr = 0, *yptr = 0, **columns = NULL;
         dp[0] = yptr;
         dlvls[0] = lly;
         statistic = 2 * nobs * c_cmicg(xptr, gp + 1, ngp, dp, ndp + 1, zptr,
-                                 llz, dlvls, nobs);
-
-        /* for each additional configuration of the discrete conditioning
-         * variables plus the discrete yptr, one whole set of regression
-         * coefficients (plus the intercept) is added. */
-        df = (lly - 1) * ((llz == 0) ? 1 : llz)  * (ngp + 1);
+                                 llz, dlvls, nobs, &df);
 
       }/*ELSE*/
 
@@ -443,7 +477,8 @@ void *xptr = 0, *yptr = 0, **columns = NULL;
   Free1D(columns);
   Free1D(nlvls);
 
-  return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
+  return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, R_NilValue,
+           NULL, 0, R_NilValue, 0);
 
 }/*AST_MICG*/
 
@@ -456,10 +491,11 @@ int *xptr = INTEGER(xx), *yptr = INTEGER(yy), *zptr = NULL, *subset = NULL;
 int i = 0, cursize = 0, llx = NLEVELS(xx), lly = NLEVELS(yy), llz = 0;
 int **column = NULL, *nlvls = NULL, **subcol = NULL, *sublvls = NULL;
 double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0, df = 0;
+SEXP retval;
 
   DISCRETE_CACHE();
 
-  for (cursize = 1; cursize <= maxsize; cursize++) {
+  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
 
     ALLOC_DISCRETE_SUBSET();
 
@@ -480,7 +516,8 @@ double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0, df = 0;
 
   FREE_DISCRETE_CACHE();
 
-  return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
+  return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, R_NilValue,
+           NULL, 0, R_NilValue, 0);
 
 }/*AST_DPERM*/
 
@@ -492,10 +529,11 @@ static SEXP ast_gperm(SEXP xx, SEXP yy, SEXP zz, SEXP ff, SEXP x, SEXP y,
 int i = 0, cursize = 0, *subset = NULL;
 double **column = NULL, **subcol= NULL;
 double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
+SEXP retval;
 
   GAUSSIAN_CACHE();
 
-  for (cursize = 1; cursize <= maxsize; cursize++) {
+  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
 
     /* allocate and initialize the subset indexes array. */
     subset = Calloc1D(cursize + nf, sizeof(int));
@@ -530,7 +568,8 @@ double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
 
   FREE_GAUSSIAN_CACHE();
 
-  return mkRealVec(3, pvalue, min_pvalue, max_pvalue);
+  return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, R_NilValue,
+           NULL, 0, R_NilValue, 0);
 
 }/*AST_GPERM*/
 
@@ -542,7 +581,7 @@ int i = 0, *subset = NULL, cursize = 0, nsx = length(sx), nf = length(fixed);
 double pvalue = 0, min_pvalue = 1, max_pvalue = 0, a = NUM(alpha);
 const char *t = CHAR(STRING_ELT(test, 0));
 test_e test_type = test_label(t);
-SEXP xx, yy, zz, ff = R_NilValue, res = R_NilValue;
+SEXP xx, yy, zz, ff = R_NilValue, res = R_NilValue, retval;
 
   /* call indep_test to deal with zero-length conditioning subsets. */
   if (minsize == 0) {
@@ -584,16 +623,16 @@ SEXP xx, yy, zz, ff = R_NilValue, res = R_NilValue;
   }/*THEN*/
   else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
 
-      res = ast_dperm(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-              maxsize, a, test_type, INT(B),
-              IS_SMC(test_type) ? a : 1, debuglevel);
+    res = ast_dperm(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
+            maxsize, a, test_type, INT(B),
+            IS_SMC(test_type) ? a : 1, debuglevel);
 
   }/*THEN*/
   else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
 
-      res = ast_gperm(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
-              maxsize, a, test_type, INT(B),
-              IS_SMC(test_type) ? a : 1, debuglevel);
+    res = ast_gperm(xx, yy, zz, ff, x, y, sx, fixed, nobs, nsx, nf, minsize,
+            maxsize, a, test_type, INT(B),
+            IS_SMC(test_type) ? a : 1, debuglevel);
 
   }/*THEN*/
 

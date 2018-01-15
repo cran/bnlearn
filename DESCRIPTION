@@ -2,15 +2,15 @@ Package: bnlearn
 Type: Package
 Title: Bayesian Network Structure Learning, Parameter Learning and
         Inference
-Version: 4.2
-Date: 2017-06-30
+Version: 4.3
+Date: 2018-01-15
 Depends: R (>= 2.14.0), methods
-Suggests: parallel, graph, Rgraphviz, lattice, gRain, ROCR
+Suggests: parallel, graph, Rgraphviz, lattice, gRain, ROCR, Rmpfr, gmp
 Author: Marco Scutari [aut, cre], Robert Ness [ctb]
 Maintainer: Marco Scutari <marco.scutari@gmail.com>
 Description: Bayesian network structure learning, parameter learning and
   inference.
-  This package implements constraint-based (GS, IAMB, Inter-IAMB, Fast-IAMB,
+  This package implements constraint-based (PC, GS, IAMB, Inter-IAMB, Fast-IAMB,
   MMPC, Hiton-PC), pairwise (ARACNE and Chow-Liu), score-based (Hill-Climbing
   and Tabu Search) and hybrid (MMHC and RSMAX2) structure learning algorithms
   for discrete, Gaussian and conditional Gaussian networks, along with many
@@ -27,6 +27,6 @@ URL: http://www.bnlearn.com/
 License: GPL (>= 2)
 LazyData: yes
 NeedsCompilation: yes
-Packaged: 2017-07-01 22:28:22 UTC; fizban
+Packaged: 2018-01-15 10:53:26 UTC; fizban
 Repository: CRAN
-Date/Publication: 2017-07-03 13:35:15 UTC
+Date/Publication: 2018-01-15 14:47:36 UTC

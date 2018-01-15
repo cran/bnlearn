@@ -70,7 +70,7 @@ check.dnode.vs.dnode = function(new, old) {
     if (ndims > 1) {
 
       if (!setequal(names(odnn), names(ndnn)))
-        stop("wrong dimension names for node", old$node, ".")
+        stop("wrong dimension names for node ", old$node, ".")
 
       new = aperm(new, match(names(ndnn), names(odnn)))
       ndnn = dimnames(new)
@@ -105,7 +105,8 @@ check.dnode.vs.dnode = function(new, old) {
 
   }#ELSE
 
-  return(new)
+  # make sure the returned object is a table.
+  return(structure(new, class = "table"))
 
 }#CHECK.DNODE.VS.DNODE
 
@@ -330,7 +331,7 @@ check.gnode.vs.parents = function(node, new, parents) {
 
     if (!setequal(names(new$coef), parent.names))
       stop("wrong regression coefficients for node ", node, " (", 
-        setdiff(parent.names, names(new$coef)), ").")
+        paste(setdiff(parent.names, names(new$coef)), collapse = " "), ").")
     new$coef = new$coef[parent.names]
 
   }#THEN
@@ -420,7 +421,7 @@ check.cgnode.vs.cgnode = function(new, old) {
 
     # reorder coefficients, standard errors and configurations.
     new$sd = new$sd[map]
-    new$coef = new$coef[, map]
+    new$coef = new$coef[, map, drop = FALSE]
     new$dlevels = new$dlevels[old.dparents]
     colnames(new$coef) = names(new$sd) = names(old$sd)
 
@@ -463,7 +464,7 @@ check.cgnode.vs.parents = function(node, new, parents) {
 
     if (!setequal(rownames(new$coef), regression.coefficients))
       stop("wrong regression coefficients for node ", node, " (",
-        setdiff(continuous.parents, rownames(new$coef)), ").")
+        paste(setdiff(continuous.parents, rownames(new$coef)), collapse = " "), ").")
  
     new$coef = new$coef[regression.coefficients, , drop = FALSE]
 

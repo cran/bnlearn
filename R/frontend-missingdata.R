@@ -22,13 +22,14 @@ impute = function(object, data, method, ..., debug = FALSE) {
 # structural expectation-maximization.
 structural.em = function(x, maximize = "hc", maximize.args = list(), fit = "mle",
     fit.args = list(), impute, impute.args = list(), return.all = FALSE,
-    max.iter = 5, debug = FALSE) {
+    start = NULL, max.iter = 5, debug = FALSE) {
 
   ntests = 0
 
   # check the data are there.
-  check.data(x, allow.levels = TRUE, allow.missing = TRUE,
-    warn.if.no.missing = TRUE, stop.if.all.missing = TRUE)
+  data.info = 
+    check.data(x, allow.levels = TRUE, allow.missing = TRUE,
+      warn.if.no.missing = TRUE, stop.if.all.missing = !is(start, "bn.fit"))
 
   # check the max.iter parameter.
   max.iter = check.max.iter(max.iter)
@@ -54,11 +55,43 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit = "mle"
   impute = check.imputation.method(impute, x)
   impute.args = check.imputation.extra.args(impute, impute.args)
 
-  # learn a first bayesian network to initialize the algorithm.
-  dag = empty.graph(names(x))
-  fitted = bn.fit.backend(dag, data = x[complete.cases(x), ], method = fit,
-             extra.args = fit.args)
+  # if there is no preseeded network, use an empty one.
+  if (is.null(start)) {
 
+    dag = empty.graph(nodes = names(x))
+    fitted = bn.fit.backend(dag, data = x, method = fit, extra.args = fit.args,
+               data.info = data.info)
+
+  }#THEN
+  else {
+
+    # check start's class.
+    check.bn.or.fit(start)
+    # check the preseeded network against the data set.
+    if (is(start, "bn")) {
+
+      check.bn.vs.data(start, x)
+      # check the preseeded network is valid for the model assumptions.
+      check.arcs.against.assumptions(start$arcs, x, maximize.args$score)
+
+      dag = start
+      fitted = bn.fit.backend(start, data = x, method = fit,
+                 extra.args = fit.args, data.info = data.info)
+
+    }#THEN
+    else if (is(start, "bn.fit")) {
+
+      check.fit.vs.data(start, x)
+      # fitted networks are necessarily valid for the model assumptions.
+
+      dag = bn.net(start)
+      fitted = start
+
+    }#THEN
+
+  }#ELSE
+
+  # initialize the algorithm.
   if (debug) {
 
     cat("* initializing the network to perform the first imputation.\n")
@@ -68,6 +101,9 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit = "mle"
     print(fitted)
 
   }#THEN
+
+  # from this point on the data are complete.
+  data.info$complete.nodes[names(x)] = TRUE
 
   for (i in seq(max.iter)) {
 
@@ -96,7 +132,7 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit = "mle"
 
     # maximization step, parameter learning.
     fitted.new = bn.fit.backend(dag, data = complete, method = fit,
-                   extra.args = fit.args)
+                   extra.args = fit.args, data.info = data.info)
 
     if (debug) {
 

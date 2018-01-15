@@ -14,7 +14,7 @@ long double wsum = 0, wtot = 0;
 
     /* c_rbn_master() may generate NAs, c_lw_weights() can generate NA and NaNs
        as well, disregard and print a warning. */
-    if (ISNAN(x[k]) || (wgt[k] == NA_REAL) || (ISNAN(wgt[k]))) {
+    if (ISNAN(x[k]) || ISNAN(wgt[k])) {
 
       (*drop)++;
 
@@ -58,7 +58,7 @@ int k = 0, max_prob = 0;
 
     /* c_rbn_master() may generate NAs, and c_lw_weights() can generate NaNs as
      * well, disregard and print a warning. */
-    if ((x[k] == NA_INTEGER) || (wgt[k] == NA_REAL) || (ISNAN(wgt[k])))
+    if ((x[k] == NA_INTEGER) || (ISNAN(wgt[k])))
       (*drop)++;
     else
       counts[x[k] - 1] += wgt[k];

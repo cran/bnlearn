@@ -16,8 +16,8 @@
 
 }
 \usage{
-\method{as.bn}{graphNEL}(x)
-\method{as.bn}{graphAM}(x)
+\method{as.bn}{graphNEL}(x, ..., check.cycles = TRUE)
+\method{as.bn}{graphAM}(x, ..., check.cycles = TRUE)
 \method{as.graphNEL}{bn}(x)
 \method{as.graphNEL}{bn.fit}(x)
 \method{as.graphAM}{bn}(x)
@@ -26,6 +26,9 @@
 \arguments{
   \item{x}{an object of class \code{bn}, \code{bn.fit}, \code{graphNEL},
     \code{graphAM}.}
+  \item{\dots}{extra arguments from the generic method (currently ignored).}
+  \item{check.cycles}{a boolean value. If \code{FALSE} the returned network will
+    not be checked for cycles.}
 }
 \note{
 

@@ -16,16 +16,6 @@
    levels in the return value;  otherwise only configurations which are actually
    observed are considered.}
 }
-\details{
-
-  \code{discretize} takes a data frame of continuous variables as its first
-  argument and returns a secdond data frame of discrete variables, transformed
-  using of three methods: \code{interval}, \code{quantile} or \code{hartemink}.
-
-  \code{dedup} screens the data for pairs of highly correlated variables, and
-   discards one in each pair.
-
-}
 \value{
 
   A factor with one element for each row of \code{data}, and levels as

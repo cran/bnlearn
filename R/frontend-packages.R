@@ -13,13 +13,13 @@ as.grain = function(x) {
 
 }#AS.GRAIN
 
-as.bn = function(x) {
+as.bn = function(x, ...) {
 
   UseMethod("as.bn")
 
 }#AS.BN
 
-as.bn.fit = function(x) {
+as.bn.fit = function(x, ...) {
 
   UseMethod("as.bn.fit")
 
@@ -47,8 +47,7 @@ as.prediction = function(x, ...) {
 as.grain.bn.fit = function(x) {
 
   # check whether gRain is loaded.
-  if (!requireNamespace("gRain"))
-    stop("this function requires the gRain package.")
+  check.and.load.package("gRain")
 
   # check x's class.
   check.fit(x)
@@ -92,14 +91,15 @@ as.grain.bn.fit = function(x) {
 }#AS.GRAIN.BN.FIT
 
 # convert a "grain" object from gRain into a "bn.fit" object.
-as.bn.fit.grain = function(x) {
+as.bn.fit.grain = function(x, ...) {
 
   # check whether gRain is loaded.
-  if (!requireNamespace("gRain"))
-    stop("this function requires the gRain package.")
+  check.and.load.package("gRain")
 
   if (!is(x, "grain"))
     stop("x must be an object of class 'grain'.")
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
 
   grain.get.children = function(node) {
 
@@ -138,16 +138,25 @@ as.bn.fit.grain = function(x) {
 }#AS.BN.FIT.GRAIN
 
 # convert a "grain" object from gRain into a "bn" object.
-as.bn.grain = function(x) {
+as.bn.grain = function(x, ..., check.cycles = TRUE) {
 
   # check whether gRain is loaded.
-  if (!requireNamespace("gRain"))
-    stop("this function requires the gRain package.")
+  check.and.load.package("gRain")
 
   if (!is(x, "grain"))
     stop("x must be an object of class 'grain'.")
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
 
-  return(bn.net(as.bn.fit(x)))
+  res = bn.net(as.bn.fit.grain(x))
+
+  # check whether the the graph contains directed cycles.
+  if (check.cycles)
+    if (!is.acyclic(nodes = names(res$nodes), arcs = res$arcs, debug = FALSE,
+          directed = TRUE))
+      stop("the grain object contains directed cycles.")
+
+  return(res)
 
 }#AS.BN.GRAIN
 
@@ -155,8 +164,7 @@ as.bn.grain = function(x) {
 as.graphNEL.bn = function(x) {
 
   # check whether graph is loaded.
-  if (!requireNamespace("graph"))
-    stop("this function requires the graph package.")
+  check.and.load.package("graph")
 
   # check x's class.
   check.bn.or.fit(x)
@@ -211,14 +219,23 @@ as.graphAM.bn = function(x) {
 as.graphAM.bn.fit = as.graphAM.bn
 
 # convert a "graphAM" object into a "bn" object.
-as.bn.graphAM = function(x) {
+as.bn.graphAM = function(x, ..., check.cycles = TRUE) {
 
   # check whether graph is loaded.
-  if (!requireNamespace("graph"))
-    stop("this function requires the graph package.")
+  check.and.load.package("graph")
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
 
-  nodes = x@nodes
-  arcs = amat2arcs(x@adjMat, nodes)
+  adjMat = x@adjMat
+  if (is(adjMat, "double"))
+    storage.mode(adjMat) = "integer"
+  nodes = colnames(adjMat)
+  arcs = amat2arcs(adjMat, nodes)
+
+  # check whether the the graph contains directed cycles.
+  if (check.cycles)
+    if (!is.acyclic(nodes = nodes, arcs = arcs, debug = FALSE, directed = TRUE))
+      stop("the graphAM object contains directed cycles.")
 
   res = empty.graph(nodes)
   res$arcs = arcs
@@ -229,14 +246,20 @@ as.bn.graphAM = function(x) {
 }#AS.BN.GRAPHAM
 
 # convert a "graphNEL" object into a "bn" object.
-as.bn.graphNEL = function(x) {
+as.bn.graphNEL = function(x, ..., check.cycles = TRUE) {
 
   # check whether graph is loaded.
-  if (!requireNamespace("graph"))
-    stop("this function requires the graph package.")
+  check.and.load.package("graph")
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
 
   nodes = x@nodes
   arcs = elist2arcs(graph::edges(x))
+
+  # check whether the the graph contains directed cycles.
+  if (check.cycles)
+    if (!is.acyclic(nodes = nodes, arcs = arcs, debug = FALSE, directed = TRUE))
+      stop("the graphNEL object contains directed cycles.")
 
   res = empty.graph(nodes)
   res$arcs = arcs
@@ -246,12 +269,18 @@ as.bn.graphNEL = function(x) {
 
 }#AS.BN.GRAPHNEL
 
+# convert a "pcAlgo" object into a "bn" object.
+as.bn.pcAlgo = function(x, ..., check.cycles = TRUE) {
+
+  as.bn.graphNEL(x@graph, ..., check.cycles = check.cycles)
+
+}#AS.BN.PCALGO
+
 # generate the input for a ROC curve from arc strengths.
 as.prediction.bn.strength = function(x, true, ..., consider.direction = TRUE) {
 
   # check whether ROCR is loaded.
-  if (!requireNamespace("ROCR"))
-    stop("This function requires the ROCR package.")
+  check.and.load.package("ROCR")
 
   # check whether true is a bn object.
   check.bn(true)
@@ -260,7 +289,7 @@ as.prediction.bn.strength = function(x, true, ..., consider.direction = TRUE) {
   if (is.pdag(true$arcs, nodes))
     stop("the graph is only partially directed.")
   # check the arc strengths.
-  check.bn.strength(x, nodes = nodes, valid = "bootstrap")
+  check.bn.strength(x, nodes = nodes, valid = c("bootstrap", "bayes-factor"))
 
   # check consider.direction.
   check.logical(consider.direction)

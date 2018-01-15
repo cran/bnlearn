@@ -38,14 +38,14 @@ bn.fit.dotplot(fitted, xlab = "Probabilities",
 }
 \details{
 
-  \code{bn.fit.qqplot} draws a quantile-quantile plot of the residuals.
+  \code{bn.fit.qqplot()} draws a quantile-quantile plot of the residuals.
 
-  \code{bn.fit.histogram} draws a histogram of the residuals, using either
+  \code{bn.fit.histogram()} draws a histogram of the residuals, using either
     absolute or relative frequencies.
 
-  \code{bn.fit.xyplot} plots the residuals versus the fitted values.
+  \code{bn.fit.xyplot()} plots the residuals versus the fitted values.
 
-  \code{bn.fit.barchart} and \code{bn.fit.dotplot} plot the probabilities in
+  \code{bn.fit.barchart()} and \code{bn.fit.dotplot} plot the probabilities in
     the conditional probability table associated with each node.
 
 }

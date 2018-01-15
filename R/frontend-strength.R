@@ -77,6 +77,53 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
 }#ARC.STRENGTH
 
+# compute an approximation of arc and direction strength from the Bayes factors
+# that can be computed from a single MAP network.
+bf.strength = function(x, data, score, ..., debug = FALSE) {
+
+  # check whether Rmpfr is loaded.
+  check.and.load.package("Rmpfr")
+  # check x's class.
+  check.bn(x)
+  # arc strength is undefined in partially directed graphs.
+  if (is.pdag(x$arcs, names(x$nodes)))
+    stop("the graph is only partially directed.")
+  # check the data are there.
+  data.info = check.data(data)
+  # check the network against the data.
+  check.bn.vs.data(x, data)
+  # check debug.
+  check.logical(debug)
+
+  # make sure the score function is suitable for computing a Bayes factor.
+  if (missing(score)) {
+
+    if (data.info$type %in% discrete.data.types)
+      score = "bde"
+    else if (data.info$type %in% continuous.data.types)
+      score = "bge"
+    else if (data.info$type %in% mixed.data.types)
+      score = "bic-cg"
+
+  }#THEN
+  else {
+
+    score = check.score(score, data,
+              allowed = c(available.discrete.bayesian.scores,
+                          available.continuous.bayesian.scores,
+                          grep("bic", available.scores, value = TRUE)))
+
+  }#ELSE
+
+  # expand and sanitize score-specific arguments.
+  extra.args = check.score.args(score = score, network = x,
+                 data = data, extra.args = list(...), learning = FALSE)
+
+  bf.strength.backend(x = x, data = data, score = score, debug = debug,
+    extra.args = extra.args)
+
+}#BF.STRENGTH
+
 # compute the strength of all possible arcs from a list of network
 # structures/arc sets.
 custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
@@ -129,7 +176,7 @@ averaged.network = function(strength, nodes, threshold) {
   if (missing(nodes)) {
 
     # check the strength parameter.
-    check.bn.strength(strength, valid = "bootstrap")
+    check.bn.strength(strength, valid = c("bootstrap", "bayes-factor"))
     # use the bn.strength object to get a node set.
     nodes = unique(c(strength[, "from"], strength[, "to"]))
 
@@ -139,7 +186,8 @@ averaged.network = function(strength, nodes, threshold) {
     # sanitize the node set.
     check.nodes(nodes = nodes)
     # check the strength object and whether it agrees with the node set.
-    check.bn.strength(strength, nodes = nodes, valid = "bootstrap")
+    check.bn.strength(strength, nodes = nodes,
+      valid = c("bootstrap", "bayes-factor"))
 
   }#ELSE
 

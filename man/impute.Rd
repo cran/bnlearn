@@ -31,7 +31,7 @@ impute(object, data, method, ..., debug = FALSE)
 }
 \details{
 
-  \code{predict} returns the predicted values for \code{node} given the data
+  \code{predict()} returns the predicted values for \code{node} given the data
   specified by \code{data} and the fitted network. Depending on the value of
   \code{method}, the predicted values are computed as follows.
   \itemize{
@@ -51,7 +51,7 @@ impute(object, data, method, ..., debug = FALSE)
       the default is to use all the relevant variables from the data.
   }
 
-  \code{impute} is based on \code{predict}, and can impute missing values
+  \code{impute()} is based on \code{predict()}, and can impute missing values
   with the same \code{methods} (\code{parents} and \code{bayes-lw}). The
   latter can take an additional argument \code{n} with the number of random
   samples which are averaged for each observation.
@@ -63,7 +63,7 @@ impute(object, data, method, ..., debug = FALSE)
   sampling at random from the tied values. Therefore, setting the random seed
   is required to get reproducible results.
 
-  \code{predict} accepts either a \code{bn} or a \code{bn.fit} object as its
+  \code{predict()} accepts either a \code{bn} or a \code{bn.fit} object as its
   first argument. For the former, the parameters of the network are fitted on
   \code{data}, that is, the observations whose class labels the function is
   trying to predict.
@@ -71,13 +71,13 @@ impute(object, data, method, ..., debug = FALSE)
 }
 \value{
 
-  \code{predict} returns a numeric vector (for Gaussian and conditional
+  \code{predict()} returns a numeric vector (for Gaussian and conditional
   Gaussian nodes), a factor (for categorical nodes) or an ordered factor (for
   ordinal nodes). If \code{prob = TRUE} and the network is discrete, the
   probabilities used for prediction are attached to the predicted values as
   an attribute called \code{prob}.
 
-  \code{impute} returns a data frame with the same structure as \code{data}.
+  \code{impute()} returns a data frame with the same structure as \code{data}.
 
 }
 \examples{

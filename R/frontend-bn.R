@@ -11,7 +11,7 @@ nparams = function(x, data, effective = FALSE, debug = FALSE) {
   if (is(x, "bn")) {
 
     # check the data are there.
-    check.data(data)
+    check.data(data, allow.missing = TRUE)
     # check the network against the data.
     check.bn.vs.data(x, data)
     # the number of parameters is unknown for partially directed graphs.
@@ -208,8 +208,9 @@ mutilated = function(x, evidence) {
 
   # check x's class.
   check.bn.or.fit(x)
-  # check the evidence.
-  evidence = check.mutilated.evidence(evidence, graph = x)
+  # check the evidence, disallowing non-ideal interventions if needed.
+  evidence = check.mutilated.evidence(evidence, graph = x,
+                ideal.only = is(x, "bn.fit.gnet"))
 
   if (is(x, "bn"))
     return(mutilated.backend.bn(x, evidence))

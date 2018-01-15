@@ -16,8 +16,9 @@ custom.fit(x, dist, ordinal, debug = FALSE)
 bn.net(x, debug = FALSE)
 }
 \arguments{
-  \item{x}{an object of class \code{bn} (for \code{bn.fit} and \code{custom.fit})
-    or an object of class \code{bn.fit} (for \code{bn.net}).}
+  \item{x}{an object of class \code{bn} (for \code{bn.fit()} and
+    \code{custom.fit()}) or an object of class \code{bn.fit} (for
+    \code{bn.net}).}
   \item{data}{a data frame containing the variables in the model.}
   \item{cluster}{an optional cluster object from package \pkg{parallel}.}
   \item{dist}{a named list, with element for each node of \code{x}. See below.}
@@ -38,9 +39,32 @@ bn.net(x, debug = FALSE)
 }
 \details{
 
-  \code{bn.fit} fits the parameters of a Bayesian network given its structure
+  \code{bn.fit()} fits the parameters of a Bayesian network given its structure
   and a data set; \code{bn.net} returns the structure underlying a fitted
   Bayesian network.
+
+  Additional arguments for the \code{bn.fit()} function:
+
+  \itemize{
+
+    \item \code{iss}: a numeric value, the imaginary sample size used by the
+      \code{bayes} method to estimate the conditional probability tables
+      associated with discrete nodes (see \code{\link{score}} for details).
+    \item \code{replace.unidentifiable}: a boolean value. If \code{TRUE} and
+      \code{method} is \code{mle}, unidentifiable parameters are replaced by
+      zeroes (in the case of regression coefficients and standard errors in
+      Gaussian and conditional Gaussian nodes) or by uniform conditional
+      probabilities (in discrete nodes).
+
+      If \code{FALSE} (the default), the conditional probabilities in the local
+      distributions of discrete nodes have a mximum likelihood estimate of
+      \code{NaN} for all parents configurations that are not observed in
+      \code{data}. Similarly, regression coefficients are set to \code{NA}
+      if the linear regressions correspoding to the local distributions of
+      continuous nodes are singular. Such missing values propagate to the
+      results of functions such as \code{predict()}. 
+
+  }
 
   An in-place replacement method is available to change the parameters of each
   node in a \code{bn.fit} object; see the examples for discrete, continuous and
@@ -58,7 +82,7 @@ bn.net(x, debug = FALSE)
   \code{resid} the residuals. \code{configs} should contain the configurations
   if the discrete parents of the conditional Gaussian node, stored as a factor.
 
-  \code{custom.fit} takes a set of user-specified distributions and their
+  \code{custom.fit()} takes a set of user-specified distributions and their
   parameters and uses them to build a \code{bn.fit} object. Its purpose is to
   specify a Bayesian network (complete with the parameters, not only the
   structure) using knowledge from experts in the field instead of learning it
@@ -75,23 +99,16 @@ bn.net(x, debug = FALSE)
   are no undirected arcs). See \code{\link{set.arc}} and \code{\link{pdag2dag}}
   for two ways of manually setting the direction of one or more arcs.
 
-  The only supported additional parameter is the imaginary sample size
-  (\code{iss}) for the Dirichlet posterior distribution of discrete networks
-  (see \code{\link{score}} for details).
-
-  The conditional probabilities in the local distributions of discrete nodes
-  have a mximum likelihood estimate of \code{NaN} for all parents configurations
-  that are not observed in \code{data}. Such missing values propagate to the
-  results of functions such as \code{predict}. Bayesian posterior estimates do
-  not have this problem, and are very close to the corresponding maximum
-  likelihood estimates when \code{iss} is small.
+  The \code{bayes} and \code{mle} methods handle missing values by estimating
+  the parameters of each distribution using the observations that are complete
+  for the variables involved in that local distribution.
 
 }
 \value{
 
-  \code{bn.fit} returns an object of class \code{bn.fit}, \code{bn.net}
-  an object of class \code{bn}. See \code{\link{bn class}} and
-  \code{\link{bn.fit class}} for details.
+  \code{bn.fit()} and \code{custom.fit()}returns an object of class
+  \code{bn.fit}, \code{bn.net()} an object of class \code{bn}. See
+  \code{\link{bn class}} and \code{\link{bn.fit class}} for details.
 
 }
 \seealso{

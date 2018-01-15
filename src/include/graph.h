@@ -13,6 +13,7 @@ SEXP root_nodes(SEXP bn, SEXP leaves);
 
 /* from simulation.c */
 SEXP topological_ordering(SEXP bn, SEXP root_nodes, SEXP reverse, SEXP debug);
+void topological_sort(SEXP fitted, int *poset, int nnodes);
 
 /* from path.c */
 int c_has_path(int start, int stop, int *amat, int n, SEXP nodes,

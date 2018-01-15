@@ -16,12 +16,13 @@ check.data = function(x, allowed.types = available.data.types,
   # check the data for NULL/NaN/NA.
   if (allow.missing) {
 
-   complete = complete.cases(x)
+   complete.obs = complete.cases(x)
+   complete.nodes = !sapply(x, anyNA)
 
-   if (warn.if.no.missing && all(complete))
+   if (warn.if.no.missing && all(complete.obs))
      warning("no missing data are present even though some are expected.")   
 
-   if (stop.if.all.missing && !any(complete))
+   if (stop.if.all.missing && !any(complete.obs))
      stop("at least one variable has no observed values.")
 
   }#THEN
@@ -29,6 +30,8 @@ check.data = function(x, allowed.types = available.data.types,
 
     if (!all(complete.cases(x)))
       stop("the data set contains NULL/NaN/NA values.")
+
+    complete.nodes = structure(rep(TRUE, ncol(x)), names = names(x))
 
   }#ELSE
   # check which type of data we are dealing with.
@@ -50,7 +53,8 @@ check.data = function(x, allowed.types = available.data.types,
 
       # warn about levels with zero frequencies, it's not necessarily wrong
       # (data frame subsetting) but sure is fishy.
-      if (!allow.levels && any(minimal.table(x[, col, drop = FALSE]) == 0))
+      counts = minimal.table(x[, col, drop = FALSE], with.missing = allow.missing)
+      if (!allow.levels && any(counts == 0))
         warning("variable ", col, " has levels that are not observed in the data.")
 
     }#FOR
@@ -63,7 +67,7 @@ check.data = function(x, allowed.types = available.data.types,
 
   }#THEN
 
-  return(type)
+  return(list(type = type, complete.nodes = complete.nodes))
 
 }#CHECK.DATA
 

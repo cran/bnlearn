@@ -63,7 +63,7 @@ double res = 0, *fitted = NULL, *sd = NULL;
    * otherwise fit using the whole sample. */
   if (!config) {
 
-    c_ols(gp, xx, nobs, ngp, fitted, NULL, NULL, sd);
+    c_ols(gp, xx, nobs, ngp, fitted, NULL, NULL, sd, FALSE);
 
     /* compute the log-likelihood (singular models haze zero density). */
     if (*sd < MACHINE_TOL)
@@ -75,7 +75,7 @@ double res = 0, *fitted = NULL, *sd = NULL;
   }/*THEN*/
   else {
 
-    c_cls(gp, xx, config, nobs, ngp, nconfig, fitted, NULL, NULL, sd);
+    c_cls(gp, xx, config, nobs, ngp, nconfig, fitted, NULL, NULL, sd, FALSE);
 
     /* if any standard error is zero, the model is singular and has density
      * zero. */

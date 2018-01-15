@@ -150,5 +150,5 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash;
   /* all checks completed successfully, returning TRUE. */
   return ScalarLogical(TRUE);
 
-}/*ALL_EQUAL*/
+}/*ALL_EQUAL_BN*/
 

@@ -14,7 +14,7 @@ SEXP result, try;
   res = INTEGER(result);
   memset(res, '\0', sizeof(int) * dims * dims);
 
-  /* allocate rownames and colnames. */
+  /* set rownames and colnames to the node labels. */
   setDimNames(result, nodes, nodes);
 
   /* nothing to do if there are no arcs. */
@@ -57,30 +57,25 @@ SEXP arcs;
 
   }/*FOR*/
 
+  /* allocate the arc set and set the column names. */
+  PROTECT(arcs = allocMatrix(STRSXP, narcs, 2));
+  setDimNames(arcs, R_NilValue, mkStringVec(2, "from", "to"));
+
   /* if there are no arcs, return an empty arc set. */
   if (narcs == 0) {
 
-    /* allocate and return an empty arc set. */
-    return allocMatrix(STRSXP, 0, 2);
+    UNPROTECT(1);
+    return arcs;
 
   }/*THEN*/
-  else {
-
-    /* allocate the arc set. */
-    PROTECT(arcs = allocMatrix(STRSXP, narcs, 2));
-
-  }/*ELSE*/
-
-  /* set the column names. */
-  setDimNames(arcs, R_NilValue, mkStringVec(2, "from", "to"));
 
   /* fill the arc set from the adjacency matrix. */
   for (i = 0; i < nrow; i++) {
 
     for (j = 0; j < nrow; j++) {
 
-      /* colnames and rownames are completely ignored. This kills some corner
-           cases present in the old R code.  */
+      /* colnames and rownames are completely ignored to avoid hitting some
+       * corner cases present in the old R code.  */
       if (a[CMC(i, j, nrow)] == 1) {
 
          SET_STRING_ELT(arcs, k, STRING_ELT(nodes, i));

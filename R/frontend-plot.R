@@ -3,6 +3,8 @@
 graphviz.plot = function(x, highlight = NULL, layout = "dot", shape = "circle",
     main = NULL, sub = NULL) {
 
+  # check whether graphviz is loaded.
+  check.and.load.package("Rgraphviz")
   # check x's class.
   check.bn.or.fit(x)
 
@@ -29,6 +31,8 @@ graphviz.plot = function(x, highlight = NULL, layout = "dot", shape = "circle",
 strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
     layout = "dot", shape = "circle", main = NULL, sub = NULL, debug = FALSE) {
 
+  # check whether graphviz is loaded.
+  check.and.load.package("Rgraphviz")
   # check x's class.
   check.bn(x)
   # check the strength parameter.
@@ -51,6 +55,50 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
     layout = layout, shape = shape, main = main, sub = sub)
 
 }#STRENGTH.PLOT
+
+# combine barcharts and graph displays in a single plot.
+graphviz.chart = function(x, type = "barchart", layout = "dot",
+    draw.levels = TRUE, grid = FALSE, scale = c(0.75, 1.1), col = "black",
+    bg = "transparent", text.col = "black", bar.col = "black", strip.bg = bg,
+    main = NULL, sub = NULL) {
+
+  nodes = nodes(x)
+  nnodes = length(nodes)
+
+  # check whether graphviz is loaded.
+  check.and.load.package("Rgraphviz")
+  # check whether gRain is loaded.
+  check.and.load.package("gRain")
+  # check x's class.
+  check.fit(x)
+  # only discrete networks are supported.
+  if (!is(x, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
+    stop("only discrete networks are supported.")
+
+  # check the plot type.
+  check.label(type, choices = c("barchart", "dotplot", "barprob"),
+    argname = "node display type", see = "graphviz.chart")
+  # check the levels switch.
+  check.logical(draw.levels)
+  # check the grid.
+  grid = check.quantile.grid(grid)
+  # check the nodes scale factors.
+  if (!is.positive.vector(scale) || (length(scale) != 2))
+    stop("the horizontal and vertical scale factors for the nodes must be two positive numbers.")
+
+  # check the colours.
+  col = check.colour(col, num = nnodes, expand = TRUE, labels = nodes)
+  bg = check.colour(bg, num = nnodes, expand = TRUE, labels = nodes)
+  text.col = check.colour(text.col, num = nnodes, expand = TRUE, labels = nodes)
+  bar.col = check.colour(bar.col, num = nnodes, expand = TRUE, labels = nodes)
+  strip.bg = check.colour(strip.bg, num = nnodes, expand = TRUE, labels = nodes)
+
+  graphviz.chart.backend(fitted = x, type = type, layout = layout,
+    draw.levels = draw.levels, grid = grid, scale = scale, col = col, bg = bg,
+    text.col = text.col, bar.col = bar.col, strip.bg = strip.bg, main = main,
+    sub = sub)
+
+}#GRAPHVIZ.CHART
 
 # plot method for class 'bn'.
 plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
@@ -164,7 +212,7 @@ plot.bn.strength = function(x, draw.threshold = TRUE, main = NULL,
   # check the draw.threshold flag.
   check.logical(draw.threshold)
   # check the arcs strengths.
-  check.bn.strength(x, valid = "bootstrap")
+  check.bn.strength(x, valid = c("bootstrap", "bayes-factor"))
 
   # match the dots arguments.
   dots = sanitize.plot.dots(eval(list(...)), meaningless = c("xlim", "ylim"))
@@ -246,6 +294,8 @@ graphviz.compare = function(x, ..., layout = "dot", shape = "circle",
 
   available.diff.methods = c("none", "from-first")
 
+  # check whether graphviz is loaded.
+  check.and.load.package("Rgraphviz")
   # check the first network structure.
   check.bn(x)
   nodes = names(x$nodes)

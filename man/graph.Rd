@@ -25,8 +25,9 @@ pdag2dag(x, ordering)
 subgraph(x, nodes)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}. \code{skeleton}, \code{acyclic},
-    \code{directed} and \code{path} also accept objects of class \code{bn.fit}.}
+  \item{x}{an object of class \code{bn}. \code{skeleton()}, \code{acyclic()},
+    \code{directed()} and \code{path()} also accept objects of class
+    \code{bn.fit}.}
   \item{from}{a character string, the label of a node.}
   \item{to}{a character string, the label of a node (different from
     \code{from}).}
@@ -46,8 +47,8 @@ subgraph(x, nodes)
 }
 \value{
 
-  \code{acyclic}, \code{path} and \code{directed} return a boolean value. \cr
-  \code{skeleton}, \code{pdag2dag} and \code{subgraph} return an object of
+  \code{acyclic()}, \code{path()} and \code{directed()} return a boolean value. \cr
+  \code{skeleton()}, \code{pdag2dag()} and \code{subgraph()} return an object of
   class \code{bn}.
 
 }

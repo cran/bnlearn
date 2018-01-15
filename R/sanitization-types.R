@@ -52,6 +52,13 @@ is.positive.integer = function(x) {
 
 }#IS.POSITIVE.INTEGER
 
+# is x a non-negative integer?
+is.non.negative.integer = function(x) {
+
+  is.non.negative(x) && ((x %/% 1) == x)
+
+}#IS.NON.NEGATIVE.INTEGER
+
 # is x a vector of positive numbers?
 is.positive.vector = function(x) {
 
@@ -102,15 +109,6 @@ is.string = function(x) {
 
 }#IS.STRING
 
-# check character strings.
-check.string = function(string) {
-
-  if (!is.string(string))
-    stop(sprintf("%s must be a character string.",
-           deparse(substitute(string))))
-
-}#CHECK.STRING
-
 # is x a vector of character strings?
 is.string.vector = function(x) {
 
@@ -142,4 +140,29 @@ check.logical = function(bool) {
            deparse(substitute(bool))))
 
 }#CHECK.LOGICAL
+
+# check a vector of weights.
+check.weights = function(weights, len) {
+
+  if (missing(weights) || is.null(weights)) {
+
+    weights = rep(1, len)
+
+  }#THEN
+  else {
+
+    if (!is.nonnegative.vector(weights))
+      stop("missing or negative weights are not allowed.")
+
+    if (length(weights) != len)
+      stop("wrong number of weights, ", length(weights),
+        " weights while ", len, " are needed.")
+
+    weights = prop.table(weights)
+
+  }#ELSE
+
+  return(weights)
+
+}#CHECK.WEIGHTS
 

@@ -114,10 +114,9 @@ static void mean_strength_direction(SEXP *mean_df, SEXP strength, SEXP nodes,
 
 int i = 0, j = 0, *t = NULL, nnodes = length(nodes);
 double *mstr = NULL, *mdir = NULL, *cur_strength = NULL, *cur_dir = NULL;
-double fwd = 0, bkwd = 0;
+double fwd = 0, bkwd = 0, sumd = 0;
 long double cumw = 0;
 SEXP mean_str, mean_dir, cur, cur_hash, try;
-
 
   /* allocate vectors for strength and direction. */
   PROTECT(mean_str = allocVector(REALSXP, nrow));
@@ -162,15 +161,28 @@ SEXP mean_str, mean_dir, cur, cur_hash, try;
 
     for (j = i + 1; j < nnodes; j++) {
 
+      /* extracting and storing the strength and the directions of the arcs
+       * relies crucially on the arcs being stored in an order the matches how
+       * they would be stored in column-major order in an adjacency matrix. */
       fwd = mstr[CMC(j, i, nnodes) - i - 1];
       bkwd = mstr[CMC(i, j, nnodes) - j];
+      sumd = fwd + bkwd;
 
-      mstr[CMC(j, i, nnodes) - i - 1] = mstr[CMC(i, j, nnodes) - j] = fwd + bkwd;
+      /* round down strengths that are > 1 due to floating point rounding. */
+      if (sumd > 1) {
+
+        fwd /= sumd;
+        bkwd /= sumd;
+        sumd = 1;
+
+      }/*THEN*/
+
+      mstr[CMC(j, i, nnodes) - i - 1] = mstr[CMC(i, j, nnodes) - j] = sumd;
 
       if (bkwd + fwd > 0) {
 
-      mdir[CMC(j, i, nnodes) - i - 1] = fwd / (fwd + bkwd);
-      mdir[CMC(i, j, nnodes) - j] = bkwd / (fwd + bkwd);
+        mdir[CMC(j, i, nnodes) - i - 1] = fwd / sumd;
+        mdir[CMC(i, j, nnodes) - j] = bkwd / sumd;
 
       }/*THEN*/
       else {
@@ -216,8 +228,10 @@ SEXP ref, ref_hash, mean_df, method;
 
   if ((strcmp(m, "score") == 0) || (strcmp(m, "test") == 0))
     mean_strength_overall(&mean_df, strength, nodes, nrow, nstr, ref_hash, w);
-  else if (strcmp(m, "bootstrap") == 0)
+  else if ((strcmp(m, "bootstrap") == 0) || (strcmp(m, "bayes-factor") == 0))
     mean_strength_direction(&mean_df, strength, nodes, nrow, nstr, ref_hash, w);
+  else
+    error("arc strength computed with unkown method '%s'.", m);
 
   UNPROTECT(2);
 

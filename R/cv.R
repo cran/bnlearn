@@ -1,7 +1,7 @@
 
 crossvalidation = function(data, bn, loss = NULL, k = 10,
     m = ceiling(nrow(data)/10), folds, algorithm.args, loss.args, fit,
-    fit.args, method, cluster = NULL, debug = FALSE) {
+    fit.args, method, cluster = NULL, data.info, debug = FALSE) {
 
   n = nrow(data)
 
@@ -44,7 +44,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
       kcv = parallel::parLapply(cluster, kcv, bn.cv.algorithm, data = data,
               algorithm = bn, algorithm.args = algorithm.args, loss = loss,
               loss.args = loss.args, fit = fit, fit.args = fit.args,
-              debug = debug)
+              data.info = data.info, debug = debug)
 
     }#THEN
     else {
@@ -52,7 +52,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
       kcv = lapply(kcv, bn.cv.algorithm, data = data, algorithm = bn,
               algorithm.args = algorithm.args, loss = loss,
               loss.args = loss.args, fit = fit, fit.args = fit.args,
-              debug = debug)
+              data.info = data.info, debug = debug)
 
     }#ELSE
 
@@ -63,14 +63,14 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
 
       kcv = parallel::parLapply(cluster, kcv, bn.cv.structure, data = data,
               bn = bn, loss = loss, loss.args = loss.args, fit = fit,
-              fit.args = fit.args, debug = debug)
+              fit.args = fit.args, data.info = data.info, debug = debug)
 
     }#THEN
     else {
 
       kcv = lapply(kcv, bn.cv.structure, data = data, bn = bn, loss = loss,
               loss.args = loss.args, fit = fit, fit.args = fit.args,
-              debug = debug)
+              data.info = data.info, debug = debug)
 
     }#ELSE
 
@@ -97,7 +97,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
 }#CROSSVALIDATION
 
 bn.cv.algorithm = function(test, data, algorithm, algorithm.args, loss,
-    loss.args, fit, fit.args, debug = FALSE) {
+    loss.args, fit, fit.args, data.info, debug = FALSE) {
 
   if (debug)
     cat("* learning the structure of the network from the training sample.\n")
@@ -110,24 +110,42 @@ bn.cv.algorithm = function(test, data, algorithm, algorithm.args, loss,
 
   # go on with fitting the parameters.
   bn.cv.structure(test = test, data = data, bn = net, loss = loss,
-    loss.args = loss.args, fit = fit, fit.args = fit.args, debug = debug)
+    loss.args = loss.args, fit = fit, fit.args = fit.args,
+    data.info = data.info, debug = debug)
 
 }#BN.CV.ALGORITHM
 
 bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
-    debug = FALSE) {
+    data.info, debug = FALSE) {
 
   if (debug)
     cat("* fitting the parameters of the network from the training sample.\n")
 
-  # use score equivalence to compute log-likelihood losses when the network
-  # returned by the learning algorithm is a CPDAG; extend it to a DAG (which
-  # has the same log-likelihoos because it's in the same equivalence class)
-  # and use the result in place of the original network.
-  if (loss %in% c("logl", "logl-g", "logl-cg") &&
-      !is.dag(arcs = bn$arcs, nodes = names(bn$nodes))) {
+  # if the network is not completely directed, try to extend it before moving on
+  # and performing parameter learning.
+  if (!is.dag(arcs = bn$arcs, nodes = names(bn$nodes))) {
 
     bn = cpdag.extension(cpdag.backend(bn, wlbl = TRUE))
+
+    if (loss %in% c("pred", "cor", "mse")) {
+
+      # for some loss functions just identifying the parents of the target node
+      # is enough.
+      target = loss.args$target
+
+      if (!setequal(bn$nodes[[target]]$nbr,
+            union(bn$nodes[[target]]$parents, bn$nodes[[target]]$children)))
+        stop("undirected arcs around the target node ", target, ".")
+
+    }#THEN
+    else {
+
+      # other loss functions require the network to be completely directed, so
+      # so that all local distributions can be estimated.
+      if (any(which.undirected(bn$arcs, names(bn$nodes))))
+        stop("no consistent extension for the network in one of the folds.")
+
+    }#ELSE
 
   }#THEN
 
@@ -135,7 +153,7 @@ bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
   fit.args = check.fitting.args(fit, bn, data[-test, ], fit.args)
   # fit the parameters.
   net = bn.fit.backend(x = bn, data = data[-test, ], method = fit,
-          extra.args = fit.args)
+          extra.args = fit.args, data.info = data.info)
 
   # in the case of naive Bayes and TAN models, the prior must be computed on
   # the training sample for each fold to match the behaviour of the default

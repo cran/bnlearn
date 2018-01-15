@@ -9,6 +9,11 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   res = NULL
   parallel = FALSE
 
+  if (strict)
+    warning("argument 'strict' is deprecated and will be removed in 2019.")
+  if (optimized)
+    warning("argument 'optimized' is deprecated and will be removed in 2019.")
+
   # check the data are there.
   check.data(x)
   # check the algorithm.
@@ -56,20 +61,30 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   full.blacklist = unique.arcs(full.blacklist, names(x))
 
   # call the right backend.
-  if (method == "gs") {
+  if (method == "pc.stable") {
+
+    local.structure =
+      pc.stable.backend(x = x, whitelist = whitelist,
+        blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+        debug = debug, cluster = cluster)  
+
+  }#THEN
+  else if (method == "gs") {
 
     if (optimized) {
 
-      mb = grow.shrink.optimized(x = x, whitelist = whitelist,
-             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-             strict = strict, debug = debug)
+      local.structure =
+        grow.shrink.optimized(x = x, whitelist = whitelist,
+           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+           strict = strict, debug = debug)
 
     }#THEN
     else {
 
-      mb = grow.shrink(x = x, whitelist = whitelist,
-             blacklist = full.blacklist, test = test, alpha = alpha,
-             B = B, strict = strict, debug = debug, cluster = cluster)
+      local.structure =
+        grow.shrink(x = x, whitelist = whitelist, blacklist = full.blacklist,
+          test = test, alpha = alpha, B = B, strict = strict, debug = debug,
+          cluster = cluster)
 
     }#ELSE
 
@@ -78,16 +93,18 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     if (optimized) {
 
-      mb = incremental.association.optimized(x = x, whitelist = whitelist,
-             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-             strict = strict, debug = debug)
+      local.structure =
+        incremental.association.optimized(x = x, whitelist = whitelist,
+          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+          strict = strict, debug = debug)
 
     }#THEN
     else {
 
-      mb = incremental.association(x = x, whitelist = whitelist,
-             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-             strict = strict, debug = debug, cluster = cluster)
+      local.structure =
+        incremental.association(x = x, whitelist = whitelist,
+          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+          strict = strict, debug = debug, cluster = cluster)
 
     }#ELSE
 
@@ -96,16 +113,18 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     if (optimized) {
 
-      mb = fast.incremental.association.optimized(x = x, whitelist = whitelist,
-             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-             strict = strict, debug = debug)
+      local.structure =
+        fast.incremental.association.optimized(x = x, whitelist = whitelist,
+          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+          strict = strict, debug = debug)
 
     }#THEN
     else {
 
-      mb = fast.incremental.association(x = x, whitelist = whitelist,
-             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-             strict = strict, debug = debug, cluster = cluster)
+      local.structure =
+        fast.incremental.association(x = x, whitelist = whitelist,
+          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+          strict = strict, debug = debug, cluster = cluster)
 
     }#ELSE
 
@@ -114,16 +133,18 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     if (optimized) {
 
-      mb = inter.incremental.association.optimized(x = x, whitelist = whitelist,
-             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-             strict = strict, debug = debug)
+      local.structure =
+        inter.incremental.association.optimized(x = x, whitelist = whitelist,
+          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+          strict = strict, debug = debug)
 
     }#THEN
     else {
 
-      mb = inter.incremental.association(x = x, whitelist = whitelist,
-             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-             strict = strict, debug = debug, cluster = cluster)
+      local.structure =
+        inter.incremental.association(x = x, whitelist = whitelist,
+          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+          strict = strict, debug = debug, cluster = cluster)
 
     }#ELSE
 
@@ -132,16 +153,18 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     if (optimized) {
 
-      mb = maxmin.pc.optimized(x = x, whitelist = whitelist,
-             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-             strict = strict, debug = debug)
+      local.structure =
+        maxmin.pc.optimized(x = x, whitelist = whitelist,
+          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+          strict = strict, debug = debug)
 
     }#THEN
     else {
 
-      mb = maxmin.pc(x = x, whitelist = whitelist, blacklist = full.blacklist,
-             test = test, alpha = alpha, B = B, strict = strict, debug = debug,
-             cluster = cluster)
+      local.structure =
+        maxmin.pc(x = x, whitelist = whitelist, blacklist = full.blacklist,
+          test = test, alpha = alpha, B = B, strict = strict, debug = debug,
+          cluster = cluster)
 
     }#ELSE
 
@@ -150,16 +173,18 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     if (optimized) {
 
-      mb = si.hiton.pc.optimized(x = x, whitelist = whitelist,
-             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-             strict = strict, debug = debug)
+      local.structure =
+        si.hiton.pc.optimized(x = x, whitelist = whitelist,
+          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+          strict = strict, debug = debug)
 
     }#THEN
     else {
 
-      mb = si.hiton.pc.backend(x = x, whitelist = whitelist,
-             blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-             strict = strict, debug = debug, cluster = cluster)
+      local.structure =
+        si.hiton.pc.backend(x = x, whitelist = whitelist,
+          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+          strict = strict, debug = debug, cluster = cluster)
 
     }#ELSE
 
@@ -168,7 +193,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   if (undirected) {
 
     # save the status of the learning algorithm.
-    arcs = nbr2arcs(mb)
+    arcs = nbr2arcs(local.structure)
     learning = list(whitelist = whitelist, blacklist = blacklist,
       test = test, args = list(alpha = alpha), optimized = optimized,
       ntests = test.counter())
@@ -179,15 +204,15 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       learning$args$B = B
 
     res = list(learning = learning,
-      nodes = cache.structure(names(mb), arcs = arcs), arcs = arcs)
+      nodes = cache.structure(names(x), arcs = arcs), arcs = arcs)
 
   }#THEN
   else {
 
     # recover some arc directions.
-    res = second.principle(x = x, mb = mb, whitelist = whitelist,
-            blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-            strict = strict, debug = debug)
+    res = second.principle(x = x, local.structure = local.structure,
+            whitelist = whitelist, blacklist = full.blacklist, test = test,
+            alpha = alpha, B = B, strict = strict, debug = debug)
     # return the user-specified blacklist, not the full one, as in other
     # classes of learning algorithms.
     res$learning["blacklist"] = list(blacklist)
@@ -553,6 +578,10 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 
   }#THEN
 
+  # if all nodes are blacklisted, the markov blanket is obviously empty.
+  if (all(nodes %in% c(target, blacklist)))
+    return(character(0))
+
   # call the right backend.
   if (method == "gs") {
 
@@ -650,6 +679,10 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
     names(x) = nodes
 
   }#THEN
+
+  # if all nodes are blacklisted, the neighbourhood is obviously empty.
+  if (all(nodes %in% c(target, blacklist)))
+    return(character(0))
 
   # call the right backend, forward phase.
   if (method == "mmpc") {

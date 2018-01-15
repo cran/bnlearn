@@ -16,11 +16,17 @@ long double sd = 0;
   xm /= num;
 
   /* compute the standard deviation. */
-  SD_GUARD(num, 1, sd,
+  if (num == 0)
+    sd = R_NaN;
+  else if (num == 1)
+    sd = 0;
+  else {
+
     for (i = 0; i < num; i++)
       sd += (xx[i] - xm) * (xx[i] - xm);
     sd = sqrt(sd / (num - 1));
-  )
+
+  }/*ELSE*/
 
   /* compute the log-likelihood (singular models haze zero density). */
   if (sd < MACHINE_TOL)
@@ -51,7 +57,7 @@ SEXP data_x;
   /* allocate the fitted values. */
   fitted = Calloc1D(nrow, sizeof(double));
 
-  c_ols(dd, xx, nrow, ncol, fitted, NULL, NULL, &sd);
+  c_ols(dd, xx, nrow, ncol, fitted, NULL, NULL, &sd, FALSE);
 
   /* compute the log-likelihood (singular models have zero density). */
   if (sd < MACHINE_TOL)

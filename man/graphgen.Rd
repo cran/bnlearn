@@ -74,7 +74,7 @@ random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
 }
 \value{
 
-  Both \code{empty.graph} and \code{random.graph} return an object of class
+  Both \code{empty.graph()} and \code{random.graph()} return an object of class
   \code{bn} (if \code{num} is equal to \code{1}) or a list of objects of class
   \code{bn} (otherwise). If \code{every} is greated than \code{1},
   \code{random.graph} always returns a list, regardless of the number of graphs

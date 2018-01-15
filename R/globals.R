@@ -29,7 +29,7 @@ available.discrete.mi = c("mi")
 available.continuous.mi = c("mi-g")
 available.mi = c(available.discrete.mi, available.continuous.mi)
 
-markov.blanket.algorithms = c("gs", "iamb", "fast.iamb", "inter.iamb")
+markov.blanket.algorithms = c("pc.stable", "gs", "iamb", "fast.iamb", "inter.iamb")
 local.search.algorithms = c("mmpc", "si.hiton.pc")
 constraint.based.algorithms = c(markov.blanket.algorithms, local.search.algorithms)
 score.based.algorithms = c("hc", "tabu")
@@ -43,6 +43,7 @@ available.learning.algorithms = c(constraint.based.algorithms, score.based.algor
 always.dag.result = c(score.based.algorithms, hybrid.algorithms, classifiers)
 
 method.labels = c(
+  'pc.stable' = "PC (Stable)",
   'gs' = "Grow-Shrink",
   'iamb' = "IAMB",
   'fast.iamb' = "Fast-IAMB",
@@ -224,7 +225,7 @@ fitting.labels = c(
 )
 
 fitting.extra.args = list(
-  "mle" = character(0),
+  "mle" = "replace.unidentifiable",
   "bayes" = "iss"
 )
 
@@ -290,7 +291,7 @@ fitted.from.data = c(
   "mixed-do" = "bn.fit.donet"
 )
 
-available.strength.methods = c("test", "score", "bootstrap")
+available.strength.methods = c("test", "score", "bootstrap", "bayes-factor")
 
 discrete.data.types = c("factor", "ordered", "mixed-do")
 continuous.data.types = c("continuous")
@@ -308,6 +309,19 @@ data.type.labels = c(
 
 fitted.node.types = c("bn.fit.dnode", "bn.fit.onode", "bn.fit.gnode",
   "bn.fit.cgnode")
+
+graphviz.layouts = c("dot", "neato", "twopi", "circo", "fdp")
+
+available.enumerations = c("all-dags", "dags-disregarding-one-arc",
+  "dags-given-ordering", "dags-with-k-roots", "dags-with-r-arcs")
+
+enumerations.extra.args = list(
+  "all-dags" = character(0),
+  "dags-disregarding-one-arc" = character(0),
+  "dags-given-ordering" = character(0),
+  "dags-with-k-roots" = "k",
+  "dags-with-r-arcs" = "r"
+)
 
 # global test counter.
 reset.test.counter = function() {

@@ -75,38 +75,38 @@ is.score.decomposable = function(score, extra) {
 check.score.args = function(score, network, data, extra.args, learning = FALSE) {
 
   # check the imaginary sample size.
-  if (score %in% c("bde", "bds", "mbde", "bge"))
+  if (has.argument(score, "iss", score.extra.args))
     extra.args$iss = check.iss(iss = extra.args$iss,
       network = network, data = data)
 
   # check the graph prior distribution.
-  if (score %in% c("bde", "bds", "bdj", "mbde", "bdla", "bge"))
+  if (has.argument(score, "prior", score.extra.args))
     extra.args$prior = check.graph.prior(prior = extra.args$prior,
       network = network)
 
   # check the sparsity parameter of the graph prior distribution.
-  if (score %in% c("bde", "bds", "bdj", "mbde", "bdla", "bge"))
+  if (has.argument(score, "beta", score.extra.args))
     extra.args$beta = check.graph.hyperparameters(beta = extra.args$beta,
       prior = extra.args$prior, network = network, data = data,
       learning = learning)
 
   # check the list of the experimental observations in the data set.
-  if (score == "mbde")
+  if (has.argument(score, "exp", score.extra.args))
     extra.args$exp = check.experimental(exp = extra.args$exp,
       network = network, data = data)
 
   # check the likelihood penalty.
-  if (score %in% c("aic", "bic", "aic-g", "bic-g", "aic-cg", "bic-cg"))
+  if (has.argument(score, "k", score.extra.args))
     extra.args$k = check.penalty(k = extra.args$k, network = network,
       data = data, score = score)
 
   # check phi estimator.
-  if (score == "bge")
+  if (has.argument(score, "phi", score.extra.args))
     extra.args$phi = check.phi(phi = extra.args$phi,
       network = network, data = data)
 
   # check the number of scores to average.
-  if (score == "bdla")
+  if (has.argument(score, "l", score.extra.args))
     extra.args$l = check.l(l = extra.args$l)
 
   check.unused.args(extra.args, score.extra.args[[score]])
@@ -274,12 +274,9 @@ check.graph.prior = function(prior, network) {
   }#THEN
   else {
 
-    # check whether prior is a string.
-    check.string(prior)
-    # check whether the label matches a known prior.
-    if (prior %!in% prior.distributions)
-      stop("valid prior distributions are: ",
-        paste(prior.distributions, collapse = " "), ".")
+    # check whether prior is a string, and whether the label matches a known prior.
+    check.label(prior, choices = prior.distributions, labels = prior.labels,
+      argname = "prior distribution", see = score)
 
   }#ELSE
 

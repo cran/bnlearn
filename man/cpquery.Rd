@@ -38,8 +38,10 @@ mutilated(x, evidence)
   \code{cpdist} generates random observations conditional on the
   \code{evidence} using the method specified in the \code{method} argument.
 
-  \code{mutilated} constructs the mutilated network used for sampling in
-  \emph{likelihood weighting}.
+  \code{mutilated} constructs the mutilated network arising from an ideal
+  intervention setting the nodes involved to the values specified by
+  \code{evidence}. In this case \code{evidence} must be provided as a list
+  in the same format as for likelihood weighting (see below).
 
   Note that both \code{cpquery} and \code{cpdist} are based on Monte Carlo
   particle filters, and therefore they may return slightly different values
@@ -79,7 +81,7 @@ mutilated(x, evidence)
 
   }
 
-  Note that the number of observations returned by \code{cpdist} is always
+  Note that the number of observations returned by \code{cpdist()} is always
   smaller than \code{n}, because logic sampling is a form of rejection sampling.
   Therefore, only the obervations matching \code{evidence} (out of the \code{n}
   that are generated) are returned, and their number depends on the probability
@@ -110,24 +112,24 @@ mutilated(x, evidence)
   Tuning parameters are the same as for logic sampling: \code{n}, \code{batch}
   and \code{query.nodes}.
 
-  Note that the observations returned by \code{cpdist} are generated from the
+  Note that the observations returned by \code{cpdist()} are generated from the
   mutilated network, and need to be weighted appropriately when computing
   summary statistics (for more details, see the references below).
-  \code{cpquery} does that automatically when computing the final conditional
+  {cpquery} does that automatically when computing the final conditional
   probability. Also note that the \code{batch} argument is ignored in cpdist
   for speed and memory efficiency.
 
 }
 \value{
 
-  \code{cpquery} returns a numeric value, the conditional probability of
-  \code{event} conditional on \code{evidence}.
+  \code{cpquery()} returns a numeric value, the conditional probability of
+  \code{event()} conditional on \code{evidence}.
 
-  \code{cpdist} returns a data frame containing the observations generated from
+  \code{cpdist()} returns a data frame containing the observations generated from
   the conditional distribution of the \code{nodes} conditional on
-  \code{evidence}. The data frame has class \code{c("bn.cpdist", "data.frame")},
-  and a \code{method} attribute storing the value of the \code{method} argument.
-  In the case of likelihood weighting, the weights are also attached as an
+  \code{evidence()}. The data frame has class \code{c("bn.cpdist", "data.frame")},
+  and a \code{meth, -8od} attribute storing the value of the \code{method}
+  gument. In the case of likelihood weighting, the weights are also attached as an
   attribute called \code{weights}.
 
   \code{mutilated} returns a \code{bn} or \code{bn.fit} object, depending on the
@@ -179,7 +181,11 @@ fitted = bn.fit(hc(gaussian.test), gaussian.test)
 cpquery(fitted,
   event = ((A >= 0) & (A <= 1)) & ((B >= 0) & (B <= 3)),
   evidence = (C + D < 10))
+
+## ideal interventions and mutilated networks.
+mutilated(fitted, evidence = list(F = 42))
 }
+
 \author{Marco Scutari}
 \keyword{inference}
 \keyword{simulation}

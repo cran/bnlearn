@@ -16,8 +16,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 4.2\cr
-    Date: \tab 2017-06-30\cr
+    Version: \tab 4.3\cr
+    Date: \tab 2017-01-15\cr
     License: \tab GPLv2 or later
 
   }
@@ -50,8 +50,8 @@
 \author{
 
   Marco Scutari\cr
-  UCL Genetics Institute (UGI) \cr
-  University College London
+  Department of Statistics\cr
+  University of Oxford
 
   Maintainer: Marco Scutari \email{marco.scutari@gmail.com}
 
@@ -60,6 +60,8 @@
 
   \itemize{
 
+    \item \emph{PC} (\code{\link{pc.stable}}), a modern implementation of the
+      first practical constraint-based structure learning algorithm.
     \item \emph{Grow-Shrink} (\code{\link{gs}}): based on the \emph{Grow-Shrink
       Markov Blanket}, the first (and simplest) Markov blanket detection
       algorithm used in a structure learning algorithm.
@@ -381,9 +383,6 @@
 
 }
 \references{
-
-  (a BibTeX file with all the references cited throughout this manual
-  is present in the \file{bibtex} directory of this package)
 
   Nagarajan R, Scutari M, Lebre S (2013). "Bayesian Networks in R with
       Applications in Systems Biology". Springer.

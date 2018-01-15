@@ -7,6 +7,11 @@
 #include <R_ext/Linpack.h>
 #include <R_ext/Utils.h>
 
+/* for backwards compatibility with older R versions. */
+#ifndef MAYBE_REFERENCED
+#define MAYBE_REFERENCED(x) (NAMED(x) > 0)
+#endif
+
 /* memory allocation. */
 void *Calloc1D(size_t R, size_t size);
 void **Calloc2D(size_t R, size_t C, size_t size);

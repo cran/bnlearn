@@ -5,6 +5,7 @@ SEXP BN_NodesSymbol;
 SEXP BN_ProbSymbol;
 SEXP BN_MethodSymbol;
 SEXP BN_WeightsSymbol;
+SEXP BN_DsepsetSymbol;
 SEXP TRUESEXP, FALSESEXP;
 
 SEXP onLoad() {
@@ -15,6 +16,7 @@ SEXP onLoad() {
   BN_ProbSymbol = install("prob");
   BN_MethodSymbol = install("method");
   BN_WeightsSymbol = install("weights");
+  BN_DsepsetSymbol = install("dsep.set");
   TRUESEXP = ScalarLogical(TRUE);
   R_PreserveObject(TRUESEXP);
   FALSESEXP = ScalarLogical(FALSE);

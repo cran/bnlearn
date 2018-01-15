@@ -187,8 +187,7 @@ SEXP xdata;
         xptr = INTEGER(xdata);
         llx = NLEVELS(xdata);
         ysd = sqrt(ysd / (nobs - 1));
-        statistic = 2 * nobs * c_micg(yptr, ym, ysd, xptr, llx, nobs);
-        *df = llx - 1;
+        statistic = 2 * nobs * c_micg(yptr, ym, ysd, xptr, llx, nobs, df);
         pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
 
       }/*THEN*/
@@ -197,8 +196,7 @@ SEXP xdata;
         xptr = REAL(xdata);
         xm = c_mean(xptr, nobs);
         xsd = sqrt(c_sse(xptr, xm, nobs) / (nobs - 1));
-        statistic = 2 * nobs * c_micg(xptr, xm, xsd, yptr, lly, nobs);
-        *df = lly - 1;
+        statistic = 2 * nobs * c_micg(xptr, xm, xsd, yptr, lly, nobs, df);
         pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
 
       }/*ELSE*/

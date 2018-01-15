@@ -45,7 +45,7 @@ graphviz.compare.backend = function(netlist, nodes, layout, shape, main,
     edges.temp[["arrowtail"]][und.arcs] = "none"
 
     dir.arcs = grlabels[grlabels %in%
-                 arcs2grlabels(arclist[[i]][directed, ], both = TRUE)]
+                 arcs2grlabels(arclist[[i]][directed, , drop = FALSE], both = TRUE)]
 
     for (arc in dir.arcs) {
 
@@ -100,9 +100,9 @@ graphviz.compare.backend = function(netlist, nodes, layout, shape, main,
         sorted = compare.backend(arclist[[1]], arclist[[i]], nodes, arcs = TRUE)
 
         # remove false negatives that have a matching false positive, formatting
-        # is easier if the two sets are dijoint.
-        dupes = sorted$fp[which.listed(sorted$fp, sorted$fn, either = TRUE), ]
-        sorted$fn = sorted$fn[!which.listed(sorted$fn, dupes, either = TRUE), ]
+        # is easier if the two sets are disjoint.
+        dupes = sorted$fp[which.listed(sorted$fp, sorted$fn, either = TRUE), , drop = FALSE]
+        sorted$fn = sorted$fn[!which.listed(sorted$fn, dupes, either = TRUE), , drop = FALSE]
 
         # matching true positive directed arcs.
         tp.labels = grlabels[grlabels %in% arcs2grlabels(sorted$tp, both = TRUE)]
@@ -122,7 +122,7 @@ graphviz.compare.backend = function(netlist, nodes, layout, shape, main,
 
         # match false negative directed arcs.
         fn.labels.fwd = grlabels[grlabels %in% arcs2grlabels(sorted$fn)]
-        fn.labels.bwd = grlabels[grlabels %in% arcs2grlabels(sorted$fn[, 2:1])]
+        fn.labels.bwd = grlabels[grlabels %in% arcs2grlabels(sorted$fn[, 2:1, drop = FALSE])]
 
         edges.temp[["col"]][c(fn.labels.fwd, fn.labels.bwd)] = diff.args$fn.col
         edges.temp[["lty"]][c(fn.labels.fwd, fn.labels.bwd)] = diff.args$fn.lty

@@ -1,13 +1,12 @@
 
 # second prinple of CI algorithms: infer arc orientation from graph structure.
-second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
-    test, alpha, B = NULL, data, strict, debug = FALSE) {
+second.principle = function(x, cluster = NULL, local.structure, whitelist,
+    blacklist, test, alpha, B = NULL, data, strict, debug = FALSE) {
 
   nodes = names(x)
 
-  # build a list of the undirected arcs in the graph, using the neighbourhoods
-  # detected in markov.blanket().
-  arcs = mb2arcs(mb, nodes)
+  # build a list of the undirected arcs in the graph.
+  arcs = mb2arcs(local.structure, nodes)
 
   # apply blacklist to the arc set.
   to.drop = !apply(arcs, 1, function(x){ is.blacklisted(blacklist, x) })
@@ -16,8 +15,8 @@ second.principle = function(x, cluster = NULL, mb, whitelist, blacklist,
   # 3. [Orient Edges]
   # 3.1 detect v-structures.
   vs = do.call("rbind",
-         vstruct.detect(nodes = nodes, arcs = arcs, mb = mb, data = x,
-           alpha = alpha, B = B, test = test, debug = debug))
+         vstruct.detect(nodes = nodes, arcs = arcs, mb = local.structure,
+           data = x, alpha = alpha, B = B, test = test, debug = debug))
   rownames(vs) = NULL
 
   if (!is.null(vs)) {
@@ -63,34 +62,33 @@ fake.markov.blanket = function(learn, target) {
 neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
   backtracking = NULL, test, empty.dsep = TRUE, markov = TRUE, debug = FALSE) {
 
-  # save a pristine copy of the markov blanket.
-  nbrhood = mb[[x]]
+  # initialize the neighbourhood using the markov blanket.
+  candidate.neighbours = mb[[x]]
 
   # if the markov blanket is empty there's nothing to do.
-  if (length(nbrhood) == 0) {
+  if (length(candidate.neighbours) == 0) {
 
     if (debug) {
 
       cat("----------------------------------------------------------------\n")
-      cat("* markov blanket of", x, "is empty; the neighbourhood too.\n")
+      cat("* markov blanket of", x, "is empty; the neighbourhood as well.\n")
 
     }#THEN
 
-    return(list(mb = nbrhood, nbr = nbrhood))
+    return(list(mb = character(0), nbr = character(0)))
 
   }#THEN
 
-  known.good = known.bad = c()
-  blacklisted = nbrhood[sapply(nbrhood,
+  # whitelisted nodes are included (arc orientation is irrelevant), and
+  # blacklisted nodes are removed if both directed arcs are banned and both
+  # are not in the whitelist.
+  blacklisted = candidate.neighbours[sapply(candidate.neighbours,
           function(y) { is.blacklisted(blacklist, c(x, y), both = TRUE) })]
-  whitelisted = nbrhood[sapply(nbrhood,
+  whitelisted = candidate.neighbours[sapply(candidate.neighbours,
           function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
 
-  # whitelisted nodes are included (arc orientation is irrelevant),
-  # and blacklisted nodes are removed if both directed arcs are banned
-  # and both are not in the whitelist.
-  nbrhood = nbrhood[nbrhood %!in% blacklisted]
-  nbrhood = unique(c(nbrhood, whitelisted))
+  candidate.neighbours = setdiff(candidate.neighbours, blacklisted)
+  candidate.neighbours = union(candidate.neighbours, whitelisted)
 
   # use backtracking for a further screening of the nodes to be checked.
   if (!is.null(backtracking)) {
@@ -103,9 +101,14 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
     # known.bad nodes are not to be checked for inclusion and/or used in
     # the subsets.
-    nbrhood = nbrhood[nbrhood %!in% known.bad]
+    candidate.neighbours = setdiff(candidate.neighbours, known.bad)
 
   }#THEN
+  else {
+
+    known.good = known.bad = c()
+
+  }#ELSE
 
   if (debug) {
 
@@ -113,7 +116,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
     cat("* learning neighbourhood of", x, ".\n")
     cat("  * blacklisted nodes: '", blacklisted, "'\n")
     cat("  * whitelisted nodes: '", whitelisted, "'\n")
-    cat("  * starting with neighbourhood: '", nbrhood, "'\n")
+    cat("  * starting with neighbourhood: '", candidate.neighbours, "'\n")
 
     if (!is.null(backtracking)) {
 
@@ -125,51 +128,39 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
   }#THEN
 
   # nothing much to do, just return.
-  if (length(nbrhood) <= 1)
-    return(list(mb = mb[[x]], nbr = nbrhood))
+  if (length(candidate.neighbours) <= 1)
+    return(list(mb = mb[[x]], nbr = candidate.neighbours))
 
-  # define the backward selection heuristic.
-  nbr = function(y, x, mb, test) {
+  # do not even try to remove whitelisted nodes; on the other hand, known.good
+  # nodes from backtracking should be checked to remove false positives.
+  for (y in setdiff(candidate.neighbours, whitelisted)) {
 
     if (debug)
       cat("  * checking node", y, "for neighbourhood.\n")
 
     # choose the smaller set of possible d-separating nodes.
     if (markov)
-      dsep.set = smaller(mb[[x]][mb[[x]] != y], mb[[y]][mb[[y]] != x])
+      dsep.set = smaller(setdiff(mb[[x]], y), setdiff(mb[[y]], x))
     else
-      dsep.set = mb[[x]][mb[[x]] != y]
+      dsep.set = setdiff(mb[[x]], y)
 
     if (debug)
       cat("    > dsep.set = '", dsep.set, "'\n")
 
     a = allsubs.test(x = x, y = y, sx = dsep.set, min = ifelse(empty.dsep, 0, 1),
-          data = data, test = test, alpha = alpha, B = B, debug = debug)[1]
+          data = data, test = test, alpha = alpha, B = B, debug = debug)
 
-    if (a > alpha) {
+    # update the neighbourhood.
+    if (a["p.value"] > alpha)
+      candidate.neighbours = candidate.neighbours[candidate.neighbours != y]
 
-      if (debug)
-        cat("    > node", y, "is not a neighbour of", x, ". ( p-value:", a, ")\n")
+    if (debug)
+      cat("    > node", y, "is", ifelse(a["p.value"] > alpha, "not", "still"),
+        "a neighbour of", x, ". ( p-value:", a["p.value"], ")\n")
 
-      # update the neighbourhood.
-      assign("nbrhood", nbrhood[nbrhood != y], envir = sys.frame(-3) )
+  }#FOR
 
-      return(NULL)
-
-    }#THEN
-    else if (debug) {
-
-        cat("    > node", y, "is still a neighbour of", x, ". ( p-value:", a, ")\n")
-
-    }#THEN
-
-  }#NBR
-
-  # do not even try to remove whitelisted nodes; on the other hand, known.good
-  # nodes from backtracking should be checked to remove false positives.
-  sapply(nbrhood[nbrhood %!in% whitelisted], nbr, x = x, mb = mb, test = test)
-
-  return(list(mb = mb[[x]], nbr = nbrhood))
+  return(list(mb = mb[[x]], nbr = candidate.neighbours))
 
 }#NEIGHBOUR
 
@@ -177,7 +168,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
     debug = FALSE) {
 
-  vstruct.centered.on = function(x, mb, data) {
+  vstruct.centered.on = function(x, mb, data, dsep.set) {
 
     if (debug) {
 
@@ -208,27 +199,49 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
       if (is.listed(arcs, c(y, z), either = TRUE))
         next
 
-      # choose the smallest of mb(y) - {x,z} and mb(z) - {x,y} to cut down
-      # the number of subsets to test.
-      dsep.set = smaller(setdiff(mb[[y]][['mb']], c(x, z)),
-                         setdiff(mb[[z]][['mb']], c(x, y)))
+      # if d-separating sets have been saved during the first part of structure
+      # learning, it is possible to detect v-structures without new tests; if 
+      # not we need to test all possible subsets of the intersection of the
+      # markov blankets.
+      if (!is.null(dsep.set)) {
 
-      if (debug)
-        cat("    > chosen d-separating set: '", dsep.set, "'\n")
+        el = dsep.set[[which(sapply(dsep.set, function(x) setequal(x$arc, c(y, z))))]]
 
-      assoc = allsubs.test(x = y, y = z, fixed = x, sx = dsep.set, data = data,
-                test = test, B = B, alpha = alpha, debug = debug)
-      a = assoc[1]
-      max_a = assoc[3]
+        # an unshielded triplet is a v-structure if and only if the central node
+        # (x) is not part of the d-separating set of the other nodes (y and z).
+        if (x %!in% el$dsep.set) {
 
-      if (a <= alpha) {
+          if (debug)
+            cat("    @ detected v-structure", y, "->", x, "<-", z, "\n")
 
-        if (debug)
-          cat("    @ detected v-structure", y, "->", x, "<-", z, "\n")
+          vs = rbind(vs, data.frame(max_a = el$p.value, y, x, z, stringsAsFactors = FALSE))
 
-        vs = rbind(vs, data.frame(max_a, y, x, z, stringsAsFactors = FALSE))
+        }#THEN
 
       }#THEN
+      else {
+
+        # choose the smallest of mb(y) - {x,z} and mb(z) - {x,y} to cut down
+        # the number of subsets to test.
+        sx = smaller(setdiff(mb[[y]][['mb']], c(x, z)),
+                     setdiff(mb[[z]][['mb']], c(x, y)))
+
+        if (debug)
+          cat("    > chosen d-separating set: '", sx, "'\n")
+
+        a = allsubs.test(x = y, y = z, fixed = x, sx = sx, data = data,
+                  test = test, B = B, alpha = alpha, debug = debug)
+
+        if (a["p.value"] <= alpha) {
+
+          if (debug)
+            cat("    @ detected v-structure", y, "->", x, "<-", z, "\n")
+
+          vs = rbind(vs, data.frame(max_a = a["max.p.value"], y, x, z, stringsAsFactors = FALSE))
+
+        }#THEN
+
+      }#ELSE
 
     }#FOR
 
@@ -236,73 +249,69 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
 
   }#VSTRUCT.CENTERED.ON
 
-  sapply(nodes, vstruct.centered.on, mb = mb, data = data, simplify = FALSE)
+  sapply(nodes, vstruct.centered.on, mb = mb, data = data,
+    dsep.set = attr(mb, "dsep.set"), simplify = FALSE)
 
 }#VSTRUCT.DETECT
 
-# apply v-structures to a graph.
+# include v-structures in the network, setting the corresponding arc directions.
 vstruct.apply = function(arcs, vs, nodes, strict, debug = FALSE) {
 
   if (debug)
     cat("----------------------------------------------------------------\n")
 
-  apply(vs, 1, function(v) {
+  for (i in seq(nrow(vs))) {
 
-    if (!(is.listed(arcs, v[c("y", "x")]) && is.listed(arcs, v[c("z", "x")]))) {
+    x = vs[i, "x"]
+    y = vs[i, "y"]
+    z = vs[i, "z"]
+    max_a = vs[i, "max_a"]
 
-      if (debug) {
+    # check whether the network already includes conflicting v-structures.
+    if (!(is.listed(arcs, c(y, x)) && is.listed(arcs, c(z, x)))) {
 
-        cat("* not applying v-structure", v["y"], "->", v["x"], "<-", v["z"],
-              "(", v["max_a"], ")\n")
-
-      }#THEN
+      if (debug)
+        cat("* not applying v-structure", y, "->", x, "<-", z, "(", max_a, ")\n")
 
       if (strict)
-        stop("vstructure ", v["y"], " -> ", v["x"], " <- ", v["z"],
-          " is not applicable, because one or both arcs are oriented",
-          " in the opposite direction.")
+        stop("vstructure ", y, " -> ", x, " <- ", z, " is not applicable, ",
+          "because one or both arcs are oriented in the opposite direction.")
       else
-        warning("vstructure ", v["y"], " -> ", v["x"], " <- ", v["z"],
-          " is not applicable, because one or both arcs are oriented",
-          " in the opposite direction.")
+        warning("vstructure ", y, " -> ", x, " <- ", z, " is not applicable, ",
+          "because one or both arcs are oriented in the opposite direction.")
 
-      return(NULL)
+      next
 
     }#THEN
 
-    # save the updates arc set.
-    temp = set.arc.direction(v["y"], v["x"], arcs)
-    temp = set.arc.direction(v["z"], v["x"], temp)
+    # tentatively add the arcs that make up the v-structure.
+    temp = set.arc.direction(y, x, arcs)
+    temp = set.arc.direction(z, x, temp)
 
+    # check whether the network is acyclic.
     if (!is.acyclic(temp, nodes, directed = TRUE)) {
 
-      if (debug) {
-
-        cat("* not applying v-structure", v["y"], "->", v["x"], "<-", v["z"],
-              "(", v["max_a"], ")\n")
-
-      }#THEN
+      if (debug)
+        cat("* not applying v-structure", y, "->", x, "<-", z, "(", max_a, ")\n")
 
       if (strict)
-        stop("vstructure ", v["y"], " -> ", v["x"], " <- ", v["z"],
-          " is not applicable, because one or both arcs introduce cycles",
-          " in the graph.")
+        stop("vstructure ", y, " -> ", x, " <- ", z, " is not applicable, ",
+          "because one or both arcs introduce cycles in the graph.")
       else
-        warning("vstructure ", v["y"], " -> ", v["x"], " <- ", v["z"],
-          " is not applicable, because one or both arcs introduce cycles",
-          " in the graph.")
+        warning("vstructure ", y, " -> ", x, " <- ", z, " is not applicable, ",
+          "because one or both arcs introduce cycles in the graph.")
 
-      return(NULL)
+      next
 
     }#THEN
 
     if (debug)
-      cat("* applying v-structure", v["y"], "->", v["x"], "<-", v["z"],
-            "(", v["max_a"], ")\n")
+      cat("* applying v-structure", y, "->", x, "<-", z, "(", max_a, ")\n")
 
-    assign("arcs", temp, envir = sys.frame(-2))
+    # save the updated arc set.
+    arcs = temp
 
-  })
+  }#FOR
 
   return(arcs)
 

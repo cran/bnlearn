@@ -30,7 +30,7 @@ BF(num, den, data, score, ..., log = TRUE)
   the respective marginal likelihoods which is equivalent to the ration of
   the corresponding posterior probabilities if we assume the \code{uniform}
   prior over all possible DAGs. However, note that it is possible to specify
-  different priors using the \dQuote{\code{...}} arguments of \code{BF}; in
+  different priors using the \dQuote{\code{...}} arguments of \code{BF()}; in
   that case the value returned by the function will not be the classic Bayes
   factor.
 
@@ -48,7 +48,8 @@ dag1 = model2network("[A][B][F][C|B][E|B][D|A:B:C]")
 dag2 = model2network("[A][C][B|A][D|A][E|D][F|A:C:E]")
 BF(dag1, dag2, learning.test, score = "bds", iss = 1)
 }
-\seealso{\code{\link{score}}, \code{\link{compare}}.}
+\seealso{\code{\link{score}}, \code{\link{compare}},
+  \code{\link{bf.strength}}.}
 \author{Marco Scutari}
 \keyword{network scores}
 \keyword{structure learning}

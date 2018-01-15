@@ -28,7 +28,7 @@ rbn.bn.fit = function(x, n = 1, ..., debug = FALSE) {
   check.unused.args(list(...), character(0))
 
   # call the backend.
-  rbn.backend(x = x, n = n, data = NULL, debug = debug)
+  rbn.backend(x = x, n = n, debug = debug)
 
 }#RBN.BN.FIT
 

@@ -71,7 +71,7 @@ check.cpq.args = function(fitted, event, extra.args, method, action) {
 }#CHECK.CPQ.ARGS
 
 # check evidence in list format for mutilated networks.
-check.mutilated.evidence = function(evidence, graph) {
+check.mutilated.evidence = function(evidence, graph, ideal.only = FALSE) {
 
   # check whether evidence is there.
   if (missing(evidence))
@@ -100,6 +100,21 @@ check.mutilated.evidence = function(evidence, graph) {
        # extract the node and the evidence.
        cur = graph[[fixed]]
        ev = evidence[[fixed]]
+
+       # if only ideal interventions are allowed, the evidence for each node
+       # will have length equal to 1.
+       if (ideal.only)
+         if (length(ev) > 1)
+           stop("only ideal interventions are allowed for node ", fixed,
+                ", but multiple values are provided.")
+
+       # duplicated values do not make sense in most situations.
+       if (any(duplicated(ev))) {
+
+         ev = unique(ev)
+         warning("duplicated values in the evidence for node ", fixed, ".")
+
+       }#THEN
 
        if (is(cur, c("bn.fit.dnode", "bn.fit.onode"))) {
 

@@ -25,8 +25,8 @@ score(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
     for both discrete and continuous data sets. See
     \code{\link{bnlearn-package}} for details.}
   \item{by.node}{a boolean value. If \code{TRUE} and the score is decomposable,
-    the function returns the individual node contributions to the score;
-    otherwise it returns their sum (the overall score of \code{x}).}
+    the function returns the score terms corresponding to each node; otherwise
+    it returns their sum (the overall score of \code{x}).}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
   \item{\dots}{extra arguments from the generic method (for the \code{AIC} and
@@ -38,7 +38,7 @@ score(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
 }
 \details{
 
-  Additional arguments of the \code{score} function:
+  Additional arguments of the \code{score()} function:
 
   \itemize{
 
@@ -151,7 +151,7 @@ score(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
 }
 \value{
 
-  For \code{score} with \code{by.node = TRUE}, a vector of numeric values, the
+  For \code{score()} with \code{by.node = TRUE}, a vector of numeric values, the
   individual node contributions to the score of the Bayesian network.
   Otherwise, a single numeric value, the score of the Bayesian network.
 

@@ -80,9 +80,10 @@ double cor_zf_trans(double cor, double df);
 double cor_mi_trans(double cor);
 
 /* from cg.mutual.information.c */
-double c_micg(double *yy, double ym, double ysd, int *xx, int llx, int num);
+double c_micg(double *yy, double ym, double ysd, int *xx, int llx, int num,
+    double *df);
 double c_cmicg(double *yy, double **xx, int nx, int **zz, int nz, int *z0,
-    int nz0, int *nlvls, int num);
+    int nz0, int *nlvls, int num, double *df);
 double c_cmicg_unroll(int *xx, int llx, int *yy, int lly, int *zz, int llz,
     double **gp, int ngp, double *df, int num);
 

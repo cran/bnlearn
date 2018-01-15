@@ -39,82 +39,6 @@ int i = 0;
 
 }/*GETLISTELEMENT*/
 
-/* return the unique elements from an input vector.*/
-SEXP unique(SEXP array) {
-
-int *d = NULL, i = 0, k = 0, dup_counter = 0, n = length(array);
-int *res = NULL, *a = NULL;
-SEXP dup, result = R_NilValue;
-
-  PROTECT(dup = duplicated(array, FALSE));
-  d = LOGICAL(dup);
-
-  switch(TYPEOF(array)) {
-
-    case INTSXP:
-
-      a = INTEGER(array);
-
-      for (i = 0; i < n; i++)
-        if ((d[i] == 0) && (a[i] != NA_INTEGER))
-          dup_counter++;
-
-      PROTECT(result = allocVector(INTSXP, dup_counter));
-      res = INTEGER(result);
-
-      for (i = 0; i < n; i++)
-        if ((d[i] == 0) && (a[i] != NA_INTEGER))
-          res[k++] = a[i];
-
-      break;
-
-    case STRSXP:
-
-      for (i = 0; i < n; i++)
-        if (d[i] == 0)
-          dup_counter++;
-
-      PROTECT(result = allocVector(STRSXP, dup_counter));
-
-      for (i = 0; i < n; i++)
-        if (d[i] == 0)
-          SET_STRING_ELT(result, k++, STRING_ELT(array, i));
-
-      break;
-
-    default:
-
-      error("this SEXP type is not handled in unique().");
-
-  }/*SWITCH*/
-
-  UNPROTECT(2);
-
-  return result;
-
-}/*UNIQUE*/
-
-/* determine which elements are dupes. */
-SEXP dupe(SEXP array) {
-
-int i = 0, n = length(array);
-int *res = NULL, *tmp = NULL;
-SEXP result, temp;
-
-  PROTECT(result = duplicated(array, FALSE));
-  PROTECT(temp = duplicated(array, TRUE));
-  res = LOGICAL(result);
-  tmp = LOGICAL(temp);
-
-  for (i = 0; i < n; i++)
-    res[i] = res[i] || tmp[i];
-
-  UNPROTECT(2);
-
-  return result;
-
-}/*DUPE*/
-
 /* transform an integer vector into a factor. */
 SEXP int2fac(SEXP vector, int *nlevels) {
 
@@ -159,17 +83,35 @@ SEXP result, levels, lvls;
 }/*INT2FAC*/
 
 /* efficient copying of data from the data frame to a matrix for the QR decomposition. */
-void c_qr_matrix(double *qr, double **x, int nrow, int ncol) {
+void c_qr_matrix(double *qr, double **x, int nrow, int ncol, int *complete,
+    int ncomplete) {
 
-int i = 0;
+int i = 0, j = 0, k = 0;
 
-  /* fill the intercept column. */
-  for (i = 0; i < nrow; i++)
-    qr[i] = 1;
+  if (complete) {
 
-  /* copy the data to the right comun of the matrix. */
-  for (i = 0; i < ncol; i++)
-    memcpy(qr + (i + 1) * nrow, x[i], nrow * sizeof(double));
+    /* fill the intercept column. */
+    for (i = 0; i < ncomplete; i++)
+      qr[i] = 1;
+
+    /* copy the data to the right comun of the matrix. */
+    for (j = 0; j < ncol; j++)
+      for (i = 0, k = 0; i < nrow; i++)
+        if (complete[i])
+          qr[k++ + (j + 1) * ncomplete] = x[j][i];
+
+  }/*THEN*/
+  else {
+
+    /* fill the intercept column. */
+    for (i = 0; i < nrow; i++)
+      qr[i] = 1;
+
+    /* copy the data to the right comun of the matrix. */
+    for (i = 0; i < ncol; i++)
+      memcpy(qr + (i + 1) * nrow, x[i], nrow * sizeof(double));
+
+  }/*ELSE*/
 
 }/*C_QR_MATRIX*/
 
@@ -203,12 +145,12 @@ int c = 0, r = 0, cn = n - 1;
 SEXP normalize_cpt(SEXP cpt) {
 
 int i = 0, j = 0, nrow = 0, cells = length(cpt);
-short int duplicated = 0;
+short int referenced = 0;
 double psum = 0;
 double *c = NULL;
 
   /* duplicate the (conditional) probability table if needed... */
-  if ((duplicated = NAMED(cpt)) > 0)
+  if ((referenced = MAYBE_REFERENCED(cpt)))
     PROTECT(cpt = duplicate(cpt));
   /* ... and dereference it. */
   c = REAL(cpt);
@@ -228,7 +170,7 @@ double *c = NULL;
 
   }/*FOR*/
 
-  if (duplicated > 0)
+  if (referenced)
     UNPROTECT(1);
 
   return cpt;
@@ -290,7 +232,7 @@ SEXP dimnames;
 }/*SETDIMNAMES*/
 
 /* minimal implementation of table(). */
-SEXP minimal_table(SEXP dataframe) {
+SEXP minimal_table(SEXP dataframe, SEXP missing) {
 
 int i = 0, nrow = length(VECTOR_ELT(dataframe, 0)), ncol = length(dataframe);
 int *dd = NULL, *tt = NULL, **columns = NULL, *cfg = NULL;
@@ -340,8 +282,19 @@ SEXP table, dims, dimnames, cur;
   cfg = Calloc1D(nrow, sizeof(int));
   c_fast_config(columns, nrow, ncol, dd, cfg, NULL, 0);
 
-  for (i = 0; i < nrow; i++)
-    tt[cfg[i]]++;
+  if (isTRUE(missing)) {
+
+     for (i = 0; i < nrow; i++)
+       if (cfg[i] != NA_INTEGER)
+         tt[cfg[i]]++;
+
+  }/*THEN*/
+  else {
+
+    for (i = 0; i < nrow; i++)
+      tt[cfg[i]]++;
+
+  }/*ELSE*/
 
   /* set the attributess for class and dimensions. */
   setAttrib(table, R_ClassSymbol, mkString("table"));

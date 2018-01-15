@@ -16,7 +16,7 @@
 \method{as.prediction}{bn.strength}(x, true, ..., consider.direction = TRUE)
 }
 \arguments{
-  \item{x}{an object of class \code{bn.strength} returned by \code{boot.strength},
+  \item{x}{an object of class \code{bn.strength} returned by \code{boot.strength()},
     representing learning results targeting the object of class \code{bn} 
     specified by the \code{true} argument.}
   \item{true}{an object of class \code{bn}, the target of structure learning.}
@@ -31,10 +31,10 @@
 
   One way of evaluating the overall performance of a network structure learning
   algorithm is to evaluate how well it detects individual arcs.
-  \code{as.prediction} takes each pair of nodes in a ground truth network and
+  \code{as.prediction()} takes each pair of nodes in a ground truth network and
   labels them with a \code{1} if an arc exists between them and \code{0} if not.
   It uses the arc presence probabilities in a \code{bn.strength} object 
-  returned by \code{boot.strength} as the predictions.
+  returned by \code{boot.strength()} as the predictions.
   
 }
 \value{

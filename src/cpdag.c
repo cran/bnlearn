@@ -499,10 +499,33 @@ int i = 0, j = 0, k = 0, check = FALSE;
 
 }/*UNMARK_SHIELDED*/
 
+#define VSTRUCTURE_CHECK(i, j) \
+  for (k = 0, vstructure = FALSE; k < nnodes; k++) { \
+    if ((k == i) || (k == j)) \
+      continue; \
+    if (!((a[CMC(k, j, nnodes)] >= PRESENT) && (a[CMC(j, k, nnodes)] == ABSENT))) \
+      continue; \
+    if ((a[CMC(k, i, nnodes)] >= PRESENT) && (a[CMC(i, k, nnodes)] >= PRESENT)) \
+      continue; \
+    if (!((a[CMC(k, i, nnodes)] >= PRESENT) && (a[CMC(i, k, nnodes)] == ABSENT))) { \
+      vstructure = TRUE; \
+      break; \
+    }/*THEN*/ \
+  }/*FOR*/ \
+  if (vstructure) { \
+    a[CMC(i, j, nnodes)] = FIXED; \
+    a[CMC(j, i, nnodes)] = FIXED; \
+    if (debuglevel > 0) \
+      Rprintf("  > fixing arc %s - %s, one direction introduces new v-structures, the other creates cycles (step 3a).\n", \
+        NODE(j), NODE(i)); \
+    changed = CHANGED; \
+    continue; \
+  }/*THEN*/
+
 static int prevent_cycles(int *a, SEXP nodes, int nnodes, short int *collider,
     int debuglevel) {
 
-int i = 0, j = 0, changed = UNCHANGED;
+int i = 0, j = 0, k = 0, vstructure = FALSE, changed = UNCHANGED;
 int *path = NULL, *scratch = NULL;
 
   /* allocate buffers for c_directed_path(). */
@@ -518,22 +541,26 @@ int *path = NULL, *scratch = NULL;
 
       if (c_directed_path(i, j, a, nnodes, nodes, path, scratch, 0)) {
 
+        VSTRUCTURE_CHECK(i, j);
+
         a[CMC(i, j, nnodes)] = FIXED;
         a[CMC(j, i, nnodes)] = ABSENT;
 
         if (debuglevel)
-            Rprintf("  > fixing arc %s -> %s due to directed path (step 3a).\n", NODE(i), NODE(j));
+          Rprintf("  > fixing arc %s -> %s due to directed path (step 3a).\n", NODE(i), NODE(j));
 
         changed = CHANGED;
 
       }/*THEN*/
       else if (c_directed_path(j, i, a, nnodes, nodes, path, scratch, 0)) {
 
+        VSTRUCTURE_CHECK(j, i);
+
         a[CMC(i, j, nnodes)] = ABSENT;
         a[CMC(j, i, nnodes)] = FIXED;
 
         if (debuglevel)
-            Rprintf("  > fixing arc %s -> %s due to directed path (step 3a).\n", NODE(j), NODE(i));
+          Rprintf("  > fixing arc %s -> %s due to directed path (step 3a).\n", NODE(j), NODE(i));
 
         changed = CHANGED;
 
@@ -554,11 +581,14 @@ static int prevent_additional_vstructures(int *a, SEXP nodes, int nnodes,
     short int *collider, int debuglevel) {
 
 int i = 0, j = 0, k = 0;
+int *path = NULL, *scratch = NULL;
 short int *has_parent = NULL, *has_neighbour = NULL;
 short int shielded = FALSE, flag = FALSE;
 
   has_parent = Calloc1D(nnodes, sizeof(short int));
   has_neighbour = Calloc1D(nnodes, sizeof(short int));
+  path = Calloc1D(nnodes, sizeof(int));
+  scratch = Calloc1D(nnodes, sizeof(int));
 
   for (j = 0; j < nnodes; j++) {
 
@@ -640,7 +670,19 @@ short int shielded = FALSE, flag = FALSE;
           if (shielded) {
 
             if (debuglevel > 0)
-              Rprintf("  > arc %s - %s is no part of an unshielded collider, leave it undirected.\n", NODE(j), NODE(i));
+              Rprintf("  > arc %s - %s is not part of an unshielded collider, leave it undirected.\n", NODE(j), NODE(i));
+
+          }/*THEN*/
+          else if (c_directed_path(i, j, a, nnodes, nodes, path, scratch, 0)) {
+
+            a[CMC(i, j, nnodes)] = FIXED;
+            a[CMC(j, i, nnodes)] = FIXED;
+
+            flag = TRUE;
+
+            if (debuglevel > 0)
+              Rprintf("  > fixing arc %s - %s, one direction introduces new v-structures, the other creates cycles (step 3b).\n",
+                NODE(j), NODE(i));
 
           }/*THEN*/
           else {
@@ -665,6 +707,8 @@ short int shielded = FALSE, flag = FALSE;
 
   Free1D(has_neighbour);
   Free1D(has_parent);
+  Free1D(path);
+  Free1D(scratch);
 
   return flag;
 

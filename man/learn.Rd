@@ -47,8 +47,14 @@ learn.nbr(x, node, method, whitelist = NULL, blacklist = NULL,
 \value{
 
   A vector of character strings, the labels of the nodes in the Markov blanket
-  (for \code{learn.mb}) or in the neighbourhood (for \code{learn.nbr}).
+  (for \code{learn.mb()}) or in the neighbourhood (for \code{learn.nbr()}).
 
+}
+\examples{
+learn.mb(learning.test, node = "D", method = "iamb")
+learn.mb(learning.test, node = "D", method = "iamb", blacklist = c("A", "F"))
+
+learn.nbr(gaussian.test, node = "F", method = "si.hiton.pc", whitelist = "D")
 }
 \author{Marco Scutari}
 \seealso{\link{constraint-based algorithms}, \link{local discovery algorithms}.}

@@ -65,33 +65,33 @@
   \item{\dots}{additional arguments, currently ignored.}
   \item{k}{a numeric value, the penalty coefficient to be used; the default
     \code{k = 1} gives the expression used to compute AIC.}
-  \item{by.sample}{a boolean value. If \code{TRUE}, \code{logLik} returns a
-    vector containing the the log-likelihood of each observations in the
-    sample. If \code{FALSE}, \code{logLik} returns a single value, the
+  \item{by.sample}{a boolean value. If \code{TRUE}, \code{logLik()} returns
+    a vector containing the the log-likelihood of each observations in the
+    sample. If \code{FALSE}, \code{logLik()} returns a single value, the
     likelihood of the whole sample.}
 
 }
 \details{
 
-  \code{coef} (and its alias \code{coefficients}) extracts model coefficients
+  \code{coef()} (and its alias \code{coefficients()}) extracts model coefficients
   (which are conditional probabilities for discrete nodes and linear regression
   coefficients for Gaussian and conditional Gaussian nodes).
 
-  \code{residuals} (and its alias \code{resid}) extracts model residuals and
-  \code{fitted} (and its alias \code{fitted.values}) extracts fitted values
+  \code{residuals()} (and its alias \code{resid()}) extracts model residuals and
+  \code{fitted()} (and its alias \code{fitted.values()}) extracts fitted values
   from Gaussian and conditional Gaussian nodes. If the \code{bn.fit} object
   does not include the residuals or the fitted values for the node of interest
   both functions return \code{NULL}.
 
-  \code{sigma} extracts the standard deviations of the residuals from Gaussian
+  \code{sigma()} extracts the standard deviations of the residuals from Gaussian
   and conditional Gaussian networks and nodes.
 
-  \code{logLik} returns the log-likelihood for the observations in \code{data}.
+  \code{logLik()} returns the log-likelihood for the observations in \code{data}.
 
 }
 \value{
 
-  \code{logLik} returns a numeric vector or a single numeric value, depending
+  \code{logLik()} returns a numeric vector or a single numeric value, depending
   on the value of \code{by.sample}. \code{AIC} and \code{BIC} always return a
   single numeric value.
 
