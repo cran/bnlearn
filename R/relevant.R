@@ -1,6 +1,7 @@
 
 # Pena's irrelevant nodes feature selection.
-pena.backend  = function(target, context, data, test, alpha, B, debug = TRUE) {
+pena.backend = function(target, context, data, test, alpha, B, complete,
+    debug = TRUE) {
 
   to.test = relevant = target
   nodes = setdiff(names(data), context)
@@ -31,7 +32,8 @@ pena.backend  = function(target, context, data, test, alpha, B, debug = TRUE) {
 
       # compute the marginal associations.
       association = indep.test(setdiff(nodes, relevant), y = node, sx = context,
-                      data = data, test = test, alpha = alpha, B = B)
+                      data = data, test = test, alpha = alpha, B = B,
+                      complete = complete)
 
      if (debug) {
 

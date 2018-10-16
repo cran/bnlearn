@@ -3,11 +3,6 @@
 #include "include/matrix.h"
 #include "include/covariance.h"
 
-/* -------------------- function declarations --------------------------- */
-
-void c_svd(double *A, double *U, double *D, double *V, int *nrow,
-    int *ncol, int *mindim, int strict, int *errcode);
-
 /* -------------------- C level interfaces to LAPACK -------------------- */
 
 /* C-level wrapper around the dgesdd() F77 routine. Note that the input
@@ -41,62 +36,49 @@ double tmp = 0, *work = NULL;
 
 }/*C_SVD*/
 
-/* helper function to allocate U, D and Vt for SVD. */
-void c_udvt(double **u, double **d, double **vt, int ncol) {
-
-  *u = Calloc1D(ncol * ncol, sizeof(double));
-  *d = Calloc1D(ncol, sizeof(double));
-  *vt = Calloc1D(ncol * ncol, sizeof(double));
-
-}/*C_UDVT*/
-
 /* C-level function to compute Moore-Penrose Generalized Inverse of a square matrix. */
-void c_ginv(double *covariance, int ncol, double *mpinv) {
+void c_ginv(covariance cov, covariance mpinv) {
 
 int i = 0, j = 0, errcode = 0;
-double *u = NULL, *d = NULL, *vt = NULL, *backup = NULL;
 double sv_tol = 0, zero = 0, one = 1;
 char transa = 'N', transb = 'N';
+covariance backup = (covariance){ 0 };
 
-  c_udvt(&u, &d, &vt, ncol);
+  if (cov.mat != mpinv.mat) {
 
-  if (covariance != mpinv) {
-
-    backup = Calloc1D(ncol * ncol, sizeof(double));
-    memcpy(backup, covariance, ncol * ncol * sizeof(double));
+    backup = new_covariance(cov.dim, TRUE);
+    copy_covariance(&cov, &backup);
 
   }/*THEN*/
 
   /* compute the SVD decomposition. */
-  c_svd(covariance, u, d, vt, &ncol, &ncol, &ncol, FALSE, &errcode);
+  c_svd(cov.mat, cov.u, cov.d, cov.vt, &cov.dim, &cov.dim, &cov.dim,
+    FALSE, &errcode);
 
   /* if SVD fails, catch the error code and free all buffers. */
   if (errcode == 0) {
 
     /* set the threshold for the singular values as in corpcor. */
-    sv_tol = ncol * d[0] * MACHINE_TOL * MACHINE_TOL;
+    sv_tol = cov.dim * cov.d[0] * MACHINE_TOL * MACHINE_TOL;
 
     /* the first multiplication, U * D^{-1} is easy. */
-    for (i = 0; i < ncol; i++)
-      for (j = 0; j < ncol; j++)
-        u[CMC(i, j, ncol)] = u[CMC(i, j, ncol)] * ((d[j] > sv_tol) ? 1/d[j] : 0);
+    for (i = 0; i < cov.dim; i++)
+      for (j = 0; j < cov.dim; j++)
+        cov.u[CMC(i, j, cov.dim)] = cov.u[CMC(i, j, cov.dim)] *
+                                      ((cov.d[j] > sv_tol) ? 1/cov.d[j] : 0);
 
     /* the second one, (U * D^{-1}) * Vt  is a real matrix multiplication. */
-    F77_CALL(dgemm)(&transa, &transb, &ncol, &ncol, &ncol, &one, u,
-      &ncol, vt, &ncol, &zero, mpinv, &ncol);
+    F77_CALL(dgemm)(&transa, &transb, &cov.dim, &cov.dim, &cov.dim, &one, cov.u,
+      &cov.dim, cov.vt, &cov.dim, &zero, mpinv.mat, &cov.dim);
 
   }/*THEN*/
 
-  if (covariance != mpinv) {
+  if (cov.mat != mpinv.mat) {
 
-    memcpy(covariance, backup, ncol * ncol * sizeof(double));
-    Free1D(backup);
+    copy_covariance(&backup, &cov);
+    FreeCOV(backup);
 
   }/*THEN*/
-
-  Free1D(u);
-  Free1D(d);
-  Free1D(vt);
 
   if (errcode)
     error("an error (%d) occurred in the call to c_ginv().\n", errcode);
@@ -104,118 +86,116 @@ char transa = 'N', transb = 'N';
 }/*C_GINV*/
 
 /* fast inverse for symmetric positive definite matries. */
-void c_finv(double *cov, int *ncol, double *mpinv) {
+void c_finv(covariance cov, covariance inv) {
 
-double det = 0;
+double det = 0, *cm = cov.mat, *im = inv.mat;
 char u = 'U';
 int i = 0, j = 0, errcode = 0;
 
-
-  switch(*ncol) {
+  switch(cov.dim) {
 
     case 2:
 
-      det = cov[0] * cov[3] - cov[1] * cov[2];
+      det = cm[0] * cm[3] - cm[1] * cm[2];
 
-      mpinv[0] =  cov[3] / det;
-      mpinv[1] = -cov[2] / det;
-      mpinv[2] = -cov[2] / det;
-      mpinv[3] =  cov[0] / det;
+      im[0] =  cm[3] / det;
+      im[1] = -cm[2] / det;
+      im[2] = -cm[2] / det;
+      im[3] =  cm[0] / det;
 
-      return;
+      break;
 
     case 3:
 
-      det = cov[0] * (cov[8] * cov[4] - cov[5] * cov[7]) -
-            cov[1] * (cov[8] * cov[3] - cov[5] * cov[6]) +
-            cov[2] * (cov[7] * cov[3] - cov[4] * cov[6]);
+      det = cm[0] * (cm[8] * cm[4] - cm[5] * cm[7]) -
+            cm[1] * (cm[8] * cm[3] - cm[5] * cm[6]) +
+            cm[2] * (cm[7] * cm[3] - cm[4] * cm[6]);
 
-      mpinv[0] =  (cov[8] * cov[4] - cov[5] * cov[7]) / det;
-      mpinv[1] = -(cov[8] * cov[1] - cov[2] * cov[7]) / det;
-      mpinv[2] =  (cov[5] * cov[1] - cov[2] * cov[4]) / det;
-      mpinv[3] = -(cov[8] * cov[3] - cov[5] * cov[6]) / det;
-      mpinv[4] =  (cov[8] * cov[0] - cov[2] * cov[6]) / det;
-      mpinv[5] = -(cov[5] * cov[0] - cov[2] * cov[1]) / det;
-      mpinv[6] =  (cov[7] * cov[1] - cov[4] * cov[6]) / det;
-      mpinv[7] = -(cov[7] * cov[0] - cov[1] * cov[6]) / det;
-      mpinv[8] =  (cov[4] * cov[0] - cov[1] * cov[3]) / det;
+      im[0] =  (cm[8] * cm[4] - cm[5] * cm[7]) / det;
+      im[1] = -(cm[8] * cm[1] - cm[2] * cm[7]) / det;
+      im[2] =  (cm[5] * cm[1] - cm[2] * cm[4]) / det;
+      im[3] = -(cm[8] * cm[3] - cm[5] * cm[6]) / det;
+      im[4] =  (cm[8] * cm[0] - cm[2] * cm[6]) / det;
+      im[5] = -(cm[5] * cm[0] - cm[2] * cm[1]) / det;
+      im[6] =  (cm[7] * cm[1] - cm[4] * cm[6]) / det;
+      im[7] = -(cm[7] * cm[0] - cm[1] * cm[6]) / det;
+      im[8] =  (cm[4] * cm[0] - cm[1] * cm[3]) / det;
 
-      return;
+      break;
 
     case 4:
 
-      mpinv[0]  =  cov[5]  * cov[10] * cov[15] - cov[5]  * cov[11] * cov[14] -
-                   cov[9]  * cov[6]  * cov[15] + cov[9]  * cov[7]  * cov[14] +
-                   cov[13] * cov[6]  * cov[11] - cov[13] * cov[7]  * cov[10];
-      mpinv[1]  = -cov[1]  * cov[10] * cov[15] + cov[1]  * cov[11] * cov[14] +
-                   cov[9]  * cov[2]  * cov[15] - cov[9]  * cov[3]  * cov[14] -
-                   cov[13] * cov[2]  * cov[11] + cov[13] * cov[3]  * cov[10];
-      mpinv[2]  =  cov[1]  * cov[6]  * cov[15] - cov[1]  * cov[7]  * cov[14] -
-                   cov[5]  * cov[2]  * cov[15] + cov[5]  * cov[3]  * cov[14] +
-                   cov[13] * cov[2]  * cov[7]  - cov[13] * cov[3]  * cov[6];
-      mpinv[3]  = -cov[1]  * cov[6]  * cov[11] + cov[1]  * cov[7]  * cov[10] +
-                   cov[5]  * cov[2]  * cov[11] - cov[5]  * cov[3]  * cov[10] -
-                   cov[9]  * cov[2]  * cov[7]  + cov[9]  * cov[3]  * cov[6];
-      mpinv[4]  = -cov[4]  * cov[10] * cov[15] + cov[4]  * cov[11] * cov[14] +
-                   cov[8]  * cov[6]  * cov[15] - cov[8]  * cov[7]  * cov[14] -
-                   cov[12] * cov[6]  * cov[11] + cov[12] * cov[7]  * cov[10];
-      mpinv[5]  =  cov[0]  * cov[10] * cov[15] - cov[0]  * cov[11] * cov[14] -
-                   cov[8]  * cov[2]  * cov[15] + cov[8]  * cov[3]  * cov[14] +
-                   cov[12] * cov[2]  * cov[11] - cov[12] * cov[3]  * cov[10];
-      mpinv[6]  = -cov[0]  * cov[6]  * cov[15] + cov[0]  * cov[7]  * cov[14] +
-                   cov[4]  * cov[2]  * cov[15] - cov[4]  * cov[3]  * cov[14] -
-                   cov[12] * cov[2]  * cov[7]  + cov[12] * cov[3]  * cov[6];
-      mpinv[7]  =  cov[0]  * cov[6]  * cov[11] - cov[0]  * cov[7]  * cov[10] -
-                   cov[4]  * cov[2]  * cov[11] + cov[4]  * cov[3]  * cov[10] +
-                   cov[8]  * cov[2]  * cov[7]  - cov[8]  * cov[3]  * cov[6];
-      mpinv[8]  =  cov[4]  * cov[9]  * cov[15] - cov[4]  * cov[11] * cov[13] -
-                   cov[8]  * cov[5]  * cov[15] + cov[8]  * cov[7]  * cov[13] +
-                   cov[12] * cov[5]  * cov[11] - cov[12] * cov[7]  * cov[9];
-      mpinv[9]  = -cov[0]  * cov[9]  * cov[15] + cov[0]  * cov[11] * cov[13] +
-                   cov[8]  * cov[1]  * cov[15] - cov[8]  * cov[3]  * cov[13] -
-                   cov[12] * cov[1]  * cov[11] + cov[12] * cov[3]  * cov[9];
-      mpinv[11] = -cov[0]  * cov[5]  * cov[11] + cov[0]  * cov[7]  * cov[9] +
-                   cov[4]  * cov[1]  * cov[11] - cov[4]  * cov[3]  * cov[9] -
-                   cov[8]  * cov[1]  * cov[7]  + cov[8]  * cov[3]  * cov[5];
-      mpinv[10] =  cov[0]  * cov[5]  * cov[15] - cov[0]  * cov[7]  * cov[13] -
-                   cov[4]  * cov[1]  * cov[15] + cov[4]  * cov[3]  * cov[13] +
-                   cov[12] * cov[1]  * cov[7]  - cov[12] * cov[3]  * cov[5];
-      mpinv[12] = -cov[4]  * cov[9]  * cov[14] + cov[4]  * cov[10] * cov[13] +
-                   cov[8]  * cov[5]  * cov[14] - cov[8]  * cov[6]  * cov[13] -
-                   cov[12] * cov[5]  * cov[10] + cov[12] * cov[6]  * cov[9];
-      mpinv[13] =  cov[0]  * cov[9]  * cov[14] - cov[0]  * cov[10] * cov[13] -
-                   cov[8]  * cov[1]  * cov[14] + cov[8]  * cov[2]  * cov[13] +
-                   cov[12] * cov[1]  * cov[10] - cov[12] * cov[2]  * cov[9];
-      mpinv[14] = -cov[0]  * cov[5]  * cov[14] + cov[0]  * cov[6]  * cov[13] +
-                   cov[4]  * cov[1]  * cov[14] - cov[4]  * cov[2]  * cov[13] -
-                   cov[12] * cov[1]  * cov[6]  + cov[12] * cov[2]  * cov[5];
-      mpinv[15] =  cov[0]  * cov[5]  * cov[10] - cov[0]  * cov[6]  * cov[9] -
-                   cov[4]  * cov[1]  * cov[10] + cov[4]  * cov[2]  * cov[9] +
-                   cov[8]  * cov[1]  * cov[6]  - cov[8]  * cov[2]  * cov[5];
+      im[0]  =  cm[5]  * cm[10] * cm[15] - cm[5]  * cm[11] * cm[14] -
+                cm[9]  * cm[6]  * cm[15] + cm[9]  * cm[7]  * cm[14] +
+                cm[13] * cm[6]  * cm[11] - cm[13] * cm[7]  * cm[10];
+      im[1]  = -cm[1]  * cm[10] * cm[15] + cm[1]  * cm[11] * cm[14] +
+                cm[9]  * cm[2]  * cm[15] - cm[9]  * cm[3]  * cm[14] -
+                cm[13] * cm[2]  * cm[11] + cm[13] * cm[3]  * cm[10];
+      im[2]  =  cm[1]  * cm[6]  * cm[15] - cm[1]  * cm[7]  * cm[14] -
+                cm[5]  * cm[2]  * cm[15] + cm[5]  * cm[3]  * cm[14] +
+                cm[13] * cm[2]  * cm[7]  - cm[13] * cm[3]  * cm[6];
+      im[3]  = -cm[1]  * cm[6]  * cm[11] + cm[1]  * cm[7]  * cm[10] +
+                cm[5]  * cm[2]  * cm[11] - cm[5]  * cm[3]  * cm[10] -
+                cm[9]  * cm[2]  * cm[7]  + cm[9]  * cm[3]  * cm[6];
+      im[4]  = -cm[4]  * cm[10] * cm[15] + cm[4]  * cm[11] * cm[14] +
+                cm[8]  * cm[6]  * cm[15] - cm[8]  * cm[7]  * cm[14] -
+                cm[12] * cm[6]  * cm[11] + cm[12] * cm[7]  * cm[10];
+      im[5]  =  cm[0]  * cm[10] * cm[15] - cm[0]  * cm[11] * cm[14] -
+                cm[8]  * cm[2]  * cm[15] + cm[8]  * cm[3]  * cm[14] +
+                cm[12] * cm[2]  * cm[11] - cm[12] * cm[3]  * cm[10];
+      im[6]  = -cm[0]  * cm[6]  * cm[15] + cm[0]  * cm[7]  * cm[14] +
+                cm[4]  * cm[2]  * cm[15] - cm[4]  * cm[3]  * cm[14] -
+                cm[12] * cm[2]  * cm[7]  + cm[12] * cm[3]  * cm[6];
+      im[7]  =  cm[0]  * cm[6]  * cm[11] - cm[0]  * cm[7]  * cm[10] -
+                cm[4]  * cm[2]  * cm[11] + cm[4]  * cm[3]  * cm[10] +
+                cm[8]  * cm[2]  * cm[7]  - cm[8]  * cm[3]  * cm[6];
+      im[8]  =  cm[4]  * cm[9]  * cm[15] - cm[4]  * cm[11] * cm[13] -
+                cm[8]  * cm[5]  * cm[15] + cm[8]  * cm[7]  * cm[13] +
+                cm[12] * cm[5]  * cm[11] - cm[12] * cm[7]  * cm[9];
+      im[9]  = -cm[0]  * cm[9]  * cm[15] + cm[0]  * cm[11] * cm[13] +
+                cm[8]  * cm[1]  * cm[15] - cm[8]  * cm[3]  * cm[13] -
+                cm[12] * cm[1]  * cm[11] + cm[12] * cm[3]  * cm[9];
+      im[11] = -cm[0]  * cm[5]  * cm[11] + cm[0]  * cm[7]  * cm[9] +
+                cm[4]  * cm[1]  * cm[11] - cm[4]  * cm[3]  * cm[9] -
+                cm[8]  * cm[1]  * cm[7]  + cm[8]  * cm[3]  * cm[5];
+      im[10] =  cm[0]  * cm[5]  * cm[15] - cm[0]  * cm[7]  * cm[13] -
+                cm[4]  * cm[1]  * cm[15] + cm[4]  * cm[3]  * cm[13] +
+                cm[12] * cm[1]  * cm[7]  - cm[12] * cm[3]  * cm[5];
+      im[12] = -cm[4]  * cm[9]  * cm[14] + cm[4]  * cm[10] * cm[13] +
+                cm[8]  * cm[5]  * cm[14] - cm[8]  * cm[6]  * cm[13] -
+                cm[12] * cm[5]  * cm[10] + cm[12] * cm[6]  * cm[9];
+      im[13] =  cm[0]  * cm[9]  * cm[14] - cm[0]  * cm[10] * cm[13] -
+                cm[8]  * cm[1]  * cm[14] + cm[8]  * cm[2]  * cm[13] +
+                cm[12] * cm[1]  * cm[10] - cm[12] * cm[2]  * cm[9];
+      im[14] = -cm[0]  * cm[5]  * cm[14] + cm[0]  * cm[6]  * cm[13] +
+                cm[4]  * cm[1]  * cm[14] - cm[4]  * cm[2]  * cm[13] -
+                cm[12] * cm[1]  * cm[6]  + cm[12] * cm[2]  * cm[5];
+      im[15] =  cm[0]  * cm[5]  * cm[10] - cm[0]  * cm[6]  * cm[9] -
+                cm[4]  * cm[1]  * cm[10] + cm[4]  * cm[2]  * cm[9] +
+                cm[8]  * cm[1]  * cm[6]  - cm[8]  * cm[2]  * cm[5];
 
-      det = cov[0] * mpinv[0] + cov[1] * mpinv[4] + cov[2] * mpinv[8] + cov[3] * mpinv[12];
+      det = cm[0] * im[0] + cm[1] * im[4] + cm[2] * im[8] + cm[3] * im[12];
 
       for (i = 0; i < 16; i++)
-        mpinv[i] = mpinv[i] / det;
+        im[i] = im[i] / det;
 
-      return;
-
-    default:
       break;
 
+    default:
+
+      /* copy the original matrix, it gets overwritten otherwise. */
+      memcpy(inv.mat, cov.mat, cov.dim * cov.dim * sizeof(double));
+
+      /* compute the upper triangular part of the inverse. */
+      F77_CALL(dpotrf)(&u, &inv.dim, inv.mat, &inv.dim, &errcode);
+      F77_CALL(dpotri)(&u, &inv.dim, inv.mat, &inv.dim, &errcode);
+
+      /* fill in the lower trinagular part of the matrix. */
+      for (i = 0; i < inv.dim; i++)
+        for (j = i + 1; j < inv.dim; j++)
+          inv.mat[CMC(j, i, inv.dim)] = inv.mat[CMC(i, j, inv.dim)];
+
   }/*SWITCH*/
-
-  /* copy the original matrix, it gets overwritten otherwise. */
-  memcpy(mpinv, cov, (*ncol) * (*ncol) * sizeof(double));
-
-  /* compute the upper triangular part of the inverse. */
-  F77_CALL(dpotrf)(&u, ncol, mpinv, ncol, &errcode);
-  F77_CALL(dpotri)(&u, ncol, mpinv, ncol, &errcode);
-
-  /* fill in the lower trinagular part of the matrix. */
-  for (i = 0; i < *ncol; i++)
-    for (j = i + 1; j < *ncol; j++)
-      mpinv[CMC(j, i, *ncol)] = mpinv[CMC(i, j, *ncol)];
 
 }/*C_FINV*/
 
@@ -332,46 +312,66 @@ double *bb = NULL, *rsd = NULL, *ftt = NULL;
   /*  b,      rsd,    xb,  job,  info) */
       bb,   rsd,    ftt, &job, &info);
 
-  if (info != 0)
-    error("an error (%d) occurred in the call to dqrsl().\n", &info);
+  /* 'info' is the error code, if it is different from zero something went
+   * wrong and the model is perfectly singular to the point the QR
+   * decomposition cannot be computed at all. */
+  if (info != 0) {
 
-  if (beta) {
-
-    /* set the coefficients to NA in rank-deficient problems; they are moved
-     * to the end of the array. */
-    if (rank < ncol)
-      for (i = rank; i < ncol; i++)
-        bb[i] = NA_REAL;
-
-    /* check whether the coefficients have been pivoted (R does that as a
-     * separate check from the rank check, so let's do the same). */
-    for (i = 0; i < ncol; i++)
-      if (pivot[i] != i + 1) {
-
-        pivoted = TRUE;
-        break;
-
-      }/*THEN*/
-
-    /* coefficients are pivoted in singular problems, move them back. */
-    if (pivoted) {
-
+    /* set all coefficients to NA. */
+    if (beta)
       for (i = 0; i < ncol; i++)
-        beta[pivot[i] - 1] = bb[i];
+        beta[i] = NA_REAL;
 
-    }/*THEN*/
-    else {
-
-      memcpy(beta, bb, ncol * sizeof(double));
-
-    }/*ELSE*/
-
-    Free1D(bb);
+    /* set all residuals to zero. */
+    memset(rsd, '\0', nrow * sizeof(double));
+    /* set the standard error to zero. */
+    *sd = 0;
+    /* set all the fitted values to the corresponding values in the response. */
+    if (fitted)
+      memcpy(ftt, y, nrow * sizeof(double));
 
   }/*THEN*/
+  else {
 
-  /* compute the standard deviation of the residuals. */
-  c_sd(rsd, nrow, ncol, 0, FALSE, sd);
+    if (beta) {
+
+      /* set the coefficients to NA in rank-deficient problems; they are moved
+       * to the end of the array. */
+      if (rank < ncol)
+        for (i = rank; i < ncol; i++)
+          bb[i] = NA_REAL;
+
+      /* check whether the coefficients have been pivoted (R does that as a
+       * separate check from the rank check, so let's do the same). */
+      for (i = 0; i < ncol; i++)
+        if (pivot[i] != i + 1) {
+
+          pivoted = TRUE;
+          break;
+
+        }/*THEN*/
+
+      /* coefficients are pivoted in singular problems, move them back. */
+      if (pivoted) {
+
+        for (i = 0; i < ncol; i++)
+          beta[pivot[i] - 1] = bb[i];
+
+      }/*THEN*/
+      else {
+
+        memcpy(beta, bb, ncol * sizeof(double));
+
+      }/*ELSE*/
+
+      Free1D(bb);
+
+    }/*THEN*/
+
+    /* compute the standard deviation of the residuals. */
+    c_sd(rsd, nrow, ncol, 0, FALSE, sd);
+
+  }/*ELSE*/
 
   if (!resid)
     Free1D(rsd);

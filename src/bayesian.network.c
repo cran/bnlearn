@@ -9,7 +9,7 @@ int length_names = 0;
 SEXP arcs, temp, names;
 
   /* get the names of the nodes. */
-  names = getAttrib(nbr, R_NamesSymbol);
+  PROTECT(names = getAttrib(nbr, R_NamesSymbol));
   length_names = length(names);
 
   /* scan the structure to determine the number of arcs.  */
@@ -62,7 +62,7 @@ SEXP arcs, temp, names;
 
   }/*FOR*/
 
-  UNPROTECT(1);
+  UNPROTECT(2);
 
   return arcs;
 
@@ -76,8 +76,8 @@ int *t = NULL, *c = NULL;
 SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash;
 
   /* get the node set of each network. */
-  tnodes = getAttrib(getListElement(target, "nodes"), R_NamesSymbol);
-  cnodes = getAttrib(getListElement(current, "nodes"), R_NamesSymbol);
+  PROTECT(tnodes = getAttrib(getListElement(target, "nodes"), R_NamesSymbol));
+  PROTECT(cnodes = getAttrib(getListElement(current, "nodes"), R_NamesSymbol));
 
   /* first check: node sets must have the same size. */
   if (length(tnodes) != length(cnodes))
@@ -99,7 +99,7 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash;
 
     if (c[i] != i + 1) {
 
-      UNPROTECT(1);
+      UNPROTECT(3);
 
       return mkString("Different node sets");
 
@@ -137,7 +137,7 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash;
     /* compare the integer vectors as generic memory areas. */
     if (memcmp(t, c, narcs * sizeof(int))) {
 
-      UNPROTECT(2);
+      UNPROTECT(4);
 
       return mkString("Different arc sets");
 
@@ -146,6 +146,8 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash;
     UNPROTECT(2);
 
   }/*THEN*/
+
+  UNPROTECT(2);
 
   /* all checks completed successfully, returning TRUE. */
   return ScalarLogical(TRUE);

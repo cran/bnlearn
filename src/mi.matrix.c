@@ -71,7 +71,7 @@ int i = 0, j = 0;
 
             mim[UPTRI3(i + 1, j + 1, dim)] =
               c_chisqtest(((int **)columns)[i], nlevels[i],
-                   ((int **)columns)[j], nlevels[j], *num, NULL, MI);
+                   ((int **)columns)[j], nlevels[j], *num, NULL, MI, FALSE);
 
           }/*FOR*/
 
@@ -87,7 +87,7 @@ int i = 0, j = 0;
             mim[UPTRI3(i + 1, j + 1, dim)] =
               c_cchisqtest(((int **)columns)[i], nlevels[i],
                     ((int **)columns)[j], nlevels[j],
-                    (int *)cond, *clevels, *num, NULL, MI);
+                    (int *)cond, *clevels, *num, NULL, MI, FALSE);
 
           }/*FOR*/
 
@@ -129,7 +129,7 @@ short int *exclude = NULL;
 double *mim = NULL, *means = NULL, *sse = NULL;
 SEXP arcs, nodes, wlist, blist;
 
-  nodes = getAttrib(data, R_NamesSymbol);
+  PROTECT(nodes = getAttrib(data, R_NamesSymbol));
 
   /* dereference the columns of the data frame. */
   DEREFERENCE_DATA_FRAME()
@@ -276,6 +276,8 @@ SEXP arcs, nodes, wlist, blist;
   if (sse)
     Free1D(sse);
 
+  UNPROTECT(1);
+
   return arcs;
 
 }/*ARACNE*/
@@ -383,7 +385,7 @@ SEXP arcs, wlist, blist;
 
   depth = Calloc1D(ncol, sizeof(int));
 
-  for (i = UPTRI3_MATRIX(ncol) - 1; i > 0; i--) {
+  for (i = UPTRI3_MATRIX(ncol) - 1; i >= 0; i--) {
 
     /* get back the coordinates from the position in the half-matrix. */
     INV_UPTRI3(poset[i], ncol, debug_coord);

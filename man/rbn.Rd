@@ -24,6 +24,14 @@
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }
+\details{
+
+  \code{rbn()} implements forward/logic sampling: values for the root nodes are
+  sampled from their (unconditional) distribution, then those of their children
+  conditional on the respective parent sets. This is done iteratively until 
+  values have been sampled for all nodes.
+
+}
 \value{
 
   A data frame with the same structure (column names and data types) of the
@@ -35,7 +43,7 @@
 \references{
 
   Korb K, Nicholson AE (2010). \emph{Bayesian Artificial Intelligence}.
-      Chapman & Hall/CRC, 2nd edition.
+    Chapman & Hall/CRC, 2nd edition.
 
 }
 \examples{

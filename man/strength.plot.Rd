@@ -8,8 +8,9 @@
 
 }
 \usage{
-strength.plot(x, strength, threshold, cutpoints, highlight = NULL,
-  layout = "dot", shape = "circle", main = NULL, sub = NULL, debug = FALSE)
+strength.plot(x, strength, threshold, cutpoints, highlight = NULL, groups,
+  layout = "dot", shape = "circle", main = NULL, sub = NULL, render = TRUE,
+  debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
@@ -18,6 +19,8 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL,
   \item{threshold}{a numeric value. See below.}
   \item{cutpoints}{an array of numeric values. See below.}
   \item{highlight}{a list, see \code{\link{graphviz.plot}} for details.}
+  \item{groups}{a list of character vectors, representing groups of node labels
+    of nodes that should be plotted close to each other.}
   \item{layout}{a character string, the layout argument that will be passed to
     \pkg{Rgraphviz}. Possible values are \code{dots}, \code{neato},
     \code{twopi}, \code{circo} and \code{fdp}. See \pkg{Rgraphviz} documentation
@@ -30,6 +33,9 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL,
     the graph.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
+  \item{render}{a logical value. If \code{TRUE}, \code{strength.plot()} actually
+    draws the figure in addition to returning the corresponding \code{graph}
+    object. If \code{FALSE}, no figure is produced.}
 }
 \details{
 

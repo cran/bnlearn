@@ -1,5 +1,5 @@
 #include "include/rcore.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/sets.h"
 #include "include/tests.h"
 
@@ -77,7 +77,7 @@ SEXP nodes, labels, cur, node_info, parents, par_data, temp, cfg;
 
   /* iterate over the nodes in the graph. */
   nodes = getListElement(x, "nodes");
-  labels = getAttrib(nodes, R_NamesSymbol);
+  PROTECT(labels = getAttrib(nodes, R_NamesSymbol));
 
   for (i = 0; i < nnodes; i++) {
 
@@ -134,6 +134,7 @@ SEXP nodes, labels, cur, node_info, parents, par_data, temp, cfg;
 
   }/*FOR*/
 
+  UNPROTECT(1);
   Free1D(columns);
   Free1D(levels);
 

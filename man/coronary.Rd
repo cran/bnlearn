@@ -34,15 +34,16 @@ data(coronary)
 \source{
 
   Edwards DI (2000). \emph{Introduction to Graphical Modelling}. Springer, 2nd
-      edition.
+    edition.
 
   Reinis Z, Pokorny J, Basika V, Tiserova J, Gorican K, Horakova D, Stuchlikova
-      E, Havranek T, Hrabovsky F (1981). "Prognostic Significance of the Risk
-      Profile in the Prevention of Coronary Heart Disease". Bratisl Lek Listy,
-      \strong{76}, 137-150. Published on Bratislava Medical Journal, in Czech.
+    E, Havranek T, Hrabovsky F (1981). "Prognostic Significance of the Risk
+    Profile in the Prevention of Coronary Heart Disease". \emph{Bratisl Lek
+    Listy}, \strong{76}:137--150. Published on Bratislava Medical Journal,
+    in Czech.
 
   Whittaker J (1990). \emph{Graphical Models in Applied Multivariate
-      Statistics}. Wiley.
+    Statistics}. Wiley.
 
 }
 \examples{

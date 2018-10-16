@@ -22,7 +22,7 @@ SEXP nodes_data, nodes, try, children, ordering;
     nodes_data = bn;
 
   /* get and count the node labels. */
-  nodes = getAttrib(nodes_data, R_NamesSymbol);
+  PROTECT(nodes = getAttrib(nodes_data, R_NamesSymbol));
   nnodes = length(nodes);
 
   /* allocate a status vector to trak the ordering of the nodes. */
@@ -101,7 +101,7 @@ SEXP nodes_data, nodes, try, children, ordering;
   /* add the node labels to the return value. */
   setAttrib(ordering, R_NamesSymbol, nodes);
 
-  UNPROTECT(1);
+  UNPROTECT(2);
 
   return ordering;
 

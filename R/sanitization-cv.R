@@ -38,7 +38,7 @@ check.cv.args = function(method, extra.args, data) {
   # warn about unused arguments (before adding more below).
   check.unused.args(extra.args, cv.extra.args[[method]])
 
-  # check custom folds. 
+  # check custom folds.
   if (has.argument(method, "folds", cv.extra.args)) {
 
     extra.args$folds = check.cv.folds(extra.args$folds, n = n)
@@ -49,7 +49,7 @@ check.cv.args = function(method, extra.args, data) {
   return(extra.args)
 
 }#CHECK.CV.ARGS
- 
+
 # check the number of splits.
 check.cv.splits = function(k, n) {
 
@@ -95,7 +95,7 @@ check.cv.holdout.size = function(m, n) {
 
 }#CHECK.CV.HOLDOUT.SIZE
 
-# check custom folds. 
+# check custom folds.
 check.cv.folds = function(folds, n) {
 
   if (is.null(folds))

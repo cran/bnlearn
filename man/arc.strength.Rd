@@ -22,7 +22,7 @@ boot.strength(data, cluster = NULL, R = 200, m = nrow(data),
 # strength of all possible arcs, from a list of custom networks.
 custom.strength(networks, nodes, weights = NULL, cpdag = TRUE, debug = FALSE)
 # strength of all possible arcs, computed using Bayes factors.
-bf.strength(x, data, score, ..., debug = FALSE) 
+bf.strength(x, data, score, ..., debug = FALSE)
 
 # average arc strengths.
 \method{mean}{bn.strength}(x, ..., weights = NULL)
@@ -114,7 +114,7 @@ averaged.network(strength, nodes, threshold)
 
   Model averaging is supported for objects of class \code{bn.strength} returned
   by \code{\link{boot.strength}}, \code{\link{custom.strength}} and
-  \code{\link{bf.strength}}. The returned network contains the arcs whose 
+  \code{\link{bf.strength}}. The returned network contains the arcs whose
   strength is greater than the \code{threshold} attribute of the
   \code{bn.strength} object passed to \code{averaged.network()}.
 
@@ -144,17 +144,16 @@ averaged.network(strength, nodes, threshold)
   \bold{for model averaging and boostrap strength (confidence):}
 
   Friedman N, Goldszmidt M, Wyner A (1999). "Data Analysis with Bayesian
-      Networks: A Bootstrap Approach". In "UAI '99: Proceedings of the 15th
-      Annual Conference on Uncertainty in Artificial Intelligence",
-      pp. 196-201. Morgan Kaufmann.
+	Networks: A Bootstrap Approach". \emph{Proceedings of the 15th Annual
+	Conference on Uncertainty in Artificial Intelligence}, pp. 196--201.
 
   \bold{for the computation of the strength (confidence) significance
     threshold:}
 
   Scutari M, Nagarajan R (2011). "On Identifying Significant Edges in Graphical
-      Models". In "Proceedings of the Workshop 'Probabilistic Problem Solving
-      in Biomedicine' of the 13th Artificial Intelligence in Medicine (AIME)
-      Conference", pp. 15-27.
+    Models". \emph{Proceedings of the Workshop 'Probabilistic Problem Solving
+    in Biomedicine' of the 13th Artificial Intelligence in Medicine Conference},
+    pp. 15--27.
 
 }
 \examples{

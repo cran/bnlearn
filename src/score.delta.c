@@ -257,7 +257,7 @@ SEXP delta, fake, new_score, try, to_update;
   /* create the fake network with the updated structure. */
   PROTECT(fake = score_delta_helper(network, arc, op, chld, FALSE));
   /* find out which nodes to update from the fake structure. */
-  to_update = getAttrib(getListElement(fake, "nodes"), R_NamesSymbol);
+  PROTECT(to_update = getAttrib(getListElement(fake, "nodes"), R_NamesSymbol));
 
   /* compute the updated scores with the fake newtork. */
   PROTECT(new_score = allocVector(REALSXP, length(to_update)));
@@ -277,8 +277,6 @@ SEXP delta, fake, new_score, try, to_update;
   else
     diff = robust_score_difference(old[t[0] - 1], old[t[1] - 1], new[0], new[1]);
 
-  UNPROTECT(1);
-
   /* build the return value. */
   PROTECT(delta = allocVector(VECSXP, 3));
   SET_VECTOR_ELT(delta, 0, ScalarLogical(diff > 0));
@@ -286,7 +284,7 @@ SEXP delta, fake, new_score, try, to_update;
   SET_VECTOR_ELT(delta, 2, new_score);
   setAttrib(delta, R_NamesSymbol, mkStringVec(3, "bool", "delta", "updates"));
 
-  UNPROTECT(3);
+  UNPROTECT(5);
 
   return delta;
 

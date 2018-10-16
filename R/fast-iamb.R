@@ -1,6 +1,6 @@
 
 fast.incremental.association.optimized = function(x, whitelist, blacklist,
-  test, alpha, B, strict, debug = FALSE) {
+  test, alpha, B, max.sx = ncol(x), strict, complete, debug = FALSE) {
 
   nodes = names(x)
   mb2 = mb = list()
@@ -12,7 +12,8 @@ fast.incremental.association.optimized = function(x, whitelist, blacklist,
 
     mb[[node]] = fast.ia.markov.blanket(node, data = x, nodes = nodes,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, debug = debug)
+         backtracking = backtracking, test = test, max.sx = max.sx,
+         complete = complete, debug = debug)
 
   }#FOR
 
@@ -27,7 +28,8 @@ fast.incremental.association.optimized = function(x, whitelist, blacklist,
     # save results in a copy of mb.
     mb2[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
          B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, debug = debug)
+         backtracking = backtracking, test = test, max.sx = max.sx,
+         complete = complete, debug = debug)
 
   }#FOR
 
@@ -42,14 +44,15 @@ fast.incremental.association.optimized = function(x, whitelist, blacklist,
 }#FAST.INCREMENTAL.ASSOCIATION.OPTIMIZED
 
 fast.incremental.association = function(x, cluster = NULL, whitelist,
-  blacklist, test, alpha, B, strict, debug = FALSE) {
+  blacklist, test, alpha, B, max.sx = ncol(x), strict, complete, debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
   mb = smartSapply(cluster, as.list(nodes), fast.ia.markov.blanket,
          data = x, nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, debug = debug)
+         blacklist = blacklist, test = test, max.sx = max.sx,
+         complete = complete, debug = debug)
   names(mb) = nodes
 
   # check markov blankets for consistency.
@@ -58,7 +61,7 @@ fast.incremental.association = function(x, cluster = NULL, whitelist,
   # 2. [Compute Graph Structure]
   mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, debug = debug)
+         test = test, max.sx = max.sx, complete = complete, debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -68,8 +71,9 @@ fast.incremental.association = function(x, cluster = NULL, whitelist,
 
 }#FAST.INCREMENTAL.ASSOCIATION
 
-fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
-  start = character(0), backtracking = NULL, test, debug = FALSE) {
+fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
+  blacklist, start = character(0), backtracking = NULL, test, max.sx = ncol(x),
+  complete, debug = FALSE) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
@@ -122,9 +126,22 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
 
   repeat {
 
-    # stop if there are no nodes left.
+    # stop if there are no nodes left, or if we cannot add any more nodes
+    # because the conditioning set has grown too large.
     if (length(nodes[nodes %!in% mb]) == 0 || is.null(nodes))
       break
+
+    if (length(mb) > max.sx) {
+
+       if (debug)
+         cat("  @ limiting conditioning sets to", max.sx, "nodes.\n")
+
+      break
+
+    }#THEN
+
+    # get a snapshot of the markov blanket status.
+    mb.snapshot = mb
 
     # growing phase.
     # reset the insufficient.data boolean flag.
@@ -132,7 +149,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
 
     # get an association measure for each of the available nodes.
     association = indep.test(nodes[nodes %!in% mb], x, sx = mb, test = test,
-                    data = data, B = B, alpha = alpha)
+                    data = data, B = B, alpha = alpha, complete = complete)
 
     if (debug) {
 
@@ -150,6 +167,20 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
     association = sort(association[which(association <= alpha)])
 
     for (node in names(association)) {
+
+      # when speculatively including nodes, avoid forming a markov blanket large
+      # enough that the tests in the exclusion phase have conditioning sets
+      # larger than the threshold.
+      if (length(mb) > max.sx) {
+
+        if (debug)
+          cat("    @ skipping node", node,
+              "to avoid conditioning tests with conditioning sets larger than",
+              max.sx, ".\n")
+
+        next
+
+      }#THEN
 
       opc = obs.per.cell(x, node, mb, data)
 
@@ -203,15 +234,24 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist
     fixed = whitelisted[whitelisted != ""]
 
     pv = roundrobin.test(x = x, z = mb, fixed = fixed, data = data, test = test,
-           B = B, alpha = alpha, debug = debug)
+           B = B, alpha = alpha, complete = complete, debug = debug)
 
     mb = intersect(mb, c(names(pv[pv < alpha]), fixed))
+
+    # if the markov blanket did not change, stop iterating.
+    if (identical(mb, mb.snapshot)) {
+
+      if (debug)
+        cat("  @ markov blanket is unchanged, stopping.\n")
+      break
+
+    }#THEN
 
     # if there are not enough observations and no new node has been included
     # in the markov blanket, stop iterating.
     if (insufficient.data && (mb.old.length == length(mb))) break
 
-    # do not touch the check the nodes in the markov blanket again.
+    # do not touch the nodes in the markov blanket again.
     nodes = nodes[nodes %!in% mb]
 
   }#REPEAT

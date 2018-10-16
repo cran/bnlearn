@@ -1,6 +1,7 @@
 
 # compute arcs' strength as the p-value of the test for their removal.
-arc.strength.test = function(network, data, test, alpha, B, debug = FALSE) {
+arc.strength.test = function(network, data, test, alpha, B, complete,
+    debug = FALSE) {
 
   drop = function(arc) {
 
@@ -15,7 +16,7 @@ arc.strength.test = function(network, data, test, alpha, B, debug = FALSE) {
       network$nodes[[arc[2]]]$parents[network$nodes[[arc[2]]]$parents != arc[1]]
 
     a = indep.test(arc[1], arc[2], parents, data = data, test = test,
-          B = B, alpha = alpha)
+          B = B, alpha = alpha, complete = complete)
 
     if (debug) {
 
@@ -223,7 +224,7 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
 
 # compute an approximation of arc and direction strength from the Bayes factors
 # that can be computed from a single MAP network.
-bf.strength.backend = function(x, data, score, extra.args, precBits = 200, 
+bf.strength.backend = function(x, data, score, extra.args, precBits = 200,
   debug = FALSE) {
 
   # construct all pairs of nodes.
@@ -293,8 +294,8 @@ bf.strength.backend = function(x, data, score, extra.args, precBits = 200,
         }#ELSE
 
         if (debug) {
- 
-          cat("  > arc", arc[1], "->", arc[2], ": new score(s) =", 
+
+          cat("  > arc", arc[1], "->", arc[2], ": new score(s) =",
             Rmpfr::asNumeric(new.score), ", BF =",
             Rmpfr::format(bf, digits = 4), ".\n")
 
@@ -354,7 +355,6 @@ bf.strength.backend = function(x, data, score, extra.args, precBits = 200,
 
 }#BF.STRENGTH.BACKEND
 
-
 # compute arcs' strength as the relative frequency in a custom list of
 # network structures/arc sets.
 arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
@@ -379,6 +379,8 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
     # get the arc set on way or the other.
     if (is(custom.list[[r]], "bn"))
       net.arcs = custom.list[[r]]$arcs
+    else if (is(custom.list[[r]], "bn.fit"))
+      net.arcs = fit2arcs(custom.list[[r]])
     else
       net.arcs = custom.list[[r]]
 

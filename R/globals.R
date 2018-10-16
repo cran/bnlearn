@@ -16,7 +16,7 @@ asymptotic.tests = c("mi", "mi-adf", "mi-g", "x2", "x2-adf", "zf", "jt", "mi-sh"
   "mi-g-sh")
 
 available.discrete.bayesian.scores = c("bde", "bds", "bdj", "k2", "mbde", "bdla")
-available.discrete.scores = 
+available.discrete.scores =
   c("loglik", "aic", "bic", available.discrete.bayesian.scores)
 available.continuous.bayesian.scores = c("bge")
 available.continuous.scores =
@@ -29,8 +29,8 @@ available.discrete.mi = c("mi")
 available.continuous.mi = c("mi-g")
 available.mi = c(available.discrete.mi, available.continuous.mi)
 
-markov.blanket.algorithms = c("pc.stable", "gs", "iamb", "fast.iamb", "inter.iamb")
-local.search.algorithms = c("mmpc", "si.hiton.pc")
+markov.blanket.algorithms = c("gs", "iamb", "fast.iamb", "inter.iamb")
+local.search.algorithms = c("pc.stable", "mmpc", "si.hiton.pc")
 constraint.based.algorithms = c(markov.blanket.algorithms, local.search.algorithms)
 score.based.algorithms = c("hc", "tabu")
 em.algorithms = c("sem")

@@ -14,7 +14,7 @@
 \usage{
 cpdag(x, moral = TRUE, wlbl = FALSE, debug = FALSE)
 cextend(x, strict = TRUE, debug = FALSE)
-vstructs(x, arcs = FALSE, moral = TRUE, debug = FALSE)
+vstructs(x, arcs = FALSE, moral = FALSE, debug = FALSE)
 moral(x, debug = FALSE)
 }
 \arguments{
@@ -22,8 +22,8 @@ moral(x, debug = FALSE)
     \code{cextend}, which only accepts objects of class \code{bn}).}
   \item{arcs}{a boolean value. If \code{TRUE} the arcs that are part of at least
     one v-structure are returned instead of the v-structures themselves.}
-  \item{moral}{a boolean value. If \code{TRUE} we define a v-structure as in
-    Pearl (2000); if \code{FALSE}, as in Koller and Friedman (2009). See below.}
+  \item{moral}{a boolean value. If \code{FALSE} we define a v-structure as in
+    Pearl (2000); if \code{TRUE}, as in Koller and Friedman (2009). See below.}
   \item{wlbl}{a boolean value. If \code{TRUE} arcs whose directions have been
     fixed by a whitelist or a by blacklist are preserved when constructing
     the CPDAG.}
@@ -44,13 +44,15 @@ moral(x, debug = FALSE)
   mirrors the \emph{unshielded} versus \emph{shielded collider} naming
   convention, but it is confusing.
 
-  Setting \code{moral} to \code{FALSE} in \code{cpdag()} and \code{vstructs()}
+  Setting \code{moral} to \code{TRUE} in \code{cpdag()} and \code{vstructs()}
   makes those functions follow the definition from Koller and Friedman (2009);
-  the default value of \code{TRUE}, on the other hand, makes those functions
+  the default value of \code{FALSE}, on the other hand, makes those functions
   follow the definition from Pearl (2000). The former call \emph{v-structures}
   both shielded and unshielded colliders (respectively \emph{moral v-structures}
   and \emph{immoral v-structures}); the latter requires v-structures to be
-  unshielded colliders.
+  unshielded colliders. Hence, the \code{moral} argument controls whether moral
+  v-structures (shielded colliders) are returned along with immoral v-structures
+  (unshielded collides).
 
   Note that arcs whose directions are dictated by the parametric assumptions of
   conditional linear Gaussian networks are preserved as directed arcs in
@@ -73,14 +75,13 @@ moral(x, debug = FALSE)
 \references{
 
   Dor D (1992). \emph{A Simple Algorithm to Construct a Consistent Extension of
-      a Partially Oriented Graph}. UCLA, Cognitive Systems Laboratory. Available
-      as Technical Report R-185.
+    a Partially Oriented Graph}. UCLA, Cognitive Systems Laboratory.
 
   Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models: Principles
-      and Techniques}. MIT Press.
+    and Techniques}. MIT Press.
 
   Pearl J (2009). \emph{Causality: Models, Reasoning and Inference}. Cambridge
-      University Press, 2nd edition.
+    University Press, 2nd edition.
 
 }
 \examples{

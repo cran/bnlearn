@@ -55,7 +55,7 @@ subgraph(x, nodes)
 \references{
 
   Bang-Jensen J, Gutin G (2009). \emph{Digraphs: Theory, Algorithms and
-      Applications}. Springer, 2nd edition.
+    Applications}. Springer, 2nd edition.
 
 }
 \examples{

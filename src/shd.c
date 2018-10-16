@@ -10,7 +10,7 @@ SEXP temp, nodes, l, r;
 
   /* get the labels of the nodes. */
   temp = getListElement(learned, "nodes");
-  nodes = getAttrib(temp, R_NamesSymbol);
+  PROTECT(nodes = getAttrib(temp, R_NamesSymbol));
   nnodes = length(nodes);
 
   /* get the arcs of the learned network. */
@@ -68,7 +68,7 @@ SEXP temp, nodes, l, r;
 
   }/*FOR*/
 
-  UNPROTECT(2);
+  UNPROTECT(3);
 
   return ScalarInteger(shd);
 

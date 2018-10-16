@@ -1,6 +1,6 @@
 
-si.hiton.pc.optimized = function(x, whitelist, blacklist, test,
-  alpha, B, strict, debug = FALSE) {
+si.hiton.pc.optimized = function(x, whitelist, blacklist, test, alpha, B,
+    max.sx = ncol(x), strict, complete, debug = FALSE) {
 
   nodes = names(x)
   mb = list()
@@ -12,13 +12,15 @@ si.hiton.pc.optimized = function(x, whitelist, blacklist, test,
     # 1. [Forward Phase (I)]
     mb[[node]] = si.hiton.pc.heuristic(node, data = x, nodes = nodes,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, debug = debug)
+         backtracking = backtracking, test = test, max.sx = max.sx,
+         complete = complete, debug = debug)
 
     # 2. [Backward Phase (II)]
     mb[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
          B = B, whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, debug = debug,
-         empty.dsep = FALSE, markov = FALSE)
+         max.sx = max.sx, empty.dsep = FALSE, markov = FALSE,
+         complete = complete)
 
   }#FOR
 
@@ -35,20 +37,22 @@ si.hiton.pc.optimized = function(x, whitelist, blacklist, test,
 }#SI.HITON.PC.OPTIMIZED
 
 si.hiton.pc.backend = function(x, cluster = NULL, whitelist, blacklist,
-  test, alpha, B, strict, debug = FALSE) {
+  test, alpha, B, max.sx = ncol(x), strict, complete, debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Forward Phase (I)]
   mb = smartSapply(cluster, as.list(nodes), si.hiton.pc.heuristic, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, debug = debug)
+         blacklist = blacklist, test = test, max.sx = max.sx,
+         complete = complete, debug = debug)
   names(mb) = nodes
 
   # 2. [Backward Phase (II)]
   mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, debug = debug, empty.dsep = FALSE, markov = FALSE)
+         test = test, debug = debug, max.sx = max.sx, empty.dsep = FALSE,
+         markov = FALSE, complete = complete)
   names(mb) = nodes
 
   # make up a set of believable Markov blankets, using all the nodes within
@@ -64,7 +68,7 @@ si.hiton.pc.backend = function(x, cluster = NULL, whitelist, blacklist,
 }#SI.HITON.PC.BACKEND
 
 si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
-    backtracking = NULL, test, debug = FALSE) {
+    backtracking = NULL, test, max.sx = ncol(x), complete, debug = FALSE) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
@@ -116,7 +120,7 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
       candidate = si.hiton.pc.backward(target = x, candidate = cpn,
                     cpc = cpc[cpc != cpn], data = data, test = test,
-                    alpha = alpha, B = B, debug = debug)
+                    alpha = alpha, B = B, complete = complete, debug = debug)
 
       if (candidate) {
 
@@ -152,7 +156,7 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
   # get a marginal association measure for each of the available nodes.
   association = indep.test(nodes, x, sx = character(0), test = test,
-                  data = data, B = B, alpha = alpha)
+                  data = data, B = B, alpha = alpha, complete = complete)
 
   to.keep = names(association[association <= alpha])
   to.drop = names(association[association > alpha])
@@ -187,18 +191,21 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
   if (all(association > alpha))
     return(cpc)
 
-  # phase I (stepwise forward selection)
+  # phase I (stepwise forward selection).
   repeat {
 
     # stop if there are no candidates for inclusion.
-    if (all(association > alpha) || length(nodes) == 0 || is.null(nodes)) break
+    if (all(association > alpha) || length(nodes) == 0 || is.null(nodes) ||
+          length(cpc) > max.sx)
+      break
     # get the one which maximizes the association measure.
     to.add = names(which.min(association))
 
     # check whether the node is independent of the target given a subset of
     # the current Markov blanket.
     candidate = si.hiton.pc.backward(target = x, candidate = to.add, cpc = cpc,
-                  data = data, test = test, alpha = alpha, B = B, debug = debug)
+                  data = data, test = test, alpha = alpha, B = B,
+                  complete = complete, debug = debug)
 
     if (candidate) {
 
@@ -226,10 +233,11 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
 }#SI.HITON.PC.HEURISTIC
 
 # backward stage of HITON-PC.
-si.hiton.pc.backward = function(target, candidate, cpc, data, test, alpha, B, debug) {
+si.hiton.pc.backward = function(target, candidate, cpc, data, test, alpha, B,
+    complete, debug) {
 
-  # the nodes are always marginally associated, otherwise the candidate would not
-  # have been chosen as such.
+  # the nodes are always marginally associated, otherwise the candidate would
+  # not have been chosen as such.
   if (length(cpc) == 0)
     return(TRUE)
 
@@ -237,7 +245,7 @@ si.hiton.pc.backward = function(target, candidate, cpc, data, test, alpha, B, de
     cat("* backward phase for candidate node", candidate, ".\n")
 
   a = allsubs.test(x = target, y = candidate, sx = cpc, min = 1L, data = data,
-        test = test, alpha = alpha, B = B, debug = debug)
+        test = test, alpha = alpha, B = B, complete = complete, debug = debug)
 
   return(a["p.value"] <= alpha)
 

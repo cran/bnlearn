@@ -2,37 +2,32 @@
 # check the list of networks passed to custom.strength().
 check.customlist = function(custom, nodes) {
 
-  # check
+  objname = deparse(substitute(custom))
+
+  # check that input is a list.
   if (!is(custom, "list"))
-    stop("networks must be a list of objects of class 'bn' or of arc sets.")
-  if (!all(sapply(custom, function(x) { is(x, "bn") || is(x, "matrix") })))
-    stop("x must be a list of objects of class 'bn' or of arc sets.")
+    stop(objname, " must be a list of objects of class 'bn', 'bn.fit' or of arc sets.")
 
-  validate = function(custom, nodes) {
+  for (i in seq_along(custom)) {
 
-    if (is(custom, "bn")) {
+    if (is(custom[[i]], c("bn", "bn.fit"))) {
 
-      check.nodes(names(custom$nodes), graph = nodes, min.nodes = length(nodes),
-        max.nodes = length(nodes))
+      check.nodes(.nodes(custom[[i]]), graph = nodes,
+        min.nodes = length(nodes), max.nodes = length(nodes))
 
-    }
-    else if (is(custom, "matrix")) {
+    }#THEN
+    else if (is(custom[[i]], "matrix")) {
 
-      check.arcs(arcs = custom, nodes = nodes)
+      check.arcs(arcs = custom[[i]], nodes = nodes)
 
     }#THEN
     else {
 
-      stop("x must be a list of objects of class 'bn' or of arc sets.")
+      stop(objname, "[[", i, "]] is not an object of class 'bn', 'bn.fit' or an arc set.")
 
     }#ELSE
 
-  return(TRUE)
-
-  }#VALIDATE
-
-  if (!all(sapply(custom, validate, nodes = nodes)))
-    stop("x must be a list of objects of class 'bn' or of arc sets.")
+  }#FOR
 
 }#CHECK.CUSTOMLIST
 

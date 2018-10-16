@@ -43,6 +43,12 @@ as.prediction = function(x, ...) {
 
 }#AS.PREDICTION
 
+as.lm = function(x, ...) {
+
+  UseMethod("as.lm")
+
+}#AS.LM
+
 # convert a "bn.fit" object from bnlearn into a "grain" object.
 as.grain.bn.fit = function(x) {
 
@@ -325,3 +331,67 @@ as.prediction.bn.strength = function(x, true, ..., consider.direction = TRUE) {
   return(pred)
 
 }#AS.PREDICTION.BN.STRENGTH
+
+# fit the local distributions of a (Gaussian) network using lm().
+as.lm.bn = function(x, data, ...) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  # check the data.
+  check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
+
+  if (is(x, "bn")) {
+
+    # check whether the data agree with the bayesian network.
+    check.bn.vs.data(x, data)
+    # no parameters if the network structure is only partially directed.
+    if (is.pdag(x$arcs, names(x$nodes)))
+      stop("the graph is only partially directed.")
+
+    nodes = names(x$nodes)
+
+  }#THEN
+  else {
+
+    # check whether the data agree with the bayesian network.
+    check.fit.vs.data(x, data)
+    # only Gaussian networks are supported.
+    if (!is(x, "bn.fit.gnet"))
+      stop("only Gaussian networks are supported.")
+
+    nodes = names(x)
+
+  }#ELSE
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  smartSapply(NULL, nodes, function(n) {
+
+    if (is(x, "bn"))
+      node = x$nodes[[n]]
+    else
+      node = x[[n]]
+
+    node$node = n
+    lm.refit.node(node, data)
+
+  })
+
+}#AS.LM.BN
+
+# refit the local distributions of a Gaussian network using lm().
+as.lm.bn.fit = as.lm.bn
+
+# refit a single local distribution from a Gaussian network using lm().
+as.lm.bn.fit.gnode = function(x, data, ...) {
+
+  # check the data.
+  check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  lm.refit.node(x, data)
+
+}#AS.LM.BN.FIT.GNODE
+

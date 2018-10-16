@@ -1,6 +1,6 @@
 
 grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
-  B, strict, debug = FALSE) {
+  B, max.sx = ncol(x), strict, complete, debug = FALSE) {
 
   nodes = names(x)
   mb2 = mb = list()
@@ -12,7 +12,8 @@ grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
 
     mb[[node]] = gs.markov.blanket(node, data = x, nodes = nodes,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, debug = debug)
+         backtracking = backtracking, test = test, max.sx = max.sx,
+         complete = complete, debug = debug)
 
   }#FOR
 
@@ -27,7 +28,8 @@ grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
     # save results in a copy of mb.
     mb2[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
          B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, debug = debug)
+         backtracking = backtracking, test = test, max.sx = max.sx,
+         complete = complete, debug = debug)
 
   }#FOR
 
@@ -42,14 +44,15 @@ grow.shrink.optimized = function(x, whitelist, blacklist, test, alpha,
 }#GROW.SHRINK.OPTIMIZED
 
 grow.shrink = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
-  strict, debug = FALSE) {
+  strict, max.sx = ncol(x), complete, debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
   mb = smartSapply(cluster, as.list(nodes), gs.markov.blanket, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, debug = debug)
+         blacklist = blacklist, test = test, max.sx = max.sx,
+         complete = complete, debug = debug)
   names(mb) = nodes
 
   # check markov blankets for consistency.
@@ -58,7 +61,7 @@ grow.shrink = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
   # 2. [Compute Graph Structure]
   mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, debug = debug)
+         test = test, max.sx = max.sx, complete = complete, debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -69,7 +72,8 @@ grow.shrink = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
 }#GROW.SHRINK
 
 gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
-  start = character(0), backtracking = NULL, test, debug = FALSE) {
+  start = character(0), backtracking = NULL, test, max.sx = ncol(x), complete,
+  debug = FALSE) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
@@ -130,11 +134,24 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
     for (y in nodes) {
 
+      # avoid testing with large conditioning sets.
+      if (mb.size > max.sx) {
+
+        if (debug)
+          cat("  * skipping node", y,
+              "because the tests would involve a conditioning set larger than",
+              max.sx, ".\n")
+
+        next
+
+      }#THEN
+
       if (debug)
         cat("  * checking node", y, "for inclusion.\n")
 
+
       a = indep.test(x, y, mb, data = data, test = test, B = B,
-            alpha = alpha)
+            alpha = alpha, complete = complete)
 
       if (a <= alpha) {
 
@@ -184,7 +201,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
         cat("  * checking node", y, "for exclusion (shrinking phase).\n")
 
       a = indep.test(x, y, mb[mb != y], data = data, test = test, B = B,
-            alpha = alpha)
+            alpha = alpha, complete = complete)
 
       if (a > alpha) {
 

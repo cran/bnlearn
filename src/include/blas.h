@@ -1,13 +1,11 @@
+#include "data.structures.h"
 
 /* from linear.algebra.c */
-SEXP r_svd(SEXP matrix, SEXP strict);
-SEXP r_det(SEXP matrix, int scale);
-double c_det(double *matrix, int *rows);
 void c_udvt(double **u, double **d, double **vt, int ncol);
 void c_svd(double *A, double *U, double *D, double *V, int *nrow, int *ncol,
     int *mindim, int strict, int *errcode);
-void c_ginv(double *covariance, int ncol, double *mpinv);
-void c_finv(double *cov, int *ncol, double *mpinv);
+void c_ginv(covariance cov, covariance mpinv);
+void c_finv(covariance cov, covariance inv);
 double c_quadratic(double *x, int *ncol, double *sigma, double *y,
     double *workspace);
 void c_rotate(double *S1, double *S2, double *x, double *a, double *mu,

@@ -95,11 +95,11 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
 \references{
 
   Borgelt C, Kruse R, Steinbrecher M (2009). \emph{Graphical Models:
-      Representations for Learning, Reasoning and Data Mining}. Wiley, 2nd
-      edition.
+    Representations for Learning, Reasoning and Data Mining}. Wiley, 2nd
+    edition.
 
   Friedman N, Geiger D, Goldszmidt M (1997). "Bayesian Network Classifiers".
-      \emph{Machine Learning}, \strong{29}(2--3), 131--163.
+    \emph{Machine Learning}, \strong{29}(2--3):131--163.
 
 }
 \examples{

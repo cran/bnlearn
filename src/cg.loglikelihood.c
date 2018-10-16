@@ -1,7 +1,7 @@
 #include "include/rcore.h"
 #include "include/sets.h"
 #include "include/scores.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/globals.h"
 #include "include/matrix.h"
 #include "include/blas.h"
@@ -36,9 +36,11 @@ SEXP temp;
 
   res = c_fast_ccgloglik(REAL(x), gp, ngp, nobs, config, nconfig);
 
-  /* we may want to store the number of parameters. */
+  /* we may want to store the number of parameters (one intercept, one
+   * regression coefficient for each continuous parent, one residuals
+   * standard error for each configuration of the discrete parents). */
   if (nparams)
-    *nparams = nconfig * (ngp + 1);
+    *nparams = nconfig * (ngp + 2);
 
   Free1D(dp);
   Free1D(gp);
@@ -119,7 +121,7 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
   parents = getListElement(node_t, "parents");
   nparents = length(parents);
   /* extract the node's column from the data frame. */
-  data_t = c_dataframe_column(data, target, TRUE, FALSE);
+  PROTECT(data_t = c_dataframe_column(data, target, TRUE, FALSE));
 
   if (nparents == 0) {
 
@@ -182,6 +184,8 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
 
   if (debuglevel > 0)
     Rprintf("  > loglikelihood is %lf.\n", loglik);
+
+  UNPROTECT(1);
 
   return loglik;
 

@@ -1,5 +1,5 @@
 
-# sanitize the extra arguments passed to the graph enumerations. 
+# sanitize the extra arguments passed to the graph enumerations.
 check.enumeration.args = function(type, N, extra) {
 
   # check the number of root nodes.

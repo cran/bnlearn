@@ -1,5 +1,5 @@
 #include "include/rcore.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/globals.h"
 #include "include/matrix.h"
 #include "include/sets.h"
@@ -65,7 +65,7 @@ SEXP data, cur_node, nodes, coefs, sd, parents, try;
 SEXP dparents, gparents, dlevels;
 
   /* get the node labels. */
-  nodes = getAttrib(fitted, R_NamesSymbol);
+  PROTECT(nodes = getAttrib(fitted, R_NamesSymbol));
   /* rearrange the columns of the data to match the network. */
   PROTECT(data = c_dataframe_column(orig_data, nodes, FALSE, TRUE));
   /* find out which nodes to use in computing the entropy loss. */
@@ -171,7 +171,7 @@ SEXP dparents, gparents, dlevels;
   if (!c_is(fitted, "bn.fit.gnet"))
     Free1D(configs);
 
-  UNPROTECT(2);
+  UNPROTECT(3);
   return result;
 
 }/*C_ENTROPY_LOSS*/

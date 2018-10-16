@@ -291,13 +291,13 @@ SEXP amatA, amatB, args;
 
     PutRNGstate();
 
-    UNPROTECT(9);
-
     if (u <= 0.5) {
 
       /* print the model string to allow a sane debugging experience. */
       if (debuglevel > 0)
         print_modelstring(resA);
+
+      UNPROTECT(9);
 
       /* return the graph with A -> B. */
       return resA;
@@ -308,6 +308,8 @@ SEXP amatA, amatB, args;
       /* print the model string to allow a sane debugging experience. */
       if (debuglevel > 0)
         print_modelstring(resB);
+
+      UNPROTECT(9);
 
       /* return the graph with B -> A. */
       return resB;

@@ -122,10 +122,10 @@ full.spec.backend = function(fitted, dist) {
     nconfig = unique(sapply(dist[cgnodes], function(n) length(n$configs)))
 
     # all nodes must have residuals and fitted values of the same length.
-    full.spec = (length(nresid) == 1) && (length(nfitted) == 1) && 
+    full.spec = (length(nresid) == 1) && (length(nfitted) == 1) &&
                     all((nresid > 0) && (nfitted > 0) && (nresid == nfitted))
     # further check discrete parents' configurations for bn.fit.cgnet.
-    if (full.spec && (length(cgnodes) > 0)) 
+    if (full.spec && (length(cgnodes) > 0))
       full.spec = full.spec && (length(nconfig) == 1) &&
                     all((nconfig > 0) && (nconfig == nfitted))
 

@@ -229,7 +229,7 @@ ndsubset = function(x, indices) {
 }#NDSUBSET
 
 # make sure rounded probabilites sum up to one (largest remainder method).
-lrm.round = function (prob, digits = 3) {
+lrm.round = function(prob, digits = 3) {
 
   # scale the probabilities so that the last significant digit is at 10^0.
   scaled = prob * 10^digits

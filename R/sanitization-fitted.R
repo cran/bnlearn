@@ -118,15 +118,15 @@ check.dnode.vs.parents = function(node, new, parents) {
     return(new)
 
   # all parents of discrete nodes must be discrete nodes themselves.
-  illegal.parents = 
+  illegal.parents =
     sapply(parents, class) %!in% c("bn.fit.dnode", "bn.fit.onode")
 
   if (any(illegal.parents))
-    stop("node ", node, " is discrete but has continuous parents (", 
+    stop("node ", node, " is discrete but has continuous parents (",
       names(parents)[illegal.parents], ").")
   # extract the CPTs.
   cpt.levels = dimnames(new)
-  parents.levels = smartSapply(NULL, names(parents), 
+  parents.levels = smartSapply(NULL, names(parents),
                      function(p) dimnames(parents[[p]]$prob)[[1]])
 
   # check the number of dimensions.
@@ -310,11 +310,11 @@ check.gnode.vs.gnode = function(new, old) {
 check.gnode.vs.parents = function(node, new, parents) {
 
   # all parents of Gaussian nodes must be continuous nodes.
-  illegal.parents = 
+  illegal.parents =
     sapply(parents, class) %!in% c("bn.fit.gnode", "bn.fit.cgnode")
 
   if (any(illegal.parents))
-    stop("node ", node, " is Gaussian but has discrete parents (", 
+    stop("node ", node, " is Gaussian but has discrete parents (",
       names(parents)[illegal.parents], ").")
 
   # add the intercept, which is obviously not among the parents of the node.
@@ -330,7 +330,7 @@ check.gnode.vs.parents = function(node, new, parents) {
   if (!is.null(names(new$coef))) {
 
     if (!setequal(names(new$coef), parent.names))
-      stop("wrong regression coefficients for node ", node, " (", 
+      stop("wrong regression coefficients for node ", node, " (",
         paste(setdiff(parent.names, names(new$coef)), collapse = " "), ").")
     new$coef = new$coef[parent.names]
 
@@ -439,7 +439,7 @@ check.cgnode.vs.parents = function(node, new, parents) {
   discrete.parents = names(parents)[discrete.id]
   continuous.id = sapply(parents, class) %in% c("bn.fit.gnode", "bn.fit.cgnode")
   continuous.parents = names(parents)[continuous.id]
-  parent.configurations = 
+  parent.configurations =
     prod(sapply(parents[discrete.parents], function(p) dim(p$prob)[1]))
   correct.configs = as.character(seq(from = 0, to = parent.configurations - 1))
 
@@ -452,7 +452,7 @@ check.cgnode.vs.parents = function(node, new, parents) {
     stop("node ", node, " is a conditioanl Gaussian node but has no discrete parent.")
 
   # check the dimensions of the regression coefficients matrix.
-  if (!isTRUE(all.equal(dim(new$coef), c(length(continuous.parents) + 1L, 
+  if (!isTRUE(all.equal(dim(new$coef), c(length(continuous.parents) + 1L,
       parent.configurations))))
     stop("wrong dimensions for the regression coefficients matrix of node ",
       node, ".")
@@ -465,7 +465,7 @@ check.cgnode.vs.parents = function(node, new, parents) {
     if (!setequal(rownames(new$coef), regression.coefficients))
       stop("wrong regression coefficients for node ", node, " (",
         paste(setdiff(continuous.parents, rownames(new$coef)), collapse = " "), ").")
- 
+
     new$coef = new$coef[regression.coefficients, , drop = FALSE]
 
   }#THEN

@@ -1,5 +1,5 @@
 #include "include/rcore.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/fitted.h"
 
 /* in-place conversion of a list into a data frame. */
@@ -158,9 +158,10 @@ SEXP target = getListElement(fitted, (char *)CHAR(node));
 SEXP fit2df(SEXP fitted, int n) {
 
 int i = 0, nnodes = length(fitted);
-SEXP df, nodes = getAttrib(fitted, R_NamesSymbol);
+SEXP df, nodes;
 
   /* allocate the data frame. */
+  PROTECT(nodes = getAttrib(fitted, R_NamesSymbol));
   PROTECT(df = allocVector(VECSXP, nnodes));
   /* fill the columns. */
   for (i = 0; i < nnodes; i++)
@@ -170,37 +171,9 @@ SEXP df, nodes = getAttrib(fitted, R_NamesSymbol);
   /* add the labels to the return value. */
   minimal_data_frame(df);
 
-  UNPROTECT(1);
+  UNPROTECT(2);
 
   return df;
 
 }/*FIT2DF*/
-
-/* dereference a data frame with discrete and continuous variables for mi-cg. */
-void df2micg(SEXP df, void **columns, int *nlvls, int *ndp, int *ngp) {
-
-int i = 0;
-SEXP temp;
-
-  for (i = 0; i < length(df); i++) {
-
-    temp = VECTOR_ELT(df, i);
-
-    if (TYPEOF(temp) == INTSXP) {
-
-      columns[i] = INTEGER(temp);
-      nlvls[i] = NLEVELS(temp);
-      (*ndp)++;
-
-    }/*THEN*/
-    else {
-
-      columns[i] = REAL(temp);
-      (*ngp)++;
-
-    }/*ELSE*/
-
-  }/*FOR*/
-
-}/*DF2MICG*/
 

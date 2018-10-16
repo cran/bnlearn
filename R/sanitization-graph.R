@@ -89,3 +89,28 @@ check.arcs = function(arcs, nodes) {
 
 }#CHECK.ARCS
 
+# check node groups and partitions.
+check.node.groups = function(groups, graph = NULL) {
+
+  # check the node labels.
+  if (is.list(groups)) {
+
+    vname = deparse(substitute(groups))
+
+    if (length(groups) == 0)
+      stop("no ", vname, " specified.")
+    if (!all(sapply(groups, is.character)))
+      stop("node labels in '", vname, "' must be character strings.")
+    if (!all(sapply(groups, length) > 0))
+      stop("all ", vname, " must contain at least one node label.")
+
+    check.nodes(unlist(groups), graph = graph)
+
+  }#THEN
+  else {
+
+    check.nodes(groups, graph = graph)
+
+  }#ELSE
+
+}#CHECK.NODE.GROUPS

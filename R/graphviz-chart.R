@@ -65,7 +65,7 @@ graphviz.chart.backend = function(fitted, type = "barchart", layout = "dot",
 }#GRAPHVIZ.CHART.BACKEND
 
 # draw the chart for a single node in a graphviz plot.
-chartGlyph = function (prob, xpos, ypos, height, width, node, draw.labels, grid,
+chartGlyph = function(prob, xpos, ypos, height, width, node, draw.labels, grid,
     type, max.levels, col, bg, text.col, bar.col, strip.bg) {
 
   # compute the boundaries of the box and the height of the title box.
@@ -78,7 +78,7 @@ chartGlyph = function (prob, xpos, ypos, height, width, node, draw.labels, grid,
     rect(xleft = xlim[1], ybottom = ylim[1], xright = xlim[2],
        ytop = ylim[2] - title.box.height, col = bg, border = "transparent")
   if (strip.bg != "transparent")
-    rect(xleft = xlim[1], ybottom = ylim[2] - title.box.height, 
+    rect(xleft = xlim[1], ybottom = ylim[2] - title.box.height,
        xright = xlim[2], ytop = ylim[2], col = strip.bg,
        border = "transparent")
 

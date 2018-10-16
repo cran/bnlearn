@@ -1,26 +1,5 @@
 #include "include/rcore.h"
 
-static int stack_counter = 0;
-
-/* instrumentation to debug PROTECT()/UNPROTECT() calls. */
-void PROTECT_DEBUG(SEXP s, const char *fun, const char *file, int line) {
-
-  Rprintf("[%s()][%d -> %d] PROTECT() at %s:%d\n", fun,
-    stack_counter, stack_counter + 1, file, line);
-  stack_counter++;
-  Rf_protect(s);
-
-}/*PROTECT_DEBUG*/
-
-void UNPROTECT_DEBUG(int n, const char *fun, const char *file, int line) {
-
-  Rprintf("[%s()][%d -> %d] UNPROTECT() at %s:%d\n", fun,
-    stack_counter, stack_counter - n, file, line);
-  stack_counter -= n;
-  Rf_unprotect(n);
-
-}/*UNPROTECT_DEBUG*/
-
 void *Calloc1D(size_t R, size_t size) {
 
 void *p = NULL;

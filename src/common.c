@@ -1,6 +1,5 @@
 #include "include/rcore.h"
 #include "include/matrix.h"
-#include "include/sets.h"
 
 /* class check to match that in the R code. */
 int c_is(SEXP obj, const char *str) {
@@ -196,25 +195,25 @@ void *DATAPTR(SEXP x) {
 
 }/*DATAPTR*/
 
-/* variadic version of mkString(). */
+/* variadic version of mkReal(). */
 SEXP mkRealVec(int n, ...) {
 
-va_list strings;
+va_list reals;
 int i = 0;
 double *v = NULL;
 SEXP vec;
 
   PROTECT(vec = allocVector(REALSXP, n));
   v = REAL(vec);
-  va_start(strings, n);
+  va_start(reals, n);
   for (i = 0; i < n; i++)
-    v[i] = va_arg(strings, double);
-  va_end(strings);
+    v[i] = va_arg(reals, double);
+  va_end(reals);
   UNPROTECT(1);
 
   return vec;
 
-}/*MKSTRINGVEC*/
+}/*MKREALVEC*/
 
 /* set row and column names. */
 void setDimNames(SEXP obj, SEXP rownames, SEXP colnames) {
@@ -231,81 +230,91 @@ SEXP dimnames;
 
 }/*SETDIMNAMES*/
 
-/* minimal implementation of table(). */
-SEXP minimal_table(SEXP dataframe, SEXP missing) {
+/* subset a vector using names or integer values. */
+SEXP subset_by_name(SEXP vec, int n, ...) {
 
-int i = 0, nrow = length(VECTOR_ELT(dataframe, 0)), ncol = length(dataframe);
-int *dd = NULL, *tt = NULL, **columns = NULL, *cfg = NULL;
-double ncells = 1;
-SEXP table, dims, dimnames, cur;
+int i = 0, j = 0, k = 0, idx = 0, subvec_len = 0, cur_type = 0;
+va_list strings;
+SEXP subvec, subvec_names, cur, try, vec_names;
 
-  /* prepare the dimensions. */
-  PROTECT(dims = allocVector(INTSXP, ncol));
-  dd = INTEGER(dims);
-  PROTECT(dimnames = allocVector(VECSXP, ncol));
-  setAttrib(dimnames, R_NamesSymbol, getAttrib(dataframe, R_NamesSymbol));
 
-  /* dereference the data frame, extract the levels. */
-  columns = (int **) Calloc1D(ncol, sizeof(int *));
+  /* compute the length of the return value. */
+  va_start(strings, n);
+  for (i = 0; i < n; i++)
+    subvec_len += length(va_arg(strings, SEXP));
+  va_end(strings);
 
-  for (i = 0; i < ncol ; i++) {
+  /* allocate the return value. */
+  PROTECT(subvec = allocVector(TYPEOF(vec), subvec_len));
+  PROTECT(subvec_names = allocVector(STRSXP, subvec_len));
+  setAttrib(subvec, R_NamesSymbol, subvec_names);
 
-    /* extract the column from the data frame... */
-    cur = VECTOR_ELT(dataframe, i);
-    /* ... dereference it... */
-    columns[i] = INTEGER(cur);
-    /* ... extract the number of levels... */
-    dd[i] = NLEVELS(cur);
-    /* ... and save them in the table dimensions. */
-    SET_VECTOR_ELT(dimnames, i, getAttrib(cur, R_LevelsSymbol));
+  PROTECT(vec_names = getAttrib(vec, R_NamesSymbol));
+  va_start(strings, n);
+  for (i = 0, k = 0; i < n; i++) {
 
-    ncells *= dd[i];
+    /* find out which elements to extract... */
+    cur = va_arg(strings, SEXP);
+    cur_type = TYPEOF(cur);
+    if (cur_type == STRSXP)
+      PROTECT(try = match(vec_names, cur, 0));
+    else if (cur_type == INTSXP)
+      try = cur;
+    else
+      error("unknown subset object type (class: %s).",
+        CHAR(STRING_ELT(getAttrib(cur, R_ClassSymbol), 0)));
+
+    /* ... and save them in the return value. */
+    switch(TYPEOF(vec)) {
+
+      case LGLSXP:
+        for (j = 0; j < length(cur); j++) {
+
+          idx = INTEGER(try)[j] - 1;
+          LOGICAL(subvec)[k] = LOGICAL(vec)[idx];
+          if (cur_type == STRSXP)
+            SET_STRING_ELT(subvec_names, k++, STRING_ELT(cur, j));
+          else if (cur_type == INTSXP)
+            SET_STRING_ELT(subvec_names, k++, STRING_ELT(vec_names, idx));
+
+        }/*FOR*/
+        break;
+
+    }/*SWITCH*/
+
+    if (cur_type == STRSXP)
+      UNPROTECT(1);
 
   }/*FOR*/
-
-  if (ncells > INT_MAX) {
-
-    Free1D(columns);
-
-    UNPROTECT(2);
-
-    error("attempting to create a table with more than INT_MAX cells.");
-
-  }/*THEN*/
-
-  /* allocate and dereference the table. */
-  PROTECT(table = allocVector(INTSXP, ncells));
-  tt = INTEGER(table);
-  memset(tt, '\0', ncells * sizeof(int));
-
-  /* prepare the configurations. */
-  cfg = Calloc1D(nrow, sizeof(int));
-  c_fast_config(columns, nrow, ncol, dd, cfg, NULL, 0);
-
-  if (isTRUE(missing)) {
-
-     for (i = 0; i < nrow; i++)
-       if (cfg[i] != NA_INTEGER)
-         tt[cfg[i]]++;
-
-  }/*THEN*/
-  else {
-
-    for (i = 0; i < nrow; i++)
-      tt[cfg[i]]++;
-
-  }/*ELSE*/
-
-  /* set the attributess for class and dimensions. */
-  setAttrib(table, R_ClassSymbol, mkString("table"));
-  setAttrib(table, R_DimSymbol, dims);
-  setAttrib(table, R_DimNamesSymbol, dimnames);
+  va_end(strings);
 
   UNPROTECT(3);
 
-  Free1D(columns);
-  Free1D(cfg);
+  return subvec;
 
-  return table;
+}/*SUBSET_BY_NAME*/
 
-}/*MINIMAL_TABLE*/
+/* check all elements of a SEXP are equal to a value. */
+int all_equal(SEXP vec, SEXP val) {
+
+int i = 0, *vl = NULL, al = FALSE;
+
+  switch(TYPEOF(vec)) {
+
+    case LGLSXP:
+      vl = LOGICAL(vec);
+      al = isTRUE(val);
+      for (i = 0; i < length(vec); i++)
+        if (vl[i] != al)
+          return FALSE;
+      break;
+
+    default:
+      error("unknown object type (class: %s).",
+        CHAR(STRING_ELT(getAttrib(vec, R_ClassSymbol), 0)));
+
+  }/*SWITCH*/
+
+  return TRUE;
+
+}/*ALL_EQUAL*/

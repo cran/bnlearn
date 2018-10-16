@@ -1,6 +1,6 @@
 #include "include/rcore.h"
 #include "include/blas.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/globals.h"
 #include "include/covariance.h"
 
@@ -35,9 +35,10 @@ long double sd = 0;
     for (i = 0; i < num; i++)
       res += dnorm(xx[i], xm, (double)sd, TRUE);
 
-  /* we may want to store the number of parameters. */
+  /* we may want to store the number of parameters (one mean, one standard
+   * deviation). */
   if (nparams)
-    *nparams = 1;
+    *nparams = 2;
 
   return res;
 
@@ -66,9 +67,10 @@ SEXP data_x;
     for (i = 0; i < nrow; i++)
       res += dnorm(xx[i], fitted[i], (double)sd, TRUE);
 
-  /* we may want to store the number of parameters. */
+  /* we may want to store the number of parameters (one intercept, one
+   * regression coefficient per parent, one residuals standard deviation). */
   if (nparams)
-    *nparams = ncol + 1;
+    *nparams = ncol + 2;
 
   Free1D(fitted);
   Free1D(dd);

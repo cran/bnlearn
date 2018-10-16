@@ -168,8 +168,8 @@ data(hailfinder)
 \source{
 
   Abramson B, Brown J, Edwards W, Murphy A, Winkler RL (1996). "Hailfinder: A
-      Bayesian system for forecasting severe weather". \emph{International
-      Journal of Forecasting}, \strong{12}(1), 57-71.
+    Bayesian system for forecasting severe weather". \emph{International
+    Journal of Forecasting}, \strong{12}(1):57--71.
 
 }
 \note{
@@ -181,7 +181,7 @@ data(hailfinder)
 # load the data.
 data(hailfinder)
 # create and plot the network structure.
-modelstring = paste("[N07muVerMo][SubjVertMo][QGVertMotion][SatContMoist][RaoContMoist]",
+modelstring = paste0("[N07muVerMo][SubjVertMo][QGVertMotion][SatContMoist][RaoContMoist]",
   "[VISCloudCov][IRCloudCover][AMInstabMt][WndHodograph][MorningBound][LoLevMoistAd][Date]",
   "[MorningCIN][LIfr12ZDENSd][AMDewptCalPl][LatestCIN][LLIW]",
   "[CombVerMo|N07muVerMo:SubjVertMo:QGVertMotion][CombMoisture|SatContMoist:RaoContMoist]",
@@ -198,7 +198,7 @@ modelstring = paste("[N07muVerMo][SubjVertMo][QGVertMotion][SatContMoist][RaoCon
   "[CompPlFcst|AreaMesoALS:CldShadeOth:Boundaries:CldShadeConv][CapChange|CompPlFcst]",
   "[InsChange|CompPlFcst:LoLevMoistAd][CapInScen|CapChange:AMCINInScen]",
   "[InsSclInScen|InsChange:AMInsWliScen][R5Fcst|MountainFcst:N34StarFcst]",
-  "[PlainsFcst|CapInScen:InsSclInScen:CurPropConv:ScnRelPlFcst]", sep = "")
+  "[PlainsFcst|CapInScen:InsSclInScen:CurPropConv:ScnRelPlFcst]")
 dag = model2network(modelstring)
 \dontrun{graphviz.plot(dag, shape = "ellipse")}
 }

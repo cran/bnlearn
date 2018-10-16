@@ -9,7 +9,7 @@
 
 }
 \usage{
-structural.em(x, maximize = "hc", maximize.args = list(), fit = "mle", 
+structural.em(x, maximize = "hc", maximize.args = list(), fit = "mle",
     fit.args = list(), impute, impute.args = list(), return.all = FALSE,
     start = NULL, max.iter = 5, debug = FALSE)
 }
@@ -61,8 +61,8 @@ structural.em(x, maximize = "hc", maximize.args = list(), fit = "mle",
 \references{
 
   Friedman N (1997). "Learning Belief Networks in the Presence of Missing Values
-    and Hidden Variables". In "Proceedings of the 14th International Conference
-    on Machine Learning (ICML)", pp. 125-133.
+    and Hidden Variables". \emph{Proceedings of the 14th International
+    Conference on Machine Learning}, pp. 125--133.
 
 }
 \author{Marco Scutari}

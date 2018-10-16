@@ -130,24 +130,12 @@ ordering2blacklist = function(nodes) {
 }#ORDERING2BLACKLIST
 
 # generate a valid blacklist from a partial node ordering.
-tiers2blacklist = function(nodes) {
+tiers2blacklist = function(tiers) {
 
   # check the node labels.
-  if (is.list(nodes)) {
+  check.node.groups(tiers)
 
-    if (!all(sapply(nodes, is.character)))
-      stop("node labels must be character strings.")
-
-    check.nodes(unlist(nodes))
-
-  }#THEN
-  else {
-
-    check.nodes(nodes)
-
-  }#ELSE
-
-  tiers.backend(nodes)
+  tiers.backend(tiers)
 
 }#TIERS2BLACKLIST
 

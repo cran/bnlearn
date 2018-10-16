@@ -52,31 +52,31 @@ ci.test(x, y, z, data, test, B, debug = FALSE)
 
   \bold{for parametric and discrete permutation tests:}
 
-  Edwards DI (2000). \emph{Introduction to Graphical Modelling}.
-      Springer, 2nd edition.
+  Edwards DI (2000). \emph{Introduction to Graphical Modelling}. Springer, 2nd
+    edition.
 
   \bold{for shrinkage tests:}
 
   Hausser J, Strimmer K (2009). "Entropy inference and the James-Stein
-      estimator, with application to nonlinear gene association networks".
-      \emph{Statistical Applications in Genetics and Molecular Biology},
-      \strong{10}, 1469-1484.
+    estimator, with application to nonlinear gene association networks".
+    \emph{Statistical Applications in Genetics and Molecular Biology},
+    \strong{10}:1469--1484.
 
-  Ledoit O, Wolf M (2003). "Improved Estimation of the Covariance Matrix
-      of Stock Returns with an Application to Portfolio Selection".
-      \emph{Journal of Empirical Finance}, \strong{10}, 603-621.
+  Ledoit O, Wolf M (2003). "Improved Estimation of the Covariance Matrix of
+    Stock Returns with an Application to Portfolio Selection". \emph{Journal of
+    Empirical Finance}, \strong{10}:603--621.
 
   \bold{for continuous permutation tests:}
 
   Legendre P (2000). "Comparison of Permutation Methods for the Partial
-      Correlation and Partial Mantel Tests". \emph{Journal of Statistical
-      Computation and Simulation}, \strong{67}, 37-73.
+    Correlation and Partial Mantel Tests". \emph{Journal of Statistical
+    Computation and Simulation}, \strong{67}:37--73.
 
   \bold{for semiparametric discrete tests:}
 
   Tsamardinos I, Borboudakis G (2010). "Permutation Testing Improves Bayesian
-      Network Learning". In "Machine Learning and Knowledge Discovery in
-      Databases", pp. 322-337. Springer.
+    Network Learning". \emph{Machine Learning and Knowledge Discovery in
+    Databases}, pp. 322--337.
 
 }
 \examples{

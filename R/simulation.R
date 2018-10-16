@@ -1,5 +1,5 @@
 # do a partial ordering of the nodes of a graph.
-topological.ordering = function(x, start = NULL, reverse = FALSE, 
+topological.ordering = function(x, start = NULL, reverse = FALSE,
     debug = FALSE) {
 
   if (is.null(start))

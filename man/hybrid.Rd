@@ -51,8 +51,8 @@ mmhc(x, whitelist = NULL, blacklist = NULL, restrict.args = list(),
 \references{
 
   Tsamardinos I, Brown LE, Aliferis CF (2006). "The Max-Min Hill-Climbing
-      Bayesian Network Structure Learning Algorithm". \emph{Machine Learning},
-      \strong{65}(1), 31-78.
+    Bayesian Network Structure Learning Algorithm". \emph{Machine Learning},
+    \strong{65}(1):31--78.
 
 }
 \author{Marco Scutari}

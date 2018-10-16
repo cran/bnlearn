@@ -1,7 +1,8 @@
 
 # unified backend for the graphviz calls.
-graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
-    layout = "dot", shape = "circle", main = NULL, sub = NULL, render = TRUE) {
+graphviz.backend = function(nodes, arcs, highlight = NULL, groups,
+    arc.weights = NULL, layout = "dot", shape = "circle", main = NULL,
+    sub = NULL, render = TRUE) {
 
   node.shapes = c("ellipse", "circle", "rectangle")
   highlight.params = c("nodes", "arcs", "col", "fill", "lwd", "lty", "textCol")
@@ -104,7 +105,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
   # set graph layout and global parameters.
   if (shape %in% c("ellipse", "rectangle")) {
 
-    # nodes have elliptic/rectangulare shapes whose width is determined by the
+    # nodes have elliptic/rectangular shapes whose width is determined by the
     # length of the respective labels.
     attrs = list(node = list(fixedsize = FALSE))
     node.attrs = list(shape = rep(shape, length(nodes)))
@@ -118,8 +119,25 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
 
   }#THEN
 
-  graph.plot = Rgraphviz::layoutGraph(graph.obj, attrs = attrs,
-                 nodeAttrs = node.attrs, layoutType = layout)
+  # create subgraphs from the node groups.
+  if (!missing(groups) && !is.null(groups)) {
+
+    # check the node groups.
+    check.node.groups(groups, graph = nodes)
+
+    subGList = lapply(groups, function(g) {
+      list(graph = graph::subGraph(g, graph.obj), cluster = TRUE)
+    })
+
+  }#THEN
+  else {
+
+    subGList = NULL
+
+  }#ELSE
+
+  graph.plot = Rgraphviz::layoutGraph(graph.obj, subGList = subGList,
+                 attrs = attrs, nodeAttrs = node.attrs, layoutType = layout)
 
   # kill the arroheads of undirected arcs.
   u = names(which(graph::edgeRenderInfo(graph.plot)[['direction']] == "both"))
@@ -128,7 +146,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, arc.weights = NULL,
   graph::edgeRenderInfo(graph.plot)[["arrowtail"]][u] = "none"
 
   # change arc line width according to arc weights.
-  if (!is.null(arc.weights)) {
+  if (!is.null(arc.weights) && (length(arc.weights) > 0)) {
 
     to.weight = apply(arcs, 1, paste, collapse = "~")
 

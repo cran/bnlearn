@@ -53,18 +53,18 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ...,
 \references{
 
   Russell SJ, Norvig P (2009). \emph{Artificial Intelligence: A Modern
-      Approach}. Prentice Hall, 3rd edition.
+    Approach}. Prentice Hall, 3rd edition.
 
   Korb K, Nicholson AE (2010). \emph{Bayesian Artificial Intelligence}.
-      Chapman & Hall/CRC, 2nd edition.
+    Chapman & Hall/CRC, 2nd edition.
 
   Margaritis D (2003). \emph{Learning Bayesian Network Model Structure from
-      Data}. Ph.D. thesis, School of Computer Science, Carnegie-Mellon
-      University, Pittsburgh, PA. Available as Technical Report CMU-CS-03-153.
+    Data}. Ph.D. thesis, School of Computer Science, Carnegie-Mellon
+    University, Pittsburgh, PA.
 
   Daly R, Shen Q (2007). "Methods to Accelerate the Learning of Bayesian
-    Network Structures". In "Proceedings of the 2007 UK Workshop on
-    Computational Intelligence", Imperial College, London.
+    Network Structures". \emph{Proceedings of the 2007 UK Workshop on
+    Computational Intelligence}.
 
 }
 \author{Marco Scutari}

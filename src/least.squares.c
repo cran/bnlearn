@@ -29,8 +29,10 @@ static void c_ols1(double **x, double *y, int nrow, double *fitted, double *resi
     double *beta, double *sd) {
 
 int i = 0, singular = FALSE;
-double *m[2] = {y, *x}, mean[2] = {0, 0}, cov[4] = {0, 0, 0, 0}, a = 0, b = 0;
+double *m[2] = {y, *x}, mean[2] = {0, 0}, a = 0, b = 0;
 long double sse = 0;
+covariance cov = { .dim = 2, .mat = (double[]){ 0, 0, 0, 0 },
+                   .u = NULL, .d = NULL, .vt = NULL };
 
   /* the regression coefficients are computed using the closed form estimators
    * for simple regression. */
@@ -39,7 +41,7 @@ long double sse = 0;
 
   /* the only way for a simple regression to be singular is if the regressor
    * is constant, so it is collinear with the intercept. */
-  singular = (fabs(cov[3]) < MACHINE_TOL);
+  singular = (fabs(cov.mat[3]) < MACHINE_TOL);
 
   if (singular) {
 
@@ -49,7 +51,7 @@ long double sse = 0;
   }/*THEN*/
   else {
 
-    b = cov[1] / cov[3];
+    b = cov.mat[1] / cov.mat[3];
     a = mean[0] - mean[1] * b;
 
   }/*ELSE*/
@@ -128,8 +130,10 @@ static void c_ols2(double **x, double *y, int nrow, double *fitted, double *resi
 
 int i = 0, singular1 = FALSE, singular2 = FALSE;
 double *m[3] = {y, *x, *(x + 1)}, a = 0, b1 = 0, b2 = 0, den = 0;
-double mean[3] = {0, 0, 0}, cov[9] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+double mean[3] = {0, 0, 0};
 long double sse = 0;
+covariance cov = { .dim = 3, .mat = (double[]){ 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                   .u = NULL, .d = NULL, .vt = NULL };
 
   /* the regression coefficients are computed using the closed form estimates
    * for the two-variable regression, which are effectively the same as the
@@ -141,20 +145,20 @@ long double sse = 0;
    *   1) the first variable is constant and collinear with the response;
    *   2) the second variable is constant and collinear with the response;
    *   3) the two variables are collinear with each other. */
-  singular1 = (fabs(cov[4]) < MACHINE_TOL);
-  singular2 = (fabs(cov[8]) < MACHINE_TOL) ||
-              (fabs(cov[5]) / sqrt(cov[4] * cov[8]) > 1 - MACHINE_TOL);
+  singular1 = (fabs(cov.mat[4]) < MACHINE_TOL);
+  singular2 = (fabs(cov.mat[8]) < MACHINE_TOL) ||
+              (fabs(cov.mat[5]) / sqrt(cov.mat[4] * cov.mat[8]) > 1 - MACHINE_TOL);
 
   if (singular1 && !singular2) {
 
     b1 = NA_REAL;
-    b2 = cov[2] / cov[8];
+    b2 = cov.mat[2] / cov.mat[8];
     a =  mean[0] - b2 * mean[2];
 
   }/*THEN*/
   else if (!singular1 && singular2) {
 
-    b1 = cov[1] / cov[4];
+    b1 = cov.mat[1] / cov.mat[4];
     b2 = NA_REAL;
     a =  mean[0] - b1 * mean[1];
 
@@ -167,9 +171,9 @@ long double sse = 0;
   }/*THEN*/
   else {
 
-    den = (cov[4] * cov[8] - cov[5] * cov[5]);
-    b1 = (cov[8] * cov[1] - cov[5] * cov[2]) / den;
-    b2 = (cov[4] * cov[2] - cov[5] * cov[1]) / den;
+    den = (cov.mat[4] * cov.mat[8] - cov.mat[5] * cov.mat[5]);
+    b1 = (cov.mat[8] * cov.mat[1] - cov.mat[5] * cov.mat[2]) / den;
+    b2 = (cov.mat[4] * cov.mat[2] - cov.mat[5] * cov.mat[1]) / den;
     a = mean[0] - b1 * mean[1] - b2 * mean[2];
 
   }/*THEN*/

@@ -1,8 +1,8 @@
 
 # constraint-based learning algorithms.
 bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = NULL, B = NULL, method = "gs", debug = FALSE,
-    optimized = FALSE, strict = FALSE, undirected = FALSE) {
+    test = NULL, alpha = NULL, B = NULL, method = "gs", max.sx = NULL,
+    debug = FALSE, optimized = FALSE, strict = FALSE, undirected = FALSE) {
 
   reset.test.counter()
 
@@ -15,7 +15,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     warning("argument 'optimized' is deprecated and will be removed in 2019.")
 
   # check the data are there.
-  check.data(x)
+  data.info = check.data(x)
   # check the algorithm.
   check.learning.algorithm(method, class = "constraint")
   # check test labels.
@@ -29,6 +29,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   alpha = check.alpha(alpha)
   # check B (the number of bootstrap/permutation samples).
   B = check.B(B, test)
+  # check size of the largest conditioning set in the independence tests.
+  max.sx = check.largest.sx.set(max.sx, x)
 
   # check the cluster.
   if (!is.null(cluster)) {
@@ -66,7 +68,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     local.structure =
       pc.stable.backend(x = x, whitelist = whitelist,
         blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-        debug = debug, cluster = cluster)  
+        max.sx = max.sx, debug = debug, cluster = cluster,
+        complete = data.info$complete.nodes)
 
   }#THEN
   else if (method == "gs") {
@@ -76,15 +79,17 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       local.structure =
         grow.shrink.optimized(x = x, whitelist = whitelist,
            blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-           strict = strict, debug = debug)
+           max.sx = max.sx, strict = strict, debug = debug,
+           complete = data.info$complete.nodes)
 
     }#THEN
     else {
 
       local.structure =
         grow.shrink(x = x, whitelist = whitelist, blacklist = full.blacklist,
-          test = test, alpha = alpha, B = B, strict = strict, debug = debug,
-          cluster = cluster)
+          test = test, alpha = alpha, B = B, max.sx = max.sx,
+          strict = strict, debug = debug, cluster = cluster,
+          complete = data.info$complete.nodes)
 
     }#ELSE
 
@@ -96,7 +101,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       local.structure =
         incremental.association.optimized(x = x, whitelist = whitelist,
           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          strict = strict, debug = debug)
+          max.sx = max.sx, strict = strict, debug = debug,
+          complete = data.info$complete.nodes)
 
     }#THEN
     else {
@@ -104,7 +110,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       local.structure =
         incremental.association(x = x, whitelist = whitelist,
           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          strict = strict, debug = debug, cluster = cluster)
+          max.sx = max.sx, strict = strict, debug = debug,
+          cluster = cluster, complete = data.info$complete.nodes)
 
     }#ELSE
 
@@ -116,7 +123,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       local.structure =
         fast.incremental.association.optimized(x = x, whitelist = whitelist,
           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          strict = strict, debug = debug)
+          max.sx = max.sx, strict = strict, debug = debug,
+          complete = data.info$complete.nodes)
 
     }#THEN
     else {
@@ -124,7 +132,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       local.structure =
         fast.incremental.association(x = x, whitelist = whitelist,
           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          strict = strict, debug = debug, cluster = cluster)
+          max.sx = max.sx, strict = strict, debug = debug,
+          cluster = cluster, complete = data.info$complete.nodes)
 
     }#ELSE
 
@@ -136,7 +145,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       local.structure =
         inter.incremental.association.optimized(x = x, whitelist = whitelist,
           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          strict = strict, debug = debug)
+          max.sx = max.sx, strict = strict, debug = debug,
+          complete = data.info$complete.nodes)
 
     }#THEN
     else {
@@ -144,7 +154,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       local.structure =
         inter.incremental.association(x = x, whitelist = whitelist,
           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          strict = strict, debug = debug, cluster = cluster)
+          max.sx = max.sx, strict = strict, debug = debug,
+          cluster = cluster, complete = data.info$complete.nodes)
 
     }#ELSE
 
@@ -156,7 +167,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       local.structure =
         maxmin.pc.optimized(x = x, whitelist = whitelist,
           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          strict = strict, debug = debug)
+          max.sx = max.sx, strict = strict, debug = debug,
+          complete = data.info$complete.nodes)
 
     }#THEN
     else {
@@ -164,7 +176,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       local.structure =
         maxmin.pc(x = x, whitelist = whitelist, blacklist = full.blacklist,
           test = test, alpha = alpha, B = B, strict = strict, debug = debug,
-          cluster = cluster)
+          max.sx = max.sx, cluster = cluster, complete = data.info$complete.nodes)
 
     }#ELSE
 
@@ -176,7 +188,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       local.structure =
         si.hiton.pc.optimized(x = x, whitelist = whitelist,
           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          strict = strict, debug = debug)
+          max.sx = max.sx, strict = strict, debug = debug,
+          complete = data.info$complete.nodes)
 
     }#THEN
     else {
@@ -184,7 +197,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       local.structure =
         si.hiton.pc.backend(x = x, whitelist = whitelist,
           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          strict = strict, debug = debug, cluster = cluster)
+          max.sx = max.sx, strict = strict, debug = debug,
+          cluster = cluster, complete = data.info$complete.nodes)
 
     }#ELSE
 
@@ -212,7 +226,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     # recover some arc directions.
     res = second.principle(x = x, local.structure = local.structure,
             whitelist = whitelist, blacklist = full.blacklist, test = test,
-            alpha = alpha, B = B, strict = strict, debug = debug)
+            alpha = alpha, B = B, max.sx = max.sx, strict = strict,
+            complete = data.info$complete.nodes, debug = debug)
     # return the user-specified blacklist, not the full one, as in other
     # classes of learning algorithms.
     res$learning["blacklist"] = list(blacklist)
@@ -227,6 +242,10 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   res$learning$algo = method
   # save the 'optimized' flag.
   res$learning$optimized = optimized
+  # save the 'undirected' flag.
+  res$learning$undirected = undirected
+  # save the maximum size of the tests' conditioning sets.
+  res$learning$max.sx = max.sx
   # save arcs that are illegal according to parametric assumptions.
   res$learning$illegal = check.arcs.against.assumptions(NULL, x, test)
 
@@ -391,7 +410,7 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
     other.arguments = setdiff(names(restrict.args), named.arguments)
     check.unused.args(other.arguments, character(0))
 
-    restrict.args[critical.arguments] = 
+    restrict.args[critical.arguments] =
       list(x, method = restrict, whitelist = whitelist, blacklist = blacklist,
            debug = debug, undirected = TRUE)
 
@@ -426,7 +445,7 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
   named.arguments = setdiff(named.arguments, critical.arguments)
   check.unused.args(intersect(critical.arguments, names(maximize.args)), character(0))
 
-  maximize.args[critical.arguments] = 
+  maximize.args[critical.arguments] =
     list(x, start = NULL, heuristic = maximize, whitelist = whitelist, blacklist = constraints,
          debug = debug)
 
@@ -436,7 +455,7 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
   res$learning = list(whitelist = rst$learning$whitelist,
     blacklist = rst$learning$blacklist, test = res$learning$test,
     ntests = res$learning$ntests + rst$learning$ntests, algo = method,
-    args = c(res$learning$args, rst$learning$args), 
+    args = c(res$learning$args, rst$learning$args),
     optimized = res$learning$optimized || rst$learning$optimized,
     restrict = restrict, rstest = rst$learning$test, maximize = maximize,
     maxscore = res$learning$test,
@@ -495,7 +514,7 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
   # set the metadata of the network in one stroke.
   res$learning = list(whitelist = whitelist, blacklist = blacklist,
     test = as.character(mi.estimator.tests[estimator]), alpha = 0.05,
-    ntests = nnodes * (nnodes - 1) / 2, algo = method,
+    ntests = nnodes * (nnodes - 1) / 2, algo = method, undirected = TRUE,
     args = list(estimator = estimator))
 
   invisible(res)
@@ -504,12 +523,13 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
 
 # learn the markov blanket of a single node.
 mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
-    start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE) {
+    start = NULL, test = NULL, alpha = 0.05, B = NULL, max.sx = NULL,
+    debug = FALSE) {
 
   reset.test.counter()
 
   # check the data are there.
-  check.data(x)
+  data.info = check.data(x)
   # cache the node labels.
   nodes = names(x)
   # a valid node is needed.
@@ -524,6 +544,8 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   alpha = check.alpha(alpha)
   # check B (the number of bootstrap/permutation samples).
   B = check.B(B, test)
+  # check size of the largest conditioning set in the independence tests.
+  max.sx = check.largest.sx.set(max.sx, x)
 
   # check the initial status of the markov blanket.
   if (!is.null(start)) {
@@ -587,14 +609,16 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 
     mb = gs.markov.blanket(x = target, data = x, nodes = nodes, alpha = alpha,
            B = B, whitelist = whitelist, blacklist = NULL, start = start,
-           backtracking = NULL, test = test, debug = debug)
+           backtracking = NULL, test = test, max.sx = max.sx,
+           complete = data.info$complete.nodes, debug = debug)
 
   }#THEN
   else if (method == "iamb") {
 
     mb = ia.markov.blanket(x = target, data = x, nodes = nodes, alpha = alpha,
            B = B, whitelist = whitelist, blacklist = NULL, start = start,
-           backtracking = NULL, test = test, debug = debug)
+           backtracking = NULL, test = test, max.sx = max.sx,
+           complete = data.info$complete.nodes, debug = debug)
 
   }#THEN
   else if (method == "fast.iamb") {
@@ -602,14 +626,15 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
     mb = fast.ia.markov.blanket(x = target, data = x, nodes = nodes,
            alpha = alpha, B = B, whitelist = whitelist, blacklist = NULL,
            start = start, backtracking = NULL, test = test,
-           debug = debug)
+		   complete = data.info$complete.nodes, max.sx = max.sx, debug = debug)
 
   }#THEN
   else if (method == "inter.iamb") {
 
-    mb = inter.ia.markov.blanket(x = target, data = x, nodes = nodes, alpha = alpha,
-           B = B, whitelist = whitelist, blacklist = NULL, start = start,
-           backtracking = NULL, test = test, debug = debug)
+    mb = inter.ia.markov.blanket(x = target, data = x, nodes = nodes,
+           alpha = alpha, B = B, whitelist = whitelist, blacklist = NULL,
+           start = start, backtracking = NULL, test = test, max.sx = max.sx,
+           complete = data.info$complete.nodes, debug = debug)
 
   }#THEN
 
@@ -619,12 +644,12 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 
 # learn the neighbourhood of a single node.
 nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE) {
+    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE) {
 
   reset.test.counter()
 
   # check the data are there.
-  check.data(x)
+  data.info = check.data(x)
   # cache the node labels.
   nodes = names(x)
   # a valid node is needed.
@@ -639,6 +664,8 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   alpha = check.alpha(alpha)
   # check B (the number of bootstrap/permutation samples).
   B = check.B(B, test)
+  # check size of the largest conditioning set in the independence tests.
+  max.sx = check.largest.sx.set(max.sx, x)
 
   # sanitize and rework the whitelist.
   if (!is.null(whitelist)) {
@@ -684,28 +711,46 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   if (all(nodes %in% c(target, blacklist)))
     return(character(0))
 
-  # call the right backend, forward phase.
-  if (method == "mmpc") {
+  if (method %in% c("mmpc", "si.hiton.pc")) {
 
-    nbr = maxmin.pc.forward.phase(target, data = x, nodes = nodes,
-           alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-           test = test, optimized = FALSE, backtracking = NULL, debug = debug)
+    # call the right backend, forward phase.
+    if (method == "mmpc") {
+
+      nbr = maxmin.pc.forward.phase(target, data = x, nodes = nodes,
+             alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
+             test = test, max.sx = max.sx, optimized = FALSE, debug = debug,
+             backtracking = NULL, complete = data.info$complete.nodes)
+
+    }#THEN
+    else if (method == "si.hiton.pc") {
+
+      nbr = si.hiton.pc.heuristic(target, data = x, nodes = nodes, alpha = alpha,
+              B = B, whitelist = whitelist, blacklist = blacklist, test = test,
+              max.sx = max.sx, backtracking = NULL, debug = debug,
+              complete = data.info$complete.nodes)
+
+    }#ELSE
+
+    # this is the backward phase.
+    nbr = neighbour(target, mb = structure(list(nbr), names = target), data = x,
+            alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
+            test = test, max.sx = max.sx, markov = FALSE, debug = debug,
+            complete = data.info$complete.nodes)
+
+    parents.and.children = nbr[["nbr"]]
 
   }#THEN
-  else if (method == "si.hiton.pc") {
+  else if (method == "pc.stable") {
 
-    nbr = si.hiton.pc.heuristic(target, data = x, nodes = nodes, alpha = alpha,
-            B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-            backtracking = NULL, debug = debug)
+    nbr = pc.stable.backend(x = x, whitelist = whitelist, blacklist = blacklist,
+            test = test, alpha = alpha, B = B, max.sx = max.sx, debug = debug,
+            complete = data.info$complete.nodes)
 
-  }#ELSE
+    parents.and.children = nbr[[target]]$nbr
 
-  # this is the backward phase.
-  nbr = neighbour(target, mb = structure(list(nbr), names = target), data = x,
-          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-          test = test, markov = FALSE, debug = debug)
+  }#THEN
 
-  return(nbr[["nbr"]])
+  return(parents.and.children)
 
 }#NBR.BACKEND
 
@@ -741,6 +786,9 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
 
   }#ELSE
 
+  # check that at least one explanatory variable is provided.
+  if (length(explanatory) == 0)
+    stop("at least one explanatory variable is required.")
   # check that the training node is not included among the explanatory variables.
   if (training %in% explanatory)
     stop("node ", training, " is included in the model both as a training ",

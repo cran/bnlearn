@@ -27,7 +27,7 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit = "mle"
   ntests = 0
 
   # check the data are there.
-  data.info = 
+  data.info =
     check.data(x, allow.levels = TRUE, allow.missing = TRUE,
       warn.if.no.missing = TRUE, stop.if.all.missing = !is(start, "bn.fit"))
 
@@ -41,14 +41,14 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit = "mle"
   check.learning.algorithm(algorithm = maximize, class = "score")
 
   critical.arguments = c("x", "heuristic", "start", "debug")
-  check.unused.args(intersect(critical.arguments, names(maximize.args)), 
+  check.unused.args(intersect(critical.arguments, names(maximize.args)),
     character(0))
   maximize.args[critical.arguments] =
     list(x = NULL, heuristic = maximize, start = NULL, debug = debug)
 
   # check the arguments used for parameter learning as in bn.cv().
   check.fitting.method(method = fit, data = x)
-  fit.args = check.fitting.args(method = fit, network = NULL, data = x, 
+  fit.args = check.fitting.args(method = fit, network = NULL, data = x,
                extra.args = fit.args)
 
   # check the arguments used for imputations.

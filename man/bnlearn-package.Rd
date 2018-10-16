@@ -16,8 +16,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 4.3\cr
-    Date: \tab 2017-01-15\cr
+    Version: \tab 4.4\cr
+    Date: \tab 2018-08-28\cr
     License: \tab GPLv2 or later
 
   }
@@ -385,25 +385,23 @@
 \references{
 
   Nagarajan R, Scutari M, Lebre S (2013). "Bayesian Networks in R with
-      Applications in Systems Biology". Springer.
+    Applications in Systems Biology". Springer.
 
   Scutari M (2010). "Learning Bayesian Networks with the bnlearn R Package".
-      Journal of Statistical Software, \strong{35}(3), 1-22. URL
-      http://www.jstatsoft.org/v35/i03/.
+    \emph{Journal of Statistical Software}, \strong{35}(3):1--22.
 
   Scutari M (20107). "Bayesian Network Constraint-Based Structure Learning
-      Algorithms: Parallel and Optimized Implementations in the bnlearn R
-      Package". Journal of Statistical Software, \strong{77}(2), 1-20.
-      URL http://www.jstatsoft.org/v77/i02/.
+    Algorithms: Parallel and Optimized Implementations in the bnlearn R
+    Package". \emph{Journal of Statistical Software}, \strong{77}(2):1--20.
 
-  Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
-      Principles and Techniques}. MIT Press.
+  Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models: Principles
+    and Techniques}. MIT Press.
 
   Korb K, Nicholson AE (2010). \emph{Bayesian Artificial Intelligence}.
-      Chapman & Hall/CRC, 2nd edition.
+    Chapman & Hall/CRC, 2nd edition.
 
   Pearl J (1988). \emph{Probabilistic Reasoning in Intelligent Systems:
-      Networks of Plausible Inference}. Morgan Kaufmann.
+    Networks of Plausible Inference}. Morgan Kaufmann.
 
 }
 \examples{

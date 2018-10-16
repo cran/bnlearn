@@ -1,9 +1,10 @@
 #include "include/rcore.h"
 #include "include/globals.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/sampling.h"
 #include "include/matrix.h"
 #include "include/fitted.h"
+#include "include/data.table.h"
 
 /* predict the value of a gaussian node without parents. */
 SEXP gpred(SEXP fitted, SEXP ndata, SEXP debug) {
@@ -38,49 +39,44 @@ SEXP result;
 /* predict the value of a gaussian node with one or more parents. */
 SEXP cgpred(SEXP fitted, SEXP parents, SEXP debug)  {
 
-int i = 0, j = 0, ndata = length(VECTOR_ELT(parents, 0)), ncol = length(parents);
+int i = 0, j = 0;
 int debuglevel = isTRUE(debug);
 double *res = NULL, *coefs = NULL;
-double **columns = NULL;
 SEXP result;
+gdata dt = { 0 };
 
   /* get the coefficient of the linear regression. */
   coefs = REAL(getListElement(fitted, "coefficients"));
-
+  /* extract the columns from the data frame. */
+  dt = gdata_from_SEXP(parents, 0);
   /* allocate and initialize the return value. */
-  PROTECT(result = allocVector(REALSXP, ndata));
+  PROTECT(result = allocVector(REALSXP, dt.m.nobs));
   res = REAL(result);
 
-  /* dereference the columns of the data frame. */
-  columns = (double **) Calloc1D(ncol, sizeof(double));
-  for (i = 0; i < ncol; i++)
-    columns[i] = REAL(VECTOR_ELT(parents, i));
-
-  for (i = 0; i < ndata; i++) {
+  for (i = 0; i < dt.m.nobs; i++) {
 
     /* compute the mean value for this observation. */
     res[i] = coefs[0];
 
-    for (j = 0; j < ncol; j++)
-      res[i] += columns[j][i] * coefs[j + 1];
+    for (j = 0; j < dt.m.ncols; j++)
+      res[i] += dt.col[j][i] * coefs[j + 1];
 
     if (debuglevel > 0) {
 
       Rprintf("  > prediction for observation %d is %lf with predictor:\n",
         i + 1, res[i]);
 
-      Rprintf("    (%lf) + (%lf) * (%lf)", coefs[0], columns[0][i], coefs[1]);
-      for (j = 1; j < ncol; j++)
-        Rprintf(" + (%lf) * (%lf)", columns[j][i], coefs[j + 1]);
+      Rprintf("    (%lf) + (%lf) * (%lf)", coefs[0], dt.col[0][i], coefs[1]);
+      for (j = 1; j < dt.m.ncols; j++)
+        Rprintf(" + (%lf) * (%lf)", dt.col[j][i], coefs[j + 1]);
       Rprintf("\n");
 
     }/*THEN*/
 
   }/*FOR*/
 
+  FreeGDT(dt, FALSE);
   UNPROTECT(1);
-
-  Free1D(columns);
 
   return result;
 
@@ -351,35 +347,32 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
 /* predict the values of a conditional Gaussian node. */
 SEXP ccgpred(SEXP fitted, SEXP configurations, SEXP parents, SEXP debug) {
 
-int i = 0, j = 0, ndata = length(configurations);
+int i = 0, j = 0;
 int *config = INTEGER(configurations), debuglevel = isTRUE(debug);
-int cur_config = 0, np = length(parents), nrow = np + 1;
-double *res = NULL, *beta = NULL, *beta_offset = NULL, **columns = NULL;
+int cur_config = 0;
+double *res = NULL, *beta = NULL, *beta_offset = NULL;
 SEXP result;
+gdata dt = { 0 };
 
   /* get the regression coefficients of the conditional Gaussian distribution. */
   beta = REAL(getListElement(fitted, "coefficients"));
-
-  /* dereference the columns of the data frame and get the sample size. */
-  columns = (double **) Calloc1D(np, sizeof(double *));
-  for (i = 0; i < np; i++)
-    columns[i] = REAL(VECTOR_ELT(parents, i));
-
-  /* allocate and initialize the return value. */
-  PROTECT(result = allocVector(REALSXP, ndata));
+  /* extract the columns of the data frame. */
+  dt = gdata_from_SEXP(parents, 0);
+  /* allocate the return value. */
+  PROTECT(result = allocVector(REALSXP, dt.m.nobs));
   res = REAL(result);
 
-  for (i = 0; i < ndata; i++)  {
+  for (i = 0; i < dt.m.nobs; i++)  {
 
     /* find out which conditional regression to use for prediction. */
     cur_config = config[i] - 1;
-    beta_offset = beta + cur_config * nrow;
+    beta_offset = beta + cur_config * (dt.m.ncols + 1);
 
     /* compute the mean value for this observation. */
     res[i] = beta_offset[0];
 
-    for (j = 0; j < np; j++)
-      res[i] += columns[j][i] * beta_offset[j + 1];
+    for (j = 0; j < dt.m.ncols; j++)
+      res[i] += dt.col[j][i] * beta_offset[j + 1];
 
     if (debuglevel > 0) {
 
@@ -387,8 +380,8 @@ SEXP result;
         i + 1, res[i]);
 
       Rprintf("    (%lf)", beta_offset[0]);
-      for (j = 0; j < np; j++)
-        Rprintf(" + (%lf) * (%lf)", columns[j][i], beta_offset[j + 1]);
+      for (j = 0; j < dt.m.ncols; j++)
+        Rprintf(" + (%lf) * (%lf)", dt.col[j][i], beta_offset[j + 1]);
       Rprintf("\n");
 
     }/*THEN*/
@@ -397,7 +390,7 @@ SEXP result;
 
   UNPROTECT(1);
 
-  Free1D(columns);
+  FreeGDT(dt, FALSE);
 
   return result;
 
@@ -417,7 +410,7 @@ double sum = 0;
 SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
 
   /* cache the node labels. */
-  nodes = getAttrib(fitted, R_NamesSymbol);
+  PROTECT(nodes = getAttrib(fitted, R_NamesSymbol));
 
   /* cache the pointers to all the variables. */
   ex = (int **) Calloc1D(nvars, sizeof(int *));
@@ -652,12 +645,12 @@ SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
     /* add the posterior probabilities to the return value. */
     setAttrib(result, BN_ProbSymbol, probtab);
 
-    UNPROTECT(2);
+    UNPROTECT(3);
 
   }/*THEN*/
   else {
 
-    UNPROTECT(1);
+    UNPROTECT(2);
 
   }/*ELSE*/
 

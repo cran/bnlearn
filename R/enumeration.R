@@ -55,7 +55,7 @@ count.graphs = function(type = "all.dags", nodes, ..., debug = FALSE) {
 }#COUNT.GRAPHS
 
 # count the number of directed acyclic graphs that have r arcs.
-count.by.arcs = function(N, r, debug = FALSE) { 
+count.by.arcs = function(N, r, debug = FALSE) {
 
   # helper for the maximum possible number of arcs.
   max.arcs = function(nodes) choose(nodes, 2)

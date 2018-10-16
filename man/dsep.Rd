@@ -23,8 +23,8 @@ dsep(bn, x, y, z)
 }
 \references{
 
-  Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
-      Principles and Techniques}. MIT Press.
+  Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models: Principles
+    and Techniques}. MIT Press.
 
 }
 \examples{

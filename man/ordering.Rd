@@ -13,11 +13,12 @@
 \usage{
 node.ordering(x, debug = FALSE)
 ordering2blacklist(nodes)
-tiers2blacklist(nodes)
+tiers2blacklist(tiers)
 }
 \arguments{
   \item{x}{an object of class \code{bn} or \code{bn.fit}.}
-  \item{nodes}{a node ordering, see below.}
+  \item{nodes}{a vector of character strings, the node ordering.}
+  \item{tiers}{a vector of character strings or a list, see below.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }

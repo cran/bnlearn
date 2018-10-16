@@ -56,8 +56,8 @@ relevant("A", context = "B", data = learning.test,)
 \references{
 
   Pena JM, Nilsson R, Bjorkegren J, Tegner J (2006). "Identifying the Relevant
-      Nodes Without Learning the Model". In "Proceedings of the 22nd Conference
-      on Uncertainty in Artificial Intelligence (UAI2006)", pp. 367-374.
+    Nodes Without Learning the Model". \emph{Proceedings of the 22nd Conference
+    on Uncertainty in Artificial Intelligence}, pp. 367--374.
 
 }
 \author{Marco Scutari}

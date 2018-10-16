@@ -1,6 +1,6 @@
 
 inter.incremental.association.optimized = function(x, whitelist, blacklist,
-  test, alpha, B, strict, debug = FALSE) {
+  test, alpha, B, max.sx = ncol(x), strict, complete, debug = FALSE) {
 
   nodes = names(x)
   mb2 = mb = list()
@@ -12,7 +12,8 @@ inter.incremental.association.optimized = function(x, whitelist, blacklist,
 
     mb[[node]] = inter.ia.markov.blanket(node, data = x, nodes = nodes,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, debug = debug)
+         backtracking = backtracking, test = test, max.sx = max.sx,
+         complete = complete, debug = debug)
 
   }#FOR
 
@@ -27,7 +28,8 @@ inter.incremental.association.optimized = function(x, whitelist, blacklist,
     # save results in a copy of mb.
     mb2[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
          B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, debug = debug)
+         backtracking = backtracking, test = test, max.sx = max.sx,
+         complete = complete, debug = debug)
 
   }#FOR
 
@@ -42,14 +44,15 @@ inter.incremental.association.optimized = function(x, whitelist, blacklist,
 }#INTER.INCREMENTAL.ASSOCIATION.OPTIMIZED
 
 inter.incremental.association = function(x, cluster = NULL, whitelist,
-  blacklist, test, alpha, B, strict, debug = FALSE) {
+  blacklist, test, alpha, B, max.sx = ncol(x), strict, complete, debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
   mb = smartSapply(cluster, as.list(nodes), inter.ia.markov.blanket, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, debug = debug)
+         blacklist = blacklist, test = test, max.sx = max.sx,
+         complete = complete, debug = debug)
   names(mb) = nodes
 
   # check markov blankets for consistency.
@@ -58,7 +61,7 @@ inter.incremental.association = function(x, cluster = NULL, whitelist,
   # 2. [Compute Graph Structure]
   mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, debug = debug)
+         test = test, max.sx = max.sx, complete = complete, debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -68,8 +71,9 @@ inter.incremental.association = function(x, cluster = NULL, whitelist,
 
 }#INTER.INCREMENTAL.ASSOCIATION
 
-inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
-  start = character(0), backtracking = NULL, test, debug = FALSE) {
+inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
+  blacklist, start = character(0), backtracking = NULL, test, max.sx = ncol(x),
+  complete, debug = FALSE) {
 
   nodes = nodes[nodes != x]
   culprit = known.good = known.bad = c()
@@ -128,12 +132,22 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
     if (length(nodes[nodes %!in% c(mb, culprit)]) == 0 || is.null(nodes))
       break
 
+    if (length(mb) > max.sx) {
+
+       if (debug)
+         cat("  @ limiting conditioning sets to", max.sx, "nodes.\n")
+
+      break
+
+    }#THEN
+
     # get a snapshot of the markov blanket status.
     mb.snapshot = mb
 
     # get an association measure for each of the available nodes.
     association = indep.test(nodes[nodes %!in% c(mb, culprit)], x, sx = mb,
-                    test = test, data = data, B = B, alpha = alpha)
+                    test = test, data = data, B = B, alpha = alpha,
+                    complete = complete)
 
     # stop if there are no candidates for inclusion; the markov blanket
     # would obviously be unchanged.
@@ -166,14 +180,15 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklis
     fixed = fixed[fixed != ""]
 
     pv = roundrobin.test(x = x, z = mb, fixed = fixed, data = data, test = test,
-           B = B, alpha = alpha, debug = debug)
+           B = B, alpha = alpha, complete = complete, debug = debug)
 
     mb = intersect(mb, c(names(pv[pv < alpha]), fixed))
 
+    # if the markov blanket did not change, stop iterating.
     if (identical(mb, mb.snapshot)) {
 
       if (debug)
-        cat("  @ markov blanket is unchanged, stopping.")
+        cat("  @ markov blanket is unchanged, stopping.\n")
       break
 
     }#THEN

@@ -1,12 +1,14 @@
 
 # generic plot of an object of class 'bn' or 'bn.fit' using graphviz.
-graphviz.plot = function(x, highlight = NULL, layout = "dot", shape = "circle",
-    main = NULL, sub = NULL) {
+graphviz.plot = function(x, highlight = NULL, groups, layout = "dot",
+    shape = "circle", main = NULL, sub = NULL, render = TRUE) {
 
   # check whether graphviz is loaded.
   check.and.load.package("Rgraphviz")
   # check x's class.
   check.bn.or.fit(x)
+  # check render.
+  check.logical(render)
 
   if (is(x, "bn")) {
 
@@ -23,13 +25,15 @@ graphviz.plot = function(x, highlight = NULL, layout = "dot", shape = "circle",
 
   # return the graph object for further customization, not NULL.
   graphviz.backend(nodes = nodes, arcs = arcs, highlight = highlight,
-    layout = layout, shape = shape, main = main, sub = sub)
+    groups = groups, layout = layout, shape = shape, main = main, sub = sub,
+    render = render)
 
 }#GRAPHVIZ.PLOT
 
 # plot a graph with arcs formatted according to their own strength.
 strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
-    layout = "dot", shape = "circle", main = NULL, sub = NULL, debug = FALSE) {
+    groups, layout = "dot", shape = "circle", main = NULL, sub = NULL,
+    render = TRUE, debug = FALSE) {
 
   # check whether graphviz is loaded.
   check.and.load.package("Rgraphviz")
@@ -51,8 +55,8 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
 
   # return the graph object for further customization, not NULL.
   graphviz.backend(nodes = names(x$nodes), arcs = x$arcs,
-    highlight = highlight, arc.weights = arc.weights,
-    layout = layout, shape = shape, main = main, sub = sub)
+    highlight = highlight, groups = groups, arc.weights = arc.weights,
+    layout = layout, shape = shape, main = main, sub = sub, render = render)
 
 }#STRENGTH.PLOT
 
@@ -289,7 +293,7 @@ plot.bn.kcv.list = function(x, ..., main, xlab, ylab, connect = FALSE) {
 }#PLOT.BN.KCV.LIST
 
 # graphical comparison of different network structures.
-graphviz.compare = function(x, ..., layout = "dot", shape = "circle",
+graphviz.compare = function(x, ..., groups, layout = "dot", shape = "circle",
     main = NULL, sub = NULL, diff = "from-first", diff.args = list()) {
 
   available.diff.methods = c("none", "from-first")
@@ -302,7 +306,7 @@ graphviz.compare = function(x, ..., layout = "dot", shape = "circle",
   # collect all the networks in a singe list.
   netlist = c(list(x), list(...))
   # check that the networks in the list are valid and agree with each other.
-  check.customlist(netlist, nodes = nodes) 
+  check.customlist(netlist, nodes = nodes)
   # check the titles and the subtitles for the networks.
   if (!is.null(main))
     if (!is.string.vector(main) || (length(main) != length(netlist)))
@@ -367,7 +371,7 @@ graphviz.compare = function(x, ..., layout = "dot", shape = "circle",
 
   # the sanitization of "layout" and "shape" is left to the backend.
 
-  graphviz.compare.backend(netlist = netlist, nodes = nodes,
+  graphviz.compare.backend(netlist = netlist, nodes = nodes, groups = groups,
     layout = layout, shape = shape, main = main, sub = sub, diff = diff,
     diff.args = diff.args)
 

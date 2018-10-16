@@ -114,6 +114,8 @@
     \item \code{maxscore}: the label of the network score used in the
       \dQuote{Maximize} phase of a hybrid learning algorithm (a character
       string).
+    \item \code{max.sx}: the maximum allowed size of the conditioning sets
+      in the conditional independence tests used in constraint-based algorithms. 
 
   }
 

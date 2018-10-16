@@ -58,9 +58,9 @@ data(asia)
 \source{
 
   Lauritzen S, Spiegelhalter D (1988). "Local Computation with Probabilities
-      on Graphical Structures and their Application to Expert Systems (with
-      discussion)". \emph{Journal of the Royal Statistical Society: Series B
-      (Statistical Methodology)}, \strong{50}(2), 157-224.
+	on Graphical Structures and their Application to Expert Systems (with
+	discussion)". \emph{Journal of the Royal Statistical Society: Series B},
+    \strong{50}(2):157--224.
 
 }
 \examples{

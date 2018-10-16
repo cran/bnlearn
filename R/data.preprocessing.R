@@ -167,11 +167,12 @@ hartemink.discretization = function(data, breaks, ordered, initial.breaks,
 
 }#HARTEMINK.DISCRETIZATION
 
-dedup.backend = function(data, threshold, debug = FALSE) {
+dedup.backend = function(data, threshold, complete, debug = FALSE) {
 
   .Call(call_dedup,
         data = data,
         threshold = threshold,
+        complete = complete,
         debug = debug)
 
 }#DEDUP.BACKEND

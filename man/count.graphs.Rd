@@ -46,11 +46,11 @@ count.graphs(type = "all.dags", nodes, ..., debug = FALSE)
   Harary F, Palmer EM (1973). "Graphical Enumeration". Academic Press.
 
   Rodionov VI (1992). "On the Number of Labeled Acyclic Digraphs".
-      \emph{Discrete Mathematics}, 105, 319-321.
+    \emph{Discrete Mathematics}, \strong{105}:319--321.
 
   Liskovets VA (1976). "On the Number of Maximal Vertices of a Random Acyclic
-     Digraph". \emph{Theory of Probability and its Applications},
-     \strong{20}(2), 401-409.
+    Digraph". \emph{Theory of Probability and its Applications},
+    \strong{20}(2):401--409.
 
 }
 \examples{

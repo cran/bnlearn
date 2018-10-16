@@ -85,8 +85,8 @@ data(insurance)
 \source{
 
   Binder J, Koller D, Russell S, Kanazawa K (1997). "Adaptive Probabilistic
-      Networks with Hidden Variables". \emph{Machine Learning},
-      \strong{29}(2-3), 213-244.
+    Networks with Hidden Variables". \emph{Machine Learning},
+    \strong{29}(2--3):213--244.
 
 }
 \note{
@@ -98,7 +98,7 @@ data(insurance)
 # load the data.
 data(insurance)
 # create and plot the network structure.
-modelstring = paste("[Age][Mileage][SocioEcon|Age][GoodStudent|Age:SocioEcon]",
+modelstring = paste0("[Age][Mileage][SocioEcon|Age][GoodStudent|Age:SocioEcon]",
   "[RiskAversion|Age:SocioEcon][OtherCar|SocioEcon][VehicleYear|SocioEcon:RiskAversion]",
   "[MakeModel|SocioEcon:RiskAversion][SeniorTrain|Age:RiskAversion]",
   "[HomeBase|SocioEcon:RiskAversion][AntiTheft|SocioEcon:RiskAversion]",
@@ -109,8 +109,7 @@ modelstring = paste("[Age][Mileage][SocioEcon|Age][GoodStudent|Age:SocioEcon]",
   "[DrivHist|RiskAversion:DrivingSkill][Accident|DrivQuality:Mileage:Antilock]",
   "[ThisCarDam|RuggedAuto:Accident][OtherCarCost|RuggedAuto:Accident]",
   "[MedCost|Age:Accident:Cushioning][ILiCost|Accident]",
-  "[ThisCarCost|ThisCarDam:Theft:CarValue][PropCost|ThisCarCost:OtherCarCost]",
-  sep = "")
+  "[ThisCarCost|ThisCarDam:Theft:CarValue][PropCost|ThisCarCost:OtherCarCost]")
 dag = model2network(modelstring)
 \dontrun{graphviz.plot(dag, shape = "ellipse")}
 }

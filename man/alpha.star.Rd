@@ -37,8 +37,8 @@ for (i in 1:3) {
 \references{
 
   Steck H (2008). "Learning the Bayesian Network Structure: Dirichlet Prior
-      versus Data". In "Proceedings of the 24th Conference
-      on Uncertainty in Artificial Intelligence (UAI2008)", pp. 511-518.
+	versus Data". \emph{Proceedings of the 24th Conference on Uncertainty in
+	Artificial Intelligence}, pp. 511--518.
 
 }
 \author{Marco Scutari}

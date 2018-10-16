@@ -180,8 +180,8 @@ loss(x)
 }
 \references{
 
-  Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models:
-      Principles and Techniques}. MIT Press.
+  Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models: Principles
+    and Techniques}. MIT Press.
 
 }
 \seealso{\code{\link{bn.boot}}, \code{\link{rbn}}, \code{\link{bn.kcv-class}}.}
@@ -214,7 +214,6 @@ bn.cv(gaussian.subset, "hc", method = "custom-folds", folds = folds)
 folds = replicate(5, split(sample(nrow(gaussian.subset)), seq(5)),
           simplify = FALSE)
 bn.cv(gaussian.subset, "hc", method = "custom-folds", folds = folds)
-}
-}
+}}
 \author{Marco Scutari}
 \keyword{resampling}

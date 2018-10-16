@@ -11,32 +11,32 @@
 \description{
 
   Learn the equivalence class of a directed acyclic graph (DAG) from data using
-  the Grow-Shrink (GS), the Incremental Association (IAMB), the Fast Incremental
-  Association (Fast-IAMB), the Interleaved Incremental Association (Inter-IAMB),
-  the Max-Min Parents and Children (MMPC) or the Semi-Interleaved HITON-PC
+  the PC, Grow-Shrink (GS), Incremental Association (IAMB), Fast Incremental
+  Association (Fast-IAMB), Interleaved Incremental Association (Inter-IAMB),
+  Max-Min Parents and Children (MMPC) or Semi-Interleaved HITON-PC
   constraint-based algorithms.
 }
 \usage{
 pc.stable(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, undirected = FALSE)
+  alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = FALSE)
 gs(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
-  undirected = FALSE)
+  alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, optimized = FALSE,
+  strict = FALSE, undirected = FALSE)
 iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
-  undirected = FALSE)
+  alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, optimized = FALSE,
+  strict = FALSE, undirected = FALSE)
 fast.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
-  undirected = FALSE)
+  alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, optimized = FALSE,
+  strict = FALSE, undirected = FALSE)
 inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
-  undirected = FALSE)
+  alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, optimized = FALSE,
+  strict = FALSE, undirected = FALSE)
 mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
-  undirected = TRUE)
+  alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, optimized = FALSE,
+  strict = FALSE, undirected = TRUE)
 si.hiton.pc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
-  alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE, strict = FALSE,
-  undirected = TRUE)
+  alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, optimized = FALSE,
+  strict = FALSE, undirected = TRUE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
@@ -56,6 +56,9 @@ si.hiton.pc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
     permutation test. It will be ignored with a warning if the conditional
     independence test specified by the \code{test} argument is not a
     permutation test.}
+  \item{max.sx}{a positive integer, the maximum allowed size of the conditioning
+    sets used in conditional independence tests. The default is that there is
+    no limit on size.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
   \item{optimized}{a boolean value. See \code{\link{bnlearn-package}} for
@@ -77,47 +80,44 @@ si.hiton.pc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
   \bold{for PC:}
 
   Colombo D, Maathuis MH (2014). "Order-Independent Constraint-Based Causal
-      Structure Learning". \emph{Journal of Machine Learning Research},
-      \strong{15}, 3921-3962.
+    Structure Learning". \emph{Journal of Machine Learning Research},
+    \strong{15}:3921--3962.
 
   \bold{for GS:}
 
   Margaritis D (2003). \emph{Learning Bayesian Network Model Structure from
       Data}. Ph.D. thesis, School of Computer Science, Carnegie-Mellon
-      University, Pittsburgh, PA. Available as Technical Report CMU-CS-03-153.
+      University, Pittsburgh, PA.
 
   \bold{for IAMB:}
 
   Tsamardinos I, Aliferis CF, Statnikov A (2003). "Algorithms for Large Scale
-      Markov Blanket Discovery". In "Proceedings of the Sixteenth International
-      Florida Artificial Intelligence Research Society Conference", pp. 376-381.
-      AAAI Press.
+    Markov Blanket Discovery". \emph{Proceedings of the Sixteenth International
+    Florida Artificial Intelligence Research Society Conference}, pp. 376--381.
 
   \bold{for Fast-IAMB and Inter-IAMB:}
 
   Yaramakala S, Margaritis D (2005). "Speculative Markov Blanket Discovery for
-      Optimal Feature Selection". In "ICDM '05: Proceedings of the Fifth IEEE
-      International Conference on Data Mining", pp. 809-812. IEEE Computer
-      Society.
+    Optimal Feature Selection". \emph{Proceedings of the Fifth IEEE
+    International Conference on Data Mining}, pp. 809--812.
 
   \bold{for MMPC:}
 
-  Tsamardinos I, Aliferis CF, Statnikov A (2003). "Time and Sample
-      Efficient Discovery of Markov Blankets and Direct Causal Relations".
-      In "KDD '03: Proceedings of the Ninth ACM SIGKDD International
-      Conference on Knowledge Discovery and Data Mining", pp. 673-678. ACM.
+  Tsamardinos I, Aliferis CF, Statnikov A (2003). "Time and Sample Efficient
+    Discovery of Markov Blankets and Direct Causal Relations". \emph{Proceedings
+    of the Ninth ACM SIGKDD International Conference on Knowledge Discovery and
+    Data Mining}, pp. 673--678.
 
   Tsamardinos I, Brown LE, Aliferis CF (2006). "The Max-Min Hill-Climbing
-      Bayesian Network Structure Learning Algorithm". \emph{Machine Learning},
-      \strong{65}(1), 31-78.
+    Bayesian Network Structure Learning Algorithm". \emph{Machine Learning},
+    \strong{65}(1):31--78.
 
   \bold{for the Semi-Interleaved HITON-PC:}
 
   Aliferis FC, Statnikov A, Tsamardinos I, Subramani M, Koutsoukos XD (2010).
-      "Local Causal and Markov Blanket Induction for Causal Discovery and
-      Feature Selection for Classification Part I: Algorithms and Empirical
-      Evaluation". \emph{Journal of Machine Learning Research}, \strong{11},
-      171-234.
+	"Local Causal and Markov Blanket Induction for Causal Discovery and Feature
+	Selection for Classification Part I: Algorithms and Empirical Evaluation".
+	\emph{Journal of Machine Learning Research}, \strong{11}:171--234.
 
 }
 \author{Marco Scutari}

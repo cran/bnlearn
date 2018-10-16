@@ -1,6 +1,6 @@
 
 # graphical comparison of different network structures.
-graphviz.compare.backend = function(netlist, nodes, layout, shape, main,
+graphviz.compare.backend = function(netlist, nodes, groups, layout, shape, main,
     sub, diff, diff.args) {
 
   # merge and deduplicate all the arcs.
@@ -14,12 +14,12 @@ graphviz.compare.backend = function(netlist, nodes, layout, shape, main,
   })
 
   merged = empty.graph(nodes)
-  arcs(merged, check.cycles = FALSE) = 
+  arcs(merged, check.cycles = FALSE) =
     unique.arcs(do.call("rbind", arclist), nodes = nodes)
 
   # lay out the graph.
-  gr = graphviz.backend(nodes, merged$arcs, layout = layout, shape = shape,
-         render = FALSE)
+  gr = graphviz.backend(nodes, merged$arcs, groups = groups, layout = layout,
+         shape = shape, render = FALSE)
   # extract the labels of the arcs of the first network.
   ref.arcs = apply(arclist[[1]], 1, paste, collapse = "~")
   # extract the labels of the arcs of the merged network.
@@ -107,27 +107,39 @@ graphviz.compare.backend = function(netlist, nodes, layout, shape, main,
         # matching true positive directed arcs.
         tp.labels = grlabels[grlabels %in% arcs2grlabels(sorted$tp, both = TRUE)]
 
-        edges.temp[["col"]][tp.labels] = diff.args$tp.col
-        edges.temp[["lty"]][tp.labels] = diff.args$tp.lty
-        if ("tp.lwd" %in% names(diff.args))
-          edges.temp[["lwd"]][tp.labels] = diff.args$tp.lwd
+        if (length(tp.labels) > 0) {
+
+          edges.temp[["col"]][tp.labels] = diff.args$tp.col
+          edges.temp[["lty"]][tp.labels] = diff.args$tp.lty
+          if ("tp.lwd" %in% names(diff.args))
+            edges.temp[["lwd"]][tp.labels] = diff.args$tp.lwd
+
+        }#THEN
 
         # match false positive directed arcs.
         fp.labels = grlabels[grlabels %in% arcs2grlabels(sorted$fp, both = TRUE)]
 
-        edges.temp[["col"]][fp.labels] = diff.args$fp.col
-        edges.temp[["lty"]][fp.labels] = diff.args$fp.lty
-        if ("fp.lwd" %in% names(diff.args))
-          edges.temp[["lwd"]][fp.labels] = diff.args$fp.lwd
+        if (length(fp.labels) > 0) {
+
+          edges.temp[["col"]][fp.labels] = diff.args$fp.col
+          edges.temp[["lty"]][fp.labels] = diff.args$fp.lty
+          if ("fp.lwd" %in% names(diff.args))
+            edges.temp[["lwd"]][fp.labels] = diff.args$fp.lwd
+
+        }#THEN
 
         # match false negative directed arcs.
         fn.labels.fwd = grlabels[grlabels %in% arcs2grlabels(sorted$fn)]
         fn.labels.bwd = grlabels[grlabels %in% arcs2grlabels(sorted$fn[, 2:1, drop = FALSE])]
 
-        edges.temp[["col"]][c(fn.labels.fwd, fn.labels.bwd)] = diff.args$fn.col
-        edges.temp[["lty"]][c(fn.labels.fwd, fn.labels.bwd)] = diff.args$fn.lty
-        if ("fn.lwd" %in% names(diff.args))
-          edges.temp[["lwd"]][c(fn.labels.fwd, fn.labels.bwd)] = diff.args$fn.lwd
+        if (length(c(fn.labels.fwd, fn.labels.bwd)) > 0) {
+
+          edges.temp[["col"]][c(fn.labels.fwd, fn.labels.bwd)] = diff.args$fn.col
+          edges.temp[["lty"]][c(fn.labels.fwd, fn.labels.bwd)] = diff.args$fn.lty
+          if ("fn.lwd" %in% names(diff.args))
+            edges.temp[["lwd"]][c(fn.labels.fwd, fn.labels.bwd)] = diff.args$fn.lwd
+
+        }#THEN
 
         # arcs that do not appear in the current graph should be directed as in
         # the reference graph, if they are not.
@@ -170,7 +182,7 @@ graphviz.compare.backend = function(netlist, nodes, layout, shape, main,
     Rgraphviz::renderGraph(gr.temp)
 
   }#FOR
- 
+
 }#GRAPHVIZ.COMPARE.BACKEND
 
 # utility function to paster graphviz labels together.

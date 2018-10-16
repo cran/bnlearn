@@ -1,5 +1,5 @@
 #include "include/rcore.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/sampling.h"
 #include "include/globals.h"
 #include "include/matrix.h"
@@ -241,6 +241,17 @@ long double *lvls_counts = NULL, lvls_tot = 0;
 
   }/*FOR*/
 
+  /* deallocate here to avoid leaking memory if warnings are errors. */
+  Free1D(vartypes);
+  Free1D(varptrs);
+  Free1D(evptrs);
+  Free1D(wgt);
+  if (TYPEOF(result) == INTSXP)
+    Free1D(lvls_counts);
+
+  if (drop > 0)
+    warning("dropping %d observations because generated samples are NAs.", drop);
+
   if (include_prob > 0) {
 
     /* set the levels of the taregt variable as rownames. */
@@ -256,16 +267,6 @@ long double *lvls_counts = NULL, lvls_tot = 0;
     UNPROTECT(4);
 
   }/*ELSE*/
-
-  Free1D(vartypes);
-  Free1D(varptrs);
-  Free1D(evptrs);
-  Free1D(wgt);
-  if (TYPEOF(result) == INTSXP)
-    Free1D(lvls_counts);
-
-  if (drop > 0)
-    warning("dropping %d observations because generated samples are NAs.", drop);
 
   return result;
 

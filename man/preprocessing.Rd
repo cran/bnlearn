@@ -75,9 +75,9 @@ d2 = dedup(gaussian.test)
 \references{
 
   Hartemink A (2001). \emph{Principled Computational Methods for the Validation
-      and Discovery of Genetic Regulatory Networks}. Ph.D. thesis, School of
-      Electrical Engineering and Computer Science, Massachusetts Institute of
-      Technology.
+    and Discovery of Genetic Regulatory Networks}. Ph.D. thesis, School of
+    Electrical Engineering and Computer Science, Massachusetts Institute of
+    Technology.
 
 }
 \author{Marco Scutari}

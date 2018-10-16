@@ -69,7 +69,7 @@ impute.backend.parents = function(fitted, data, debug = FALSE) {
 # missing data imputation with maximum likelihood predictions.
 impute.backend.map = function(fitted, data, n, debug = FALSE) {
 
-  nodes = nodes(fitted)
+  nodes = names(data)
 
   # if there is no missing value, nothing to do.
   missing = !complete.cases(data)
@@ -84,7 +84,7 @@ impute.backend.map = function(fitted, data, n, debug = FALSE) {
     if (length(from) == 0)
       evidence = TRUE
     else
-      evidence = lapply(data[j, from],
+      evidence = lapply(data[j, from, drop = FALSE],
                    function(x) if (is.factor(x)) as.character(x) else x)
 
     if (debug) {

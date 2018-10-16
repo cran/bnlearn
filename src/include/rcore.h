@@ -20,14 +20,20 @@ void BN_Free1D(void *p);
 void BN_Free2D(void **p, size_t R);
 void BN_Free3D(void ***p, size_t R, size_t C);
 #define Free1D(p) \
-  BN_Free1D((void *)p); \
-  p = NULL;
+  do { \
+    BN_Free1D((void *)p); \
+    p = NULL; \
+  } while(0)
 #define Free2D(p, R) \
-  BN_Free2D((void **)p, R); \
-  p = NULL;
+  do { \
+    BN_Free2D((void **)p, R); \
+    p = NULL; \
+  } while (0)
 #define Free3D(p, R, C) \
-  BN_Free3D((void ***)p, R, C); \
-  p = NULL;
+  do { \
+    BN_Free3D((void ***)p, R, C); \
+    p = NULL; \
+  } while (0)
 
 /* utility macros. */
 #define isTRUE(logical) ((LOGICAL(logical)[0]) == TRUE)
@@ -49,6 +55,8 @@ SEXP dupe(SEXP array);
 SEXP mkRealVec(int n, ...);
 SEXP int2fac(SEXP vector, int *nlevels);
 void setDimNames(SEXP obj, SEXP rownames, SEXP colnames);
+SEXP subset_by_name(SEXP vec, int n, ...);
+int all_equal(SEXP vec, SEXP val);
 
 /* from strings.c */
 SEXP string_delete(SEXP array, SEXP string, int *idx);

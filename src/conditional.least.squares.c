@@ -229,9 +229,9 @@ long double den = 0, *ssr = NULL;
        *   1) the first variable is constant and collinear with the response;
        *   2) the second variable is constant and collinear with the response;
        *   3) the two variables are collinear with each other. */
-      singular1 = (fabs(var[i][1]) < MACHINE_TOL);
-      singular2 = (fabs(var[i][2]) < MACHINE_TOL) ||
-                  (fabs(cov[i][2]) / sqrt(var[i][1] * var[i][2]) > 1 - MACHINE_TOL);
+      singular1 = (fabsl(var[i][1]) < MACHINE_TOL);
+      singular2 = (fabsl(var[i][2]) < MACHINE_TOL) ||
+                  (fabsl(cov[i][2]) / sqrt(var[i][1] * var[i][2]) > 1 - MACHINE_TOL);
 
       if (singular1 && !singular2) {
 
@@ -257,7 +257,7 @@ long double den = 0, *ssr = NULL;
 
         den = (var[i][1] * var[i][2] - cov[i][2] * cov[i][2]);
 
-        cc[i * 3 + 1] = (var[i][2] * cov[i][0] - cov[i][2] * cov[i][1]) / den; 
+        cc[i * 3 + 1] = (var[i][2] * cov[i][0] - cov[i][2] * cov[i][1]) / den;
         cc[i * 3 + 2] = (var[i][1] * cov[i][1] - cov[i][2] * cov[i][0]) / den;
         cc[i * 3] = mean_y[i] - mean_x1[i] * cc[i * 3 + 1] - mean_x2[i] * cc[i * 3 + 2];
 

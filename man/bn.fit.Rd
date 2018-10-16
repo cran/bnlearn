@@ -62,7 +62,7 @@ bn.net(x, debug = FALSE)
       \code{data}. Similarly, regression coefficients are set to \code{NA}
       if the linear regressions correspoding to the local distributions of
       continuous nodes are singular. Such missing values propagate to the
-      results of functions such as \code{predict()}. 
+      results of functions such as \code{predict()}.
 
   }
 

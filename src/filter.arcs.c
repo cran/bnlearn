@@ -69,10 +69,7 @@ SEXP result, try, dup;
   /* allocate, initialize and set the column names. */
   setDimNames(result, R_NilValue, mkStringVec(2, "from", "to"));
 
-  if (uniq_rows == 0)
-    UNPROTECT(1);
-  else
-    UNPROTECT(3);
+  UNPROTECT(3);
 
   return result;
 

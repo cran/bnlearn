@@ -14,7 +14,7 @@ SEXP nodes = R_NilValue, node_data, parents, temp;
   /* get nodes' number and data. */
   node_data = getListElement(graph, "nodes");
   nnodes = length(node_data);
-  nodes = getAttrib(node_data, R_NamesSymbol);
+  PROTECT(nodes = getAttrib(node_data, R_NamesSymbol));
   /* cache the number of levels of each variables (zero = continuous). */
   nlevels = Calloc1D(nnodes, sizeof(int));
   for (i = 0; i < nnodes; i++) {
@@ -57,6 +57,7 @@ SEXP nodes = R_NilValue, node_data, parents, temp;
   }/*FOR*/
 
   Free1D(nlevels);
+  UNPROTECT(1);
 
   return ScalarReal(all_params);
 
@@ -72,7 +73,7 @@ SEXP nodes = R_NilValue, node_data, param_set, param_dims;
 fitted_node_e node_type = ENOFIT;
 
   if (debuglevel > 0)
-    nodes = getAttrib(bn, R_NamesSymbol);
+    PROTECT(nodes = getAttrib(bn, R_NamesSymbol));
 
   for (i = 0; i < nnodes; i++) {
 
@@ -162,6 +163,9 @@ fitted_node_e node_type = ENOFIT;
     res += node_params;
 
   }/*FOR*/
+
+  if (debuglevel > 0)
+    UNPROTECT(1);
 
   return ScalarInteger(res);
 

@@ -1,5 +1,5 @@
 #include "include/rcore.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/blas.h"
 
 /* computationally efficient function to compute least squares. */
@@ -125,7 +125,8 @@ SEXP data_x, result, confnames, dummy_configs;
   else {
 
     /* fitted values, residuals and configurations are just dummy NAs. */
-    fitted = residuals = ScalarReal(NA_REAL);
+    PROTECT(fitted = ScalarReal(NA_REAL));
+    PROTECT(residuals = ScalarReal(NA_REAL));
     PROTECT(dummy_configs = allocVector(INTSXP, 1));
     INT(dummy_configs) = NA_INTEGER;
     setAttrib(dummy_configs, R_ClassSymbol, mkString("factor"));
@@ -146,7 +147,7 @@ SEXP data_x, result, confnames, dummy_configs;
   SET_VECTOR_ELT(result, 3, residuals);
   SET_VECTOR_ELT(result, 4, fitted);
 
-  UNPROTECT(6 + (ncol > 0) + isTRUE(keep));
+  UNPROTECT(5 + (ncol > 0) + (isTRUE(keep) ? 2 : 3));
 
   return result;
 

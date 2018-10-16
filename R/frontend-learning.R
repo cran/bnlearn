@@ -1,85 +1,87 @@
 
 # PC algorithm, the stable version.
 pc.stable = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, undirected = FALSE) {
+    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
+    undirected = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
-    method = "pc.stable", debug = debug, optimized = FALSE,
-    strict = FALSE, undirected = undirected)
+    max.sx = max.sx, method = "pc.stable", debug = debug,
+    optimized = FALSE, strict = FALSE, undirected = undirected)
 
 }#PC.CLASSIC
 
 # Grow-Shrink frontend.
 gs = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE,
-    strict = FALSE, undirected = FALSE) {
+    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
+    optimized = FALSE, strict = FALSE, undirected = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
-    blacklist = blacklist, test = test, alpha = alpha, B = B, debug = debug,
+    blacklist = blacklist, test = test, alpha = alpha, B = B,
+    max.sx = max.sx, method = "gs", debug = debug,
     optimized = optimized, strict = strict, undirected = undirected)
 
 }#GS
 
 # Incremental Association frontend.
 iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE,
-    strict = FALSE, undirected = FALSE) {
+    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
+    optimized = FALSE, strict = FALSE, undirected = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
-    blacklist = blacklist, test = test, alpha = alpha, B = B, method = "iamb",
-    debug = debug, optimized = optimized, strict = strict,
-    undirected = undirected)
+    blacklist = blacklist, test = test, alpha = alpha, B = B,
+    max.sx = max.sx, method = "iamb", debug = debug,
+    optimized = optimized, strict = strict, undirected = undirected)
 
 }#IAMB
 
 # Fast-IAMB frontend.
 fast.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE,
-    strict = FALSE, undirected = FALSE) {
+    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
+    optimized = FALSE, strict = FALSE, undirected = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
-    method = "fast.iamb", debug = debug, optimized = optimized,
-    strict = strict, undirected = undirected)
+    max.sx = max.sx, method = "fast.iamb", debug = debug,
+    optimized = optimized, strict = strict, undirected = undirected)
 
 }#FAST.IAMB
 
 # Inter-IAMB frontend.
 inter.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE,
-    strict = FALSE, undirected = FALSE) {
+    test = NULL, alpha = 0.05, B = NULL,  max.sx = NULL, debug = FALSE,
+    optimized = FALSE, strict = FALSE, undirected = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
-    method = "inter.iamb", debug = debug, optimized = optimized,
-    strict = strict, undirected =  undirected)
+    max.sx = max.sx, method = "inter.iamb", debug = debug,
+    optimized = optimized, strict = strict, undirected = undirected)
 
 }#INTER.IAMB
 
 # MMPC frontend.
 mmpc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE,
-    strict = FALSE, undirected = TRUE) {
+    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
+    optimized = FALSE, strict = FALSE, undirected = TRUE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
-    method = "mmpc", debug = debug, optimized = optimized,
-    strict = strict, undirected = undirected)
+    max.sx = max.sx, method = "mmpc", debug = debug,
+    optimized = optimized, strict = strict, undirected = undirected)
 
 }#MMPC
 
 # Semi-Interleaved HITON-PC.
 si.hiton.pc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE, optimized = FALSE,
-    strict = FALSE, undirected = TRUE) {
+    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
+    optimized = FALSE, strict = FALSE, undirected = TRUE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
-    method = "si.hiton.pc", debug = debug, optimized = optimized,
-    strict = strict, undirected = undirected)
+    max.sx = max.sx, method = "si.hiton.pc", debug = debug,
+    optimized = optimized, strict = strict, undirected = undirected)
 
-}#MMPC
+}#SI.HITON.PC
 
 # ARACNE frontend.
 aracne = function(x, whitelist = NULL, blacklist = NULL, mi = NULL,
@@ -125,7 +127,7 @@ tabu = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 
 # Generic Restricted Maximization frontend.
 rsmax2 = function(x, whitelist = NULL, blacklist = NULL, restrict = "si.hiton.pc",
-    maximize = "hc", restrict.args = list(), maximize.args = list(), 
+    maximize = "hc", restrict.args = list(), maximize.args = list(),
     debug = FALSE) {
 
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
@@ -135,7 +137,7 @@ rsmax2 = function(x, whitelist = NULL, blacklist = NULL, restrict = "si.hiton.pc
 }#RSHC
 
 # MMHC frontend.
-mmhc = function(x, whitelist = NULL, blacklist = NULL, 
+mmhc = function(x, whitelist = NULL, blacklist = NULL,
     restrict.args = list(), maximize.args = list(), debug = FALSE) {
 
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
@@ -146,20 +148,22 @@ mmhc = function(x, whitelist = NULL, blacklist = NULL,
 
 # Frontend for the Markov blanket learning algorithms.
 learn.mb = function(x, node, method, whitelist = NULL, blacklist = NULL,
-    start = NULL, test = NULL, alpha = 0.05, B = NULL, debug = FALSE) {
+    start = NULL, test = NULL, alpha = 0.05, B = NULL, max.sx = NULL,
+    debug = FALSE) {
 
   mb.backend(x, target = node, method = method, whitelist = whitelist,
     blacklist = blacklist, start = start, test = test, alpha = alpha,
-    B = B, debug = debug)
+    B = B, max.sx = max.sx, debug = debug)
 
 }#LEARN.MB
 
 # Frontend for causal discovery learning algorithms.
 learn.nbr = function(x, node, method, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, debug = FALSE) {
+    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE) {
 
   nbr.backend(x, target = node, method = method, whitelist = whitelist,
-    blacklist = blacklist, test = test, alpha = alpha, B = B, debug = debug)
+    blacklist = blacklist, test = test, alpha = alpha, B = B,
+    max.sx = max.sx, debug = debug)
 
 }#LEARN.NBR
 

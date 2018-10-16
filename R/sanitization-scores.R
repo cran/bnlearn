@@ -289,7 +289,7 @@ check.graph.hyperparameters = function(beta, prior, network, data,
     learning = FALSE) {
 
   default.beta =
-    list("uniform" = NULL, "vsp" = 1/ncol(data),
+    list("uniform" = NULL, "vsp" = 1/(ncol(data) - 1),
       "marginal" = structure(0.5, nodes = names(network$nodes)),
       "cs" = cs.completed.prior(data.frame(character(0), character(0),
              numeric(0)), names(data)))

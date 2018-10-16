@@ -1,26 +1,24 @@
-# advanced cat which correctly handles ini-like and short line widths.
+# advanced cat which correctly handles ini-like lines and short line widths.
 wcat = function(header, value) {
 
-  # measure the number of available columns.
+  # get the number of available columns.
   columns = options("width")
-  # prepare the string to be printed.
-  string = paste(header, value, sep = " ")
 
   # blatantly ignore any line width shorter than 45, trying to support
   # that case is a losing proposition.
-  if ((columns >= nchar(string)) || columns < 45) {
+  if ((columns >= nchar(header) + nchar(value) + 1) || (columns < 45)) {
 
     # if there are enough columns print the string as is.
-    cat(string, "\n")
+    cat(paste(header, value, sep = " "), "\n")
 
-  }
+  }#THEN
   else {
 
     # if there are not enough columns print the header on one row
     # (left-aligned) and the value on the following line (right-aligned).
     cat(header, "\n", sprintf(paste("%", columns, "s", sep = ""), value), "\n")
 
-  }
+  }#ELSE
 
 }#WCAT
 

@@ -107,7 +107,7 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
   # check x's class.
   check.bn(x)
   # check the data are there.
-  check.data(data)
+  data.info = check.data(data)
   # check the arc is there.
   check.nodes(nodes = arc, graph = x, min.nodes = 2, max.nodes = 2)
   # check debug.
@@ -151,8 +151,9 @@ choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) 
     # warn about unused arguments.
     check.unused.args(list(...), c("alpha", "B"))
 
-    x = choose.direction.test(x, data = data, arc = arc, test = criterion,
-          alpha = alpha, B = B, debug = debug)
+    x = choose.direction.test(x, data = data, arc = arc,
+          test = criterion, alpha = alpha, B = B, debug = debug,
+          complete = data.info$complete.nodes)
 
   }#THEN
   else if (criterion %in% available.scores) {
@@ -236,11 +237,11 @@ BF = function(num, den, data, score, ..., log = TRUE) {
     warning("using a non-uniform graph prior means this is not a Bayes factor.")
 
   # if the score is decomposable, compute the Bayes factor using only those
-  # local distributions that differ between the two networks; otherwise 
+  # local distributions that differ between the two networks; otherwise
   # compute it on the whole network.
   if (is.score.decomposable(score, extra.args)) {
 
-    different = 
+    different =
       sapply(nodes, function(n) {
         !setequal(num$nodes[[n]]$parents, den$nodes[[n]]$parents)
       })

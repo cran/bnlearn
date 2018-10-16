@@ -25,6 +25,10 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
   }#THEN
   else if (method == "hartemink") {
 
+    # check that the data contains at least two columns, otherwise there is
+    # nothing to compute mutual information from.
+    if (ncol(data) < 2)
+      stop("at least two variables are needed to compute mutual information.")
     # check the number of breaks.
     if (!is.positive.integer(breaks))
       stop("the number of breaks must be a positive integer number.")
@@ -68,7 +72,8 @@ relevant = function(target, context, data, test, alpha, B, debug = FALSE) {
   warning("the 'relevant()' function is deprecated and will be removed in 2019.")
 
   # check the data.
-  check.data(data, allowed.types = c(discrete.data.types, continuous.data.types))
+  data.info = check.data(data,
+                allowed.types = c(discrete.data.types, continuous.data.types))
   # a valid node is needed.
   check.nodes(nodes = target, graph = names(data), max.nodes = 1)
   # an optional valid node is needed.
@@ -95,7 +100,7 @@ relevant = function(target, context, data, test, alpha, B, debug = FALSE) {
   check.logical(debug)
 
   pena.backend(target = target, context = context, data = data, test = test,
-    alpha = alpha, B = B, debug = debug)
+    alpha = alpha, B = B, debug = debug, complete = data.info$complete.nodes)
 
 }#RELEVANT
 
@@ -103,7 +108,8 @@ relevant = function(target, context, data, test, alpha, B, debug = FALSE) {
 dedup = function(data, threshold = 0.90, debug = FALSE) {
 
   # check the data (only continuous data are supported).
-  check.data(data, allowed.types = continuous.data.types)
+  data.info = check.data(data, allowed.types = continuous.data.types,
+                allow.missing = TRUE)
   # check the correlation threshold.
   if (missing(threshold))
     threshold = 0.90
@@ -112,7 +118,8 @@ dedup = function(data, threshold = 0.90, debug = FALSE) {
   # check debug.
   check.logical(debug)
 
-  dedup.backend(data = data, threshold = threshold, debug = debug)
+  dedup.backend(data = data, threshold = threshold,
+    complete = data.info$complete.nodes, debug = debug)
 
 }#DEDUP
 

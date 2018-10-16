@@ -1,6 +1,6 @@
 #include "include/rcore.h"
 #include "include/sets.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/scores.h"
 
 /* posterior averagted Dirichlet probability (covers the BDLA score). */
@@ -81,7 +81,7 @@ double imaginary = 0, alpha = 0, temp = 0, temp2 = 0, res = 0, iss_val = 0;
       if (a == 0)
         temp2 = temp;
       else
-        temp2 = logspace_add(temp2, temp); 
+        temp2 = logspace_add(temp2, temp);
 
     }/*FOR*/
 
@@ -110,7 +110,7 @@ SEXP nodes, node_t, data_t, parents, parent_vars, config;
   /* get the parents of the node. */
   parents = getListElement(node_t, "parents");
   /* extract the node's column from the data frame. */
-  data_t = c_dataframe_column(data, target, TRUE, FALSE);
+  PROTECT(data_t = c_dataframe_column(data, target, TRUE, FALSE));
   /* compute the prior probability component for the node. */
   prior_prob = graph_prior_prob(prior, target, beta, nodes, debuglevel);
 
@@ -140,6 +140,8 @@ SEXP nodes, node_t, data_t, parents, parent_vars, config;
 
   /* add the (log)prior to the marginal (log)likelihood to get the (log)posterior. */
   prob += prior_prob;
+
+  UNPROTECT(1);
 
   return prob;
 

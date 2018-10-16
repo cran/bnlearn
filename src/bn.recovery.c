@@ -10,7 +10,7 @@ int debuglevel = isTRUE(debug), checkmb = isTRUE(mb), *flt = INTEGER(filter);
 SEXP temp, temp2, nodes, elnames = NULL, fixed;
 
   /* get the names of the nodes. */
-  nodes = getAttrib(bn, R_NamesSymbol);
+  PROTECT(nodes = getAttrib(bn, R_NamesSymbol));
   n = length(nodes);
 
   /* allocate and initialize the checklist. */
@@ -89,6 +89,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
   if (!err) {
 
     Free1D(checklist);
+    UNPROTECT(1);
 
     return bn;
 
@@ -158,9 +159,9 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
   }/*FOR*/
 
   if (checkmb)
-    UNPROTECT(1);
-  else
     UNPROTECT(2);
+  else
+    UNPROTECT(3);
 
   Free1D(checklist);
 

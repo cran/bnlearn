@@ -17,7 +17,7 @@
 }
 \arguments{
   \item{x}{an object of class \code{bn.strength} returned by \code{boot.strength()},
-    representing learning results targeting the object of class \code{bn} 
+    representing learning results targeting the object of class \code{bn}
     specified by the \code{true} argument.}
   \item{true}{an object of class \code{bn}, the target of structure learning.}
   \item{\dots}{additional arguments, currently ignored.}
@@ -33,9 +33,9 @@
   algorithm is to evaluate how well it detects individual arcs.
   \code{as.prediction()} takes each pair of nodes in a ground truth network and
   labels them with a \code{1} if an arc exists between them and \code{0} if not.
-  It uses the arc presence probabilities in a \code{bn.strength} object 
+  It uses the arc presence probabilities in a \code{bn.strength} object
   returned by \code{boot.strength()} as the predictions.
-  
+
 }
 \value{
 
@@ -46,13 +46,12 @@
 \dontrun{
 library(ROCR)
 
-modelstring = paste0("[HIST|LVF][CVP|LVV][PCWP|LVV][HYP][LVV|HYP:LVF]",
-  "[LVF][STKV|HYP:LVF][ERLO][HRBP|ERLO:HR][HREK|ERCA:HR][ERCA]",
-  "[HRSA|ERCA:HR][ANES][APL][TPR|APL][ECO2|ACO2:VLNG][KINK]",
-  "[MINV|INT:VLNG][FIO2][PVS|FIO2:VALV][SAO2|PVS:SHNT][PAP|PMB][PMB]",
-  "[SHNT|INT:PMB][INT][PRSS|INT:KINK:VTUB][DISC][MVS][VMCH|MVS]",
-  "[VTUB|DISC:VMCH][VLNG|INT:KINK:VTUB][VALV|INT:VLNG][ACO2|VALV]",
-  "[CCHL|ACO2:ANES:SAO2:TPR][HR|CCHL][CO|HR:STKV][BP|CO:TPR]") 
+modelstring = paste0("[HIST|LVF][CVP|LVV][PCWP|LVV][HYP][LVV|HYP:LVF][LVF]",
+  "[STKV|HYP:LVF][ERLO][HRBP|ERLO:HR][HREK|ERCA:HR][ERCA][HRSA|ERCA:HR][ANES]",
+  "[APL][TPR|APL][ECO2|ACO2:VLNG][KINK][MINV|INT:VLNG][FIO2][PVS|FIO2:VALV]",
+  "[SAO2|PVS:SHNT][PAP|PMB][PMB][SHNT|INT:PMB][INT][PRSS|INT:KINK:VTUB][DISC]",
+  "[MVS][VMCH|MVS][VTUB|DISC:VMCH][VLNG|INT:KINK:VTUB][VALV|INT:VLNG][ACO2|VALV]",
+  "[CCHL|ACO2:ANES:SAO2:TPR][HR|CCHL][CO|HR:STKV][BP|CO:TPR]")
 true.dag = model2network(modelstring)
 strength = boot.strength(alarm, R = 200, m = 30, algorithm = "hc")
 pred = as.prediction(strength, true.dag)

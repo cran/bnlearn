@@ -8,12 +8,14 @@
 
 }
 \usage{
-graphviz.plot(x, highlight = NULL, layout = "dot",
-  shape = "circle", main = NULL, sub = NULL)
+graphviz.plot(x, highlight = NULL, groups, layout = "dot",
+  shape = "circle", main = NULL, sub = NULL, render = TRUE)
 }
 \arguments{
   \item{x}{an object of class \code{bn} or \code{bn.fit}.}
   \item{highlight}{a list, see below.}
+  \item{groups}{a list of character vectors, representing groups of node labels
+    of nodes that should be plotted close to each other.}
   \item{layout}{a character string, the layout argument that will be passed to
     \pkg{Rgraphviz}. Possible values are \code{dots}, \code{neato},
     \code{twopi}, \code{circo} and \code{fdp}. See \pkg{Rgraphviz}
@@ -24,6 +26,9 @@ graphviz.plot(x, highlight = NULL, layout = "dot",
     the top of the graph.}
   \item{sub}{a character string, a subtitle which is plotted at the bottom of
     the graph.}
+  \item{render}{a logical value. If \code{TRUE}, \code{graphviz.plot()} actually
+    draws the figure in addition to returning the corresponding \code{graph}
+    object. If \code{FALSE}, no figure is produced.}
 }
 \details{
 

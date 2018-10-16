@@ -10,7 +10,7 @@
   Compare two different Bayesian networks; compute their Structural Hamming
   Distance (SHD) or the Hamming distance between their skeletons. Or
   graphically compare them by plotting them side by side,
-  
+
 }
 \usage{
 compare(target, current, arcs = FALSE)
@@ -19,7 +19,7 @@ compare(target, current, arcs = FALSE)
 shd(learned, true, wlbl = FALSE, debug = FALSE)
 hamming(learned, true, debug = FALSE)
 
-graphviz.compare(x, ..., layout = "dot", shape = "circle", main = NULL, 
+graphviz.compare(x, ..., groups, layout = "dot", shape = "circle", main = NULL,
   sub = NULL, diff = "from-first", diff.args = list())
 }
 \arguments{
@@ -35,6 +35,8 @@ graphviz.compare(x, ..., layout = "dot", shape = "circle", main = NULL,
     printed; otherwise the function is completely silent.}
   \item{arcs}{a boolean value. See below.}
   \item{x}{an object of class \code{bn}.}
+  \item{groups}{a list of character vectors, representing groups of node labels
+    of nodes that should be plotted close to each other.}
   \item{layout}{a character string, the layout argument that will be passed to
     \pkg{Rgraphviz}. Possible values are \code{dots}, \code{neato},
     \code{twopi}, \code{circo} and \code{fdp}. See \pkg{Rgraphviz}
@@ -71,8 +73,7 @@ graphviz.compare(x, ..., layout = "dot", shape = "circle", main = NULL,
   }
 
   Regardless of the visualization, the nodes are arranged to be in the same
-  position for all the networks to make it easier to compare them. 
-
+  position for all the networks to make it easier to compare them.
 
 }
 \note{
@@ -114,8 +115,8 @@ graphviz.compare(e1, e2, diff = "none")
 \references{
 
   Tsamardinos I, Brown LE, Aliferis CF (2006). "The Max-Min Hill-Climbing
-      Bayesian Network Structure Learning Algorithm". \emph{Machine Learning},
-      \strong{65}(1), 31-78.
+    Bayesian Network Structure Learning Algorithm". \emph{Machine Learning},
+    \strong{65}(1):31--78.
 
 }
 \author{Marco Scutari}

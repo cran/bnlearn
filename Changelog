@@ -1,3 +1,39 @@
+bnlearn (4.4)
+
+  * fixed pc.stable() v-structure detection in the presence of blacklisted arcs.
+  * warn about trying to cextend() networks that contain no information about
+     arc directions (and thus v-structures), such as those learned with
+     "undirected = TRUE" or those returned by skeleton().
+  * fixed a bug because of which a number of functions incorrectly reported
+     that data had variables with no observed values when that was not true.
+  * fixed posterior imputation from a single observed variable (thanks Derek
+     Powell).
+  * added an argument "max.sx" to limit the the maximum allowed size of the
+     conditioning sets in the conditional independence tests used in
+     constraint-based algorithms and in learn.{mb,nbr}().
+  * do not generate an error when it is impossible to compute a partial
+     correlation because the covariance matrix cannot be (pseudo)inverted;
+     generate a warning and return a zero partial correlation instead.
+  * added an as.lm() function to convert Gaussian networks and nodes to (lists
+     of) lm objects (thanks William Arnost).
+  * fixed the penalty terms of BIC and AIC, which did not count residual
+     standard errors when tallying the parameters of Gaussian and conditional
+     Gaussian nodes.
+  * cpdag() failed to set the directions of some compelled arcs when both
+     end-nodes have parents (thanks Topi Talvitie).
+  * custom.strength() now accepts bn.fit objects in addition to bn objects
+     and arc sets.
+  * vstructs() mistakenly handled moral = TRUE as if it were moral = FALSE
+     (thanks Christian Schuhegger).
+  * graphviz.plot() and strength.plot() now have a "render" argument that
+     controls whether a figure is produced (a graph object object is always
+     returned from both functions).
+  * graphviz.plot(), strength.plot() and graphviz.compare() now have a "groups"
+     argument that specifies subsets of nodes that should be plotted close to
+     each other, layout permitting.
+  * fixed tree.bayes() for data frames with 2-3 variables, and chow.liu() as
+     well (thanks Kostas Oikonomou).
+
 bnlearn (4.3)
 
   * the "strict" and "optimized" arguments of constraint-based algorims are
@@ -12,7 +48,7 @@ bnlearn (4.3)
   * added a graphviz.chart() function to produce DAG-with-barchart-nodes plots.
   * fixed the counting of the number of parameters of continuous and hybrid
      networks, which did not take the residual standard errors into account
-     (thanks Jeffrey Hart). 
+     (thanks Jeffrey Hart).
   * improved handling of singular models in impute().
   * added an import function for pcAlgo objects from pcalg.
   * fixed bug in the sanitization of conditional Gaussian networks (thanks
@@ -134,7 +170,7 @@ bnlearn (4.0)
   * fixed segfault when computing posterior predictions from networks with
      NaNs in their conditional probability tables (thanks Giulio Caravagna).
   * fixed the assignment of LASSO models from the penalized package to
-     fitted Gaussian networks (thanks Anthony Gualandri). 
+     fitted Gaussian networks (thanks Anthony Gualandri).
   * cpdag() now preserves the directions of arcs between continuous and
      discrete nodes in conditional linear Gaussian networks, and optionally
      also takes whitelists and blacklist into account (for any network).
@@ -173,7 +209,7 @@ bnlearn (3.9)
   * added an "effective" argument to compute the effective degrees of freedoms
      of the network, estimated with the number of non-zero free parameters.
   * fixed optional argument handling in rsmax2().
-  * fixed more corner cases related to singular models in 
+  * fixed more corner cases related to singular models in
      cpdist(..., method = "lw") and predict(..., method = "bayes-lw").
   * fixed Pearson's X^2 test, zero cells may have dropped too often in
      sparse contingency tables.

@@ -30,14 +30,13 @@ data(marks)
 \source{
 
   Edwards DI (2000). \emph{Introduction to Graphical Modelling}. Springer, 2nd
-      edition.
+    edition.
 
   Mardia KV, Kent JT, Bibby JM (1979). \emph{Multivariate Analysis}. Academic
-      Press.
+    Press.
 
   Whittaker J (1990). \emph{Graphical Models in Applied Multivariate
-      Statistics}. Wiley.
-
+    Statistics}. Wiley.
 
 }
 \examples{

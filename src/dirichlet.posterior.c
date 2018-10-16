@@ -1,6 +1,6 @@
 #include "include/rcore.h"
 #include "include/sets.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/scores.h"
 
 /* posterior Dirichlet probability (covers BD and K2 scores). */
@@ -160,9 +160,9 @@ SEXP nodes, node_t, data_t, exp_data, parents, parent_vars, config;
   /* get the parents of the node. */
   parents = getListElement(node_t, "parents");
   /* extract the node's column from the data frame. */
-  data_t = c_dataframe_column(data, target, TRUE, FALSE);
+  PROTECT(data_t = c_dataframe_column(data, target, TRUE, FALSE));
   /* extract the list of eperimental data. */
-  exp_data = c_dataframe_column(experimental, target, TRUE, FALSE);
+  PROTECT(exp_data = c_dataframe_column(experimental, target, TRUE, FALSE));
   /* compute the prior probability component for the node. */
   prior_prob = graph_prior_prob(prior, target, beta, nodes, debuglevel);
 
@@ -192,6 +192,8 @@ SEXP nodes, node_t, data_t, exp_data, parents, parent_vars, config;
 
   /* add the (log)prior to the marginal (log)likelihood to get the (log)posterior. */
   prob += prior_prob;
+
+  UNPROTECT(2);
 
   return prob;
 

@@ -11,9 +11,9 @@
     lambda = 0;
 
 /* shrinked mutual information, to be used in C code. */
-double c_shmi(int *xx, int llx, int *yy, int lly, int num) {
+double c_shmi(int *xx, int llx, int *yy, int lly, int num, int scale) {
 
-int i = 0, j = 0, k = 0;
+int i = 0, j = 0, k = 0, ncomplete = 0;
 double **n = NULL, *ni = NULL, *nj = NULL;
 double lambda = 0, target = 1/(double)(llx * lly);
 double res = 0;
@@ -25,15 +25,24 @@ double res = 0;
 
   /* compute the joint frequency of x and y. */
   for (k = 0; k < num; k++)
-    n[xx[k] - 1][yy[k] - 1]++;
+    if ((xx[k] != NA_INTEGER) && (yy[k] != NA_INTEGER)) {
+
+      n[xx[k] - 1][yy[k] - 1]++;
+      ncomplete++;
+
+    }/*THEN*/
+
+  /* if there are no complete data points, return independence. */
+  if (ncomplete == 0)
+    goto free_and_return;
 
   /* estimate the optimal lambda for the data. */
-  mi_lambda((double *)n, &lambda, target, num, llx, lly, 0);
+  mi_lambda((double *)n, &lambda, target, ncomplete, llx, lly, 0);
 
   /* switch to the probability scale and shrink the estimates. */
   for (i = 0; i < llx; i++)
     for (j = 0; j < lly; j++)
-        n[i][j] = lambda * target + (1 - lambda) * n[i][j] / num;
+        n[i][j] = lambda * target + (1 - lambda) * n[i][j] / ncomplete;
 
   /* compute the marginals. */
   for (i = 0; i < llx; i++)
@@ -50,6 +59,11 @@ double res = 0;
       if (n[i][j] != 0)
         res += n[i][j] * log(n[i][j] / (ni[i] * nj[j]));
 
+  if (scale)
+    res *= 2 * ncomplete;
+
+free_and_return:
+
   Free1D(ni);
   Free1D(nj);
   Free2D(n, llx);
@@ -60,9 +74,9 @@ double res = 0;
 
 /* shrinked conditional mutual information, to be used in C code. */
 double c_shcmi(int *xx, int llx, int *yy, int lly, int *zz, int llz,
-    int num, double *df) {
+    int num, double *df, int scale) {
 
-int i = 0, j = 0, k = 0;
+int i = 0, j = 0, k = 0, ncomplete = 0;
 double ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL;
 double lambda = 0, target = 1/(double)(llx * lly * llz);
 double res = 0;
@@ -78,16 +92,21 @@ double res = 0;
 
   /* compute the joint frequency of x, y, and z. */
   for (k = 0; k < num; k++)
-    n[xx[k] - 1][yy[k] - 1][zz[k] - 1]++;
+    if ((xx[k] != NA_INTEGER) && (yy[k] != NA_INTEGER) && (zz[k] != NA_INTEGER)) {
+
+      n[xx[k] - 1][yy[k] - 1][zz[k] - 1]++;
+      ncomplete++;
+
+    }/*THEN*/
 
   /* estimate the optimal lambda for the data. */
-  mi_lambda((double *)n, &lambda, target, num, llx, lly, llz);
+  mi_lambda((double *)n, &lambda, target, ncomplete, llx, lly, llz);
 
   /* switch to the probability scale and shrink the estimates. */
   for (i = 0; i < llx; i++)
     for (j = 0; j < lly; j++)
       for (k = 0; k < llz; k++)
-        n[i][j][k] = lambda * target + (1 - lambda) * n[i][j][k] / num;
+        n[i][j][k] = lambda * target + (1 - lambda) * n[i][j][k] / ncomplete;
 
   /* compute the marginals. */
   for (i = 0; i < llx; i++)
@@ -124,6 +143,9 @@ double res = 0;
   Free2D(ni, llx);
   Free2D(nj, lly);
   Free3D(n, llx, lly);
+
+  if (scale)
+    res *= 2 * ncomplete;
 
   return res;
 
@@ -177,18 +199,21 @@ double lden = 0, lnum = 0, temp = 0;
 }/*MI_LAMBDA*/
 
 /* compute the shrinkage intensity lambda for marginal correlation. */
-double cor_lambda(double *xx, double *yy, int nobs, double xm, double ym,
-   double xsd, double ysd, double cor) {
+double cor_lambda(double *xx, double *yy, int nobs, int ncomplete, double xm,
+   double ym, double xsd, double ysd, double cor) {
 
 int i = 0;
 long double sum = 0, lambda = 0;
 
-  sum = cor * sqrt(xsd * ysd) / (nobs - 1);
+  sum = cor * sqrt(xsd * ysd) / (ncomplete - 1);
 
   /* note that the shrinkage intesity for the correlation coefficient is
    * identical to that for the covariance; so we don't need to standardize
    * the data. */
   for (i = 0; i < nobs; i++) {
+
+    if (ISNAN(xx[i]) || ISNAN(yy[i]))
+      continue;
 
     lambda += ((xx[i] - xm) * (yy[i] - ym) - sum) *
               ((xx[i] - xm) * (yy[i] - ym) - sum);
@@ -199,8 +224,8 @@ long double sum = 0, lambda = 0;
 
     /* compute lambda, the shrinkage intensity, on a log-scale for numerical
      * stability (if lambda is equal to zero, just keep it as it is). */
-    lambda = exp(log(lambda) - log(sum * sum) + log((double)nobs)
-               - 3 * log((double)(nobs - 1)));
+    lambda = exp(log(lambda) - log(sum * sum) + log((double)ncomplete)
+               - 3 * log((double)(ncomplete - 1)));
 
     /* truncate the shrinkage intensity in the [0,1] interval; this is not an
      * error, but a measure to increase the quality of the shrinked estimate. */
@@ -218,43 +243,47 @@ long double sum = 0, lambda = 0;
 }/*COR_LAMBDA*/
 
 /* compute the shrinkage intensity lambda for a covariance matrix. */
-double covmat_lambda(double **column, double *mean, double *var, int n,
-    int ncol) {
+double covmat_lambda(double **column, double *mean, covariance cov, int n,
+    short int *missing, int nc) {
 
 int i = 0, j = 0, k = 0, cur = 0;
-long double lambda = 0, sumcors = 0, sumvars = 0, temp = 0;
+long double lambda = 0, sum_covs = 0, sum_cov_vars = 0, temp = 0;
 
-  for (i = 0; i < ncol; i++) {
+  for (i = 0; i < cov.dim; i++) {
 
-    for (j = i; j < ncol; j++) {
+    for (j = i; j < cov.dim; j++) {
 
-      cur = CMC(i, j, ncol);
+      cur = CMC(i, j, cov.dim);
 
-      if (i != j) {
+      /* only shrink off-diagonal elements. */
+      if (i == j)
+        continue;
 
-        /* do the first round of computations for the shrinkage intensity. */
-        for (k = 0; k < n; k++) {
+      /* do the first round of computations for the shrinkage intensity. */
+      for (k = 0; k < n; k++) {
 
-          temp = (column[i][k] - mean[i]) * (column[j][k] - mean[j]) -
-                    (var[cur] * (double)(n - 1) / (double)n);
-          sumvars += temp * temp;
+        if (missing)
+          if (missing[k])
+            continue;
 
-        }/*FOR*/
+        temp = (column[i][k] - mean[i]) * (column[j][k] - mean[j]) -
+                  (cov.mat[cur] * (double)(nc - 1) / (double)nc);
+        sum_cov_vars += temp * temp;
 
-        sumcors += var[cur] * var[cur];
+      }/*FOR*/
 
-      }/*THEN*/
+      sum_covs += cov.mat[cur] * cov.mat[cur];
 
     }/*FOR*/
 
   }/*FOR*/
 
-  if (sumvars > MACHINE_TOL) {
+  if (sum_cov_vars > MACHINE_TOL) {
 
     /* compute lambda, the shrinkage intensity, on a log-scale for numerical
      * stability (if lambda is equal to zero, just keep it as it is). */
-    lambda = exp(log(sumvars) + log((double)n)  - 3 * log((double)(n - 1))
-               - log(sumcors));
+    lambda = exp(log(sum_cov_vars) + log((double)nc) - 3 * log((double)(nc - 1))
+               - log(sum_covs));
 
     /* truncate the shrinkage intensity in the [0,1] interval; this is not an
      * error, but a measure to increase the quality of the shrinked estimate. */
@@ -272,14 +301,12 @@ long double lambda = 0, sumcors = 0, sumvars = 0, temp = 0;
 }/*COVMAT_LAMBDA*/
 
 /* shrink the covariance matrix (except the diagonal, which stays the same). */
-void covmat_shrink(double *var, int ncol, double lambda) {
+void covmat_shrink(covariance cov, double lambda) {
 
-int i = 0, j = 0;
-
-  for (i = 0; i < ncol; i++)
-    for (j = 0; j < ncol; j++)
+  for (int i = 0; i < cov.dim; i++)
+    for (int j = 0; j < cov.dim; j++)
       if (i != j)
-        var[CMC(i, j, ncol)] *= 1 - lambda;
+        cov.mat[CMC(i, j, cov.dim)] *= 1 - lambda;
 
 }/*COVMAT_SHRINK*/
 

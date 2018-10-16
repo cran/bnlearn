@@ -1,7 +1,8 @@
 
 # second prinple of CI algorithms: infer arc orientation from graph structure.
 second.principle = function(x, cluster = NULL, local.structure, whitelist,
-    blacklist, test, alpha, B = NULL, data, strict, debug = FALSE) {
+    blacklist, test, alpha, B = NULL, data, max.sx = ncol(data), strict,
+    complete, debug = FALSE) {
 
   nodes = names(x)
 
@@ -16,7 +17,8 @@ second.principle = function(x, cluster = NULL, local.structure, whitelist,
   # 3.1 detect v-structures.
   vs = do.call("rbind",
          vstruct.detect(nodes = nodes, arcs = arcs, mb = local.structure,
-           data = x, alpha = alpha, B = B, test = test, debug = debug))
+           data = x, alpha = alpha, B = B, test = test, blacklist = blacklist,
+           max.sx = max.sx, complete = complete, debug = debug))
   rownames(vs) = NULL
 
   if (!is.null(vs)) {
@@ -60,7 +62,8 @@ fake.markov.blanket = function(learn, target) {
 
 # build the neighbourhood of a node from the markov blanket.
 neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
-  backtracking = NULL, test, empty.dsep = TRUE, markov = TRUE, debug = FALSE) {
+  backtracking = NULL, test, empty.dsep = TRUE, markov = TRUE, max.sx = ncol(x),
+  complete, debug = FALSE) {
 
   # initialize the neighbourhood using the markov blanket.
   candidate.neighbours = mb[[x]]
@@ -147,8 +150,10 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
     if (debug)
       cat("    > dsep.set = '", dsep.set, "'\n")
 
-    a = allsubs.test(x = x, y = y, sx = dsep.set, min = ifelse(empty.dsep, 0, 1),
-          data = data, test = test, alpha = alpha, B = B, debug = debug)
+    a = allsubs.test(x = x, y = y, sx = dsep.set,
+          min = ifelse(empty.dsep, 0, 1), max = min(length(dsep.set), max.sx),
+          data = data, test = test, alpha = alpha, B = B,
+          complete = complete, debug = debug)
 
     # update the neighbourhood.
     if (a["p.value"] > alpha)
@@ -166,7 +171,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
 # detect v-structures in the graph.
 vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
-    debug = FALSE) {
+    blacklist, max.sx = ncol(data), complete, debug = FALSE) {
 
   vstruct.centered.on = function(x, mb, data, dsep.set) {
 
@@ -198,12 +203,18 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
       # check there's no arc from y to z and vice versa.
       if (is.listed(arcs, c(y, z), either = TRUE))
         next
+      # check whether this is because the arc is blacklisted; d-separating sets
+      # are not learned at all in that case.
+      if (is.null(blacklist))
+        blacklisted.arc = FALSE
+      else
+        blacklisted.arc = is.listed(blacklist, c(y, z), both = TRUE)
 
       # if d-separating sets have been saved during the first part of structure
-      # learning, it is possible to detect v-structures without new tests; if 
-      # not we need to test all possible subsets of the intersection of the
-      # markov blankets.
-      if (!is.null(dsep.set)) {
+      # learning, it is possible to detect v-structures without additional tests;
+      # if not (because of the algorithm or because of blacklists) we need to
+      # test all possible subsets of the intersection of the markov blankets.
+      if (!is.null(dsep.set) && !blacklisted.arc) {
 
         el = dsep.set[[which(sapply(dsep.set, function(x) setequal(x$arc, c(y, z))))]]
 
@@ -212,7 +223,7 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
         if (x %!in% el$dsep.set) {
 
           if (debug)
-            cat("    @ detected v-structure", y, "->", x, "<-", z, "\n")
+            cat("    @ detected v-structure", y, "->", x, "<-", z, "from d-separating set.\n")
 
           vs = rbind(vs, data.frame(max_a = el$p.value, y, x, z, stringsAsFactors = FALSE))
 
@@ -230,7 +241,8 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
           cat("    > chosen d-separating set: '", sx, "'\n")
 
         a = allsubs.test(x = y, y = z, fixed = x, sx = sx, data = data,
-                  test = test, B = B, alpha = alpha, debug = debug)
+              test = test, B = B, alpha = alpha, max = min(max.sx, length(sx)),
+              complete = complete, debug = debug)
 
         if (a["p.value"] <= alpha) {
 

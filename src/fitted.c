@@ -14,7 +14,7 @@ SEXP temp, temp2, nodes, node_data, labels, result;
   if (isNull(nodes))
     nodes = bn;
   /* get the nodes' labels. */
-  labels = getAttrib(nodes, R_NamesSymbol);
+  PROTECT(labels = getAttrib(nodes, R_NamesSymbol));
   /* allocate and initialize a status vector. */
   status = Calloc1D(length(nodes), sizeof(short int));
 
@@ -64,7 +64,7 @@ SEXP temp, temp2, nodes, node_data, labels, result;
     if (status[i] == 1)
       SET_STRING_ELT(result, k++, STRING_ELT(labels, i));
 
-  UNPROTECT(1);
+  UNPROTECT(2);
 
   Free1D(status);
 
@@ -79,7 +79,7 @@ int i = 0, j = 0, k = 0, narcs = 0;
 SEXP labels, node_data, children, result;
 
   /* get the nodes' labels. */
-  labels = getAttrib(bn, R_NamesSymbol);
+  PROTECT(labels = getAttrib(bn, R_NamesSymbol));
 
   /* first pass: count the number of arcs. */
   for (i = 0; i <  length(bn); i++) {
@@ -116,7 +116,7 @@ SEXP labels, node_data, children, result;
 
   }/*FOR*/
 
-  UNPROTECT(1);
+  UNPROTECT(2);
 
   return result;
 
@@ -149,7 +149,7 @@ short int *status = NULL;
 SEXP mb, labels, try, temp, node_data;
 
   /* get the nodes' labels. */
-  labels = getAttrib(bn, R_NamesSymbol);
+  PROTECT(labels = getAttrib(bn, R_NamesSymbol));
   nnodes = length(labels);
   /* allocate and initialize a status vector. */
   status = Calloc1D(nnodes, sizeof(short int));
@@ -188,7 +188,7 @@ SEXP mb, labels, try, temp, node_data;
     if (status[i] != 0)
       SET_STRING_ELT(mb, j++, STRING_ELT(labels, i));
 
-  UNPROTECT(1);
+  UNPROTECT(2);
 
   Free1D(status);
 

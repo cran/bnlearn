@@ -7,25 +7,33 @@ static double c_jt_stat(int **n, int *ni, int llx, int lly);
 /* unconditional Jonckheere-Terpstra asymptotic test for use in C code. */
 double c_jt(int *xx, int llx, int *yy, int lly, int num) {
 
-int  **n = NULL, *ni = NULL, *nj = NULL;
-double stat = 0, mean = 0, var = 0;
+int **n = NULL, *ni = NULL, *nj = NULL, ncomplete = 0;
+double stat = 0, mean = 0, var = 0, res = 0;
 
   /* initialize the contingency table and the marginal frequencies. */
-  fill_2d_table(xx, yy, &n, &ni, &nj, llx, lly, num);
+  ncomplete = fill_2d_table(xx, yy, &n, &ni, &nj, llx, lly, num);
+
+  /* if there are no complete data points, return independence. */
+  if (ncomplete == 0)
+    goto free_and_return;
 
   /* compute the test statistic, its mean and it variance. */
   stat = c_jt_stat(n, ni, llx, lly);
-  mean = c_jt_mean(num, ni, llx);
-  var = c_jt_var(num, ni, llx, nj, lly);
+  mean = c_jt_mean(ncomplete, ni, llx);
+  var = c_jt_var(ncomplete, ni, llx, nj, lly);
+
+  /* standardize before returning so to make the test invariant to
+   * the order of the variables; if the variance is zero return zero
+   * to imply independence. */
+  res = (var < MACHINE_TOL) ? 0 : (stat - mean) / sqrt(var);
+
+free_and_return:
 
   Free2D(n, llx);
   Free1D(ni);
   Free1D(nj);
 
-  /* standardize before returning so to make the test invariant to
-   * the order of the variables; if the variance is zero return zero
-   * to imply independence. */
-  return (var < MACHINE_TOL) ? 0 : (stat - mean) / sqrt(var);
+  return res;
 
 }/*C_JT*/
 

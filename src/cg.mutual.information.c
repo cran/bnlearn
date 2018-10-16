@@ -124,7 +124,7 @@ double logden = 0, lognum = 0;
     llz2 = lly;
 
     /* remainder term: the mutual information test of xx and yy. */
-    lognum = c_chisqtest(xx, llx, yy, lly, num, df, MI);
+    lognum = c_chisqtest(xx, llx, yy, lly, num, df, MI, FALSE);
 
   }/*THEN*/
   else {
@@ -138,7 +138,7 @@ double logden = 0, lognum = 0;
     c_fast_config(tt, num, 2, tlvls, zz2, &llz2, 1);
 
     /* remainder term: the mutual information test of xx and yy given zz. */
-    lognum = c_cchisqtest(xx, llx, yy, lly, zz, llz, num, df, MI);
+    lognum = c_cchisqtest(xx, llx, yy, lly, zz, llz, num, df, MI, FALSE);
 
   }/*ELSE*/
 
@@ -162,4 +162,97 @@ double logden = 0, lognum = 0;
   return (R_FINITE(logden) && R_FINITE(lognum)) ? (lognum - logden) / num : 0;
 
 }/*C_CMICG_UNROLL*/
+
+/* unconditional mutual information with missing data. */
+double c_micg_with_missing(double *yy, int *xx, int llx, int num, double *df,
+    int *ncomplete) {
+
+int i = 0, nc = 0, *ni = NULL;
+double lognum = 0, logden = 0, res = 0, ym = 0, ysd = 0, *mu = NULL, *sd = NULL;
+
+  mu = Calloc1D(llx, sizeof(double));
+  sd = Calloc1D(llx, sizeof(double));
+  ni = Calloc1D(llx, sizeof(int));
+
+  /* compute the conditional means and the class counts. */
+  for (i = 0; i < num; i++) {
+
+    if (ISNAN(yy[i]) || (xx[i] == NA_INTEGER))
+      continue;
+
+    mu[xx[i] - 1] += yy[i];
+    ni[xx[i] - 1]++;
+
+  }/*FOR*/
+
+  /* aggregate the means and the class counts. */
+  for (i = 0; i < llx; i++) {
+
+    ym += mu[i];
+    nc += ni[i];
+    mu[i] /= ni[i];
+
+  }/*FOR*/
+
+  ym /= nc;
+
+  /* if there are no complete data points, return independence. */
+  if (nc == 0)
+    goto free_and_return;
+
+  /* compute the conditional standard deviations. */
+  for (i = 0; i < num; i++) {
+
+    if (ISNAN(yy[i]) || (xx[i] == NA_INTEGER))
+      continue;
+
+    sd[xx[i] - 1] += (yy[i] - mu[xx[i] - 1]) * (yy[i] - mu[xx[i] - 1]);
+    ysd += (yy[i] - ym) * (yy[i] - ym);
+
+  }/*FOR*/
+
+  for (i = 0; i < llx; i++ ){
+
+    if (ni[i] == 0)
+      sd[i] = R_NaN;
+    else if (ni[i] == 1)
+      sd[i] = 0;
+    else
+      sd[i] = sqrt(sd[i] / (ni[i] - 1));
+
+  }/*FOR*/
+
+  ysd = sqrt(ysd / (nc - 1));
+
+  /* compute the numerator (model under the alternative) and the denominator
+   * (model under the null). */
+  for (i = 0; i < num; i++) {
+
+    if (ISNAN(yy[i]) || (xx[i] == NA_INTEGER))
+      continue;
+
+    logden += dnorm(yy[i], ym, ysd, TRUE);
+    lognum += dnorm(yy[i], mu[xx[i] - 1], sd[xx[i] - 1], TRUE);
+
+  }/*FOR*/
+
+  res = (lognum - logden) / nc;
+
+free_and_return:
+  *ncomplete = nc;
+
+  /* the discrete variable is a parent of the continuous variable, then the
+   * number of parameters is equal to one mean and one variance for each
+   * level of the discrete variable; and the degrees of freedom of the test
+   * are smaller by the one mean and variance under the null. */
+  if (df)
+    *df = 2 * (llx - 1);
+
+  Free1D(mu);
+  Free1D(sd);
+  Free1D(ni);
+
+  return res;
+
+}/*C_MICG_WITH_MISSING*/
 

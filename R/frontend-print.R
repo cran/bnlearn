@@ -130,8 +130,8 @@ print.bn = function(x, ...) {
 
       if ("estimator" %in% params)
         wcat("  mutual information estimator:         ", format(mi.estimator.labels[x$learning$args$estimator]))
-
-      wcat("  training node:                        ", x$learning$args$training)
+      if ("training" %in% params)
+        wcat("  training node:                        ", x$learning$args$training)
 
     }#THEN
 

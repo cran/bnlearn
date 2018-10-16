@@ -1,7 +1,7 @@
 #include "include/rcore.h"
 #include "include/sets.h"
 #include "include/tests.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 
 double dlik(SEXP x, double *nparams) {
 
@@ -78,7 +78,7 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
   /* get the parents of the node. */
   parents = getListElement(node_t, "parents");
   /* extract the node's column from the data frame. */
-  data_t = c_dataframe_column(data, target, TRUE, FALSE);
+  PROTECT(data_t = c_dataframe_column(data, target, TRUE, FALSE));
 
   if (length(parents) == 0) {
 
@@ -99,6 +99,8 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
 
   if (debuglevel > 0)
     Rprintf("  > loglikelihood is %lf.\n", loglik);
+
+  UNPROTECT(1);
 
   return loglik;
 

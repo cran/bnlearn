@@ -2,7 +2,7 @@
 # check the data set.
 check.data = function(x, allowed.types = available.data.types,
     allow.levels = FALSE, allow.missing = FALSE, warn.if.no.missing = FALSE,
-    stop.if.all.missing = FALSE) {
+    stop.if.all.missing = FALSE, stop.if.missing.whole.obs = FALSE) {
 
   # check the data are there.
   if (missing(x))
@@ -14,30 +14,36 @@ check.data = function(x, allowed.types = available.data.types,
   if (ncol(x) == 0)
     stop("the data must be in a data frame with at least one column.")
   # check the data for NULL/NaN/NA.
+  observed = count.observed.values(x)
+
   if (allow.missing) {
 
-   complete.obs = complete.cases(x)
-   complete.nodes = !sapply(x, anyNA)
+   if (warn.if.no.missing && all(observed$columns == nrow(x)))
+     warning("no missing data are present even though some are expected.")
 
-   if (warn.if.no.missing && all(complete.obs))
-     warning("no missing data are present even though some are expected.")   
-
-   if (stop.if.all.missing && !any(complete.obs))
-     stop("at least one variable has no observed values.")
+   if (any(observed$columns == 0))
+     if (stop.if.all.missing)
+       stop("at least one variable has no observed values.")
+     else
+       warning("at least one variable has no observed values.")
 
   }#THEN
   else {
 
-    if (!all(complete.cases(x)))
-      stop("the data set contains NULL/NaN/NA values.")
-
-    complete.nodes = structure(rep(TRUE, ncol(x)), names = names(x))
+    if (any(observed$columns < nrow(x)))
+      stop("the data set contains NaN/NA values.")
 
   }#ELSE
+
+  if (any(observed$rows == 0))
+    if (stop.if.missing.whole.obs)
+      stop("some observations contain only missing values.")
+    else
+      warning("some observations contain only missing values.")
+
   # check which type of data we are dealing with.
   type = data.type(x)
-
-  # check whether the variables are either all continuous or all discrete.
+  # check whether the variables are of the expected types.
   check.label(type, choices = allowed.types, labels = data.type.labels,
     argname = "data type")
 
@@ -67,7 +73,7 @@ check.data = function(x, allowed.types = available.data.types,
 
   }#THEN
 
-  return(list(type = type, complete.nodes = complete.nodes))
+  return(list(type = type, complete.nodes = (observed$columns == nrow(x))))
 
 }#CHECK.DATA
 
@@ -79,3 +85,10 @@ data.type = function(data) {
 
 }#DATA.TYPE
 
+# count observed values per-variable and per-observation in a single pass.
+count.observed.values = function(data) {
+
+  .Call(call_count_observed_values,
+        data = data)
+
+}#COUNT.OBSERVED.VALUES

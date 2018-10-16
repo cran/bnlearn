@@ -21,6 +21,65 @@ SEXP nodes = getAttrib(data, R_NamesSymbol);
 
 }/*DATA_FRAME_FINITE*/
 
+SEXP count_observed_values(SEXP data) {
+
+int i = 0, j = 0, ncol = length(data), nrow = length(VECTOR_ELT(data, 0));
+int *rr = NULL, *cc = NULL, *temp_integer = NULL;
+double *temp_real = NULL;
+SEXP counts, rows, cols, temp;
+
+  PROTECT(counts = allocVector(VECSXP, 2));
+  setAttrib(counts, R_NamesSymbol, mkStringVec(2, "rows", "columns"));
+  PROTECT(rows = allocVector(INTSXP, nrow));
+  PROTECT(cols = allocVector(INTSXP, ncol));
+  setAttrib(cols, R_NamesSymbol, getAttrib(data, R_NamesSymbol));
+  SET_VECTOR_ELT(counts, 0, rows);
+  SET_VECTOR_ELT(counts, 1, cols);
+  rr = INTEGER(rows);
+  cc = INTEGER(cols);
+  memset(rr, '\0', nrow * sizeof(int));
+  memset(cc, '\0', ncol * sizeof(int));
+
+  for (j = 0; j < ncol; j++) {
+
+    temp = VECTOR_ELT(data, j);
+
+    switch(TYPEOF(temp)) {
+
+       case REALSXP:
+
+         temp_real = REAL(temp);
+         for (i = 0; i < nrow; i++) {
+
+           rr[i] += !ISNAN(temp_real[i]);
+           cc[j] += !ISNAN(temp_real[i]);
+
+         }/*FOR*/
+
+         break;
+
+       case INTSXP:
+
+         temp_integer = INTEGER(temp);
+         for (i = 0; i < nrow; i++) {
+
+           rr[i] += (temp_integer[i] != NA_INTEGER);
+           cc[j] += (temp_integer[i] != NA_INTEGER);
+
+         }/*FOR*/
+
+         break;
+
+    }/*SWITCH*/
+
+  }/*FOR*/
+
+  UNPROTECT(3);
+
+  return counts;
+
+}/*COUNT_OBSERVED_VALUES*/
+
 SEXP data_type(SEXP data) {
 
 int i = 0, numeric = 0, categorical = 0, ordinal = 0, ncol = length(data);
@@ -84,8 +143,8 @@ SEXP nodes, vars, try_nodes, try_vars, temp, cur_node, cur_node_levels;
 SEXP cur_var, cur_var_levels, cur_var_class;
 
   /* match nodes in the network and variables in the data to the active subset. */
-  nodes = getAttrib(fitted, R_NamesSymbol);
-  vars = getAttrib(data, R_NamesSymbol);
+  PROTECT(nodes = getAttrib(fitted, R_NamesSymbol));
+  PROTECT(vars = getAttrib(data, R_NamesSymbol));
   PROTECT(try_nodes = match(nodes, subset, 0));
   tn = INTEGER(try_nodes);
   PROTECT(try_vars = match(vars, subset, 0));
@@ -148,7 +207,7 @@ SEXP cur_var, cur_var_levels, cur_var_class;
 
   }/*FOR*/
 
-  UNPROTECT(2);
+  UNPROTECT(4);
 
   return R_NilValue;
 

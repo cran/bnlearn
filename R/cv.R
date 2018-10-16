@@ -125,6 +125,12 @@ bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
   # and performing parameter learning.
   if (!is.dag(arcs = bn$arcs, nodes = names(bn$nodes))) {
 
+    # trying to extend a skeleton (instead of a CPDAG) is probably not
+    # meaningful.
+    if (!is.null(bn$learning$undirected) && bn$learning$undirected)
+      warning("the network in one of the folds is just a skeleton (no arc ",
+        "directions have been learned) and trying to extend it is probably wrong.")
+
     bn = cpdag.extension(cpdag.backend(bn, wlbl = TRUE))
 
     if (loss %in% c("pred", "cor", "mse")) {

@@ -76,6 +76,3 @@ tryMethod = function(f, signature, definition, generic) {
 
 }#ON.UNLOAD
 
-# for backwards compatibility, define an anyNA() function (for R 3.0.2).
-if (is(try(get("anyNA")), "try-error"))
-  anyNA = function(x) any(is.na(x))

@@ -1,7 +1,8 @@
 
 # conditional and unconditional independence tests (vectorized in x, scalar
 # in y).
-indep.test = function(x, y, sx, data, test, B = 0L, alpha = 1, learning = TRUE) {
+indep.test = function(x, y, sx, data, test, B = 0L, alpha = 1, learning = TRUE,
+    complete) {
 
   .Call(call_indep_test,
         x = x,
@@ -11,23 +12,20 @@ indep.test = function(x, y, sx, data, test, B = 0L, alpha = 1, learning = TRUE) 
         test = test,
         B = B,
         alpha = alpha,
-        learning = learning)
+        learning = learning,
+        complete = complete)
 
 }#INDEP.TEST
 
 # test against all possible subsets of the conditioning set (scalar in both x
 # and y).
 allsubs.test = function(x, y, sx, fixed = character(0), data, test, B = 0L,
-    alpha = 1, min = 0, max = length(sx), debug = FALSE) {
-
-  sx = sx[sx != ""]
-  if (missing(max))
-    max = length(sx)
+    alpha = 1, min = 0, max = length(sx), complete, debug = FALSE) {
 
   .Call(call_allsubs_test,
         x = x,
         y = y,
-        sx = sx,
+        sx = c(fixed, sx),
         fixed = fixed,
         data = data,
         test = test,
@@ -35,13 +33,14 @@ allsubs.test = function(x, y, sx, fixed = character(0), data, test, B = 0L,
         alpha = alpha,
         min = as.integer(min),
         max = as.integer(max),
+        complete = complete,
         debug = debug)
 
 }#ALLSUBS.TEST
 
 # test each variable in turn given the rest as a conditioning set.
 roundrobin.test = function(x, z, fixed, data, test, B = 0L, alpha = 1,
-    debug = FALSE) {
+    complete, debug = FALSE) {
 
   if (length(z) == 0)
     return(structure(numeric(0), names = character(0)))
@@ -54,6 +53,7 @@ roundrobin.test = function(x, z, fixed, data, test, B = 0L, alpha = 1,
         test = test,
         B = B,
         alpha = alpha,
+        complete = complete,
         debug = debug)
 
 }#ROUNDROBIN.TEST

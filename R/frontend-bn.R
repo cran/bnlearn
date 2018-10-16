@@ -152,9 +152,15 @@ cextend = function(x, strict = TRUE, debug = FALSE) {
   check.logical(debug)
   # check strict.
   check.logical(strict)
-  # check whether the graph is acclic, to be sure to return a DAG.
+  # check whether the graph is acyclic, to be sure to return a DAG.
   if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
     stop("the specified network contains cycles.")
+  # if the graph was learned from data, check whether arc directions have been
+  # learned at all; trying to extend a skeleton (instead of a CPDAG) is probably
+  # not meaningful.
+  if (!is.null(x$learning$undirected) && x$learning$undirected)
+    warning(deparse(substitute(x)), " is just a skeleton (no arc directions ",
+      "have been learned) and trying to extend it is probably wrong.")
 
   cpdag = cpdag.extension(x = x, debug = debug)
 
@@ -170,7 +176,7 @@ cextend = function(x, strict = TRUE, debug = FALSE) {
 }#CEXTEND
 
 # return the v-structures in a network.
-vstructs = function(x, arcs = FALSE, moral = TRUE, debug = FALSE) {
+vstructs = function(x, arcs = FALSE, moral = FALSE, debug = FALSE) {
 
   # check x's class.
   check.bn.or.fit(x)
@@ -183,7 +189,7 @@ vstructs = function(x, arcs = FALSE, moral = TRUE, debug = FALSE) {
   if (is(x, "bn.fit"))
     x = bn.net(x)
 
-  vstructures(x = x, arcs = arcs, moral = moral, debug = debug)
+  vstructures(x = x, arcs = arcs, including.moral = moral, debug = debug)
 
 }#VSTRUCTS
 
@@ -236,8 +242,17 @@ dsep = function(bn, x, y, z) {
   if (is(bn, "bn.fit"))
     bn = bn.net(bn)
   # if the graph is not directed, take it as a CPDAG and extend it.
-  if (!is.dag(bn$arcs, names(bn$nodes)))
+  if (!is.dag(bn$arcs, names(bn$nodes))) {
+
+    # trying to extend a skeleton (instead of a CPDAG) is probably not
+    # meaningful.
+    if (!is.null(x$learning$undirected) && x$learning$undirected)
+      warning(deparse(substitute(x)), " is just a skeleton (no arc directions ",
+        "have been learned) and trying to extend it is probably wrong.")
+
     bn = cpdag.extension(bn)
+
+  }#THEN
 
   dseparation(bn = bn, x = x, y = y, z = z)
 

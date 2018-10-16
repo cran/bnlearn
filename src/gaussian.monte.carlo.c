@@ -6,11 +6,20 @@
 #include "include/blas.h"
 #include "include/matrix.h"
 
-static double mc_fast_pcor(double *covariance, int ncol, double *u, double *d,
-    double *vt, int *errcode);
-static double mc_cov(double *xx, double *yy, double xm, double ym, int n);
-
 /* unconditional Monte Carlo simulation for correlation-based tests. */
+static double mc_cov(double *xx, double *yy, double xm, double ym, int n) {
+
+int i = 0;
+double sum = 0;
+
+  /* compute the actual covariance. */
+  for (i = 0; i < n; i++)
+    sum += (xx[i] - xm) * (yy[i] - ym);
+
+  return sum;
+
+}/*MC_COV*/
+
 void c_gauss_mcarlo(double *xx, double *yy, int num, int B, double *res,
     double alpha, test_e test, double *observed) {
 
@@ -55,8 +64,8 @@ int *perm = NULL, *work = NULL;
   GetRNGstate();
 
   /* pick up the observed value of the test statistic, then generate a set of
-     random permutations (all variable but the second are fixed) and check how
-     many tests are greater (in absolute value) than the original one.*/
+     random permutations of the second variable and check how many tests are
+     greater (in absolute value) than the original one.*/
   *observed = mc_cov(xx, yy, xm, ym, num);
 
   for (j = 0; j < B; j++) {
@@ -124,15 +133,15 @@ int *perm = NULL, *work = NULL;
 }/*C_GAUSS_MCARLO*/
 
 /* conditional Monte Carlo simulation for correlation-based tests. */
-void c_gauss_cmcarlo(double **column, int ncol, int num, int B,
+void c_gauss_cmcarlo(double **column, int ncol, int num, int v1, int v2, int B,
     double *observed, double *pvalue, double alpha, test_e test) {
 
 int j = 0, k = 0, errcode = 0, *work = NULL, *perm = NULL;
 int error_counter = 0;
 double permuted = 0, *yperm = NULL, *yorig = NULL;
 double enough = ceil(alpha * B) + 1;
-double *mean = NULL, *covariance = NULL, *covariance_backup = NULL;
-double *u = NULL, *d = NULL, *vt = NULL;
+double *mean = NULL;
+covariance cov = { 0 }, backup = { 0 };
 
   /* cache the means of the variables (they are invariant under permutation). */
   mean = Calloc1D(ncol, sizeof(double));
@@ -140,34 +149,32 @@ double *u = NULL, *d = NULL, *vt = NULL;
   c_meanvec(column, mean, num, ncol, 0);
 
   /* allocate and initialize the covariance matrix. */
-  covariance = Calloc1D(ncol * ncol, sizeof(double));
-  c_covmat(column, mean, num, ncol, covariance, 0);
+  cov = new_covariance(ncol, TRUE);
+  backup = new_covariance(ncol, TRUE);
+  c_covmat(column, mean, num, ncol, cov, 0);
 
   /* if at least one of the two variables is constant, they are independent. */
-  if ((covariance[CMC(0, 0, ncol)] == 0) || (covariance[CMC(1, 1, ncol)] == 0)) {
+  if ((cov.mat[CMC(v1, v1, ncol)] == 0) || (cov.mat[CMC(v2, v2, ncol)] == 0)) {
 
     *observed = 0;
     *pvalue = 1;
 
     Free1D(mean);
-    Free1D(covariance);
+    FreeCOV(backup);
+    FreeCOV(cov);
 
     return;
 
   }/*THEN*/
 
-  /* allocate the matrices needed for the SVD decomposition. */
-  c_udvt(&u, &d, &vt, ncol);
-
   /* make a backup copy that will not be touched by permutations. */
-  covariance_backup = Calloc1D(ncol * ncol, sizeof(double));
-  memcpy(covariance_backup, covariance, ncol * ncol * sizeof(double));
+  copy_covariance(&cov, &backup);
 
   /* substitute the original data with the fake column that will be permuted. */
   yperm = Calloc1D(num, sizeof(double));
-  yorig = column[1];
+  yorig = column[v2];
   memcpy(yperm, yorig, num * sizeof(double));
-  column[1] = yperm;
+  column[v2] = yperm;
 
    /* allocate the arrays needed by RandomPermutation. */
   perm = Calloc1D(num, sizeof(int));
@@ -179,7 +186,7 @@ double *u = NULL, *d = NULL, *vt = NULL;
   /* pick up the observed value of the test statistic, then generate a set of
      random permutations (all variable but the second are fixed) and check how
      many tests are greater (in absolute value) than the original one.*/
-  *observed = mc_fast_pcor(covariance, ncol, u, d, vt, &errcode);
+  *observed = c_fast_pcor(cov, v1, v2, &errcode, TRUE);
 
   if (errcode)
     error("an error (%d) occurred in the call to dgesvd().\n", errcode);
@@ -195,11 +202,11 @@ double *u = NULL, *d = NULL, *vt = NULL;
       yperm[k] = yorig[perm[k] - 1];
 
     /* restore the covariance matrix from the good copy. */
-    memcpy(covariance, covariance_backup, ncol * ncol * sizeof(double));
+    copy_covariance(&backup, &cov);
     /* update the relevant covariances. */
-    c_update_covmat(column, mean, 1, num, ncol, covariance);
+    c_update_covmat(column, mean, v2, num, ncol, cov.mat);
 
-    permuted = mc_fast_pcor(covariance, ncol, u, d, vt, &errcode);
+    permuted = c_fast_pcor(cov, v1, v2, &errcode, TRUE);
 
     if (errcode != 0)
       error_counter++;
@@ -253,76 +260,17 @@ double *u = NULL, *d = NULL, *vt = NULL;
   PutRNGstate();
 
   /* restore the pointer to the original column. */
-  column[1] = yorig;
+  column[v2] = yorig;
 
   /* save the observed p-value. */
   *pvalue /= B;
 
-  Free1D(u);
-  Free1D(d);
-  Free1D(vt);
   Free1D(mean);
-  Free1D(covariance);
   Free1D(perm);
   Free1D(work);
   Free1D(yperm);
-  Free1D(covariance_backup);
+  FreeCOV(backup);
+  FreeCOV(cov);
 
 }/*C_GAUSS_CMCARLO*/
-
-/* compute a (barebone version of) the linear correlation coefficient. */
-static double mc_cov(double *xx, double *yy, double xm, double ym, int n) {
-
-int i = 0;
-double sum = 0;
-
-  /* compute the actual covariance. */
-  for (i = 0; i < n; i++)
-    sum += (xx[i] - xm) * (yy[i] - ym);
-
-  return sum;
-
-}/*MC_COV*/
-
-static double mc_fast_pcor(double *covariance, int ncol, double *u, double *d,
-    double *vt, int *errcode) {
-
-int i = 0, coord1 = 0, coord2 = 0;
-double k11 = 0, k12 = 0, k22 = 0;
-double res = 0, tol = MACHINE_TOL, sv_tol = 0;
-
-  c_svd(covariance, u, d, vt, &ncol, &ncol, &ncol, FALSE, errcode);
-
-  if (*errcode != 0)
-    return 0;
-
-  /* set the threshold for the singular values as in corpcor. */
-  sv_tol = ncol * d[0] * tol * tol;
-
-  /* compute the three elements of the pseudoinverse needed
-   * for the partial correlation coefficient. */
-  for (i = 0; i < ncol; i++) {
-
-    if (d[i] > sv_tol) {
-
-      coord1 = CMC(0, i, ncol);
-      coord2 = CMC(i, 1, ncol);
-
-      k11 += u[coord1] * vt[CMC(i, 0, ncol)] / d[i];
-      k12 += u[coord1] * vt[coord2] / d[i];
-      k22 += u[CMC(1, i, ncol)] * vt[coord2] / d[i];
-
-    }/*THEN*/
-
-  }/*FOR*/
-
-  /* safety check against "divide by zero" errors. */
-  if ((k11 < tol) || (k22 < tol))
-    res = 0;
-  else
-    res = -k12 / sqrt(k11 * k22);
-
-  return res;
-
-}/*MC_FAST_PCOR*/
 

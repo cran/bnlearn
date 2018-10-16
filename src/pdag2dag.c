@@ -50,7 +50,7 @@ SEXP node_data, current, nodes, result, temp;
   /* get the nodes' data. */
   node_data = getListElement(bn, "nodes");
   nnodes = length(node_data);
-  nodes = getAttrib(node_data, R_NamesSymbol);
+  PROTECT(nodes = getAttrib(node_data, R_NamesSymbol));
 
   /* allocate and initialize parents' and neighbours' counters. */
   nnbr = Calloc1D(nnodes, sizeof(int));
@@ -145,8 +145,8 @@ SEXP node_data, current, nodes, result, temp;
 
   }/*FOR*/
 
-
   Free1D(nnbr);
+
   if (*moralize > 0) {
 
     /* be really sure not to return duplicate arcs in moral graphs when
@@ -158,7 +158,7 @@ SEXP node_data, current, nodes, result, temp;
 
   }/*THEN*/
 
-  UNPROTECT(1);
+  UNPROTECT(2);
 
   return result;
 

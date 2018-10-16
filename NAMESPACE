@@ -63,7 +63,8 @@ export(
   # assorted functions to extract information.
   "configs", "nparams", "ntests", "sigma",
   # assorted conversion functions.
-  "as.bn", "as.bn.fit", "as.grain", "as.graphNEL", "as.graphAM", "as.prediction",
+  "as.bn", "as.bn.fit", "as.grain", "as.graphNEL", "as.graphAM",
+  "as.prediction", "as.lm",
   # graph enumeration.
   "count.graphs"
 )
@@ -72,8 +73,8 @@ useDynLib(bnlearn, .registration = TRUE)
 
 importFrom("methods", "new", "setClass", "setGeneric", "setMethod")
 importFrom("stats", "logLik", "AIC", "BIC", "coefficients", "complete.cases",
-  "cor", "dnorm", "ecdf", "fitted", "formula", "knots", "optimize", "quantile",
-  "residuals", "sd", "weighted.mean", "median", "qunif")
+  "cor", "dnorm", "ecdf", "fitted", "formula", "knots", "lm", "optimize",
+  "quantile", "residuals", "sd", "weighted.mean", "median", "qunif")
 importFrom("grDevices", "col2rgb", "colors")
 importFrom("graphics", "abline", "arrows", "lines", "plot", "points",
   "strheight", "strwidth", "text", "plot.new", "title", "rect", "symbols")
@@ -106,6 +107,9 @@ S3method(as.graphAM, "bn")
 S3method(as.bn, "graphAM")
 S3method(as.graphAM, "bn.fit")
 S3method(as.prediction, "bn.strength")
+S3method(as.lm, "bn")
+S3method(as.lm, "bn.fit")
+S3method(as.lm, "bn.fit.gnode")
 S3method(print, "bn.tan")
 S3method(print, "bn.fit")
 S3method(print, "bn.fit.dnode")

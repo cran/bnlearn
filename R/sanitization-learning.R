@@ -40,6 +40,27 @@ check.learning.algorithm = function(algorithm, class = "all", bn) {
 
 }#CHECK.LEARNING.ALGORITHM
 
+# check size of the largest conditioning set in the independence tests.
+check.largest.sx.set = function(max.sx, data) {
+
+  if (missing(max.sx) || is.null(max.sx)) {
+
+    max.sx = Inf
+
+  }#THEN
+  else if (!isTRUE(all.equal(max.sx, Inf))) {
+
+    if (!is.positive.integer(max.sx))
+      stop("max.sx must be a positive integer number.")
+    if (max.sx >= ncol(data))
+      warning("max.sx should be lower than the number of nodes, the limit will be ignored.")
+
+  }#ELSE
+
+  return(max.sx)
+
+}#CHECK.LARGEST.SX.SET
+
 # check the threshold on the maximum number of parents.
 check.maxp = function(maxp, data) {
 

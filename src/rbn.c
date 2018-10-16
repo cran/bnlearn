@@ -1,7 +1,7 @@
 #include "include/rcore.h"
 #include "include/sampling.h"
 #include "include/sets.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/graph.h"
 #include "include/globals.h"
 #include "include/fitted.h"
@@ -43,7 +43,7 @@ SEXP cpt = R_NilValue, coefs = R_NilValue, sd = R_NilValue;
 SEXP dpar = R_NilValue, gpar = R_NilValue;
 
   /* allocate and initialize the return value. */
-  nodes = getAttrib(fitted, R_NamesSymbol);
+  PROTECT(nodes = getAttrib(fitted, R_NamesSymbol));
 
   /* order the nodes according to their depth in the graph. */
   poset = Calloc1D(nnodes, sizeof(int));
@@ -216,7 +216,7 @@ SEXP dpar = R_NilValue, gpar = R_NilValue;
 
   Free1D(poset);
 
-  UNPROTECT(has_fixed);
+  UNPROTECT(1 + has_fixed);
 
 }/*C_RBN_MASTER*/
 

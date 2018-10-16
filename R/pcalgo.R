@@ -1,6 +1,6 @@
 
 pc.stable.backend = function(x, cluster = NULL, whitelist, blacklist, test,
-  alpha, B, debug = FALSE) {
+  alpha, B, max.sx = ncol(x), complete, debug = FALSE) {
 
   nodes = names(x)
   nnodes = length(nodes)
@@ -10,14 +10,22 @@ pc.stable.backend = function(x, cluster = NULL, whitelist, blacklist, test,
     apply(skeleton, 1, function(x) list(arc = x, max.adjacent = nnodes - 1))
   nbr.size = rep(nnodes - 1, nnodes)
 
+  # set the size of the largest conditioning set using either the given limit
+  # or the number of variables in the data, whichever is lower.
+  max.dsep.size = min(max.sx, length(nodes) - 2)
+
+  if (debug && max.dsep.size < length(nodes) - 2)
+    cat("@ limiting conditioning sets to", max.dsep.size, "nodes.\n")
+
   # find out which nodes are adjacent.
-  for (dsep.size in seq(from = 0, to = length(nodes) - 2)) {
+  for (dsep.size in seq(from = 0, to = max.dsep.size)) {
 
     # perform the conditional independence tests.
     node.pairs[dsep.size <= nbr.size] =
-      smartSapply(cluster, node.pairs[dsep.size <= nbr.size], pc.heuristic, data = x, alpha = alpha,
-        B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-        skeleton = skeleton, dsep.size = dsep.size, debug = debug)
+      smartSapply(cluster, node.pairs[dsep.size <= nbr.size], pc.heuristic,
+        data = x, alpha = alpha, B = B, whitelist = whitelist,
+        blacklist = blacklist, test = test, skeleton = skeleton,
+        dsep.size = dsep.size, complete, debug = debug)
 
     # find out which undirected arcs are still present.
     arcs.still.present = lapply(node.pairs, function(x) {
@@ -57,10 +65,10 @@ pc.stable.backend = function(x, cluster = NULL, whitelist, blacklist, test,
 
   return(skeleton)
 
-}#PC.STABLE.OPTIMIZED
+}#PC.STABLE.BACKEND
 
-pc.heuristic = function(pair, data, alpha, B, whitelist, blacklist,
-    test, skeleton, dsep.size, debug = FALSE) {
+pc.heuristic = function(pair, data, alpha, B, whitelist, blacklist, test,
+    skeleton, dsep.size, complete, debug = FALSE) {
 
   arc = pair$arc
 
@@ -100,7 +108,7 @@ pc.heuristic = function(pair, data, alpha, B, whitelist, blacklist,
 
     a1 = allsubs.test(x = arc[1], y = arc[2], sx = nbr1, min = dsep.size,
            max = dsep.size, data = data, test = test, alpha = alpha, B = B,
-           debug = debug)
+           complete = complete, debug = debug)
 
     if (a1["p.value"] > alpha)
       return(list(arc = arc, p.value = a1["p.value"],
@@ -126,7 +134,7 @@ pc.heuristic = function(pair, data, alpha, B, whitelist, blacklist,
 
     a2 = allsubs.test(x = arc[2], y = arc[1], sx = nbr2, min = dsep.size,
            max = dsep.size, data = data, test = test, alpha = alpha, B = B,
-           debug = debug)
+           complete = complete, debug = debug)
 
     if (a2["p.value"] > alpha)
       return(list(arc = arc, p.value = a2["p.value"],

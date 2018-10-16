@@ -161,9 +161,8 @@ blacklist(x)
 \references{
 
   Chickering DM (1995). "A Transformational Characterization of Equivalent
-      Bayesian Network Structures". In "UAI '95: Proceedings of the Eleventh
-      Annual Conference on Uncertainty in Artificial Intelligence", pp. 87-98.
-      Morgan Kaufmann.
+	Bayesian Network Structures". \emph{Proceedings of the Eleventh Annual
+	Conference on Uncertainty in Artificial Intelligence}, pp. 87--98.
 
   Neapolitan RE (2003). \emph{Learning Bayesian Networks}. Prentice Hall.
 

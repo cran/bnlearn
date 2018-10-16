@@ -1,6 +1,6 @@
 #include "include/rcore.h"
 #include "include/matrix.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/globals.h"
 #include "include/graph.h"
 #include "include/scores.h"

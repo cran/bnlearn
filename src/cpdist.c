@@ -1,6 +1,6 @@
 #include "include/rcore.h"
 #include "include/sampling.h"
-#include "include/dataframe.h"
+#include "include/data.frame.h"
 #include "include/globals.h"
 
 SEXP cpdist_lw(SEXP fitted, SEXP nodes, SEXP n, SEXP fix, SEXP debug) {

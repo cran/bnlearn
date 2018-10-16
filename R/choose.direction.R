@@ -153,7 +153,8 @@ choose.direction.decide = function(x, arc, a, b, t, criterion, debug) {
 
 }#CHOOSE.DIRECTION.DECIDE
 
-choose.direction.test = function(x, arc, data, test, alpha, B, debug = FALSE) {
+choose.direction.test = function(x, arc, data, test, alpha, B, complete,
+    debug = FALSE) {
 
   # you can't help but notice nodes connected by undirected arcs are
   # included, too? wonder why?
@@ -177,7 +178,7 @@ choose.direction.test = function(x, arc, data, test, alpha, B, debug = FALSE) {
 
     parents = x$nodes[[arc[2]]]$nbr
     a = indep.test(arc[1], arc[2], parents[parents != arc[1]], data = data,
-          test = test, B = B, alpha = alpha)
+          test = test, B = B, alpha = alpha, complete = complete)
 
     if (debug) {
 

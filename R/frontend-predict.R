@@ -3,6 +3,8 @@
 predict.bn  = function(object, node, data, method = "parents", ...,
     prob = FALSE, debug = FALSE) {
 
+  warning("predicting from bn objects is deprecated and will be removed in 2019.")
+
   predict.bn.fit(object = bn.fit(object, data), node = node, data = data,
     method = method, ..., prob = prob, debug = debug)
 

@@ -35,8 +35,8 @@ mutilated(x, evidence)
   \code{cpquery} estimates the conditional probability of \code{event} given
   \code{evidence} using the method specified in the \code{method} argument.
 
-  \code{cpdist} generates random observations conditional on the
-  \code{evidence} using the method specified in the \code{method} argument.
+  \code{cpdist} generates random samples conditional on the \code{evidence}
+  using the method specified in the \code{method} argument.
 
   \code{mutilated} constructs the mutilated network arising from an ideal
   intervention setting the nodes involved to the values specified by
@@ -61,18 +61,21 @@ mutilated(x, evidence)
 
   \itemize{
 
-    \item \code{n}: a positive integer number, the number of random observations
+    \item \code{n}: a positive integer number, the number of random samples
       to generate from \code{fitted}. The default value is
-      \code{5000 * log10(nparams.fitted(fitted))} for discrete and coditional
-      Gaussian networks and \code{500 * nparams.fitted(fitted)} for Gaussian
-      networks.
+      \code{5000 * log10(nparams(fitted))} for discrete and coditional Gaussian
+      networks and \code{500 * nparams(fitted)} for Gaussian networks.
 
-    \item \code{batch}: a positive integer number, the size of each batch of
-     random observations. Defaults to \code{10^4}.
+    \item \code{batch}: a positive integer number, the number of random samples
+      that are generated at one time. Defaults to \code{10^4}. If the \code{n}
+      is very large (e.g. \code{10^12}), R would run out of memory if it tried
+      to generate them all at once. Instead random samples are generated in
+      batches of size \code{batch}, discarding each batch before generating the
+      next.
 
     \item \code{query.nodes}: a a vector of character strings, the labels of
       the nodes involved in \code{event} and \code{evidence}. Simple queries do
-      not require to generate observations from all the nodes in the network,
+      not require to generate samples from all the nodes in the network,
       so \code{cpquery} and \code{cpdist} try to identify which nodes are used
       in \code{event} and \code{evidence} and reduce the network to their upper
       closure. \code{query.nodes} may be used to manually specify these nodes
@@ -81,8 +84,8 @@ mutilated(x, evidence)
 
   }
 
-  Note that the number of observations returned by \code{cpdist()} is always
-  smaller than \code{n}, because logic sampling is a form of rejection sampling.
+  Note that the number of samples returned by \code{cpdist()} is always smaller
+  than \code{n}, because logic sampling is a form of rejection sampling.
   Therefore, only the obervations matching \code{evidence} (out of the \code{n}
   that are generated) are returned, and their number depends on the probability
   of \code{evidence}.
@@ -112,7 +115,7 @@ mutilated(x, evidence)
   Tuning parameters are the same as for logic sampling: \code{n}, \code{batch}
   and \code{query.nodes}.
 
-  Note that the observations returned by \code{cpdist()} are generated from the
+  Note that the samples returned by \code{cpdist()} are generated from the
   mutilated network, and need to be weighted appropriately when computing
   summary statistics (for more details, see the references below).
   {cpquery} does that automatically when computing the final conditional
@@ -125,7 +128,7 @@ mutilated(x, evidence)
   \code{cpquery()} returns a numeric value, the conditional probability of
   \code{event()} conditional on \code{evidence}.
 
-  \code{cpdist()} returns a data frame containing the observations generated from
+  \code{cpdist()} returns a data frame containing the samples generated from
   the conditional distribution of the \code{nodes} conditional on
   \code{evidence()}. The data frame has class \code{c("bn.cpdist", "data.frame")},
   and a \code{meth, -8od} attribute storing the value of the \code{method}
@@ -139,10 +142,10 @@ mutilated(x, evidence)
 \references{
 
   Koller D, Friedman N (2009). \emph{Probabilistic Graphical Models: Principles
-      and Techniques}. MIT Press.
+    and Techniques}. MIT Press.
 
   Korb K, Nicholson AE (2010). \emph{Bayesian Artificial Intelligence}. Chapman
-      & Hall/CRC, 2nd edition.
+    & Hall/CRC, 2nd edition.
 
 }
 \examples{

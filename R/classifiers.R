@@ -30,14 +30,15 @@ tan.backend = function(data, training, explanatory, whitelist, blacklist,
   res = empty.graph(nodes)
   # create the set of arcs outgoing from the training variable.
   class.arcs = matrix(c(rep(training, length(explanatory)), explanatory),
-               ncol = 2, byrow = FALSE)
+                 ncol = 2, byrow = FALSE)
 
   # call chow-liu to build the rest of the network.
-  chow.liu.arcs = chow.liu.backend(x = minimal.data.frame.column(data, explanatory),
-                    nodes = explanatory, estimator = estimator,
-                    whitelist = whitelist, blacklist = blacklist,
-                    conditional = minimal.data.frame.column(data, training, drop = TRUE),
-                    debug = debug)
+  chow.liu.arcs =
+    chow.liu.backend(x = minimal.data.frame.column(data, explanatory, drop = FALSE),
+                     nodes = explanatory, estimator = estimator,
+                     whitelist = whitelist, blacklist = blacklist,
+                     conditional = minimal.data.frame.column(data, training, drop = TRUE),
+                     debug = debug)
 
   # set the directions of the arcs in the Chow-Liu tree.
   chow.liu.arcs = .Call(call_tree_directions,

@@ -20,7 +20,7 @@ void c_mcarlo(int *xx, int nr, int *yy, int nc, int num, int B,
     double *observed, double *pvalue, double alpha, test_e test, double *df) {
 
 double *fact = NULL;
-int **n = NULL, *ncolt = NULL, *nrowt = NULL, *workspace = NULL;
+int **n = NULL, *ncolt = NULL, *nrowt = NULL, *workspace = NULL, ncomplete = 0;
 int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
   /* allocate and compute the factorials needed by rcont2. */
@@ -28,26 +28,21 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
   /* allocate and initialize the workspace for rcont2. */
   workspace = Calloc1D(nc, sizeof(int));
   /* initialize the contingency table and the marginal frequencies. */
-  fill_2d_table(xx, yy, &n, &nrowt, &ncolt, nr, nc, num);
+  ncomplete = fill_2d_table(xx, yy, &n, &nrowt, &ncolt, nr, nc, num);
 
-  /* if at least one of the two variables is constant, they are independent. */
+  /* if at least one of the two variables is constant, or if there are no
+   * complete observations, the variables are taken to be independent. */
   for (k = 0; k < nr; k++)
-    constx = constx && ((nrowt[k] == 0) || (nrowt[k] == num));
+    constx = constx && ((nrowt[k] == 0) || (nrowt[k] == ncomplete));
   for (k = 0; k < nc; k++)
-    consty = consty && ((ncolt[k] == 0) || (ncolt[k] == num));
+    consty = consty && ((ncolt[k] == 0) || (ncolt[k] == ncomplete));
 
   if (constx || consty) {
 
     *observed = 0;
     *pvalue = 1;
 
-    Free2D(n, nr);
-    Free1D(nrowt);
-    Free1D(ncolt);
-    Free1D(fact);
-    Free1D(workspace);
-
-    return;
+    goto free_and_return;
 
   }/*THEN*/
 
@@ -61,13 +56,13 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
     case MC_MI:
     case SMC_MI:
-      *observed = mi_kernel(n, nrowt, ncolt, nr, nc, num);
+      *observed = mi_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
 
       for (k = 0; k < B; k++) {
 
-        c_rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
+        c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
 
-        if (mi_kernel(n, nrowt, ncolt, nr, nc, num) > *observed) {
+        if (mi_kernel(n, nrowt, ncolt, nr, nc, ncomplete) > *observed) {
 
           SEQUENTIAL_COUNTER_CHECK(*pvalue);
 
@@ -81,13 +76,13 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
     case MC_X2:
     case SMC_X2:
-      *observed = x2_kernel(n, nrowt, ncolt, nr, nc, num);
+      *observed = x2_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
 
       for (k = 0; k < B; k++) {
 
-        c_rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
+        c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
 
-        if (x2_kernel(n, nrowt, ncolt, nr, nc, num) > *observed) {
+        if (x2_kernel(n, nrowt, ncolt, nr, nc, ncomplete) > *observed) {
 
           SEQUENTIAL_COUNTER_CHECK(*pvalue);
 
@@ -98,13 +93,13 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
       break;
 
     case SP_MI:
-      *observed = mi_kernel(n, nrowt, ncolt, nr, nc, num);
+      *observed = mi_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
       *df = 0;
 
       for (k = 0; k < B; k++) {
 
-        c_rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
-        *df += mi_kernel(n, nrowt, ncolt, nr, nc, num);
+        c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
+        *df += mi_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
 
       }/*FOR*/
 
@@ -116,13 +111,13 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
       break;
 
     case SP_X2:
-      *observed = x2_kernel(n, nrowt, ncolt, nr, nc, num);
+      *observed = x2_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
       *df = 0;
 
       for (k = 0; k < B; k++) {
 
-        c_rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
-        *df += x2_kernel(n, nrowt, ncolt, nr, nc, num);
+        c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
+        *df += x2_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
 
       }/*FOR*/
 
@@ -133,13 +128,13 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
     case MC_JT:
     case SMC_JT:
-      *observed = mc_jt(n, nrowt, nr, nc, num);
+      *observed = mc_jt(n, nrowt, nr, nc, ncomplete);
 
       for (k = 0; k < B; k++) {
 
-        c_rcont2(nr, nc, nrowt, ncolt, num, fact, workspace, n);
+        c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
 
-        if (fabs(mc_jt(n, nrowt, nr, nc, num)) >= fabs(*observed)) {
+        if (fabs(mc_jt(n, nrowt, nr, nc, ncomplete)) >= fabs(*observed)) {
 
           SEQUENTIAL_COUNTER_CHECK(*pvalue);
 
@@ -148,7 +143,7 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
       }/*FOR*/
 
       /* standardize to match the parametric test. */
-      *observed /= sqrt(c_jt_var(num, nrowt, nr, ncolt, nc));
+      *observed /= sqrt(c_jt_var(ncomplete, nrowt, nr, ncolt, nc));
 
       break;
 
@@ -165,6 +160,8 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
     *pvalue = pchisq(*observed, *df, FALSE, FALSE);
   else
     *pvalue /= B;
+
+free_and_return:
 
   Free2D(n, nr);
   Free1D(nrowt);
@@ -190,7 +187,8 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
   /* initialize the contingency table and the marginal frequencies. */
   fill_3d_table(xx, yy, zz, &n, &nrowt, &ncolt, &ncond, nr, nc, nl, num);
 
-  /* if at least one of the two variables is constant, they are independent. */
+  /* if at least one of the two variables is constant, or if there are no
+   * complete observations, the variables are taken to be independent. */
   for (k = 0; k < nl; k++)
     for (j = 0; j < nr; j++)
       constx = constx && ((nrowt[k][j] == 0) || (nrowt[k][j] == ncond[k]));
@@ -203,14 +201,7 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
     *observed = 0;
     *pvalue = 1;
 
-    Free3D(n, nl, nr);
-    Free2D(nrowt, nl);
-    Free2D(ncolt, nl);
-    Free1D(ncond);
-    Free1D(fact);
-    Free1D(workspace);
-
-    return;
+    goto free_and_return;
 
   }/*THEN*/
 
@@ -336,6 +327,8 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
     *pvalue = pchisq(*observed, *df, FALSE, FALSE);
   else
     *pvalue /= B;
+
+free_and_return:
 
   Free3D(n, nl, nr);
   Free2D(nrowt, nl);

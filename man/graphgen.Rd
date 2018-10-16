@@ -84,16 +84,16 @@ random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
 \references{
 
   Ide JS, Cozman FG (2002). "Random Generation of Bayesian Networks".
-      In "SBIA '02: Proceedings of the 16th Brazilian Symposium on Artificial
-      Intelligence", pp. 366-375. Springer-Verlag.
+    \emph{Proceedings of the 16th Brazilian Symposium on Artificial
+    Intelligence}, pp. 366--375.
 
   Melancon G, Dutour I, Bousquet-Melou M (2001). "Random Generation of Directed
-      Acyclic Graphs". \emph{Electronic Notes in Discrete Mathematics},
-      \strong{10}, 202-207.
+    Acyclic Graphs". \emph{Electronic Notes in Discrete Mathematics},
+    \strong{10}:202--207.
 
   Melancon G, Philippe F (2004). "Generating Connected Acyclic Digraphs
-      Uniformly at Random". \emph{Information Processing Letters},
-      \strong{90}(4), 209-213.
+    Uniformly at Random". \emph{Information Processing Letters},
+    \strong{90}(4):209--213.
 
 }
 \examples{

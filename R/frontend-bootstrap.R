@@ -155,6 +155,12 @@ bn.cv = function(data, bn, loss = NULL, ...,
     # partially directed and cannot be extended to a completely directed graph.
     if (!is.dag(arcs = bn$arcs, nodes = nodes)) {
 
+      # trying to extend a skeleton (instead of a CPDAG) is probably not
+      # meaningful.
+      if (!is.null(bn$learning$undirected) && bn$learning$undirected)
+        warning(deparse(substitute(bn)), " is just a skeleton (no arc directions ",
+          "have been learned) and trying to extend it is probably wrong.")
+
       # try to extend the network into a completely directed graph.
       bn = cpdag.extension(cpdag.backend(bn, wlbl = TRUE))
 

@@ -63,6 +63,9 @@ dag2ug.backend = function(x, moral = FALSE, debug = FALSE) {
   x$arcs = arcs
   # update the network structure.
   x$nodes = cache.structure(nodes = nodes, arcs = arcs)
+  # make it really clear the graph does not contain any information about arc
+  # directions.
+  x$learning$undirected = TRUE
 
   return(x)
 
@@ -272,13 +275,13 @@ hamming.distance = function(learned, true, debug = FALSE) {
 }#HAMMING.DISTANCE
 
 # backend for extracting v-structures from a network.
-vstructures = function(x, arcs, moral = TRUE, debug = FALSE) {
+vstructures = function(x, arcs, including.moral = FALSE, debug = FALSE) {
 
   .Call(call_vstructures,
         arcs = x$arcs,
         nodes = names(x$nodes),
         return.arcs = arcs,
-        moral = moral,
+        including.moral = including.moral,
         debug = debug)
 
 }#VSTRUCTURES

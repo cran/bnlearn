@@ -8,7 +8,7 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
   if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
   # check the data are there.
-  check.data(data)
+  data.info = check.data(data)
   # check the network against the data.
   check.bn.vs.data(x, data)
   # check debug.
@@ -46,7 +46,8 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
     check.unused.args(list(...), c("alpha", "B"))
 
     res = arc.strength.test(network = x, data = data, alpha = alpha,
-            test = criterion, B = B, debug = debug)
+            test = criterion, B = B, debug = debug,
+            complete = data.info$complete.nodes)
 
     # add extra information for strength.plot().
     res = structure(res, method = "test", threshold = alpha)
@@ -133,8 +134,6 @@ custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
   check.logical(debug)
   # check cpdag.
   check.logical(cpdag)
-  # check the node labels.
-  check.nodes(nodes)
   # check networks.
   if (is(networks, c("bn.kcv", "bn.kcv.list"))) {
 
@@ -149,9 +148,21 @@ custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
 
     }#THEN
 
+    # extract the node labels from the networks, and ignore the argument.
+    if (!missing(nodes))
+      warning("the labels from the 'nodes' argument will be ignored.")
+
+    nodes = names(networks[[1]]$nodes)
+
   }#THEN
-  else
+  else {
+
+    # check the node labels.
+    check.nodes(nodes)
+    # check the networks.
     check.customlist(networks, nodes = nodes)
+
+  }#ELSE
   # check the weights.
   weights = check.weights(weights, length(networks))
 
