@@ -31,7 +31,7 @@ SEXP arcs, temp, names;
     /* set the column names. */
     setDimNames(arcs, R_NilValue, mkStringVec(2, "from", "to"));
 
-    UNPROTECT(1);
+    UNPROTECT(2);
 
     return arcs;
 
@@ -80,8 +80,13 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash;
   PROTECT(cnodes = getAttrib(getListElement(current, "nodes"), R_NamesSymbol));
 
   /* first check: node sets must have the same size. */
-  if (length(tnodes) != length(cnodes))
+  if (length(tnodes) != length(cnodes)) {
+
+    UNPROTECT(2);
+
     return mkString("Different number of nodes");
+
+  }/*THEN*/
 
   /* store for future use. */
   nnodes = length(tnodes);
@@ -114,8 +119,13 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash;
   carcs = getListElement(current, "arcs");
 
   /* third check: arc sets must have the same size. */
-  if (length(tarcs) != length(carcs))
+  if (length(tarcs) != length(carcs)) {
+
+    UNPROTECT(2);
+
     return mkString("Different number of directed/undirected arcs");
+
+  }/*THEN*/
 
   /* store for future use. */
   narcs = length(tarcs)/2;

@@ -63,7 +63,7 @@ ci.test.character = function(x, y, z, data, test, B, debug = FALSE) {
 
     if (!is.string.vector(z) || any(z %!in% names(data)))
       stop("'z' must be a vector of character strings, the names of one or more of the columns of 'data'.")
-    if ((z == x) || (z == y))
+    if ((x %in% z) || (y %in% z))
       stop("'z' must be different from both 'x' and 'y'.")
 
   }#THEN

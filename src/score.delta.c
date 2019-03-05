@@ -6,11 +6,17 @@ static SEXP score_delta_helper(SEXP net, SEXP arc, SEXP operator, int children,
     int both) {
 
 int i = 0, k = 0;
-char *from = (char *) CHAR(STRING_ELT(arc, 0));
-char *to = (char *) CHAR(STRING_ELT(arc, 1));
 char *op = (char *) CHAR(STRING_ELT(operator, 0));
+SEXP fromCHAR, toCHAR, fromSTR, toSTR;
 SEXP fake, nodes, parents_from, parents_to, children_from;
 SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
+
+  PROTECT(fromCHAR = STRING_ELT(arc, 0));
+  PROTECT(toCHAR = STRING_ELT(arc, 1));
+  PROTECT(fromSTR = allocVector(STRSXP, 1));
+  PROTECT(toSTR = allocVector(STRSXP, 1));
+  SET_STRING_ELT(fromSTR, 0, fromCHAR);
+  SET_STRING_ELT(toSTR, 0, toCHAR);
 
   /* allocate the return value. */
   PROTECT(fake = allocVector(VECSXP, 1));
@@ -30,7 +36,7 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
     PROTECT(nodes = allocVector(VECSXP, 1 + both));
     PROTECT(temp = allocVector(VECSXP, 1 + children));
 
-    cur_n = getListElement(start, to);
+    cur_n = getListElement(start, (char *) CHAR(toCHAR));
     cur_p = getListElement(cur_n, "parents");
 
     PROTECT(parents_to = allocVector(STRSXP, length(cur_p) + 1));
@@ -47,7 +53,8 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
       /* make sure the other endpoint of the arc is not a parent and a child
        * at the same time. */
       cur_c = getListElement(cur_n, "children");
-      PROTECT(cur_c = string_delete(cur_c, mkString(from), NULL));
+
+      PROTECT(cur_c = string_delete(cur_c, fromSTR, NULL));
       SET_VECTOR_ELT(temp, 1, cur_c);
       UNPROTECT(1);
 
@@ -62,7 +69,7 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
       SET_VECTOR_ELT(nodes, 1, duplicate(temp));
 
       /* work on the second node. */
-      cur_n = getListElement(start, from);
+      cur_n = getListElement(start, (char *) CHAR(fromCHAR));
       cur_c = getListElement(cur_n, "children");
 
       PROTECT(children_from = allocVector(STRSXP, length(cur_c) + 1));
@@ -77,7 +84,7 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
       /* make sure the other endpoint of the arc is not a parent and a child
        * at the same time. */
       cur_p = getListElement(cur_n, "parents");
-      PROTECT(cur_p = string_delete(cur_p, mkString(to), NULL));
+      PROTECT(cur_p = string_delete(cur_p, toSTR, NULL));
       SET_VECTOR_ELT(temp, 0, cur_p);
 
       /* assign the first node. */
@@ -89,7 +96,8 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
     else {
 
       /* set the names in the structure. */
-      setAttrib(nodes, R_NamesSymbol, mkString(to));
+
+      setAttrib(nodes, R_NamesSymbol, toSTR);
       setAttrib(temp, R_NamesSymbol, name_cached);
       /* assign the only node. */
       SET_VECTOR_ELT(nodes, 0, temp);
@@ -105,7 +113,7 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
     PROTECT(nodes = allocVector(VECSXP, 1 + both));
     PROTECT(temp = allocVector(VECSXP, 1 + children));
 
-    cur_n = getListElement(start, to);
+    cur_n = getListElement(start, (char *) CHAR(toCHAR));
     cur_p = getListElement(cur_n, "parents");
 
     PROTECT(parents_to = allocVector(STRSXP, length(cur_p) - 1));
@@ -113,7 +121,7 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
     /* the new parents are the old ones except the other node incident on
      * the arc. */
     for (i = 0, k = 0; i < length(cur_p); i++)
-      if (strcmp(CHAR(STRING_ELT(cur_p, i)), from) != 0)
+      if (strcmp(CHAR(STRING_ELT(cur_p, i)), (char *)CHAR(fromCHAR)) != 0)
         SET_STRING_ELT(parents_to, k++, STRING_ELT(cur_p, i));
 
     SET_VECTOR_ELT(temp, 0, parents_to);
@@ -129,7 +137,7 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
       SET_VECTOR_ELT(nodes, 1, duplicate(temp));
 
       /* work on the second node. */
-      cur_n = getListElement(start, from);
+      cur_n = getListElement(start, (char *) CHAR(fromCHAR));
       cur_c = getListElement(cur_n, "children");
 
       PROTECT(children_from = allocVector(STRSXP, length(cur_c) - 1));
@@ -137,7 +145,7 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
       /* the new children are the old ones except the other node incident on
        * the arc. */
       for (i = 0, k = 0; i < length(cur_c); i++)
-        if (strcmp(CHAR(STRING_ELT(cur_c, i)), to) != 0)
+        if (strcmp(CHAR(STRING_ELT(cur_c, i)), (char *) CHAR(toCHAR)) != 0)
           SET_STRING_ELT(children_from, k++, STRING_ELT(cur_c, i));
 
       SET_VECTOR_ELT(temp, 0, getListElement(cur_n, "parents"));
@@ -151,7 +159,7 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
     else {
 
       /* set the names in the structure. */
-      setAttrib(nodes, R_NamesSymbol, mkString(to));
+      setAttrib(nodes, R_NamesSymbol, toSTR);
       setAttrib(temp, R_NamesSymbol, name_cached);
       /* assign the only node. */
       SET_VECTOR_ELT(nodes, 0, temp);
@@ -170,7 +178,7 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
     setAttrib(temp, R_NamesSymbol, name_cached);
 
     /* add "to" to the parents of "from". */
-    cur_n = getListElement(start, from);
+    cur_n = getListElement(start, (char *) CHAR(fromCHAR));
     cur_p = getListElement(cur_n, "parents");
 
     PROTECT(parents_from = allocVector(STRSXP, length(cur_p) + 1));
@@ -184,7 +192,7 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
 
       /* remove "to" from the children of "from". */
       cur_c = getListElement(cur_n, "children");
-      PROTECT(cur_c = string_delete(cur_c, mkString(to), NULL));
+      PROTECT(cur_c = string_delete(cur_c, toSTR, NULL));
       SET_VECTOR_ELT(temp, 1, cur_c);
       UNPROTECT(1);
 
@@ -193,13 +201,13 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
     SET_VECTOR_ELT(nodes, 0, duplicate(temp));
 
     /* remove "from" from the parents of "to". */
-    cur_n = getListElement(start, to);
+    cur_n = getListElement(start, (char *) CHAR(toCHAR));
     cur_p = getListElement(cur_n, "parents");
 
     PROTECT(parents_to = allocVector(STRSXP, length(cur_p) - 1));
 
     for (i = 0, k = 0; i < length(cur_p); i++)
-      if (strcmp(CHAR(STRING_ELT(cur_p, i)), from) != 0)
+      if (strcmp(CHAR(STRING_ELT(cur_p, i)), (char *) CHAR(fromCHAR)) != 0)
         SET_STRING_ELT(parents_to, k++, STRING_ELT(cur_p, i));
 
     SET_VECTOR_ELT(temp, 0, parents_to);
@@ -215,7 +223,7 @@ SEXP start, cur_n, cur_p, cur_c, temp, name_nodes, name_cached;
   SET_VECTOR_ELT(fake, 0, nodes);
   setAttrib(fake, R_NamesSymbol, name_nodes);
 
-  UNPROTECT(3);
+  UNPROTECT(7);
 
   return fake;
 
@@ -252,7 +260,7 @@ SEXP score_delta_decomposable(SEXP arc, SEXP network, SEXP data, SEXP score,
 
 int *t = NULL;
 double diff = 0, *new = NULL, *old = NULL;
-SEXP delta, fake, new_score, try, to_update;
+SEXP delta, fake, new_score, try, to_update, reference_names;
 
   /* create the fake network with the updated structure. */
   PROTECT(fake = score_delta_helper(network, arc, op, chld, FALSE));
@@ -268,7 +276,8 @@ SEXP delta, fake, new_score, try, to_update;
   test_counter += length(new_score);
 
   /* get the corresponding components from the old score. */
-  PROTECT(try = match(getAttrib(reference_score, R_NamesSymbol), to_update, 0));
+  PROTECT(reference_names = getAttrib(reference_score, R_NamesSymbol));
+  PROTECT(try = match(reference_names, to_update, 0));
   t = INTEGER(try);
   old = REAL(reference_score);
 
@@ -284,7 +293,7 @@ SEXP delta, fake, new_score, try, to_update;
   SET_VECTOR_ELT(delta, 2, new_score);
   setAttrib(delta, R_NamesSymbol, mkStringVec(3, "bool", "delta", "updates"));
 
-  UNPROTECT(5);
+  UNPROTECT(6);
 
   return delta;
 

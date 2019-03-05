@@ -20,7 +20,7 @@ SEXP result, simulation, wgt, from;
   /* compute the weights. */
   PROTECT(wgt = allocVector(REALSXP, nsims));
   weights = REAL(wgt);
-  from = getAttrib(fix, R_NamesSymbol);
+  PROTECT(from = getAttrib(fix, R_NamesSymbol));
   c_lw_weights(fitted, simulation, nsims, weights, from, FALSE);
 
   /* all weights are zero or NA, the event is impossible. */
@@ -42,7 +42,7 @@ SEXP result, simulation, wgt, from;
   /* allocate and set the class. */
   setAttrib(result, R_ClassSymbol, mkStringVec(2, "bn.cpdist", "data.frame"));
 
-  UNPROTECT(3);
+  UNPROTECT(4);
 
   return result;
 

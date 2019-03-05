@@ -1,5 +1,5 @@
 570ab65ce85ed76f84349201ecca599b *Changelog
-15f984bc69b881e4190d91285ab56d07 *DESCRIPTION
+0ae87da58eb803932dd74ffc3b9e4fb6 *DESCRIPTION
 2973575903373a5f6615c5329fa2e952 *NAMESPACE
 bddbf1a9aededd9f1641ca1e4454db50 *R/aracne.R
 0cc417438560eefa77c83926d3542554 *R/arc.operations.R
@@ -10,7 +10,7 @@ b21cdf7956f4111ed4201d2b494efc33 *R/backend-score.R
 be590b36b4c79bed33d184f8a186e242 *R/bootstrap.R
 1fc0e435af8acb7eca2036ac7ff88fcf *R/choose.direction.R
 f7f75764037b89a5e041fef7c3f712fa *R/chow.liu.R
-d4d96f4a6eca5ed82caa717014343744 *R/ci.test.R
+c9979cbb04947ec5c1bfcdfa632ca2f8 *R/ci.test.R
 3318e820b900c70035435e0c9a8baba5 *R/classifiers.R
 ddb10efb187e8ed71834a8ab1afbb46c *R/cpdag.R
 dc214838fcc520d2ff8e3bf4442e0e4a *R/cpq.R
@@ -132,7 +132,7 @@ df5dc5a90e67a9546db504f1ea92ae5c *man/bn.fit.methods.Rd
 cd8797ed8eb155838d4527f1909825b8 *man/bn.kcv.class.Rd
 dfb607b68d77e77308d72dee416c9e88 *man/bn.strength-class.Rd
 7dfc2d4560a2ae9c96a62d16156961f5 *man/bnboot.Rd
-9f8295908ff1c2c5e350973b26889f90 *man/bnlearn-package.Rd
+4cafdd7333aede6a56738ef3808595b3 *man/bnlearn-package.Rd
 d41e583a01f3cc87a53b51818915a052 *man/choose.direction.Rd
 44e58776053a67b0d62035647f2001cc *man/ci.test.Rd
 9e39c76a0e0cfd42a9502f2fbab2778e *man/clgaussian-test.Rd
@@ -187,7 +187,7 @@ ecb05302af3d7185cac6f7a663d8a329 *src/alpha.star.c
 97dc4a27ddacc877688448f4ae628192 *src/arcs2amat.c
 70615f0bc1de8e825e9ae4139507511f *src/arcs2elist.c
 725024f72241739dcf2c26c50698fc50 *src/averaging.c
-48c0b2861743f40d31cf98ea2f1b38c3 *src/bayesian.network.c
+7ffc6ab3fb9a498ee167aaafc81d1fd1 *src/bayesian.network.c
 f9a1f5b2dacd46648073f4dd3c879dbc *src/bind.c
 8dcdfd25c0029fe7951ec6bd3674cfe1 *src/bn.recovery.c
 605d50abda30a5df96f746b1ea148798 *src/bootstrap.c
@@ -202,7 +202,7 @@ bfc3172dc8cab77a32e1b986065f38b5 *src/common.c
 b61b33ebd7e40d79e2e996e5de9bd0fb *src/contingency.tables.c
 52d762f4c884a1250f724eac0d8da589 *src/covariance.c
 b23b6457b2f717e56ad3420823b4ca64 *src/cpdag.c
-2bbaf86e0c59684d05a72f694dc9fc87 *src/cpdist.c
+fbd953f1137c797bfe6b10df85ac85f2 *src/cpdist.c
 680ba1fbeb95c7bd447c96f0a50d3143 *src/ctest.c
 74ea6e304fdc227cc121e8ca0256cd8e *src/data.frame.c
 f60cd7b4fa711f166dd31cde20a1e698 *src/data.table.c
@@ -267,7 +267,7 @@ e90883a3135a3d1538ce657399ac155b *src/pdag2dag.c
 12d1978505874c131555d703725977d5 *src/roundrobin.test.c
 61a5d207e687ba18eb41a75a779d9655 *src/sampling.c
 a91f9830ece8f8bbbf449c79e338be05 *src/sanitization.c
-406b78b4f6ce2b54753c0baa0f323727 *src/score.delta.c
+5f1a119f2134fd136ed504f247db5ef7 *src/score.delta.c
 0fbc6f7bcb4460dd5cd2fa5b37dc1448 *src/shd.c
 052fa03785cbe915c0ce32c3562892b3 *src/shrinkage.c
 718db59e43d792a71e21622226d6f303 *src/simulation.c

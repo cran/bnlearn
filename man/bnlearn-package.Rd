@@ -16,8 +16,8 @@
 
     Package: \tab bnlearn\cr
     Type: \tab Package\cr
-    Version: \tab 4.4\cr
-    Date: \tab 2018-08-28\cr
+    Version: \tab 4.4.1\cr
+    Date: \tab 2019-03-05\cr
     License: \tab GPLv2 or later
 
   }
