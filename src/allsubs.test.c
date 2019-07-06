@@ -146,7 +146,8 @@ ddata dt = { 0 }, sub = { 0 };
 
 /* parametric tests for Gaussian variables. */
 static SEXP ast_gaustests(SEXP xx, SEXP yy, SEXP zz, SEXP x, SEXP y, int nf,
-    int minsize, int maxsize, double a, int debuglevel, test_e test) {
+    int minsize, int maxsize, double a, int debuglevel, test_e test,
+    SEXP nx, SEXP ny, SEXP nz) {
 
 int i = 0, cursize = 0, *subset = NULL, df = 0;
 double statistic = 0, lambda = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
@@ -618,6 +619,8 @@ const char *t = CHAR(STRING_ELT(test, 0));
 test_e test_type = test_label(t);
 SEXP xx, yy, zz, res = R_NilValue;
 
+SEXP nx, ny, nz = R_NilValue; // noise levels related to variables in xx, yy, and zz respectivly.
+
   /* call indep_test to deal with zero-length conditioning subsets. */
   if (minsize == 0) {
 
@@ -661,6 +664,11 @@ SEXP xx, yy, zz, res = R_NilValue;
   PROTECT(xx = c_dataframe_column(data, x, TRUE, FALSE));
   PROTECT(yy = c_dataframe_column(data, y, TRUE, FALSE));
   PROTECT(zz = c_dataframe_column(data, sx, FALSE, TRUE));
+  
+  /* extract the variables from the noise_levels. */
+  PROTECT(nx = c_dataframe_column(noise_levels, x, TRUE, FALSE));
+  PROTECT(ny = c_dataframe_column(noise_levels, y, TRUE, FALSE));
+  PROTECT(nz = c_dataframe_column(noise_levels, sx, FALSE, TRUE));
 
   if (IS_DISCRETE_ASYMPTOTIC_TEST(test_type)) {
 
@@ -674,7 +682,7 @@ SEXP xx, yy, zz, res = R_NilValue;
 
     /* parametric tests for Gaussian variables. */
     res = ast_gaustests(xx, yy, zz, x, y, nf, minsize, maxsize, a,
-            debuglevel, test_type);
+            debuglevel, test_type, nx, ny, nz);
 
   }/*THEN*/
   else if (test_type == MI_CG) {
@@ -696,7 +704,7 @@ SEXP xx, yy, zz, res = R_NilValue;
 
   }/*THEN*/
 
-  UNPROTECT(3);
+  UNPROTECT(6);
 
   /* catch-all for unknown tests (after deallocating memory.) */
   if (test_type == ENOTEST)
