@@ -1,6 +1,6 @@
 
 maxmin.pc.optimized = function(x, whitelist, blacklist, test, alpha, B,
-    max.sx = ncol(x), strict, complete, debug = FALSE) {
+    max.sx = ncol(x), strict, complete, debug = FALSE, noise.levels = NULL) {
 
   nodes = names(x)
   mb = list()
@@ -13,13 +13,13 @@ maxmin.pc.optimized = function(x, whitelist, blacklist, test, alpha, B,
     mb[[node]] = maxmin.pc.forward.phase(node, data = x, nodes = nodes,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, max.sx = max.sx,
-         optimized = TRUE, complete = complete, debug = debug)
+         optimized = TRUE, complete = complete, debug = debug, noise.levels = noise.levels)
 
     # 2. [Backward Phase (II)]
     mb[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
          B = B, whitelist = whitelist, blacklist = blacklist,
          backtracking = backtracking, test = test, max.sx = max.sx,
-         markov = FALSE, complete = complete, debug = debug)
+         markov = FALSE, complete = complete, debug = debug, noise.levels = noise.levels)
 
   }#FOR
 
@@ -36,7 +36,7 @@ maxmin.pc.optimized = function(x, whitelist, blacklist, test, alpha, B,
 }#MAXMIN.PC.OPTIMIZED
 
 maxmin.pc = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
-  strict, max.sx = ncol(x), complete, debug = FALSE) {
+  strict, max.sx = ncol(x), complete, debug = FALSE, noise.levels = NULL) {
 
   nodes = names(x)
 
@@ -44,14 +44,14 @@ maxmin.pc = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
   mb = smartSapply(cluster, as.list(nodes), maxmin.pc.forward.phase, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
          blacklist = blacklist, test = test, max.sx = max.sx,
-         optimized = FALSE, complete = complete, debug = debug)
+         optimized = FALSE, complete = complete, debug = debug, noise.levels = noise.levels)
   names(mb) = nodes
 
   # 2. [Backward Phase (II)]
   mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
          test = test, max.sx = max.sx, markov = FALSE, complete = complete,
-         debug = debug)
+         debug = debug, noise.levels = noise.levels)
   names(mb) = nodes
 
   # make up a set of believable Markov blankets, using all the nodes within
@@ -68,7 +68,7 @@ maxmin.pc = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
 
 maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
   blacklist, backtracking = NULL, test, max.sx = ncol(x), optimized = TRUE,
-  complete, debug = FALSE) {
+  complete, debug = FALSE, noise.levels = NULL) {
 
   nodes = nodes[nodes != x]
   known.good = known.bad = c()
@@ -133,7 +133,8 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
     # get an association measure for each of the available nodes.
     association = sapply(to.be.checked, maxmin.pc.heuristic.optimized, y = x,
                     sx = cpc, data = data, test = test, alpha = alpha, B = B,
-                    association = association, complete = complete, debug = debug)
+                    association = association, complete = complete, debug = debug,
+                    noise.levels = noise.levels)
 
     # stop if there are no candidates for inclusion.
     if (all(association > alpha) || length(nodes) == 0 || is.null(nodes)) break
@@ -162,7 +163,7 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
 }#MAXMIN.PC.FORWARD.PHASE
 
 maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B,
-    association, complete, debug = FALSE) {
+    association, complete, debug = FALSE, noise.levels = NULL) {
 
   min.assoc = association[x]
 
@@ -180,7 +181,7 @@ maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B,
 
   new.min.assoc = allsubs.test(x = x, y = y, sx = sx, fixed = last, data = data,
                     test = test, B = B, alpha = alpha, complete = complete,
-                    debug = debug)
+                    debug = debug, noise.levels = noise.levels)
 
   min.assoc = max(min.assoc, new.min.assoc["max.p.value"])
 

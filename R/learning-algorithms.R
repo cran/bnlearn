@@ -2,7 +2,8 @@
 # constraint-based learning algorithms.
 bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = NULL, B = NULL, method = "gs", max.sx = NULL,
-    debug = FALSE, optimized = FALSE, strict = FALSE, undirected = FALSE) {
+    debug = FALSE, optimized = FALSE, strict = FALSE, undirected = FALSE, 
+    noise.levels = NULL) {
 
   reset.test.counter()
 
@@ -168,7 +169,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
         maxmin.pc.optimized(x = x, whitelist = whitelist,
           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
           max.sx = max.sx, strict = strict, debug = debug,
-          complete = data.info$complete.nodes)
+          complete = data.info$complete.nodes,
+          noise.levels = noise.levels)
 
     }#THEN
     else {
@@ -176,7 +178,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       local.structure =
         maxmin.pc(x = x, whitelist = whitelist, blacklist = full.blacklist,
           test = test, alpha = alpha, B = B, strict = strict, debug = debug,
-          max.sx = max.sx, cluster = cluster, complete = data.info$complete.nodes)
+          max.sx = max.sx, cluster = cluster, complete = data.info$complete.nodes,
+          noise.levels = noise.levels)
 
     }#ELSE
 

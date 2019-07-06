@@ -20,7 +20,7 @@ indep.test = function(x, y, sx, data, test, B = 0L, alpha = 1, learning = TRUE,
 # test against all possible subsets of the conditioning set (scalar in both x
 # and y).
 allsubs.test = function(x, y, sx, fixed = character(0), data, test, B = 0L,
-    alpha = 1, min = 0, max = length(sx), complete, debug = FALSE) {
+    alpha = 1, min = 0, max = length(sx), complete, debug = FALSE, noise.levels = NULL) {
 
   .Call(call_allsubs_test,
         x = x,

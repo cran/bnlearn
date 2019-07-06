@@ -63,7 +63,7 @@ fake.markov.blanket = function(learn, target) {
 # build the neighbourhood of a node from the markov blanket.
 neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
   backtracking = NULL, test, empty.dsep = TRUE, markov = TRUE, max.sx = ncol(x),
-  complete, debug = FALSE) {
+  complete, debug = FALSE, noise.levels = NULL) {
 
   # initialize the neighbourhood using the markov blanket.
   candidate.neighbours = mb[[x]]
@@ -153,7 +153,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
     a = allsubs.test(x = x, y = y, sx = dsep.set,
           min = ifelse(empty.dsep, 0, 1), max = min(length(dsep.set), max.sx),
           data = data, test = test, alpha = alpha, B = B,
-          complete = complete, debug = debug)
+          complete = complete, debug = debug, noise.levels = noise.levels)
 
     # update the neighbourhood.
     if (a["p.value"] > alpha)
