@@ -7,7 +7,7 @@
 
 static const R_CallMethodDef CallEntries[] = {
   CALL_ENTRY(all_equal_bn, 2),
-  CALL_ENTRY(allsubs_test, 12),
+  CALL_ENTRY(allsubs_test, 13),
   CALL_ENTRY(alpha_star, 3),
   CALL_ENTRY(amat2arcs, 2),
   CALL_ENTRY(aracne, 5),

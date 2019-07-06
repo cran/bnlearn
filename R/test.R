@@ -34,7 +34,8 @@ allsubs.test = function(x, y, sx, fixed = character(0), data, test, B = 0L,
         min = as.integer(min),
         max = as.integer(max),
         complete = complete,
-        debug = debug)
+        debug = debug,
+        noise_levels = noise.levels)
 
 }#ALLSUBS.TEST
 

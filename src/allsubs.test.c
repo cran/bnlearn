@@ -609,7 +609,7 @@ gdata dt = { 0 }, sub = { 0 };
 }/*AST_GPERM*/
 
 SEXP allsubs_test(SEXP x, SEXP y, SEXP sx, SEXP fixed, SEXP data, SEXP test,
-    SEXP B, SEXP alpha, SEXP min, SEXP max, SEXP complete, SEXP debug) {
+    SEXP B, SEXP alpha, SEXP min, SEXP max, SEXP complete, SEXP debug, SEXP noise_levels) {
 
 int minsize = INT(min), maxsize = INT(max), debuglevel = isTRUE(debug);
 int i = 0, nf = length(fixed);

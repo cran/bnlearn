@@ -1,7 +1,7 @@
 
 /* functions registered to make them visible to .Call() in R. */
 extern SEXP all_equal_bn(SEXP, SEXP);
-extern SEXP allsubs_test(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP allsubs_test(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP alpha_star(SEXP, SEXP, SEXP);
 extern SEXP amat2arcs(SEXP, SEXP);
 extern SEXP aracne(SEXP, SEXP, SEXP, SEXP, SEXP);
