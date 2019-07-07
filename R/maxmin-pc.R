@@ -178,7 +178,7 @@ maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B,
   # node added last; the rest are considered to be already tested against.
   last = sx[length(sx)]
   sx = sx[-length(sx)]
-
+  
   new.min.assoc = allsubs.test(x = x, y = y, sx = sx, fixed = last, data = data,
                     test = test, B = B, alpha = alpha, complete = complete,
                     debug = debug, noise.levels = noise.levels)

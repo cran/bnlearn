@@ -6,6 +6,7 @@
 #include "include/covariance.h"
 #include "include/blas.h"
 #include "include/data.table.h"
+#include "include/matrix.h"
 
 #define PVALUE(testfun) \
         pvalue = testfun; \
@@ -153,6 +154,7 @@ int i = 0, cursize = 0, *subset = NULL, df = 0;
 double statistic = 0, lambda = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
 SEXP retval;
 gdata dt = { 0 }, sub = { 0 };
+gdata noise_levels = { 0 }, sub_noise_levels = { 0 };;
 covariance cov = { 0 };
 
   /* allocate and initialize a data table for the variables. */
@@ -167,6 +169,17 @@ covariance cov = { 0 };
   /* allocate a second data table to hold the conditioning variables. */
   sub = empty_gdata(dt.m.nobs, dt.m.ncols);
   sub.mean = Calloc1D(dt.m.ncols, sizeof(double));
+  
+  /* allocate and initialize a data table for the noise levels. */
+  if(nz != R_NilValue) {
+    noise_levels = gdata_from_SEXP(nz, 2);
+    meta_copy_names(&(noise_levels.m), 2, nz);
+    noise_levels.col[0] = REAL(nx);
+    noise_levels.col[1] = REAL(ny);
+    noise_levels.m.names[0] = CHAR(STRING_ELT(x, 0));
+    noise_levels.m.names[1] = CHAR(STRING_ELT(y, 0));
+    sub_noise_levels =  empty_gdata(noise_levels.m.nobs, noise_levels.m.ncols);
+  }
 
   for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
 
@@ -199,6 +212,8 @@ covariance cov = { 0 };
 
       FreeGDT(dt, FALSE);
       FreeGDT(sub, FALSE);
+      FreeGDT(noise_levels, FALSE);
+      FreeGDT(sub_noise_levels, FALSE);
 
       UNPROTECT(1);
       return retval;
@@ -220,6 +235,15 @@ covariance cov = { 0 };
       gdata_subset_columns(&dt, &sub, subset, cursize + nf + 2);
       /* compute the covariance matrix. */
       c_covmat(sub.col, sub.mean, sub.m.nobs, sub.m.ncols, cov, 0);
+      
+      /* if noise levels available, subtract them from cov diagonal */
+      if(nz != R_NilValue) {
+        gdata_subset_columns(&noise_levels, &sub_noise_levels, subset, cursize + nf + 2);
+        for(int k = 0; k < cov.dim; k++) {
+          double val = *sub_noise_levels.col[k];
+          cov.mat[CMC(k, k, cov.dim)] -= val*val;
+        }
+      }
 
       if (test == COR) {
 
@@ -273,6 +297,8 @@ covariance cov = { 0 };
         FreeCOV(cov);
         FreeGDT(dt, FALSE);
         FreeGDT(sub, FALSE);
+        FreeGDT(noise_levels, FALSE);
+        FreeGDT(sub_noise_levels, FALSE);
 
         UNPROTECT(1);
         return retval;
@@ -288,6 +314,8 @@ covariance cov = { 0 };
 
   FreeGDT(dt, FALSE);
   FreeGDT(sub, FALSE);
+  FreeGDT(noise_levels, FALSE);
+  FreeGDT(sub_noise_levels, FALSE);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
@@ -618,7 +646,6 @@ double pvalue = 0, min_pvalue = 1, max_pvalue = 0, a = NUM(alpha);
 const char *t = CHAR(STRING_ELT(test, 0));
 test_e test_type = test_label(t);
 SEXP xx, yy, zz, res = R_NilValue;
-
 SEXP nx, ny, nz = R_NilValue; // noise levels related to variables in xx, yy, and zz respectivly.
 
   /* call indep_test to deal with zero-length conditioning subsets. */
@@ -664,7 +691,7 @@ SEXP nx, ny, nz = R_NilValue; // noise levels related to variables in xx, yy, an
   PROTECT(xx = c_dataframe_column(data, x, TRUE, FALSE));
   PROTECT(yy = c_dataframe_column(data, y, TRUE, FALSE));
   PROTECT(zz = c_dataframe_column(data, sx, FALSE, TRUE));
-  
+
   /* extract the variables from the noise_levels. */
   PROTECT(nx = c_dataframe_column(noise_levels, x, TRUE, FALSE));
   PROTECT(ny = c_dataframe_column(noise_levels, y, TRUE, FALSE));
