@@ -138,11 +138,12 @@ rsmax2 = function(x, whitelist = NULL, blacklist = NULL, restrict = "si.hiton.pc
 
 # MMHC frontend.
 mmhc = function(x, whitelist = NULL, blacklist = NULL,
-    restrict.args = list(), maximize.args = list(), debug = FALSE) {
+    restrict.args = list(), maximize.args = list(), debug = FALSE, 
+    noise.levels = NULL) {
 
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
     restrict = "mmpc", maximize = "hc", restrict.args = restrict.args,
-    maximize.args = maximize.args, debug = debug)
+    maximize.args = maximize.args, debug = debug, noise.levels = noise.levels)
 
 }#MMHC
 

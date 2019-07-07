@@ -385,7 +385,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
 # hybrid learning algorithms.
 hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
     restrict = "mmpc", maximize = "hc", restrict.args = list(),
-    maximize.args = list(), debug = FALSE) {
+    maximize.args = list(), debug = FALSE, noise.levels = NULL) {
 
   nodes = names(x)
 
@@ -407,7 +407,7 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
 
     # merge the user-provided arguments with the defaults, making sure not to
     # overwrite critical arguments.
-    critical.arguments = c("x", "method", "whitelist", "blacklist", "debug", "undirected")
+    critical.arguments = c("x", "method", "whitelist", "blacklist", "debug", "undirected", "noise.levels")
     named.arguments = names(formals(bnlearn))
     named.arguments = setdiff(named.arguments, critical.arguments)
     other.arguments = setdiff(names(restrict.args), named.arguments)
@@ -415,7 +415,7 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
 
     restrict.args[critical.arguments] =
       list(x, method = restrict, whitelist = whitelist, blacklist = blacklist,
-           debug = debug, undirected = TRUE)
+           debug = debug, undirected = TRUE, noise.levels = noise.levels)
 
     rst = do.call("bnlearn", restrict.args)
 

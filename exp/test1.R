@@ -40,11 +40,11 @@ for (iteration in 1:num_iterations) {
   gData_noisy <- addDiffNoiseLevelsToGraphData(data,noiseLevel = noiseLevels)
   noiseLevels <- data.frame(t(noiseLevels))
   colnames(noiseLevels) <- colnames(gData_noisy)
-  learned_noisy <- mmpc(data.frame(gData_noisy))
+  learned_noisy <- mmhc(data.frame(gData_noisy))
   t16_noise_allNodes[iteration,"beforeCancel"] <- ham_dist_btw_matrices(matrix_one = mat_true,
                                                                         matrix_two = amat(learned_noisy))/2
   # Cancel the noise
-  learned_noise_cancel <- mmpc(data.frame(gData_noisy), noise.levels = noiseLevels)
+  learned_noise_cancel <- mmhc(data.frame(gData_noisy), noise.levels = noiseLevels)
   adj_mat_noise_cancel <- amat(learned_noise_cancel)
   t16_noise_allNodes[iteration,"afterCancel"] <- ham_dist_btw_matrices(matrix_one = mat_true,
                                                                        matrix_two = adj_mat_noise_cancel)/2
