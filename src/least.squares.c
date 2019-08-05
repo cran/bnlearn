@@ -14,7 +14,7 @@ double mean = c_mean(y, nrow);
   if (beta)
     *beta = mean;
   if (sd)
-    c_sd(y, nrow, 1, mean, FALSE, sd);
+    c_sd(y, nrow, 1, mean, sd);
   if (fitted)
     for (i = 0; i < nrow; i++)
       fitted[i] = mean;
@@ -403,7 +403,7 @@ double *qr = 0, *new_y = 0;
 
 /* compute least squares efficiently by special-casing whenever possible. */
 void c_ols(double **x, double *y, int nrow, int ncol, double *fitted,
-    double *resid, double *beta, double *sd, int missing) {
+    double *resid, double *beta, double *sd, bool missing) {
 
   if (!missing) {
 

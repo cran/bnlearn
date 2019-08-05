@@ -46,22 +46,19 @@ SEXP retval, dsep_set;
 }/*AST_PREPARE_RETVAL*/
 
 /* parametric tests for discrete variables. */
-static SEXP ast_discrete(SEXP xx, SEXP yy, SEXP zz, SEXP x, SEXP y, int nf,
-    int minsize, int maxsize, test_e test, double a, int debuglevel) {
+static SEXP ast_discrete(ddata dtx, ddata dty, ddata dtz, int nf, int minsize,
+    int maxsize, test_e test, double a, bool debugging) {
 
-int *xptr = INTEGER(xx), *yptr = INTEGER(yy), *zptr = NULL, *subset = NULL;
-int i = 0, cursize = 0, llx = NLEVELS(xx), lly = NLEVELS(yy), llz = 0;
+int *xptr = dtx.col[0], *yptr = dty.col[0], *zptr = NULL, *subset = NULL;
+int i = 0, cursize = 0, llx = dtx.nlvl[0], lly = dty.nlvl[0], llz = 0;
 double statistic = 0, pvalue = 0, df = 0, min_pvalue = 1, max_pvalue = 0;
 SEXP retval;
-ddata dt = { 0 }, sub = { 0 };
+ddata sub = { 0 };
 
-  /* allocate and initialize a data table for the variables. */
-  dt = ddata_from_SEXP(zz, 0);
-  meta_copy_names(&(dt.m), 0, zz);
   /* allocate a second data table to hold the conditioning variables. */
-  sub = empty_ddata(dt.m.nobs, dt.m.ncols);
+  sub = empty_ddata(dtz.m.nobs, dtz.m.ncols);
   /* allocate the parents' configurations. */
-  zptr = Calloc1D(dt.m.nobs, sizeof(int));
+  zptr = Calloc1D(dtz.m.nobs, sizeof(int));
 
   for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
 
@@ -76,7 +73,7 @@ ddata dt = { 0 }, sub = { 0 };
     do {
 
       /* prepare the current subset. */
-      ddata_subset_columns(&dt, &sub, subset, cursize + nf);
+      ddata_subset_columns(&dtz, &sub, subset, cursize + nf);
       /* construct the parents' configurations. */
       c_fast_config(sub.col, sub.m.nobs, cursize + nf, sub.nlvl, zptr, &llz, 1);
 
@@ -103,12 +100,10 @@ ddata dt = { 0 }, sub = { 0 };
 
       }/*THEN*/
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
-        Rprintf("    > node %s is %s %s given ",
-          CHAR(STRING_ELT(x, 0)),
-          (pvalue > a) ? "independent from" : "dependent on",
-          CHAR(STRING_ELT(y, 0)));
+        Rprintf("    > node %s is %s %s given ", dtx.m.names[0],
+          (pvalue > a) ? "independent from" : "dependent on", dty.m.names[0]);
         for (i = 0; i < sub.m.ncols; i++)
           Rprintf("%s ", sub.m.names[i]);
         Rprintf("(p-value: %g).\n", pvalue);
@@ -122,7 +117,6 @@ ddata dt = { 0 }, sub = { 0 };
 
         Free1D(subset);
         Free1D(zptr);
-        FreeDDT(dt, FALSE);
         FreeDDT(sub, FALSE);
 
         UNPROTECT(1);
@@ -130,39 +124,29 @@ ddata dt = { 0 }, sub = { 0 };
 
       }/*THEN*/
 
-    } while (next_subset(subset + nf, cursize, dt.m.ncols - nf, nf));
+    } while (next_subset(subset + nf, cursize, dtz.m.ncols - nf, nf));
 
     Free1D(subset);
 
   }/*FOR*/
 
   Free1D(zptr);
-  FreeDDT(dt, FALSE);
   FreeDDT(sub, FALSE);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
 }/*AST_DISCRETE*/
 
-/* parametric tests for Gaussian variables. */
-static SEXP ast_gaustests(SEXP xx, SEXP yy, SEXP zz, SEXP x, SEXP y, int nf,
-    int minsize, int maxsize, double a, int debuglevel, test_e test) {
+/* parametric tests for Gaussian variables (for complete data). */
+static SEXP ast_gaustests_complete(gdata dt, int nf, int minsize, int maxsize,
+    double a, bool debugging, test_e test) {
 
 int i = 0, cursize = 0, *subset = NULL, df = 0;
 double statistic = 0, lambda = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
 SEXP retval;
-gdata dt = { 0 }, sub = { 0 };
+gdata sub = { 0 };
 covariance cov = { 0 };
 
-  /* allocate and initialize a data table for the variables. */
-  dt = gdata_from_SEXP(zz, 2);
-  meta_copy_names(&(dt.m), 2, zz);
-  dt.col[0] = REAL(xx);
-  dt.col[1] = REAL(yy);
-  dt.m.names[0] = CHAR(STRING_ELT(x, 0));
-  dt.m.names[1] = CHAR(STRING_ELT(y, 0));
-  /* allocate and compute mean values. */
-  gdata_cache_means(&dt, 0);
   /* allocate a second data table to hold the conditioning variables. */
   sub = empty_gdata(dt.m.nobs, dt.m.ncols);
   sub.mean = Calloc1D(dt.m.ncols, sizeof(double));
@@ -170,23 +154,19 @@ covariance cov = { 0 };
   for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
 
     /* compute the degrees of freedom for correlation and mutual information. */
-    if (test == COR)
-      df = dt.m.nobs - (cursize + nf + 2);
-    else if ((test == MI_G) || (test == MI_G_SH))
-      df = 1;
+    df = gaussian_cdf(test, dt.m.nobs, cursize + nf);
 
-    if (((test == COR) && (df < 1)) ||
-        ((test == ZF) && (dt.m.nobs - (cursize + nf + 2) < 2))) {
+    if (df < 1) {
 
       /* if there are not enough degrees of freedom, return independence. */
       warning("trying to do a conditional independence test with zero degrees of freedom.");
 
       PVALUE(1);
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("    > node %s is independent from %s given any conditioning set of size %d ",
-          CHAR(STRING_ELT(x, 0)), CHAR(STRING_ELT(y, 0)), cursize + nf);
+          dt.m.names[0], dt.m.names[1], cursize + nf);
         Rprintf("(p-value: %g).\n", pvalue);
 
       }/*THEN*/
@@ -196,7 +176,6 @@ covariance cov = { 0 };
       PROTECT(retval = ast_prepare_retval(pvalue, min_pvalue, max_pvalue,
                          a, dt.m.names + 2, cursize + nf));
 
-      FreeGDT(dt, FALSE);
       FreeGDT(sub, FALSE);
 
       UNPROTECT(1);
@@ -247,12 +226,12 @@ covariance cov = { 0 };
       else if (test == ZF) {
 
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
-        statistic = cor_zf_trans(statistic, (double)sub.m.nobs - sub.m.ncols);
+        statistic = cor_zf_trans(statistic, df);
         PVALUE(2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE));
 
       }/*THEN*/
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("    > node %s is %s %s given ",
           sub.m.names[0], (pvalue > a) ? "independent from" : "dependent on",
@@ -270,7 +249,6 @@ covariance cov = { 0 };
 
         Free1D(subset);
         FreeCOV(cov);
-        FreeGDT(dt, FALSE);
         FreeGDT(sub, FALSE);
 
         UNPROTECT(1);
@@ -285,59 +263,207 @@ covariance cov = { 0 };
 
   }/*FOR*/
 
-  FreeGDT(dt, FALSE);
   FreeGDT(sub, FALSE);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
-}/*AST_GAUSTESTS*/
+}/*AST_GAUSTESTS_COMPLETE*/
 
-/* conditional linear Gaussian test. */
-static SEXP ast_micg(SEXP xx, SEXP yy, SEXP zz, SEXP x, SEXP y, int nf,
-    int minsize, int maxsize, double a, int debuglevel) {
+/* parametric tests for Gaussian variables (for incomplete data). */
+static SEXP ast_gaustests_with_missing(gdata dt, int nf, int minsize,
+    int maxsize, double a, bool debugging, test_e test) {
 
-int cursize = 0, xtype = TYPEOF(xx), ytype = TYPEOF(yy);
-int i = 0, *subset = NULL;
+int i = 0, cursize = 0, *subset = NULL, df = 0, ncomplete = 0;
+double statistic = 0, lambda = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
+double *mean = NULL;
+bool *missing_xy = NULL, *missing_all = NULL;
+SEXP retval;
+gdata sub = { 0 };
+covariance cov = { 0 };
+
+  /* allocate a second data table to hold the conditioning variables. */
+  sub = empty_gdata(dt.m.nobs, dt.m.ncols);
+  sub.mean = Calloc1D(dt.m.ncols, sizeof(double));
+  /* allocate the missingness indicators. */
+  missing_xy = Calloc1D(dt.m.nobs, sizeof(bool));
+  gdata_incomplete_cases_range(&dt, missing_xy, 0, 1);
+
+  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
+
+    /* allocate a vector to store column means (from complete observations). */
+    mean = Calloc1D(cursize + nf + 2, sizeof(double));
+    /* allocate missingness indicators. */
+    missing_all = Calloc1D(sub.m.nobs, sizeof(bool));
+    /* allocate and initialize the subset indexes array. */
+    subset = Calloc1D(cursize + nf + 2, sizeof(int));
+    /* allocate the covariance matrix and the U, D, V matrix. */
+    cov = new_covariance(cursize + nf + 2, TRUE);
+    /* initialize the first subset. */
+    first_subset(subset + nf + 2, cursize, nf + 2);
+    for (i = 0; i < nf + 2; i++)
+      subset[i] = i;
+
+    do {
+
+      /* prepare the current subset. */
+      gdata_subset_columns(&dt, &sub, subset, cursize + nf + 2);
+      /* compute the covariance matrix. */
+      c_covmat_with_missing(sub.col, sub.m.nobs, sub.m.ncols, missing_xy,
+        missing_all, mean, cov.mat, &ncomplete);
+
+      /* compute the degrees of freedom for correlation and mutual information. */
+      df = gaussian_cdf(test, ncomplete, cursize + nf);
+
+      if ((ncomplete == 0) || (df < 1)) {
+
+        /* if there are not enough degrees of freedom, return independence. */
+        warning("trying to do a conditional independence test with zero degrees of freedom.");
+
+        PVALUE(1);
+
+        if (debugging) {
+
+          Rprintf("    > node %s is independent from %s given any conditioning set of size %d ",
+            dt.m.names[0], dt.m.names[1], cursize + nf);
+          Rprintf("(p-value: %g).\n", pvalue);
+
+        }/*THEN*/
+
+        /* the conditioning set is the first possible conditioning set, which
+         * comprises the first columns of the data table. */
+        PROTECT(retval = ast_prepare_retval(pvalue, min_pvalue, max_pvalue,
+                           a, dt.m.names + 2, cursize + nf));
+
+        FreeGDT(sub, FALSE);
+        Free1D(missing_xy);
+        Free1D(missing_all);
+        Free1D(subset);
+        Free1D(mean);
+        FreeCOV(cov);
+
+        UNPROTECT(1);
+        return retval;
+
+      }/*THEN*/
+
+      if (test == COR) {
+
+        statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
+        statistic = cor_t_trans(statistic, (double)df);
+        PVALUE(2 * pt(fabs(statistic), df, FALSE, FALSE));
+
+      }/*THEN*/
+      else if (test == MI_G) {
+
+        statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
+        statistic = 2 * ncomplete * cor_mi_trans(statistic);
+        PVALUE(pchisq(statistic, df, FALSE, FALSE));
+
+      }/*THEN*/
+      else if (test == MI_G_SH) {
+
+        lambda = covmat_lambda(sub.col, mean, cov, sub.m.nobs, missing_all,
+                   ncomplete);
+        covmat_shrink(cov, lambda);
+        statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
+        statistic = 2 * ncomplete * cor_mi_trans(statistic);
+        PVALUE(pchisq(statistic, df, FALSE, FALSE));
+
+      }/*THEN*/
+      else if (test == ZF) {
+
+        statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
+        statistic = cor_zf_trans(statistic, df);
+        PVALUE(2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE));
+
+      }/*THEN*/
+
+      if (debugging) {
+
+        Rprintf("    > node %s is %s %s given ",
+          sub.m.names[0], (pvalue > a) ? "independent from" : "dependent on",
+          sub.m.names[1]);
+        for (i = 2; i < sub.m.ncols; i++)
+          Rprintf("%s ", sub.m.names[i]);
+        Rprintf("(p-value: %g).\n", pvalue);
+
+      }/*THEN*/
+
+      if (FALSE &&  pvalue > a) {
+
+        PROTECT(retval = ast_prepare_retval(pvalue, min_pvalue, max_pvalue,
+                           a, sub.m.names + 2, sub.m.ncols - 2));
+
+        Free1D(subset);
+        FreeCOV(cov);
+        FreeGDT(sub, FALSE);
+        Free1D(mean);
+        Free1D(missing_xy);
+        Free1D(missing_all);
+
+        UNPROTECT(1);
+        return retval;
+
+      }/*THEN*/
+
+    } while (next_subset(subset + nf + 2, cursize, dt.m.ncols - nf - 2, nf + 2));
+
+    FreeCOV(cov);
+    Free1D(subset);
+    Free1D(mean);
+    Free1D(missing_all);
+
+  }/*FOR*/
+
+  Free1D(missing_xy);
+  FreeGDT(sub, FALSE);
+
+  return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
+
+}/*AST_GAUSTESTS_WITH_MISSING*/
+
+/* conditional linear Gaussian test (for complete data). */
+static SEXP ast_micg_complete(cgdata dtx, cgdata dty, cgdata dtz, int nf,
+    int minsize, int maxsize, double a, bool debugging) {
+
+int i = 0, *subset = NULL, cursize = 0;
 int *zptr = NULL, llx = 0, lly = 0, llz = 0;
 double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0, df = 0;
 void *xptr = 0, *yptr = 0;
 SEXP retval;
-cgdata dt = { 0 }, sub = { 0 };
+cgdata sub = { 0 };
 
-  /* allocate and initialize a data table for the variables. */
-  dt = cgdata_from_SEXP(zz, 1, 1);
-  meta_copy_names(&(dt.m), 2, zz);
   /* allocate a second data table to hold the conditioning variables. */
-  sub = empty_cgdata(dt.m.nobs, dt.ndcols, dt.ngcols);
+  sub = empty_cgdata(dtz.m.nobs, dtz.ndcols, dtz.ngcols);
 
   /* if both variables are continuous and all conditioning variables are
    * continuous, the test reverts back to a Gaussian mutual information test. */
-  if ((xtype == INTSXP) && (ytype == INTSXP)) {
+  if (dtx.m.flag[0].discrete && dty.m.flag[0].discrete) {
 
-    xptr = INTEGER(xx);
-    llx = NLEVELS(xx);
-    yptr = INTEGER(yy);
-    lly = NLEVELS(yy);
-
-  }/*THEN*/
-  if ((xtype == REALSXP) && (ytype == REALSXP)) {
-
-    xptr = REAL(xx);
-    yptr = REAL(yy);
+    xptr = dtx.dcol[0];
+    llx = dtx.nlvl[0];
+    yptr = dty.dcol[0];
+    lly = dty.nlvl[0];
 
   }/*THEN*/
-  else if ((xtype == REALSXP) && (ytype == INTSXP)) {
+  else if (dtx.m.flag[0].gaussian && dty.m.flag[0].gaussian) {
 
-    xptr = REAL(xx);
-    yptr = INTEGER(yy);
-    lly = NLEVELS(yy);
+    xptr = dtx.gcol[0];
+    yptr = dty.gcol[0];
 
   }/*THEN*/
-  else if ((xtype == INTSXP) && (ytype == REALSXP)) {
+  else if (dtx.m.flag[0].gaussian && dty.m.flag[0].discrete) {
 
-    yptr = INTEGER(xx);
-    lly = NLEVELS(xx);
-    xptr = REAL(yy);
+    xptr = dtx.gcol[0];
+    yptr = dty.dcol[0];
+    lly = dty.nlvl[0];
+
+  }/*THEN*/
+  else if (dtx.m.flag[0].discrete && dty.m.flag[0].gaussian) {
+
+    yptr = dtx.dcol[0];
+    lly = dtx.nlvl[0];
+    xptr = dty.gcol[0];
 
   }/*THEN*/
 
@@ -353,7 +479,7 @@ cgdata dt = { 0 }, sub = { 0 };
     do {
 
       /* prepare the current subset. */
-      cgdata_subset_columns(&dt, &sub, subset, cursize + nf + 2);
+      cgdata_subset_columns(&dtz, &sub, subset, cursize + nf + 2);
 
       /* if there are discrete conditioning variables, compute their
        * configurations. */
@@ -364,8 +490,14 @@ cgdata dt = { 0 }, sub = { 0 };
           zptr, &llz, 1);
 
       }/*THEN*/
+      else {
 
-      if ((ytype == INTSXP) && (xtype == INTSXP)) {
+        zptr = NULL;
+        llz = 0;
+
+      }/*ELSE*/
+
+      if (dtx.m.flag[0].discrete && dty.m.flag[0].discrete) {
 
         /* check whether the conditioning set is valid. */
         if (sub.ngcols - 1 > 0) {
@@ -386,7 +518,7 @@ cgdata dt = { 0 }, sub = { 0 };
         }/*ELSE*/
 
       }/*THEN*/
-      else if ((ytype == REALSXP) && (xtype == REALSXP)) {
+      else if (dtx.m.flag[0].gaussian && dty.m.flag[0].gaussian) {
 
         sub.gcol[0] = xptr;
         statistic = 2 * sub.m.nobs *
@@ -408,12 +540,10 @@ cgdata dt = { 0 }, sub = { 0 };
 
       PVALUE(pchisq(statistic, df, FALSE, FALSE));
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
-        Rprintf("    > node %s is %s %s given ",
-          CHAR(STRING_ELT(x, 0)),
-          (pvalue > a) ? "independent from" : "dependent on",
-          CHAR(STRING_ELT(y, 0)));
+        Rprintf("    > node %s is %s %s given ", dtx.m.names[0],
+          (pvalue > a) ? "independent from" : "dependent on", dty.m.names[0]);
         for (i = 2; i < sub.m.ncols; i++)
           Rprintf("%s ", sub.m.names[i]);
         Rprintf("(p-value: %g).\n", pvalue);
@@ -426,7 +556,6 @@ cgdata dt = { 0 }, sub = { 0 };
                            a, sub.m.names + 2, sub.m.ncols - 2));
 
         Free1D(subset);
-        FreeCGDT(dt, FALSE);
         FreeCGDT(sub, FALSE);
 
         UNPROTECT(1);
@@ -434,37 +563,212 @@ cgdata dt = { 0 }, sub = { 0 };
 
       }/*THEN*/
 
-    } while (next_subset(subset + nf + 2, cursize, dt.m.ncols - nf - 2, nf + 2));
+    } while (next_subset(subset + nf + 2, cursize, dtz.m.ncols - nf - 2, nf + 2));
 
     Free1D(subset);
 
   }/*FOR*/
 
-  FreeCGDT(dt, FALSE);
   FreeCGDT(sub, FALSE);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
-}/*AST_MICG*/
+}/*AST_MICG_COMPLETE*/
+
+/* conditional linear Gaussian test (for incomplete data). */
+static SEXP ast_micg_with_missing(cgdata dtx, cgdata dty, cgdata dtz, int nf,
+    int minsize, int maxsize, double a, bool debugging) {
+
+int i = 0, *subset = NULL, cursize = 0;
+int *zptr = NULL, llz = 0;
+double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0, df = 0;
+bool *missing_xy = NULL, *missing_all = NULL;
+SEXP retval;
+cgdata sub = { 0 }, sub_complete = { 0 };
+cgdata dtx_complete = { 0 }, dty_complete = { 0 };
+
+  /* allocate a second data table to hold the conditioning variables. */
+  sub = empty_cgdata(dtz.m.nobs, dtz.ndcols, dtz.ngcols);
+  sub_complete = new_cgdata(dtz.m.nobs, dtz.ndcols, dtz.ngcols);
+  sub_complete.m.names = Calloc1D(sub_complete.m.ncols, sizeof(char *));
+  dtx_complete = new_cgdata(dtx.m.nobs, dtx.ndcols, dtx.ngcols);
+  dty_complete = new_cgdata(dty.m.nobs, dty.ndcols, dty.ngcols);
+
+  /* allocate missingness indicators. */
+  missing_xy = Calloc1D(dtz.m.nobs, sizeof(bool));
+  missing_all = Calloc1D(dtz.m.nobs, sizeof(bool));
+
+  cgdata_incomplete_cases(&dtx, missing_xy, 0, 0);
+  cgdata_incomplete_cases(&dty, missing_xy, 0, 0);
+
+  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
+
+    /* allocate and initialize the subset. */
+    subset = Calloc1D(cursize + nf + 2, sizeof(int));
+    /* initialize the first subset. */
+    first_subset(subset + nf + 2, cursize, nf + 2);
+    for (i = 0; i < nf + 2; i++)
+      subset[i] = i;
+
+    do {
+
+      /* extract the variables in the conditioning set ... */
+      cgdata_subset_columns(&dtz, &sub, subset, cursize + nf + 2);
+      /* ... find out which observations are missing ... */
+      memcpy(missing_all, missing_xy, dtz.m.nobs * sizeof(bool));
+      cgdata_incomplete_cases(&sub, missing_all, 1, 1);
+      /*  ... and subset the complete data. */
+      cgdata_subsample_by_logical(&sub, &sub_complete, missing_all, 1, 1);
+      cgdata_subsample_by_logical(&dtx, &dtx_complete, missing_all, 0, 0);
+      cgdata_subsample_by_logical(&dty, &dty_complete, missing_all, 0, 0);
+
+      /* assume independence and return if there are no complete observations. */
+      if (sub_complete.m.nobs <= 1) {
+
+        PVALUE(1);
+        goto exit;
+
+      }/*THEN*/
+
+      /* if there are discrete conditioning variables, compute their
+       * configurations. */
+      if (sub_complete.ndcols - 1 > 0) {
+
+        zptr = Calloc1D(sub_complete.m.nobs, sizeof(int));
+        c_fast_config(sub_complete.dcol + 1, sub_complete.m.nobs,
+          sub_complete.ndcols - 1, sub_complete.nlvl + 1, zptr, &llz, 1);
+
+      }/*THEN*/
+      else {
+
+        zptr = NULL;
+        llz = 0;
+
+      }/*ELSE*/
+
+      if (dtx.m.flag[0].discrete && dty.m.flag[0].discrete) {
+
+        /* check whether the conditioning set is valid. */
+        if (sub_complete.ngcols - 1 > 0) {
+
+          /* need to reverse conditioning to actually compute the test. */
+          statistic = 2 * sub_complete.m.nobs * sub_complete.m.nobs *
+                        c_cmicg_unroll(dtx_complete.dcol[0],
+                          dtx_complete.nlvl[0], dty_complete.dcol[0],
+                          dty_complete.nlvl[0], zptr, llz, sub_complete.gcol + 1,
+                          sub_complete.ngcols - 1, &df, sub_complete.m.nobs);
+
+        }/*THEN*/
+        else {
+
+          /* if both nodes are discrete, the test reverts back to a discrete
+           * mutual information test. */
+          statistic = c_cchisqtest(dtx_complete.dcol[0], dtx_complete.nlvl[0],
+                        dty_complete.dcol[0], dty_complete.nlvl[0], zptr, llz,
+                        sub_complete.m.nobs, &df, MI, TRUE);
+
+        }/*ELSE*/
+
+      }/*THEN*/
+      else if (dtx.m.flag[0].gaussian && dty.m.flag[0].gaussian) {
+
+        memcpy(sub_complete.gcol[0], dtx_complete.gcol[0],
+          sub_complete.m.nobs * sizeof(double));
+        statistic = 2 * sub_complete.m.nobs *
+                      c_cmicg(dty_complete.gcol[0], sub_complete.gcol,
+                        sub_complete.ngcols, NULL, 0, zptr, llz,
+                        sub_complete.nlvl, sub_complete.m.nobs, &df);
+
+      }/*THEN*/
+      else if (dtx.m.flag[0].gaussian && dty.m.flag[0].discrete) {
+
+        memcpy(sub_complete.dcol[0], dty_complete.dcol[0],
+          sub_complete.m.nobs * sizeof(int));
+        sub_complete.nlvl[0] = dty_complete.nlvl[0];
+        statistic = 2 * sub_complete.m.nobs *
+          c_cmicg(dtx_complete.gcol[0], sub_complete.gcol + 1,
+            sub_complete.ngcols - 1, sub_complete.dcol, sub_complete.ndcols,
+            zptr, llz, sub_complete.nlvl, sub_complete.m.nobs, &df);
+
+      }/*THEN*/
+      else if (dtx.m.flag[0].discrete && dty.m.flag[0].gaussian) {
+
+        memcpy(sub_complete.dcol[0], dtx_complete.dcol[0],
+          sub_complete.m.nobs * sizeof(int));
+        sub_complete.nlvl[0] = dtx_complete.nlvl[0];
+        statistic = 2 * sub_complete.m.nobs *
+          c_cmicg(dty_complete.gcol[0], sub_complete.gcol + 1,
+            sub_complete.ngcols - 1, sub_complete.dcol, sub_complete.ndcols,
+            zptr, llz, sub_complete.nlvl, sub_complete.m.nobs, &df);
+
+      }/*ELSE*/
+
+      PVALUE(pchisq(statistic, df, FALSE, FALSE));
+
+exit:
+
+      Free1D(zptr);
+
+      if (debugging) {
+
+        Rprintf("    > node %s is %s %s given ", dtx.m.names[0],
+          (pvalue > a) ? "independent from" : "dependent on", dty.m.names[0]);
+        for (i = 2; i < sub_complete.m.ncols; i++)
+          Rprintf("%s ", sub_complete.m.names[i]);
+        Rprintf("(p-value: %g).\n", pvalue);
+
+      }/*THEN*/
+
+      if (pvalue > a) {
+
+        PROTECT(retval = ast_prepare_retval(pvalue, min_pvalue, max_pvalue,
+                           a, sub_complete.m.names + 2, sub_complete.m.ncols - 2));
+
+        Free1D(subset);
+        FreeCGDT(sub, FALSE);
+        FreeCGDT(sub_complete, TRUE);
+        FreeCGDT(dtx_complete, TRUE);
+        FreeCGDT(dty_complete, TRUE);
+        Free1D(missing_xy);
+        Free1D(missing_all);
+
+        UNPROTECT(1);
+        return retval;
+
+      }/*THEN*/
+
+    } while (next_subset(subset + nf + 2, cursize, dtz.m.ncols - nf - 2, nf + 2));
+
+    Free1D(subset);
+
+  }/*FOR*/
+
+  FreeCGDT(sub, FALSE);
+  FreeCGDT(sub_complete, TRUE);
+  FreeCGDT(dtx_complete, TRUE);
+  FreeCGDT(dty_complete, TRUE);
+  Free1D(missing_xy);
+  Free1D(missing_all);
+
+  return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
+
+}/*AST_MICG_WITH_MISSING*/
 
 /* discrete permutation tests. */
-static SEXP ast_dperm(SEXP xx, SEXP yy, SEXP zz, SEXP x, SEXP y, int nf,
-    int minsize, int maxsize, double a, test_e type, int nperms,
-    double threshold, int debuglevel) {
+static SEXP ast_dperm(ddata dtx, ddata dty, ddata dtz, int nf, int minsize,
+    int maxsize, double a, test_e type, int nperms, double threshold,
+    bool debugging) {
 
-int *xptr = INTEGER(xx), *yptr = INTEGER(yy), *zptr = NULL, *subset = NULL;
-int i = 0, cursize = 0, llx = NLEVELS(xx), lly = NLEVELS(yy), llz = 0;
+int *xptr = dtx.col[0], *yptr = dty.col[0], *zptr = NULL, *subset = NULL;
+int i = 0, cursize = 0, llx = dtx.nlvl[0], lly = dty.nlvl[0], llz = 0;
 double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0, df = 0;
 SEXP retval;
-ddata dt = { 0 }, sub = { 0 };
+ddata sub = { 0 };
 
-  /* allocate and initialize a data table for the variables. */
-  dt = ddata_from_SEXP(zz, 0);
-  meta_copy_names(&(dt.m), 0, zz);
   /* allocate a second data table to hold the conditioning variables. */
-  sub = empty_ddata(dt.m.nobs, dt.m.ncols);
+  sub = empty_ddata(dtz.m.nobs, dtz.m.ncols);
   /* allocate the parents' configurations. */
-  zptr = Calloc1D(dt.m.nobs, sizeof(int));
+  zptr = Calloc1D(dtz.m.nobs, sizeof(int));
 
   for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
 
@@ -479,7 +783,7 @@ ddata dt = { 0 }, sub = { 0 };
     do {
 
       /* prepare the current subset. */
-      ddata_subset_columns(&dt, &sub, subset, cursize + nf);
+      ddata_subset_columns(&dtz, &sub, subset, cursize + nf);
       /* construct the parents' configurations. */
       c_fast_config(sub.col, sub.m.nobs, cursize + nf, sub.nlvl, zptr, &llz, 1);
 
@@ -487,12 +791,10 @@ ddata dt = { 0 }, sub = { 0 };
         &pvalue, threshold, type, &df);
       PVALUE(pvalue);
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
-        Rprintf("    > node %s is %s %s given ",
-          CHAR(STRING_ELT(x, 0)),
-          (pvalue > a) ? "independent from" : "dependent on",
-          CHAR(STRING_ELT(y, 0)));
+        Rprintf("    > node %s is %s %s given ", dtx.m.names[0],
+          (pvalue > a) ? "independent from" : "dependent on", dty.m.names[0]);
         for (i = 0; i < sub.m.ncols; i++)
           Rprintf("%s ", sub.m.names[i]);
         Rprintf("(p-value: %g).\n", pvalue);
@@ -506,7 +808,6 @@ ddata dt = { 0 }, sub = { 0 };
 
         Free1D(subset);
         Free1D(zptr);
-        FreeDDT(dt, FALSE);
         FreeDDT(sub, FALSE);
 
         UNPROTECT(1);
@@ -514,14 +815,13 @@ ddata dt = { 0 }, sub = { 0 };
 
       }/*THEN*/
 
-    } while (next_subset(subset + nf, cursize, dt.m.ncols - nf, nf));
+    } while (next_subset(subset + nf, cursize, dtz.m.ncols - nf, nf));
 
     Free1D(subset);
 
   }/*FOR*/
 
   Free1D(zptr);
-  FreeDDT(dt, FALSE);
   FreeDDT(sub, FALSE);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
@@ -529,27 +829,28 @@ ddata dt = { 0 }, sub = { 0 };
 }/*AST_DPERM*/
 
 /* continuous permutation tests. */
-static SEXP ast_gperm(SEXP xx, SEXP yy, SEXP zz, SEXP x, SEXP y, int nf,
-    int minsize, int maxsize, double a, test_e type, int nperms,
-    double threshold, int debuglevel) {
+static SEXP ast_gperm(gdata dt, int nf, int minsize, int maxsize, double a,
+    test_e type, int nperms, double threshold, bool complete, bool debugging) {
 
-int i = 0, cursize = 0, *subset = NULL;
+int i = 0, j = 0, k = 0, cursize = 0, nc = 0, *subset = NULL;
 double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
+double **complete_column = NULL;
+bool *missing_xy = NULL, *missing_z = NULL;
 SEXP retval;
-gdata dt = { 0 }, sub = { 0 };
+gdata sub = { 0 }, sub_complete = { 0 };
 
-  /* allocate and initialize a data table for the variables. */
-  dt = gdata_from_SEXP(zz, 2);
-  meta_copy_names(&(dt.m), 2, zz);
-  dt.col[0] = REAL(xx);
-  dt.col[1] = REAL(yy);
-  dt.m.names[0] = CHAR(STRING_ELT(x, 0));
-  dt.m.names[1] = CHAR(STRING_ELT(y, 0));
-  /* allocate and compute mean values. */
-  gdata_cache_means(&dt, 0);
   /* allocate a second data table to hold the conditioning variables. */
   sub = empty_gdata(dt.m.nobs, dt.m.ncols);
   sub.mean = Calloc1D(dt.m.ncols, sizeof(double));
+
+  if (!complete) {
+
+    missing_xy = Calloc1D(dt.m.nobs, sizeof(bool));
+    missing_z = Calloc1D(dt.m.nobs, sizeof(bool));
+
+    gdata_incomplete_cases_range(&dt, missing_xy, 0, 1);
+
+  }/*THEN*/
 
   for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
 
@@ -560,17 +861,45 @@ gdata dt = { 0 }, sub = { 0 };
     for (i = 0; i < nf + 2; i++)
       subset[i] = i;
 
+    if (!complete)
+      sub_complete = new_gdata(dt.m.nobs, cursize + nf + 2);
+
     /* iterate over subsets. */
     do {
 
       /* prepare the current subset. */
       gdata_subset_columns(&dt, &sub, subset, cursize + nf + 2);
 
-      c_gauss_cmcarlo(sub.col, sub.m.ncols, sub.m.nobs, 0, 1, nperms,
+      if (!complete) {
+
+        memset(missing_z, '\0', sizeof(bool) * sub.m.nobs);
+        gdata_incomplete_cases(&sub, missing_z, 2);
+        complete_column = sub_complete.col;
+
+        for (k = 0, nc = 0; k < sub.m.nobs; k++) {
+
+          if (missing_xy[k] || missing_z[k])
+            continue;
+
+          for (j = 0; j < sub.m.ncols; j++)
+            complete_column[j][nc] = sub.col[j][k];
+          nc++;
+
+        }/*FOR*/
+
+      }/*THEN*/
+      else {
+
+        complete_column = sub.col;
+        nc = sub.m.nobs;
+
+      }/*ELSE*/
+
+      c_gauss_cmcarlo(complete_column, sub.m.ncols, nc, 0, 1, nperms,
         &statistic, &pvalue, threshold, type);
       PVALUE(pvalue);
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("    > node %s is %s %s given ",
           sub.m.names[0], (pvalue > a) ? "independent from" : "dependent on",
@@ -586,9 +915,16 @@ gdata dt = { 0 }, sub = { 0 };
         PROTECT(retval = ast_prepare_retval(pvalue, min_pvalue, max_pvalue,
                            a, sub.m.names + 2, sub.m.ncols - 2));
 
+        if (!complete) {
+
+          Free1D(missing_xy);
+          Free1D(missing_z);
+
+        }/*THEN*/
+
         Free1D(subset);
-        FreeGDT(dt, FALSE);
         FreeGDT(sub, FALSE);
+        FreeGDT(sub_complete, TRUE);
 
         UNPROTECT(1);
         return retval;
@@ -597,11 +933,18 @@ gdata dt = { 0 }, sub = { 0 };
 
     } while (next_subset(subset + nf + 2, cursize, dt.m.ncols - nf - 2, nf + 2));
 
+    FreeGDT(sub_complete, TRUE);
     Free1D(subset);
 
   }/*FOR*/
 
-  FreeGDT(dt, FALSE);
+  if (!complete) {
+
+    Free1D(missing_xy);
+    Free1D(missing_z);
+
+  }/*THEN*/
+
   FreeGDT(sub, FALSE);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
@@ -611,19 +954,20 @@ gdata dt = { 0 }, sub = { 0 };
 SEXP allsubs_test(SEXP x, SEXP y, SEXP sx, SEXP fixed, SEXP data, SEXP test,
     SEXP B, SEXP alpha, SEXP min, SEXP max, SEXP complete, SEXP debug) {
 
-int minsize = INT(min), maxsize = INT(max), debuglevel = isTRUE(debug);
+int minsize = INT(min), maxsize = INT(max);
 int i = 0, nf = length(fixed);
 double pvalue = 0, min_pvalue = 1, max_pvalue = 0, a = NUM(alpha);
 const char *t = CHAR(STRING_ELT(test, 0));
-test_e test_type = test_label(t);
-SEXP xx, yy, zz, res = R_NilValue;
+bool debugging = isTRUE(debug);
+test_e test_type = test_to_enum(t);
+SEXP xx, yy, zz, cc, res = R_NilValue;
 
   /* call indep_test to deal with zero-length conditioning subsets. */
   if (minsize == 0) {
 
     PVALUE(NUM(indep_test(x, y, fixed, data, test, B, alpha, TRUESEXP, complete)));
 
-    if (debuglevel > 0) {
+    if (debugging) {
 
       Rprintf("    > node %s is %s %s %s",
         CHAR(STRING_ELT(x, 0)),
@@ -658,45 +1002,120 @@ SEXP xx, yy, zz, res = R_NilValue;
   }/*THEN*/
 
   /* extract the variables from the data. */
-  PROTECT(xx = c_dataframe_column(data, x, TRUE, FALSE));
-  PROTECT(yy = c_dataframe_column(data, y, TRUE, FALSE));
+  PROTECT(xx = c_dataframe_column(data, x, FALSE, TRUE));
+  PROTECT(yy = c_dataframe_column(data, y, FALSE, TRUE));
   PROTECT(zz = c_dataframe_column(data, sx, FALSE, TRUE));
+
+  /* extract the missing values indicators. */
+  PROTECT(cc = subset_by_name(complete, 3, y, x, sx));
 
   if (IS_DISCRETE_ASYMPTOTIC_TEST(test_type)) {
 
     /* parametric tests for discrete variables. */
-    res = ast_discrete(xx, yy, zz, x, y, nf, minsize, maxsize, test_type, a,
-            debuglevel);
+    ddata dtx = ddata_from_SEXP(xx, 0), dty = ddata_from_SEXP(yy, 0);
+    ddata dtz = ddata_from_SEXP(zz, 0);
+    meta_copy_names(&(dtx.m), 0, xx);
+    meta_copy_names(&(dty.m), 0, yy);
+    meta_copy_names(&(dtz.m), 0, zz);
+
+    res = ast_discrete(dtx, dty, dtz, nf, minsize, maxsize, test_type, a,
+            debugging);
+
+    FreeDDT(dtx, FALSE);
+    FreeDDT(dty, FALSE);
+    FreeDDT(dtz, FALSE);
 
   }/*THEN*/
   else if ((test_type == COR) || (test_type == ZF) || (test_type == MI_G) ||
            (test_type == MI_G_SH)) {
 
     /* parametric tests for Gaussian variables. */
-    res = ast_gaustests(xx, yy, zz, x, y, nf, minsize, maxsize, a,
-            debuglevel, test_type);
+    gdata dt = gdata_from_SEXP(zz, 2);
+    meta_copy_names(&(dt.m), 2, zz);
+    dt.col[0] = REAL(VECTOR_ELT(xx, 0));
+    dt.col[1] = REAL(VECTOR_ELT(yy, 0));
+    dt.m.names[0] = CHAR(STRING_ELT(x, 0));
+    dt.m.names[1] = CHAR(STRING_ELT(y, 0));
+
+    if (all_equal(cc, TRUESEXP)) {
+
+      gdata_cache_means(&dt, 0);
+      res = ast_gaustests_complete(dt, nf, minsize, maxsize, a, debugging,
+              test_type);
+
+    }/*THEN*/
+    else {
+
+      res = ast_gaustests_with_missing(dt, nf, minsize, maxsize, a, debugging,
+              test_type);
+
+    }/*ELSE*/
+
+    FreeGDT(dt, FALSE);
 
   }/*THEN*/
   else if (test_type == MI_CG) {
 
     /* conditional linear Gaussian test. */
-    res = ast_micg(xx, yy, zz, x, y, nf, minsize, maxsize, a, debuglevel);
+    cgdata dtx = cgdata_from_SEXP(xx, 0, 0), dty = cgdata_from_SEXP(yy, 0, 0);
+    cgdata dtz = cgdata_from_SEXP(zz, 1, 1);
+    meta_copy_names(&(dtx.m), 0, xx);
+    meta_copy_names(&(dty.m), 0, yy);
+    meta_copy_names(&(dtz.m), 2, zz);
+
+    if (all_equal(cc, TRUESEXP)) {
+
+      res = ast_micg_complete(dtx, dty, dtz, nf, minsize, maxsize, a,
+              debugging);
+
+    }/*THEN*/
+    else {
+
+      res = ast_micg_with_missing(dtx, dty, dtz, nf, minsize, maxsize, a,
+              debugging);
+
+    }/*ELSE*/
+
+    FreeCGDT(dtx, FALSE);
+    FreeCGDT(dty, FALSE);
+    FreeCGDT(dtz, FALSE);
 
   }/*THEN*/
   else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
 
-    res = ast_dperm(xx, yy, zz, x, y, nf, minsize, maxsize, a, test_type,
-            INT(B), IS_SMC(test_type) ? a : 1, debuglevel);
+    ddata dtx = ddata_from_SEXP(xx, 0), dty = ddata_from_SEXP(yy, 0);
+    ddata dtz = ddata_from_SEXP(zz, 0);
+    meta_copy_names(&(dtx.m), 0, xx);
+    meta_copy_names(&(dty.m), 0, yy);
+    meta_copy_names(&(dtz.m), 0, zz);
+
+    res = ast_dperm(dtx, dty, dtz, nf, minsize, maxsize, a, test_type,
+            INT(B), IS_SMC(test_type) ? a : 1, debugging);
+
+    FreeDDT(dtx, FALSE);
+    FreeDDT(dty, FALSE);
+    FreeDDT(dtz, FALSE);
 
   }/*THEN*/
   else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
 
-    res = ast_gperm(xx, yy, zz, x, y, nf, minsize, maxsize, a, test_type,
-            INT(B), IS_SMC(test_type) ? a : 1, debuglevel);
+    gdata dt = gdata_from_SEXP(zz, 2);
+    meta_copy_names(&(dt.m), 2, zz);
+    dt.col[0] = REAL(VECTOR_ELT(xx, 0));
+    dt.col[1] = REAL(VECTOR_ELT(yy, 0));
+    dt.m.names[0] = CHAR(STRING_ELT(x, 0));
+    dt.m.names[1] = CHAR(STRING_ELT(y, 0));
+    gdata_cache_means(&dt, 0);
+
+    res = ast_gperm(dt, nf, minsize, maxsize, a, test_type,
+            INT(B), IS_SMC(test_type) ? a : 1, all_equal(cc, TRUESEXP),
+            debugging);
+
+    FreeGDT(dt, FALSE);
 
   }/*THEN*/
 
-  UNPROTECT(3);
+  UNPROTECT(4);
 
   /* catch-all for unknown tests (after deallocating memory.) */
   if (test_type == ENOTEST)

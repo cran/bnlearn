@@ -81,4 +81,4 @@ SEXP result;
 
   return result;
 
-}/*R_SUBSETS*/
+}/*SUBSETS*/

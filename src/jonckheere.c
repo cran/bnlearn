@@ -13,8 +13,9 @@ double stat = 0, mean = 0, var = 0, res = 0;
   /* initialize the contingency table and the marginal frequencies. */
   ncomplete = fill_2d_table(xx, yy, &n, &ni, &nj, llx, lly, num);
 
-  /* if there are no complete data points, return independence. */
-  if (ncomplete == 0)
+  /* if there are no complete data points, or if there is just a single complete
+   * observation, return independence. */
+  if (ncomplete <= 1)
     goto free_and_return;
 
   /* compute the test statistic, its mean and it variance. */

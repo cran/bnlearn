@@ -59,7 +59,7 @@ check.data = function(x, allowed.types = available.data.types,
 
       # warn about levels with zero frequencies, it's not necessarily wrong
       # (data frame subsetting) but sure is fishy.
-      counts = minimal.table(x[, col, drop = FALSE], with.missing = allow.missing)
+      counts = .table(x[, col, drop = FALSE], with.missing = allow.missing)
       if (!allow.levels && any(counts == 0))
         warning("variable ", col, " has levels that are not observed in the data.")
 

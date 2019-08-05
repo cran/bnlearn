@@ -73,7 +73,7 @@ ci.test.character = function(x, y, z, data, test, B, debug = FALSE) {
 
   }#ELSE
   # check the test label.
-  test = check.test(test, minimal.data.frame.column(data, c(x, y, z)))
+  test = check.test(test, .data.frame.column(data, c(x, y, z)))
   # check B (the number of permutation samples).
   B = check.B(B, test)
 

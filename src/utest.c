@@ -65,12 +65,9 @@ double transform = 0, *xptr = NULL, *yptr = REAL(yy);
 double xm = 0, ym = 0, xsd = 0, ysd = 0, statistic = 0;
 
   /* compute the degrees of freedom for correlation and mutual information. */
-  if (test == COR)
-    *df = nobs - 2;
-  else if ((test == MI_G) || (test == MI_G_SH))
-    *df = 1;
+  *df = gaussian_df(test, nobs);
 
-  if (((test == COR) && (*df < 1)) || ((test == ZF) && (nobs - 2 < 2))) {
+  if (*df < 1) {
 
     /* if there are not enough degrees of freedom, return independence. */
     warning("trying to do an independence test with zero degrees of freedom.");
@@ -115,7 +112,7 @@ double xm = 0, ym = 0, xsd = 0, ysd = 0, statistic = 0;
     }/*THEN*/
     else if (test == ZF) {
 
-      statistic = cor_zf_trans(statistic, (double)nobs - 2);
+      statistic = cor_zf_trans(statistic, *df);
       pvalue[i] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
 
     }/*THEN*/
@@ -141,13 +138,9 @@ double statistic = 0, xm = 0, ym = 0, xsd = 0, ysd = 0;
                   &ncomplete);
 
     /* compute the degrees of freedom for correlation and mutual information. */
-    if (test == COR)
-      *df = ncomplete - 2;
-    else if ((test == MI_G) || (test == MI_G_SH))
-      *df = 1;
+    *df = gaussian_df(test, ncomplete);
 
-    if ((ncomplete == 0) || ((test == COR) && (*df < 1)) ||
-        ((test == ZF) && (ncomplete - 2 < 2))) {
+    if ((ncomplete == 0) || (*df < 1)) {
 
       /* if there are not enough degrees of freedom, including when there are
        * no complete observations, return perfect independence. */
@@ -182,7 +175,7 @@ double statistic = 0, xm = 0, ym = 0, xsd = 0, ysd = 0;
     }/*THEN*/
     else if (test == ZF) {
 
-      statistic = cor_zf_trans(statistic, (double)ncomplete - 2);
+      statistic = cor_zf_trans(statistic, *df);
       pvalue[i] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
 
     }/*THEN*/
@@ -357,7 +350,6 @@ SEXP xdata;
   for (i = 0; i < ntests; i++) {
 
     DISCRETE_SWAP_X();
-    statistic = 0;
     c_mcarlo(xptr, llx, yptr, lly, nobs, B, &statistic, pvalue + i,
       a, type, df);
 
@@ -369,7 +361,7 @@ SEXP xdata;
 
 /* continuous permutation tests. */
 static double ut_gperm(SEXP xx, SEXP yy, int nobs, int ntests, double *pvalue,
-    test_e type, int B, double a, int complete) {
+    test_e type, int B, double a, bool complete) {
 
 int i = 0, k = 0, nc = nobs;
 double *yptr = REAL(yy), *xptr = NULL, *yptr_complete = NULL, *xptr_complete = NULL;
@@ -411,7 +403,6 @@ double statistic = 0;
 
     }/*ELSE*/
 
-    statistic = 0;
     c_gauss_mcarlo(xptr_complete, yptr_complete, nc, B, pvalue + i,
       a, type, &statistic);
 
@@ -435,7 +426,7 @@ SEXP utest(SEXP x, SEXP y, SEXP data, SEXP test, SEXP B, SEXP alpha,
 int ntests = length(x), nobs = 0;
 double *pvalue = NULL, statistic = 0, df = NA_REAL;
 const char *t = CHAR(STRING_ELT(test, 0));
-test_e test_type = test_label(t);
+test_e test_type = test_to_enum(t);
 SEXP xx, yy, cc, result;
 
   /* allocate the return value, which has the same length as x. */

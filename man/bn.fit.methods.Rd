@@ -39,10 +39,10 @@
 \method{BIC}{bn.fit}(object, data, ...)
 
 ## methods available for "bn.fit.dnode"
-\method{coef}{bn.fit.dnode}(object, ...)
+\method{coef}{bn.fit.dnode}(object, for.parents, ...)
 
 ## methods available for "bn.fit.onode"
-\method{coef}{bn.fit.onode}(object, ...)
+\method{coef}{bn.fit.onode}(object, for.parents, ...)
 
 ## methods available for "bn.fit.gnode"
 \method{fitted}{bn.fit.gnode}(object, ...)
@@ -52,9 +52,9 @@
 
 ## methods available for "bn.fit.cgnode"
 \method{fitted}{bn.fit.cgnode}(object, ...)
-\method{coef}{bn.fit.cgnode}(object, ...)
-\method{residuals}{bn.fit.cgnode}(object, ...)
-\method{sigma}{bn.fit.cgnode}(object, ...)
+\method{coef}{bn.fit.cgnode}(object, for.parents, ...)
+\method{residuals}{bn.fit.cgnode}(object,  ...)
+\method{sigma}{bn.fit.cgnode}(object, for.parents, ...)
 }
 \arguments{
   \item{object}{an object of class \code{bn.fit}, \code{bn.fit.dnode},
@@ -69,6 +69,7 @@
     a vector containing the the log-likelihood of each observations in the
     sample. If \code{FALSE}, \code{logLik()} returns a single value, the
     likelihood of the whole sample.}
+  \item{for.parents}{a named list in which each element contains }
 
 }
 \details{
@@ -87,6 +88,11 @@
   and conditional Gaussian networks and nodes.
 
   \code{logLik()} returns the log-likelihood for the observations in \code{data}.
+
+  The \code{for.parents} argument in the methods for \code{coef()} and
+  \code{sigma()} can be used to have both functions return the parameters
+  associated with a specific configuration of the discrete parents of a node.
+  If \code{for.parents} is not specified, all relevant parameters are returned.
 
 }
 \value{
@@ -116,6 +122,7 @@ data(learning.test)
 res2 = hc(learning.test)
 fitted2 = bn.fit(res2, learning.test)
 coefficients(fitted2$E)
+coefficients(fitted2$E, for.parents = list(F = "a", B = "b"))
 }
 \author{Marco Scutari}
 \keyword{network scores}

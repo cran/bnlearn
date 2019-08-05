@@ -120,7 +120,7 @@ sigma.bn.fit = function(object, ...) {
 }#SIGMA.BN.FIT
 
 # extract standard errors for continuous nodes.
-sigma.bn.fit.cgnode = sigma.bn.fit.gnode = function(object, ...) {
+sigma.bn.fit.gnode = function(object, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -128,6 +128,33 @@ sigma.bn.fit.cgnode = sigma.bn.fit.gnode = function(object, ...) {
   object$sd
 
 }#SIGMA.BN.FIT.GNODE
+
+sigma.bn.fit.cgnode = function(object, for.parents, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), "for.parents")
+
+  if (missing(for.parents)) {
+
+    sd = object$sd
+
+  }#THEN
+  else {
+
+    for.parents = check.discrete.parents.configuration(for.parents, object)
+
+     # enumerate all possible configurations...
+    all.configurations = expand.grid(object$dlevels, stringsAsFactors = FALSE)
+    # ... find which one to return...
+    requested = which(apply(all.configurations, 1, identical, unlist(for.parents)))
+    # ... and extract it.
+    sd = noattr(object$sd[requested])
+
+  }#ELSE
+
+  return(sd)
+
+}#SIGMA.BN.FIT.CGNODE
 
 # no sigma here, move along ...
 sigma.bn.fit.onode = sigma.bn.fit.dnode = function(object, ...) {
@@ -183,7 +210,7 @@ coef.bn.fit = function(object, ...) {
 }#COEF.BN.FIT
 
 # extract regression coefficients from continuous nodes.
-coef.bn.fit.cgnode = coef.bn.fit.gnode = function(object, ...) {
+coef.bn.fit.gnode = function(object, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -192,13 +219,56 @@ coef.bn.fit.cgnode = coef.bn.fit.gnode = function(object, ...) {
 
 }#COEF.BN.FIT.GNODE
 
-# extract probabilities from discrete nodes.
-coef.bn.fit.onode = coef.bn.fit.dnode = function(object, ...) {
+coef.bn.fit.cgnode = function(object, for.parents, ...) {
 
   # warn about unused arguments.
-  check.unused.args(list(...), character(0))
+  check.unused.args(list(...), "for.parents")
 
-  object$prob
+  if (missing(for.parents)) {
+
+    coefficients = object$coefficients
+
+  }#THEN
+  else {
+
+    for.parents = check.discrete.parents.configuration(for.parents, object)
+
+    # enumerate all possible configurations...
+    all.configurations = expand.grid(object$dlevels, stringsAsFactors = FALSE)
+    # ... find which one to return...
+    requested = which(apply(all.configurations, 1, identical, unlist(for.parents)))
+    # ... and extract it.
+    coefficients = object$coefficients[, requested]
+
+  }#ELSE
+
+  return(coefficients)
+
+}#COEF.BN.FIT.CGNODE
+
+# extract probabilities from discrete nodes.
+coef.bn.fit.onode = coef.bn.fit.dnode = function(object, for.parents, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), "for.parents")
+
+  if (missing(for.parents)) {
+
+    coefficients = object$prob
+
+  }#THEN
+  else {
+
+    for.parents = check.discrete.parents.configuration(for.parents, object)
+
+    # reorder the dimensions...
+    requested = c(list(TRUE), for.parents[object$parents])
+    # ... and extract the probabilities.
+    coefficients = do.call("[", c(list(object$prob), requested))
+
+  }#ELSE
+
+  return(coefficients)
 
 }#COEF.BN.FIT.DNODE
 

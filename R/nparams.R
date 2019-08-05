@@ -4,7 +4,7 @@ nparams.backend = function(x, data, debug = FALSE) {
 
   .Call(call_nparams_cgnet,
         graph = x,
-        data = minimal.data.frame.column(data, names(x$nodes)),
+        data = .data.frame.column(data, names(x$nodes)),
         debug = debug)
 
 }#NPARAMS.BACKEND

@@ -1,50 +1,119 @@
 #include "include/rcore.h"
+#include "include/tests.h"
 
-/* adjust degrees of freedom: zeroes are considered structural if they
- * are part of a column or a row with a zero marginal, the rest are
- * considered sampling zeros. */
-double df_adjust(int *ni, int llx, int *nj, int lly) {
+double discrete_df(test_e test, int *ni, int llx, int *nj, int lly) {
 
 int i = 0, j = 0, alx = 0, aly = 0;
+double df = 0;
 
-  for (i = 0; i < llx; i++)
-    alx += (ni[i] > 0);
-  for (j = 0; j < lly; j++)
-    aly += (nj[j] > 0);
+  switch(test) {
 
-  /* ensure the degrees of freedom will not be negative. */
-  alx = (alx >= 1) ? alx : 1;
-  aly = (aly >= 1) ? aly : 1;
+    /* usual degrees of freedom. */
+    case MI:
+    case MI_SH:
+    case X2:
+      df = (llx - 1) * (lly - 1);
+      break;
 
-  return (double)((alx - 1) * (aly - 1));
+    /* adjust degrees of freedom: zeroes are considered structural if they
+     * are part of a column or a row with a zero marginal, the rest are
+     * considered sampling zeros. */
+    case MI_ADF:
+    case X2_ADF:
+      for (i = 0; i < llx; i++)
+        alx += (ni[i] > 0);
+      for (j = 0; j < lly; j++)
+        aly += (nj[j] > 0);
 
-}/*DF_ADJUST*/
+      /* ensure the degrees of freedom will not be negative. */
+      alx = (alx >= 1) ? alx : 1;
+      aly = (aly >= 1) ? aly : 1;
 
-/* adjust degrees of freedom: same as the unconditional case, but stacked
- * across the strata of the conditioning variables. */
-double cdf_adjust(int **ni, int llx, int **nj, int lly, int llz) {
+      df = (alx - 1) * (aly - 1);
+
+      break;
+
+    default:
+      error("no degrees of freedom for this test.");
+
+  }/*SWITCH*/
+
+  return df;
+
+}/*DISCRETE_DF*/
+
+double discrete_cdf(test_e test, int **ni, int llx, int **nj, int lly, int llz) {
 
 int i = 0, j = 0, k = 0, alx = 0, aly = 0;
 double df = 0;
 
-  for (k = 0; k < llz; k++) {
+  switch(test) {
 
-    alx = aly = 0;
+    /* usual degrees of freedom. */
+    case MI:
+    case MI_SH:
+    case X2:
+      df = (llx - 1) * (lly - 1) * llz;
+      break;
 
-    for (i = 0; i < llx; i++)
-      alx += (ni[k][i] > 0);
-    for (j = 0; j < lly; j++)
-      aly += (nj[k][j] > 0);
+    /* adjust degrees of freedom: zeroes are considered structural if they
+     * are part of a column or a row with a zero marginal, the rest are
+     * considered sampling zeros. */
+    case MI_ADF:
+    case X2_ADF:
+      for (k = 0; k < llz; k++) {
 
-    /* ensure the degrees of freedom will not be negative. */
-    alx = (alx >= 1) ? alx : 1;
-    aly = (aly >= 1) ? aly : 1;
+        alx = aly = 0;
 
-    df += (alx - 1) * (aly - 1);
+        for (i = 0; i < llx; i++)
+          alx += (ni[k][i] > 0);
+        for (j = 0; j < lly; j++)
+          aly += (nj[k][j] > 0);
 
-  }/*FOR*/
+        /* ensure the degrees of freedom will not be negative. */
+        alx = (alx >= 1) ? alx : 1;
+        aly = (aly >= 1) ? aly : 1;
+
+        df += (alx - 1) * (aly - 1);
+
+      }/*FOR*/
+
+      break;
+
+    default:
+      error("no degrees of freedom for this test.");
+
+  }/*SWITCH*/
 
   return df;
 
-}/*CDF_ADJUST*/
+}/*DISCRETE_CDF*/
 
+double gaussian_cdf(test_e test, int num, int nz) {
+
+double df = 0;
+
+  switch(test) {
+
+    case COR:
+      df = num - nz - 2;
+      break;
+
+    case MI_G:
+    case MI_G_SH:
+      df = 1;
+      break;
+
+    case ZF:
+      df = num - nz - 3;
+      break;
+
+    default:
+      error("no degrees of freedom for this test.");
+
+  }/*SWITCH*/
+
+  return df;
+
+
+}/*GAUSSIAN_CDF*/

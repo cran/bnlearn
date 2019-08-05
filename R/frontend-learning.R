@@ -7,81 +7,102 @@ pc.stable = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
     max.sx = max.sx, method = "pc.stable", debug = debug,
-    optimized = FALSE, strict = FALSE, undirected = undirected)
+    undirected = undirected)
 
 }#PC.CLASSIC
 
 # Grow-Shrink frontend.
 gs = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
-    optimized = FALSE, strict = FALSE, undirected = FALSE) {
+    undirected = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
-    max.sx = max.sx, method = "gs", debug = debug,
-    optimized = optimized, strict = strict, undirected = undirected)
+    max.sx = max.sx, method = "gs", debug = debug, undirected = undirected)
 
 }#GS
 
 # Incremental Association frontend.
 iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
-    optimized = FALSE, strict = FALSE, undirected = FALSE) {
+    undirected = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
-    max.sx = max.sx, method = "iamb", debug = debug,
-    optimized = optimized, strict = strict, undirected = undirected)
+    max.sx = max.sx, method = "iamb", debug = debug, undirected = undirected)
 
 }#IAMB
 
 # Fast-IAMB frontend.
 fast.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
-    optimized = FALSE, strict = FALSE, undirected = FALSE) {
+    undirected = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
     max.sx = max.sx, method = "fast.iamb", debug = debug,
-    optimized = optimized, strict = strict, undirected = undirected)
+    undirected = undirected)
 
 }#FAST.IAMB
 
 # Inter-IAMB frontend.
 inter.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL,  max.sx = NULL, debug = FALSE,
-    optimized = FALSE, strict = FALSE, undirected = FALSE) {
+    undirected = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
     max.sx = max.sx, method = "inter.iamb", debug = debug,
-    optimized = optimized, strict = strict, undirected = undirected)
+    undirected = undirected)
 
 }#INTER.IAMB
+
+# IAMB-FDR frontend.
+iamb.fdr = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+    test = NULL, alpha = 0.05, B = NULL,  max.sx = NULL, debug = FALSE,
+    undirected = FALSE) {
+
+  bnlearn(x = x, cluster = cluster, whitelist = whitelist,
+    blacklist = blacklist, test = test, alpha = alpha, B = B,
+    max.sx = max.sx, method = "iamb.fdr", debug = debug,
+    undirected = undirected)
+
+}#IAMB.FDR
 
 # MMPC frontend.
 mmpc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
-    optimized = FALSE, strict = FALSE, undirected = TRUE) {
+    undirected = TRUE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
     max.sx = max.sx, method = "mmpc", debug = debug,
-    optimized = optimized, strict = strict, undirected = undirected)
+    undirected = undirected)
 
 }#MMPC
 
 # Semi-Interleaved HITON-PC.
 si.hiton.pc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
-    optimized = FALSE, strict = FALSE, undirected = TRUE) {
+    undirected = TRUE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
     max.sx = max.sx, method = "si.hiton.pc", debug = debug,
-    optimized = optimized, strict = strict, undirected = undirected)
+    undirected = undirected)
 
 }#SI.HITON.PC
+
+# Hybrid PC.
+hpc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
+    undirected = TRUE) {
+
+  bnlearn(x = x, cluster = cluster, whitelist = whitelist,
+    blacklist = blacklist, test = test, alpha = alpha, B = B,
+    max.sx = max.sx, method = "hpc", debug = debug, undirected = undirected)
+
+}#HPC
 
 # ARACNE frontend.
 aracne = function(x, whitelist = NULL, blacklist = NULL, mi = NULL,
@@ -134,7 +155,7 @@ rsmax2 = function(x, whitelist = NULL, blacklist = NULL, restrict = "si.hiton.pc
     restrict = restrict, maximize = maximize, restrict.args = restrict.args,
     maximize.args = maximize.args, debug = debug)
 
-}#RSHC
+}#RSMAX2
 
 # MMHC frontend.
 mmhc = function(x, whitelist = NULL, blacklist = NULL,
@@ -145,6 +166,16 @@ mmhc = function(x, whitelist = NULL, blacklist = NULL,
     maximize.args = maximize.args, debug = debug)
 
 }#MMHC
+
+# H2PC frontend.
+h2pc = function(x, whitelist = NULL, blacklist = NULL,
+    restrict.args = list(), maximize.args = list(), debug = FALSE) {
+
+  hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
+    restrict = "hpc", maximize = "hc", restrict.args = restrict.args,
+    maximize.args = maximize.args, debug = debug)
+
+}#H2PC
 
 # Frontend for the Markov blanket learning algorithms.
 learn.mb = function(x, node, method, whitelist = NULL, blacklist = NULL,

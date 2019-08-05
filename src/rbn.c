@@ -6,10 +6,9 @@
 #include "include/globals.h"
 #include "include/fitted.h"
 
-void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int num, int ordinal,
-    SEXP fixed);
+void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int num, SEXP fixed);
 void rbn_discrete_cond(SEXP result, SEXP nodes, int cur, SEXP parents, SEXP cpt,
-    int num, int ordinal, SEXP fixed, int debuglevel);
+    int num, SEXP fixed, bool debugging);
 void rbn_gaussian(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
     int num, SEXP fixed);
 void rbn_mixedcg(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
@@ -18,13 +17,13 @@ void rbn_mixedcg(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
 /* generate random observations from a bayesian network. */
 SEXP rbn_master(SEXP fitted, SEXP n, SEXP fix, SEXP debug) {
 
-int debuglevel = isTRUE(debug);
+bool debugging = isTRUE(debug);
 SEXP result;
 
   /* allocate the return value. */
   PROTECT(result = fit2df(fitted, INT(n)));
   /* perform the simulation. */
-  c_rbn_master(fitted, result, n, fix, debuglevel);
+  c_rbn_master(fitted, result, n, fix, debugging);
 
   UNPROTECT(1);
 
@@ -32,7 +31,7 @@ SEXP result;
 
 }/*RBN_MASTER*/
 
-void c_rbn_master(SEXP fitted, SEXP result, SEXP n, SEXP fix, int debuglevel) {
+void c_rbn_master(SEXP fitted, SEXP result, SEXP n, SEXP fix, bool debugging) {
 
 int num = INT(n), *poset = NULL, *mf = NULL;
 int has_fixed = (TYPEOF(fix) != LGLSXP);
@@ -57,7 +56,7 @@ SEXP dpar = R_NilValue, gpar = R_NilValue;
 
   }/*THEN*/
 
-  if (debuglevel > 0) {
+  if (debugging) {
 
     Rprintf("* partial node ordering is:");
 
@@ -78,7 +77,7 @@ SEXP dpar = R_NilValue, gpar = R_NilValue;
      * of its parents. */
     cur = poset[i];
     cur_node = VECTOR_ELT(fitted, cur);
-    cur_node_type = r_fitted_node_label(cur_node);
+    cur_node_type = fitted_node_to_enum(cur_node);
     parents = getListElement(cur_node, "parents");
     nparents = length(parents);
 
@@ -121,7 +120,7 @@ SEXP dpar = R_NilValue, gpar = R_NilValue;
     /* generate the random observations for the current node. */
     if (nparents == 0) {
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         if (cur_fixed != R_NilValue)
           Rprintf("* node %s is fixed.\n", NODE(cur));
@@ -134,11 +133,11 @@ SEXP dpar = R_NilValue, gpar = R_NilValue;
       switch(cur_node_type) {
 
         case DNODE:
-          rbn_discrete_root(result, cur, cpt, num, FALSE, cur_fixed);
+          rbn_discrete_root(result, cur, cpt, num, cur_fixed);
           break;
 
         case ONODE:
-          rbn_discrete_root(result, cur, cpt, num, TRUE, cur_fixed);
+          rbn_discrete_root(result, cur, cpt, num, cur_fixed);
           break;
 
         case GNODE:
@@ -159,7 +158,7 @@ SEXP dpar = R_NilValue, gpar = R_NilValue;
     }/*THEN*/
     else {
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         if (cur_fixed != R_NilValue) {
 
@@ -182,13 +181,13 @@ SEXP dpar = R_NilValue, gpar = R_NilValue;
       switch(cur_node_type) {
 
         case DNODE:
-          rbn_discrete_cond(result, nodes, cur, parent_vars, cpt, num, FALSE,
-            cur_fixed, debuglevel);
+          rbn_discrete_cond(result, nodes, cur, parent_vars, cpt, num,
+            cur_fixed, debugging);
           break;
 
         case ONODE:
-          rbn_discrete_cond(result, nodes, cur, parent_vars, cpt, num, TRUE,
-            cur_fixed, debuglevel);
+          rbn_discrete_cond(result, nodes, cur, parent_vars, cpt, num,
+            cur_fixed, debugging);
           break;
 
         case GNODE:
@@ -251,8 +250,7 @@ void rbn_discrete_fixed(SEXP fixed, SEXP lvls, int *gen, int num) {
 }/*RBN_DISCRETE_FIXED*/
 
 /* unconditional discrete sampling. */
-void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int num, int ordinal,
-    SEXP fixed) {
+void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int num, SEXP fixed) {
 
 int np = length(cpt), *gen = NULL, *workplace = NULL;
 double *p = NULL;
@@ -289,11 +287,12 @@ SEXP generated, lvls;
 
 /* conditional discrete sampling. */
 void rbn_discrete_cond(SEXP result, SEXP nodes, int cur, SEXP parents, SEXP cpt,
-    int num, int ordinal, SEXP fixed, int debuglevel) {
+    int num, SEXP fixed, bool debugging) {
 
-int np = length(cpt), nlevels = 0, warn = 0;
+int np = length(cpt), nlevels = 0;
 int *workplace = NULL, *configurations = NULL, *gen = NULL;
 double *p = NULL;
+bool warn = FALSE;
 SEXP generated, lvls;
 
   /* get the number of levels of the curent variable .*/
@@ -330,7 +329,7 @@ SEXP generated, lvls;
   }/*ELSE*/
 
   /* warn when returning missing values. */
-  if (warn && debuglevel > 0)
+  if (warn && debugging)
     Rprintf("  > some parents configurations have undefined conditional distributions, NAs will be generated.");
 
 }/*RBN_DISCRETE_COND*/

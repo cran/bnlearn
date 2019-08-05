@@ -11,17 +11,17 @@
 #define CHANGED    1
 
 static void scan_graph(int *a, SEXP nodes, int nnodes, short int *collider,
-    int debuglevel);
+    bool debugging);
 static void mark_vstructures(int *a, SEXP nodes, int nnodes, short int *collider,
-    int debuglevel);
+    bool debugging);
 static void unmark_shielded(int *a, SEXP nodes, int nnodes, short int *collider,
-    int debuglevel);
-static int prevent_cycles(int *a, SEXP nodes, int nnodes, int debuglevel);
+    bool debugging);
+static int prevent_cycles(int *a, SEXP nodes, int nnodes, bool debugging);
 static int prevent_additional_vstructures(int *a, SEXP nodes, int nnodes,
-    int debuglevel);
+    bool debugging);
 static int prevent_conflicts(int *a, SEXP nodes, int nnodes, short int *scratch,
-    int debuglevel);
-static int prevent_chains(int *a, SEXP nodes, int nnodes, int debuglevel);
+    bool debugging);
+static int prevent_chains(int *a, SEXP nodes, int nnodes, bool debugging);
 static void renormalize_amat(int *a, int nnodes);
 static SEXP amat2vstructs(int *a, SEXP nodes, int nnodes, short int *collider);
 
@@ -30,8 +30,9 @@ SEXP vstructures(SEXP arcs, SEXP nodes, SEXP return_arcs, SEXP including_moral,
     SEXP debug) {
 
 int i = 0, nnodes = length(nodes);
-int *a = NULL, *ret_arcs = LOGICAL(return_arcs), debuglevel = isTRUE(debug);
+int *a = NULL, *ret_arcs = LOGICAL(return_arcs);
 short int *collider = NULL;
+bool debugging = isTRUE(debug);
 SEXP amat, result;
 
   /* build the adjacency matrix and dereference it. */
@@ -42,14 +43,14 @@ SEXP amat, result;
   collider = Calloc1D(nnodes, sizeof(short int));
 
   /* STEP 1: scan the graph. */
-  scan_graph(a, nodes, nnodes, collider, debuglevel);
+  scan_graph(a, nodes, nnodes, collider, debugging);
 
   /* STEP 2: all the arcs not part of a v-structure are now undirected. */
-  mark_vstructures(a, nodes, nnodes, collider, debuglevel);
+  mark_vstructures(a, nodes, nnodes, collider, debugging);
 
   /* decide whether or not to keep moral v-structures (i.e. shielded colliders). */
   if (!isTRUE(including_moral))
-    unmark_shielded(a, nodes, nnodes, collider, debuglevel);
+    unmark_shielded(a, nodes, nnodes, collider, debugging);
 
   /* remove all non-fixed arcs (including compelled ones). */
   for (i = 0; i < nnodes * nnodes; i++)
@@ -133,8 +134,8 @@ SEXP result;
 
 }/*AMAT2VSTRUCTS*/
 
-static int fix_wlbl(int *a, int nnodes, SEXP nodes, SEXP whitelist,
-  SEXP blacklist, int debuglevel) {
+static int fix_arcs(int *a, int nnodes, SEXP nodes, SEXP whitelist,
+  SEXP blacklist, bool debugging) {
 
 int i = 0, j = 0, *w = NULL, *b = NULL;
 SEXP wl, bl;
@@ -178,7 +179,7 @@ SEXP wl, bl;
           if ((a[CMC(i, j, nnodes)] == PRESENT) && (a[CMC(j, i, nnodes)] == ABSENT) &&
               (w[CMC(i, j, nnodes)] == PRESENT)) {
 
-            if (debuglevel > 0)
+            if (debugging)
               Rprintf("  > marking arc %s -> %s as immutable.\n", NODE(i), NODE(j));
 
             a[CMC(i, j, nnodes)] = IMMUTABLE;
@@ -205,7 +206,7 @@ SEXP wl, bl;
           if ((a[CMC(i, j, nnodes)] == PRESENT) && (b[CMC(j, i, nnodes)] == PRESENT) &&
               (b[CMC(i, j, nnodes)] == ABSENT)) {
 
-            if (debuglevel > 0)
+            if (debugging)
               Rprintf("  > marking arc %s -> %s as immutable.\n", NODE(i), NODE(j));
 
             a[CMC(i, j, nnodes)] = IMMUTABLE;
@@ -223,14 +224,15 @@ SEXP wl, bl;
 
   return FALSE;
 
-}/*FIX_WLBL*/
+}/*FIX_ARCS*/
 
-SEXP cpdag(SEXP arcs, SEXP nodes, SEXP moral, SEXP fix, SEXP whitelist,
-    SEXP blacklist, SEXP illegal, SEXP debug) {
+SEXP cpdag(SEXP arcs, SEXP nodes, SEXP moral, SEXP fix, SEXP wlbl,
+    SEXP whitelist, SEXP blacklist, SEXP illegal, SEXP debug) {
 
 int i = 0, changed = 0, nnodes = length(nodes);
 short int *collider = NULL, *scratch = NULL;
-int *a = NULL, debuglevel = isTRUE(debug), all_fixed = FALSE;
+int *a = NULL, all_fixed = FALSE;
+bool debugging = isTRUE(debug);
 SEXP amat;
 
   /* build the adjacency matrix and dereference it. */
@@ -243,37 +245,47 @@ SEXP amat;
   scratch = Calloc1D(nnodes, sizeof(short int));
 
   /* STEP 1a: scan the graph. */
-  scan_graph(a, nodes, nnodes, collider, debuglevel);
+  scan_graph(a, nodes, nnodes, collider, debugging);
 
   /* STEP 1b: fix arcs whose direction is determined by parametric assumptions
    * (the illegal argument works like a blacklist). */
   if (illegal != R_NilValue) {
 
-   if (debuglevel > 0)
-     Rprintf("* setting the directions determined by parametric assumptions (step 1b).\n");
+    if (debugging)
+      Rprintf("* setting the directions determined by parametric assumptions (step 1b).\n");
 
-    fix_wlbl(a, nnodes, nodes, R_NilValue, illegal, debuglevel);
+    fix_arcs(a, nnodes, nodes, R_NilValue, illegal, debugging);
+
+  }/*THEN*/
+
+  /* STEP 1c: fix all directed arcs in the network. */
+  if (isTRUE(fix)) {
+
+    if (debugging)
+      Rprintf("* setting the directions of all directed arcs (step 1c).\n");
+
+    all_fixed = fix_arcs(a, nnodes, nodes, R_NilValue, R_NilValue, debugging);
 
   }/*THEN*/
 
   /* STEP 1c: fix arcs according to the whitelist and the blacklist. */
-  if (isTRUE(fix)) {
+  if (isTRUE(wlbl) && ((whitelist != R_NilValue) || (blacklist != R_NilValue))) {
 
-   if (debuglevel > 0)
-     Rprintf("* setting the directions determined by whitelist and blacklist (step 1c).\n");
+    if (debugging)
+      Rprintf("* setting the directions determined by whitelist and blacklist (step 1c).\n");
 
-    all_fixed = fix_wlbl(a, nnodes, nodes, whitelist, blacklist, debuglevel);
+    all_fixed = fix_arcs(a, nnodes, nodes, whitelist, blacklist, debugging);
 
   }/*THEN*/
 
   if (!all_fixed) {
 
     /* STEP 2: all the arcs not part of a v-structure are now undirected. */
-    mark_vstructures(a, nodes, nnodes, collider, debuglevel);
+    mark_vstructures(a, nodes, nnodes, collider, debugging);
 
     /* decide whether or not to keep moral v-structures (i.e. shielded colliders). */
     if (isTRUE(moral))
-      unmark_shielded(a, nodes, nnodes, collider, debuglevel);
+      unmark_shielded(a, nodes, nnodes, collider, debugging);
 
   }/*THEN*/
 
@@ -281,26 +293,26 @@ SEXP amat;
    * v-structures in the graph. */
   for (i = 0; i < nnodes * nnodes; i++) {
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("* setting the direction of more arcs (step 3, iteration %d).\n", i);
 
     /* STEP 3a: prevent the creation of cycles (Meek Rule 2). */
-    changed |= prevent_cycles(a, nodes, nnodes, debuglevel);
+    changed |= prevent_cycles(a, nodes, nnodes, debugging);
 
     /* STEP 3b: prevent the creation of new v-structures (Meek Rule 1). */
-    changed |= prevent_additional_vstructures(a, nodes, nnodes, debuglevel);
+    changed |= prevent_additional_vstructures(a, nodes, nnodes, debugging);
 
     /* STEP 3c: do not leave arcs undirected if they rule out some directions
      * of some other undirected arcs (Meek Rule 3). */
-    changed |= prevent_conflicts(a, nodes, nnodes, scratch, debuglevel);
+    changed |= prevent_conflicts(a, nodes, nnodes, scratch, debugging);
 
     /* STEP 3d: avoid being stuck due to long chains mixing directed and
      * undirected arcs (Meek Rule 4). */
-    changed |= prevent_chains(a, nodes, nnodes, debuglevel);
+    changed |= prevent_chains(a, nodes, nnodes, debugging);
 
     if (!changed) {
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  > the graph is unchanged, stopping.\n");
 
       break;
@@ -327,13 +339,13 @@ SEXP amat;
 }/*CPDAG*/
 
 static void scan_graph(int *a, SEXP nodes, int nnodes, short int *collider,
-    int debuglevel) {
+    bool debugging) {
 
  int i = 0, j = 0, counter = 0;
 
   /* count the parents of each node (the non-symmetric 1s in the
    * corresponding column of the adjacency matrix). */
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("* scanning the graph (step 1).\n");
 
   for (j = 0; j < nnodes; j++) {
@@ -354,7 +366,7 @@ static void scan_graph(int *a, SEXP nodes, int nnodes, short int *collider,
 
         collider[j] = 1;
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  > node %s is the center of a v-structure.\n", NODE(j));
 
         break;
@@ -368,12 +380,12 @@ static void scan_graph(int *a, SEXP nodes, int nnodes, short int *collider,
 }/*SCAN_GRAPH*/
 
 static void mark_vstructures(int *a, SEXP nodes, int nnodes, short int *collider,
-    int debuglevel) {
+    bool debugging) {
 
 int i = 0, j = 0;
 
   /* set arcs belonging to a v-structure as FIXED. */
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("* marking v-structures (step 2).\n");
 
   for (j = 0; j < nnodes; j++) {
@@ -411,7 +423,7 @@ int i = 0, j = 0;
           /* this is a directed arc, it's part of a v-structure; mark it as FIXED. */
           a[CMC(i, j, nnodes)] = FIXED;
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("  > fixing arc %s -> %s, it's part of a v-structure.\n", NODE(i), NODE(j));
 
         }/*THEN*/
@@ -425,7 +437,7 @@ int i = 0, j = 0;
              * arc in a previous step.*/
             a[CMC(i, j, nnodes)] = a[CMC(j, i, nnodes)] = FIXED;
 
-            if (debuglevel > 0)
+            if (debugging)
               Rprintf("  > fixing arc %s - %s due to conflicting v-structures.\n", NODE(j), NODE(i));
 
           }/*THEN*/
@@ -441,11 +453,11 @@ int i = 0, j = 0;
 }/*MARK_VSTRUCTURES*/
 
 static void unmark_shielded(int *a, SEXP nodes, int nnodes, short int *collider,
-    int debuglevel) {
+    bool debugging) {
 
 int i = 0, j = 0, k = 0, check = FALSE;
 
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("* removing moral v-structures aka shielded colliders.\n");
 
   for (i = 0; i < nnodes; i++) {
@@ -460,7 +472,7 @@ int i = 0, j = 0, k = 0, check = FALSE;
       if ((a[CMC(j, i, nnodes)] != FIXED) && (a[CMC(j, i, nnodes)] != IMMUTABLE))
         continue;
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  > considering arc %s -> %s.\n", NODE(j), NODE(i));
 
       /* this is set to TRUE is the arc is part of an unshielded collider. */
@@ -472,7 +484,7 @@ int i = 0, j = 0, k = 0, check = FALSE;
         if (((a[CMC(k, i, nnodes)] != FIXED) && (a[CMC(k, i, nnodes)] != IMMUTABLE)) || (j == k))
           continue;
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("    > considering v-structure %s -> %s <- %s.\n", NODE(j), NODE(i), NODE(k));
 
         /* it's a real v-structure if the parents are not connected or if both
@@ -490,13 +502,13 @@ int i = 0, j = 0, k = 0, check = FALSE;
 
       if (check) {
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  @ arc %s -> %s is part of a v-structure.\n", NODE(j), NODE(i));
 
       }/*THEN*/
       else {
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  @ arc %s -> %s is not part of a v-structure.\n", NODE(j), NODE(i));
 
         /* this arc should not be marked as FIXED and should not be directed;
@@ -534,7 +546,7 @@ int k = 0;
 
 }/*VSTRUCTURES_VS_CYCLES*/
 
-static int prevent_cycles(int *a, SEXP nodes, int nnodes, int debuglevel) {
+static int prevent_cycles(int *a, SEXP nodes, int nnodes, bool debugging) {
 
 int i = 0, j = 0, changed = UNCHANGED;
 int *path = NULL, *scratch = NULL;
@@ -556,7 +568,8 @@ int *path = NULL, *scratch = NULL;
 
           a[CMC(i, j, nnodes)] = FIXED;
           a[CMC(j, i, nnodes)] = FIXED;
-          if (debuglevel > 0)
+
+          if (debugging)
             Rprintf("  > fixing arc %s - %s, %s -> %s introduces new v-structures, %s -> %s creates cycles (step 3a).\n", \
             NODE(i), NODE(j), NODE(j), NODE(i), NODE(i), NODE(j));
 
@@ -566,7 +579,7 @@ int *path = NULL, *scratch = NULL;
           a[CMC(i, j, nnodes)] = FIXED;
           a[CMC(j, i, nnodes)] = ABSENT;
 
-          if (debuglevel)
+          if (debugging)
             Rprintf("  > fixing arc %s -> %s due to directed path (step 3a).\n", NODE(i), NODE(j));
 
         }/*THEN*/
@@ -610,7 +623,7 @@ int k = 0;
 }/*CREATES_UNSHIELDED_COLLIDER*/
 
 static int prevent_additional_vstructures(int *a, SEXP nodes, int nnodes,
-    int debuglevel) {
+    bool debugging) {
 
 int i = 0, j = 0;
 int *path = NULL, *scratch = NULL;
@@ -673,7 +686,7 @@ short int path_to_i = FALSE, path_to_j = FALSE;
            * NODE(j) -> NODE(i) unless it creates cycles. */
           if (path_to_j) {
 
-            if (debuglevel > 0)
+            if (debugging)
               Rprintf("  @ arc %s -> %s introduces cycles, %s -> %s introduces an unshielded collider (step 3b).\n",
                 NODE(i), NODE(j), NODE(j), NODE(i));
 
@@ -685,7 +698,7 @@ short int path_to_i = FALSE, path_to_j = FALSE;
           a[CMC(j, i, nnodes)] = FIXED;
           changed = TRUE;
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("  > fixing arc %s -> %s, %s -> %s introduces an unshielded collider (step 3b).\n",
               NODE(i), NODE(j), NODE(j), NODE(i));
 
@@ -696,7 +709,7 @@ short int path_to_i = FALSE, path_to_j = FALSE;
            * NODE(i) -> NODE(j) unless it creates cycles. */
           if (path_to_i) {
 
-            if (debuglevel > 0)
+            if (debugging)
               Rprintf("  @ arc %s -> %s introduces cycles, %s -> %s introduces an unshielded collider (step 3b).\n",
                 NODE(j), NODE(i), NODE(i), NODE(j));
 
@@ -708,7 +721,7 @@ short int path_to_i = FALSE, path_to_j = FALSE;
           a[CMC(j, i, nnodes)] = ABSENT;
           changed = TRUE;
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("  > fixing arc %s -> %s, %s -> %s introduces an unshielded collider (step 3b).\n",
               NODE(j), NODE(i), NODE(i), NODE(j));
 
@@ -723,7 +736,7 @@ failsafe:
           a[CMC(j, i, nnodes)] = FIXED;
           changed = TRUE;
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("  > fixing arc %s - %s, both nodes have parents (step 3b).\n", NODE(j), NODE(i));
 
         }/*THEN*/
@@ -739,7 +752,7 @@ failsafe:
 
         if (!creates_unshielded_collider(a, nnodes, i, j)) {
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("  > arc %s - %s is not part of an unshielded collider, leave it undirected.\n", NODE(j), NODE(i));
 
         }/*THEN*/
@@ -749,7 +762,7 @@ failsafe:
           a[CMC(j, i, nnodes)] = FIXED;
           changed = TRUE;
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("  > fixing arc %s - %s, one direction introduces new v-structures, the other creates cycles (step 3b).\n",
               NODE(j), NODE(i));
 
@@ -760,7 +773,7 @@ failsafe:
           a[CMC(j, i, nnodes)] = FIXED;
           changed = TRUE;
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("  > fixing arc %s -> %s, prevent v-structure (step 3b).\n", NODE(j), NODE(i));
 
         }/*THEN*/
@@ -807,7 +820,7 @@ int k = 0, l = 0;
 }/*CREATES_CONFLICTS*/
 
 static int prevent_conflicts(int *a, SEXP nodes, int nnodes, short int *scratch,
-    int debuglevel) {
+    bool debugging) {
 
 int i = 0, j = 0, k = 0, changed = FALSE;
 
@@ -838,7 +851,7 @@ int i = 0, j = 0, k = 0, changed = FALSE;
 
           scratch[k] = TRUE;
 
-          if (debuglevel)
+          if (debugging)
             Rprintf("    @ found chain %s - %s -> %s.\n",
               NODE(i), NODE(k), NODE(j));
 
@@ -854,7 +867,7 @@ int i = 0, j = 0, k = 0, changed = FALSE;
         a[CMC(j, i, nnodes)] = ABSENT;
         changed = TRUE;
 
-        if (debuglevel)
+        if (debugging)
           Rprintf("    > fixing %s -> %s because of these chains (step 3c).\n",
             NODE(i), NODE(j));
 
@@ -907,7 +920,7 @@ int i = elem[0], j = elem[1], k = 0, l = 0;
 
 }/*FIND_CHAIN*/
 
-static int prevent_chains(int *a, SEXP nodes, int nnodes, int debuglevel) {
+static int prevent_chains(int *a, SEXP nodes, int nnodes, bool debugging) {
 
 int i = 0, j = 0, changed = FALSE, chain[2] = {0, 0};
 
@@ -932,7 +945,7 @@ int i = 0, j = 0, changed = FALSE, chain[2] = {0, 0};
         a[CMC(j, i, nnodes)] = ABSENT;
         changed = TRUE;
 
-        if (debuglevel)
+        if (debugging)
           Rprintf("    @ found chain %s - %s -> %s -> %s with %s - %s and %s - %s, "
                   "fixing %s -> %s (step 3d).\n",
             NODE(i), NODE(j), NODE(chain[0]), NODE(chain[1]),

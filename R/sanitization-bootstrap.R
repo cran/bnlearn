@@ -50,10 +50,10 @@ check.replicates = function(R, default = 200) {
 }#CHECK.REiPLICATES
 
 # check the size of bootstrap replicates.
-check.bootsize = function(m, data, default = nrow(data)) {
+check.bootsize = function(m, data) {
 
   if (missing(m) || is.null(m))
-    m = default
+    m = nrow(data)
   else if (!is.positive.integer(m))
     stop("bootstrap sample size must be a positive integer.")
 

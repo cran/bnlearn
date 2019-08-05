@@ -10,7 +10,7 @@
 #define DISCRETE_NETWORK(x) (x < GAUSSIAN_MAXIMUM_LIKELIHOOD)
 
 #define LIST_MUTUAL_INFORMATION_COEFS() \
-  if (debuglevel > 0) { \
+  if (debugging) { \
     for (i = 0; i < ncol; i++) \
       for (j = i + 1; j < ncol; j++) \
         Rprintf("  > mutual information between %s and %s is %lf.\n", \
@@ -123,10 +123,10 @@ SEXP aracne(SEXP data, SEXP estimator, SEXP whitelist, SEXP blacklist, SEXP debu
 int i = 0, j = 0, k = 0, coord = 0, ncol = length(data);
 int num = length(VECTOR_ELT(data, i)), narcs = ncol * (ncol - 1) / 2;
 int *nlevels = NULL, *est = INTEGER(estimator), *wl = NULL, *bl = NULL;
-int debuglevel = isTRUE(debug);
 void **columns = NULL;
 short int *exclude = NULL;
 double *mim = NULL, *means = NULL, *sse = NULL;
+bool debugging = isTRUE(debug);
 SEXP arcs, nodes, wlist, blist;
 
   PROTECT(nodes = getAttrib(data, R_NamesSymbol));
@@ -139,7 +139,7 @@ SEXP arcs, nodes, wlist, blist;
   exclude = Calloc1D(UPTRI3_MATRIX(ncol), sizeof(short int));
 
   /* compute the pairwise mutual information coefficients. */
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("* computing pairwise mutual information coefficients.\n");
 
   mi_matrix(mim, columns, ncol, nlevels, &num, NULL, NULL, means, sse, est);
@@ -163,7 +163,7 @@ SEXP arcs, nodes, wlist, blist;
         if ((mim[coord] < mim[UPTRI3(i + 1, k + 1, ncol)]) &&
             (mim[coord] < mim[UPTRI3(j + 1, k + 1, ncol)])) {
 
-          if (debuglevel > 0) {
+          if (debugging) {
 
             Rprintf("* dropping arc %s - %s because of %s, %lf < min(%lf, %lf)\n",
               NODE(i), NODE(j), NODE(k), mim[UPTRI3(i + 1, j + 1, ncol)],
@@ -194,7 +194,7 @@ SEXP arcs, nodes, wlist, blist;
 
     for (i = 0; i < length(wlist); i++) {
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("* adding back whitelisted arcs.\n");
 
@@ -233,7 +233,7 @@ SEXP arcs, nodes, wlist, blist;
 
     for (i = 0; i < length(blist); i++) {
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("* removing blacklisted arcs.\n");
 
@@ -299,10 +299,11 @@ SEXP chow_liu(SEXP data, SEXP nodes, SEXP estimator, SEXP whitelist,
 int i = 0, j = 0, k = 0, debug_coord[2], ncol = length(data);
 int num = length(VECTOR_ELT(data, 0)), narcs = 0, nwl = 0, nbl = 0;
 int *nlevels = NULL, clevels = 0, *est = INTEGER(estimator), *depth = NULL;
-int *wl = NULL, *bl = NULL, *poset = NULL, debuglevel = isTRUE(debug);
+int *wl = NULL, *bl = NULL, *poset = NULL;
 void **columns = NULL, *cond = NULL;
 short int *include = NULL;
 double *mim = NULL, *means = NULL, *sse = NULL;
+bool debugging = isTRUE(debug);
 SEXP arcs, wlist, blist;
 
   /* dereference the columns of the data frame. */
@@ -321,7 +322,7 @@ SEXP arcs, wlist, blist;
   include = Calloc1D(UPTRI3_MATRIX(ncol), sizeof(short int));
 
   /* compute the pairwise mutual information coefficients. */
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("* computing pairwise mutual information coefficients.\n");
 
   mi_matrix(mim, columns, ncol, nlevels, &num, cond, &clevels, means, sse, est);
@@ -337,7 +338,7 @@ SEXP arcs, wlist, blist;
 
     for (i = 0; i < nwl; i++) {
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("* adding whitelisted arcs first.\n");
 
@@ -401,7 +402,7 @@ SEXP arcs, wlist, blist;
 
       if (chow_liu_blacklist(bl, &nbl, poset + i)) {
 
-        if (debuglevel > 0) {
+        if (debugging) {
 
           Rprintf("* arc %s - %s is blacklisted, skipping.\n",
             NODE(debug_coord[0]), NODE(debug_coord[1]));
@@ -417,7 +418,7 @@ SEXP arcs, wlist, blist;
     if (c_uptri3_path(include, depth, debug_coord[0], debug_coord[1], ncol,
           nodes, FALSE)) {
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("* arc %s - %s introduces cycles, skipping.\n",
           NODE(debug_coord[0]), NODE(debug_coord[1]));
@@ -428,7 +429,7 @@ SEXP arcs, wlist, blist;
 
     }/*THEN*/
 
-    if (debuglevel > 0) {
+    if (debugging) {
 
       Rprintf("* adding arc %s - %s with mutual information %lf.\n",
         NODE(debug_coord[0]), NODE(debug_coord[1]), mim[i]);
@@ -473,7 +474,8 @@ SEXP tree_directions(SEXP arcs, SEXP nodes, SEXP root, SEXP debug) {
 
 int i = 0, j = 0, d = 0, traversed = 1;
 int narcs = length(arcs)/2, nnodes = length(nodes);
-int *a = NULL, *depth = 0, debuglevel = isTRUE(debug);
+int *a = NULL, *depth = 0;
+bool debugging = isTRUE(debug);
 SEXP try, try2, result;
 
   /* match the node labels in the arc set. */
@@ -487,12 +489,12 @@ SEXP try, try2, result;
   depth = Calloc1D(nnodes, sizeof(int));
   depth[INT(try2) - 1] = 1;
 
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("> root node (depth 1) is %s.\n", NODE(INT(try2) - 1));
 
   for (d = 1; d <= nnodes; d++) {
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("> considering nodes at depth %d.\n", d + 1);
 
     for (i = 0; i < narcs; i++) {
@@ -505,7 +507,7 @@ SEXP try, try2, result;
 
         if ((a[i + narcs] == (j + 1)) && (depth[a[i] - 1] == 0)) {
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("  * found node %s.\n", NODE(a[i] - 1));
 
           /* save the depth at which the node was found. */

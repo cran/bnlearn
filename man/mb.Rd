@@ -162,7 +162,7 @@ blacklist(x)
 
   Chickering DM (1995). "A Transformational Characterization of Equivalent
 	Bayesian Network Structures". \emph{Proceedings of the Eleventh Annual
-	Conference on Uncertainty in Artificial Intelligence}, pp. 87--98.
+	Conference on Uncertainty in Artificial Intelligence}, 87--98.
 
   Neapolitan RE (2003). \emph{Learning Bayesian Networks}. Prentice Hall.
 

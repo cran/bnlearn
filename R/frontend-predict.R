@@ -1,15 +1,4 @@
 
-# passthrough for bn objects.
-predict.bn  = function(object, node, data, method = "parents", ...,
-    prob = FALSE, debug = FALSE) {
-
-  warning("predicting from bn objects is deprecated and will be removed in 2019.")
-
-  predict.bn.fit(object = bn.fit(object, data), node = node, data = data,
-    method = method, ..., prob = prob, debug = debug)
-
-}#PREDICT.BN
-
 # estimate the predicted values for a particular node.
 predict.bn.fit = function(object, node, data, method = "parents", ...,
     prob = FALSE, debug = FALSE) {
@@ -51,9 +40,9 @@ predict.bn.fit = function(object, node, data, method = "parents", ...,
   }#THEN
   else if (method == "bayes-lw") {
 
-    # check the variables to predict from.
+    # check the variables to predict from using the network as a reference.
     if (is.null(extra.args$from))
-      extra.args$from = setdiff(names(data), node)
+      extra.args$from = intersect(setdiff(names(data), node), names(object))
     else
       check.nodes(nodes = extra.args$from, graph = object, min.nodes = 1)
     # check that they do not include the node to predict.

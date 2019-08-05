@@ -25,7 +25,7 @@ void c_gauss_mcarlo(double *xx, double *yy, int num, int B, double *res,
 
 int j = 0, k = 0;
 double *yperm = NULL;
-double enough = ceil(alpha * B) + 1, xm = 0, ym = 0, xsse = 0, ysse = 0;
+double enough = ceil(alpha * B) + 1, xm = 0, ym = 0, xsse = 0, ysse = 0, df = 0;
 int *perm = NULL, *work = NULL;
 
   /* cache the means of the two variables (invariant under permutation). */
@@ -68,7 +68,7 @@ int *perm = NULL, *work = NULL;
      greater (in absolute value) than the original one.*/
   *observed = mc_cov(xx, yy, xm, ym, num);
 
-  for (j = 0; j < B; j++) {
+  for (j = 0, *res = 0; j < B; j++) {
 
     RandomPermutation(num, perm, work);
 
@@ -101,7 +101,9 @@ int *perm = NULL, *work = NULL;
     case SMC_ZF:
 
       /* check whether the sample size is big enough for the transform. */
-      if (num - 3 < 1) {
+      df = gaussian_df(ZF, num);
+
+      if (df < 1) {
 
         warning("sample size too small to compute the Fisher's Z transform.");
         *observed = 0;
@@ -109,8 +111,8 @@ int *perm = NULL, *work = NULL;
       }/*THEN*/
       else {
 
-        *observed = cor_zf_trans(c_fast_cor(xx, yy, num, xm, ym, xsse, ysse),
-                      (double)num - 2);
+        *observed = c_fast_cor(xx, yy, num, xm, ym, xsse, ysse);
+        *observed = cor_zf_trans(*observed, df);
 
       }/*ELSE*/
 
@@ -139,7 +141,7 @@ void c_gauss_cmcarlo(double **column, int ncol, int num, int v1, int v2, int B,
 int j = 0, k = 0, errcode = 0, *work = NULL, *perm = NULL;
 int error_counter = 0;
 double permuted = 0, *yperm = NULL, *yorig = NULL;
-double enough = ceil(alpha * B) + 1;
+double enough = ceil(alpha * B) + 1, df = 0;
 double *mean = NULL;
 covariance cov = { 0 }, backup = { 0 };
 
@@ -191,7 +193,7 @@ covariance cov = { 0 }, backup = { 0 };
   if (errcode)
     error("an error (%d) occurred in the call to dgesvd().\n", errcode);
 
-  for (j = 0; j < B; j++) {
+  for (j = 0, *pvalue = 0; j < B; j++) {
 
     /* reset the error flag of the SVD Fortran routine. */
     errcode = 0;
@@ -238,7 +240,9 @@ covariance cov = { 0 }, backup = { 0 };
     case MC_ZF:
     case SMC_ZF:
       /* check whether the sample size is big enough for the transform. */
-      if (num - 1 - ncol < 1) {
+      df = gaussian_cdf(ZF, num, ncol - 2);
+
+      if (df < 1) {
 
         warning("sample size too small to compute the Fisher's Z transform.");
         *observed = 0;
@@ -246,7 +250,7 @@ covariance cov = { 0 }, backup = { 0 };
       }/*THEN*/
       else {
 
-        *observed = cor_zf_trans(*observed, (double)num - ncol);
+        *observed = cor_zf_trans(*observed, df);
 
       }/*ELSE*/
 

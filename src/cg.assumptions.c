@@ -110,7 +110,7 @@ SEXP split, dpar, gpar, arcs;
 
     for (i = 0; i < nnodes; i++) {
 
-      var_type = r_fitted_node_label(VECTOR_ELT(variables, i));
+      var_type = fitted_node_to_enum(VECTOR_ELT(variables, i));
 
       if (var_type == DNODE) {
 

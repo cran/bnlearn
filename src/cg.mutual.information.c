@@ -196,8 +196,9 @@ double lognum = 0, logden = 0, res = 0, ym = 0, ysd = 0, *mu = NULL, *sd = NULL;
 
   ym /= nc;
 
-  /* if there are no complete data points, return independence. */
-  if (nc == 0)
+  /* if there are no complete data points, or if there is just a single data
+   * point, return independence. */
+  if (nc <= 1)
     goto free_and_return;
 
   /* compute the conditional standard deviations. */

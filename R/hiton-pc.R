@@ -1,43 +1,6 @@
 
-si.hiton.pc.optimized = function(x, whitelist, blacklist, test, alpha, B,
-    max.sx = ncol(x), strict, complete, debug = FALSE) {
-
-  nodes = names(x)
-  mb = list()
-
-  for (node in nodes) {
-
-    backtracking = unlist(sapply(mb, function(x){ node %in% x$nbr }))
-
-    # 1. [Forward Phase (I)]
-    mb[[node]] = si.hiton.pc.heuristic(node, data = x, nodes = nodes,
-         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, max.sx = max.sx,
-         complete = complete, debug = debug)
-
-    # 2. [Backward Phase (II)]
-    mb[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
-         B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, debug = debug,
-         max.sx = max.sx, empty.dsep = FALSE, markov = FALSE,
-         complete = complete)
-
-  }#FOR
-
-  # make up a set of believable Markov blankets, using all the nodes within
-  # distance 2 from the target node (which is a superset).
-  for (node in nodes)
-    mb[[node]]$mb = fake.markov.blanket(mb, node)
-
-  # check neighbourhood sets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
-
-  return(mb)
-
-}#SI.HITON.PC.OPTIMIZED
-
 si.hiton.pc.backend = function(x, cluster = NULL, whitelist, blacklist,
-  test, alpha, B, max.sx = ncol(x), strict, complete, debug = FALSE) {
+  test, alpha, B, max.sx = ncol(x), complete, debug = FALSE) {
 
   nodes = names(x)
 
@@ -61,17 +24,16 @@ si.hiton.pc.backend = function(x, cluster = NULL, whitelist, blacklist,
     mb[[node]]$mb = fake.markov.blanket(mb, node)
 
   # check neighbourhood sets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
+  mb = bn.recovery(mb, nodes = nodes, debug = debug)
 
   return(mb)
 
 }#SI.HITON.PC.BACKEND
 
 si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
-    backtracking = NULL, test, max.sx = ncol(x), complete, debug = FALSE) {
+    test, max.sx = ncol(x), complete, debug = FALSE) {
 
   nodes = nodes[nodes != x]
-  known.good = known.bad = c()
   whitelisted = nodes[sapply(nodes,
           function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
   blacklisted = nodes[sapply(nodes,
@@ -92,65 +54,7 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
   cpc = whitelisted
   nodes = nodes[nodes %!in% c(cpc, blacklisted)]
 
-  # use backtracking for a further screening of the nodes to be checked.
-  if (!is.null(backtracking)) {
-
-    # X adiacent to Y <=> Y adiacent to X
-    known.good = names(backtracking[backtracking])
-    cpc = unique(c(cpc, known.good))
-
-    # and vice versa X not adiacent to Y <=> Y not adiacent to X
-    known.bad = names(backtracking[!backtracking])
-
-    # known.good nodes are not to be checked for inclusion, and the "nodes"
-    # is resetted below so we can just remove them.
-    nodes = nodes[nodes %!in% known.good]
-
-    if (debug) {
-
-      cat("    * known good (backtracking): '", known.good, "'.\n")
-      cat("    * known bad (backtracking): '", known.bad, "'.\n")
-      cat("    * nodes still to be tested for inclusion: '", nodes, "'.\n")
-
-    }#THEN
-
-    # check whether known.good nodes are false positives by running an ad-hoc
-    # backward step.
-    for (cpn in known.good) {
-
-      candidate = si.hiton.pc.backward(target = x, candidate = cpn,
-                    cpc = cpc[cpc != cpn], data = data, test = test,
-                    alpha = alpha, B = B, complete = complete, debug = debug)
-
-      if (candidate) {
-
-        if (debug) {
-
-          cat("  @", cpn, "accepted as a parent/children candidate.\n")
-          cat("  > current candidates are '", cpc, "'.\n")
-
-        }#THEN
-
-      }#THEN
-      else {
-
-        # drop this node, it's apparently a false positive.
-        cpc = cpc[cpc != cpn]
-
-        if (debug) {
-
-          cat("  @", cpn, "rejected as a parent/children candidate.\n")
-          cat("  > current candidates are '", cpc, "'.\n")
-
-        }#THEN
-
-      }#ELSE
-
-    }#FOR
-
-  }#THEN
-
-  # no nodes to check, nothing to do, move along.
+   # no nodes to check, nothing to do, move along.
   if (length(nodes) == 0)
     return(cpc)
 

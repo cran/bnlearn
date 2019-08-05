@@ -3,7 +3,7 @@
 
 SEXP c_create_htest(double stat, SEXP test, double pvalue, double df, SEXP B) {
 
-test_e test_type = test_label(CHAR(STRING_ELT(test, 0)));
+test_e test_type = test_to_enum(CHAR(STRING_ELT(test, 0)));
 SEXP result, s, n, params;
 
   /* allocate the return value. */

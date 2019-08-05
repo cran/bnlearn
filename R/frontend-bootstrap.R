@@ -11,8 +11,14 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
   # check the size of each bootstrap sample.
   m = check.bootsize(m, data)
   # check the sim parameter.
-  if (sim %!in% c("ordinary", "parametric"))
+  if (!is.string(sim) || (sim %!in% c("ordinary", "parametric"))) {
+
     stop("the bootstrap simulation can be either 'ordinary' or 'parametric'.")
+
+    if (sim == "parametric")
+      warning("the 'parametric' option (and the 'sim' argument) are deprecated and will be removed in 2020.")
+
+  }#THEN
   # check debug.
   check.logical(debug)
   # check the learning algorithm.
@@ -51,7 +57,7 @@ boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
     algorithm, algorithm.args = list(), cpdag = TRUE, debug = FALSE) {
 
   # check the data are there.
-  check.data(data)
+  data.info = check.data(data)
   # check the number of bootstrap replicates.
   R = check.replicates(R)
   # check the size of each bootstrap sample.
@@ -89,6 +95,8 @@ boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
   # add extra information for strength.plot().
   res = structure(res, method = "bootstrap", threshold = threshold(res),
           class = c("bn.strength", class(res)))
+  if (data.info$type == "mixed-cg")
+    attr(res, "illegal") = list.cg.illegal.arcs(names(data), data)
 
   return(res)
 
@@ -129,15 +137,12 @@ bn.cv = function(data, bn, loss = NULL, ...,
     check.learning.algorithm(bn)
     # check the loss function.
     loss = check.loss(loss, data, bn)
-    # check whether it does return a DAG or not.
-    if ((bn %!in% always.dag.result) && (loss == "pred"))
-      stop("this learning algorithm may result in a partially directed",
-        " or undirected network, which is not handled by parameter fitting.")
     # check the extra arguments for the learning algorithm.
     algorithm.args = check.learning.algorithm.args(algorithm.args)
     # since we have no other way to guess, copy the label of the target
     # variable from the parameters of the classifier.
-    if ((loss == "pred") && (is.null(loss.args$target)) && (bn %in% classifiers))
+    if ((loss %in% c("pred", "pred-exact", "pred-lw")) &&
+        (is.null(loss.args$target)) && (bn %in% classifiers))
       loss.args$target = algorithm.args$training
     # check the extra arguments passed down to the loss function.
     loss.args = check.loss.args(loss, bn, nodes, data, loss.args)
@@ -162,7 +167,7 @@ bn.cv = function(data, bn, loss = NULL, ...,
           "have been learned) and trying to extend it is probably wrong.")
 
       # try to extend the network into a completely directed graph.
-      bn = cpdag.extension(cpdag.backend(bn, wlbl = TRUE))
+      bn = cpdag.extension(cpdag.backend(bn))
 
       if (!is.dag(arcs = bn$arcs, nodes = nodes))
         stop("the network from the 'bn' argument has no consistent extension.")

@@ -164,7 +164,7 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
       # switch to the equivalence class if asked to, but preserving whitelisted
       # and blacklisted arcs.
       if (cpdag)
-        net = cpdag.backend(net, moral = TRUE, wlbl = TRUE, debug = FALSE)
+        net = cpdag.backend(net, moral = TRUE, debug = FALSE)
 
       if (debug) {
 
@@ -349,16 +349,14 @@ bf.strength.backend = function(x, data, score, extra.args, precBits = 200,
 
   }#FOR
 
-  return(structure(all.arcs, class = c("bn.strength", "data.frame"),
-    method = "bayes-factor", threshold = threshold(all.arcs),
-    row.names = seq(nrow(all.arcs))))
+  return(structure(all.arcs, row.names = seq(nrow(all.arcs))))
 
 }#BF.STRENGTH.BACKEND
 
 # compute arcs' strength as the relative frequency in a custom list of
 # network structures/arc sets.
 arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
-    debug = FALSE) {
+    illegal = NULL, debug = FALSE) {
 
   # allocate and initialize an empty adjacency matrix.
   prob = matrix(0, ncol = length(nodes), nrow = length(nodes))
@@ -376,17 +374,21 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
 
     }#THEN
 
-    # get the arc set on way or the other.
+    # get the network structure one way or the other.
     if (is(custom.list[[r]], "bn"))
-      net.arcs = custom.list[[r]]$arcs
+      net = custom.list[[r]]
     else if (is(custom.list[[r]], "bn.fit"))
-      net.arcs = fit2arcs(custom.list[[r]])
-    else
-      net.arcs = custom.list[[r]]
+      net = bn.net(custom.list[[r]])
+    else {
+
+      net = empty.graph(nodes)
+      arcs(net) = custom.list[[r]]
+
+    }#THEN
 
     # switch to the equivalence class if asked to.
     if (cpdag)
-      net.arcs = cpdag.arc.backend(nodes, net.arcs, moral = TRUE)
+      net = cpdag.backend(net, moral = TRUE)
 
     # update the counters in the matrix: undirected arcs are counted half
     # for each direction, so that when summing up strength and direction
@@ -395,7 +397,7 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
     .Call(call_bootstrap_strength_counters,
           prob = prob,
           weight = weights[r],
-          arcs = net.arcs,
+          arcs = net$arcs,
           nodes = nodes)
 
   }#FOR

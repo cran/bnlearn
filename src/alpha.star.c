@@ -60,7 +60,8 @@ SEXP alpha_star(SEXP x, SEXP data, SEXP debug) {
 
 int i = 0, nnodes = length(data), nobs = length(VECTOR_ELT(data, 0));
 int **columns = NULL, *levels = NULL, **n = NULL, *nrowt = NULL, *ncolt = NULL;
-int *debuglevel = LOGICAL(debug), *node_data = NULL;
+int *node_data = NULL;
+bool debugging = isTRUE(debug);
 long double num = 0, den = 0, ratio = 0;
 SEXP nodes, labels, cur, node_info, parents, par_data, temp, cfg;
 
@@ -84,7 +85,7 @@ SEXP nodes, labels, cur, node_info, parents, par_data, temp, cfg;
     /* get the node label. */
     PROTECT(cur = mkString(CHAR(STRING_ELT(labels, i))));
 
-    if (*debuglevel > 0)
+    if (debugging)
       Rprintf("* processing node %s.\n", CHAR(STRING_ELT(cur, 0)));
 
     /* extract the corresponding variable from the data. */
@@ -127,7 +128,7 @@ SEXP nodes, labels, cur, node_info, parents, par_data, temp, cfg;
 
     }/*ELSE*/
 
-    if (*debuglevel > 0)
+    if (debugging)
       Rprintf("  > numerator is now %Lf, denominator is now %Lf.\n", num, den);
 
     UNPROTECT(1);
@@ -141,13 +142,8 @@ SEXP nodes, labels, cur, node_info, parents, par_data, temp, cfg;
   /* check that the proposed alpha is equal or greater than 1. */
   ratio = num / den;
 
-  if (ratio < 1) {
-
-    /* this matches the check in utils-sanitization.R. */
-    warning("the estimated imaginary sample size was %Lf, and was reset to 1.", ratio);
-    ratio = 1;
-
-  }/*THEN*/
+  if (ratio < 1)
+    warning("the estimated imaginary sample size is very small (%Lf).", ratio);
 
   return ScalarReal((double)ratio);
 

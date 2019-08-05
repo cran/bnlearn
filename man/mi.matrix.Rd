@@ -31,14 +31,6 @@ chow.liu(x, whitelist = NULL, blacklist = NULL, mi = NULL, debug = FALSE)
   An object of class \code{bn}. See \code{\link{bn-class}} for details.
 
 }
-\references{
-
-  Margolin AA, Nemenman I, Basso K, Wiggins C, Stolovitzky G, Dalla Favera R,
-    Califano A (2006). "ARACNE: An Algorithm for the Reconstruction of
-    Gene Regulatory Networks in a Mammalian Cellular Context". \emph{BMC
-    Bioinformatics}, \strong{7}(Suppl 1):S7.
-
-}
 \author{Marco Scutari}
 \seealso{\link{constraint-based algorithms}, \link{score-based algorithms},
   \link{hybrid algorithms}.}

@@ -148,7 +148,7 @@ double imaginary = 0, alpha = 0, res = 0;
 
 /* Dirichlet posterior probabilities (covers BD and K2 scores). */
 double dirichlet_node(SEXP target, SEXP x, SEXP data, SEXP iss, int per_cell,
-    SEXP prior, SEXP beta, SEXP experimental, int sparse, int debuglevel) {
+    SEXP prior, SEXP beta, SEXP experimental, int sparse, bool debugging) {
 
 char *t = (char *)CHAR(STRING_ELT(target, 0));
 double prob = 0, prior_prob = 0;
@@ -164,7 +164,7 @@ SEXP nodes, node_t, data_t, exp_data, parents, parent_vars, config;
   /* extract the list of eperimental data. */
   PROTECT(exp_data = c_dataframe_column(experimental, target, TRUE, FALSE));
   /* compute the prior probability component for the node. */
-  prior_prob = graph_prior_prob(prior, target, beta, nodes, debuglevel);
+  prior_prob = graph_prior_prob(prior, target, beta, nodes, debugging);
 
   if (length(parents) == 0) {
 
@@ -183,7 +183,7 @@ SEXP nodes, node_t, data_t, exp_data, parents, parent_vars, config;
 
   }/*ELSE*/
 
-  if (debuglevel > 0) {
+  if (debugging) {
 
     Rprintf("  > (log)prior probability is %lf.\n", prior_prob);
     Rprintf("  > (log)posterior density is %lf.\n", prob);

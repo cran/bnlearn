@@ -46,9 +46,9 @@ build.whitelist = function(whitelist, nodes, data, algo, criterion) {
 
   if (algo %in% score.based.algorithms) {
 
-    # the whitelist should contain only directed arcs; extend the implied CPDAG
-    # instead of picking arc directions at random to avoid loops.
-    whitelist = cpdag.arc.extension(whitelist, nodes = nodes)
+    # the whitelist should contain only directed arcs.
+    if (any(which.undirected(whitelist, nodes = nodes)))
+      stop("score-based algorithms do not support whitelisting both directions of an arc.")
 
   }#THEN
   else if (algo %in% mim.based.algorithms) {
@@ -141,7 +141,7 @@ build.blacklist = function(blacklist, whitelist, nodes, algo) {
 
     if (algo %in% mim.based.algorithms) {
 
-      # all arcs in the whitelist are treated as undirected, because these
+      # all arcs in the blacklist are treated as undirected, because these
       # algorithms operate in the space of undirected graphs.
       blacklist = arcs.rbind(blacklist, blacklist, reverse2 = TRUE)
 

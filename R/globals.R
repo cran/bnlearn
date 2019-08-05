@@ -13,15 +13,16 @@ semiparametric.tests = c("sp-mi", "sp-x2")
 resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g", "smc-mi-g",
   "mc-cor", "smc-cor", "mc-zf", "smc-zf", "mc-jt", "smc-jt", semiparametric.tests)
 asymptotic.tests = c("mi", "mi-adf", "mi-g", "x2", "x2-adf", "zf", "jt", "mi-sh",
-  "mi-g-sh")
+  "mi-g-sh", "mi-cg")
 
 available.discrete.bayesian.scores = c("bde", "bds", "bdj", "k2", "mbde", "bdla")
 available.discrete.scores =
-  c("loglik", "aic", "bic", available.discrete.bayesian.scores)
+  c("loglik", "aic", "bic", "pred-loglik", available.discrete.bayesian.scores)
 available.continuous.bayesian.scores = c("bge")
 available.continuous.scores =
-  c("loglik-g", "aic-g", "bic-g", available.continuous.bayesian.scores)
-available.mixedcg.scores = c("loglik-cg", "aic-cg", "bic-cg")
+  c("loglik-g", "aic-g", "bic-g", "pred-loglik-g",
+    available.continuous.bayesian.scores)
+available.mixedcg.scores = c("loglik-cg", "aic-cg", "bic-cg", "pred-loglik-cg")
 available.scores = c(available.discrete.scores, available.continuous.scores,
   available.mixedcg.scores)
 
@@ -29,18 +30,16 @@ available.discrete.mi = c("mi")
 available.continuous.mi = c("mi-g")
 available.mi = c(available.discrete.mi, available.continuous.mi)
 
-markov.blanket.algorithms = c("gs", "iamb", "fast.iamb", "inter.iamb")
-local.search.algorithms = c("pc.stable", "mmpc", "si.hiton.pc")
+markov.blanket.algorithms = c("gs", "iamb", "fast.iamb", "inter.iamb", "iamb.fdr")
+local.search.algorithms = c("pc.stable", "mmpc", "si.hiton.pc", "hpc")
 constraint.based.algorithms = c(markov.blanket.algorithms, local.search.algorithms)
 score.based.algorithms = c("hc", "tabu")
 em.algorithms = c("sem")
-hybrid.algorithms = c("rsmax2", "mmhc")
+hybrid.algorithms = c("rsmax2", "mmhc", "h2pc")
 mim.based.algorithms = c("chow.liu", "aracne")
 classifiers = c("naive.bayes", "tree.bayes")
 available.learning.algorithms = c(constraint.based.algorithms, score.based.algorithms,
   hybrid.algorithms, mim.based.algorithms, classifiers)
-
-always.dag.result = c(score.based.algorithms, hybrid.algorithms, classifiers)
 
 method.labels = c(
   'pc.stable' = "PC (Stable)",
@@ -48,14 +47,17 @@ method.labels = c(
   'iamb' = "IAMB",
   'fast.iamb' = "Fast-IAMB",
   'inter.iamb' = "Inter-IAMB",
+  'iamb.fdr' = "IAMB-FDR",
   'rnd' = "random/generated",
   'hc' = "Hill-Climbing",
   'tabu' = "Tabu Search",
   'sem' = "Structural EM",
   'mmpc' = "Max-Min Parent Children",
   'si.hiton.pc' = "Semi-Interleaved HITON-PC",
+  'hpc' = "Hybrid Parents and Children",
   'rsmax2' = "Two-Phase Restricted Maximization",
   'mmhc' = "Max-Min Hill-Climbing",
+  'h2pc' = "Hybrid^2 Parent Children",
   'aracne' = "ARACNE",
   'chow.liu' = "Chow-Liu",
   "naive.bayes" = "Naive Bayes Classifier",
@@ -105,11 +107,14 @@ score.labels = c(
   'aic' = "AIC (disc.)",
   'bic' = "BIC (disc.)",
   'loglik' = "Log-Likelihood (disc.)",
+  'pred-loglik' = "Predictive Log-Likelihood (disc.)",
   'bge' = "Bayesian Gaussian (BGe)",
   'loglik-g' = "Log-Likelihood (Gauss.)",
+  'pred-loglik-g' = "Predictive Log-Likelihood (Gauss.)",
   'aic-g' = "AIC (Gauss.)",
   'bic-g' = "BIC (Gauss.)",
   'loglik-cg' = "Log-Likelihood (cond. Gauss.)",
+  'pred-loglik-cg' = "Predictive Log-Likelihood (cond. Gauss.)",
   'aic-cg' = "AIC (cond. Gauss.)",
   'bic-cg' = "BIC (cond. Gauss.)"
 )
@@ -123,12 +128,15 @@ score.extra.args = list(
   "bdla" = c("prior", "beta", "l"),
   "aic" = c("k"),
   "bic" = c("k"),
-  "bge" = c("prior", "beta", "iss", "phi"),
+  "bge" = c("prior", "beta", "nu", "iss.mu", "iss.w"),
   "loglik" = character(0),
+  "pred-loglik" = c("newdata"),
   "loglik-g" = character(0),
+  "pred-loglik-g" = c("newdata"),
   "aic-g" = c("k"),
   "bic-g" = c("k"),
   "loglik-cg" = character(0),
+  "pred-loglik-cg" = c("newdata"),
   "aic-cg" = c("k"),
   "bic-cg" = c("k")
 )
@@ -184,11 +192,13 @@ cpq.extra.args = list(
 discrete.loss.functions = c("logl", "pred", "pred-lw")
 continuous.loss.functions = c("logl-g", "cor", "cor-lw", "mse", "mse-lw")
 mixedcg.loss.functions = c("logl-cg", "cor-lw-cg", "mse-lw-cg", "pred-lw-cg")
+classifiers.loss.functions = c("pred-exact")
 loss.functions = c(discrete.loss.functions, continuous.loss.functions,
-  mixedcg.loss.functions)
+  mixedcg.loss.functions, classifiers.loss.functions)
 
 loss.labels = c(
   "logl" = "Log-Likelihood Loss (disc.)",
+  "pred-exact" = "Classification Error (Posterior, exact)",
   "pred" = "Classification Error",
   "pred-lw" = "Classification Error (Posterior, disc.)",
   "pred-lw-cg" = "Classification Error (Posterior, cond. Gauss.)",
@@ -205,6 +215,7 @@ loss.labels = c(
 loss.extra.args = list(
   "logl" = character(0),
   "pred" = "target",
+  "pred-exact" = "target",
   "pred-lw" = c("target", "n", "from"),
   "pred-lw-cg" = c("target", "n", "from"),
   "logl-g" = character(0),

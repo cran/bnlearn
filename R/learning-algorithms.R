@@ -2,28 +2,21 @@
 # constraint-based learning algorithms.
 bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = NULL, B = NULL, method = "gs", max.sx = NULL,
-    debug = FALSE, optimized = FALSE, strict = FALSE, undirected = FALSE) {
+    debug = FALSE, undirected = FALSE) {
 
   reset.test.counter()
 
   res = NULL
   parallel = FALSE
 
-  if (strict)
-    warning("argument 'strict' is deprecated and will be removed in 2019.")
-  if (optimized)
-    warning("argument 'optimized' is deprecated and will be removed in 2019.")
-
   # check the data are there.
-  data.info = check.data(x)
+  data.info = check.data(x, allow.missing = TRUE)
   # check the algorithm.
   check.learning.algorithm(method, class = "constraint")
   # check test labels.
   test = check.test(test, x)
-  # check the logical flags (debug, strict, optimized, undirected).
+  # check the logical flags (debug, undirected).
   check.logical(debug)
-  check.logical(strict)
-  check.logical(optimized)
   check.logical(undirected)
   # check alpha.
   alpha = check.alpha(alpha)
@@ -48,8 +41,6 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       debug = FALSE
 
     }#THEN
-    # disable backtracking, there's nothing to backtrack.
-    optimized = FALSE
 
   }#THEN
 
@@ -74,133 +65,72 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   }#THEN
   else if (method == "gs") {
 
-    if (optimized) {
-
-      local.structure =
-        grow.shrink.optimized(x = x, whitelist = whitelist,
-           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-           max.sx = max.sx, strict = strict, debug = debug,
-           complete = data.info$complete.nodes)
-
-    }#THEN
-    else {
-
-      local.structure =
-        grow.shrink(x = x, whitelist = whitelist, blacklist = full.blacklist,
-          test = test, alpha = alpha, B = B, max.sx = max.sx,
-          strict = strict, debug = debug, cluster = cluster,
-          complete = data.info$complete.nodes)
-
-    }#ELSE
+    local.structure =
+      grow.shrink(x = x, whitelist = whitelist, blacklist = full.blacklist,
+        test = test, alpha = alpha, B = B, max.sx = max.sx, debug = debug,
+        cluster = cluster, complete = data.info$complete.nodes)
 
   }#THEN
   else if (method == "iamb") {
 
-    if (optimized) {
-
-      local.structure =
-        incremental.association.optimized(x = x, whitelist = whitelist,
-          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          max.sx = max.sx, strict = strict, debug = debug,
-          complete = data.info$complete.nodes)
-
-    }#THEN
-    else {
-
-      local.structure =
-        incremental.association(x = x, whitelist = whitelist,
-          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          max.sx = max.sx, strict = strict, debug = debug,
-          cluster = cluster, complete = data.info$complete.nodes)
-
-    }#ELSE
+    local.structure =
+      incremental.association(x = x, whitelist = whitelist,
+        blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+        max.sx = max.sx, debug = debug, cluster = cluster,
+        complete = data.info$complete.nodes)
 
   }#THEN
   else if (method == "fast.iamb") {
 
-    if (optimized) {
-
-      local.structure =
-        fast.incremental.association.optimized(x = x, whitelist = whitelist,
-          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          max.sx = max.sx, strict = strict, debug = debug,
-          complete = data.info$complete.nodes)
-
-    }#THEN
-    else {
-
-      local.structure =
-        fast.incremental.association(x = x, whitelist = whitelist,
-          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          max.sx = max.sx, strict = strict, debug = debug,
-          cluster = cluster, complete = data.info$complete.nodes)
-
-    }#ELSE
+    local.structure =
+      fast.incremental.association(x = x, whitelist = whitelist,
+        blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+        max.sx = max.sx, debug = debug, cluster = cluster,
+        complete = data.info$complete.nodes)
 
   }#THEN
   else if (method == "inter.iamb") {
 
-    if (optimized) {
+    local.structure =
+      inter.incremental.association(x = x, whitelist = whitelist,
+        blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+        max.sx = max.sx, debug = debug, cluster = cluster,
+        complete = data.info$complete.nodes)
 
-      local.structure =
-        inter.incremental.association.optimized(x = x, whitelist = whitelist,
-          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          max.sx = max.sx, strict = strict, debug = debug,
-          complete = data.info$complete.nodes)
+  }#THEN
+  else if (method == "iamb.fdr") {
 
-    }#THEN
-    else {
-
-      local.structure =
-        inter.incremental.association(x = x, whitelist = whitelist,
-          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          max.sx = max.sx, strict = strict, debug = debug,
-          cluster = cluster, complete = data.info$complete.nodes)
-
-    }#ELSE
+    local.structure =
+      incremental.association.fdr(x = x, whitelist = whitelist,
+        blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+        max.sx = max.sx, debug = debug, cluster = cluster,
+        complete = data.info$complete.nodes)
 
   }#THEN
   else if (method == "mmpc") {
 
-    if (optimized) {
-
-      local.structure =
-        maxmin.pc.optimized(x = x, whitelist = whitelist,
-          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          max.sx = max.sx, strict = strict, debug = debug,
-          complete = data.info$complete.nodes)
-
-    }#THEN
-    else {
-
-      local.structure =
-        maxmin.pc(x = x, whitelist = whitelist, blacklist = full.blacklist,
-          test = test, alpha = alpha, B = B, strict = strict, debug = debug,
-          max.sx = max.sx, cluster = cluster, complete = data.info$complete.nodes)
-
-    }#ELSE
+    local.structure =
+      maxmin.pc(x = x, whitelist = whitelist, blacklist = full.blacklist,
+        test = test, alpha = alpha, B = B, debug = debug, max.sx = max.sx,
+        cluster = cluster, complete = data.info$complete.nodes)
 
   }#THEN
   else if (method == "si.hiton.pc") {
 
-    if (optimized) {
+    local.structure =
+      si.hiton.pc.backend(x = x, whitelist = whitelist,
+        blacklist = full.blacklist, test = test, alpha = alpha, B = B,
+        max.sx = max.sx, debug = debug, cluster = cluster,
+        complete = data.info$complete.nodes)
+
+  }#THEN
+  else if (method == "hpc") {
 
       local.structure =
-        si.hiton.pc.optimized(x = x, whitelist = whitelist,
+        hybrid.pc.backend(x = x, whitelist = whitelist,
           blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          max.sx = max.sx, strict = strict, debug = debug,
+          max.sx = max.sx, debug = debug, cluster = cluster,
           complete = data.info$complete.nodes)
-
-    }#THEN
-    else {
-
-      local.structure =
-        si.hiton.pc.backend(x = x, whitelist = whitelist,
-          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          max.sx = max.sx, strict = strict, debug = debug,
-          cluster = cluster, complete = data.info$complete.nodes)
-
-    }#ELSE
 
   }#THEN
 
@@ -209,8 +139,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     # save the status of the learning algorithm.
     arcs = nbr2arcs(local.structure)
     learning = list(whitelist = whitelist, blacklist = blacklist,
-      test = test, args = list(alpha = alpha), optimized = optimized,
-      ntests = test.counter())
+      test = test, args = list(alpha = alpha), ntests = test.counter())
 
     # include also the number of permutations/bootstrap samples
     # if it makes sense.
@@ -226,7 +155,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
     # recover some arc directions.
     res = second.principle(x = x, local.structure = local.structure,
             whitelist = whitelist, blacklist = full.blacklist, test = test,
-            alpha = alpha, B = B, max.sx = max.sx, strict = strict,
+            alpha = alpha, B = B, max.sx = max.sx,
             complete = data.info$complete.nodes, debug = debug)
     # return the user-specified blacklist, not the full one, as in other
     # classes of learning algorithms.
@@ -240,8 +169,6 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
       sum(unlist(parallel::clusterEvalQ(cluster, test.counter())))
   # save the learning method used.
   res$learning$algo = method
-  # save the 'optimized' flag.
-  res$learning$optimized = optimized
   # save the 'undirected' flag.
   res$learning$undirected = undirected
   # save the maximum size of the tests' conditioning sets.
@@ -390,7 +317,12 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
   check.learning.algorithm(restrict, class = c("constraint", "mim"))
   check.learning.algorithm(maximize, class = "score")
   # choose the right method for the job.
-  method = ifelse((restrict == "mmpc") && (maximize == "hc"), "mmhc", "rsmax2")
+  if ((restrict == "mmpc") && (maximize == "hc"))
+    method = "mmhc"
+  else if ((restrict == "hpc") && (maximize == "hc"))
+    method = "h2pc"
+  else
+    method = "rsmax2"
 
   if (debug) {
 
@@ -445,6 +377,12 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
   named.arguments = setdiff(named.arguments, critical.arguments)
   check.unused.args(intersect(critical.arguments, names(maximize.args)), character(0))
 
+  # constraint-based algorithms allow whitelisting an arc in both directions,
+  # but score-based algorithms do not; if the whitelist contains undirected arcs
+  # take it as graph and use its consistend extension as a compromise.
+  if (any(which.undirected(whitelist, nodes = nodes)))
+    whitelist = cpdag.arc.extension(whitelist, nodes = nodes)
+
   maximize.args[critical.arguments] =
     list(x, start = NULL, heuristic = maximize, whitelist = whitelist, blacklist = constraints,
          debug = debug)
@@ -456,7 +394,7 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
     blacklist = rst$learning$blacklist, test = res$learning$test,
     ntests = res$learning$ntests + rst$learning$ntests, algo = method,
     args = c(res$learning$args, rst$learning$args),
-    optimized = res$learning$optimized || rst$learning$optimized,
+    optimized = res$learning$optimized,
     restrict = restrict, rstest = rst$learning$test, maximize = maximize,
     maxscore = res$learning$test,
     illegal = check.arcs.against.assumptions(NULL, x, rst$learning$test))
@@ -529,7 +467,7 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   reset.test.counter()
 
   # check the data are there.
-  data.info = check.data(x)
+  data.info = check.data(x, allow.missing = TRUE)
   # cache the node labels.
   nodes = names(x)
   # a valid node is needed.
@@ -594,8 +532,8 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
     check.nodes(nodes = blacklist, graph = nodes[nodes != target])
 
     nodes = nodes[nodes %!in% blacklist]
-    x = minimal.data.frame.column(x, nodes, drop = FALSE)
-    x = minimal.data.frame(x)
+    x = .data.frame.column(x, nodes, drop = FALSE)
+    x = .data.frame(x)
     names(x) = nodes
 
   }#THEN
@@ -609,31 +547,39 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 
     mb = gs.markov.blanket(x = target, data = x, nodes = nodes, alpha = alpha,
            B = B, whitelist = whitelist, blacklist = NULL, start = start,
-           backtracking = NULL, test = test, max.sx = max.sx,
-           complete = data.info$complete.nodes, debug = debug)
+           test = test, max.sx = max.sx, complete = data.info$complete.nodes,
+           debug = debug)
 
   }#THEN
   else if (method == "iamb") {
 
     mb = ia.markov.blanket(x = target, data = x, nodes = nodes, alpha = alpha,
            B = B, whitelist = whitelist, blacklist = NULL, start = start,
-           backtracking = NULL, test = test, max.sx = max.sx,
-           complete = data.info$complete.nodes, debug = debug)
+           test = test, max.sx = max.sx, complete = data.info$complete.nodes,
+           debug = debug)
 
   }#THEN
   else if (method == "fast.iamb") {
 
     mb = fast.ia.markov.blanket(x = target, data = x, nodes = nodes,
            alpha = alpha, B = B, whitelist = whitelist, blacklist = NULL,
-           start = start, backtracking = NULL, test = test,
-		   complete = data.info$complete.nodes, max.sx = max.sx, debug = debug)
+           start = start, test = test, complete = data.info$complete.nodes,
+           max.sx = max.sx, debug = debug)
 
   }#THEN
   else if (method == "inter.iamb") {
 
     mb = inter.ia.markov.blanket(x = target, data = x, nodes = nodes,
            alpha = alpha, B = B, whitelist = whitelist, blacklist = NULL,
-           start = start, backtracking = NULL, test = test, max.sx = max.sx,
+           start = start, test = test, max.sx = max.sx,
+           complete = data.info$complete.nodes, debug = debug)
+
+  }#THEN
+  else if (method == "iamb.fdr") {
+
+    mb = ia.fdr.markov.blanket(x = target, data = x, nodes = nodes,
+           alpha = alpha, B = B, whitelist = whitelist, blacklist = NULL,
+           start = start, test = test, max.sx = max.sx,
            complete = data.info$complete.nodes, debug = debug)
 
   }#THEN
@@ -649,7 +595,7 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   reset.test.counter()
 
   # check the data are there.
-  data.info = check.data(x)
+  data.info = check.data(x, allow.missing = TRUE)
   # cache the node labels.
   nodes = names(x)
   # a valid node is needed.
@@ -701,8 +647,8 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
     check.nodes(nodes = blacklist, graph = nodes[nodes != target])
 
     nodes = nodes[nodes %!in% blacklist]
-    x = minimal.data.frame.column(x, nodes, drop = FALSE)
-    x = minimal.data.frame(x)
+    x = .data.frame.column(x, nodes, drop = FALSE)
+    x = .data.frame(x)
     names(x) = nodes
 
   }#THEN
@@ -718,16 +664,15 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 
       nbr = maxmin.pc.forward.phase(target, data = x, nodes = nodes,
              alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-             test = test, max.sx = max.sx, optimized = FALSE, debug = debug,
-             backtracking = NULL, complete = data.info$complete.nodes)
+             test = test, max.sx = max.sx, debug = debug,
+             complete = data.info$complete.nodes)
 
     }#THEN
     else if (method == "si.hiton.pc") {
 
       nbr = si.hiton.pc.heuristic(target, data = x, nodes = nodes, alpha = alpha,
               B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-              max.sx = max.sx, backtracking = NULL, debug = debug,
-              complete = data.info$complete.nodes)
+              max.sx = max.sx, debug = debug, complete = data.info$complete.nodes)
 
     }#ELSE
 
@@ -738,6 +683,15 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
             complete = data.info$complete.nodes)
 
     parents.and.children = nbr[["nbr"]]
+
+  }#THEN
+  else if (method == "hpc") {
+
+    nbr = hybrid.pc.heuristic(target, data = x, nodes = nodes, alpha = alpha,
+            B = B, whitelist = whitelist, blacklist = blacklist, test = test,
+            max.sx = max.sx, debug = debug, complete = data.info$complete.nodes)
+
+    parents.and.children = nbr$nbr
 
   }#THEN
   else if (method == "pc.stable") {

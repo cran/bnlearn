@@ -17,14 +17,27 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
     # the mbde score requires knowledge of which observations have been
     # manipulated, and this is clearly not possible when samples are
     # generated.
-    if (algorithm.args$score == "mbde")
+    if (!is.null(algorithm.args$score) && (algorithm.args$score == "mbde"))
       stop("the 'mbde' score is incompatible with parametric bootstrap.")
 
-    if (algorithm %!in% always.dag.result)
-      stop("this learning algorithm may result in a partially directed graph,",
-           " which is not handled by parametric bootstrap.")
-
     net = do.call(algorithm, c(list(x = data), algorithm.args))
+
+    if (!is.dag(arcs = net$arcs, nodes = names(net$nodes))) {
+
+    # trying to extend a skeleton (instead of a CPDAG) is probably not
+    # meaningful.
+    if (!is.null(net$learning$undirected) && net$learning$undirected)
+      warning("the network used to generate the bootstrap samples is just a ",
+        "skeleton (no arc directions have been learned) and trying to extend ",
+        "it is probably wrong.")
+
+      net = cpdag.extension(cpdag.backend(net))
+
+      if (any(which.undirected(net$arcs, names(net$nodes))))
+        stop("no consistent extension for the network used to generate the ",
+             "bootstrap samples.")
+
+    }#THEN
 
     if (debug) {
 
@@ -35,7 +48,7 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
 
   }#THEN
 
-  bootstrap.step = function(r, data, m, net, sim, algorithm, algorithm.args,
+  bootstrap.replicate = function(r, data, m, net, sim, algorithm, algorithm.args,
       statistic, statistic.args, debug) {
 
     if (debug) {
@@ -53,7 +66,8 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
 
       # user-provided lists of manipulated observations for the mbde score must
       # be remapped to match the bootstrap sample.
-      if ((algorithm.args$score == "mbde") && !is.null(algorithm.args$exp)) {
+      if (!is.null(algorithm.args$score) && (algorithm.args$score == "mbde") &&
+            !is.null(algorithm.args$exp)) {
 
         algorithm.args$exp = lapply(algorithm.args$exp, function(x) {
 
@@ -70,7 +84,10 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
     }#THEN
     else if (sim == "parametric") {
 
-      fitted = bn.fit.backend(net, data = data, data.info = data.info)
+      extra.args = check.fitting.args(method = "mle", net, data = data, list())
+      fitted = bn.fit.backend(net, data = data, method = "mle",
+                 extra.args = extra.args, data.info = data.info,
+                 keep.fitted = FALSE)
       replicate = rbn.backend(fitted, n = m)
 
     }#ELSE
@@ -84,7 +101,7 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
     if (debug) {
 
       print(bn)
-      cat("* applying user-defined statistic.\n")
+      cat("* computing user-defined statistic.\n")
 
     }#THEN
 
@@ -102,11 +119,11 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
 
     return(res)
 
-  }#BOOTSTRAP.STEP
+  }#BOOTSTRAP.REPLICATE
 
   if (!is.null(cluster)) {
 
-    res = parallel::parLapply(cluster, res, bootstrap.step, data = data,
+    res = parallel::parLapply(cluster, res, bootstrap.replicate, data = data,
             m = m, net = net, sim = sim, algorithm = algorithm,
             algorithm.args = algorithm.args, statistic = statistic,
             statistic.args = statistic.args, debug = debug)
@@ -114,8 +131,8 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
   }#THEN
   else {
 
-    res = lapply(res, bootstrap.step, data = data, m = m, net = net, sim = sim,
-            algorithm = algorithm, algorithm.args = algorithm.args,
+    res = lapply(res, bootstrap.replicate, data = data, m = m, net = net,
+            sim = sim, algorithm = algorithm, algorithm.args = algorithm.args,
             statistic = statistic, statistic.args = statistic.args,
             debug = debug)
 
@@ -162,6 +179,9 @@ averaged.network.backend = function(strength, nodes, threshold) {
 
   # update the network structure.
   e$nodes = cache.structure(nodes, arcs = e$arcs)
+  # add back illegal arcs, so that cpdag() works correctly.
+  if ("illegal" %in% names(attributes(strength)))
+    e$learning$illegal = attr(strength, "illegal")
 
   return(e)
 

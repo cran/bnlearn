@@ -24,6 +24,9 @@
       used as a test set.
     \item \code{fitted}: an object of class \code{bn.fit}, the Bayesian network
       fitted from the training set.
+    \item \code{learning}: the \code{learning} element of the \code{bn} object
+      that was used for parameter learning from the training set (either learned
+      from the training set as well or specified by the user).
     \item \code{loss}: the value of the loss function.
 
   }

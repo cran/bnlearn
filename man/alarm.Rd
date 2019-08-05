@@ -99,7 +99,7 @@ data(alarm)
   Beinlich I, Suermondt HJ, Chavez RM, Cooper GF (1989). "The ALARM Monitoring
 	System: A Case Study with Two Probabilistic Inference Techniques for Belief
 	Networks". \emph{Proceedings of the 2nd European Conference on Artificial
-	Intelligence in Medicine}, pp. 247--256.
+	Intelligence in Medicine}, 247--256.
 
 }
 \note{

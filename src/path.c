@@ -6,16 +6,16 @@ SEXP has_pdag_path(SEXP from, SEXP to, SEXP amat, SEXP nrow, SEXP nodes,
     SEXP underlying, SEXP exclude_direct, SEXP debug) {
 
 int start = INT(from) - 1, stop = INT(to) - 1, n = INT(nrow);
-int debuglevel = LOGICAL(debug)[0], notdirect = LOGICAL(exclude_direct)[0],
-      ugraph = LOGICAL(underlying)[0], *a = INTEGER(amat);
-int *path = NULL, *scratch = NULL, res = 0;
+int *a = INTEGER(amat), *path = NULL, *scratch = NULL, res = 0;
+bool debugging = isTRUE(debug), notdirect = isTRUE(exclude_direct),
+      ugraph = isTRUE(underlying);
 
   /* allocate buffers for c_has_path(). */
   path = Calloc1D(n, sizeof(int));
   scratch = Calloc1D(n, sizeof(int));
 
   res = c_has_path(start, stop, a, n, nodes, ugraph, notdirect,
-          path, scratch, debuglevel);
+          path, scratch, debugging);
 
   Free1D(path);
   Free1D(scratch);
@@ -25,7 +25,7 @@ int *path = NULL, *scratch = NULL, res = 0;
 }/*HAS_DAG_PATH*/
 
 int c_has_path(int start, int stop, int *amat, int n, SEXP nodes,
-    int ugraph, int notdirect, int *path, int *counter, int debuglevel) {
+    bool ugraph, bool notdirect, int *path, int *counter, bool debugging) {
 
 int i = 0, a1 = 0, a2 = 0, path_pos = 0, cur = start;
 
@@ -46,7 +46,7 @@ int i = 0, a1 = 0, a2 = 0, path_pos = 0, cur = start;
   /* iterate until the other node is found. */
   while (cur != stop) {
 
-    if (debuglevel > 0) {
+    if (debugging) {
 
       Rprintf("* currently at '%s'.\n", NODE(cur));
       Rprintf("  > current path is:\n");
@@ -101,7 +101,7 @@ there:
 
       }/*THEN*/
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  > node '%s' has no more children, going back to '%s'.\n",
           NODE(cur), NODE(path[path_pos - 1]));
 
@@ -124,7 +124,7 @@ there:
 
         if ((counter[cur] - 1) == path[i]) {
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("  @ node '%s' already visited, skipping.\n", NODE(path[i]));
 
           goto there;
@@ -138,7 +138,7 @@ there:
       /* the current node is now the children we have just found. */
       cur = counter[cur] - 1;
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  > jumping to '%s'.\n", NODE(cur));
 
     }/*ELSE*/
@@ -160,7 +160,7 @@ there:
 }/*C_HAS_PATH*/
 
 int c_directed_path(int start, int stop, int *amat, int n, SEXP nodes,
-    int *path, int *counter, int debuglevel) {
+    int *path, int *counter, bool debugging) {
 
 int i = 0, path_pos = 0, cur = start;
 
@@ -172,7 +172,7 @@ int i = 0, path_pos = 0, cur = start;
   /* iterate until the other node is found. */
   while (cur != stop) {
 
-    if (debuglevel > 0) {
+    if (debugging) {
 
       Rprintf("* currently at '%s'.\n", NODE(cur));
       Rprintf("  > current path is:\n");
@@ -204,7 +204,7 @@ there:
       if  (path_pos == 0)
         return FALSE;
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  > node '%s' has no more children, going back to '%s'.\n",
           NODE(cur), NODE(path[path_pos - 1]));
 
@@ -227,7 +227,7 @@ there:
 
         if ((counter[cur] - 1) == path[i]) {
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("  @ node '%s' already visited, skipping.\n", NODE(path[i]));
 
           goto there;
@@ -241,7 +241,7 @@ there:
       /* the current node is now the children we have just found. */
       cur = counter[cur] - 1;
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  > jumping to '%s'.\n", NODE(cur));
 
     }/*ELSE*/
@@ -254,7 +254,7 @@ there:
 }/*C_DIRECTED_PATH*/
 
 int c_uptri3_path(short int *uptri, int *depth, int from, int to, int nnodes,
-    SEXP nodes, int debuglevel) {
+    SEXP nodes, bool debugging) {
 
 int i = 0, j = 0, d = 0;
 
@@ -265,7 +265,7 @@ int i = 0, j = 0, d = 0;
   /* for each depth level... */
   for (d = 1; d <= nnodes; d++) {
 
-    if (debuglevel)
+    if (debugging)
       Rprintf("* considering depth %d.\n", d);
 
     /* ... for each node... */
@@ -275,7 +275,7 @@ int i = 0, j = 0, d = 0;
       if (depth[i] != d)
         continue;
 
-      if (debuglevel)
+      if (debugging)
         Rprintf("  > found node %s.\n", NODE(i));
 
       for (j = 0; j < nnodes; j++) {
@@ -290,7 +290,7 @@ int i = 0, j = 0, d = 0;
         /* ... that hasn't already been visited... */
         if (depth[j] != 0) {
 
-          if (debuglevel)
+          if (debugging)
             Rprintf("  @ node '%s' already visited, skipping.\n", NODE(j));
 
           continue;
@@ -300,7 +300,7 @@ int i = 0, j = 0, d = 0;
         if (j == to) {
 
           /* ... and it's the destination, exit. */
-          if (debuglevel)
+          if (debugging)
             Rprintf("  @ arrived at node %s, exiting.\n", NODE(to));
 
           return TRUE;
@@ -313,7 +313,7 @@ int i = 0, j = 0, d = 0;
 
         }/*ELSE*/
 
-        if (debuglevel)
+        if (debugging)
           Rprintf("  > added node %s at depth %d\n", NODE(j), d + 1);
 
       }/*FOR*/

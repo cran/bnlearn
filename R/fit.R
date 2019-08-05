@@ -52,7 +52,7 @@ bn.fit.backend.discrete = function(dag, node, data, method, extra.args,
 
     # the parameters of the multinomial distribution are the probabilities
     # of the levels of the node and the configurations of its parents.
-    tab = minimal.table(data[, c(node, parents), drop = FALSE],
+    tab = .table(data[, c(node, parents), drop = FALSE],
             with.missing = !all(data.info$complete.nodes[c(node, parents)]))
     # switch from joint to conditional probabilities.
     tab = prop.table(tab, margin = seq(length(parents) + 1)[-1])
@@ -68,7 +68,7 @@ bn.fit.backend.discrete = function(dag, node, data, method, extra.args,
 
     # the parameters of the multinomial distribution are the expected values
     # of the corresponding parameters of the posterior Dirichlet distribution.
-    tab = minimal.table(data[, c(node, parents), drop = FALSE],
+    tab = .table(data[, c(node, parents), drop = FALSE],
             with.missing = !all(data.info$complete.nodes[c(node, parents)]))
     tab = tab + extra.args$iss / prod(dim(tab))
     # switch from joint to conditional probabilities.

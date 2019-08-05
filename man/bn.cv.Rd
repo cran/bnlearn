@@ -105,8 +105,8 @@ loss(x)
     \item \emph{Log-Likelihood Loss} (\code{logl}): also known as \emph{negative
       entropy} or \emph{negentropy}, it is the negated expected log-likelihood
       of the test set for the Bayesian network fitted from the training set.
-    \item \emph{Gaussian Log-Likelihood Loss} (\code{logl-g}): the negated expected
-      log-likelihood for Gaussian Bayesian networks.
+    \item \emph{Gaussian Log-Likelihood Loss} (\code{logl-g}): the negated
+      expected log-likelihood for Gaussian Bayesian networks.
     \item \emph{Classification Error} (\code{pred}): the \emph{prediction error}
       for a single node in a discrete network. Frequentist predictions are used,
       so the values of the target node are predicted using only the information
@@ -116,6 +116,8 @@ loss(x)
       from an arbitrary set of nodes using likelihood weighting to obtain
       Bayesian posterior estimates. \code{pred-lw} applies to discrete Bayesian
       networks, \code{pred-lw-cg} to (discrete nodes in) hybrid networks.
+    \item \emph{Exact Classification Error} (\code{pred-exact}): closed-form
+      exact posterior predictions are available for Bayesian network classifiers.
     \item \emph{Predictive Correlation} (\code{cor}): the \emph{correlation}
       between the observed and the predicted values for a single node in a
       Gaussian Bayesian network.

@@ -6,12 +6,12 @@
 #include "include/scores.h"
 
 double castelo_prior(SEXP beta, SEXP target, SEXP parents, SEXP children,
-    int debuglevel);
+    bool debugging);
 double marginal_prior(SEXP beta, SEXP target, SEXP parents, SEXP children,
-    SEXP node_cache, SEXP nodes, int debuglevel);
+    SEXP node_cache, SEXP nodes, bool debugging);
 
 double graph_prior_prob(SEXP prior, SEXP target, SEXP beta, SEXP cache,
-    int debuglevel) {
+    bool debugging) {
 
 double *b = NULL, prob = 0;
 SEXP nodes, parents, children, target_cache;
@@ -24,7 +24,7 @@ SEXP nodes, parents, children, target_cache;
   /* extract the cached information about the target node. */
   target_cache = getListElement(cache, (char *)CHAR(STRING_ELT(target, 0)));
 
-  switch(gprior_label(CHAR(STRING_ELT(prior, 0)))) {
+  switch(gprior_to_enum(CHAR(STRING_ELT(prior, 0)))) {
 
     /* constant prior, log(1) = 0 for backward compatibility. */
     case UNIFORM:
@@ -47,7 +47,7 @@ SEXP nodes, parents, children, target_cache;
       if (beta == R_NilValue)
         prob = 0;
       else
-        prob = castelo_prior(beta, target, parents, children, debuglevel);
+        prob = castelo_prior(beta, target, parents, children, debugging);
       break;
 
     /* marignal uniform prior. */
@@ -56,7 +56,7 @@ SEXP nodes, parents, children, target_cache;
       children = getListElement(target_cache, "children");
       nodes = getAttrib(beta, BN_NodesSymbol);
       prob = marginal_prior(beta, target, parents, children, cache, nodes,
-               debuglevel);
+               debugging);
       break;
 
     default:
@@ -72,7 +72,7 @@ SEXP nodes, parents, children, target_cache;
 #define CHILD  2
 
 double castelo_prior(SEXP beta, SEXP target, SEXP parents, SEXP children,
-    int debuglevel) {
+    bool debugging) {
 
 int i = 0, k = 0, t = 0, nnodes = 0, cur_arc = 0;
 int nbeta = length(VECTOR_ELT(beta, 0));
@@ -140,7 +140,7 @@ SEXP nodes, try;
 
     }/*FOR*/
 
-    if (debuglevel > 0) {
+    if (debugging) {
 
       switch(adjacent[i - 1]) {
 
@@ -312,7 +312,7 @@ SEXP result, from, to, nid, dir1, dir2;
 }/*CASTELO_COMPLETION*/
 
 double marginal_prior(SEXP beta, SEXP target, SEXP parents, SEXP children,
-    SEXP node_cache, SEXP nodes, int debuglevel) {
+    SEXP node_cache, SEXP nodes, bool debugging) {
 
 int i = 0, t = 0, nnodes = length(nodes);
 int *temp = NULL;
@@ -346,7 +346,7 @@ SEXP try;
     /* look up the prior probability. */
     prior = (adjacent[i - 1] > 0) ? b / 2 : 1 - b;
 
-    if (debuglevel > 0) {
+    if (debugging) {
 
       switch(adjacent[i - 1]) {
 

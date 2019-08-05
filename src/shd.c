@@ -5,7 +5,8 @@
 SEXP shd(SEXP learned, SEXP golden, SEXP debug) {
 
 int i = 0, j = 0, c1 = 0, c2 = 0, shd = 0, nnodes = 0;
-int *lrn = NULL, *ref = NULL, debuglevel = isTRUE(debug);
+int *lrn = NULL, *ref = NULL;
+bool debugging = isTRUE(debug);
 SEXP temp, nodes, l, r;
 
   /* get the labels of the nodes. */
@@ -37,7 +38,7 @@ SEXP temp, nodes, l, r;
       if ((lrn[c1] == ref[c1]) && (lrn[c2] == ref[c2]))
         continue;
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("* arcs between %s and %s do not match.\n", NODE(i), NODE(j));
 

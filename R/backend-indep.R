@@ -1,8 +1,8 @@
 
 # second prinple of CI algorithms: infer arc orientation from graph structure.
 second.principle = function(x, cluster = NULL, local.structure, whitelist,
-    blacklist, test, alpha, B = NULL, data, max.sx = ncol(data), strict,
-    complete, debug = FALSE) {
+    blacklist, test, alpha, B = NULL, data, max.sx = ncol(data), complete,
+    debug = FALSE) {
 
   nodes = names(x)
 
@@ -26,26 +26,23 @@ second.principle = function(x, cluster = NULL, local.structure, whitelist,
     # 3.2 sort them in p-value order.
     vs = vs[order(vs[,"max_a"], decreasing = FALSE),]
     # 3.3 apply.
-    arcs = vstruct.apply(arcs = arcs, vs = vs, nodes = nodes,
-             strict = strict, debug = debug)
+    arcs = vstruct.apply(arcs = arcs, vs = vs, nodes = nodes, debug = debug)
 
   }#THEN
-
-  # 4. propagate directions.
-  arcs = cpdag.arc.backend(nodes = nodes, arcs = arcs, moral = FALSE,
-           fix.directed = TRUE, debug = debug)
 
   # save the status of the learning algorithm.
   learning = list(whitelist = whitelist, blacklist = blacklist,
     test = test, args = list(alpha = alpha), ntests = test.counter())
-
-  # include also the number of permutations/bootstrap samples
-  # if it makes sense.
+  # include also the number of permutations/bootstrap samples if it makes sense.
   if (!is.null(B))
     learning$args$B = B
 
-  list(learning = learning, nodes = cache.structure(nodes, arcs = arcs),
-    arcs = arcs)
+  # 4. propagate directions.
+  pdag = list(learning = learning,
+              nodes = structure(rep(0, length(nodes)), names = nodes),
+              arcs = arcs)
+
+  return(cpdag.backend(pdag, moral = FALSE, fix = TRUE, debug = debug))
 
 }#SECOND.PRINCIPLE
 
@@ -62,8 +59,8 @@ fake.markov.blanket = function(learn, target) {
 
 # build the neighbourhood of a node from the markov blanket.
 neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
-  backtracking = NULL, test, empty.dsep = TRUE, markov = TRUE, max.sx = ncol(x),
-  complete, debug = FALSE) {
+  test, empty.dsep = TRUE, markov = TRUE, max.sx = ncol(x), complete,
+  debug = FALSE) {
 
   # initialize the neighbourhood using the markov blanket.
   candidate.neighbours = mb[[x]]
@@ -93,26 +90,6 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
   candidate.neighbours = setdiff(candidate.neighbours, blacklisted)
   candidate.neighbours = union(candidate.neighbours, whitelisted)
 
-  # use backtracking for a further screening of the nodes to be checked.
-  if (!is.null(backtracking)) {
-
-    # neighbourhood is symmetric, so X \in N(Y) <=> Y \in N(X)
-    known.good = names(backtracking[backtracking])
-
-    # and vice versa X \not\in N(Y) <=> Y \not\in N(X)
-    known.bad = names(backtracking[!backtracking])
-
-    # known.bad nodes are not to be checked for inclusion and/or used in
-    # the subsets.
-    candidate.neighbours = setdiff(candidate.neighbours, known.bad)
-
-  }#THEN
-  else {
-
-    known.good = known.bad = c()
-
-  }#ELSE
-
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
@@ -121,21 +98,13 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
     cat("  * whitelisted nodes: '", whitelisted, "'\n")
     cat("  * starting with neighbourhood: '", candidate.neighbours, "'\n")
 
-    if (!is.null(backtracking)) {
-
-      cat("  * known good (backtracking): '", known.good, "'.\n")
-      cat("  * known bad (backtracking): '", known.bad, "'.\n")
-
-    }#THEN
-
   }#THEN
 
   # nothing much to do, just return.
   if (length(candidate.neighbours) <= 1)
     return(list(mb = mb[[x]], nbr = candidate.neighbours))
 
-  # do not even try to remove whitelisted nodes; on the other hand, known.good
-  # nodes from backtracking should be checked to remove false positives.
+  # do not even try to remove whitelisted nodes; on the other hand.
   for (y in setdiff(candidate.neighbours, whitelisted)) {
 
     if (debug)
@@ -267,7 +236,7 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
 }#VSTRUCT.DETECT
 
 # include v-structures in the network, setting the corresponding arc directions.
-vstruct.apply = function(arcs, vs, nodes, strict, debug = FALSE) {
+vstruct.apply = function(arcs, vs, nodes, debug = FALSE) {
 
   if (debug)
     cat("----------------------------------------------------------------\n")
@@ -285,12 +254,8 @@ vstruct.apply = function(arcs, vs, nodes, strict, debug = FALSE) {
       if (debug)
         cat("* not applying v-structure", y, "->", x, "<-", z, "(", max_a, ")\n")
 
-      if (strict)
-        stop("vstructure ", y, " -> ", x, " <- ", z, " is not applicable, ",
-          "because one or both arcs are oriented in the opposite direction.")
-      else
-        warning("vstructure ", y, " -> ", x, " <- ", z, " is not applicable, ",
-          "because one or both arcs are oriented in the opposite direction.")
+      warning("vstructure ", y, " -> ", x, " <- ", z, " is not applicable, ",
+        "because one or both arcs are oriented in the opposite direction.")
 
       next
 
@@ -306,12 +271,8 @@ vstruct.apply = function(arcs, vs, nodes, strict, debug = FALSE) {
       if (debug)
         cat("* not applying v-structure", y, "->", x, "<-", z, "(", max_a, ")\n")
 
-      if (strict)
-        stop("vstructure ", y, " -> ", x, " <- ", z, " is not applicable, ",
-          "because one or both arcs introduce cycles in the graph.")
-      else
-        warning("vstructure ", y, " -> ", x, " <- ", z, " is not applicable, ",
-          "because one or both arcs introduce cycles in the graph.")
+      warning("vstructure ", y, " -> ", x, " <- ", z, " is not applicable, ",
+        "because one or both arcs introduce cycles in the graph.")
 
       next
 
@@ -330,12 +291,10 @@ vstruct.apply = function(arcs, vs, nodes, strict, debug = FALSE) {
 }#VSTRUCT.APPLY
 
 # emergency measures for markov blanket and neighbourhood recovery.
-bn.recovery = function(bn, nodes, strict, filter = "AND", mb = FALSE,
-    debug = FALSE) {
+bn.recovery = function(bn, nodes, filter = "AND", mb = FALSE, debug = FALSE) {
 
   .Call(call_bn_recovery,
         bn = bn,
-        strict = strict,
         mb = mb,
         filter = match(filter, c("OR", "AND")),
         debug = debug)

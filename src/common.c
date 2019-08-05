@@ -81,7 +81,7 @@ SEXP result, levels, lvls;
 
 }/*INT2FAC*/
 
-/* efficient copying of data from the data frame to a matrix for the QR decomposition. */
+/* efficient copying of data to a matrix suitable for a QR decomposition. */
 void c_qr_matrix(double *qr, double **x, int nrow, int ncol, int *complete,
     int ncomplete) {
 
@@ -237,7 +237,6 @@ int i = 0, j = 0, k = 0, idx = 0, subvec_len = 0, cur_type = 0;
 va_list strings;
 SEXP subvec, subvec_names, cur, try, vec_names;
 
-
   /* compute the length of the return value. */
   va_start(strings, n);
   for (i = 0; i < n; i++)
@@ -255,6 +254,10 @@ SEXP subvec, subvec_names, cur, try, vec_names;
 
     /* find out which elements to extract... */
     cur = va_arg(strings, SEXP);
+
+    if (isNull(cur))
+      continue;
+
     cur_type = TYPEOF(cur);
     if (cur_type == STRSXP)
       PROTECT(try = match(vec_names, cur, 0));
@@ -280,6 +283,18 @@ SEXP subvec, subvec_names, cur, try, vec_names;
         }/*FOR*/
         break;
 
+      case REALSXP:
+        for (j = 0; j < length(cur); j++) {
+          idx = INTEGER(try)[j] - 1;
+          REAL(subvec)[k] = REAL(vec)[idx];
+          if (cur_type == STRSXP)
+            SET_STRING_ELT(subvec_names, k++, STRING_ELT(cur, j));
+          else if (cur_type == INTSXP)
+            SET_STRING_ELT(subvec_names, k++, STRING_ELT(vec_names, idx));
+
+        }/*FOR*/
+        break;
+
     }/*SWITCH*/
 
     if (cur_type == STRSXP)
@@ -295,7 +310,7 @@ SEXP subvec, subvec_names, cur, try, vec_names;
 }/*SUBSET_BY_NAME*/
 
 /* check all elements of a SEXP are equal to a value. */
-int all_equal(SEXP vec, SEXP val) {
+bool all_equal(SEXP vec, SEXP val) {
 
 int i = 0, *vl = NULL, al = FALSE;
 

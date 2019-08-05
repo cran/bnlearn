@@ -29,9 +29,9 @@ SEXP result;
 
 /* unconditional parametric asymptotic tests for categorical data. */
 double c_chisqtest(int *xx, int llx, int *yy, int lly, int num, double *df,
-    test_e test, int scale) {
+    test_e test, bool scale) {
 
-int **n = NULL, *ni = NULL, *nj = NULL, ncomplete = 0, adj = IS_ADF(test);
+int **n = NULL, *ni = NULL, *nj = NULL, ncomplete = 0;
 double res = 0;
 
   /* initialize the contingency table and the marginal frequencies. */
@@ -39,7 +39,7 @@ double res = 0;
 
   /* compute the degrees of freedom. */
   if (df)
-    *df = adj ? df_adjust(ni, llx, nj, lly) : (llx - 1) * (lly - 1);
+    *df = discrete_df(test, ni, llx, nj, lly);
 
   /* if there are no complete data points, return independence. */
   if (ncomplete == 0)
@@ -47,7 +47,7 @@ double res = 0;
 
   /* if there are less than 5 observations per cell on average, assume the
    * test does not have enough power and return independence. */
-  if (adj)
+  if ((test == MI_ADF) || (test == X2_ADF))
     if (ncomplete < 5 * llx * lly)
       goto free_and_return;
 
@@ -73,10 +73,9 @@ free_and_return:
 
 /* conditional mutual information, to be used in C code. */
 double c_cchisqtest(int *xx, int llx, int *yy, int lly, int *zz, int llz,
-    int num, double *df, test_e test, int scale) {
+    int num, double *df, test_e test, bool scale) {
 
-int ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL;
-int ncomplete = 0, adj = IS_ADF(test);
+int ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL, ncomplete = 0;
 double res = 0;
 
    /* initialize the contingency table and the marginal frequencies. */
@@ -84,7 +83,7 @@ double res = 0;
 
   /* compute the degrees of freedom. */
   if (df)
-    *df = adj ? cdf_adjust(ni, llx, nj, lly, llz) : (llx - 1) * (lly - 1) * llz;
+    *df = discrete_cdf(test, ni, llx, nj, lly, llz);
 
   /* if there are no complete data points, return independence. */
   if (ncomplete == 0)
@@ -92,7 +91,7 @@ double res = 0;
 
   /* if there are less than 5 observations per cell on average, assume the
    * test does not have enough power and return independence. */
-  if (adj)
+  if ((test == MI_ADF) || (test == X2_ADF))
     if (ncomplete < 5 * llx * lly * llz)
       goto free_and_return;
 

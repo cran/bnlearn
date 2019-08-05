@@ -2,11 +2,11 @@
 #include "include/matrix.h"
 
 /* check neighbourhood sets and markov blanets for consistency.. */
-SEXP bn_recovery(SEXP bn, SEXP strict, SEXP mb, SEXP filter, SEXP debug) {
+SEXP bn_recovery(SEXP bn, SEXP mb, SEXP filter, SEXP debug) {
 
-int i = 0, j = 0, k = 0, n = 0, counter = 0;
+int i = 0, j = 0, k = 0, n = 0, counter = 0, *flt = INTEGER(filter);
 short int *checklist = NULL, err = 0;
-int debuglevel = isTRUE(debug), checkmb = isTRUE(mb), *flt = INTEGER(filter);
+bool debugging = isTRUE(debug), checkmb = isTRUE(mb);
 SEXP temp, temp2, nodes, elnames = NULL, fixed;
 
   /* get the names of the nodes. */
@@ -16,7 +16,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
   /* allocate and initialize the checklist. */
   checklist = Calloc1D(UPTRI_MATRIX(n), sizeof(short int));
 
-  if (debuglevel > 0) {
+  if (debugging) {
 
     Rprintf("----------------------------------------------------------------\n");
 
@@ -30,7 +30,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
   /* scan the structure to determine the number of arcs.  */
   for (i = 0; i < n; i++) {
 
-     if (debuglevel > 0)
+     if (debugging)
        Rprintf("  > checking node %s.\n",  NODE(i));
 
     /* get the entry for the (neighbours|elements of the markov blanket)
@@ -66,7 +66,7 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
       if ((checklist[UPTRI(i + 1, j + 1, n)] != 0) &&
           (checklist[UPTRI(i + 1, j + 1, n)] != 2)) {
 
-        if (debuglevel > 0) {
+        if (debugging) {
 
           if (checkmb)
             Rprintf("@ asymmetry in the markov blankets for %s and %s.\n",
@@ -83,25 +83,13 @@ SEXP temp, temp2, nodes, elnames = NULL, fixed;
 
     }/*FOR*/
 
-  /* no need to go on if the (neighbourhood sets|markov blankets) are symmetric;
-   * otherwise throw either an error or a warning according to the value of the
-   * strict parameter. */
+  /* no need to go on if the (neighbourhoods|markov blankets) are symmetric. */
   if (!err) {
 
     Free1D(checklist);
     UNPROTECT(1);
 
     return bn;
-
-  }/*THEN*/
-  else if (isTRUE(strict)) {
-
-    Free1D(checklist);
-
-    if (checkmb)
-      error("markov blankets are not symmetric.\n");
-    else
-      error("neighbourhood sets are not symmetric.\n");
 
   }/*THEN*/
 

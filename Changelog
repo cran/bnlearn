@@ -1,3 +1,54 @@
+bnlearn (4.5)
+
+  * the "parametric" option for the "sim" argument of bn.boot() is now
+      deprecated; the argument will be removed in 2020.
+  * removed the relevant() function, and the "strict" and "optimized" arguments
+     of constraint-based structure learning algorithms.
+  * save arc strengths as weights in the graph object returned by
+     strength.plot() (thanks Fabio Gori).
+  * information about illegal arcs in now preserved in averaged.network(), so
+     that cpdag() works correctly on the returned network.
+  * loss function "pred" (classification error, predicted values from parents)
+     is now distinct from "pred-exact" (classification error, exact posterior
+     predicted values for classifiers); and it is now possible to use "pred" and
+     "pred-lw" in bn.cv() when the model is a Bayesian network classifier
+     (thanks Kostas Oikonomou).
+  * graphviz.compare() now returns a list containing the graph objects
+     corresponding to the networks provided as arguments (thanks William Raynor).
+  * the "from-first" method in graphviz.compare() now has a "show.first"
+     argument that controls whether the reference network is plotted at all
+     (thanks William Raynor).
+  * implemented the IAMB-FDR, HPC and H2PC structure learning algorithms.
+  * reimplemented the BGe score using the updated unbiased estimator from
+     Kuipers, Moffa and Heckerman (2014).
+  * fixed the test counter in constraint-based algorithms, which would overcount
+     in some cases.
+  * it is now possible to use any structure learning algorithm in bn.boot() and
+     bn.cv().
+  * fixed prediction from parents for conditional Gaussian nodes with no
+     continuous parents (thanks Harsha Kokel).
+  * it is now possible to use data with missing values in learn.mb(),
+     learn.nbr() and in all constraint-based structure learning algorithms.
+  * fixed tabu() in the presence of zero-variance continuous variables; the
+     search was not correctly initialized because the starting model is
+     singular (thanks Luise Gootjes-Dreesbach).
+  * implemented predictive log-likelihood scores for discrete, Gaussian and
+     conditional Gaussian networks.
+  * fixed an integer overflow in the nparams() method for bn.fit objects
+     (thanks Yujian Liu).
+  * make conditional sampling faster for large conditional probability tables
+      (thanks Yujian Liu).
+  * preserve structure learning information in bn.cv(), so that
+     custom.strength() can get directions right from the resulting set of 
+     networks (thanks Xiang Liu).
+  * revised the preprocessing of whitelists and blackilsts, and clarified the
+     documentation (thanks Michail Tsagris).
+  * added a "for.parents" argument to coef() and sigma() to make them return
+     the parameters associated with a specific configuration of the discrete
+     parents of a node in a bn.fit object (thanks Harsha Kokel).
+  * fixed segfault in predict(..., method = "bayes-lw") from data that contain
+     extra variables that are not in the network (thanks Oliver Perkins).
+
 bnlearn (4.4)
 
   * fixed pc.stable() v-structure detection in the presence of blacklisted arcs.
@@ -8,7 +59,7 @@ bnlearn (4.4)
      that data had variables with no observed values when that was not true.
   * fixed posterior imputation from a single observed variable (thanks Derek
      Powell).
-  * added an argument "max.sx" to limit the the maximum allowed size of the
+  * added an argument "max.sx" to limit the maximum allowed size of the
      conditioning sets in the conditional independence tests used in
      constraint-based algorithms and in learn.{mb,nbr}().
   * do not generate an error when it is impossible to compute a partial
@@ -36,7 +87,7 @@ bnlearn (4.4)
 
 bnlearn (4.3)
 
-  * the "strict" and "optimized" arguments of constraint-based algorims are
+  * the "strict" and "optimized" arguments of constraint-based algorithms are
      now deprecated and will be removed at the beginning of 2019.
   * the relevant() function is now deprecated, and it will also be removed
      at the beginning of 2019.

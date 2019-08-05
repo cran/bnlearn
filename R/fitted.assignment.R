@@ -20,9 +20,9 @@ fitted.assignment.backend = function(x, name, value) {
     if (is(value, c("lm", "glm", "penfit")) && is(to.replace, "bn.fit.gnode")) {
 
       # ordinary least squares, ridge, lasso, and elastic net.
-      coef = minimal.coefficients(value)
-      resid = minimal.residuals(value)
-      fitted = minimal.fitted(value)
+      coef = .coefficients(value)
+      resid = .residuals(value)
+      fitted = .fitted(value)
       sd = cgsd(resid[!is.na(resid)], p = length(coef))
 
       # zap small values in low-order regressions to match fast.lm().

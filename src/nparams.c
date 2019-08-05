@@ -6,9 +6,10 @@
  * discrete and Gaussian networks). */
 SEXP nparams_cgnet(SEXP graph, SEXP data, SEXP debug) {
 
-int i = 0, j = 0, nnodes = 0, debuglevel = isTRUE(debug);
+int i = 0, j = 0, nnodes = 0;
 int *nlevels = NULL, *index = NULL, ngp = 0;
 double nconfig = 0, node_params = 0, all_params = 0;
+bool debugging = isTRUE(debug);
 SEXP nodes = R_NilValue, node_data, parents, temp;
 
   /* get nodes' number and data. */
@@ -46,7 +47,7 @@ SEXP nodes = R_NilValue, node_data, parents, temp;
      * discrete) times the configurations of the discrete parents. */
     node_params = nconfig * (nlevels[i] == 0 ? ngp + 2 : nlevels[i] - 1);
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("* node %s has %.0lf parameter(s).\n", NODE(i), node_params);
 
     /* update the return value. */
@@ -66,20 +67,20 @@ SEXP nodes = R_NilValue, node_data, parents, temp;
 /* compute the number of parameters of a fitted model. */
 SEXP nparams_fitted(SEXP bn, SEXP effective, SEXP debug) {
 
-int i = 0, j = 0, k = 0, node_params = 0, nnodes = length(bn), *pd = NULL;
-int res = 0, debuglevel = isTRUE(debug), eff = isTRUE(effective);
-double *ps = NULL, counter = 0;
+int i = 0, j = 0, k = 0, nnodes = length(bn), *pd = NULL;
+bool debugging = isTRUE(debug), eff = isTRUE(effective);
+double *ps = NULL, counter = 0, node_params = 0, all_params = 0;
 SEXP nodes = R_NilValue, node_data, param_set, param_dims;
 fitted_node_e node_type = ENOFIT;
 
-  if (debuglevel > 0)
+  if (debugging)
     PROTECT(nodes = getAttrib(bn, R_NamesSymbol));
 
   for (i = 0; i < nnodes; i++) {
 
     /* get the node's data. */
     node_data = VECTOR_ELT(bn, i);
-    node_type = r_fitted_node_label(node_data);
+    node_type = fitted_node_to_enum(node_data);
 
     switch (node_type) {
 
@@ -94,10 +95,10 @@ fitted_node_e node_type = ENOFIT;
         if (eff) {
 
           /* count the number of non-zero free parameters. */
-          for (node_params = 0, k = 0; k < length(param_set) / pd[0]; k++) {
+          for (k = 0, node_params = 0; k < length(param_set) / pd[0]; k++) {
 
             /* check the elements of each conditional probability distribution. */
-            for (counter = 0, j = 0; j < pd[0]; j++)
+            for (j = 0, counter = 0; j < pd[0]; j++)
               counter += !ISNAN(ps[CMC(j, k, pd[0])]) && (ps[CMC(j, k, pd[0])] > 0);
             /* subtract the column total to get the free parameters. */
             if (counter > 0)
@@ -111,7 +112,7 @@ fitted_node_e node_type = ENOFIT;
         else {
 
           /* compute the number of parameters. */
-          for (node_params = 1, j = 1; j < length(param_dims); j++)
+          for (j = 1, node_params = 1; j < length(param_dims); j++)
             node_params *= pd[j];
 
           node_params *= pd[0] - 1;
@@ -130,7 +131,7 @@ fitted_node_e node_type = ENOFIT;
         if (eff) {
 
           /* count the number of non-zero regression coefficients. */
-          for (node_params = 0, j = 0; j < length(param_set); j++)
+          for (j = 0, node_params = 0; j < length(param_set); j++)
             node_params += !ISNAN(ps[j]) && (ps[j] != 0);
 
         }/*THEN*/
@@ -157,17 +158,17 @@ fitted_node_e node_type = ENOFIT;
 
     }/*SWITCH*/
 
-    if (debuglevel > 0)
-      Rprintf("* node %s has %d parameter(s).\n", NODE(i), node_params);
+    if (debugging)
+      Rprintf("* node %s has %.0lf parameter(s).\n", NODE(i), node_params);
 
-    res += node_params;
+    all_params += node_params;
 
   }/*FOR*/
 
-  if (debuglevel > 0)
+  if (debugging)
     UNPROTECT(1);
 
-  return ScalarInteger(res);
+  return ScalarReal(all_params);
 
 }/*NPARAMS_FITTED*/
 

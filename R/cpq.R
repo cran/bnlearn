@@ -95,7 +95,7 @@ fit.dummy.df = function(fitted, nodes) {
 
   })
 
-  return(minimal.data.frame(dummy))
+  return(.data.frame(dummy))
 
 }#FIT.DUMMY.DF
 

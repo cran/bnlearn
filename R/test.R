@@ -32,7 +32,7 @@ allsubs.test = function(x, y, sx, fixed = character(0), data, test, B = 0L,
         B = B,
         alpha = alpha,
         min = as.integer(min),
-        max = as.integer(max),
+        max = as.integer(min(max, length(sx))),
         complete = complete,
         debug = debug)
 

@@ -11,12 +11,20 @@ check.loss = function(loss, data, bn) {
     check.label(loss, choices = loss.functions, labels = loss.labels,
       argname = "loss function", see = "bn.cv")
 
+    if (loss %in% classifiers.loss.functions) {
+
+      if ((is.character(bn) && (bn %!in% classifiers)) ||
+          (!is.character(bn) && !is(bn, c("bn.naive", "bn.tan"))))
+        stop("loss function '", loss, "' may only be used with classifiers.")
+
+    }#THEN
+
     if ((type %!in% discrete.data.types) && (loss %in% discrete.loss.functions))
-      stop("loss function '", loss, "' may be used with discrete data only.")
+      stop("loss function '", loss, "' may only be used with discrete data.")
     if ((type != "continuous") && (loss %in% continuous.loss.functions))
-      stop("loss function '", loss, "' may be used with continuous data only.")
+      stop("loss function '", loss, "' may only be used with continuous data.")
     if ((type != "mixed-cg") && (loss %in% mixedcg.loss.functions))
-      stop("loss function '", loss, "' may be used with a mixture of continuous and discrete data only.")
+      stop("loss function '", loss, "' may only be used with a mixture of continuous and discrete data.")
 
     return(loss)
 
@@ -25,7 +33,7 @@ check.loss = function(loss, data, bn) {
 
     if ((is.character(bn) && (bn %in% classifiers)) ||
          is(bn, c("bn.naive", "bn.tan")))
-      return("pred")
+      return("pred-exact")
     if (type %in% discrete.data.types)
       return("logl")
     else if (type == "continuous")
@@ -42,8 +50,8 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
 
   valid.args = loss.extra.args[[loss]]
 
-  if (loss %in% c("pred", "pred-lw", "pred-lw-cg", "cor", "cor-lw", "cor-lw-cg",
-                  "mse", "mse-lw", "mse-lw-cg")) {
+  if (loss %in% c("pred", "pred-exact", "pred-lw", "pred-lw-cg", "cor",
+                  "cor-lw", "cor-lw-cg", "mse", "mse-lw", "mse-lw-cg")) {
 
     if (!is.null(extra.args$target)) {
 
@@ -79,7 +87,7 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
     }#ELSE
 
     # check the prior distribution.
-    if ((bn %in% classifiers) || is(bn, c("bn.naive", "bn.tan"))) {
+    if ((is.string(bn) && (bn %in% classifiers)) || is(bn, c("bn.naive", "bn.tan"))) {
 
       extra.args$prior = check.classifier.prior(extra.args$prior, data[, extra.args$target])
       valid.args = c(valid.args, "prior")

@@ -58,7 +58,7 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
     case SMC_MI:
       *observed = mi_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
 
-      for (k = 0; k < B; k++) {
+      for (k = 0, *pvalue = 0; k < B; k++) {
 
         c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
 
@@ -78,7 +78,7 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
     case SMC_X2:
       *observed = x2_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
 
-      for (k = 0; k < B; k++) {
+      for (k = 0, *pvalue = 0; k < B; k++) {
 
         c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
 
@@ -96,7 +96,7 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
       *observed = mi_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
       *df = 0;
 
-      for (k = 0; k < B; k++) {
+      for (k = 0, *pvalue = 0; k < B; k++) {
 
         c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
         *df += mi_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
@@ -114,7 +114,7 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
       *observed = x2_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
       *df = 0;
 
-      for (k = 0; k < B; k++) {
+      for (k = 0, *pvalue = 0; k < B; k++) {
 
         c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
         *df += x2_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
@@ -130,7 +130,7 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
     case SMC_JT:
       *observed = mc_jt(n, nrowt, nr, nc, ncomplete);
 
-      for (k = 0; k < B; k++) {
+      for (k = 0, *pvalue = 0; k < B; k++) {
 
         c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
 
@@ -217,7 +217,7 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
     case SMC_MI:
       *observed = cmi_kernel(n, nrowt, ncolt, ncond, nr, nc, nl);
 
-      for (j = 0; j < B; j++) {
+      for (j = 0, *pvalue = 0; j < B; j++) {
 
         for (k = 0; k < nl; k++)
           c_rcont2(nr, nc, nrowt[k], ncolt[k], ncond[k], fact, workspace, n[k]);
@@ -239,7 +239,7 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
     case SMC_X2:
       *observed = cx2_kernel(n, nrowt, ncolt, ncond, nr, nc, nl);
 
-      for (j = 0; j < B; j++) {
+      for (j = 0, *pvalue = 0; j < B; j++) {
 
         for (k = 0; k < nl; k++)
           c_rcont2(nr, nc, nrowt[k], ncolt[k], ncond[k], fact, workspace, n[k]);
@@ -258,7 +258,7 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
       *observed = cmi_kernel(n, nrowt, ncolt, ncond, nr, nc, nl);
       *df = 0;
 
-      for (j = 0; j < B; j++) {
+      for (j = 0, *pvalue = 0; j < B; j++) {
 
         for (k = 0; k < nl; k++)
           c_rcont2(nr, nc, nrowt[k], ncolt[k], ncond[k], fact, workspace, n[k]);
@@ -278,7 +278,7 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
       *observed = cx2_kernel(n, nrowt, ncolt, ncond, nr, nc, nl);
       *df = 0;
 
-      for (j = 0; j < B; j++) {
+      for (j = 0, *pvalue = 0; j < B; j++) {
 
         for (k = 0; k < nl; k++)
           c_rcont2(nr, nc, nrowt[k], ncolt[k], ncond[k], fact, workspace, n[k]);
@@ -296,7 +296,7 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
     case SMC_JT:
       *observed = mc_cjt(n, nrowt, ncond, nr, nc, nl);
 
-      for (j = 0; j < B; j++) {
+      for (j = 0, *pvalue = 0; j < B; j++) {
 
         for (k = 0; k < nl; k++)
           c_rcont2(nr, nc, nrowt[k], ncolt[k], ncond[k], fact, workspace, n[k]);

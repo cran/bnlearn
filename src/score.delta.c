@@ -401,7 +401,7 @@ SEXP fake_nodes, real_nodes, target, off_target, rev_arc, temp;
 SEXP score_delta_monolithic(SEXP arc, SEXP network, SEXP data, SEXP score,
     SEXP score_delta, SEXP reference_score, SEXP op, SEXP extra) {
 
-  switch(score_label(CHAR(STRING_ELT(score, 0)))) {
+  switch(score_to_enum(CHAR(STRING_ELT(score, 0)))) {
 
     case BDE:
     case BDS:
@@ -410,7 +410,7 @@ SEXP score_delta_monolithic(SEXP arc, SEXP network, SEXP data, SEXP score,
     case BDLA:
     case BGE:
 
-      switch(gprior_label(CHAR(STRING_ELT(getListElement(extra, "prior"), 0)))) {
+      switch(gprior_to_enum(CHAR(STRING_ELT(getListElement(extra, "prior"), 0)))) {
 
         case CS:
         case MU:

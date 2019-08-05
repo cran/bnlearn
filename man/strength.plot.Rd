@@ -83,9 +83,10 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL, groups,
 }
 \value{
 
-  The object of class \code{graphAM} used to format and render the plot. It can
-  be further modified using the commands present in the \pkg{graph} and
-  \pkg{Rgraphviz} packages.
+  \code{graphviz.plot()} returns invisibly the \code{graph} object produced by
+  \pkg{Rgraphviz}. It can be further modified using the commands present in the
+  \pkg{graph} and \pkg{Rgraphviz} packages, and it contains the arc strengths
+  in the edge weight attribute.
 
 }
 \examples{
@@ -93,11 +94,11 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL, groups,
 # plot the network learned by gs().
 res = set.arc(gs(learning.test), "A", "B")
 strength = arc.strength(res, learning.test, criterion = "x2")
-strength.plot(res, strength)
+\dontrun{strength.plot(res, strength)}
 # add another (non-significant) arc and plot the network again.
 res = set.arc(res, "A", "C")
 strength = arc.strength(res, learning.test, criterion = "x2")
-strength.plot(res, strength)
+\dontrun{strength.plot(res, strength)}
 }
 }
 \author{Marco Scutari}

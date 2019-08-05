@@ -49,15 +49,15 @@
 
   Chickering DM (1995). "A Transformational Characterization of Equivalent
 	Bayesian Network Structures". \emph{Proceedings of the Eleventh Annual
-	Conference on Uncertainty in Artificial Intelligence}, pp. 87--98.
+	Conference on Uncertainty in Artificial Intelligence}, 87--98.
 
   Ness RO, Sachs K, Mallick P, Vitek O (2017). "A Bayesian Active Learning
     Experimental Design for Inferring Signaling Networks". \emph{International
-    Conference on Research in Computational Molecular Biology}, pp. 134--156.
-  
+    Conference on Research in Computational Molecular Biology}, 134--156.
+
   Tian J, Pearl J (2001). "Causal Discovery from Changes". \emph{Proceedings of
     the Seventeenth Conference on Uncertainty in Artificial Intelligence},
-    pp. 512--521.
+    512--521.
 }
 \author{Robert Osazuwa Ness}
 \seealso{\link{cpdag}, \link{score}.}

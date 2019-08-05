@@ -39,7 +39,7 @@ double tol = MACHINE_TOL;
 }/*C_FAST_COR*/
 
 /* Partial Linear Correlation. */
-double c_fast_pcor(covariance cov, int v1, int v2, int *err, int decomp) {
+double c_fast_pcor(covariance cov, int v1, int v2, int *err, bool decomp) {
 
 int i = 0, errcode = 0;
 double res = 0, k11 = 0, k12 = 0, k22 = 0;
@@ -53,7 +53,7 @@ double tol = MACHINE_TOL, sv_tol = 0;
   /* if the SVD decomposition fails, assume the partial correlation is zero. */
   if (errcode != 0) {
 
-    if (!err)
+    if (err)
       *err = errcode;
     else
       warning("failed to compute the pseudoinverse of the covariance matrix, assuming independence.");

@@ -22,7 +22,7 @@ ci.test(x, y, z, data, test, B, debug = FALSE)
     test to be used in the algorithm. If none is specified, the default test
     statistic is the \emph{mutual information} for categorical variables, the
     Jonckheere-Terpstra test for ordered factors and the \emph{linear
-    correlation} for continuous variables. See \code{\link{bnlearn-package}}
+    correlation} for continuous variables. See \code{\link{independence tests}}
     for details.}
   \item{B}{a positive integer, the number of permutations considered for each
     permutation test. It will be ignored with a warning if the conditional
@@ -46,37 +46,6 @@ ci.test(x, y, z, data, test, B, debug = FALSE)
   \item{null.value}{the value of the test statistic under the null hypothesis,
     always 0.}
   \item{alternative}{a character string describing the alternative hypothesis.}
-
-}
-\references{
-
-  \bold{for parametric and discrete permutation tests:}
-
-  Edwards DI (2000). \emph{Introduction to Graphical Modelling}. Springer, 2nd
-    edition.
-
-  \bold{for shrinkage tests:}
-
-  Hausser J, Strimmer K (2009). "Entropy inference and the James-Stein
-    estimator, with application to nonlinear gene association networks".
-    \emph{Statistical Applications in Genetics and Molecular Biology},
-    \strong{10}:1469--1484.
-
-  Ledoit O, Wolf M (2003). "Improved Estimation of the Covariance Matrix of
-    Stock Returns with an Application to Portfolio Selection". \emph{Journal of
-    Empirical Finance}, \strong{10}:603--621.
-
-  \bold{for continuous permutation tests:}
-
-  Legendre P (2000). "Comparison of Permutation Methods for the Partial
-    Correlation and Partial Mantel Tests". \emph{Journal of Statistical
-    Computation and Simulation}, \strong{67}:37--73.
-
-  \bold{for semiparametric discrete tests:}
-
-  Tsamardinos I, Borboudakis G (2010). "Permutation Testing Improves Bayesian
-    Network Learning". \emph{Machine Learning and Knowledge Discovery in
-    Databases}, pp. 322--337.
 
 }
 \examples{

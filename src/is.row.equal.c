@@ -55,7 +55,7 @@ SEXP is_listed(SEXP arc, SEXP set, SEXP either, SEXP both, SEXP debug) {
 int i = 0, matched = 0, nrow = length(set) / 2;
 const char *from = CHAR(STRING_ELT(arc, 0));
 const char *to = CHAR(STRING_ELT(arc, 1));
-int debuglevel = isTRUE(debug);
+bool debugging = isTRUE(debug);
 
   /* if the arc set is NULL, return immediately. */
   if (isNull(set))
@@ -63,7 +63,7 @@ int debuglevel = isTRUE(debug);
 
   for (i = 0; i < nrow; i++) {
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("* checking %s -> %s\n", ARC(i, 0), ARC(i, 1));
 
     /* check the first element; if it does not match skip to the second one. */
@@ -77,7 +77,7 @@ int debuglevel = isTRUE(debug);
          * A -> B and B -> A are in the arc set when "both = TRUE". */
         matched++;
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  > matched %s -> %s (matched is %d).\n", ARC(i, 0),
             ARC(i, 1), matched);
 
@@ -109,7 +109,7 @@ int debuglevel = isTRUE(debug);
            * A -> B and B -> A are in the arc set when "both = TRUE". */
           matched++;
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("  > matched %s -> %s (matched is %d).\n", ARC(i, 0),
               ARC(i, 1), matched);
 

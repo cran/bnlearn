@@ -18,7 +18,7 @@ quantile.discretization = function(data, breaks, ordered) {
   discretized = lapply(seq(ncol(data)), function(x) {
 
     breaks = breaks[x]
-    y = minimal.data.frame.column(data, x)
+    y = .data.frame.column(data, x)
 
     # do not touch discrete variables.
     if (is(y, "factor"))
@@ -34,7 +34,7 @@ quantile.discretization = function(data, breaks, ordered) {
 
   })
   # convert the return value to a data frame.
-  discretized = minimal.data.frame(discretized)
+  discretized = .data.frame(discretized)
   names(discretized) = names(data)
 
   return(discretized)
@@ -47,7 +47,7 @@ interval.discretization = function(data, breaks, ordered) {
   discretized = lapply(seq(ncol(data)), function(x) {
 
     breaks = breaks[x]
-    y = minimal.data.frame.column(data, x)
+    y = .data.frame.column(data, x)
 
     # do not touch discrete variables.
     if (is(y, "factor"))
@@ -57,7 +57,7 @@ interval.discretization = function(data, breaks, ordered) {
 
   })
   # convert the return value to a data frame.
-  discretized = minimal.data.frame(discretized)
+  discretized = .data.frame(discretized)
   names(discretized) = names(data)
 
   return(discretized)
@@ -104,7 +104,7 @@ hartemink.discretization = function(data, breaks, ordered, initial.breaks,
         cat("* considering variable", node, ".\n")
 
       total.mutual.information = numeric(nnodes - 1)
-      cur.levels = levels(minimal.data.frame.column(discretized, node))
+      cur.levels = levels(.data.frame.column(discretized, node))
 
       # ... for each pair of levels ...
       for (collapsing in seq(nlevels - 1)) {
@@ -122,7 +122,7 @@ hartemink.discretization = function(data, breaks, ordered, initial.breaks,
           function(node) {
 
             mi.test(x = collapsed,
-                    y = minimal.data.frame.column(discretized, node),
+                    y = .data.frame.column(discretized, node),
                     ndata = ndata)[1]
 
           }))

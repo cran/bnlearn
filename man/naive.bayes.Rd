@@ -91,6 +91,9 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   used for prediction are attached to the predicted values as an attribute
   called \code{prob}.
 
+  See \code{\link{network classifiers}} for a complete list of network
+  classifiers with the respective references.
+
 }
 \references{
 

@@ -1,50 +1,6 @@
 
-inter.incremental.association.optimized = function(x, whitelist, blacklist,
-  test, alpha, B, max.sx = ncol(x), strict, complete, debug = FALSE) {
-
-  nodes = names(x)
-  mb2 = mb = list()
-
-  # 1. [Compute Markov Blankets]
-  for (node in nodes) {
-
-    backtracking = unlist(sapply(mb, function(x){ node %in% x  }))
-
-    mb[[node]] = inter.ia.markov.blanket(node, data = x, nodes = nodes,
-         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, max.sx = max.sx,
-         complete = complete, debug = debug)
-
-  }#FOR
-
-  # check markov blankets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
-
-  # 2. [Compute Graph Structure]
-  for (node in nodes) {
-
-    backtracking = unlist(sapply(mb2, function(x){ node %in% x[["nbr"]]  }))
-
-    # save results in a copy of mb.
-    mb2[[node]] = neighbour(node, mb = mb, data = x, alpha = alpha,
-         B = B, whitelist = whitelist, blacklist = blacklist,
-         backtracking = backtracking, test = test, max.sx = max.sx,
-         complete = complete, debug = debug)
-
-  }#FOR
-
-  # update mb with the results of neighbour().
-  mb = mb2
-
-  # check neighbourhood sets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
-
-  return(mb)
-
-}#INTER.INCREMENTAL.ASSOCIATION.OPTIMIZED
-
 inter.incremental.association = function(x, cluster = NULL, whitelist,
-  blacklist, test, alpha, B, max.sx = ncol(x), strict, complete, debug = FALSE) {
+  blacklist, test, alpha, B, max.sx = ncol(x), complete, debug = FALSE) {
 
   nodes = names(x)
 
@@ -56,7 +12,7 @@ inter.incremental.association = function(x, cluster = NULL, whitelist,
   names(mb) = nodes
 
   # check markov blankets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, mb = TRUE, debug = debug)
+  mb = bn.recovery(mb, nodes = nodes, mb = TRUE, debug = debug)
 
   # 2. [Compute Graph Structure]
   mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
@@ -65,18 +21,18 @@ inter.incremental.association = function(x, cluster = NULL, whitelist,
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
-  mb = bn.recovery(mb, nodes = nodes, strict = strict, debug = debug)
+  mb = bn.recovery(mb, nodes = nodes, debug = debug)
 
   return(mb)
 
 }#INTER.INCREMENTAL.ASSOCIATION
 
 inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
-  blacklist, start = character(0), backtracking = NULL, test, max.sx = ncol(x),
-  complete, debug = FALSE) {
+  blacklist, start = character(0), test, max.sx = ncol(x), complete,
+  debug = FALSE) {
 
   nodes = nodes[nodes != x]
-  culprit = known.good = known.bad = c()
+  culprit = character(0)
   whitelisted = nodes[sapply(nodes,
           function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
   mb = start
@@ -101,30 +57,6 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
   nodes = nodes[nodes %!in% mb]
   # blacklist is not checked, not all nodes in a markov blanket must be
   # neighbours.
-
-  # use backtracking for a further screening of the nodes to be checked.
-  if (!is.null(backtracking)) {
-
-    # nodes whose markov blanket includes this node are included, because
-    # X \in MB(Y) <=> Y \in MB(X); they can be removed in the backward phase
-    # later on if they are false positives.
-
-    known.good = names(backtracking[backtracking])
-    mb = unique(c(mb, known.good))
-
-    # and vice versa X \not\in MB(Y) <=> Y \not\in MB(X)
-    known.bad = names(backtracking[!backtracking])
-
-    if (debug) {
-
-      cat("    * known good (backtracking): '", known.good, "'.\n")
-      cat("    * known bad (backtracking): '", known.bad, "'.\n")
-      cat("    * nodes still to be tested for inclusion: '",
-        nodes[nodes %!in% mb], "'.\n")
-
-    }#THEN
-
-  }#THEN
 
   repeat {
 
@@ -174,8 +106,7 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
 
     # whitelisted nodes are neighbours, they cannot be removed from the markov
     # blanket; the last node added in phase I will never be removed, because
-    # the tests for inclusion and removal are identical; on the other hand,
-    # known.good nodes should be checked to remove false positives.
+    # the tests for inclusion and removal are identical.
     fixed = c(to.add, whitelisted)
     fixed = fixed[fixed != ""]
 
@@ -195,11 +126,7 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
 
     state[[loop.counter]] = mb
 
-    # the stepwise learning technique used here is stateless; make it stateful
-    # to detect and break infinite loops.
-    duplicated.check = duplicated(state[seq(loop.counter)])
-
-    if (any(duplicated.check)) {
+    if (ia.detect.infinite.loop(mb, state, loop.counter - 1, debug)) {
 
       # remove the node added to the markov blanket in the last iteration, and
       # do not consider it again for inclusion.
@@ -207,18 +134,8 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
       culprit = c(culprit, duplicated.node)
       mb = mb[mb != duplicated.node]
 
-      if (debug) {
-
-        cat("  ! recurring markov blanket configuration detected (",
-          state[[loop.counter]], ").\n")
-        cat("  ! retracing the steps of the learning process:\n")
-        sapply(state[seq(loop.counter)],
-          function(str) {
-            cat("    >", paste(str, collapse = " "), "\n")
-          })
+      if (debug)
         cat("  ! removing", duplicated.node, "from the nodes to test.\n")
-
-      }#THEN
 
       # reset the state list so that no further errors are raised.
       state[[loop.counter]] = NULL

@@ -24,6 +24,8 @@ check.nodes = function(nodes, graph = NULL, min.nodes = 1, max.nodes = Inf) {
       invalid.nodes = nodes %!in% names(graph$nodes)
     else if (is(graph, "bn.fit"))
       invalid.nodes = nodes %!in% names(graph)
+    else if (is(graph, c("bn.fit.dnode", "bn.fit.onode", "bn.fit.gnode", "bn.fit.cgnode")))
+      invalid.nodes = nodes %!in% c(graph$node, graph$parents)
     else if (is.character(graph))
       invalid.nodes = nodes %!in% graph
 

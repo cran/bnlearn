@@ -123,7 +123,7 @@ cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ...,
   }#THEN
   else if (method == "lw") {
 
-    evidence = check.mutilated.evidence(evidence, fitted)
+    evidence = check.evidence(evidence, fitted)
 
   }#THEN
 
@@ -182,7 +182,7 @@ cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
   }#THEN
   else if (method == "lw") {
 
-    evidence = check.mutilated.evidence(evidence, fitted)
+    evidence = check.evidence(evidence, fitted)
 
   }#THEN
 

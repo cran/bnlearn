@@ -8,11 +8,11 @@
 SEXP dedup (SEXP data, SEXP threshold, SEXP complete, SEXP debug) {
 
 int i = 0, j = 0, k = 0, dropped = 0, nc = 0;
-int debuglevel = isTRUE(debug);
 double *mean = NULL, *sse = NULL, *xx = NULL, *yy = NULL;
 double cur_mean[2], cur_sse[2];
 double tol = MACHINE_TOL, t = NUM(threshold);
 long double sum = 0;
+bool debugging = isTRUE(debug);
 SEXP result, colnames;
 gdata dt = { 0 };
 
@@ -24,7 +24,7 @@ gdata dt = { 0 };
   xx = Calloc1D(dt.m.nobs, sizeof(double));
   yy = Calloc1D(dt.m.nobs, sizeof(double));
 
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("* caching means and variances.\n");
 
   mean = Calloc1D(dt.m.ncols, sizeof(double));
@@ -48,7 +48,7 @@ gdata dt = { 0 };
     if (dt.m.flag[j].drop)
       continue;
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("* looking at %s with %d variables still to check.\n",
         dt.m.names[j], dt.m.ncols - (j + 1));
 
@@ -109,7 +109,7 @@ gdata dt = { 0 };
       /* test the correlation against the threshold. */
       if (fabsl(sum) > t) {
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("%s is collinear with %s, dropping %s with COR = %.4Lf\n",
             dt.m.names[j], dt.m.names[k], dt.m.names[k], sum);
 

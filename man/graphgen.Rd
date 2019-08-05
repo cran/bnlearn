@@ -85,7 +85,7 @@ random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
 
   Ide JS, Cozman FG (2002). "Random Generation of Bayesian Networks".
     \emph{Proceedings of the 16th Brazilian Symposium on Artificial
-    Intelligence}, pp. 366--375.
+    Intelligence}, 366--375.
 
   Melancon G, Dutour I, Bousquet-Melou M (2001). "Random Generation of Directed
     Acyclic Graphs". \emph{Electronic Notes in Discrete Mathematics},

@@ -98,7 +98,7 @@ double imaginary = 0, alpha = 0, temp = 0, temp2 = 0, res = 0, iss_val = 0;
 
 /* Dirichlet averaged posterior probabilities (covers the BDLA score). */
 double dirichlet_averaged_node(SEXP target, SEXP x, SEXP data, SEXP l,
-    SEXP prior, SEXP beta, int sparse, int debuglevel) {
+    SEXP prior, SEXP beta, int sparse, bool debugging) {
 
 char *t = (char *)CHAR(STRING_ELT(target, 0));
 double prob = 0, prior_prob = 0;
@@ -112,7 +112,7 @@ SEXP nodes, node_t, data_t, parents, parent_vars, config;
   /* extract the node's column from the data frame. */
   PROTECT(data_t = c_dataframe_column(data, target, TRUE, FALSE));
   /* compute the prior probability component for the node. */
-  prior_prob = graph_prior_prob(prior, target, beta, nodes, debuglevel);
+  prior_prob = graph_prior_prob(prior, target, beta, nodes, debugging);
 
   if (length(parents) == 0) {
 
@@ -131,7 +131,7 @@ SEXP nodes, node_t, data_t, parents, parent_vars, config;
 
   }/*ELSE*/
 
-  if (debuglevel > 0) {
+  if (debugging) {
 
     Rprintf("  > (log)prior probability is %lf.\n", prior_prob);
     Rprintf("  > (log)posterior density is %lf.\n", prob);

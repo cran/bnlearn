@@ -32,8 +32,9 @@ double res = 0;
 
     }/*THEN*/
 
-  /* if there are no complete data points, return independence. */
-  if (ncomplete == 0)
+  /* if there are no complete data points, or if there is just a single complete
+   * observation, return independence. */
+  if (ncomplete <= 1)
     goto free_and_return;
 
   /* estimate the optimal lambda for the data. */
@@ -99,6 +100,11 @@ double res = 0;
 
     }/*THEN*/
 
+  /* if there are no complete data points, or if there is just a single complete
+   * observation, return independence. */
+  if (ncomplete <= 1)
+    goto free_and_return;
+
   /* estimate the optimal lambda for the data. */
   mi_lambda((double *)n, &lambda, target, ncomplete, llx, lly, llz);
 
@@ -138,6 +144,8 @@ double res = 0;
     }/*FOR*/
 
   }/*FOR*/
+
+free_and_return:
 
   Free1D(nk);
   Free2D(ni, llx);
@@ -244,7 +252,7 @@ long double sum = 0, lambda = 0;
 
 /* compute the shrinkage intensity lambda for a covariance matrix. */
 double covmat_lambda(double **column, double *mean, covariance cov, int n,
-    short int *missing, int nc) {
+    bool *missing, int nc) {
 
 int i = 0, j = 0, k = 0, cur = 0;
 long double lambda = 0, sum_covs = 0, sum_cov_vars = 0, temp = 0;

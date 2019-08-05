@@ -16,7 +16,7 @@ structural.em(x, maximize = "hc", maximize.args = list(), fit = "mle",
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
   \item{maximize}{a character string, the score-based algorithm to be used in
-    the \dQuote{maximization} step. See \code{\link{bnlearn-package}} for
+    the \dQuote{maximization} step. See \code{\link{structure learning}} for
     details.}
   \item{maximize.args}{a list of arguments to be passed to the algorithm
     specified by \code{maximize}, such as \code{restart} for hill-climbing or
@@ -45,6 +45,10 @@ structural.em(x, maximize = "hc", maximize.args = list(), fit = "mle",
   the first \emph{maximization} step because it cannot fit the corresponding
   local distribution(s).
 
+  Note that if \code{impute} is set to \code{bayes-lw}, each call to
+  \code{structural.em} may produce a different model since the imputation is
+  based on a stochastic simulation.
+
 }
 \value{
 
@@ -62,7 +66,7 @@ structural.em(x, maximize = "hc", maximize.args = list(), fit = "mle",
 
   Friedman N (1997). "Learning Belief Networks in the Presence of Missing Values
     and Hidden Variables". \emph{Proceedings of the 14th International
-    Conference on Machine Learning}, pp. 125--133.
+    Conference on Machine Learning}, 125--133.
 
 }
 \author{Marco Scutari}

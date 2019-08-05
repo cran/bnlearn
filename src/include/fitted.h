@@ -8,4 +8,4 @@ typedef enum {
   CGNODE    =  4, /* conditional Gaussian node */
 } fitted_node_e;
 
-fitted_node_e r_fitted_node_label(SEXP class);
+fitted_node_e fitted_node_to_enum(SEXP class);

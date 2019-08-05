@@ -175,10 +175,6 @@ check.learning.algorithm.args = function(args, algorithm, bn) {
         if (bn$learning$test %in% available.tests)
           args$test = bn$learning$test
 
-      # set the appropriate value for the optimization flag.
-      if ("optimized" %!in% names(args))
-        args$optimized = bn$learning$optimized
-
       # pass along all the parameters in bn$learning$args.
       if (length(bn$learning$args) > 0) {
 

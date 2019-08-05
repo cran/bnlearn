@@ -34,10 +34,10 @@ tan.backend = function(data, training, explanatory, whitelist, blacklist,
 
   # call chow-liu to build the rest of the network.
   chow.liu.arcs =
-    chow.liu.backend(x = minimal.data.frame.column(data, explanatory, drop = FALSE),
+    chow.liu.backend(x = .data.frame.column(data, explanatory, drop = FALSE),
                      nodes = explanatory, estimator = estimator,
                      whitelist = whitelist, blacklist = blacklist,
-                     conditional = minimal.data.frame.column(data, training, drop = TRUE),
+                     conditional = .data.frame.column(data, training, drop = TRUE),
                      debug = debug)
 
   # set the directions of the arcs in the Chow-Liu tree.

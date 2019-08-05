@@ -26,6 +26,9 @@ graphviz.compare.backend = function(netlist, nodes, groups, layout, shape, main,
   grlabels = names(graph::edgeRenderInfo(gr)[["splines"]])
   graph::edgeRenderInfo(gr)[["lty"]] = "solid"
 
+  # allocate the return value.
+  graphlist = vector(length(arclist), mode = "list")
+
   # iterate over the network structures.
   for (i in seq_along(arclist)) {
 
@@ -178,10 +181,17 @@ graphviz.compare.backend = function(netlist, nodes, groups, layout, shape, main,
     graph::graphRenderInfo(gr.temp)$main = main[i]
     graph::graphRenderInfo(gr.temp)$sub = sub[i]
 
-    # plor the formatted network structure.
+    # save the formatted network to return it later.
+    graphlist[[i]] = gr.temp
+    # plot the formatted network structure, unless told not to do that.
+    if ((i == 1) && (diff == "from-first") && !diff.args$show.first)
+      next
+
     Rgraphviz::renderGraph(gr.temp)
 
   }#FOR
+
+  invisible(graphlist)
 
 }#GRAPHVIZ.COMPARE.BACKEND
 

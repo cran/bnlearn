@@ -22,9 +22,7 @@ bn.boot(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
     Possible values are \code{"ordinary"} (the default, for nonparametric
     bootstrap) and \code{"parametric"}.}
   \item{algorithm}{a character string, the learning algorithm to be applied
-    to the bootstrap replicates. Possible values are \code{gs}, \code{iamb},
-    \code{fast.iamb}, \code{inter.iamb}, \code{mmpc}, \code{hc}, \code{tabu},
-    \code{mmhc} and \code{rsmax2}. See \code{\link{bnlearn-package}} and
+    to the bootstrap replicates. See \code{\link{structure learning}} and the
     documentation of each algorithm for details.}
   \item{algorithm.args}{a list of extra arguments to be passed to the learning
     algorithm.}
@@ -51,7 +49,7 @@ bn.boot(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
 
   Friedman N, Goldszmidt M, Wyner A (1999). "Data Analysis with Bayesian
 	Networks: A Bootstrap Approach". \emph{Proceedings of the 15th Annual
-	Conference on Uncertainty in Artificial Intelligence}, pp. 196--201.
+	Conference on Uncertainty in Artificial Intelligence}, 196--201.
 
 }
 \examples{

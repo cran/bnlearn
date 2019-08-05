@@ -53,10 +53,18 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
                   cutpoints = cutpoints, method = attr(strength, "method"),
                   arcs = x$arcs, debug = debug)
 
-  # return the graph object for further customization, not NULL.
-  graphviz.backend(nodes = names(x$nodes), arcs = x$arcs,
-    highlight = highlight, groups = groups, arc.weights = arc.weights,
-    layout = layout, shape = shape, main = main, sub = sub, render = render)
+  # create and maybe plot the graph object.
+  gr = graphviz.backend(nodes = names(x$nodes), arcs = x$arcs,
+         highlight = highlight, groups = groups, arc.weights = arc.weights,
+         layout = layout, shape = shape, main = main, sub = sub,
+         render = render)
+
+  # save the arc strengths in the weights.
+  graph::edgeData(gr, from = x$arcs[, 1], to = x$arcs[, 2],
+                     attr = "weight") = str
+
+  # return the graph object for further customization.
+  invisible(gr)
 
 }#STRENGTH.PLOT
 
@@ -209,6 +217,12 @@ plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
 
 }#PLOT.BN
 
+plot.bn.fit = function(x, ...) {
+
+  stop("no plot() method available for 'bn.fit' objects, see ?`bn.fit plots` for alternatives.")
+
+}#PLOT.BN.FIT
+
 # ECDF plot for 'bn.strength' objects.
 plot.bn.strength = function(x, draw.threshold = TRUE, main = NULL,
     xlab = "arc strengths", ylab = "CDF(arc strengths)", ...) {
@@ -326,7 +340,7 @@ graphviz.compare = function(x, ..., groups, layout = "dot", shape = "circle",
   else if (diff == "from-first") {
 
     args = c("tp.col", "tp.lty", "tp.lwd", "fp.col", "fp.lty", "fp.lwd",
-             "fn.col", "fn.lty", "fn.lwd")
+             "fn.col", "fn.lty", "fn.lwd", "show.first")
 
     # check unused extra arguments.
     check.unused.args(diff.args, args)
@@ -367,6 +381,12 @@ graphviz.compare = function(x, ..., groups, layout = "dot", shape = "circle",
         if (!is.positive(diff.args[[lwd]]))
           stop("diff.args$", lwd, " must be a positive number.")
 
+    # check whether the first, reference network should be plotted.
+    if ("show.first" %in% names(diff.args))
+      check.logical(diff.args$show.first)
+    else
+      diff.args$show.first = TRUE
+
   }#THEN
 
   # the sanitization of "layout" and "shape" is left to the backend.
@@ -374,8 +394,6 @@ graphviz.compare = function(x, ..., groups, layout = "dot", shape = "circle",
   graphviz.compare.backend(netlist = netlist, nodes = nodes, groups = groups,
     layout = layout, shape = shape, main = main, sub = sub, diff = diff,
     diff.args = diff.args)
-
-  invisible(NULL)
 
 }#GRAPHVIZ.COMPARE
 

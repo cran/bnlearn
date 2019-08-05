@@ -45,8 +45,6 @@
             value) of the conditional independence tests.
           \item \code{iss}: a positive numeric value, the imaginary sample size
             used by the \code{bge} and \code{bde} scores.
-          \item \code{phi}: a character string, either \code{heckerman} or
-            \code{bottcher}; used by the \code{bge} score.
           \item \code{k}: a positive numeric value, the penalty coefficient
             used by the \code{aic}, \code{aic-g}, \code{bic} and \code{bic-g}
             scores.

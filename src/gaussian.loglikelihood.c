@@ -50,7 +50,7 @@ int i = 0, nrow = length(x), ncol = length(parents);
 double *xx = REAL(x), **dd = NULL, res = 0, *fitted = NULL, sd = 0;
 SEXP data_x;
 
-  /* dereference the data and prepare it for the QR decomposition. */
+  /* dereference the data. */
   PROTECT(data_x = c_dataframe_column(data, parents, FALSE, FALSE));
   dd = Calloc1D(ncol, sizeof(double *));
   for (i = 0; i < ncol; i++)
@@ -81,7 +81,8 @@ SEXP data_x;
 
 }/*CGLIK*/
 
-double loglik_gnode(SEXP target, SEXP x, SEXP data, double *nparams, int debuglevel) {
+double loglik_gnode(SEXP target, SEXP x, SEXP data, double *nparams,
+    bool debugging) {
 
 double loglik = 0;
 char *t = (char *)CHAR(STRING_ELT(target, 0));
@@ -101,7 +102,7 @@ SEXP nodes, node_t, parents, data_t;
   else
     loglik = cglik(data_t, data, parents, nparams);
 
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("  > loglikelihood is %lf.\n", loglik);
 
   return loglik;

@@ -7,13 +7,14 @@
 #define CHILD		 4
 
 SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrow,
-    int *status, int debuglevel);
+    int *status, bool debugging);
 
 /* compute the cached values for all nodes. */
 SEXP cache_structure(SEXP nodes, SEXP amat, SEXP debug) {
 
-int i = 0, debuglevel = LOGICAL(debug)[0], length_nodes = length(nodes);
+int i = 0, length_nodes = length(nodes);
 int *status = NULL, *a = INTEGER(amat);
+bool debugging = isTRUE(debug);
 
   SEXP bn, temp;
 
@@ -33,7 +34,7 @@ int *status = NULL, *a = INTEGER(amat);
     /* (re)initialize the status vector. */
     memset(status, '\0', sizeof(int) * length_nodes);
 
-    temp = cache_node_structure(i, nodes, a, length_nodes, status, debuglevel);
+    temp = cache_node_structure(i, nodes, a, length_nodes, status, debugging);
 
     /* save the returned list. */
     SET_VECTOR_ELT(bn, i, temp);
@@ -51,9 +52,10 @@ int *status = NULL, *a = INTEGER(amat);
 /* compute the cached values for a single node (R-friendly). */
 SEXP cache_partial_structure(SEXP nodes, SEXP target, SEXP amat, SEXP debug) {
 
-int i = 0, debuglevel = LOGICAL(debug)[0], length_nodes = length(nodes);
+int i = 0, length_nodes = length(nodes);
 char *t = (char *)CHAR(STRING_ELT(target, 0));
 int *status = NULL, *a = INTEGER(amat);
+bool debugging = isTRUE(debug);
 SEXP cached;
 
   if (isTRUE(debug))
@@ -68,7 +70,7 @@ SEXP cached;
       break;
 
   /* return the corresponding part of the bn structure. */
-  cached = cache_node_structure(i, nodes, a, length_nodes, status, debuglevel);
+  cached = cache_node_structure(i, nodes, a, length_nodes, status, debugging);
 
   Free1D(status);
 
@@ -78,13 +80,13 @@ SEXP cached;
 
 /* backend to compute the cached values for a single node. */
 SEXP cache_node_structure(int cur, SEXP nodes, int *amat, int nrow,
-    int *status, int debuglevel) {
+    int *status, bool debugging) {
 
 int i = 0, j = 0;
 int num_parents = 0, num_children = 0, num_neighbours = 0, num_blanket = 0;
 SEXP structure, mb, nbr, children, parents;
 
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("* node %s.\n", NODE(cur));
 
   for (i = 0; i < nrow; i++) {
@@ -94,7 +96,7 @@ SEXP structure, mb, nbr, children, parents;
       if (amat[CMC(i, cur, nrow)] == 0) {
 
         /* if a[i,j] = 1 and a[j,i] = 0, then i -> j. */
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  > found child %s.\n", NODE(i));
 
         status[i] = CHILD;
@@ -110,7 +112,7 @@ SEXP structure, mb, nbr, children, parents;
 
               status[j] = BLANKET;
 
-              if (debuglevel > 0)
+              if (debugging)
                 Rprintf("  > found node %s in markov blanket.\n", NODE(j));
 
             }/*THEN*/
@@ -123,7 +125,7 @@ SEXP structure, mb, nbr, children, parents;
       else {
 
         /* if a[i,j] = 1 and a[j,i] = 1, then i -- j. */
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  > found neighbour %s.\n", NODE(i));
 
         status[i] = NEIGHBOUR;
@@ -136,7 +138,7 @@ SEXP structure, mb, nbr, children, parents;
       if (amat[CMC(i, cur, nrow)] == 1) {
 
         /* if a[i,j] = 0 and a[j,i] = 1, then i <- j. */
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  > found parent %s.\n", NODE(i));
 
         status[i] = PARENT;
@@ -180,7 +182,7 @@ SEXP structure, mb, nbr, children, parents;
 
   }/*FOR*/
 
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("  > node %s has %d parent(s), %d child(ren), %d neighbour(s) and %d nodes in the markov blanket.\n",
       NODE(cur), num_parents, num_children, num_neighbours, num_blanket);
 

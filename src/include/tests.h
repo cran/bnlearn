@@ -31,12 +31,11 @@ typedef enum {
 } test_e;
 
 /* from enums.c */
-test_e test_label(const char *label);
+test_e test_to_enum(const char *label);
 #define IS_DISCRETE_ASYMPTOTIC_TEST(t) (((t >= MI) && (t < COR)) || t == MI_SH)
 #define IS_DISCRETE_PERMUTATION_TEST(t) ((t >= MC_MI) && (t < MC_COR))
 #define IS_CONTINUOUS_PERMUTATION_TEST(t) (t >= MC_COR)
 #define IS_SMC(t) (((t >= SMC_MI) && (t < MC_COR)) || (t >= SMC_COR))
-#define IS_ADF(t) ((t == MI_ADF) || (t == X2_ADF))
 #define IS_TWO_SIDED(t) \
   ((t == JT) || (t == COR) || (t == ZF) || (t == MC_JT) || (t == SMC_JT) || \
    (t == MC_COR) || (t == MC_ZF) || (t == SMC_COR) || (t == SMC_ZF))
@@ -63,13 +62,13 @@ SEXP ctest(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP B, SEXP alpha,
 
 /* from discrete.tests.c */
 double c_chisqtest(int *xx, int llx, int *yy, int lly, int num, double *df,
-    test_e test, int scale);
+    test_e test, bool scale);
 double mi_kernel(int **n, int *nrowt, int *ncolt, int nrow, int ncol,
     int length);
 double x2_kernel(int **n, int *nrowt, int *ncolt, int nrow, int ncol,
     int length);
 double c_cchisqtest(int *xx, int llx, int *yy, int lly, int *zz, int llz,
-    int num, double *df, test_e test, int scale);
+    int num, double *df, test_e test, bool scale);
 double cmi_kernel(int ***n, int **nrowt, int **ncolt, int *ncond, int nr,
     int nc, int nl);
 double cx2_kernel(int ***n, int **nrowt, int **ncolt, int *ncond,
@@ -91,8 +90,10 @@ double c_micg_with_missing(double *yy, int *xx, int llx, int num, double *df,
     int *ncomplete);
 
 /* from df.adjust.c */
-double df_adjust(int *ni, int llx, int *nj, int lly);
-double cdf_adjust(int **ni, int llx, int **nj, int lly, int llz);
+double discrete_df(test_e test, int *ni, int llx, int *nj, int lly);
+double discrete_cdf(test_e test, int **ni, int llx, int **nj, int lly, int llz);
+double gaussian_cdf(test_e test, int num, int nz);
+#define gaussian_df(test, num) gaussian_cdf(test, num, 0)
 
 /* from jonckheere.c */
 double c_jt_mean(int num, int *ni, int llx);
@@ -109,7 +110,7 @@ double c_shmi(int *xx, int llx, int *yy, int lly, int num, int scale);
 double c_shcmi(int *xx, int llx, int *yy, int lly, int *zz, int llz,
     int num, double *df, int scale);
 double covmat_lambda(double **column, double *mean, covariance cov, int n,
-    short int *missing, int nc);
+    bool *missing, int nc);
 void covmat_shrink(covariance cov, double lambda);
 
 /* from {discrete,gaussian}.monte.carlo.c */

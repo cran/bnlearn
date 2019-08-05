@@ -20,7 +20,7 @@ BF(num, den, data, score, ..., log = TRUE)
     Gaussian score} (\code{bge}) for Gaussian networks. Other kinds of Bayesian
     networks are not currently supported.}
   \item{\dots}{extra tuning arguments for the posterior scores. See
-    \code{\link{bnlearn-package}} for details.}
+    \code{\link{score}} for details.}
   \item{log}{a boolean value. If \code{TRUE} the Bayes factor is given as
     log(BF).}
 }

@@ -4,7 +4,8 @@
 SEXP tiers(SEXP nodes, SEXP debug) {
 
 int i = 0, j = 0, k = 0, narcs = 0, nnodes = 0, ntiers = length(nodes);
-int *tier_size = NULL, debuglevel = isTRUE(debug), tier_start = 0, cur = 0;
+int *tier_size = NULL, tier_start = 0, cur = 0;
+bool debugging = isTRUE(debug);
 SEXP flattened, blacklist, temp;
 
   /* allocate the counters for tiers' sizes.*/
@@ -56,13 +57,13 @@ SEXP flattened, blacklist, temp;
 
     temp = STRING_ELT(flattened, k);
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("* current node is %s in tier %d, position %d of %d.\n",
         CHAR(temp), i + 1, k + 1, nnodes);
 
     for (j = tier_start + tier_size[i]; j < nnodes; j++) {
 
-      if (debuglevel)
+      if (debugging)
         Rprintf("  > blacklisting %s -> %s\n", CHAR(STRING_ELT(flattened, j)), CHAR(temp));
 
       SET_STRING_ELT(blacklist, cur, STRING_ELT(flattened, j));

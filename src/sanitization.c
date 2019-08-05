@@ -155,7 +155,7 @@ SEXP cur_var, cur_var_levels, cur_var_class;
 
     cur_var = VECTOR_ELT(data, tv[i] - 1);
     cur_node = VECTOR_ELT(fitted, tn[i] - 1);
-    cur_node_type = r_fitted_node_label(cur_node);
+    cur_node_type = fitted_node_to_enum(cur_node);
 
     switch(TYPEOF(cur_var)) {
 

@@ -107,7 +107,8 @@ end:
 
 }/*CCGLOGLIK*/
 
-double loglik_cgnode(SEXP target, SEXP x, SEXP data, double *nparams, int debuglevel) {
+double loglik_cgnode(SEXP target, SEXP x, SEXP data, double *nparams,
+    bool debugging) {
 
 double loglik = 0;
 int i = 0, nparents = 0, *type = NULL, cur_type = 0, dparents = 0;
@@ -182,7 +183,7 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
 
   }/*ELSE*/
 
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("  > loglikelihood is %lf.\n", loglik);
 
   UNPROTECT(1);

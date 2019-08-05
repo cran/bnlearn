@@ -747,7 +747,7 @@ int check = FALSE, ncomplete = 0, *complete = NULL, **zid = NULL;
 /* compute conditional least squares efficiently by special-casing whenever
  * possible. */
 void c_cls(double **x, double *y, int *z, int nrow, int ncol, int ncond,
-    double *fitted, double *resid, double *beta, double *sd, int missing) {
+    double *fitted, double *resid, double *beta, double *sd, bool missing) {
 
   if (!missing) {
 

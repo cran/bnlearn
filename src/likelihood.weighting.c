@@ -2,7 +2,7 @@
 #include "include/loss.h"
 
 void c_lw_weights(SEXP fitted, SEXP data, int n, double *w, SEXP keep,
-    int debuglevel) {
+    bool debugging) {
 
 int i = 0, max_el = 0;
 double maxw = 0;
@@ -10,7 +10,7 @@ double maxw = 0;
   /* ensure the buffer is clean. */
   memset(w, '\0', n * sizeof(double));
   /* compute log-probabilities for each particle. */
-  c_entropy_loss(fitted, data, n, TRUE, w, keep, FALSE, FALSE, debuglevel);
+  c_entropy_loss(fitted, data, n, TRUE, w, keep, FALSE, FALSE, debugging);
   /* rescale before exponentiating them into probabilities (if possible). */
   max_el = d_which_max(w, n);
 

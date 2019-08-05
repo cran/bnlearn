@@ -9,75 +9,64 @@
 #include "include/data.table.h"
 
 /* parametric tests for discrete variables. */
-static double ct_discrete(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
-    double *pvalue, double *df, test_e test) {
+static double ct_discrete(ddata dtx, ddata dty, ddata dtz, double *pvalue,
+    double *df, test_e test) {
 
-int i = 0, llx = 0, lly = NLEVELS(yy), llz = 0;
-int *xptr = NULL, *yptr = INTEGER(yy), *zptr = NULL;
+int i = 0, llx = 0, lly = dty.nlvl[0], llz = 0;
+int *xptr = NULL, *yptr = dty.col[0], *zptr = NULL;
 double statistic = 0;
-SEXP xdata, config;
 
-  PROTECT(config = c_configurations(zz, TRUE, TRUE));
-  zptr = INTEGER(config);
-  llz = NLEVELS(config);
+  zptr = Calloc1D(dtz.m.nobs, sizeof(int));
+  c_fast_config(dtz.col, dtz.m.nobs, dtz.m.ncols, dtz.nlvl, zptr, &llz, 1);
 
-  for (i = 0; i < ntests; i++) {
+  for (i = 0; i < dtx.m.ncols; i++) {
 
-    xdata = VECTOR_ELT(xx, i);
-    xptr = INTEGER(xdata);
-    llx = NLEVELS(xdata);
+    xptr = dtx.col[i];
+    llx = dtx.nlvl[i];
 
     if (test == MI || test == MI_ADF || test == X2 || test == X2_ADF) {
 
       /* mutual information and Pearson's X^2 asymptotic tests. */
-      statistic = c_cchisqtest(xptr, llx, yptr, lly, zptr, llz, nobs, df, test,
-                    (test == MI) || (test == MI_ADF));
+      statistic = c_cchisqtest(xptr, llx, yptr, lly, zptr, llz, dtz.m.nobs,
+                    df, test, (test == MI) || (test == MI_ADF));
       pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
 
     }/*THEN*/
     else if (test == MI_SH) {
 
       /* shrinkage mutual information test. */
-      statistic = c_shcmi(xptr, llx, yptr, lly, zptr, llz, nobs, df, TRUE);
+      statistic = c_shcmi(xptr, llx, yptr, lly, zptr, llz, dtz.m.nobs, df, TRUE);
       pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
 
     }/*THEN*/
     else if (test == JT) {
 
       /* Jonckheere-Terpstra test. */
-      statistic = c_cjt(xptr, llx, yptr, lly, zptr, llz, nobs);
+      statistic = c_cjt(xptr, llx, yptr, lly, zptr, llz, dtz.m.nobs);
       pvalue[i] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
 
     }/*THEN*/
 
   }/*FOR*/
 
-  UNPROTECT(1);
+  Free1D(zptr);
 
   return statistic;
 
 }/*CT_DISCRETE*/
 
 /* parametric tests for Gaussian variables. */
-static double ct_gaustests_complete(SEXP xx, SEXP yy, SEXP zz, double *pvalue,
+static double ct_gaustests_complete(gdata dtx, gdata dt, double *pvalue,
     double *df, test_e test) {
 
-int i = 0, ntests = length(xx);
+int i = 0, ntests = dtx.m.ncols;
 double transform = 0, statistic = 0, lambda = 0;
-gdata dt = { 0 };
 covariance cov = { 0 }, basecov = { 0 };
 
-  /* allocate and initialize a data table for the variables. */
-  dt = gdata_from_SEXP(zz, 2);
-  dt.col[1] = REAL(yy);
-
   /* compute the degrees of freedom for correlation and mutual information. */
-  if (test == COR)
-    *df = dt.m.nobs - dt.m.ncols;
-  else if ((test == MI_G) || (test == MI_G_SH))
-    *df = 1;
+  *df = gaussian_cdf(test, dt.m.nobs, dt.m.ncols - 2);
 
-  if (((test == COR) && (*df < 1)) || ((test == ZF) && (dt.m.nobs - dt.m.ncols < 2))) {
+  if (*df < 1) {
 
     /* if there are not enough degrees of freedom, return independence. */
     warning("trying to do a conditional independence test with zero degrees of freedom.");
@@ -96,7 +85,6 @@ covariance cov = { 0 }, basecov = { 0 };
   basecov = new_covariance(dt.m.ncols, TRUE);
 
   /* compute the mean values and the covariance matrix. */
-  gdata_cache_means(&dt, 1);
   c_covmat(dt.col, dt.mean, dt.m.nobs, dt.m.ncols, cov, 1);
   if (ntests > 1)
     copy_covariance(&cov, &basecov);
@@ -105,7 +93,7 @@ covariance cov = { 0 }, basecov = { 0 };
   for (i = 0; i < ntests; i++) {
 
     /* extract and plug-in the i-th variable. */
-    dt.col[0] = REAL(VECTOR_ELT(xx, i));
+    dt.col[0] = dtx.col[i];
     /* update the corresponding mean in the cache. */
     dt.mean[0] = c_mean(dt.col[0], dt.m.nobs);
     /* update the covariance matrix. */
@@ -140,7 +128,7 @@ covariance cov = { 0 }, basecov = { 0 };
     else if (test == ZF) {
 
       statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
-      statistic = cor_zf_trans(statistic, (double)(dt.m.nobs - dt.m.ncols));
+      statistic = cor_zf_trans(statistic, *df);
       pvalue[i] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
 
     }/*THEN*/
@@ -149,60 +137,43 @@ covariance cov = { 0 }, basecov = { 0 };
 
   FreeCOV(basecov);
   FreeCOV(cov);
-  FreeGDT(dt, FALSE);
 
   return statistic;
 
 }/*CT_GAUSTESTS_COMPLETE*/
 
-static double ct_gaustests_with_missing(SEXP xx, SEXP yy, SEXP zz,
-    double *pvalue, double *df, test_e test) {
+static double ct_gaustests_with_missing(gdata dtx, gdata dt, double *pvalue,
+    double *df, test_e test) {
 
-int i = 0, j = 0, ncomplete = 0, ntests = length(xx);
+int i = 0, ncomplete = 0;
 double transform = 0, *mean = NULL, statistic = 0, lambda = 0;
-short int *missing_yz = NULL, *missing_all = NULL;
-gdata dt = { 0 };
+bool *missing_yz = NULL, *missing_all = NULL;
 covariance cov = { 0 };
 
-  /* allocate and initialize a data table for the variables. */
-  dt = gdata_from_SEXP(zz, 2);
-  dt.col[1] = REAL(yy);
   /* allocate the mean vector. */
   mean = Calloc1D(dt.m.ncols, sizeof(double));
   /* allocate the covariance matrix. */
   cov = new_covariance(dt.m.ncols, TRUE);
 
-  /* allocate the missing values indicators. */
-  missing_yz = Calloc1D(dt.m.nobs, sizeof(short int));
-  if (test == MI_G_SH)
-    missing_all = Calloc1D(dt.m.nobs, sizeof(short int));
+  /* allocate and initialize the missing values indicators. */
+  missing_yz = Calloc1D(dt.m.nobs, sizeof(bool));
+  missing_all = Calloc1D(dt.m.nobs, sizeof(bool));
 
-  for (i = 0; i < dt.m.nobs; i++)
-    for (j = 1; j < dt.m.ncols; j++)
-      if (ISNAN(dt.col[j][i])) {
-
-        missing_yz[i] = TRUE;
-        break;
-
-      }/*THEN*/
+  gdata_incomplete_cases(&dt, missing_yz, 1);
 
   /* compute the partial correlation and the test statistic. */
-  for (i = 0; i < ntests; i++) {
+  for (i = 0; i < dtx.m.ncols; i++) {
 
     /* extract and plug in the i-th variable. */
-    dt.col[0] = REAL(VECTOR_ELT(xx, i));
+    dt.col[0] = dtx.col[i];
     /* compute the covariance matrix. */
     c_covmat_with_missing(dt.col, dt.m.nobs, dt.m.ncols, missing_yz,
       missing_all, mean, cov.mat, &ncomplete);
 
     /* compute the degrees of freedom for correlation and mutual information. */
-    if (test == COR)
-      *df = ncomplete - dt.m.ncols;
-    else if ((test == MI_G) || (test == MI_G_SH))
-      *df = 1;
+    *df = gaussian_cdf(test, ncomplete, dt.m.ncols - 2);
 
-    if ((ncomplete == 0) || ((test == COR) && (*df < 1)) ||
-        ((test == ZF) && (ncomplete - dt.m.ncols < 2))) {
+    if ((ncomplete == 0) || (*df < 1)) {
 
       /* if there are not enough degrees of freedom, return independence. */
       warning("trying to do a conditional independence test with zero degrees of freedom.");
@@ -242,7 +213,7 @@ covariance cov = { 0 };
     else if (test == ZF) {
 
       statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
-      statistic = cor_zf_trans(statistic, (double)(ncomplete - dt.m.ncols));
+      statistic = cor_zf_trans(statistic, *df);
       pvalue[i] = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
 
     }/*THEN*/
@@ -251,405 +222,232 @@ covariance cov = { 0 };
 
   Free1D(mean);
   Free1D(missing_yz);
-  if (test == MI_G_SH)
-    Free1D(missing_all);
+  Free1D(missing_all);
   FreeCOV(cov);
-  FreeGDT(dt, FALSE);
 
   return statistic;
 
 }/*CT_GAUSTESTS_WITH_MISSING*/
 
 /* conditional linear Gaussian mutual information test. */
-static double ct_micg_complete(SEXP xx, SEXP yy, SEXP zz, double *pvalue,
-    double *df) {
+double c_micg_chisq(cgdata dtx, cgdata dty, cgdata dtz, int *zptr, int llz,
+    double *df, bool copy) {
 
-int i = 0, *zptr = 0, ntests = length(xx);
-int xtype = 0, ytype = TYPEOF(yy), llx = 0, lly = 0, llz = 0;
-void *xptr = NULL, *yptr = NULL;
 double statistic = 0;
-SEXP xdata;
-cgdata dt = { 0 };
 
-  if (ytype == INTSXP) {
+  if (dty.m.flag[0].discrete && dtx.m.flag[0].discrete) {
 
-    /* cache the number of levels. */
-    lly = NLEVELS(yy);
-    yptr = INTEGER(yy);
+    if (dtz.ngcols - 1 > 0) {
 
-  }/*THEN*/
-  else {
-
-    yptr = REAL(yy);
-
-  }/*ELSE*/
-
-  /* allocate and initialize a data table for the variables. */
-  dt = cgdata_from_SEXP(zz, 1, 1);
-
-  /* allocate vector for the configurations of the discrete parents. */
-  if (dt.ndcols - 1 > 0) {
-
-    zptr = Calloc1D(dt.m.nobs, sizeof(int));
-    c_fast_config(dt.dcol + 1, dt.m.nobs, dt.ndcols - 1, dt.nlvl + 1,
-      zptr, &llz, 1);
-
-  }/*THEN*/
-
-  for (i = 0; i < ntests; i++) {
-
-    xdata = VECTOR_ELT(xx, i);
-    xtype = TYPEOF(xdata);
-
-    if (xtype == INTSXP) {
-
-      xptr = INTEGER(xdata);
-      llx = NLEVELS(xdata);
+      /* need to reverse conditioning to actually compute the test. */
+      statistic = 2 * dtz.m.nobs * dtz.m.nobs *
+                    c_cmicg_unroll(dtx.dcol[0], dtx.nlvl[0], dty.dcol[0],
+                      dty.nlvl[0], zptr, llz, dtz.gcol + 1, dtz.ngcols - 1, df,
+                      dtz.m.nobs);
 
     }/*THEN*/
     else {
 
-      xptr = REAL(xdata);
+      /* the test reverts back to a discrete mutual information test. */
+      statistic = c_cchisqtest(dtx.dcol[0], dtx.nlvl[0],
+                    dty.dcol[0], dty.nlvl[0], zptr, llz, dtz.m.nobs, df, MI, TRUE);
 
     }/*ELSE*/
 
-    if ((ytype == INTSXP) && (xtype == INTSXP)) {
+  }/*THEN*/
+  else if (dty.m.flag[0].gaussian && dtx.m.flag[0].gaussian) {
 
-      if (dt.ngcols - 1 > 0) {
+    if (copy)
+      memcpy(dtz.gcol[0], dtx.gcol[0], dtz.m.nobs * sizeof(double));
+    else
+     dtz.gcol[0] = dtx.gcol[0];
 
-        /* need to reverse conditioning to actually compute the test. */
-        statistic = 2 * dt.m.nobs * dt.m.nobs *
-                      c_cmicg_unroll(xptr, llx, yptr, lly, zptr, llz,
-                               dt.gcol + 1, dt.ngcols - 1, df, dt.m.nobs);
+    statistic = 2 * dtz.m.nobs * c_cmicg(dty.gcol[0], dtz.gcol, dtz.ngcols, NULL,
+                      0, zptr, llz, dtz.nlvl, dtz.m.nobs, df);
 
-      }/*THEN*/
-      else {
+  }/*THEN*/
+  else if (dty.m.flag[0].discrete && dtx.m.flag[0].gaussian) {
 
-        /* the test reverts back to a discrete mutual information test. */
-        statistic = c_cchisqtest(xptr, llx, yptr, lly, zptr, llz, dt.m.nobs, df,
-                      MI, TRUE);
+    if (copy)
+      memcpy(dtz.dcol[0], dty.dcol[0], dtz.m.nobs * sizeof(int));
+    else
+      dtz.dcol[0] = dty.dcol[0];
 
-      }/*ELSE*/
+    dtz.nlvl[0] = dty.nlvl[0];
+    statistic = 2 * dtz.m.nobs * c_cmicg(dtx.gcol[0], dtz.gcol + 1,
+                      dtz.ngcols - 1, dtz.dcol, dtz.ndcols, zptr, llz, dtz.nlvl,
+                      dtz.m.nobs, df);
 
-    }/*THEN*/
-    else if ((ytype == REALSXP) && (xtype == REALSXP)) {
+  }/*THEN*/
+  else if (dty.m.flag[0].gaussian && dtx.m.flag[0].discrete) {
 
-      dt.gcol[0] = xptr;
-      statistic = 2 * dt.m.nobs * c_cmicg(yptr, dt.gcol, dt.ngcols, NULL,
-                        0, zptr, llz, dt.nlvl, dt.m.nobs, df);
+    if (copy)
+      memcpy(dtz.dcol[0], dtx.dcol[0], dtz.m.nobs * sizeof(int));
+    else
+      dtz.dcol[0] = dtx.dcol[0];
 
-    }/*THEN*/
-    else if ((ytype == INTSXP) && (xtype == REALSXP)) {
+    dtz.nlvl[0] = dtx.nlvl[0];
+    statistic = 2 * dtz.m.nobs * c_cmicg(dty.gcol[0], dtz.gcol + 1, dtz.ngcols - 1,
+                      dtz.dcol, dtz.ndcols, zptr, llz, dtz.nlvl,
+                      dtz.m.nobs, df);
 
-      dt.dcol[0] = yptr;
-      dt.nlvl[0] = lly;
-      statistic = 2 * dt.m.nobs * c_cmicg(xptr, dt.gcol + 1, dt.ngcols - 1,
-                        dt.dcol, dt.ndcols, zptr, llz, dt.nlvl,
-                        dt.m.nobs, df);
+  }/*ELSE*/
 
-    }/*THEN*/
-    else if ((ytype == REALSXP) && (xtype == INTSXP)) {
+  return statistic;
 
-      dt.dcol[0] = xptr;
-      dt.nlvl[0] = llx;
-      statistic = 2 * dt.m.nobs * c_cmicg(yptr, dt.gcol + 1, dt.ngcols - 1,
-                        dt.dcol, dt.ndcols, zptr, llz, dt.nlvl,
-                        dt.m.nobs, df);
+}/*C_MICG_CHISQ*/
 
-    }/*ELSE*/
+static double ct_micg_complete(cgdata dtx, cgdata dty, cgdata dtz,
+    double *pvalue, double *df) {
 
+int i = 0, *zptr = 0, llz = 0;
+double statistic = 0;
+cgdata dtx_cur = { 0 };
+
+  /* allocate the data table that will be filled with each variable in turn. */
+  dtx_cur = empty_cgdata(dtx.m.nobs, 1, 1);
+
+  /* allocate vector for the configurations of the discrete parents. */
+  if (dtz.ndcols - 1 > 0) {
+
+    zptr = Calloc1D(dtz.m.nobs, sizeof(int));
+    c_fast_config(dtz.dcol + 1, dtz.m.nobs, dtz.ndcols - 1, dtz.nlvl + 1,
+      zptr, &llz, 1);
+
+  }/*THEN*/
+
+  for (i = 0; i < dtx.m.ncols; i++) {
+
+    /* extract the variable to test... */
+    cgdata_subset_columns(&dtx, &dtx_cur, &i, 1);
+    /* ... compute the test statistic... */
+    statistic = c_micg_chisq(dtx_cur, dty, dtz, zptr, llz, df, FALSE);
+    /* ... and save the p-value. */
     pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
 
   }/*FOR*/
 
   Free1D(zptr);
-  FreeCGDT(dt, FALSE);
+  FreeCGDT(dtx_cur, FALSE);
 
   return statistic;
 
 }/*CT_MICG_COMPLETE*/
 
-static double ct_micg_with_missing(SEXP xx, SEXP yy, SEXP zz, double *pvalue,
-    double *df) {
+static double ct_micg_with_missing(cgdata dtx, cgdata dty, cgdata dt,
+    double *pvalue, double *df) {
 
-int xtype = 0, ytype = TYPEOF(yy), llx = 0, lly = 0, llz = 0, ntests = length(xx);
-int i = 0, j = 0, k = 0, l = 0, nc = 0, *zptr = 0, **dp_complete = NULL;
-void *xptr = NULL, *xptr_complete = NULL, *yptr = NULL, *yptr_complete = NULL;
-double **gp_complete = NULL;
+int i = 0, j = 0, *zptr = 0, llz = 0;
 double statistic = 0;
-short int *missing_yz = NULL, *missing_all = NULL;
-SEXP xdata;
-cgdata dt = { 0 };
+bool *missing_x = NULL, *missing_yz = NULL, *missing_all = NULL;
+cgdata dt_complete = { 0 }, dtx_cur = { 0 }, dtx_complete = { 0 };
+cgdata dty_complete = { 0 };
 
-  /* allocate and initialize a data table for the variables. */
-  dt = cgdata_from_SEXP(zz, 1, 1);
-
-  if (ytype == INTSXP) {
-
-    /* cache the number of levels. */
-    lly = NLEVELS(yy);
-    yptr = INTEGER(yy);
-    yptr_complete = Calloc1D(dt.m.nobs, sizeof(int));
-
-  }/*THEN*/
-  else {
-
-    yptr = REAL(yy);
-    yptr_complete = Calloc1D(dt.m.nobs, sizeof(double));
-
-  }/*ELSE*/
-
-  /* extract the conditioning variables and cache their types. */
-  dp_complete = (int **)Calloc2D(dt.ndcols, dt.m.nobs, sizeof(int));
-  gp_complete = (double **)Calloc2D(dt.ngcols, dt.m.nobs, sizeof(double));
+  /* allocate and initialize a data table for the complete observations. */
+  dt_complete = new_cgdata(dt.m.nobs, dt.ndcols, dt.ngcols);
+  dtx_cur = empty_cgdata(dtx.m.nobs, 1, 1);
+  dtx_complete = new_cgdata(dtx.m.nobs, dtx.ndcols, dtx.ngcols);
+  dty_complete = new_cgdata(dty.m.nobs, dty.ndcols, dty.ngcols);
 
   /* compute the missing values indicators. */
-  missing_yz = Calloc1D(dt.m.nobs, sizeof(short int));
-  missing_all = Calloc1D(dt.m.nobs, sizeof(short int));
+  missing_x = Calloc1D(dt.m.nobs, sizeof(bool));
+  missing_yz = Calloc1D(dt.m.nobs, sizeof(bool));
+  missing_all = Calloc1D(dt.m.nobs, sizeof(bool));
 
-  for (i = 0; i < dt.m.nobs; i++) {
+  cgdata_incomplete_cases(&dty, missing_yz, 0, 0);
+  cgdata_incomplete_cases(&dt, missing_yz, 1, 1);
 
-    if (ytype == INTSXP) {
+  for (i = 0; i < dtx.m.ncols; i++) {
 
-      if (((int *)yptr)[i] == NA_INTEGER) {
-
-        missing_yz[i] = TRUE;
-        continue;
-
-      }/*THEN*/
-
-    }/*THEN*/
-    else {
-
-      if (ISNAN(((double *)yptr)[i])) {
-
-        missing_yz[i] = TRUE;
-        continue;
-
-      }/*THEN*/
-
-    }/*ELSE*/
-
-    for (j = 0; j < dt.ndcols - 1; j++)
-      if (dt.dcol[1 + j][i] == NA_INTEGER) {
-
-        missing_yz[i] = TRUE;
-        continue;
-
-      }/*THEN*/
-
-    for (j = 0; j < dt.ngcols - 1; j++)
-      if (ISNAN(dt.gcol[1 + j][i])) {
-
-        missing_yz[i] = TRUE;
-        continue;
-
-      }/*THEN*/
-
-  }/*FOR*/
-
-  /* allocate vector for the configurations of the discrete parents. */
-  if (dt.ndcols - 1 > 0)
-    zptr = Calloc1D(dt.m.nobs, sizeof(int));
-
-  for (i = 0; i < ntests; i++) {
-
-    xdata = VECTOR_ELT(xx, i);
-    xtype = TYPEOF(xdata);
-
-    if (xtype == INTSXP) {
-
-      xptr = INTEGER(xdata);
-      llx = NLEVELS(xdata);
-
-      for (j = 0; j < dt.m.nobs; j++)
-        missing_all[j] = missing_yz[j] || (((int *)xptr)[j] == NA_INTEGER);
-
-      xptr_complete = Calloc1D(dt.m.nobs, sizeof(int));
-      for (j = 0, k = 0; j < dt.m.nobs; j++)
-        if (!missing_all[j])
-          ((int *)xptr_complete)[k++] = ((int *)xptr)[j];
-
-    }/*THEN*/
-    else {
-
-      xptr = REAL(xdata);
-      for (j = 0; j < dt.m.nobs; j++)
-        missing_all[j] = missing_yz[j] || ISNAN(((double *)xptr)[j]);
-
-      xptr_complete = Calloc1D(dt.m.nobs, sizeof(double));
-      for (j = 0, k = 0; j < dt.m.nobs; j++)
-        if (!missing_all[j])
-          ((double *)xptr_complete)[k++] = ((double *)xptr)[j];
-
-    }/*ELSE*/
-
-    /* subset the complete data. */
+    /* extract the variable to test ... */
+    cgdata_subset_columns(&dtx, &dtx_cur, &i, 1);
+    /* ... find out which observations are missing ... */
+    cgdata_incomplete_cases(&dtx_cur, missing_x, 0, 0);
+    /* ... update the global missingness indicators ... */
     for (j = 0; j < dt.m.nobs; j++)
-      nc += !missing_all[j];
+      missing_all[j] = missing_x[j] || missing_yz[j];
+    /* ... and subset the complete data. */
+    cgdata_subsample_by_logical(&dtx_cur, &dtx_complete, missing_all, 0, 0);
+    cgdata_subsample_by_logical(&dt, &dt_complete, missing_all, 1, 1);
+    cgdata_subsample_by_logical(&dty, &dty_complete, missing_all, 0, 0);
 
-    for (j = 0; j < dt.ngcols - 1; j++)
-      for (l = 0, k = 0; l < dt.m.nobs; l++)
-        if (!missing_all[l])
-          gp_complete[1 + j][k++] = dt.gcol[1 + j][l];
-
-    if (dt.ndcols - 1 > 0) {
-
-      for (j = 0; j < dt.ndcols - 1; j++)
-        for (l = 0, k = 0; l < dt.m.nobs; l++)
-          if (!missing_all[l])
-            dp_complete[1 + j][k++] = dt.dcol[1 + j][l];
-
-      c_fast_config(dp_complete + 1, nc, dt.ndcols - 1, dt.nlvl + 1, zptr,
-        &llz, 1);
-
-    }/*THEN*/
-
-    if (ytype == INTSXP) {
-
-      for (j = 0, k = 0; j < dt.m.nobs; j++)
-        if (!missing_all[j])
-          ((int *)yptr_complete)[k++] = ((int *)yptr)[j];
-
-    }/*THEN*/
-    else {
-
-      for (j = 0, k = 0; j < dt.m.nobs; j++)
-        if (!missing_all[j])
-          ((double *)yptr_complete)[k++] = ((double *)yptr)[j];
-
-    }/*ELSE*/
-
-    if (nc == 0) {
+    /* assume independence and return if there are no complete observations. */
+    if (dt_complete.m.nobs == 0) {
 
       statistic = 0;
       pvalue[i] = 1;
-      Free1D(xptr_complete);
       continue;
 
     }/*THEN*/
 
-    if ((ytype == INTSXP) && (xtype == INTSXP)) {
+    if (dt.ndcols - 1 > 0) {
 
-      if (dt.ngcols - 1 > 0) {
-
-        /* need to reverse conditioning to actually compute the test. */
-        statistic = 2 * nc * nc *
-                      c_cmicg_unroll(xptr_complete, llx, yptr_complete, lly,
-                        zptr, llz, gp_complete + 1, dt.ngcols - 1, df, nc);
-
-      }/*THEN*/
-      else {
-
-        /* the test reverts back to a discrete mutual information test. */
-        statistic = c_cchisqtest(xptr_complete, llx, yptr_complete, lly, zptr,
-                      llz, nc, df, MI, TRUE);
-
-      }/*ELSE*/
+     zptr = Calloc1D(dt.m.nobs, sizeof(int));
+      c_fast_config(dt_complete.dcol + 1, dt_complete.m.nobs,
+        dt_complete.ndcols - 1, dt_complete.nlvl + 1, zptr, &llz, 1);
 
     }/*THEN*/
-    else if ((ytype == REALSXP) && (xtype == REALSXP)) {
 
-      memcpy(gp_complete[0], xptr_complete, nc * sizeof(double));
-      statistic = 2 * nc * c_cmicg(yptr_complete, gp_complete, dt.ngcols, NULL,
-                               0, zptr, llz, dt.nlvl, nc, df);
-
-    }/*THEN*/
-    else if ((ytype == INTSXP) && (xtype == REALSXP)) {
-
-      memcpy(dp_complete[0], yptr_complete, nc * sizeof(int));
-      dt.nlvl[0] = lly;
-      statistic = 2 * nc * c_cmicg(xptr_complete, gp_complete + 1,
-                             dt.ngcols - 1, dp_complete, dt.ndcols, zptr, llz,
-                             dt.nlvl, nc, df);
-
-    }/*THEN*/
-    else if ((ytype == REALSXP) && (xtype == INTSXP)) {
-
-      memcpy(dp_complete[0], xptr_complete, nc * sizeof(int));
-      dt.nlvl[0] = llx;
-      statistic = 2 * nc * c_cmicg(yptr_complete, gp_complete + 1,
-                             dt.ngcols - 1, dp_complete, dt.ndcols, zptr,
-                             llz, dt.nlvl, nc, df);
-
-    }/*ELSE*/
+    statistic = c_micg_chisq(dtx_complete, dty_complete, dt_complete,
+                  zptr, llz, df, TRUE);
 
     pvalue[i] = pchisq(statistic, *df, FALSE, FALSE);
-
-    Free1D(xptr_complete);
+    Free1D(zptr);
 
   }/*FOR*/
 
-  Free1D(zptr);
-  Free2D(dp_complete, dt.ndcols);
-  Free2D(gp_complete, dt.ngcols);
-  Free1D(yptr_complete);
+  Free1D(missing_x);
   Free1D(missing_yz);
   Free1D(missing_all);
-  FreeCGDT(dt, FALSE);
+  FreeCGDT(dt_complete, TRUE);
+  FreeCGDT(dtx_cur, FALSE);
+  FreeCGDT(dtx_complete, TRUE);
+  FreeCGDT(dty_complete, TRUE);
 
   return statistic;
 
 }/*CT_MICG_WITH_MISSING*/
 
 /* discrete permutation tests. */
-static double ct_dperm(SEXP xx, SEXP yy, SEXP zz, int nobs, int ntests,
-    double *pvalue, double *df, test_e type, int B, double a) {
+static double ct_dperm(ddata dtx, ddata dty, ddata dtz, double *pvalue,
+    double *df, test_e type, int B, double a) {
 
-int i = 0, *xptr = NULL, *yptr = INTEGER(yy), *zptr = NULL;
-int llx = 0, lly = NLEVELS(yy), llz = 0;
+int i = 0, *zptr = NULL, llz = 0;
 double statistic = 0;
-SEXP xdata, config;
 
-  PROTECT(config = c_configurations(zz, TRUE, TRUE));
-  zptr = INTEGER(config);
-  llz = NLEVELS(config);
+  zptr = Calloc1D(dtz.m.nobs, sizeof(int));
+  c_fast_config(dtz.col, dtz.m.nobs, dtz.m.ncols, dtz.nlvl, zptr, &llz, 1);
 
-  for (i = 0; i < ntests; i++) {
+  for (i = 0; i < dtx.m.ncols; i++) {
 
-    xdata = VECTOR_ELT(xx, i);
-    xptr = INTEGER(xdata);
-    llx = NLEVELS(xdata);
-    statistic = 0;
-    c_cmcarlo(xptr, llx, yptr, lly, zptr, llz, nobs, B, &statistic,
-      pvalue + i, a, type, df);
+    c_cmcarlo(dtx.col[i], dtx.nlvl[i], dty.col[0], dty.nlvl[0], zptr, llz,
+      dtx.m.nobs, B, &statistic, pvalue + i, a, type, df);
 
   }/*FOR*/
 
-  UNPROTECT(1);
+  Free1D(zptr);
 
   return statistic;
 
 }/*CT_DPERM*/
 
 /* continuous permutation tests. */
-static double ct_gperm(SEXP xx, SEXP yy, SEXP zz, double *pvalue, double *df,
-    test_e type, int B, double a, int complete) {
+static double ct_gperm(gdata dtx, gdata dt, double *pvalue, double *df,
+    test_e type, int B, double a, bool complete) {
 
-int i = 0, j = 0, k = 0, nc = 0, ntests = length(xx);
-double **complete_column = NULL, *yptr = REAL(yy), statistic = 0;
-short int *missing_yz = NULL;
-gdata dt = { 0 };
-
-  /* allocate and initialize a data table for the variables. */
-  dt = gdata_from_SEXP(zz, 2);
-  dt.col[1] = REAL(yy);
+int i = 0, j = 0, k = 0, nc = 0;
+double *yptr = dt.col[1], **complete_column = NULL, statistic = 0;
+bool *missing_yz = NULL;
+gdata dt_complete = { 0 };
 
   if (!complete) {
 
-    /* allocate the missing values indicators. */
-    missing_yz = Calloc1D(dt.m.nobs, sizeof(short int));
+    /* allocate and initialize the missing values indicators. */
+    missing_yz = Calloc1D(dt.m.nobs, sizeof(bool));
+    gdata_incomplete_cases(&dt, missing_yz, 1);
 
-    for (i = 0; i < dt.m.nobs; i++)
-      for (j = 1; j < dt.m.ncols; j++)
-        if (ISNAN(dt.col[j][i])) {
-
-          missing_yz[i] = TRUE;
-          break;
-
-        }/*THEN*/
-
-    complete_column = (double **) Calloc2D(dt.m.ncols, dt.m.nobs, sizeof(double));
+    dt_complete = new_gdata(dt.m.nobs, dt.m.ncols);
+    complete_column = dt_complete.col;
 
   }/*THEN*/
   else {
@@ -658,11 +456,11 @@ gdata dt = { 0 };
 
   }/*ELSE*/
 
-  for (i = 0; i < ntests; i++) {
+  for (i = 0; i < dtx.m.ncols; i++) {
 
     /* swap the first column and restore the second, which is that undergoing
      * permutation (backward compatibility from set random seed). */
-    dt.col[0] = REAL(VECTOR_ELT(xx, i));
+    dt.col[0] = dtx.col[i];
     dt.col[1] = yptr;
 
     if (!complete) {
@@ -685,7 +483,6 @@ gdata dt = { 0 };
 
     }/*ELSE*/
 
-    statistic = 0;
     c_gauss_cmcarlo(complete_column, dt.m.ncols, nc, 0, 1, B, &statistic,
       pvalue + i, a, type);
 
@@ -694,11 +491,9 @@ gdata dt = { 0 };
   if (!complete) {
 
     Free1D(missing_yz);
-    Free2D(complete_column, dt.m.ncols);
+    FreeGDT(dt_complete, TRUE);
 
   }/*THEN*/
-
-  FreeGDT(dt, FALSE);
 
   return statistic;
 
@@ -708,11 +503,11 @@ gdata dt = { 0 };
 SEXP ctest(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP B, SEXP alpha,
     SEXP learning, SEXP complete) {
 
-int ntests = length(x), nobs = 0;
+int ntests = length(x);
 double *pvalue = NULL, statistic = 0, df = NA_REAL;
 const char *t = CHAR(STRING_ELT(test, 0));
-test_e test_type = test_label(t);
-SEXP xx, yy, zz, cc, result;
+test_e test_type = test_to_enum(t);
+SEXP xx2, yy2, zz, cc, result;
 
   /* allocate the return value, which the same length as x. */
   PROTECT(result = allocVector(REALSXP, ntests));
@@ -722,10 +517,9 @@ SEXP xx, yy, zz, cc, result;
   memset(pvalue, '\0', ntests * sizeof(double));
 
   /* extract the variables from the data. */
-  PROTECT(xx = c_dataframe_column(data, x, FALSE, FALSE));
-  PROTECT(yy = c_dataframe_column(data, y, TRUE, FALSE));
+  PROTECT(xx2 = c_dataframe_column(data, x, FALSE, FALSE));
+  PROTECT(yy2 = c_dataframe_column(data, y, FALSE, FALSE));
   PROTECT(zz = c_dataframe_column(data, sx, FALSE, FALSE));
-  nobs = length(yy);
 
   /* extract the missing values indicators. */
   PROTECT(cc = subset_by_name(complete, 3, y, x, sx));
@@ -733,38 +527,80 @@ SEXP xx, yy, zz, cc, result;
   if (IS_DISCRETE_ASYMPTOTIC_TEST(test_type)) {
 
     /* parametric tests for discrete variables. */
-    statistic = ct_discrete(xx, yy, zz, nobs, ntests, pvalue, &df, test_type);
+    ddata dtx = ddata_from_SEXP(xx2, 0), dty = ddata_from_SEXP(yy2, 0);
+    ddata dtz = ddata_from_SEXP(zz, 0);
+
+    statistic = ct_discrete(dtx, dty, dtz, pvalue, &df, test_type);
+
+    FreeDDT(dtx, FALSE);
+    FreeDDT(dty, FALSE);
+    FreeDDT(dtz, FALSE);
 
   }/*THEN*/
   else if ((test_type == COR) || (test_type == ZF) || (test_type == MI_G) ||
            (test_type == MI_G_SH)) {
 
     /* parametric tests for Gaussian variables. */
-    if (all_equal(cc, TRUESEXP))
-      statistic = ct_gaustests_complete(xx, yy, zz, pvalue, &df, test_type);
-    else
-      statistic = ct_gaustests_with_missing(xx, yy, zz, pvalue, &df, test_type);
+    gdata dtx = gdata_from_SEXP(xx2, 0), dt = gdata_from_SEXP(zz, 2);
+    dt.col[1] = REAL(VECTOR_ELT(yy2, 0));
+
+    if (all_equal(cc, TRUESEXP)) {
+
+      gdata_cache_means(&dt, 1);
+      statistic = ct_gaustests_complete(dtx, dt, pvalue, &df, test_type);
+
+    }/*THEN*/
+    else {
+
+      statistic = ct_gaustests_with_missing(dtx, dt, pvalue, &df, test_type);
+
+    }/*ELSE*/
+
+    FreeGDT(dtx, FALSE);
+    FreeGDT(dt, FALSE);
 
   }/*THEN*/
   else if (test_type == MI_CG) {
 
     /* conditional linear Gaussian mutual information test. */
+    cgdata dtx = cgdata_from_SEXP(xx2, 0, 0), dty = cgdata_from_SEXP(yy2, 0, 0);
+    cgdata dtz = cgdata_from_SEXP(zz, 1, 1);
+
     if (all_equal(cc, TRUESEXP))
-      statistic = ct_micg_complete(xx, yy, zz, pvalue, &df);
+      statistic = ct_micg_complete(dtx, dty, dtz, pvalue, &df);
     else
-      statistic = ct_micg_with_missing(xx, yy, zz, pvalue, &df);
+      statistic = ct_micg_with_missing(dtx, dty, dtz, pvalue, &df);
+
+    FreeCGDT(dtx, FALSE);
+    FreeCGDT(dty, FALSE);
+    FreeCGDT(dtz, FALSE);
 
   }/*THEN*/
   else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
 
-    statistic = ct_dperm(xx, yy, zz, nobs, ntests, pvalue, &df, test_type, INT(B),
+    /* discrete permutation tests. */
+    ddata dtx = ddata_from_SEXP(xx2, 0), dty = ddata_from_SEXP(yy2, 0);
+    ddata dtz = ddata_from_SEXP(zz, 0);
+
+    statistic = ct_dperm(dtx, dty, dtz, pvalue, &df, test_type, INT(B),
                   IS_SMC(test_type) ? NUM(alpha) : 1);
+
+    FreeDDT(dtx, FALSE);
+    FreeDDT(dty, FALSE);
+    FreeDDT(dtz, FALSE);
 
   }/*THEN*/
   else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
 
-    statistic = ct_gperm(xx, yy, zz, pvalue, &df, test_type, INT(B),
+    /* continuous permutation tests. */
+    gdata dtx = gdata_from_SEXP(xx2, 0), dt = gdata_from_SEXP(zz, 2);
+    dt.col[1] = REAL(VECTOR_ELT(yy2, 0));
+
+    statistic = ct_gperm(dtx, dt, pvalue, &df, test_type, INT(B),
                   IS_SMC(test_type) ? NUM(alpha) : 1, all_equal(cc, TRUESEXP));
+
+    FreeGDT(dtx, FALSE);
+    FreeGDT(dt, FALSE);
 
   }/*THEN*/
 

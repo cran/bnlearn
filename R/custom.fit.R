@@ -49,11 +49,11 @@ custom.fit.backend = function(x, dist, discrete, ordinal, debug = FALSE) {
 
         # ordinary least squares, ridge, lasso, and elastic net.
         dist[[node]] =
-          list(coef = minimal.coefficients(dist[[node]]),
-               resid = minimal.residuals(dist[[node]]),
-               fitted = minimal.fitted(dist[[node]]),
-               sd = cgsd(minimal.residuals(dist[[node]]),
-                      p = length(minimal.coefficients(dist[[node]]))))
+          list(coef = .coefficients(dist[[node]]),
+               resid = .residuals(dist[[node]]),
+               fitted = .fitted(dist[[node]]),
+               sd = cgsd(.residuals(dist[[node]]),
+                      p = length(.coefficients(dist[[node]]))))
 
       }#THEN
 

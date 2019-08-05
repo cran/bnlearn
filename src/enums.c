@@ -5,7 +5,7 @@
 
 #define ENTRY(key, value) if (strcmp(label, key) == 0) return value;
 
-test_e test_label(const char *label) {
+test_e test_to_enum(const char *label) {
 
   ENTRY("mi", MI);
   ENTRY("mi-adf", MI_ADF);
@@ -35,9 +35,9 @@ test_e test_label(const char *label) {
 
   return ENOTEST;
 
-}/*TEST_LABEL*/
+}/*TEST_TO_ENUM*/
 
-fitted_node_e r_fitted_node_label(SEXP class) {
+fitted_node_e fitted_node_to_enum(SEXP class) {
 
   if (c_is(class, "bn.fit.dnode"))
     return DNODE;
@@ -50,9 +50,9 @@ fitted_node_e r_fitted_node_label(SEXP class) {
 
   return ENOFIT;
 
-}/*FITTED_NODE_LABEL*/
+}/*FITTED_NODE_TO_ENUM*/
 
-score_e score_label(const char *label) {
+score_e score_to_enum(const char *label) {
 
   ENTRY("loglik", LOGLIK);
   ENTRY("aic", AIC);
@@ -63,19 +63,22 @@ score_e score_label(const char *label) {
   ENTRY("k2", K2);
   ENTRY("mbde", MBDE);
   ENTRY("bdla", BDLA);
+  ENTRY("pred-loglik", PRED_LOGLIK);
   ENTRY("loglik-g", LOGLIK_G);
   ENTRY("aic-g", AIC_G);
   ENTRY("bic-g", BIC_G);
   ENTRY("bge", BGE);
+  ENTRY("pred-loglik-g", PRED_LOGLIK_G);
   ENTRY("loglik-cg", LOGLIK_CG);
   ENTRY("aic-cg", AIC_CG);
   ENTRY("bic-cg", BIC_CG);
+  ENTRY("pred-loglik-cg", PRED_LOGLIK_CG);
 
   return ENOSCORE;
 
-}/*SCORE_LABEL*/
+}/*SCORE_TO_ENUM*/
 
-gprior_e gprior_label(const char *label) {
+gprior_e gprior_to_enum(const char *label) {
 
   ENTRY("uniform", UNIFORM);
   ENTRY("vsp", VSP);
@@ -84,4 +87,4 @@ gprior_e gprior_label(const char *label) {
 
   return ENOPRIOR;
 
-}/*GPRIOR_LABEL*/
+}/*GPRIOR_TO_ENUM*/

@@ -19,7 +19,7 @@ gaussian.prediction = function(node, fitted, data, debug = FALSE) {
 
     .Call(call_cgpred,
           fitted = fitted[[node]],
-          parents = minimal.data.frame.column(data, parents, drop = FALSE),
+          parents = .data.frame.column(data, parents, drop = FALSE),
           debug = debug)
 
   }#ELSE
@@ -47,9 +47,9 @@ discrete.prediction = function(node, fitted, data, prob = FALSE, debug = FALSE) 
 
     # if there is only one parent, get it easy.
     if (length(parents) == 1)
-      config = minimal.data.frame.column(data, parents)
+      config = .data.frame.column(data, parents)
     else
-      config = configurations(minimal.data.frame.column(data, parents), factor = FALSE)
+      config = configurations(.data.frame.column(data, parents), factor = FALSE)
 
     .Call(call_cdpred,
           fitted = fitted[[node]],
@@ -78,14 +78,14 @@ mixedcg.prediction = function(node, fitted, data, debug = FALSE) {
 
     # if there is only one parent, get it easy.
     if (length(discrete.parents) == 1)
-      config = minimal.data.frame.column(data, discrete.parents)
+      config = .data.frame.column(data, discrete.parents)
     else
-      config = configurations(minimal.data.frame.column(data, discrete.parents), factor = FALSE)
+      config = configurations(.data.frame.column(data, discrete.parents), factor = FALSE)
 
     .Call(call_ccgpred,
           fitted = fitted[[node]],
           configurations = config,
-          parents = minimal.data.frame.column(data, continuous.parents, drop = FALSE),
+          parents = .data.frame.column(data, continuous.parents, drop = FALSE),
           debug = debug)
 
   }#ELSE
@@ -108,7 +108,7 @@ naive.classifier = function(training, fitted, prior, data, prob = FALSE,
 
   .Call(call_naivepred,
         fitted = fitted,
-        data = minimal.data.frame.column(data, nodes, drop = FALSE),
+        data = .data.frame.column(data, nodes, drop = FALSE),
         parents = match(parents, nodes),
         training = which(nodes == training),
         prior = prior,

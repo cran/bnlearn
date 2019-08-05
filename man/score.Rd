@@ -22,8 +22,8 @@ score(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
     be used to compute the score.}
   \item{type}{a character string, the label of a network score. If none is
     specified, the default score is the \emph{Bayesian Information Criterion}
-    for both discrete and continuous data sets. See
-    \code{\link{bnlearn-package}} for details.}
+    for both discrete and continuous data sets. See \code{\link{network scores}}
+    for details.}
   \item{by.node}{a boolean value. If \code{TRUE} and the score is decomposable,
     the function returns the score terms corresponding to each node; otherwise
     it returns their sum (the overall score of \code{x}).}
@@ -42,11 +42,20 @@ score(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
 
   \itemize{
 
-    \item \code{iss}: the imaginary sample size, used by the Bayesian Dirichlet
-      scores (\code{bde}, \code{mbde}, \code{bds}, \code{bdj}) and the Bayesian
-      Gaussian score (\code{bge}). It is also known as \dQuote{equivalent sample
-      size}. The default value is equal to \code{1} for the Dirichlet scores and
-      \code{10} for \code{bge}.
+    \item \code{iss}: the imaginary sample size used by the Bayesian Dirichlet
+      scores (\code{bde}, \code{mbde}, \code{bds}, \code{bdj}). It is also known
+      as \dQuote{equivalent sample size}. The default value is equal to \code{1}.
+    \item \code{iss.mu}: the imaginary sample size for the normal component of
+      the normal-Wishart prior in the Bayesian Gaussian score (\code{bge}). The
+      default value is \code{1}.
+    \item \code{iss.w}: the imaginary sample size for the Wishart component of
+      the normal-Wishart prior in the Bayesian Gaussian score (\code{bge}). The
+      default value is \code{ncol(data) + 2}.
+    \item \code{nu}: the mean vector of the normal component of the
+      normal-Wishart prior in the Bayesian Gaussian score (\code{bge}). The
+      default value is equal to \code{colMeans(data)}.
+    \item \code{l}: the number of scores to average in the locally averaged
+      Bayesian Dirichlet score (\code{bdla}). The default value is \code{5}.
     \item \code{exp}: a list of indexes of experimental observations (those that
       have been artificially manipulated). Each element of the list must be
       named after one of the nodes, and must contain a numeric vector with
@@ -54,18 +63,14 @@ score(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
     \item \code{k}: the penalty coefficient to be used by the AIC and BIC
       scores. The default value is \code{1} for AIC and \code{log(nrow(data))/2}
       for BIC.
-    \item \code{phi}: the prior phi matrix formula to use in the Bayesian
-      Gaussian equivalent (\code{bge}) score. Possible values are
-      \code{heckerman} (default) and \code{bottcher} (the one used by default
-      in the \pkg{deal} package.)
     \item \code{prior}: the prior distribution to be used with the various
-      Bayesian Dirichlet scores (\code{bde}, \code{mbde}, \code{bds}) and the
-      Bayesian Gaussian score (\code{bge}). Possible values are \code{uniform}
-      (the default), \code{vsp} (the Bayesian variable selection prior, which
-      puts a probability of inclusion on parents), \code{marginal} (an
-      independent marginal uniform for each arc) and \code{cs} (the Castelo &
-      Siebes prior, which puts an independent prior probability on each arc
-      and direction).
+	  Bayesian Dirichlet scores (\code{bde}, \code{mbde}, \code{bds}, \code{bdj},
+	  \code{bdla}) and the Bayesian Gaussian score (\code{bge}). Possible
+	  values are \code{uniform} (the default), \code{vsp} (the Bayesian
+	  variable selection prior, which puts a probability of inclusion on
+	  parents), \code{marginal} (an independent marginal uniform for each arc)
+	  and \code{cs} (the Castelo & Siebes prior, which puts an independent
+	  prior probability on each arc and direction).
     \item \code{beta}: the parameter associated with \code{prior}.
 
       \itemize{
@@ -84,6 +89,10 @@ score(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
           assumed for the remaining arcs.
 
       }
+    \item \code{newdata}: the test set whose predictive likelihood will be
+      computed by \code{pred-loglik}, \code{pred-loglik-g} or
+      \code{pred-loglik-cg}. It should be a data frame with the same variables
+      as \code{data}.
 
   }
 
@@ -104,45 +113,6 @@ score(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
   and a whitelist can be used to force the inclusion of particular arcs.
   \code{beta} is not modified when the prior is used from functions other than
   those implementing score-based and hybrid structure learning.
-
-}
-\references{
-
-  Castelo R, Siebes A (2000). "Priors on Network Structures. Biasing the Search
-	for Bayesian Networks". \emph{International Journal of Approximate
-	Reasoning}, \strong{24}(1):39--57.
-
-  Chickering DM (1995). "A Transformational Characterization of Equivalent
-    Bayesian Network Structures". \emph{Proceedings of the Eleventh
-    Annual Conference on Uncertainty in Artificial Intelligence}, pp. 87--98.
-
-  Cooper GF, Yoo C (1999). "Causal Discovery from a Mixture of Experimental
-    and Observational Data". \emph{Proceedings of the Fifteenth Annual
-    Conference on Uncertainty in Artificial Intelligence}, pp. 116--125.
-
-  Geiger D, Heckerman D (1994). "Learning Gaussian Networks". \emph{Proceedings
-     of the Tenth Annual Conference on Uncertainty in Artificial Intelligence},
-     pp. 235--243.
-
-  Hausser J, Strimmer K (2009). "Entropy inference and the James-Stein
-    estimator, with application to nonlinear gene association networks".
-    \emph{Statistical Applications in Genetics and Molecular Biology},
-    \strong{10}:1469--1484.
-
-  Heckerman D, Geiger D, Chickering DM (1995). "Learning Bayesian Networks: The
-    Combination of Knowledge and Statistical Data". \emph{Machine Learning},
-    \strong{20}(3):197--243.
-
-  Suzuki J (2016). "A Theoretical Analysis of the BDeu Scores in Bayesian
-    Network Structure Learning". \emph{Behaviormetrika}, \strong{44}(1):97--116.
-
-  Scutari M (2016). "An Empirical-Bayes Score for Discrete Bayesian Networks".
-    \emph{Journal of Machine Learning Research}, \strong{52}:438--448.
-
-  Cano A, Gomez-Olmedo M, Masegosa AR, Moral S (2013). "Locally Averaged
-    Bayesian Dirichlet Metrics for Learning the Structure and the Parameters of
-    Bayesian Networks". \emph{International Journal of Approximate Reasoning},
-    \strong{54}:526--540.
 
 }
 \value{

@@ -15,17 +15,13 @@
 \usage{
 ## for Gaussian Bayesian networks.
 bn.fit.qqplot(fitted, xlab = "Theoretical Quantiles",
-  ylab = "Sample Quantiles", main = "Normal Q-Q Plot", ...)
+  ylab = "Sample Quantiles", main, ...)
 bn.fit.histogram(fitted, density = TRUE, xlab = "Residuals",
-  ylab = ifelse(density, "Density", ""),
-  main = "Histogram of the residuals", ...)
-bn.fit.xyplot(fitted, xlab = "Fitted values",
-  ylab = "Residuals", main = "Residuals vs Fitted", ...)
+  ylab = ifelse(density, "Density", ""), main, ...)
+bn.fit.xyplot(fitted, xlab = "Fitted values", ylab = "Residuals", main, ...)
 ## for discrete (multinomial and ordinal) Bayesian networks.
-bn.fit.barchart(fitted, xlab = "Probabilities",
-  ylab = "Levels", main = "Conditional Probabilities", ...)
-bn.fit.dotplot(fitted, xlab = "Probabilities",
-  ylab = "Levels", main = "Conditional Probabilities", ...)
+bn.fit.barchart(fitted, xlab = "Probabilities", ylab = "Levels", main, ...)
+bn.fit.dotplot(fitted, xlab = "Probabilities", ylab = "Levels", main, ...)
 }
 \arguments{
   \item{fitted}{an object of class \code{bn.fit}, \code{bn.fit.dnode} or

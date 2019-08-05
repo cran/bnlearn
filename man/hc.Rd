@@ -27,7 +27,7 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ...,
   \item{score}{a character string, the label of the network score to be used in
     the algorithm. If none is specified, the default score is the \emph{Bayesian
     Information Criterion} for both discrete and continuous data sets. See
-    \code{\link{bnlearn-package}} for details.}
+    \code{\link{network scores}} for details.}
   \item{\dots}{additional tuning parameters for the network score. See
     \code{\link{score}} for details.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
@@ -42,29 +42,18 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ...,
   \item{max.iter}{an integer, the maximum number of iterations.}
   \item{maxp}{the maximum number of parents for a node. The default value is
     \code{Inf}.}
-  \item{optimized}{a boolean value. See \code{\link{bnlearn-package}} for
-     details.}
+  \item{optimized}{a boolean value. If \code{TRUE} (the default), score caching
+    is used to speed up structure learning.}
+}
+\note{
+
+  See \code{\link{structure learning}} for a complete list of structure learning
+  algorithms with the respective references.
+
 }
 \value{
 
   An object of class \code{bn}. See \code{\link{bn-class}} for details.
-
-}
-\references{
-
-  Russell SJ, Norvig P (2009). \emph{Artificial Intelligence: A Modern
-    Approach}. Prentice Hall, 3rd edition.
-
-  Korb K, Nicholson AE (2010). \emph{Bayesian Artificial Intelligence}.
-    Chapman & Hall/CRC, 2nd edition.
-
-  Margaritis D (2003). \emph{Learning Bayesian Network Model Structure from
-    Data}. Ph.D. thesis, School of Computer Science, Carnegie-Mellon
-    University, Pittsburgh, PA.
-
-  Daly R, Shen Q (2007). "Methods to Accelerate the Learning of Bayesian
-    Network Structures". \emph{Proceedings of the 2007 UK Workshop on
-    Computational Intelligence}.
 
 }
 \author{Marco Scutari}

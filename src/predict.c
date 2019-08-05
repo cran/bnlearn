@@ -9,8 +9,9 @@
 /* predict the value of a gaussian node without parents. */
 SEXP gpred(SEXP fitted, SEXP ndata, SEXP debug) {
 
-int i = 0, *n = INTEGER(ndata), debuglevel = isTRUE(debug);
+int i = 0, *n = INTEGER(ndata);
 double *mean = NULL, *res = NULL;
+bool debugging = isTRUE(debug);
 SEXP result;
 
   /* get the (only) coefficient of the linear regression. */
@@ -24,11 +25,8 @@ SEXP result;
   for (i = 0; i < *n; i++)
     res[i] = *mean;
 
-  if (debuglevel > 0) {
-
+  if (debugging)
     Rprintf("  > prediction for all observations is %lf.\n", *mean);
-
-  }/*THEN*/
 
   UNPROTECT(1);
 
@@ -40,8 +38,8 @@ SEXP result;
 SEXP cgpred(SEXP fitted, SEXP parents, SEXP debug)  {
 
 int i = 0, j = 0;
-int debuglevel = isTRUE(debug);
 double *res = NULL, *coefs = NULL;
+bool debugging = isTRUE(debug);
 SEXP result;
 gdata dt = { 0 };
 
@@ -61,7 +59,7 @@ gdata dt = { 0 };
     for (j = 0; j < dt.m.ncols; j++)
       res[i] += dt.col[j][i] * coefs[j + 1];
 
-    if (debuglevel > 0) {
+    if (debugging) {
 
       Rprintf("  > prediction for observation %d is %lf with predictor:\n",
         i + 1, res[i]);
@@ -86,9 +84,9 @@ gdata dt = { 0 };
 SEXP dpred(SEXP fitted, SEXP ndata, SEXP prob, SEXP debug) {
 
 int i = 0, nmax = 0, n = INT(ndata), length = 0;
-int *res = NULL, debuglevel = isTRUE(debug), include_prob = isTRUE(prob);
-int *iscratch = NULL, *maxima = NULL, tr_nlevels = 0;
+int *iscratch = NULL, *maxima = NULL, tr_nlevels = 0, *res = NULL;
 double *cpt = NULL, *dscratch = NULL, *buf = NULL, *pt = NULL;
+bool debugging = isTRUE(debug), include_prob = isTRUE(prob);
 SEXP ptab, result, tr_levels, probtab = R_NilValue;
 
   /* get the probabilities of the multinomial distribution. */
@@ -120,7 +118,7 @@ SEXP ptab, result, tr_levels, probtab = R_NilValue;
   tr_nlevels = length(tr_levels);
 
   /* allocate and initialize the table of the prediction probabilities. */
-  if (include_prob > 0) {
+  if (include_prob) {
 
     PROTECT(probtab = allocMatrix(REALSXP, tr_nlevels, n));
     pt = REAL(probtab);
@@ -135,7 +133,7 @@ SEXP ptab, result, tr_levels, probtab = R_NilValue;
     for (i = 0; i < n; i++)
       res[i] = maxima[0];
 
-    if (debuglevel > 0) {
+    if (debugging) {
 
       if (res[0] == NA_INTEGER)
         Rprintf("  > prediction for all observations is NA with probabilities:\n");
@@ -158,7 +156,7 @@ SEXP ptab, result, tr_levels, probtab = R_NilValue;
     SampleReplace(n, nmax, res, maxima);
     PutRNGstate();
 
-    if (debuglevel > 0) {
+    if (debugging) {
 
       Rprintf("  > there are %d levels tied for prediction, applying tie breaking.\n", nmax);
       Rprintf("  > tied levels are:");
@@ -170,7 +168,7 @@ SEXP ptab, result, tr_levels, probtab = R_NilValue;
 
   }/*ELSE*/
 
-  if (include_prob > 0) {
+  if (include_prob) {
 
     /* set the levels of the target variable as rownames. */
     setDimNames(probtab, tr_levels, R_NilValue);
@@ -198,11 +196,11 @@ SEXP ptab, result, tr_levels, probtab = R_NilValue;
 /* predict the value of a discrete node with one or more parents. */
 SEXP cdpred(SEXP fitted, SEXP parents, SEXP prob, SEXP debug) {
 
-int i = 0, k = 0, n = length(parents), nrow = 0, ncol = 0;
-int *configs = INTEGER(parents), debuglevel = isTRUE(debug);
-int tr_nlevels = 0, include_prob = isTRUE(prob);
+int i = 0, k = 0, n = length(parents), nrow = 0, ncol = 0, tr_nlevels = 0;
+int *configs = INTEGER(parents);
 int *iscratch = NULL, *maxima = NULL, *nmax = NULL, *res = NULL;
 double *cpt = NULL, *dscratch = NULL, *buf = NULL, *pt = NULL;
+bool debugging = isTRUE(debug), include_prob = isTRUE(prob);
 SEXP temp, result, tr_levels, probtab = R_NilValue;
 
   /* get the probabilities of the multinomial distribution. */
@@ -246,7 +244,7 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
   tr_nlevels = length(tr_levels);
 
   /* allocate and initialize the table of the prediction probabilities. */
-  if (include_prob > 0) {
+  if (include_prob) {
 
     PROTECT(probtab = allocMatrix(REALSXP, tr_nlevels, n));
     pt = REAL(probtab);
@@ -263,7 +261,7 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
 
       res[i] = NA_INTEGER;
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  > prediction for observation %d is NA because the probabilities are missing.\n");
 
     }/*THEN*/
@@ -271,7 +269,7 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
 
       res[i] = maxima[CMC(0, configs[i] - 1, nrow)];
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         if (res[i] == NA_INTEGER)
           Rprintf("  > prediction for observation %d is NA with probabilities:\n");
@@ -292,7 +290,7 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
       /* break ties: sample with replacement from all the maxima. */
       SampleReplace(1, nmax[configs[i] - 1], res + i, maxima + (configs[i] - 1) * nrow);
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("  > there are %d levels tied for prediction of observation %d, applying tie breaking.\n",
           nmax[configs[i] - 1], i + 1);
@@ -318,7 +316,7 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
   /* save the state of the random number generator. */
   PutRNGstate();
 
-  if (include_prob > 0) {
+  if (include_prob) {
 
     /* set the levels of the target variable as rownames. */
     setDimNames(probtab, tr_levels, R_NilValue);
@@ -347,10 +345,10 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
 /* predict the values of a conditional Gaussian node. */
 SEXP ccgpred(SEXP fitted, SEXP configurations, SEXP parents, SEXP debug) {
 
-int i = 0, j = 0;
-int *config = INTEGER(configurations), debuglevel = isTRUE(debug);
-int cur_config = 0;
+int i = 0, j = 0, cur_config = 0;
+int *config = INTEGER(configurations);
 double *res = NULL, *beta = NULL, *beta_offset = NULL;
+bool debugging = isTRUE(debug);
 SEXP result;
 gdata dt = { 0 };
 
@@ -358,6 +356,12 @@ gdata dt = { 0 };
   beta = REAL(getListElement(fitted, "coefficients"));
   /* extract the columns of the data frame. */
   dt = gdata_from_SEXP(parents, 0);
+
+  /* if there are no continuous parents the data table is empty; reset the
+   * sample size using the discrete parents configurations for consistency. */
+  if ((dt.m.nobs == 0) && (dt.m.ncols == 0))
+    dt.m.nobs = length(configurations);
+
   /* allocate the return value. */
   PROTECT(result = allocVector(REALSXP, dt.m.nobs));
   res = REAL(result);
@@ -374,7 +378,7 @@ gdata dt = { 0 };
     for (j = 0; j < dt.m.ncols; j++)
       res[i] += dt.col[j][i] * beta_offset[j + 1];
 
-    if (debuglevel > 0) {
+    if (debugging) {
 
       Rprintf("  > prediction for observation %d is %lf with predictor:\n",
         i + 1, res[i]);
@@ -403,8 +407,9 @@ SEXP naivepred(SEXP fitted, SEXP data, SEXP parents, SEXP training, SEXP prior,
 
 int i = 0, j = 0, k = 0, n = 0, nvars = length(fitted), nmax = 0, tr_nlevels = 0;
 int *res = NULL, **ex = NULL, *ex_nlevels = NULL;
-int idx = 0, *tr_id = INTEGER(training), include_prob = isTRUE(prob);
-int *iscratch = NULL, *maxima = NULL, *prn = NULL, debuglevel = isTRUE(debug);
+int idx = 0, *tr_id = INTEGER(training);
+int *iscratch = NULL, *maxima = NULL, *prn = NULL;
+bool debugging = isTRUE(debug), include_prob = isTRUE(prob);
 double **cpt = NULL, *pr = NULL, *scratch = NULL, *buf = NULL, *pt = NULL;
 double sum = 0;
 SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
@@ -436,7 +441,7 @@ SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
   /* get the prior distribution. */
   pr = REAL(prior);
 
-  if (debuglevel > 0) {
+  if (debugging) {
 
     Rprintf("* the prior distribution for the target variable is:\n");
     PrintValue(prior);
@@ -467,7 +472,7 @@ SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
   res = INTEGER(result);
 
   /* allocate and initialize the table of the posterior probabilities. */
-  if (include_prob > 0) {
+  if (include_prob) {
 
     PROTECT(probtab = allocMatrix(REALSXP, tr_nlevels, n));
     pt = REAL(probtab);
@@ -489,7 +494,7 @@ SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
 
     }/*FOR*/
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("* predicting the value of observation %d.\n", i + 1);
 
     /* ... and for each conditional probability table... */
@@ -505,7 +510,7 @@ SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
         /* ... and for each row of the conditional probability table... */
         for (k = 0; k < tr_nlevels; k++) {
 
-          if (debuglevel > 0) {
+          if (debugging) {
 
             Rprintf("  > node %s: picking cell %d (%d, %d) from the CPT (p = %lf).\n",
               NODE(j), CMC(ex[j][i] - 1, k, ex_nlevels[j]), ex[j][i], k + 1,
@@ -530,7 +535,7 @@ SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
           idx = (ex[j][i] - 1) + k * ex_nlevels[j] +
                   (ex[prn[j] - 1][i] - 1) * ex_nlevels[j] * tr_nlevels;
 
-          if (debuglevel > 0) {
+          if (debugging) {
 
             Rprintf("  > node %s: picking cell %d (%d, %d, %d) from the CPT (p = %lf).\n",
               NODE(j), idx, ex[j][i], k + 1, ex[prn[j] - 1][i], cpt[j][idx]);
@@ -570,7 +575,7 @@ SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
 
       res[i] = NA_INTEGER;
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  > prediction for observation %d is NA because the probabilities are missing.\n");
 
     }/*THEN*/
@@ -578,7 +583,7 @@ SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
 
       res[i] = maxima[0];
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("  @ prediction for observation %d is '%s' with (log-)posterior:\n",
           i + 1, CHAR(STRING_ELT(tr_levels, res[i] - 1)));
@@ -596,7 +601,7 @@ SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
       /* break ties: sample with replacement from all the maxima. */
       SampleReplace(1, nmax, res + i, maxima);
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("  @ there are %d levels tied for prediction of observation %d, applying tie breaking.\n", nmax, i + 1);
 
@@ -622,7 +627,7 @@ SEXP temp, tr, tr_levels, tr_node, result, nodes, probtab = R_NilValue;
   /* add back the attributes and the class to the return value. */
   setAttrib(result, R_LevelsSymbol, tr_levels);
 
-  switch(r_fitted_node_label(tr_node)) {
+  switch(fitted_node_to_enum(tr_node)) {
 
     case DNODE:
       setAttrib(result, R_ClassSymbol, mkString("factor"));

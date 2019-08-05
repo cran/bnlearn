@@ -431,7 +431,7 @@ check.cgnode.vs.cgnode = function(new, old) {
 
 }#CHECK.CGNODE.VS.CGNODE
 
-# check a bn.fit.cg against the local distributions of its parents.
+# check a bn.fit.cgnode against the local distributions of its parents.
 check.cgnode.vs.parents = function(node, new, parents) {
 
   # both continuous and discrete parents are legal, but treated differently.
@@ -534,4 +534,48 @@ check.cgnode.vs.parents = function(node, new, parents) {
 
   return(new)
 
-}#CHECK.CGNODE.VS.DAG
+}#CHECK.CGNODE.VS.PARENTS
+
+# check discrete parents configurations in list form for all kinds of nodes.
+check.discrete.parents.configuration = function(config, node,
+    ideal.only = FALSE) {
+
+  # check whether the configuration is there.
+  if (missing(config) || !is(config, "list"))
+    stop("the parents configuration must be a list with elements named after the parents of ", node$node, ".")
+
+  if (is(node, c("bn.fit.dnode", "bn.fit.onode")))
+    allowed.parents = node$parents
+  else if (is(node, c("bn.fit.cgnode")))
+    allowed.parents = node$parents[node$dparents]
+
+  # check the node labels from the list names.
+  check.nodes(names(config), graph = allowed.parents,
+    min.nodes = length(allowed.parents), max.nodes = length(allowed.parents))
+
+  # check that only one value is provided for each parent, to get a single
+  # configuration.
+  for (c in names(config))
+    if (length(config[[c]]) > 1)
+      stop("only one value allowed for parent '", c, "'.")
+
+  if (is(node, c("bn.fit.dnode", "bn.fit.onode")))
+    levels = dimnames(node$prob)
+  else
+    levels = node$dlevels
+
+  # check whether the provided values are valid values.
+  for (c in names(config)) {
+
+    if (is.factor(config[[c]]))
+      config[[c]] = as.character(config[[c]])
+
+    if (config[[c]] %!in% levels[[c]])
+      stop("the value of parent '", c, "' must be a valid level.")
+
+  }#FOR
+
+  return(config)
+
+}#CHECK.DISCRETE.PARENTS.CONFIGURATION
+

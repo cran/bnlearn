@@ -2,8 +2,6 @@
 fast.lm = function(data, node, parents, keep.fitted = FALSE,
      with.missing = FALSE) {
 
-  y = minimal.data.frame.column(data, node)
-
   .Call(call_fast_lm,
         data = data,
         node = node,

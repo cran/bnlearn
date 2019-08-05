@@ -43,7 +43,7 @@ SEXP amat, res;
 SEXP dag2ug(SEXP bn, SEXP moral, SEXP debug) {
 
 int i = 0, j = 0, k = 0, nnodes = 0, narcs = 0, row = 0;
-int debuglevel = isTRUE(debug), *moralize = LOGICAL(moral);
+bool debugging = isTRUE(debug), moralize = isTRUE(moral);
 int *nparents = NULL, *nnbr = NULL;
 SEXP node_data, current, nodes, result, temp;
 
@@ -54,7 +54,7 @@ SEXP node_data, current, nodes, result, temp;
 
   /* allocate and initialize parents' and neighbours' counters. */
   nnbr = Calloc1D(nnodes, sizeof(int));
-  if (*moralize > 0)
+  if (moralize)
     nparents = Calloc1D(nnodes, sizeof(int));
 
   /* first pass: count neighbours, parents and resulting arcs. */
@@ -65,7 +65,7 @@ SEXP node_data, current, nodes, result, temp;
     nnbr[i] = length(getListElement(current, "nbr"));
 
     /* update the number of arcs to be returned. */
-    if (*moralize > 0) {
+    if (moralize) {
 
       /* get also the number of parents, needed to account for the arcs added
        * for their moralization. */
@@ -79,9 +79,9 @@ SEXP node_data, current, nodes, result, temp;
 
     }/*ELSE*/
 
-    if (debuglevel > 0)  {
+    if (debugging)  {
 
-      if (*moralize > 0) {
+      if (moralize) {
 
         Rprintf("* scanning node %s, found %d neighbours and %d parents.\n",
           NODE(i), nnbr[i], nparents[i]);
@@ -122,7 +122,7 @@ SEXP node_data, current, nodes, result, temp;
     }/*FOR*/
 
     /* if we are not creating a moral graph we are done with this node. */
-    if (*moralize == 0)
+    if (!moralize)
       continue;
 
     /* get the parents. */
@@ -147,7 +147,7 @@ SEXP node_data, current, nodes, result, temp;
 
   Free1D(nnbr);
 
-  if (*moralize > 0) {
+  if (moralize) {
 
     /* be really sure not to return duplicate arcs in moral graphs when
      * shielded parents are present (the "shielding" nodes are counted

@@ -69,8 +69,9 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
     current = as.integer((iter - 1) %% tabu)
 
     # keep the best network seen so far and its score value for the
-    # evaluation of the stopping rule.
-    if (sum(reference.score) > best.score) {
+    # evaluation of the stopping rule; but always create a "best network" in
+    # the first iteration using the starting network.
+    if ((sum(reference.score) > best.score) || (iter == 1)) {
 
       best.network = start
       best.score = sum(reference.score)

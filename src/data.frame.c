@@ -43,7 +43,7 @@ SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop) {
 
 }/*DATAFRAME_COLUMN*/
 
-SEXP c_dataframe_column(SEXP dataframe, SEXP name, int drop, int keep_names) {
+SEXP c_dataframe_column(SEXP dataframe, SEXP name, bool drop, bool keep_names) {
 
 SEXP try, result, colnames = getAttrib(dataframe, R_NamesSymbol);
 int *idx = NULL, nnames = length(name), name_type = TYPEOF(name);
@@ -111,7 +111,7 @@ int *idx = NULL, nnames = length(name), name_type = TYPEOF(name);
 /* create a data column from a standalone bn.fit.*node object. */
 SEXP node2df(SEXP target, int n) {
 
-fitted_node_e node_type = r_fitted_node_label(target);
+fitted_node_e node_type = fitted_node_to_enum(target);
 SEXP result, res_levels;
 
   switch(node_type) {

@@ -293,7 +293,7 @@ equal.backend.bn = function(target, current) {
         target = target,
         current = current)
 
-}#EQUAL.BACKEND
+}#EQUAL.BACKEND.BN
 
 # test equality of two fitted networks (structure and parameters).
 equal.backend.fit = function(target, current, tolerance) {

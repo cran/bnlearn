@@ -6,7 +6,7 @@ loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
     result = entropy.loss(fitted = fitted, data = data, debug = debug)
 
   }#THEN
-  else if (loss %in% c("pred", "pred-lw", "pred-lw-cg")) {
+  else if (loss %in% c("pred", "pred-exact", "pred-lw", "pred-lw-cg")) {
 
     result = classification.error(node = extra.args$target, fitted = fitted,
                prior = extra.args$prior, n = extra.args$n,
@@ -117,7 +117,7 @@ entropy.loss = function(fitted, data, keep = names(fitted), by.sample = FALSE,
 classification.error = function(node, fitted, prior = NULL, n, from, data,
     loss, debug = FALSE) {
 
-  if (is(fitted, c("bn.naive", "bn.tan")))
+  if (loss == "pred-exact")
     pred = naive.classifier(node, fitted, prior, data)
   else if (loss == "pred")
     pred = discrete.prediction(node, fitted, data)
@@ -125,7 +125,7 @@ classification.error = function(node, fitted, prior = NULL, n, from, data,
     pred = map.prediction(node, fitted, data, n = n, from = from)
 
   l = .Call(call_class_err,
-            reference = minimal.data.frame.column(data, node),
+            reference = .data.frame.column(data, node),
             predicted = pred)
 
   if (debug)

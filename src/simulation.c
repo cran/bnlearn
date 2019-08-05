@@ -5,9 +5,10 @@
 /* find out the partial ordering of the nodes of a DAG. */
 SEXP topological_ordering(SEXP bn, SEXP root_nodes, SEXP reverse, SEXP debug) {
 
-int *depth = NULL, *matched = NULL, debuglevel = isTRUE(debug);
+int *depth = NULL, *matched = NULL;
 int d = 0, i = 0, j = 0, changed = 0, nnodes = 0;
 char *direction = NULL;
+bool debugging = isTRUE(debug);
 SEXP nodes_data, nodes, try, children, ordering;
 
   if (isTRUE(reverse))
@@ -30,7 +31,7 @@ SEXP nodes_data, nodes, try, children, ordering;
   depth = INTEGER(ordering);
   memset(depth, '\0', nnodes * sizeof(int));
 
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("* currently at depth 1 (starting BFS).\n");
 
   /* set the root nodes as the starting point of the BFS. */
@@ -39,7 +40,7 @@ SEXP nodes_data, nodes, try, children, ordering;
 
   for (i = 0; i < length(try); i++) {
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("  > got node %s.\n", NODE(matched[i] - 1));
 
     depth[matched[i] - 1] = 1;
@@ -51,7 +52,7 @@ SEXP nodes_data, nodes, try, children, ordering;
   /* now let's go down from the roots to the leafs, one layer at a time. */
   for (d = 1; d <= nnodes; d++) {
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("* currently at depth %d.\n", d + 1);
 
     /* reset the changed flag. */
@@ -78,7 +79,7 @@ SEXP nodes_data, nodes, try, children, ordering;
       /* set the correct depth to the children of this node. */
       for (j = 0; j < length(try); j++) {
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  > got node %s from %s.\n",
             NODE(matched[j] - 1), NODE(i));
 
@@ -95,7 +96,7 @@ SEXP nodes_data, nodes, try, children, ordering;
 
   }/*FOR*/
 
-  if (debuglevel > 0)
+  if (debugging > 0)
     Rprintf("* all nodes have been scheduled.\n");
 
   /* add the node labels to the return value. */

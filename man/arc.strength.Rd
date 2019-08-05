@@ -50,23 +50,21 @@ averaged.network(strength, nodes, threshold)
     unique node labels in the \code{strength} argument.}
   \item{criterion,score}{a character string. For \code{arc.strength()}, the
     label of a score function or an independence test; see
-    \code{\link{bnlearn-package}} for details.} For \code{bf.strength()}, the
+    \code{\link{network scores}} for details.} For \code{bf.strength()}, the
     label of the score used to compute the Bayes factors; see \code{\link{BF}}
     for details.
   \item{R}{a positive integer, the number of bootstrap replicates.}
   \item{m}{a positive integer, the size of each bootstrap replicate.}
   \item{weights}{a vector of non-negative numbers, to be used as weights
-    when averaging arc strengths (in \code{meani()}) or network structures (in
+    when averaging arc strengths (in \code{mean()}) or network structures (in
     \code{custom.strength()}) to compute strength coefficients. If \code{NULL},
     weights are assumed to be uniform.}
   \item{cpdag}{a boolean value. If \code{TRUE} the (PDAG of) the equivalence
     class is used instead of the network structure itself. It should make it
     easier to identify score-equivalent arcs.}
-  \item{algorithm}{a character string, the learning algorithm to be applied
-    to the bootstrap replicates. Possible values are \code{gs}, \code{iamb},
-    \code{fast.iamb}, \code{inter.iamb}, \code{mmpc}, \code{hc}, \code{tabu},
-    \code{mmhc} and \code{rsmax2}. See \code{\link{bnlearn-package}} and the
-    documentation of each algorithm for details.}
+  \item{algorithm}{a character string, the structure learning algorithm to be
+    applied to the bootstrap replicates. See \code{\link{structure learning}}
+    and the documentation of each algorithm for details.}
   \item{algorithm.args}{a list of extra arguments to be passed to the learning
     algorithm.}
   \item{\dots}{in \code{arc.strength()}, the additional tuning parameters for
@@ -91,12 +89,12 @@ averaged.network(strength, nodes, threshold)
   If \code{criterion} is the label of a score function, the strength is
   measured by the score gain/loss which would be caused by the arc's removal.
   In other words, it is the difference between the score of the network
-  including the arc and the score of the network in which the arc is not
-  present. Negative values correspond to decreases in the network score and
-  positive values correspond to increases in the network score (the stronger
-  the relationship, the more negative the difference). There may be additional
-  aguments depending on the choice of the score, see \code{\link{score}} for
-  details.
+  in which the arc is not present and the score of the network in which the arc
+  is present. Negative values correspond to decreases in the network score
+  and positive values correspond to increases in the network score (the
+  stronger the relationship, the more negative the difference). There may be
+  additional aguments depending on the choice of the score, see
+  \code{\link{score}} for details.
 
   \code{boot.strength()} estimates the strength of each arc as its empirical
   frequency over a set of networks learned from bootstrap samples. It computes
@@ -110,7 +108,7 @@ averaged.network(strength, nodes, threshold)
   arc given the rest of the network.
 
   \code{custom.strength()} takes a list of networks and estimates arc strength
-  in the same way as \code{boot.strength}.
+  in the same way as \cr \code{boot.strength()}.
 
   Model averaging is supported for objects of class \code{bn.strength} returned
   by \code{\link{boot.strength}}, \code{\link{custom.strength}} and
@@ -145,7 +143,7 @@ averaged.network(strength, nodes, threshold)
 
   Friedman N, Goldszmidt M, Wyner A (1999). "Data Analysis with Bayesian
 	Networks: A Bootstrap Approach". \emph{Proceedings of the 15th Annual
-	Conference on Uncertainty in Artificial Intelligence}, pp. 196--201.
+	Conference on Uncertainty in Artificial Intelligence}, 196--201.
 
   \bold{for the computation of the strength (confidence) significance
     threshold:}
@@ -153,7 +151,7 @@ averaged.network(strength, nodes, threshold)
   Scutari M, Nagarajan R (2011). "On Identifying Significant Edges in Graphical
     Models". \emph{Proceedings of the Workshop 'Probabilistic Problem Solving
     in Biomedicine' of the 13th Artificial Intelligence in Medicine Conference},
-    pp. 15--27.
+    15--27.
 
 }
 \examples{

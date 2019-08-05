@@ -5,7 +5,7 @@
 #include "include/matrix.h"
 
 static double posterior_mean(double *x, double *wgt, int n, int *drop,
-    int debuglevel) {
+    bool debugging) {
 
 int k = 0;
 long double wsum = 0, wtot = 0;
@@ -34,7 +34,7 @@ long double wsum = 0, wtot = 0;
   else
     wsum /= wtot;
 
-  if (debuglevel > 0) {
+  if (debugging) {
 
     if (ISNAN(wsum))
       Rprintf("  > prediction is NA.\n");
@@ -48,7 +48,7 @@ long double wsum = 0, wtot = 0;
 }/*POSTERIOR_MEAN*/
 
 static int posterior_mode(int *x, double *wgt, int n, long double *counts,
-    SEXP levels, int nlvls, int *drop, int debuglevel) {
+    SEXP levels, int nlvls, int *drop, bool debugging) {
 
 int k = 0, max_prob = 0;
 
@@ -71,7 +71,7 @@ int k = 0, max_prob = 0;
   if (counts[max_prob - 1] == 0)
     max_prob = NA_INTEGER;
 
-  if (debuglevel > 0) {
+  if (debugging) {
 
     Rprintf("  > prediction is '%s' with weight sums:\n",
       max_prob == NA_INTEGER ? "NA" : CHAR(STRING_ELT(levels, max_prob - 1)));
@@ -91,13 +91,13 @@ SEXP mappred(SEXP node, SEXP fitted, SEXP data, SEXP n, SEXP from, SEXP prob,
     SEXP debug) {
 
 int i = 0, j = 0, nobs = 0, nev = 0, nlvls = 0, drop = 0;
-int *vartypes = NULL, nsims = INT(n), debuglevel = isTRUE(debug);
-int include_prob = INT(prob);
+int *vartypes = NULL, nsims = INT(n);
 void **varptrs = NULL, **evptrs = NULL, *pred = NULL, *res = NULL;
 SEXP result, colnames, evidence, evmatch, temp = R_NilValue;
 SEXP cpdist, predicted, lvls = R_NilValue, probtab = R_NilValue;
 double *wgt = NULL, *pt = NULL;
 long double *lvls_counts = NULL, lvls_tot = 0;
+bool debugging = isTRUE(debug), include_prob = isTRUE(prob);
 
   /* extract the names of the variables in the data. */
   colnames = getAttrib(data, R_NamesSymbol);
@@ -151,7 +151,7 @@ long double *lvls_counts = NULL, lvls_tot = 0;
     nlvls = length(lvls);
     lvls_counts = Calloc1D(nlvls, sizeof(long double));
 
-    if (include_prob > 0) {
+    if (include_prob) {
 
       PROTECT(probtab = allocMatrix(REALSXP, nlvls, nobs));
       pt = REAL(probtab);
@@ -191,7 +191,7 @@ long double *lvls_counts = NULL, lvls_tot = 0;
 
     }/*FOR*/
 
-    if (debuglevel > 0) {
+    if (debugging) {
 
       Rprintf("* predicting observation %d conditional on:\n", i + 1);
       PrintValue(evidence);
@@ -210,18 +210,18 @@ long double *lvls_counts = NULL, lvls_tot = 0;
 
         /* average the predicted values. */
         ((double *)res)[i] = posterior_mean((double *)pred, wgt, nsims,
-                               &drop, debuglevel);
+                               &drop, debugging);
         break;
 
       case INTSXP:
 
         /* pick the most frequent value. */
         ((int *)res)[i] = posterior_mode((int *)pred, wgt, nsims, lvls_counts,
-                            lvls, nlvls, &drop, debuglevel);
+                            lvls, nlvls, &drop, debugging);
 
         /* compute the posterior probabilities on the right scale, to attach
          * them to the return value. */
-        if (include_prob > 0) {
+        if (include_prob) {
 
           for (j = 0, lvls_tot = 0; j < nlvls; j++) {
 
@@ -252,7 +252,7 @@ long double *lvls_counts = NULL, lvls_tot = 0;
   if (drop > 0)
     warning("dropping %d observations because generated samples are NAs.", drop);
 
-  if (include_prob > 0) {
+  if (include_prob) {
 
     /* set the levels of the taregt variable as rownames. */
     setDimNames(probtab, lvls, R_NilValue);

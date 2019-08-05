@@ -56,7 +56,7 @@ tiers2blacklist(tiers)
 }
 \examples{
 data(learning.test)
-res = gs(learning.test, optimized = TRUE)
+res = gs(learning.test)
 ntests(res)
 res = set.arc(res, "A", "B")
 ord = node.ordering(res)

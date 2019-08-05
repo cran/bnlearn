@@ -1,11 +1,11 @@
 #include "include/rcore.h"
 #include "include/matrix.h"
 
-SEXP arc_hash_matrix(SEXP arcs, SEXP nodes, int uptri, int sort);
-SEXP arc_hash_dataframe(SEXP arcs, SEXP nodes, int uptri, int sort);
+SEXP arc_hash_matrix(SEXP arcs, SEXP nodes, bool uptri, bool sort);
+SEXP arc_hash_dataframe(SEXP arcs, SEXP nodes, bool uptri, bool sort);
 
 /* compute the hash of an arc set using CMC()/UPTRI3() coordinates. */
-SEXP arc_hash(SEXP arcs, SEXP nodes, int uptri, int sort) {
+SEXP arc_hash(SEXP arcs, SEXP nodes, bool uptri, bool sort) {
 
   switch(TYPEOF(arcs)) {
 
@@ -25,7 +25,7 @@ SEXP arc_hash(SEXP arcs, SEXP nodes, int uptri, int sort) {
 
 /* arc hash backend. */
 void c_arc_hash(int narcs, int nnodes, int *from, int *to, int *uptri,
-  int *cmc, int sort) {
+  int *cmc, bool sort) {
 
 int i = 0;
 
@@ -52,7 +52,7 @@ int i = 0;
 }/*C_ARC_HASH*/
 
 /* compute the hash of an arc set from an arc matrix. */
-SEXP arc_hash_matrix(SEXP arcs, SEXP nodes, int uptri, int sort) {
+SEXP arc_hash_matrix(SEXP arcs, SEXP nodes, bool uptri, bool sort) {
 
 int narcs = length(arcs)/2, nnodes = length(nodes);
 int *temp = NULL, *hash_el = NULL;
@@ -78,7 +78,7 @@ SEXP matched, hash;
 }/*ARC_HASH_MATRIX*/
 
 /* compute the hash of an arc set from a data frame. */
-SEXP arc_hash_dataframe(SEXP arcs, SEXP nodes, int uptri, int sort) {
+SEXP arc_hash_dataframe(SEXP arcs, SEXP nodes, bool uptri, bool sort) {
 
 int narcs = length(VECTOR_ELT(arcs, 0)), nnodes = length(nodes);
 int *temp1 = NULL, *temp2 = NULL, *hash_el = NULL;

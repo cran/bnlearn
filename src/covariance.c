@@ -2,7 +2,7 @@
 #include "include/matrix.h"
 #include "include/covariance.h"
 
-covariance new_covariance(int dim, int decomp) {
+covariance new_covariance(int dim, bool decomp) {
 
 covariance cov = { 0 };
 
@@ -21,20 +21,33 @@ covariance cov = { 0 };
 
 }/*NEW_COVARIANCE*/
 
+void print_covariance(covariance cov) {
+
+  for (int i = 0; i < cov.dim; i++) {
+
+    for (int j = 0; j < cov.dim; j++)
+      Rprintf("%lf ", cov.mat[CMC(i, j, cov.dim)]);
+
+   Rprintf("\n");
+
+  }/*FOR*/
+
+}/*PRINT_COVARIANCE*/
+
 void copy_covariance(covariance *src, covariance *copy) {
 
   memcpy((*copy).mat, (*src).mat, (*copy).dim * (*copy).dim * sizeof(double));
 
 }/*COPY_COVARIANCE*/
 
-void covariance_drop_column(covariance *cov, int to_drop) {
+void covariance_drop_variable(covariance *full, covariance *sub, int to_drop) {
 
-  for (int j = 0, k = 0; j < (*cov).dim; j++)
-    for (int i = 0; i < (*cov).dim; i++)
+  for (int j = 0, k = 0; j < (*full).dim; j++)
+    for (int i = 0; i < (*full).dim; i++)
       if ((i != to_drop) && (j != to_drop))
-        (*cov).mat[k++] = (*cov).mat[CMC(i, j, (*cov).dim)];
+        (*sub).mat[k++] = (*full).mat[CMC(i, j, (*full).dim)];
 
-  (*cov).dim--;
+  (*sub).dim = (*full).dim - 1;
 
 }/*COVARIANCE_DROP_COLUMN*/
 
@@ -84,29 +97,45 @@ long double temp = 0;
 
 /* fill a covariance matrix from incomplete data, computing means as well.*/
 void c_covmat_with_missing(double **data, int nrow, int ncol,
-    short int *missing_yz, short int *missing_all, double *mean, double *mat,
+    bool *missing_partial, bool *missing_all, double *mean, double *mat,
     int *ncomplete) {
 
 int i = 0, j = 0, k = 0, nc = 0;
 long double temp = 0;
 
+  /* clear the overall missingness indicators, since this function is always
+   * called in loops with allocated-once scratch spaces. */
+  memset(missing_all, '\0', nrow * sizeof(bool));
+
   /* count the number of complete observations. */
-  if (missing_all) {
+  for (i = 0; i < nrow; i++) {
 
-    for (i = 0; i < nrow; i++)
-      if (!ISNAN(data[0][i]) && !missing_yz[i])
-        nc++;
-      else
+    if (missing_partial) {
+
+      if (missing_partial[i]) {
+
         missing_all[i] = TRUE;
+        continue;
 
-  }/*THEN*/
-  else {
+      }/*THEN*/
 
-    for (i = 0; i < nrow; i++)
-      if (!ISNAN(data[0][i]) && !missing_yz[i])
-        nc++;
+    }/*THEN*/
 
-  }/*ELSE*/
+    for (j = 0; j < ncol; j++) {
+
+      if (ISNAN(data[j][i])) {
+
+        missing_all[i] = TRUE;
+        break;
+
+      }/*THEN*/
+
+    }/*FOR*/
+
+    if (!missing_all[i])
+      nc++;
+
+  }/*FOR*/
 
   *ncomplete = nc;
 
@@ -119,7 +148,7 @@ long double temp = 0;
 
     for (i = 0, temp = 0; i < nrow; i++) {
 
-      if (ISNAN(data[0][i]) || missing_yz[i])
+      if (missing_all[i])
         continue;
 
       temp += data[j][i];
@@ -136,7 +165,7 @@ long double temp = 0;
 
       for (k = 0, temp = 0; k < nrow; k++) {
 
-        if (ISNAN(data[0][k]) || missing_yz[k])
+        if (missing_all[k])
           continue;
 
         temp += (data[j][k] - mean[j]) * (data[i][k] - mean[i]);
@@ -247,20 +276,14 @@ long double sum = 0;
 }/*C_SSEVEC*/
 
 /* compute a single standard deviation. */
-void c_sd(double *xx, int nobs, int p, double mean, int compute, double *sd) {
+void c_sd(double *xx, int nobs, int p, double mean, double *sd) {
 
   if (nobs == 0)
     *sd = R_NaN;
   else if (nobs <= p)
     *sd = 0;
-  else {
-
-     if (compute)
-       mean = c_mean(xx, nobs);
-
+  else
     *sd = sqrt(c_sse(xx, mean, nobs) / (nobs - p));
-
-  }/*ELSE*/
 
 }/*C_SD*/
 
@@ -331,14 +354,15 @@ long double *ssr = NULL, *mm = NULL;
 /* compute one or more standard deviations, possibly with strata. */
 SEXP cgsd(SEXP x, SEXP strata, SEXP nparams) {
 
-int nstrata = 0, nobs = length(x);
-int *z = NULL;
+int nstrata = 0, nobs = length(x), *z = NULL;
+double mean = 0, *xx = REAL(x);
 SEXP sd;
 
   if (strata == R_NilValue) {
 
     PROTECT(sd = allocVector(REALSXP, 1));
-    c_sd(REAL(x), nobs, INT(nparams), NA_REAL, TRUE, REAL(sd));
+    mean = c_mean(xx, nobs);
+    c_sd(xx, nobs, INT(nparams), mean, REAL(sd));
 
   }/*THEN*/
   else {
@@ -347,7 +371,7 @@ SEXP sd;
     z = INTEGER(strata);
     PROTECT(sd = allocVector(REALSXP, nstrata));
 
-    c_cgsd(REAL(x), z, NULL, nobs, nstrata, INT(nparams), NULL, REAL(sd));
+    c_cgsd(xx, z, NULL, nobs, nstrata, INT(nparams), NULL, REAL(sd));
 
   }/*ELSE*/
 

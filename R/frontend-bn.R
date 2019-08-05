@@ -139,7 +139,7 @@ cpdag = function(x, moral = TRUE, wlbl = FALSE, debug = FALSE) {
     if (any(which.listed(x$arcs, x$learning$blacklist)))
       stop("blacklisted arcs present in the graph.")
 
-  cpdag.backend(x = x, moral = moral, fix = FALSE, wlbl = wlbl, debug = debug)
+  cpdag.backend(x = x, moral = moral, wlbl = wlbl, debug = debug)
 
 }#CPDAG
 
@@ -215,7 +215,7 @@ mutilated = function(x, evidence) {
   # check x's class.
   check.bn.or.fit(x)
   # check the evidence, disallowing non-ideal interventions if needed.
-  evidence = check.mutilated.evidence(evidence, graph = x,
+  evidence = check.evidence(evidence, graph = x,
                 ideal.only = is(x, "bn.fit.gnet"))
 
   if (is(x, "bn"))

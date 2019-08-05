@@ -2,10 +2,10 @@
 \alias{rbn}
 \alias{rbn.bn}
 \alias{rbn.bn.fit}
-\title{Simulate random data from a given Bayesian network}
+\title{Simulate random samples from a given Bayesian network}
 \description{
 
-  Simulate random data from a given Bayesian network.
+  Simulate random samples from a given Bayesian network.
 
 }
 \usage{
@@ -20,7 +20,7 @@
   \item{fit}{a character string, the label of the method used to fit the
     parameters of the newtork. See \code{\link{bn.fit}} for details.}
   \item{...}{additional arguments for the parameter estimation prcoedure, see
-    again \code{\link{bn.fit}} for details..}
+    again \code{\link{bn.fit}} for details.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }
@@ -30,6 +30,13 @@
   sampled from their (unconditional) distribution, then those of their children
   conditional on the respective parent sets. This is done iteratively until 
   values have been sampled for all nodes.
+
+  If \code{x} contains \code{NA} parameter estimates (because of unobserved
+  discrete parents configurations in the data the parameters were learned from),
+  \code{rbn} will produce samples that contain \code{NA}s when those parents
+  configurations appear in the simulated samples. See \code{\link{bn.fit}} for
+  details on how to make sure \code{bn.fit} objects contain no \code{NA}
+  parameter estimates.
 
 }
 \value{

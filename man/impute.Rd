@@ -48,13 +48,24 @@ impute(object, data, method, ..., debug = FALSE)
       variable is continuous, the predicted value is the expected value of the
       conditional distribution. The variables that are used to compute the
       predicted values can be specified with the \code{from} optional argument;
-      the default is to use all the relevant variables from the data.
+      the default is to use all the relevant variables from the data. Note that
+      the predicted values will differ in each call to \code{predict()} since
+      this method is based on a stochastic simulation.
   }
 
   \code{impute()} is based on \code{predict()}, and can impute missing values
   with the same \code{methods} (\code{parents} and \code{bayes-lw}). The
   latter can take an additional argument \code{n} with the number of random
-  samples which are averaged for each observation.
+  samples which are averaged for each observation. As in \code{predict()},
+  imputed values will differ in each call to \code{impute()} when \code{method}
+  is set to \code{bayes-lw}.
+
+  If \code{object} contains \code{NA} parameter estimates (because of
+  unobserved discrete parents configurations in the data the parameters were
+  learned from), \code{predict} will predict \code{NA}s when those parents
+  configurations appear in \code{data}. See \code{\link{bn.fit}} for details on
+  how to make sure \code{bn.fit} objects contain no \code{NA} parameter
+  estimates.
 
 }
 \note{
@@ -63,10 +74,7 @@ impute(object, data, method, ..., debug = FALSE)
   sampling at random from the tied values. Therefore, setting the random seed
   is required to get reproducible results.
 
-  \code{predict()} accepts either a \code{bn} or a \code{bn.fit} object as its
-  first argument. For the former, the parameters of the network are fitted on
-  \code{data}, that is, the observations whose class labels the function is
-  trying to predict.
+  Classifiers have a separate \code{predict()} method, see \link{naive.bayes}.
 
 }
 \value{

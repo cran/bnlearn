@@ -37,13 +37,9 @@ check.fitting.args = function(method, network, data, extra.args) {
 
   }#THEN
 
-  if (has.argument(method, "iss", fitting.extra.args)) {
-
-    # check the imaginary sample size.
-    extra.args$iss = check.iss(iss = extra.args$iss, network = network,
-                       data = data)
-
-  }#THEN
+  # check the imaginary sample size.
+  if (has.argument(method, "iss", fitting.extra.args))
+    extra.args$iss = check.iss(iss = extra.args$iss, network = network)
 
   # warn about unused arguments.
   check.unused.args(extra.args, fitting.extra.args[[method]])

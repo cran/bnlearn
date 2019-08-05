@@ -46,6 +46,11 @@ check.fit.vs.data = function(fitted, data, subset) {
     if (any(absent))
       stop("required variables '", paste(subset[absent], collapse = " "),
            "' are not present in the data.")
+    # all the variables in the subset must also be present in the network.
+    absent = (subset %!in% fitted.names)
+    if (any(absent))
+      stop("required variables '", paste(subset[absent], collapse = " "),
+           "' are not present in the network.")
 
   }#ELSE
 

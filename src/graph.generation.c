@@ -7,17 +7,13 @@
 
 static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached,
     double ntests, char *test, char *algo);
-
 static SEXP ic_2nodes(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
     SEXP max_out_degree, SEXP max_degree, SEXP connected, SEXP debug);
-
 static SEXP c_ide_cozman(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
     SEXP max_out_degree, SEXP max_degree, SEXP connected, SEXP debug);
-
 static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     int *degree, double *max, int *in_degree, double *max_in, int *out_degree,
-    double *max_out, int *cozman, int *path, int *scratch, int debuglevel);
-
+    double *max_out, bool cozman, int *path, int *scratch, bool debugging);
 static void print_modelstring(SEXP bn);
 
 /* generate an empty graph. */
@@ -202,8 +198,8 @@ static SEXP ic_2nodes(SEXP nodes, SEXP num, SEXP burn_in, SEXP max_in_degree,
     SEXP max_out_degree, SEXP max_degree, SEXP connected, SEXP debug) {
 
 int i = 0, *n = INTEGER(num), *a = NULL;
-int debuglevel = isTRUE(debug);
 double u = 0;
+bool debugging = isTRUE(debug);
 SEXP list, resA, resB, arcsA, arcsB, cachedA, cachedB;
 SEXP amatA, amatB, args;
 
@@ -235,7 +231,7 @@ SEXP amatA, amatB, args;
   PROTECT(resA = bn_base_structure(nodes, args, arcsA, cachedA, 0, "none", "empty"));
   PROTECT(resB = bn_base_structure(nodes, args, arcsB, cachedB, 0, "none", "empty"));
 
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("* no burn-in required.\n");
 
   GetRNGstate();
@@ -246,7 +242,7 @@ SEXP amatA, amatB, args;
     PROTECT(list = allocVector(VECSXP, *n));
     for (i = 0; i < *n; i++) {
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("* current model (%d):\n", i + 1);
 
       /* sample which graph to return. */
@@ -258,7 +254,7 @@ SEXP amatA, amatB, args;
         SET_VECTOR_ELT(list, i, resA);
 
         /* print the model string to allow a sane debugging experience. */
-        if (debuglevel > 0)
+        if (debugging)
           print_modelstring(resA);
 
       }/*THEN*/
@@ -268,7 +264,7 @@ SEXP amatA, amatB, args;
         SET_VECTOR_ELT(list, i, resB);
 
         /* print the model string to allow a sane debugging experience. */
-        if (debuglevel > 0)
+        if (debugging)
           print_modelstring(resB);
 
       }/*ELSE*/
@@ -283,7 +279,7 @@ SEXP amatA, amatB, args;
   }/*THEN*/
   else {
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("* current model (1):\n");
 
     /* sample which graph to return. */
@@ -294,7 +290,7 @@ SEXP amatA, amatB, args;
     if (u <= 0.5) {
 
       /* print the model string to allow a sane debugging experience. */
-      if (debuglevel > 0)
+      if (debugging)
         print_modelstring(resA);
 
       UNPROTECT(9);
@@ -306,7 +302,7 @@ SEXP amatA, amatB, args;
     else {
 
       /* print the model string to allow a sane debugging experience. */
-      if (debuglevel > 0)
+      if (debugging)
         print_modelstring(resB);
 
       UNPROTECT(9);
@@ -327,11 +323,11 @@ int i = 0, k = 0, nnodes = length(nodes), *n = INTEGER(num);
 int changed = 0, *work = NULL, *arc = NULL, *a = NULL, *burn = INTEGER(burn_in);
 int *degree = NULL, *in_degree = NULL, *out_degree = NULL;
 int *path = NULL, *scratch = NULL;
-int debuglevel = isTRUE(debug), *cozman = LOGICAL(connected);
+bool debugging = isTRUE(debug), cozman = isTRUE(connected);
 double *max_in = REAL(max_in_degree), *max_out = REAL(max_out_degree),
   *max = REAL(max_degree);
 SEXP list, res, args, amat, arcs, cached, null, temp;
-char *label = (*cozman > 0) ? "ic-dag" : "melancon";
+char *label = (cozman > 0) ? "ic-dag" : "melancon";
 
   /* the list of optional arguments. */
   PROTECT(args = allocVector(VECSXP, 4));
@@ -380,15 +376,15 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
   /* wait for the markov chain monte carlo simulation to reach stationarity. */
   for (k = 0; k < *burn; k++) {
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("* current model (%d):\n", k + 1);
 
     changed = ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree, max_in,
-                out_degree, max_out, cozman, path, scratch, debuglevel);
+                out_degree, max_out, cozman, path, scratch, debugging);
 
     /* print the model string to allow a sane debugging experience; note that this
      * has a huge impact on performance, so use it with care. */
-    if ((debuglevel > 0) && (changed)) {
+    if (debugging && changed) {
 
       PROTECT(null = allocVector(NILSXP, 1));
       PROTECT(res = bn_base_structure(nodes, args, null, null, 0, "none", label));
@@ -404,7 +400,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
   }/*FOR*/
 
 #define UPDATE_NODE_CACHE(cur) \
-          if (debuglevel > 0) \
+          if (debugging) \
             Rprintf("  > updating cached information about node %s.\n", NODE(cur)); \
           memset(work, '\0', nnodes * sizeof(int)); \
           PROTECT(temp = cache_node_structure(cur, nodes, a, nnodes, work, FALSE)); \
@@ -414,7 +410,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
   /* return a list if more than one bn is generated. */
   if (*n > 1) {
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("* end of the burn-in iterations.\n");
 
     PROTECT(list = allocVector(VECSXP, *n));
@@ -426,11 +422,11 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
 
     for (k = 0; k < *n; k++) {
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("* current model (%d):\n", *burn + k + 1);
 
       changed = ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree,
-                  max_in, out_degree, max_out, cozman, path, scratch, debuglevel);
+                  max_in, out_degree, max_out, cozman, path, scratch, debugging);
 
       if (changed || (k == 0)) {
 
@@ -474,7 +470,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
         SET_VECTOR_ELT(res, 2, arcs);
 
         /* print the model string to allow a sane debugging experience. */
-        if (debuglevel > 0)
+        if (debugging)
           print_modelstring(res);
 
         /* save the structure in the list. */
@@ -510,11 +506,11 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
   }/*THEN*/
   else {
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("* end of the burn-in.\n* current model (%d):\n", *burn + 1);
 
     ic_logic(a, nodes, &nnodes, arc, work, degree, max, in_degree,
-      max_in, out_degree, max_out, cozman, path, scratch, debuglevel);
+      max_in, out_degree, max_out, cozman, path, scratch, debugging);
 
     /* generate the arc set and the cached information form the adjacency
      * matrix. */
@@ -525,7 +521,7 @@ char *label = (*cozman > 0) ? "ic-dag" : "melancon";
     PROTECT(res = bn_base_structure(nodes, args, arcs, cached, 0, "none", label));
 
     /* print the model string to allow a sane debugging experience. */
-    if (debuglevel > 0)
+    if (debugging)
       print_modelstring(res);
 
     PutRNGstate();
@@ -577,7 +573,7 @@ SEXP res, learning;
 
 static int ic_logic(int *amat, SEXP nodes, int *nnodes, int *arc, int *work,
     int *degree, double *max, int *in_degree, double *max_in, int *out_degree,
-    double *max_out, int *cozman, int *path, int *scratch, int debuglevel) {
+    double *max_out, bool cozman, int *path, int *scratch, bool debugging) {
 
 int path_exists = 0;
 
@@ -588,13 +584,13 @@ int path_exists = 0;
 
     /* if the arc (i, j) exists in the actual graph, delete the arc,
      * provided that the underlying graph remains connected. */
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("  > arc %s -> %s is present.\n",
         NODE(arc[0] - 1), NODE(arc[1] - 1));
 
     /* skip the check on connectedness for Melancon's algorithm, it's not
      * required.  */
-    if (*cozman == 1)  {
+    if (cozman)  {
 
       /* if there is a(n undirected) path in the (underlying undirected) graph
        * from arc[0] to arc[1] other than arc[0] -> arc[1], the graph is still
@@ -613,7 +609,7 @@ int path_exists = 0;
 
     if (path_exists) {
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  @ removing arc %s -> %s.\n",
           NODE(arc[0] - 1), NODE(arc[1] - 1));
 
@@ -631,7 +627,7 @@ int path_exists = 0;
     }/*THEN*/
     else {
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  @ not removing arc %s -> %s (graph not connected).\n",
           NODE(arc[0] - 1), NODE(arc[1] - 1));
 
@@ -643,7 +639,7 @@ int path_exists = 0;
   else {
 
     /* add the arc, provided that the underlying graph remains acyclic. */
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("  > arc %s -> %s is not present.\n", NODE(arc[0] - 1), NODE(arc[1] - 1));
 
     /* do not add the arc if this violates the constraints on the degrees of the
@@ -651,7 +647,7 @@ int path_exists = 0;
     if ((degree[arc[0] - 1] >= *max) || (degree[arc[1] - 1] >= *max) ||
         (out_degree[arc[0] - 1] >= *max_out) || (in_degree[arc[1] - 1] >= *max_in)) {
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         if (degree[arc[0] - 1] >= *max)
           Rprintf("  > node %s already has degree %d, max is %lf.\n",
@@ -682,7 +678,7 @@ int path_exists = 0;
 
     if (!path_exists) {
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  @ adding arc %s -> %s.\n", NODE(arc[0] - 1), NODE(arc[1] - 1));
 
       /* update the adjacency matrix. */
@@ -699,7 +695,7 @@ int path_exists = 0;
     }/*THEN*/
     else {
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  > not adding arc %s -> %s (cycles!).\n",
           NODE(arc[0] - 1), NODE(arc[1] - 1));
 

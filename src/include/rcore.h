@@ -6,6 +6,7 @@
 #include <R_ext/Lapack.h>
 #include <R_ext/Linpack.h>
 #include <R_ext/Utils.h>
+#include <stdbool.h>
 
 /* for backwards compatibility with older R versions. */
 #ifndef MAYBE_REFERENCED
@@ -56,7 +57,7 @@ SEXP mkRealVec(int n, ...);
 SEXP int2fac(SEXP vector, int *nlevels);
 void setDimNames(SEXP obj, SEXP rownames, SEXP colnames);
 SEXP subset_by_name(SEXP vec, int n, ...);
-int all_equal(SEXP vec, SEXP val);
+bool all_equal(SEXP vec, SEXP val);
 
 /* from strings.c */
 SEXP string_delete(SEXP array, SEXP string, int *idx);

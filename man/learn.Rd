@@ -19,7 +19,7 @@ learn.nbr(x, node, method, whitelist = NULL, blacklist = NULL,
   \item{node}{a character string, the label of the node whose local structure
     is being learned.}
   \item{method}{a character string, the label of a structure learning algorithm.
-    Possible choices are \link{constraint-based algorithms}.}
+    Possible choices are listed in \link{structure learning}.}
   \item{whitelist}{a vector of character strings, the labels of the whitelisted
     nodes.}
   \item{blacklist}{a vector of character strings, the labels of the blacklisted
@@ -33,8 +33,8 @@ learn.nbr(x, node, method, whitelist = NULL, blacklist = NULL,
     to be used in the algorithm. If none is specified, the default test
     statistic is the \emph{mutual information} for categorical variables, the
     Jonckheere-Terpstra test for ordered factors and the \emph{linear
-    correlation} for continuous variables. See \code{\link{bnlearn-package}} for
-    details.}
+    correlation} for continuous variables. See \code{\link{independence tests}}
+    for details.}
   \item{alpha}{a numeric value, the target nominal type I error rate.}
   \item{B}{a positive integer, the number of permutations considered for each
     permutation test. It will be ignored with a warning if the conditional

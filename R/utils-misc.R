@@ -54,29 +54,29 @@ arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
 
 }#ARCS.RBIND
 
-minimal.table = function(x, with.missing = FALSE) {
+.table = function(x, with.missing = FALSE) {
 
   .Call(call_minimal_table,
         x = x,
         missing = with.missing);
 
-}#MINIMAL.TABLE
+}#.TABLE
 
-minimal.data.frame = function(lst) {
+.data.frame = function(lst) {
 
   .Call(call_minimal_data_frame,
         obj = lst)
 
-}#MINIMAL.DATA.FRAME
+}#.DATA.FRAME
 
-minimal.data.frame.column = function(dataframe, column, drop = TRUE) {
+.data.frame.column = function(dataframe, column, drop = TRUE) {
 
   .Call(call_dataframe_column,
         dataframe = dataframe,
         column = column,
         drop = drop)
 
-}#MINIMAL.DATA.FRAME.COLUMN
+}#.DATA.FRAME.COLUMN
 
 # flatten 2-dimensional 1xc tables.
 flatten.2d.table = function(x) {
@@ -170,7 +170,7 @@ cgsd = function(x, configs = NULL, p = 1L) {
 }#CGSD
 
 # wrapper around coefficients() to avoid dispatch.
-minimal.coefficients = function(x) {
+.coefficients = function(x) {
 
   if (is(x, "penfit")) {
 
@@ -187,27 +187,27 @@ minimal.coefficients = function(x) {
 
   }#ELSE
 
-}#MINIMAL.COEFFICIENTS
+}#.COEFFICIENTS
 
 # wrapper around residuals() to avoid dispatch.
-minimal.residuals = function(x) {
+.residuals = function(x) {
 
   if (is(x, "penfit"))
     x@residuals
   else
     residuals(x)
 
-}#MINIMAL.RESIDUALS
+}#.RESIDUALS
 
 # wrapper around fitted() to avoid dispatch.
-minimal.fitted = function(x) {
+.fitted = function(x) {
 
   if (is(x, "penfit"))
     x@fitted
   else
     fitted(x)
 
-}#MINIMAL.FITTED
+}#.FITTED
 
 # subset an n-dimensional matrix in a programmatic way.
 ndsubset = function(x, indices) {

@@ -11,11 +11,11 @@ SEXP unique_arcs(SEXP arcs, SEXP nodes, SEXP warn) {
 }/*UNIQUE_ARCS*/
 
 /* C-level interface to unique_arcs. */
-SEXP c_unique_arcs(SEXP arcs, SEXP nodes, int warnlevel) {
+SEXP c_unique_arcs(SEXP arcs, SEXP nodes, bool warnlevel) {
 
 int i = 0, k = 0, nrow = 0, uniq_rows = 0;
-int *checklist = NULL;
-SEXP result, try, dup;
+int *dup_arc = NULL;
+SEXP result, arc_id, dup;
 
   /* the arc set is empty, nothing to do. */
   if (length(arcs) == 0)
@@ -25,14 +25,14 @@ SEXP result, try, dup;
   nrow = length(arcs)/2;
 
   /* match the node labels in the arc set. */
-  PROTECT(try = arc_hash(arcs, nodes, FALSE, FALSE));
+  PROTECT(arc_id = arc_hash(arcs, nodes, FALSE, FALSE));
   /* check which are duplicated. */
-  PROTECT(dup = duplicated(try, FALSE));
-  checklist = INTEGER(dup);
+  PROTECT(dup = duplicated(arc_id, FALSE));
+  dup_arc = INTEGER(dup);
 
   /* count how many are not. */
   for (i = 0; i < nrow; i++)
-    if (checklist[i] == 0)
+    if (dup_arc[i] == 0)
       uniq_rows++;
 
   /* if there is no duplicate arc simply return the original arc set. */
@@ -42,29 +42,25 @@ SEXP result, try, dup;
     return arcs;
 
   }/*THEN*/
-  else {
 
-    /* warn the user if told to do so. */
-    if (warnlevel > 0)
-      warning("removed %d duplicate arcs.", nrow - uniq_rows);
+  /* warn the user if told to do so. */
+  if (warnlevel > 0)
+    warning("removed %d duplicate arcs.", nrow - uniq_rows);
 
-    /* allocate and initialize the return value. */
-    PROTECT(result = allocMatrix(STRSXP, uniq_rows, 2));
+  /* allocate and initialize the return value. */
+  PROTECT(result = allocMatrix(STRSXP, uniq_rows, 2));
 
-    /* store the correct arcs in the return value. */
-    for (i = 0, k = 0; i < nrow; i++) {
+  /* store the correct arcs in the return value. */
+  for (i = 0, k = 0; i < nrow; i++) {
 
-      if (checklist[i] == 0) {
+    if (dup_arc[i] != 0)
+      continue;
 
-        SET_STRING_ELT(result, k, STRING_ELT(arcs, i));
-        SET_STRING_ELT(result, k + uniq_rows, STRING_ELT(arcs, i + nrow));
-        k++;
+    SET_STRING_ELT(result, k, STRING_ELT(arcs, i));
+    SET_STRING_ELT(result, k + uniq_rows, STRING_ELT(arcs, i + nrow));
+    k++;
 
-      }/*THEN*/
-
-    }/*FOR*/
-
-  }/*ELSE*/
+  }/*FOR*/
 
   /* allocate, initialize and set the column names. */
   setDimNames(result, R_NilValue, mkStringVec(2, "from", "to"));

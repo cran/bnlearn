@@ -7,16 +7,16 @@
 
 double c_gloss(int *cur, SEXP cur_parents, double *coefs, double *sd,
     void **columns, SEXP nodes, int ndata, double *per_sample,
-    int allow_singular);
+    bool allow_singular);
 double c_dloss(int *cur, SEXP cur_parents, int *configs, double *prob,
     SEXP data, SEXP nodes, int ndata, int nlevels, double *per_sample,
     int *dropped);
 double c_cgloss(int *cur, SEXP cur_parents, SEXP dparents, SEXP gparents,
     SEXP dlevels, double *coefs, double *sd, void **columns, SEXP nodes,
-    int ndata, double *per_sample, int allow_singular, int *dropped);
+    int ndata, double *per_sample, bool allow_singular, int *dropped);
 double c_entropy_loss(SEXP fitted, SEXP orig_data, int ndata, int by,
-    double *res_sample, SEXP keep, int allow_singular, int warnlevel,
-    int debuglevel);
+    double *res_sample, SEXP keep, bool allow_singular, bool warn,
+    bool debugging);
 
 #define UPDATE_LOSS(cond) \
       if (cond) \
@@ -53,8 +53,8 @@ SEXP result_sample = R_NilValue;
 }/*ENTROPY_LOSS*/
 
 double c_entropy_loss(SEXP fitted, SEXP orig_data, int ndata, int by,
-    double *res_sample, SEXP keep, int allow_singular, int warnlevel,
-    int debuglevel) {
+    double *res_sample, SEXP keep, bool allow_singular, bool warn,
+    bool debugging) {
 
 int i = 0, k = 0, nnodes = length(fitted), nlevels = 0, dropped = 0;
 int *configs = NULL, *to_keep = NULL;
@@ -95,7 +95,7 @@ SEXP dparents, gparents, dlevels;
     }/*THEN*/
     else {
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  > skipping node %s.\n", NODE(i));
 
       continue;
@@ -111,7 +111,7 @@ SEXP dparents, gparents, dlevels;
     /* get the parameters (regression coefficients and residuals' standard
      * deviation for Gaussian nodes, conditional probabilities for discrete
      * nodes), and compute the loss. */
-    node_type = r_fitted_node_label(cur_node);
+    node_type = fitted_node_to_enum(cur_node);
 
     switch(node_type) {
 
@@ -156,10 +156,10 @@ SEXP dparents, gparents, dlevels;
     }/*SWITCH*/
 
     /* print a warning if data were dropped. */
-    if ((warnlevel > 0) && (dropped > 0))
+    if (warn && (dropped > 0))
       warning("%d observations were dropped because the corresponding probabilities for node %s were 0 or NaN.", dropped, NODE(i));
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("  > log-likelihood loss for node %s is %lf.\n", NODE(i), cur_loss);
 
     /* add the node contribution to the return value. */
@@ -179,7 +179,7 @@ SEXP dparents, gparents, dlevels;
 /* Gaussian loss for a single node. */
 double c_gloss(int *cur, SEXP cur_parents, double *coefs, double *sd,
     void **columns, SEXP nodes, int ndata, double *per_sample,
-    int allow_singular) {
+    bool allow_singular) {
 
 int i = 0, j = 0, *p = NULL, nparents = length(cur_parents);
 double mean = 0, logprob = 0, result = 0;
@@ -280,7 +280,7 @@ SEXP temp_df;
 /* conditional Gaussian loss for a single node. */
 double c_cgloss(int *cur, SEXP cur_parents, SEXP dparents, SEXP gparents,
     SEXP dlevels, double *coefs, double *sd, void **columns, SEXP nodes,
-    int ndata, double *per_sample, int allow_singular, int *dropped) {
+    int ndata, double *per_sample, bool allow_singular, int *dropped) {
 
 int i = 0, j = 0, *p = NULL, nparents = length(cur_parents);
 int **dpar = NULL, *config = NULL;

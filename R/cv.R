@@ -68,7 +68,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
     }#THEN
     else {
 
-      kcv = lapply(kcv, bn.cv.structure, data = data, bn = bn, loss = loss,
+      kcv = lapply(kcv, bn.cv.structure, data = data, net = bn, loss = loss,
               loss.args = loss.args, fit = fit, fit.args = fit.args,
               data.info = data.info, debug = debug)
 
@@ -109,13 +109,13 @@ bn.cv.algorithm = function(test, data, algorithm, algorithm.args, loss,
     print(net)
 
   # go on with fitting the parameters.
-  bn.cv.structure(test = test, data = data, bn = net, loss = loss,
+  bn.cv.structure(test = test, data = data, net = net, loss = loss,
     loss.args = loss.args, fit = fit, fit.args = fit.args,
     data.info = data.info, debug = debug)
 
 }#BN.CV.ALGORITHM
 
-bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
+bn.cv.structure = function(test, data, net, loss, loss.args, fit, fit.args,
     data.info, debug = FALSE) {
 
   if (debug)
@@ -123,15 +123,15 @@ bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
 
   # if the network is not completely directed, try to extend it before moving on
   # and performing parameter learning.
-  if (!is.dag(arcs = bn$arcs, nodes = names(bn$nodes))) {
+  if (!is.dag(arcs = net$arcs, nodes = names(net$nodes))) {
 
     # trying to extend a skeleton (instead of a CPDAG) is probably not
     # meaningful.
-    if (!is.null(bn$learning$undirected) && bn$learning$undirected)
+    if (!is.null(net$learning$undirected) && net$learning$undirected)
       warning("the network in one of the folds is just a skeleton (no arc ",
         "directions have been learned) and trying to extend it is probably wrong.")
 
-    bn = cpdag.extension(cpdag.backend(bn, wlbl = TRUE))
+    net = cpdag.extension(cpdag.backend(net))
 
     if (loss %in% c("pred", "cor", "mse")) {
 
@@ -139,8 +139,8 @@ bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
       # is enough.
       target = loss.args$target
 
-      if (!setequal(bn$nodes[[target]]$nbr,
-            union(bn$nodes[[target]]$parents, bn$nodes[[target]]$children)))
+      if (!setequal(net$nodes[[target]]$nbr,
+            union(net$nodes[[target]]$parents, net$nodes[[target]]$children)))
         stop("undirected arcs around the target node ", target, ".")
 
     }#THEN
@@ -148,7 +148,7 @@ bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
 
       # other loss functions require the network to be completely directed, so
       # so that all local distributions can be estimated.
-      if (any(which.undirected(bn$arcs, names(bn$nodes))))
+      if (any(which.undirected(net$arcs, names(net$nodes))))
         stop("no consistent extension for the network in one of the folds.")
 
     }#ELSE
@@ -156,28 +156,28 @@ bn.cv.structure = function(test, data, bn, loss, loss.args, fit, fit.args,
   }#THEN
 
   # check the extra arguments.
-  fit.args = check.fitting.args(fit, bn, data[-test, ], fit.args)
+  fit.args = check.fitting.args(fit, net, data[-test, ], fit.args)
   # fit the parameters.
-  net = bn.fit.backend(x = bn, data = data[-test, ], method = fit,
-          extra.args = fit.args, data.info = data.info)
+  fitted = bn.fit.backend(x = net, data = data[-test, ], method = fit,
+             extra.args = fit.args, data.info = data.info)
 
   # in the case of naive Bayes and TAN models, the prior must be computed on
   # the training sample for each fold to match the behaviour of the default
   # for non-cross-validated models.
-  if (is(net, c("bn.naive", "bn.tan")))
+  if (is(fitted, c("bn.naive", "bn.tan")))
     if (all(loss.args$prior == 1))
-      loss.args$prior = net[[attr(net, "training")]]$prob
+      loss.args$prior = fitted[[attr(fitted, "training")]]$prob
 
   if (debug)
     cat("* applying the loss function to the data from the test sample.\n")
 
-  obs.loss = loss.function(fitted = net, data = data[test, ], loss = loss,
+  obs.loss = loss.function(fitted = fitted, data = data[test, ], loss = loss,
                extra.args = loss.args, debug = debug)
 
   if (debug)
     cat("----------------------------------------------------------------\n")
 
-  return(c(list(test = test, fitted = net), obs.loss))
+  return(c(list(test = test, fitted = fitted, learning = net$learning), obs.loss))
 
 }#BN.CV.STRUCTURE
 

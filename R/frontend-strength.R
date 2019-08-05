@@ -120,8 +120,16 @@ bf.strength = function(x, data, score, ..., debug = FALSE) {
   extra.args = check.score.args(score = score, network = x,
                  data = data, extra.args = list(...), learning = FALSE)
 
-  bf.strength.backend(x = x, data = data, score = score, debug = debug,
-    extra.args = extra.args)
+  res = bf.strength.backend(x = x, data = data, score = score, debug = debug,
+          extra.args = extra.args)
+
+  # add extra information for strength.plot().
+  res = structure(res, method = "bayes-factor", threshold = threshold(res),
+          class = c("bn.strength", class(res)))
+  if (data.info$type == "mixed-cg")
+    attr(res, "illegal") = list.cg.illegal.arcs(names(data), data)
+
+  return(res)
 
 }#BF.STRENGTH
 
@@ -130,6 +138,8 @@ bf.strength = function(x, data, score, ..., debug = FALSE) {
 custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
     debug = FALSE) {
 
+illegal = NULL
+
   # check debug.
   check.logical(debug)
   # check cpdag.
@@ -137,7 +147,17 @@ custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
   # check networks.
   if (is(networks, c("bn.kcv", "bn.kcv.list"))) {
 
-    extract = function(x) bn.net(x$fitted)
+    extract = function(x) {
+
+      # regenerate the network structure...
+      net = bn.net(x$fitted)
+      # ... and restore the information from structure learning, including
+      # whitelists and blacklists that are needed later in cpdag.backend().
+      net$learning = x$learning
+
+      return(net)
+
+    }#EXTRACT
 
     if (is(networks, "bn.kcv"))
       networks = lapply(networks, extract)
@@ -154,6 +174,9 @@ custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
 
     nodes = names(networks[[1]]$nodes)
 
+    # extract the illegal arcs, which are the same for all networks.
+    illegal = networks[[1]]$learning$illegal
+
   }#THEN
   else {
 
@@ -162,16 +185,32 @@ custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
     # check the networks.
     check.customlist(networks, nodes = nodes)
 
+    # extract the illegal arcs, but disregard them if they are not the same for
+    # all networks.
+    all.illegal = lapply(networks, function(x) {
+
+      if(is(x, "bn"))
+        x$learning$illegal
+      else
+        NULL
+
+    })
+
+    if (all(sapply(all.illegal, all.equal, all.illegal[[1]])))
+      illegal = all.illegal[[1]]
+
   }#ELSE
   # check the weights.
   weights = check.weights(weights, length(networks))
 
   res = arc.strength.custom(custom.list = networks, nodes, cpdag = cpdag,
-          arcs = NULL, weights = weights, debug = debug)
+          arcs = NULL, weights = weights, illegal = illegal, debug = debug)
 
   # add extra information for strength.plot().
   res = structure(res, method = "bootstrap", threshold = threshold(res),
           class = c("bn.strength", class(res)))
+  if (!is.null(illegal))
+    attr(res, "illegal") = illegal
 
   return(res)
 

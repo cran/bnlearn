@@ -68,7 +68,8 @@ graphviz.compare(x, ..., groups, layout = "dot", shape = "circle", main = NULL,
       arcs can be specified as the elements of a list via the \code{diff.args}
       argument, with names \code{tp.col}, \code{tp.lty}, \code{tp.lwd},
       \code{fp.col}, \code{fp.lty}, \code{fp.lwd}, \code{fn.col}, \code{fn.lty},
-      \code{tp.lwd}.
+      \code{tp.lwd}. In addition, it is possible not to plot the reference
+      network at all by setting \code{show.first} to \code{FALSE}.
 
   }
 
@@ -98,8 +99,8 @@ graphviz.compare(x, ..., groups, layout = "dot", shape = "circle", main = NULL,
 
   \code{shd()} and \code{hamming()} return a non-negative integer number.
 
-  \code{graphviz.compare()} plots one or more figures and returns \code{NULL}
-  invisibly.
+  \code{graphviz.compare()} plots one or more figures and returns invisibly a
+  list containing the \code{graph} objects produced by \pkg{Rgraphviz}.
 
 }
 \examples{
@@ -110,7 +111,7 @@ e2 = model2network("[A][B][C|A:B][D|B][E|C:F][F|A]")
 shd(e2, e1, debug = TRUE)
 unlist(compare(e1,e2))
 compare(target = e1, current = e2, arcs = TRUE)
-graphviz.compare(e1, e2, diff = "none")
+\dontrun{graphviz.compare(e1, e2, diff = "none")}
 }
 \references{
 

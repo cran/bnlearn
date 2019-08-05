@@ -10,9 +10,10 @@ SEXP score_cache_fill(SEXP nodes, SEXP data, SEXP network, SEXP score,
     SEXP updated, SEXP amat, SEXP cache, SEXP blmat, SEXP debug) {
 
 int *colsum = NULL, nnodes = length(nodes), lupd = length(updated);
-int *a = NULL, *upd = NULL, *b = NULL, debuglevel = isTRUE(debug);
+int *a = NULL, *upd = NULL, *b = NULL;
 int i = 0, j = 0, k = 0;
 double *cache_value = NULL;
+bool debugging = isTRUE(debug);
 SEXP arc, delta, op, temp;
 
   /* save a pointer to the adjacency matrix, the blacklist and the
@@ -106,7 +107,7 @@ there:
        cache_value[CMC(i, j, nnodes)] = NUM(VECTOR_ELT(temp, 1));
        UNPROTECT(1);
 
-       if (debuglevel > 0)
+       if (debugging)
          Rprintf("* caching score delta for arc %s -> %s (%lf).\n",
            CHAR(STRING_ELT(nodes, i)), CHAR(STRING_ELT(nodes, j)),
             cache_value[CMC(i, j, nnodes)]);
@@ -129,10 +130,11 @@ SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
     SEXP wlmat, SEXP blmat, SEXP nparents, SEXP maxp, SEXP debug) {
 
 int nnodes = length(nodes), i = 0, j = 0;
-int *am = NULL, *ad = NULL, *w = NULL, *b = NULL, debuglevel = isTRUE(debug);
+int *am = NULL, *ad = NULL, *w = NULL, *b = NULL;
 int counter = 0, update = 1, from = 0, to = 0, *path = NULL, *scratch = NULL;
 double *cache_value = NULL, temp = 0, max = 0, tol = MACHINE_TOL;
 double *mp = REAL(maxp), *np = REAL(nparents);
+bool debugging = isTRUE(debug);
 SEXP bestop;
 
   /* allocate and initialize the return value (use FALSE as a canary value). */
@@ -153,7 +155,7 @@ SEXP bestop;
   w = INTEGER(wlmat);
   b = INTEGER(blmat);
 
-  if (debuglevel > 0) {
+  if (debugging) {
 
      /* count how may arcs are to be tested. */
      for (i = 0; i < nnodes * nnodes; i++)
@@ -175,7 +177,7 @@ SEXP bestop;
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, nnodes)];
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("  > trying to add %s -> %s.\n", NODE(i), NODE(j));
         Rprintf("    > delta between scores for nodes %s %s is %lf.\n",
@@ -190,14 +192,14 @@ SEXP bestop;
         if (c_has_path(j, i, am, nnodes, nodes, FALSE, FALSE, path, scratch,
               FALSE)) {
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("    > not adding, introduces cycles in the graph.\n");
 
           continue;
 
         }/*THEN*/
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("    @ adding %s -> %s.\n", NODE(i), NODE(j));
 
         /* update the return value. */
@@ -215,7 +217,7 @@ SEXP bestop;
 
   }/*FOR*/
 
-  if (debuglevel > 0) {
+  if (debugging) {
 
      /* count how may arcs are to be tested. */
      for (i = 0, counter = 0; i < nnodes * nnodes; i++)
@@ -241,7 +243,7 @@ SEXP bestop;
       /* retrieve the score delta from the cache. */
       temp = cache_value[CMC(i, j, nnodes)];
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("  > trying to remove %s -> %s.\n", NODE(i), NODE(j));
         Rprintf("    > delta between scores for nodes %s %s is %lf.\n",
@@ -251,7 +253,7 @@ SEXP bestop;
 
       if (temp - max > tol) {
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("    @ removing %s -> %s.\n", NODE(i), NODE(j));
 
         /* update the return value. */
@@ -269,7 +271,7 @@ SEXP bestop;
 
   }/*FOR*/
 
-  if (debuglevel > 0) {
+  if (debugging) {
 
      /* count how may arcs are to be tested. */
      for (i = 0, counter = 0; i < nnodes; i++)
@@ -304,7 +306,7 @@ SEXP bestop;
       /* nuke small values and negative zeroes. */
       if (fabs(temp) < tol) temp = 0;
 
-      if (debuglevel > 0) {
+      if (debugging) {
 
         Rprintf("  > trying to reverse %s -> %s.\n", NODE(i), NODE(j));
         Rprintf("    > delta between scores for nodes %s %s is %lf.\n",
@@ -317,14 +319,14 @@ SEXP bestop;
         if (c_has_path(i, j, am, nnodes, nodes, FALSE, TRUE, path, scratch,
               FALSE)) {
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("    > not reversing, introduces cycles in the graph.\n");
 
           continue;
 
         }/*THEN*/
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("    @ reversing %s -> %s.\n", NODE(i), NODE(j));
 
         /* update the return value. */

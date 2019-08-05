@@ -68,7 +68,8 @@ graphviz.plot(x, highlight = NULL, groups, layout = "dot",
 \value{
 
   \code{graphviz.plot()} returns invisibly the \code{graph} object produced by
-  \pkg{Rgraphviz}.
+  \pkg{Rgraphviz}. It can be further modified using the commands present in the
+  \pkg{graph} and \pkg{Rgraphviz} packages.
 
 }
 \seealso{\code{\link{plot.bn}}.}

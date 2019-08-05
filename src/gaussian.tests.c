@@ -11,7 +11,7 @@ double cor_t_trans(double cor, double df) {
 /* correlation transform for Fizher's Z test. */
 double cor_zf_trans(double cor, double df) {
 
-  return log((1 + cor)/(1 - cor)) / 2 * sqrt(df - 1);
+  return log((1 + cor)/(1 - cor)) / 2 * sqrt(df);
 
 }/*COR_ZF_TRANS*/
 

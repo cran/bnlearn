@@ -70,13 +70,13 @@ check.cpq.args = function(fitted, event, extra.args, method, action) {
 
 }#CHECK.CPQ.ARGS
 
-# check evidence in list format for mutilated networks.
-check.mutilated.evidence = function(evidence, graph, ideal.only = FALSE) {
+# check evidence in list format.
+check.evidence = function(evidence, graph, ideal.only = FALSE) {
 
   # check whether evidence is there.
   if (missing(evidence))
     stop("evidence must be a list with elements named after the nodes in the graph.")
-  # if evindence is TRUE there's nothing to check.
+  # if evidence is TRUE there's nothing to check.
   if (identical(evidence, TRUE))
     return(TRUE)
   # check whether evidence is a named list.
@@ -92,7 +92,7 @@ check.mutilated.evidence = function(evidence, graph, ideal.only = FALSE) {
       stop("the graph is only partially directed.")
 
   }#THEN
-  else {
+  else if (is(graph, "bn.fit")) {
 
      # check the evidence is appropriate for the nodes.
      for (fixed in names(evidence)) {
@@ -105,14 +105,14 @@ check.mutilated.evidence = function(evidence, graph, ideal.only = FALSE) {
        # will have length equal to 1.
        if (ideal.only)
          if (length(ev) > 1)
-           stop("only ideal interventions are allowed for node ", fixed,
-                ", but multiple values are provided.")
+           stop("only ideal interventions are allowed for node '", fixed,
+                "', but multiple values are provided.")
 
        # duplicated values do not make sense in most situations.
        if (any(duplicated(ev))) {
 
          ev = unique(ev)
-         warning("duplicated values in the evidence for node ", fixed, ".")
+         warning("duplicated values in the evidence for node '", fixed, "'.")
 
        }#THEN
 
@@ -122,14 +122,14 @@ check.mutilated.evidence = function(evidence, graph, ideal.only = FALSE) {
            evidence[[fixed]] = ev = as.character(ev)
 
          if (!is.string.vector(ev) || any(ev %!in% dimnames(cur$prob)[[1]]))
-           stop("the evidence for node ", fixed, " must be valid levels.")
+           stop("the evidence for node '", fixed, "' must be valid levels.")
 
        }#THEN
        else if (is(cur, "bn.fit.gnode")) {
 
          # for continuous nodes evidence must be real numbers.
          if (!is.real.vector(ev) || (length(ev) %!in% 1:2))
-           stop("the evidence ", fixed, " must be a real number or a finite interval.")
+           stop("the evidence for node '", fixed, "' must be a real number or a finite interval.")
          storage.mode(ev) = "double"
          # make sure interval boundaries are in the right order.
          evidence[[fixed]] = sort(ev)
@@ -142,5 +142,5 @@ check.mutilated.evidence = function(evidence, graph, ideal.only = FALSE) {
 
   return(evidence)
 
-}#CHECK.MUTILATED.EVIDENCE
+}#CHECK.EVIDENCE
 

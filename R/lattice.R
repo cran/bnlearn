@@ -4,11 +4,6 @@ lattice.discrete.backend = function(fitted, type, xlab, ylab, main, ...) {
   # check whether lattice is loaded, and try to load if it is not.
   check.and.load.package("lattice")
 
-  if (is(fitted, "bn.fit"))
-    stop("only plots of single, discrete nodes are implemented.")
-  if (!is(fitted, c("bn.fit.dnode", "bn.fit.onode")))
-    stop("fitted must be an object of class 'bn.fit.dnode' or 'bn.fit.onode'.")
-
   if (type == "bar") {
 
     if (length(fitted$parents) == 0) {
@@ -80,7 +75,7 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
     nodes = names(fitted)
     nrows = length(fitted[[1]]$residuals)
 
-    if (type %in% c("fitted", "fitted-std")) {
+    if (type == "fitted") {
 
       temp = data.frame(
         resid = unlist(lapply(fitted, "[[", "residuals" )),
@@ -200,11 +195,6 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
     }#THEN
 
   }#THEN
-  else {
-
-    stop("fitted must be an object of class 'bn.fit', 'bn.fit.gnode' and 'bn.fit.cgnode'.")
-
-  }#ELSE
 
   # print the plot explicitly, do not rely on auto-printing.
   print(p)

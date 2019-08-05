@@ -43,17 +43,17 @@ check.score = function(score, data, allowed = available.scores) {
 is.score.equivalent = function(score, nodes, extra) {
 
   # log-likelihood for discrete and Gaussian data is always score equivalent.
-  if (score %in% c("loglik", "loglik-g"))
+  if (score %in% c("loglik", "loglik-g", "pred-loglik", "pred-loglik-g"))
     return(TRUE)
   # same with AIC and BIC.
   if (score %in% c("aic", "aic-g", "bic", "bic-g"))
     return(TRUE)
-  # BDe and BGe are score equivalent if they have uniform priors (e.g. BDeu and BGeu).
+  # BDe and BGe can score equivalent depending on the graph prior.
   else if ((score %in% c("bde", "bge")) &&
-           (extra$prior %in% c("uniform", "marginal")))
+           (extra$prior %in% c("uniform", "marginal", "vsp")))
     return(TRUE)
 
-  # a conservative default.
+  # a conservative default (BDla, BDs, BDj, all *-cg scores).
   return(FALSE)
 
 }#IS.SCORE.EQUIVALENT
@@ -77,7 +77,7 @@ check.score.args = function(score, network, data, extra.args, learning = FALSE) 
   # check the imaginary sample size.
   if (has.argument(score, "iss", score.extra.args))
     extra.args$iss = check.iss(iss = extra.args$iss,
-      network = network, data = data)
+      network = network)
 
   # check the graph prior distribution.
   if (has.argument(score, "prior", score.extra.args))
@@ -100,14 +100,26 @@ check.score.args = function(score, network, data, extra.args, learning = FALSE) 
     extra.args$k = check.penalty(k = extra.args$k, network = network,
       data = data, score = score)
 
-  # check phi estimator.
-  if (has.argument(score, "phi", score.extra.args))
-    extra.args$phi = check.phi(phi = extra.args$phi,
-      network = network, data = data)
-
   # check the number of scores to average.
   if (has.argument(score, "l", score.extra.args))
     extra.args$l = check.l(l = extra.args$l)
+
+  # check the normal-Wishart prior arguments.
+  if (has.argument(score, "nu", score.extra.args))
+    extra.args$nu = check.nu(nu = extra.args$nu, network = network, data = data)
+
+  if (has.argument(score, "iss.mu", score.extra.args))
+    extra.args$iss.mu = check.iss.mu(iss.mu = extra.args$iss.mu,
+      network = network)
+
+  if (has.argument(score, "iss.w", score.extra.args))
+    extra.args$iss.w = check.iss.w(iss.w = extra.args$iss.w,
+      network = network, data = data)
+
+  # check the test data for predictive scores.
+  if (has.argument(score, "new.data", score.extra.args))
+    extra.args$newdata = check.newdata(newdata = extra.args$newdata,
+      network = network, data = data)
 
   check.unused.args(extra.args, score.extra.args[[score]])
 
@@ -115,43 +127,26 @@ check.score.args = function(score, network, data, extra.args, learning = FALSE) 
 
 }#CHECK.SCORE.ARGS
 
-# check the imaginary sample size.
-check.iss = function(iss, network, data) {
-
-  # check which type of data we are dealing with.
-  type = data.type(data)
+# check the imaginary sample size of the Dirichlet prior.
+check.iss = function(iss, network) {
 
   if (!is.null(iss)) {
 
     # validate the imaginary sample size.
     if (!is.positive(iss))
       stop("the imaginary sample size must be a positive number.")
-    # if iss = 1 the bge is NaN, if iss = 2 and phi = "heckerman" the
-    # computation stops with the following error:
-    # Error in solve.default(phi[A, A]) :
-    #   Lapack routine dgesv: system is exactly singular
-    if ((type == "factor") && (iss < 1))
+    if (iss < 1)
       warning("very small imaginary sample size, the results may be affected by numeric problems.")
-    else if ((type == "continuous") && (iss < 3))
-      stop("the imaginary sample size must be a numeric value greater than or equal to 3.")
-    else if (iss < 1)
-      stop("the imaginary sample size must be greater than or equal to 1.")
 
   }#THEN
   else {
 
     # check whether there is an imaginary sample size stored in the bn object;
-    # otherwise use a the de facto standard value of 10.
+    # otherwise use a the de facto standard value of 1.
     if (!is.null(network$learning$args$iss))
       iss = network$learning$args$iss
-    else {
-
-      if (type == "factor")
-        iss = 1
-      else
-        iss = 10
-
-    }#ELSE
+    else
+      iss = 1
 
   }#ELSE
 
@@ -160,29 +155,86 @@ check.iss = function(iss, network, data) {
 
 }#CHECK.ISS
 
-# check the phi defintion to be used in the bge score.
-check.phi = function(phi, network, data) {
+# check the prior mean in the BGe score.
+check.nu = function(nu, network, data) {
 
-  if (!is.null(phi)) {
+  if (!is.null(nu)) {
 
-    check.label(phi, choices = c("heckerman", "bottcher"),
-      argname = "phi definition")
+    # check type and length.
+    if (!is.real.vector(nu))
+      stop("the prior mean vector must contain real numbers.")
+    if (length(nu) != ncol(data))
+      stop("the length of the prior mean vector does not match the number of variables in the data.")
+
+    # check the names.
+    if (is.null(names(nu)))
+      names(nu) = names(data)
+    else if (!setequal(names(nu), names(data)))
+      stop("the prior mean vector and the data contain variables with different names.")
 
   }#THEN
   else {
 
-    # check if there is an phi definition stored in the bn object;
-    # otherwise use the one by heckerman.
-    if (!is.null(network$learning$args$phi))
-      phi = network$learning$args$phi
+    if (!is.null(network$learning$args$nu))
+      nu = network$learning$args$nu
     else
-      phi = "heckerman"
+      nu = structure(colMeans(data), names = names(data))
 
   }#ELSE
 
-  return(phi)
+  return(nu)
 
-}#CHECK.PHI
+}#CHECK.NU
+
+# check the imaginary sample size for the normal prior over the mean.
+check.iss.mu = function(iss.mu, network) {
+
+  if (!is.null(iss.mu)) {
+
+    # validate the imaginary sample size.
+    if (!is.positive(iss.mu))
+      stop("the imaginary sample size must be a positive number.")
+    if (iss.mu < 1)
+      warning("very small imaginary sample size, the results may be affected by numeric problems.")
+
+  }#THEN
+  else {
+
+    # check whether there is an imaginary sample size stored in the bn object;
+    # otherwise use a the de facto standard value of 1.
+    if (!is.null(network$learning$args$iss.mu))
+      iss.mu = network$learning$args$iss.mu
+    else
+      iss.mu = 1
+
+  }#ELSE
+
+  # coerce iss to integer.
+  return(as.numeric(iss.mu))
+
+}#CHECK.ISS
+
+# check the imaginary sample size for the Wishart prior over the covariance.
+check.iss.w = function(iss.w, network, data) {
+
+  if (!is.null(iss.w)) {
+
+    if (!is.positive.integer(iss.w))
+      stop("the imaginary sample size for the Wishart prior component must be a positive integer number.")
+
+  }#THEN
+  else {
+
+    if (!is.null(network$learning$args$iss.w))
+      iss.w = network$learning$args$iss.w
+    else
+      iss.w = ncol(data) + 2
+
+  }#ELSE
+
+  return(iss.w)
+
+}#CHECK.ISS.W
 
 # check the experimental data list.
 check.experimental = function(exp, network, data) {
@@ -361,4 +413,59 @@ check.l = function(l) {
   return(as.numeric(l))
 
 }#CHECK.L
+
+# check the test data for predictive scores.
+check.newdata = function(newdata, network = network, data = data) {
+
+  if (is.null(newdata))
+    stop("predctive scores require a test set passed as 'newdata'.")
+
+  # check whether data and newdata have the same columns.
+  names.data = names(data)
+  names.newdata = names(newdata)
+
+  if (length(names.data) < length(names.newdata)) {
+
+    if (all(names.newdata %in% names(data))) {
+
+       warning("extra variables in newdata will be ignored.")
+       newdata = .data.frame.column(newdata, names.data, drop = FALSE)
+
+    }#THEN
+    else {
+
+      stop("some variables in the data are missing in newdata.")
+
+    }#ELSE
+
+  }#THEN
+  else if (length(names.data) > length(names.newdata)) {
+
+    stop("some variables in the data are missing in newdata.")
+
+  }#THEN
+
+  # reorder the columns of new.data to match data.
+  newdata = .data.frame.column(newdata, names.data, drop = FALSE)
+
+  # check whether data and newdata have the same data types.
+  types.data = lapply(data, class)
+  types.newdata = lapply(newdata, class)
+
+  for (i in seq_along(types.data))
+    if (!isTRUE(all.equal(types.data[[i]], types.newdata[[i]])))
+      stop("variable ", names.data[i], " has a different class in newdata.")
+
+  # for discrete variables, also check that the levels match.
+  levels.data = lapply(data, levels)
+  levels.newdata = lapply(newdata, levels)
+
+  for (i in seq_along(levels.data))
+    if (any(types.data[i] %in% "factor"))
+      if (!isTRUE(all.equal(levels.data[i], levels.newdata[i])))
+        stop("variable ", names.data[i], " has a different levels in newdata.")
+
+  return(newdata)
+
+}#CHECK.NEWDATA
 

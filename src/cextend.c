@@ -76,7 +76,8 @@ SEXP pdag_extension(SEXP arcs, SEXP nodes, SEXP debug) {
 
 int i = 0, j = 0, k = 0, t = 0, nnodes = length(nodes);
 int changed = 0, left = nnodes;
-int *a = NULL, *nbr = NULL, debuglevel = isTRUE(debug);
+int *a = NULL, *nbr = NULL;
+bool debugging = isTRUE(debug);
 short int *matched = NULL;
 SEXP amat, result;
 
@@ -90,7 +91,7 @@ SEXP amat, result;
 
   for (t = 0; t < nnodes; t++) {
 
-    if (debuglevel > 0) {
+    if (debugging) {
 
       Rprintf("----------------------------------------------------------------\n");
       Rprintf("> performing pass %d.\n", t + 1);
@@ -115,7 +116,7 @@ SEXP amat, result;
       /* if the node is not a sink move on. */
       if (k == -1) {
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  * node %s is not a sink.\n", NODE(i));
 
         continue;
@@ -123,14 +124,14 @@ SEXP amat, result;
       }/*THEN*/
       else {
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  * node %s is a sink.\n", NODE(i));
 
       }/*ELSE*/
 
       if (!all_adjacent(a, i, k, nnodes, nbr)) {
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  * not all nodes linked to %s by an undirected arc are adjacent.\n", NODE(i));
 
         continue;
@@ -138,7 +139,7 @@ SEXP amat, result;
       }/*THEN*/
       else {
 
-        if (debuglevel > 0) {
+        if (debugging) {
 
           if (k == 0)
             Rprintf("  * no node is linked to %s by an undirected arc.\n", NODE(i));
@@ -152,7 +153,7 @@ SEXP amat, result;
       /* the current node meets all the conditions, direct all the arcs towards it. */
       if (k == 0) {
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  @ no undirected arc to direct towards %s.\n", NODE(i));
 
       }/*THEN*/
@@ -161,7 +162,7 @@ SEXP amat, result;
         for (j = 0; j < k; j++)
           a[CMC(i, nbr[j], nnodes)] = 0;
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  @ directing all incident undirected arcs towards %s.\n", NODE(i));
 
       }/*ELSE*/
@@ -194,5 +195,4 @@ SEXP amat, result;
   return result;
 
 }/*PDAG_EXTENSION*/
-
 

@@ -66,44 +66,6 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
 
 }#DISCRETIZE
 
-# Pena's relevant nodes feature selection.
-relevant = function(target, context, data, test, alpha, B, debug = FALSE) {
-
-  warning("the 'relevant()' function is deprecated and will be removed in 2019.")
-
-  # check the data.
-  data.info = check.data(data,
-                allowed.types = c(discrete.data.types, continuous.data.types))
-  # a valid node is needed.
-  check.nodes(nodes = target, graph = names(data), max.nodes = 1)
-  # an optional valid node is needed.
-  if (!missing(context)) {
-
-    check.nodes(nodes = context, graph = names(data))
-
-    if (length(intersect(target, context)) > 0)
-      stop("target and context nodes must be disjoint sets.")
-
-  }#THEN
-  else {
-
-    context = NULL
-
-  }#ELSE
-  # check the test label.
-  test = check.test(test, data)
-  # check B (the number of eprmutations).
-  B = check.B(B, test)
-  # check alpha.
-  alpha = check.alpha(alpha)
-  # check debug.
-  check.logical(debug)
-
-  pena.backend(target = target, context = context, data = data, test = test,
-    alpha = alpha, B = B, debug = debug, complete = data.info$complete.nodes)
-
-}#RELEVANT
-
 # screen the data for highly correlated variables.
 dedup = function(data, threshold = 0.90, debug = FALSE) {
 

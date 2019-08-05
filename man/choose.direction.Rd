@@ -17,8 +17,9 @@ choose.direction(x, arc, data, criterion = NULL, ..., debug = FALSE)
   \item{data}{a data frame containing the data the Bayesian network was learned
     from.}
   \item{criterion}{a character string, the label of a score function, the label
-    of an independence test or \code{bootstrap}. See \code{\link{bnlearn-package}}
-    for details on the first two possibilities.}
+    of an independence test or \code{bootstrap}. See
+    \code{\link{network scores}} and \code{\link{independence tests}} for
+    details on the first two possibilities.}
   \item{\dots}{additional tuning parameters for the network score. See
     \code{\link{score}} for details.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is

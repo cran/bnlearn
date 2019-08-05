@@ -217,6 +217,7 @@ SEXP from, adjacent, nodes, arcs;
 
   /* allocate and initialize the return value. */
   PROTECT(arcs = allocMatrix(STRSXP, narcs, 2));
+  setDimNames(arcs, R_NilValue, mkStringVec(2, "from", "to"));
 
   nodes = getAttrib(elist, R_NamesSymbol);
 

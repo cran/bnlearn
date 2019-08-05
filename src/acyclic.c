@@ -51,12 +51,13 @@ int i = 0, j = 0, z = 0;
 int nrow = length(nodes);
 int check_status = nrow, check_status_old = nrow;
 int *rowsums = NULL, *colsums = NULL, *crossprod = NULL, *a = NULL;
-int *path = NULL, *scratch = NULL, debuglevel = isTRUE(debug);
+int *path = NULL, *scratch = NULL;
 short int *skip = NULL;
+bool debugging = isTRUE(debug);
 SEXP amat, res;
 
   /* build the adjacency matrix from the arc set.  */
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("* building the adjacency matrix.\n");
 
   PROTECT(amat = arcs2amat(arcs, nodes));
@@ -85,7 +86,7 @@ SEXP amat, res;
   path = Calloc1D(nrow, sizeof(int));
   scratch = Calloc1D(nrow, sizeof(int));
 
-  if (debuglevel > 0)
+  if (debugging)
     Rprintf("* checking whether the partially directed graph is acyclic.\n");
 
   /* even in the worst case scenario at least two nodes are marked as
@@ -95,7 +96,7 @@ SEXP amat, res;
 
 start:
 
-    if (debuglevel > 0)
+    if (debugging)
       Rprintf("* beginning iteration %d.\n", z + 1);
 
     for (i = 0; i < nrow; i++) {
@@ -117,7 +118,7 @@ start:
 
 there:
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("  > checking node %s (%d child(ren), %d parent(s), %d neighbours).\n",
           NODE(i), rowsums[i], colsums[i], crossprod[i]);
 
@@ -126,7 +127,7 @@ there:
       if (((rowsums[i] == 0) || (colsums[i] == 0)) ||
           ((crossprod[i] == 1) && (rowsums[i] == 1) && (colsums[i] == 1))) {
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  @ node %s is cannot be part of a cycle.\n", NODE(i));
 
         /* update the adjacency matrix and the row/column totals. */
@@ -142,7 +143,7 @@ there:
       }/*THEN*/
       else if (crossprod[i] == 1) {
 
-        /* find the other of the undirected arc. */
+        /* find the other endpoint of the undirected arc. */
         for (j = 0; j < i; j++)
           if (a[CMC(i, j, nrow)] * a[CMC(j, i, nrow)] == 1)
             break;
@@ -153,7 +154,7 @@ there:
         if (((colsums[i] == 1) && (colsums[j] == 1)) ||
             ((rowsums[i] == 1) && (rowsums[j] == 1))) {
 
-          if (debuglevel > 0)
+          if (debugging)
             Rprintf("  @ arc %s - %s is cannot be part of a cycle.\n", NODE(i), NODE(j));
 
           /* update the adjacency matrix and the row/column totals. */
@@ -179,7 +180,7 @@ there:
     /* at least three nodes are needed to have a cycle. */
     if (check_status < 3) {
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("@ at least three nodes are needed to have a cycle.\n");
 
       goto end;
@@ -190,7 +191,7 @@ there:
      * the last iteration, the algorithm is stuck on a cycle. */
     if (check_status_old == check_status) {
 
-      if (debuglevel > 0)
+      if (debugging)
         Rprintf("@ no change in the last iteration.\n");
 
       /* give up and call c_has_path() to kill some undirected arcs. */
@@ -205,7 +206,7 @@ there:
             if(!c_has_path(i, j, INTEGER(amat), nrow, nodes, FALSE, TRUE, path, scratch, FALSE) &&
                !c_has_path(j, i, INTEGER(amat), nrow, nodes, FALSE, TRUE, path, scratch, FALSE)) {
 
-              if (debuglevel > 0)
+              if (debugging)
                 Rprintf("@ arc %s - %s is not part of any cycle, removing.\n", NODE(i), NODE(j));
 
               /* increase the iteration counter and start again. */

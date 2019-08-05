@@ -2,7 +2,7 @@
 #include "include/scores.h"
 
 #define DEBUG_BEFORE() \
-  if (debuglevel > 0) { \
+  if (debugging) { \
     Rprintf("----------------------------------------------------------------\n"); \
     Rprintf("* processing node %s.\n", CHAR(STRING_ELT(cur, 0))); \
   }/*THEN*/
@@ -29,12 +29,12 @@ SEXP result;
 
 /* C backend: compute the score component for each target node. */
 void c_per_node_score(SEXP network, SEXP data, SEXP score, SEXP targets,
-    SEXP extra_args, int debuglevel, double *res) {
+    SEXP extra_args, bool debugging, double *res) {
 
 int i = 0, ntargets = length(targets);
-score_e s = score_label(CHAR(STRING_ELT(score, 0)));
+score_e s = score_to_enum(CHAR(STRING_ELT(score, 0)));
 double nparams = 0, *k = NULL;
-SEXP cur, iss, prior, beta, exp, phi, l;
+SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata;
 
   /* allocate dummy variable for the current node's label. */
   PROTECT(cur = allocVector(STRSXP, 1));
@@ -47,7 +47,7 @@ SEXP cur, iss, prior, beta, exp, phi, l;
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
-        res[i] = loglik_dnode(cur, network, data, NULL, debuglevel);
+        res[i] = loglik_dnode(cur, network, data, NULL, debugging);
 
       }/*FOR*/
       break;
@@ -58,7 +58,7 @@ SEXP cur, iss, prior, beta, exp, phi, l;
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
-        res[i] = loglik_gnode(cur, network, data, NULL, debuglevel);
+        res[i] = loglik_gnode(cur, network, data, NULL, debugging);
 
       }/*FOR*/
       break;
@@ -69,7 +69,7 @@ SEXP cur, iss, prior, beta, exp, phi, l;
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
-        res[i] = loglik_cgnode(cur, network, data, NULL, debuglevel);
+        res[i] = loglik_cgnode(cur, network, data, NULL, debugging);
 
       }/*FOR*/
       break;
@@ -84,10 +84,10 @@ SEXP cur, iss, prior, beta, exp, phi, l;
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
-        res[i] = loglik_dnode(cur, network, data, &nparams, debuglevel);
+        res[i] = loglik_dnode(cur, network, data, &nparams, debugging);
         res[i] -= (*k) * nparams;
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
 
       }/*FOR*/
@@ -103,10 +103,10 @@ SEXP cur, iss, prior, beta, exp, phi, l;
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
-        res[i] = loglik_gnode(cur, network, data, &nparams, debuglevel);
+        res[i] = loglik_gnode(cur, network, data, &nparams, debugging);
         res[i] -= (*k) * nparams;
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
 
       }/*FOR*/
@@ -122,10 +122,10 @@ SEXP cur, iss, prior, beta, exp, phi, l;
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
-        res[i] = loglik_cgnode(cur, network, data, &nparams, debuglevel);
+        res[i] = loglik_cgnode(cur, network, data, &nparams, debugging);
         res[i] -= (*k) * nparams;
 
-        if (debuglevel > 0)
+        if (debugging)
           Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
 
       }/*FOR*/
@@ -144,7 +144,7 @@ SEXP cur, iss, prior, beta, exp, phi, l;
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
         res[i] = dirichlet_node(cur, network, data, iss, FALSE, prior, beta,
-                   R_NilValue, (s == BDS), debuglevel);
+                   R_NilValue, (s == BDS), debugging);
 
       }/*FOR*/
       break;
@@ -159,7 +159,7 @@ SEXP cur, iss, prior, beta, exp, phi, l;
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
         res[i] = dirichlet_node(cur, network, data, iss, TRUE,
-                   R_NilValue, R_NilValue, R_NilValue, FALSE, debuglevel);
+                   R_NilValue, R_NilValue, R_NilValue, FALSE, debugging);
 
         UNPROTECT(1);
 
@@ -169,8 +169,9 @@ SEXP cur, iss, prior, beta, exp, phi, l;
     /* Bayesian Gaussian equivalent score (BGe). */
     case BGE:
 
-      iss = getListElement(extra_args, "iss");
-      phi = getListElement(extra_args, "phi");
+      iss = getListElement(extra_args, "iss.mu");
+      nu = getListElement(extra_args, "nu");
+      iss_w = getListElement(extra_args, "iss.w");
       prior = getListElement(extra_args, "prior");
       beta = getListElement(extra_args, "beta");
 
@@ -178,7 +179,8 @@ SEXP cur, iss, prior, beta, exp, phi, l;
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
-        res[i] = wishart_node(cur, network, data, iss, phi, prior, beta, debuglevel);
+        res[i] = wishart_node(cur, network, data, iss, nu, iss_w, prior,
+                   beta, debugging);
 
       }/*FOR*/
       break;
@@ -195,8 +197,8 @@ SEXP cur, iss, prior, beta, exp, phi, l;
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
-        res[i] = dirichlet_node(cur, network, data, iss, FALSE, prior, beta, exp,
-                   FALSE, debuglevel);
+        res[i] = dirichlet_node(cur, network, data, iss, FALSE, prior, beta,
+                   exp, FALSE, debugging);
 
       }/*FOR*/
       break;
@@ -213,7 +215,51 @@ SEXP cur, iss, prior, beta, exp, phi, l;
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
         res[i] = dirichlet_averaged_node(cur, network, data, l, prior,
-                   beta, FALSE, debuglevel);
+                   beta, FALSE, debugging);
+
+      }/*FOR*/
+      break;
+
+    /* discrete predictive log-likelihood. */
+    case PRED_LOGLIK:
+
+      newdata = getListElement(extra_args, "newdata");
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = predictive_loglik_dnode(cur, network, data, newdata, &nparams,
+                   debugging);
+
+      }/*FOR*/
+      break;
+
+    /* Gaussian predictive log-likelihood. */
+    case PRED_LOGLIK_G:
+
+      newdata = getListElement(extra_args, "newdata");
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = predictive_loglik_gnode(cur, network, data, newdata, &nparams,
+                   debugging);
+
+      }/*FOR*/
+      break;
+
+    case PRED_LOGLIK_CG:
+
+      newdata = getListElement(extra_args, "newdata");
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = predictive_loglik_cgnode(cur, network, data, newdata, &nparams,
+                   debugging);
 
       }/*FOR*/
       break;

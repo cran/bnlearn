@@ -52,74 +52,79 @@ int i;
  * Copyright (C) 1997--2010  The R Development Core Team
  * Copyright (C) 2003--2008  The R Foundation
  * licensed under "GPLv2 or later" licence. */
-void ProbSampleReplace(int n, double *p, int *perm, int nans, int *ans) {
+void ProbSampleReplace(int nprobs, double *probs, int *values, int ns,
+    int *samples) {
 
 double rU = 0;
 int i = 0, j = 0;
-int nm1 = n - 1;
 
   /* record element identities. */
-  for (i = 0; i < n; i++)
-    perm[i] = i + 1;
+  for (i = 0; i < nprobs; i++)
+    values[i] = i + 1;
 
-  /* sort the probabilities into descending order. */
-  revsort(p, perm, n);
+  /* sort the probabilities in descending order. */
+  revsort(probs, values, nprobs);
 
   /* compute cumulative probabilities. */
-  for (i = 1 ; i < n; i++)
-    p[i] += p[i - 1];
+  for (i = 1 ; i < nprobs; i++)
+    probs[i] += probs[i - 1];
 
-  /* compute the sample. */
-  for (i = 0; i < nans; i++) {
+  /* generate the sample. */
+  for (i = 0; i < ns; i++) {
 
     rU = unif_rand();
 
-    for (j = 0; j < nm1; j++)
-      if (rU <= p[j])
+    for (j = 0; j < nprobs - 1; j++)
+      if (rU <= probs[j])
         break;
 
-    ans[i] = perm[j];
+    samples[i] = values[j];
 
   }/*FOR*/
 
 }/*PROBSAMPLEREPLACE*/
 
-void CondProbSampleReplace(int r, int c, double *p, int *conf, int *perm,
-    int nans, int *ans, int *warn) {
+void CondProbSampleReplace(int nprobs, int nconf, double *probs, int *conf,
+    int *values, int ns, int *samples, bool *warn) {
 
 int i = 0, j = 0;
 double rU = 0;
+bool *prepd = NULL;
 
-  /* record element identities. */
-  for (i = 0; i < r; i ++)
-    for (j = 0; j < c; j++)
-      perm[CMC(i, j, r)] = i + 1;
+  prepd = Calloc1D(nconf, sizeof(bool));
 
-  /* sort the probabilities into descending order. */
-  for (j = 0; j < c; j++)
-    revsort(p + j * r, perm + j * r, r);
-
-  /* compute cumulative probabilities. */
-  for (j = 0; j < c; j++)
-    for (i = 1 ; i < r; i++)
-      p[CMC(i, j, r)] += p[CMC(i - 1, j, r)];
-
-  /* compute the sample. */
-  for (i = 0; i < nans; i++) {
+  /* generate the sample. */
+  for (i = 0; i < ns; i++) {
 
     /* check whether the parents' configuration is missing. */
     if (conf[i] == NA_INTEGER) {
 
-      ans[i] = NA_INTEGER;
+      samples[i] = NA_INTEGER;
       *warn = TRUE;
       continue;
 
     }/*THEN*/
 
-    /* check whether the conditional distribution is missing. */
-    if (ISNAN(p[CMC(0, conf[i], r)])) {
+    /* prepare the cumulative probabilities only for the conditional
+       distributions we are effectively sampling from. */
+    if (!prepd[conf[i]]) {
 
-      ans[i] = NA_INTEGER;
+      /* sort the probabilities in descending order. */
+      for (j = 0; j < nprobs; j++)
+        values[CMC(j, conf[i], nprobs)] = j + 1;
+      revsort(probs + conf[i] * nprobs, values + conf[i] * nprobs, nprobs);
+      /* compute cumulative probabilities. */
+      for (j = 1 ; j < nprobs; j++)
+        probs[CMC(j, conf[i], nprobs)] += probs[CMC(j - 1, conf[i], nprobs)];
+      /* flag the conditional distribution to avoid preparing it again. */
+      prepd[conf[i]] = TRUE;
+
+    }/*FOR*/
+
+    /* check whether the conditional distribution is missing. */
+    if (ISNAN(probs[CMC(0, conf[i], nprobs)])) {
+
+      samples[i] = NA_INTEGER;
       *warn = TRUE;
       continue;
 
@@ -127,13 +132,15 @@ double rU = 0;
 
     rU = unif_rand();
 
-    for (j = 0; j < r; j++)
-      if (rU <= p[CMC(j, conf[i], r)])
+    for (j = 0; j < nprobs; j++)
+      if (rU <= probs[CMC(j, conf[i], nprobs)])
         break;
 
-    ans[i] = perm[CMC(j, conf[i], r)];
+    samples[i] = values[CMC(j, conf[i], nprobs)];
 
   }/*FOR*/
+
+  Free1D(prepd);
 
 }/*CONDPROBSAMPLEREPLACE*/
 

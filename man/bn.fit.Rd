@@ -99,9 +99,16 @@ bn.net(x, debug = FALSE)
   are no undirected arcs). See \code{\link{set.arc}} and \code{\link{pdag2dag}}
   for two ways of manually setting the direction of one or more arcs.
 
-  The \code{bayes} and \code{mle} methods handle missing values by estimating
-  the parameters of each distribution using the observations that are complete
-  for the variables involved in that local distribution.
+  The \code{bayes} and \code{mle} methods in \code{bn.fit()} handle missing
+  values in \code{data} by estimating the parameters of each local distribution
+  using the observations that are complete for the variables involved (the node
+  and its parents).
+
+  When \code{method} is set to \code{mle}, \code{bn.fit()} produces \code{NA}
+  parameter estimates for discrete and conditional Gaussian nodes when there
+  are (discrete) parents configurations that are not observed in \code{data}.
+  To avoid this either set \code{replace.unidentifiable} to \code{TRUE} or, in
+  the case of discrete networks, use \code{method = "bayes"}. 
 
 }
 \value{

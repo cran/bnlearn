@@ -1,6 +1,6 @@
 
 # reconstruct the equivalence class of a network.
-cpdag.backend = function(x, moral = TRUE, fix = FALSE, wlbl = FALSE, debug = FALSE) {
+cpdag.backend = function(x, moral = TRUE, fix = FALSE, wlbl = TRUE, debug = FALSE) {
 
   nodes = names(x$nodes)
 
@@ -12,7 +12,8 @@ cpdag.backend = function(x, moral = TRUE, fix = FALSE, wlbl = FALSE, debug = FAL
                arcs = x$arcs,
                nodes = nodes,
                moral = moral,
-               fix = fix || wlbl,
+               fix = fix,
+               wlbl = wlbl,
                whitelist = x$learning$whitelist,
                blacklist = x$learning$blacklist,
                illegal = x$learning$illegal,
@@ -26,24 +27,6 @@ cpdag.backend = function(x, moral = TRUE, fix = FALSE, wlbl = FALSE, debug = FAL
   return(x)
 
 }#CPDAG.BACKEND
-
-# reconstruct the arc set of the equivalence class of a network.
-cpdag.arc.backend = function(nodes, arcs, moral = TRUE, fix.directed = FALSE,
-    debug = FALSE) {
-
-  amat = .Call(call_cpdag,
-               arcs = arcs,
-               nodes = nodes,
-               moral = moral,
-               fix = fix.directed,
-               whitelist = NULL,
-               blacklist = NULL,
-               illegal = NULL,
-               debug = debug)
-
-  return(amat2arcs(amat, nodes))
-
-}#CPDAG.ARCS.BACKEND
 
 # backend to get a DAG out of a CPDAG (still in the same equivalence class).
 cpdag.extension = function(x, debug = FALSE) {
