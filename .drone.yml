@@ -8,7 +8,7 @@ steps:
       commands:
         - make dependency
         # Install GMP from sources
-        - apt-get install automake lzip
+        - apt-get -y install automake lzip
         - wget https://gmplib.org/download/gmp/$GMP_VERSION.tar.lz
         - tar --lzip -xvf $GMP_VERSION.tar.lz
         - cd $GMP_VERSION
