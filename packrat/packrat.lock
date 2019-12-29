@@ -1,0 +1,148 @@
+PackratFormat: 1.4
+PackratVersion: 0.5.0.25
+RVersion: 3.6.2
+Repos: CRAN=https://cloud.r-project.org,
+    BioCsoft=https://bioconductor.org/packages/3.10/bioc,
+    BioCann=https://bioconductor.org/packages/3.10/data/annotation,
+    BioCexp=https://bioconductor.org/packages/3.10/data/experiment,
+    BioCworkflows=https://bioconductor.org/packages/3.10/workflows,
+    CRAN=https://cloud.r-project.org
+
+Package: BH
+Source: CRAN
+Version: 1.72.0-2
+Hash: 9946216e265a7ab0225045bf8f8bd055
+
+Package: BiocGenerics
+Source: Bioconductor
+Version: 0.32.0
+Hash: b64f82cc8788075b3d2b3c85d879fbf4
+
+Package: RBGL
+Source: Bioconductor
+Version: 1.62.1
+Hash: b39884a3395dd9a5a7da28a904e5f35b
+Requires: BH, graph
+
+Package: ROCR
+Source: CRAN
+Version: 1.0-7
+Hash: 086f78987ebf3c55b01013ee64a5e1e2
+Requires: gplots
+
+Package: Rcpp
+Source: CRAN
+Version: 1.0.3
+Hash: 99f6a1855b2f9434e1399d565d2ed9df
+
+Package: RcppArmadillo
+Source: CRAN
+Version: 0.9.800.3.0
+Hash: 32ea9536c38cdedbdd870f7981cb9171
+Requires: Rcpp
+
+Package: RcppEigen
+Source: CRAN
+Version: 0.3.3.7.0
+Hash: 51d5477069dbb800ff89686c6bdd69fc
+Requires: Rcpp
+
+Package: Rgraphviz
+Source: Bioconductor
+Version: 2.30.0
+Hash: af44a8b094478783c69b1327ee72ec79
+Requires: graph
+
+Package: Rmpfr
+Source: CRAN
+Version: 0.7-2
+Hash: b3fb03f8189ac23f81083378643d5ab1
+Requires: gmp
+
+Package: bitops
+Source: CRAN
+Version: 1.0-6
+Hash: 67d0775189fd0041d95abca618c5c07e
+
+Package: caTools
+Source: CRAN
+Version: 1.17.1.3
+Hash: a26431ea62515e6735b76dcc327dc095
+Requires: bitops
+
+Package: functional
+Source: CRAN
+Version: 0.6
+Hash: f814fbb21b9ab5b31f10008b05ea071d
+
+Package: gRain
+Source: CRAN
+Version: 1.3-0
+Hash: e5f34c2f873cd3e4969d9680b32a4954
+Requires: Rcpp, RcppArmadillo, RcppEigen, functional, gRbase, graph,
+    igraph, magrittr
+
+Package: gRbase
+Source: Bioconductor
+Version: 1.8-4.5
+Hash: 7bc6e8774789550772c9aa73655962b5
+Requires: RBGL, Rcpp, RcppArmadillo, RcppEigen, Rgraphviz, graph,
+    igraph, magrittr
+
+Package: gdata
+Source: CRAN
+Version: 2.18.0
+Hash: f4fdf56bd81ae3e1d42379678b472a34
+Requires: gtools
+
+Package: gmp
+Source: CRAN
+Version: 0.5-13.5
+Hash: 2ac5e6cfeeffd190979b998908b0bdca
+
+Package: gplots
+Source: CRAN
+Version: 3.0.1.1
+Hash: ee14c65104be85d41d3efb15efa78eed
+Requires: caTools, gdata, gtools
+
+Package: graph
+Source: Bioconductor
+Version: 1.64.0
+Hash: 6fbd7708ae6c1ff864cf6ed526cae367
+Requires: BiocGenerics
+
+Package: gtools
+Source: CRAN
+Version: 3.8.1
+Hash: 6cb09dd6faf3aeac5c5acae55bfa6495
+
+Package: igraph
+Source: CRAN
+Version: 1.2.4.2
+Hash: 13fd902945ea53bda3f78d1b6c619bf6
+Requires: magrittr, pkgconfig
+
+Package: lattice
+Source: CRAN
+Version: 0.20-38
+Hash: 45211081d39bb6d5a89fd789105901aa
+
+Package: magrittr
+Source: CRAN
+Version: 1.5
+Hash: bdc4d48c3135e8f3b399536ddf160df4
+
+Package: packrat
+Source: github
+Version: 0.5.0-25
+Hash: 5dc775de8d1a4abac142a55045f72d84
+GithubRepo: packrat
+GithubUsername: rstudio
+GithubRef: master
+GithubSha1: 448aafd176ec6cbde307f556c91b39e5a1c94f9d
+
+Package: pkgconfig
+Source: CRAN
+Version: 2.0.3
+Hash: 5ff5f2361851a49534c96caa2a8071c7
