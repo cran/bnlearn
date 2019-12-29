@@ -7,6 +7,17 @@ steps:
       image: r-base
       commands:
         - make dependency
+        # Install GMP from sources
+        - apt-get install automake lzip
+        - wget https://gmplib.org/download/gmp/$GMP_VERSION.tar.lz
+        - tar --lzip -xvf $GMP_VERSION.tar.lz
+        - cd $GMP_VERSION
+        - ./configure --enable-cxx
+        - make
+        - make check
+        - make install
+      environment:
+        GMP_VERSION: gmp-6.1.2
     
     - name: packrat_dependencies
       image: r-base
