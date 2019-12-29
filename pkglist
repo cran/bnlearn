@@ -1,1 +1,1 @@
-libmpfr-dev texlive
+build-essential libgmp3-dev libmpfr-dev texlive
