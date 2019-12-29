@@ -13,4 +13,5 @@ clean:
 	rm -rf *.Rcheck bnlearn_*.tar.gz
 
 dependency:
+	apt-get update
 	xargs apt-get -y install < pkglist

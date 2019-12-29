@@ -1,0 +1,30 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+    - name: os_dependencies
+      image: r-base
+      commands:
+        - make dependency
+    
+    - name: packrat_dependencies
+      image: r-base
+      commands:
+        - R -e "install.packages('packrat')"
+        - R -e "packrat::restore()"
+    
+    - name: build
+      image: r-base
+      commands:
+        - make
+    
+    - name: install
+      image: r-base
+      commands:
+        - make install
+    
+    - name: check
+      image: r-base
+      commands:
+        - make check
