@@ -27,4 +27,5 @@ steps:
   - name: check
     image: r-base
     commands:
+      - make dependency
       - make check
