@@ -2,40 +2,44 @@ kind: pipeline
 type: docker
 name: default
 
+platform:
+  os: linux
+  arch: amd64
+
 steps:
-    - name: os_dependencies
-      image: r-base
-      commands:
-        - make dependency
-        # Install GMP from sources
-        - apt-get -y install automake lzip
-        - wget https://gmplib.org/download/gmp/$GMP_VERSION.tar.lz
-        - tar --lzip -xvf $GMP_VERSION.tar.lz
-        - cd $GMP_VERSION
-        - ./configure --enable-cxx
-        - make
-        - make check
-        - make install
-      environment:
-        GMP_VERSION: gmp-6.1.2
-    
-    - name: packrat_dependencies
-      image: r-base
-      commands:
-        - R -e "install.packages('packrat')"
-        - R -e "packrat::restore()"
-    
-    - name: build
-      image: r-base
-      commands:
-        - make
-    
-    - name: install
-      image: r-base
-      commands:
-        - make install
-    
-    - name: check
-      image: r-base
-      commands:
-        - make check
+  - name: os_dependencies
+    image: r-base
+    commands:
+      - make dependency
+      # Install GMP from sources
+      - apt-get -y install automake lzip
+      - wget https://gmplib.org/download/gmp/$GMP_VERSION.tar.lz
+      - tar --lzip -xvf $GMP_VERSION.tar.lz
+      - cd $GMP_VERSION
+      - ./configure --enable-cxx
+      - make
+      - make check
+      - make install
+    environment:
+      GMP_VERSION: gmp-6.1.2
+  
+  - name: packrat_dependencies
+    image: r-base
+    commands:
+      - R -e "install.packages('packrat')"
+      - R -e "packrat::restore()"
+  
+  - name: build
+    image: r-base
+    commands:
+      - make
+  
+  - name: install
+    image: r-base
+    commands:
+      - make install
+  
+  - name: check
+    image: r-base
+    commands:
+      - make check
