@@ -1,0 +1,37 @@
+---
+title: "Bnlearn functions dependency graph"
+runtime: shiny
+output: html_document
+---
+```{r setup, include=FALSE}
+  knitr::opts_chunk$set(echo = TRUE)
+```
+
+Install required **devtools** package to install dependencies form GitHub.
+
+```{r}
+  if (!require("devtools")) {
+    install.packages("devtools")
+  }
+  library("devtools")
+```
+
+Install **DependenciesGraphs** form GitHub.
+
+```{r}
+  if (!require("DependenciesGraphs")) {
+      devtools::install_github("DataKnowledge/DependenciesGraphs")
+    }
+  library("DependenciesGraphs")
+```
+
+Create the dependency graph for Bnlearn.
+
+```{r}
+  if (!require("bnlearn")) {
+      devtools::install_github("AlessioZanga/bnlearn")
+  }
+  library("bnlearn")
+  dep <- envirDependencies("package:bnlearn")
+  plot(dep)
+```
