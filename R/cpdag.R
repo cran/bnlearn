@@ -1,6 +1,6 @@
 
 # reconstruct the equivalence class of a network.
-cpdag.backend = function(x, moral = TRUE, fix = FALSE, wlbl = TRUE, debug = FALSE) {
+cpdag.backend = function(x, moral = FALSE, fix = FALSE, wlbl = TRUE, debug = FALSE) {
 
   nodes = names(x$nodes)
 

@@ -34,7 +34,7 @@ void c_per_node_score(SEXP network, SEXP data, SEXP score, SEXP targets,
 int i = 0, ntargets = length(targets);
 score_e s = score_to_enum(CHAR(STRING_ELT(score, 0)));
 double nparams = 0, *k = NULL;
-SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata;
+SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
 
   /* allocate dummy variable for the current node's label. */
   PROTECT(cur = allocVector(STRSXP, 1));
@@ -260,6 +260,21 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata;
         DEBUG_BEFORE();
         res[i] = predictive_loglik_cgnode(cur, network, data, newdata, &nparams,
                    debugging);
+
+      }/*FOR*/
+      break;
+
+    case CUSTOM:
+
+      custom_fn = getListElement(extra_args, "fun");
+      custom_args = getListElement(extra_args, "args");
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = custom_score_function(cur, network, data, custom_fn,
+                   custom_args, debugging);
 
       }/*FOR*/
       break;

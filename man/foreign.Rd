@@ -63,7 +63,7 @@ write.dot(file, graph)
 }
 \references{
 
-  Bayesian Network Repository, \url{http://www.bnlearn.com/bnrepository}.
+  Bayesian Network Repository, \url{https://www.bnlearn.com/bnrepository/}.
 
 }
 \author{Marco Scutari}

@@ -17,6 +17,11 @@ sanitize.plot.dots = function(dots, meaningless) {
 # check a colour identifier (not necessarily a string/integer).
 check.colour = function(col, num = 1, expand = FALSE, labels) {
 
+  # if the colours are provided as a list (as opposed to an array) then unlist.
+  if (is.list(col))
+    col = unlist(col)
+
+  # either one colour for all entities, or one colour for each entity.
   if (length(col) %!in% c(1, num)) {
 
     if (num == 1)

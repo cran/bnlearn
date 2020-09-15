@@ -45,10 +45,12 @@ mutilated(x, evidence)
 
   Note that both \code{cpquery} and \code{cpdist} are based on Monte Carlo
   particle filters, and therefore they may return slightly different values
-  on different runs.
+  on different runs due to simulation noise.
 
 }
 \section{Logic Sampling}{
+
+  Logic sampling is an \emph{approximate inference} algorithm.
 
   The \code{event} and \code{evidence} arguments must be two expressions
   describing the event of interest and the conditioning evidence in a format
@@ -63,7 +65,7 @@ mutilated(x, evidence)
 
     \item \code{n}: a positive integer number, the number of random samples
       to generate from \code{fitted}. The default value is
-      \code{5000 * log10(nparams(fitted))} for discrete and coditional Gaussian
+      \code{5000 * log10(nparams(fitted))} for discrete and conditional Gaussian
       networks and \code{500 * nparams(fitted)} for Gaussian networks.
 
     \item \code{batch}: a positive integer number, the number of random samples
@@ -73,7 +75,7 @@ mutilated(x, evidence)
       batches of size \code{batch}, discarding each batch before generating the
       next.
 
-    \item \code{query.nodes}: a a vector of character strings, the labels of
+    \item \code{query.nodes}: a vector of character strings, the labels of
       the nodes involved in \code{event} and \code{evidence}. Simple queries do
       not require to generate samples from all the nodes in the network,
       so \code{cpquery} and \code{cpdist} try to identify which nodes are used
@@ -86,12 +88,18 @@ mutilated(x, evidence)
 
   Note that the number of samples returned by \code{cpdist()} is always smaller
   than \code{n}, because logic sampling is a form of rejection sampling.
-  Therefore, only the obervations matching \code{evidence} (out of the \code{n}
+  Therefore, only the observations matching \code{evidence} (out of the \code{n}
   that are generated) are returned, and their number depends on the probability
-  of \code{evidence}.
+  of \code{evidence}. Furthermore, the probabilities returned by
+  \code{cpquery()} are approximate estimates and they will not sum up to 1 even
+  when the corresponding underlying values do if they are computed in separate
+  calls to cpquery().
 
 }
 \section{Likelihood Weighting}{
+
+  Likelihood weighting is an \emph{approximate inference} algorithm based on
+  Monte Carlo sampling.
 
   The \code{event} argument must be an expression describing the event of
   interest, as in logic sampling. The \code{evidence} argument must be a named
@@ -119,8 +127,11 @@ mutilated(x, evidence)
   mutilated network, and need to be weighted appropriately when computing
   summary statistics (for more details, see the references below).
   {cpquery} does that automatically when computing the final conditional
-  probability. Also note that the \code{batch} argument is ignored in cpdist
-  for speed and memory efficiency.
+  probability. Also note that the \code{batch} argument is ignored in
+  \code{cpdist()} for speed and memory efficiency. Furthermore, the
+  probabilities returned by \code{cpquery()} are approximate estimates and they
+  will not sum up to 1 even when the corresponding underlying values do if they
+  are computed in separate calls to cpquery().
 
 }
 \value{
@@ -132,8 +143,8 @@ mutilated(x, evidence)
   the conditional distribution of the \code{nodes} conditional on
   \code{evidence()}. The data frame has class \code{c("bn.cpdist", "data.frame")},
   and a \code{meth, -8od} attribute storing the value of the \code{method}
-  gument. In the case of likelihood weighting, the weights are also attached as an
-  attribute called \code{weights}.
+  argument. In the case of likelihood weighting, the weights are also attached
+  as an attribute called \code{weights}.
 
   \code{mutilated} returns a \code{bn} or \code{bn.fit} object, depending on the
   class of \code{x}.

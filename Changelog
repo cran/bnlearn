@@ -1,7 +1,44 @@
+bnlearn (4.6)
+  * removed support for parametric bootstrap in bn.boot().
+  * path() has been renamed path.exists(); path() will be kept as an alias
+     until 2021 when it will be removed to avoid clashing with BiocGenerics.
+  * the "moral" arguments of vstructs() and cpdag() are now deprecated and
+     it will be removed in 2021.
+  * fixed graphviz.chart(), which called plot.new() unnecessarily and created
+     empty figures when a graphical device such as pdf() was already open.
+  * added a "custom" (decomposable) score that takes a user-specified R
+     function to compute the score of local distributions in score() and
+     structure learning algorithms (thanks Laura Azzimonti).
+  * fixed spouses(), which now always returns a character vector.
+  * added an "including.evidence" argument to the as.bn.fit() method for grain
+     objects to carry over hard evidence in the conversion (thanks Rafal
+     Urbaniak).
+  * bn.fit() with missing data is now faster by 2x-3x.
+  * due to API changes, bnlearn now suggests gRain >= 1.3-3.
+  * fixed permutation tests, which incorrectly used a strict inequality when
+     computing the fraction of test statistics larger than that computed from
+     the original data (thanks David Purves).
+  * make cpdag() and vstructs() agree for both moral = FALSE and moral = TRUE
+     (thanks Bingling Wang).
+  * implemented colliders(), shielded.colliders() and unshielded.colliders();
+     vstructs() is now an alias of unshielded.colliders().
+  * added functions to import and export igraph objects.
+  * fixed pc.stable(), which failed on two-variables data sets.
+  * added utility functions set2blacklist(), add.node(), remove.node(), 
+     rename.nodes().
+  * fixed h2pc(), which failed when encountering isolated nodes (thanks Kunal
+     Dang). 
+  * better argument sanitization for threshold and cutpoints in strength.plot().
+  * fixed "newdata" argument sanitization for the pred-loglik-* scores.
+  * read.net() now disregards experience tables instead of generating an
+     error when importing NET files from Hugin (thanks Jirka Vomlel).
+  * fixed bug in mmpc(), which did return wrong maximum/minimum p-values
+     (thanks Jireh Huang).
+
 bnlearn (4.5)
 
   * the "parametric" option for the "sim" argument of bn.boot() is now
-      deprecated; the argument will be removed in 2020.
+     deprecated; the argument will be removed in 2020.
   * removed the relevant() function, and the "strict" and "optimized" arguments
      of constraint-based structure learning algorithms.
   * save arc strengths as weights in the graph object returned by
@@ -41,7 +78,7 @@ bnlearn (4.5)
   * preserve structure learning information in bn.cv(), so that
      custom.strength() can get directions right from the resulting set of 
      networks (thanks Xiang Liu).
-  * revised the preprocessing of whitelists and blackilsts, and clarified the
+  * revised the preprocessing of whitelists and blacklists, and clarified the
      documentation (thanks Michail Tsagris).
   * added a "for.parents" argument to coef() and sigma() to make them return
      the parameters associated with a specific configuration of the discrete
@@ -77,8 +114,8 @@ bnlearn (4.4)
   * vstructs() mistakenly handled moral = TRUE as if it were moral = FALSE
      (thanks Christian Schuhegger).
   * graphviz.plot() and strength.plot() now have a "render" argument that
-     controls whether a figure is produced (a graph object object is always
-     returned from both functions).
+     controls whether a figure is produced (a graph object is always returned
+     from both functions).
   * graphviz.plot(), strength.plot() and graphviz.compare() now have a "groups"
      argument that specifies subsets of nodes that should be plotted close to
      each other, layout permitting.

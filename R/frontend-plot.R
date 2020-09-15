@@ -48,9 +48,14 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
   str = match.arcs.and.strengths(arcs = x$arcs, nodes = names(x$nodes),
           strengths = strength)
 
+  # sanitize user-defined cut points, if any.
+  method =  attr(strength, "method")
+  cutpoints = check.cutpoints(cutpoints, strength = str, threshold = threshold,
+                method = method)
+
   # compute arc weights from the bn.strength object.
   arc.weights = strength2lwd(strength = str, threshold = threshold,
-                  cutpoints = cutpoints, method = attr(strength, "method"),
+                  cutpoints = cutpoints, method = method,
                   arcs = x$arcs, debug = debug)
 
   # create and maybe plot the graph object.

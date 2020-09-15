@@ -12,9 +12,20 @@ void *p = NULL;
   if (!p)
     error("unable to allocate a %d array.", R);
 
-  return(p);
+  return p ;
 
 }/*CALLOC1D*/
+
+void *Realloc1D(void *p, size_t R, size_t size) {
+
+  p = realloc(p, R * size);
+
+  if (!p)
+    error("unable to reallocate a %d array.", R);
+
+  return p;
+
+}/*REALLOC1D*/
 
 void BN_Free1D(void *p) {
 

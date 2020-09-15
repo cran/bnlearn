@@ -1,27 +1,32 @@
 #include "include/rcore.h"
 #include "include/globals.h"
+#include "include/contingency.tables.h"
 #include "include/tests.h"
+
+static double c_jt_mean(int num, int *ni, int llx);
+static double c_jt_var(int num, int *ni, int llx, int *nj, int lly);
 
 static double c_jt_stat(int **n, int *ni, int llx, int lly);
 
 /* unconditional Jonckheere-Terpstra asymptotic test for use in C code. */
 double c_jt(int *xx, int llx, int *yy, int lly, int num) {
 
-int **n = NULL, *ni = NULL, *nj = NULL, ncomplete = 0;
 double stat = 0, mean = 0, var = 0, res = 0;
+counts2d joint = { 0 };
 
   /* initialize the contingency table and the marginal frequencies. */
-  ncomplete = fill_2d_table(xx, yy, &n, &ni, &nj, llx, lly, num);
+  joint = new_2d_table(llx, lly, TRUE);
+  fill_2d_table(xx, yy, &joint, num);
 
   /* if there are no complete data points, or if there is just a single complete
    * observation, return independence. */
-  if (ncomplete <= 1)
+  if (joint.nobs <= 1)
     goto free_and_return;
 
   /* compute the test statistic, its mean and it variance. */
-  stat = c_jt_stat(n, ni, llx, lly);
-  mean = c_jt_mean(ncomplete, ni, llx);
-  var = c_jt_var(ncomplete, ni, llx, nj, lly);
+  stat = c_jt_stat(joint.n, joint.ni, joint.llx, joint.lly);
+  mean = c_jt_mean(joint.nobs, joint.ni, joint.llx);
+  var = c_jt_var(joint.nobs, joint.ni, joint.llx, joint.nj, joint.lly);
 
   /* standardize before returning so to make the test invariant to
    * the order of the variables; if the variance is zero return zero
@@ -30,9 +35,7 @@ double stat = 0, mean = 0, var = 0, res = 0;
 
 free_and_return:
 
-  Free2D(n, llx);
-  Free1D(ni);
-  Free1D(nj);
+  Free2DTAB(joint);
 
   return res;
 
@@ -41,30 +44,30 @@ free_and_return:
 /* conditional Jonckheere-Terpstra asymptotic test for use in C code. */
 double c_cjt(int *xx, int llx, int *yy, int lly, int *zz, int llz, int num) {
 
-int k = 0, ***n = NULL, **nrowt = NULL, **ncolt = NULL, *ncond = NULL;
+int k = 0;
 double stat = 0, var = 0, tvar = 0;
+counts3d joint = { 0 };
 
   /* initialize the contingency table and the marginal frequencies. */
-  fill_3d_table(xx, yy, zz, &n, &nrowt, &ncolt, &ncond, llx, lly, llz, num);
+  joint = new_3d_table(llx, lly, llz);
+  fill_3d_table(xx, yy, zz, &joint, num);
 
   /* sum up over the parents' configurations. */
-  for (k = 0; k < llz; k++) {
+  for (k = 0; k < joint.llz; k++) {
 
     /* this one is never observed, skip. */
-    if (ncond[k] == 0) continue;
+    if (joint.nk[k] == 0)
+      continue;
 
-    stat += c_jt_stat(n[k], nrowt[k], llx, lly) -
-              c_jt_mean(ncond[k], nrowt[k], llx);
-    var = c_jt_var(ncond[k], nrowt[k], llx, ncolt[k], lly);
+    stat += c_jt_stat(joint.n[k], joint.ni[k], joint.llx, joint.lly) -
+              c_jt_mean(joint.nk[k], joint.ni[k], joint.llx);
+    var = c_jt_var(joint.nk[k], joint.ni[k], joint.llx, joint.nj[k], joint.lly);
     if (!ISNAN(var) && (var > MACHINE_TOL))
       tvar += var;
 
   }/*FOR*/
 
-  Free3D(n, llz, llx);
-  Free2D(nrowt, llz);
-  Free2D(ncolt, llz);
-  Free1D(ncond);
+  Free3DTAB(joint);
 
   /* guard against divide-by-zero errors and standardize the result. */
   return (tvar < MACHINE_TOL) ? 0 : stat / sqrt(tvar);
@@ -72,12 +75,11 @@ double stat = 0, var = 0, tvar = 0;
 }/*C_CJT*/
 
 /* asymptotic expected value of the Jonkheere-Terpstra test statistic. */
-double c_jt_mean(int num, int *ni, int llx) {
+static double c_jt_mean(int num, int *ni, int llx) {
 
-int i = 0;
 double res = (double)(num * num);
 
-  for (i = 0; i < llx; i++)
+  for (int i = 0; i < llx; i++)
     res -= ni[i] * ni[i];
 
   return res / 4;
@@ -85,7 +87,7 @@ double res = (double)(num * num);
 }/*C_JT_MEAN*/
 
 /* asymptotic variance of the Jonkheere-Terpstra test statistic. */
-double c_jt_var(int num, int *ni, int llx, int *nj, int lly) {
+static double c_jt_var(int num, int *ni, int llx, int *nj, int lly) {
 
 int i = 0, j = 0;
 double U1 = 0, U2a = 0, U2b = 0, U2 = 0, U3a = 0, U3b = 0, U3 = 0;
@@ -153,3 +155,59 @@ double res = 0, ni2 = 0, wi = 0, w = 0;
   return res;
 
 }/*C_JT_STAT*/
+
+/* compute the centered Jonckheere-Terpstra statistic. */
+double jt_centered_kernel(counts2d table) {
+
+  return c_jt_stat(table.n, table.ni, table.llx, table.lly) -
+           c_jt_mean(table.nobs, table.ni, table.llx);
+
+}/*JT_CENTERED_KERNEL*/
+
+/* compute the conditional centered Jonckheere-Terpstra statistic. */
+double cjt_centered_kernel(counts3d table) {
+
+long double res = 0;
+
+  /* sum up over the parents' configurations. */
+  for (int k = 0; k < table.llz; k++) {
+
+    /* this one is never observed, skip. */
+    if (table.nk[k] == 0)
+       continue;
+
+    res += c_jt_stat(table.n[k], table.ni[k], table.llx, table.lly) -
+             c_jt_mean(table.nk[k], table.ni[k], table.llx);
+
+  }/*FOR*/
+
+  return (double)res;
+
+}/*CJT_CENTERED_KERNEL*/
+
+/* compute the asymptotic variance of the Jonckheere-Terpstra statistic. */
+double jt_var_kernel(counts2d table) {
+
+  return c_jt_var(table.nobs, table.ni, table.llx, table.nj, table.lly);
+
+}/*JT_VAR_KERNEL*/
+
+/* compute the asymptotic variance of the conditional Jonckheere-Terpstra
+ * statistic. */
+double cjt_var_kernel(counts3d table) {
+
+long double res = 0;
+double var = 0;
+
+  for (int k = 0; k < table.llz; k++) {
+
+    var = c_jt_var(table.nk[k], table.ni[k], table.llx, table.nj[k], table.lly);
+    if (!ISNAN(var))
+      res += var;
+
+  }/*FOR*/
+
+  return (double)res;
+
+}/*CJT_VAR_KERNEL*/
+

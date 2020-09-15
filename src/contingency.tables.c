@@ -1,92 +1,214 @@
 #include "include/rcore.h"
 #include "include/sets.h"
+#include "include/data.structures.h"
+
+/* create a one-dimensional contingency table. */
+counts1d new_1d_table(int llx) {
+
+counts1d table = { 0 };
+
+  table.llx = llx;
+  table.n = Calloc1D(llx, sizeof(int));
+
+  return table;
+
+}/*NEW_1D_TABLE*/
 
 /* initialize a one-dimensional contingency table. */
-int fill_1d_table(int *xx, int **n, int llx, int num) {
+void fill_1d_table(int *xx, counts1d *table, int num) {
 
 int i = 0, ncomplete = 0;
-
-  *n = Calloc1D(llx, sizeof(int));
 
   /* first fill the counts into the table... */
   for (i = 0; i < num; i++)
     if (xx[i] != NA_INTEGER)
-      (*n)[xx[i] - 1]++;
+      (*table).n[xx[i] - 1]++;
 
   /* ... then add them up to count the number of complete observations. */
-  for (i = 0; i < llx; i++)
-    ncomplete += (*n)[i];
-
-  return ncomplete;
+  for (i = 0; i < (*table).llx; i++)
+    ncomplete += (*table).n[i];
+  (*table).nobs = ncomplete;
 
 }/*FILL_1D_TABLE*/
 
-/* initialize a two-dimensional contingency table and the marginals. */
-int fill_2d_table(int *xx, int *yy, int ***n, int **ni, int **nj, int llx,
-    int lly, int num) {
+/* print a one-dimensional contingency table. */
+void print_1d_table(counts1d table) {
+
+  Rprintf("1-dimensional contingency table (%d cells)\n", table.llx);
+
+  for (int i = 0; i < table.llx; i++)
+    Rprintf("%d ", table.n[i]);
+  Rprintf("\n");
+
+}/*PRINT_1D_TABLE*/
+
+/* free a one-dimensional contingency table. */
+void Free1DTAB(counts1d table) {
+
+  Free1D(table.n);
+
+}/*FREE1DTAB*/
+
+/* create a two-dimensional contingency table. */
+counts2d new_2d_table(int llx, int lly, bool margins) {
+
+counts2d table = { 0 };
+
+  table.llx = llx;
+  table.lly = lly;
+  table.n = (int **)Calloc2D(llx, lly, sizeof(int));
+
+  if (margins) {
+
+    table.ni = Calloc1D(llx, sizeof(int));
+    table.nj = Calloc1D(lly, sizeof(int));
+
+  }/*THEN*/
+
+  return table;
+
+}/*NEW_2D_TABLE*/
+
+/* initialize a two-dimensional contingency table including the marginals. */
+void fill_2d_table(int *xx, int *yy, counts2d *table, int num) {
 
 int i = 0, j = 0, k = 0, ncomplete = 0;
-
-  *n = (int **) Calloc2D(llx, lly, sizeof(int));
-  *ni = (int *) Calloc1D(llx, sizeof(int));
-  *nj = (int *) Calloc1D(lly, sizeof(int));
 
   /* compute the joint frequency of x and y. */
   for (k = 0; k < num; k++)
     if ((xx[k] != NA_INTEGER) && (yy[k] != NA_INTEGER))
-      (*n)[xx[k] - 1][yy[k] - 1]++;
+      (*table).n[xx[k] - 1][yy[k] - 1]++;
 
-  /* compute the marginals. */
-  for (i = 0; i < llx; i++)
-    for (j = 0; j < lly; j++) {
+  /* compute the marginals if they have been allocated memory for. */
+  if ((*table).ni && (*table).nj) {
 
-    (*ni)[i] += (*n)[i][j];
-    (*nj)[j] += (*n)[i][j];
+    for (i = 0; i < (*table).llx; i++)
+      for (j = 0; j < (*table).lly; j++) {
 
-  }/*FOR*/
+      (*table).ni[i] += (*table).n[i][j];
+      (*table).nj[j] += (*table).n[i][j];
 
-  /* compute the number of complete observations. */
-  for (i = 0; i < llx; i++)
-    ncomplete += (*ni)[i];
+    }/*FOR*/
 
-  return ncomplete;
+    /* compute the number of complete observations. */
+    for (i = 0; i < (*table).llx; i++)
+      ncomplete += (*table).ni[i];
+    (*table).nobs = ncomplete;
+
+  }/*THEN*/
+  else {
+
+    /* compute the number of complete observations. */
+    for (i = 0; i < (*table).llx; i++)
+      for (j = 0; j < (*table).lly; j++)
+        ncomplete += (*table).n[i][j];
+    (*table).nobs = ncomplete;
+
+  }/*ELSE*/
+
 
 }/*FILL_2D_TABLE*/
 
+/* print a two-dimensional contingency table. */
+void print_2d_table(counts2d table) {
+
+  Rprintf("2-dimensional contingency table (%d x %d cells)\n",
+    table.llx, table.lly);
+  for (int i = 0; i < table.llx; i++) {
+
+    for (int j = 0; j < table.lly; j++)
+      Rprintf("%d ", table.n[i][j]);
+    Rprintf("\n");
+
+  }/*FOR*/
+
+}/*PRINT_2D_TABLE*/
+
+/* free a two-dimensional contingency table. */
+void Free2DTAB(counts2d table) {
+
+    Free2D(table.n, table.llx);
+    Free1D(table.ni);
+    Free1D(table.nj);
+
+}/*FREE2DTAB*/
+
+/* create a three-dimensional contingency table. */
+counts3d new_3d_table(int llx, int lly, int llz) {
+
+counts3d table = { 0 };
+
+  table.llx = llx;
+  table.lly = lly;
+  table.llz = llz;
+  table.n = (int ***) Calloc3D(llz, llx, lly, sizeof(int));
+  table.ni = (int **) Calloc2D(llz, llx, sizeof(int));
+  table.nj = (int **) Calloc2D(llz, lly, sizeof(int));
+  table.nk = (int *) Calloc1D(llz, sizeof(int));
+
+  return table;
+
+}/*NEW_3D_TABLE*/
+
 /* initialize a three-dimensional contingency table and the marginals. */
-int fill_3d_table(int *xx, int *yy, int *zz, int ****n, int ***ni, int ***nj,
-    int **nk, int llx, int lly, int llz, int num) {
+void fill_3d_table(int *xx, int *yy, int *zz, counts3d *table, int num) {
 
 int i = 0, j = 0, k = 0, ncomplete = 0;
-
-  *n = (int ***) Calloc3D(llz, llx, lly, sizeof(int));
-  *ni = (int **) Calloc2D(llz, llx, sizeof(int));
-  *nj = (int **) Calloc2D(llz, lly, sizeof(int));
-  *nk = (int *) Calloc1D(llz, sizeof(int));
 
   /* compute the joint frequency of x, y, and z. */
   for (k = 0; k < num; k++)
     if ((zz[k] != NA_INTEGER) && (xx[k] != NA_INTEGER) && (yy[k] != NA_INTEGER))
-      (*n)[zz[k] - 1][xx[k] - 1][yy[k] - 1]++;
+      (*table).n[zz[k] - 1][xx[k] - 1][yy[k] - 1]++;
 
   /* compute the marginals. */
-  for (i = 0; i < llx; i++)
-    for (j = 0; j < lly; j++)
-      for (k = 0; k < llz; k++) {
+  for (i = 0; i < (*table).llx; i++)
+    for (j = 0; j < (*table).lly; j++)
+      for (k = 0; k < (*table).llz; k++) {
 
-        (*ni)[k][i] += (*n)[k][i][j];
-        (*nj)[k][j] += (*n)[k][i][j];
-        (*nk)[k] += (*n)[k][i][j];
+        (*table).ni[k][i] += (*table).n[k][i][j];
+        (*table).nj[k][j] += (*table).n[k][i][j];
+        (*table).nk[k] += (*table).n[k][i][j];
 
       }/*FOR*/
 
   /* compute the number of complete observations. */
-  for (k = 0; k < llz; k++)
-    ncomplete += (*nk)[k];
-
-  return ncomplete;
+  for (k = 0; k < (*table).llz; k++)
+    ncomplete += (*table).nk[k];
+  (*table).nobs = ncomplete;
 
 }/*FILL_3D_TABLE*/
+
+/* print a three-dimensional contingency table. */
+void print_3d_table(counts3d table) {
+
+  Rprintf("3-dimensional contingency table (%d x %d x %d cells)\n",
+    table.llx, table.lly, table.llz);
+
+  for (int k = 0; k < table.llz; k++) {
+
+    Rprintf("[slice %d]", k);
+
+    for (int i = 0; i < table.llx; i++) {
+
+      for (int j = 0; j < table.lly; j++)
+        Rprintf("%d ", table.n[k][i][j]);
+      Rprintf("\n");
+
+    }/*FOR*/
+
+  }/*FOR*/
+
+}/*PRINT_3D_TABLE*/
+
+/* free a three-dimensional contingency table. */
+void Free3DTAB(counts3d table) {
+
+  Free3D(table.n, table.llz, table.llx);
+  Free2D(table.ni, table.llz);
+  Free2D(table.nj, table.llz);
+  Free1D(table.nk);
+
+}/*FREE3DTAB*/
 
 /* minimal implementation of table(). */
 SEXP minimal_table(SEXP dataframe, SEXP missing) {

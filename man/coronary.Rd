@@ -4,7 +4,7 @@
 \title{Coronary heart disease data set}
 \description{
 
-  Probable risk factors for coronary trombosis, comprising data from 1841 men.
+  Probable risk factors for coronary thrombosis, comprising data from 1841 men.
 
 }
 \usage{

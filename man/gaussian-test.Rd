@@ -18,7 +18,7 @@ data(gaussian.test)
 \note{
 
   The R script to generate data from this network is available from
-  \url{http://www.bnlearn.com/documentation/networks}.
+  \url{https://www.bnlearn.com/documentation/networks/}.
 
 }
 \examples{

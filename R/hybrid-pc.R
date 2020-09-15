@@ -325,9 +325,9 @@ hybrid.pc.filter = function(x, pc.superset, sp.superset, data, alpha, B = B,
   pc.superset = union(setdiff(pc.superset, blacklisted), whitelisted)
   mb.superset = union(mb.superset, whitelisted)
 
-  # if the markov blanket is empty, the neighourhood is empty as well.
+  # if the markov blanket is empty, the neighbourhood is empty as well.
   if (length(mb.superset) == 0)
-    return(pc)
+    return(character(0))
 
   nbr = function(node) {
 

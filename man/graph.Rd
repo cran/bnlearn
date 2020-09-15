@@ -2,7 +2,12 @@
 \alias{graph utilities}
 \alias{acyclic}
 \alias{directed}
+\alias{path.exists}
 \alias{path}
+\alias{path,bn-method}
+\alias{path,bn.fit-method}
+\alias{path,bn.naive-method}
+\alias{path,bn.tan-method}
 \alias{skeleton}
 \alias{pdag2dag}
 \alias{subgraph}
@@ -17,7 +22,12 @@
 acyclic(x, directed = FALSE, debug = FALSE)
 directed(x)
 # check whether there is a path between two nodes.
-path(x, from, to, direct = TRUE, underlying.graph = FALSE, debug = FALSE)
+path.exists(x, from, to, direct = TRUE, underlying.graph = FALSE, debug = FALSE)
+# deprecated alias of path.exists().
+\S4method{path}{bn}(object, from, to, direct = TRUE, underlying.graph = FALSE,
+    debug = FALSE)
+\S4method{path}{bn.fit}(object, from, to, direct = TRUE,
+    underlying.graph = FALSE, debug = FALSE)
 # build the skeleton or a complete orientation of the graph.
 skeleton(x)
 pdag2dag(x, ordering)
@@ -25,9 +35,9 @@ pdag2dag(x, ordering)
 subgraph(x, nodes)
 }
 \arguments{
-  \item{x}{an object of class \code{bn}. \code{skeleton()}, \code{acyclic()},
-    \code{directed()} and \code{path()} also accept objects of class
-    \code{bn.fit}.}
+  \item{x, object}{an object of class \code{bn}. \code{skeleton()}, \code{acyclic()},
+    \code{directed()}, \code{path.exixsts()} and \code{path()} also accept
+    objects of class \code{bn.fit}.}
   \item{from}{a character string, the label of a node.}
   \item{to}{a character string, the label of a node (different from
     \code{from}).}

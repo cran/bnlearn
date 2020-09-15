@@ -55,7 +55,7 @@
 
     \item whitelists and blacklists should be specified for the algorithm used
       in the restrict phase.
-    \item if the whitelist contains any undirected arc, its consitent extension
+    \item if the whitelist contains any undirected arc, its consistent extension
       is used instead in the maximize phase.
 
   }

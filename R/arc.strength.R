@@ -164,7 +164,7 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
       # switch to the equivalence class if asked to, but preserving whitelisted
       # and blacklisted arcs.
       if (cpdag)
-        net = cpdag.backend(net, moral = TRUE, debug = FALSE)
+        net = cpdag.backend(net, wlbl = TRUE, debug = FALSE)
 
       if (debug) {
 
@@ -204,9 +204,10 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
     # get the number of slaves.
     s = nSlaves(cluster)
 
-    res = parallel::parLapply(cluster, rep(ceiling(R / s), s), bootstrap.batch,
-            data = data, m = m, arcs = arcs, algorithm = algorithm,
-            algorithm.args = algorithm.args, cpdag = cpdag, debug = debug)
+    res = parallel::parLapplyLB(cluster, rep(ceiling(R / s), s),
+            bootstrap.batch, data = data, m = m, arcs = arcs,
+            algorithm = algorithm, algorithm.args = algorithm.args,
+            cpdag = cpdag, debug = debug)
 
     .Call(call_bootstrap_reduce,
           x = res)
@@ -388,7 +389,7 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
 
     # switch to the equivalence class if asked to.
     if (cpdag)
-      net = cpdag.backend(net, moral = TRUE)
+      net = cpdag.backend(net, moral = FALSE, wlbl = TRUE)
 
     # update the counters in the matrix: undirected arcs are counted half
     # for each direction, so that when summing up strength and direction
@@ -416,131 +417,6 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
 
 }#ARC.STRENGTH.CUSTOM
 
-# match arc sets and strength coefficients.
-match.arcs.and.strengths = function(arcs, nodes, strengths, keep = FALSE) {
-
-  if (nrow(strengths) < nrow(arcs))
-    stop("insufficient number of strength coefficients.")
-
-  a_hash = interaction(arcs[, "from"], arcs[, "to"])
-  s_hash = interaction(strengths[, "from"], strengths[, "to"])
-
-  if (keep) {
-
-    s = strengths[match(a_hash, s_hash), , drop = FALSE]
-    coef = s$strength
-
-  }#THEN
-  else {
-
-    s = strengths[match(a_hash, s_hash), "strength"]
-    coef = s
-
-  }#ELSE
-
-  if (any(is.na(coef))) {
-
-    missing = apply(arcs[is.na(coef), , drop = FALSE], 1,
-                function(x) { paste(" (", x[1], ", ", x[2], ")", sep = "")  })
-
-    stop("the following arcs do not have a corresponding strength coefficients:",
-      missing, ".")
-
-  }#THEN
-
-  return(s)
-
-}#MATCH.ARCS.AND.STRENGTH
-
-# convert an arc strength object to the corresponding line widths for plotting.
-strength2lwd = function(strength, threshold, cutpoints, method, arcs = NULL,
-    debug = FALSE) {
-
-  # sanitize user-defined cut points, if any.
-  if (!missing(cutpoints)) {
-
-    if (!is.numeric(cutpoints) || any(is.nan(cutpoints)))
-      stop("cut points must be numerical values.")
-    if (length(strength) <= length(cutpoints))
-      stop("there are at least as many cut points as strength values.")
-
-  }#THEN
-
-  if (debug) {
-
-    cat("* using threshold:", threshold, "\n")
-    cat("* reported arc strength are:\n")
-    if (!is.null(arcs))
-      print(cbind(arcs, strength))
-    else
-      print(strength)
-
-  }#THEN
-
-  if (method %in% c("test", "bootstrap", "bayes-factor")) {
-
-    # bootstrap probabilities work like p-values, only reversed.
-    if (method %in% c("bootstrap", "bayes-factor")) {
-
-      strength = 1 - strength
-      threshold = 1 - threshold
-
-    }#THEN
-
-    # use user-defined cut points if available.
-    if (missing(cutpoints))
-      cutpoints = unique(c(0, threshold/c(10, 5, 2, 1.5, 1), 1))
-    else
-      cutpoints = sort(cutpoints)
-
-    # p-values are already scaled, so the raw quantiles are good cut points.
-    arc.weights = cut(strength, cutpoints, labels = FALSE, include.lowest = TRUE)
-
-    arc.weights = length(cutpoints) - arc.weights
-
-  }#THEN
-  else if (method == "score") {
-
-    # score deltas are defined on a reversed scale (the more negative
-    # the better); change their sign (and that of the threshold)
-    # for simplicity
-    threshold = -threshold
-    strength = -strength
-
-    # define a set of cut points using the quantiles from the empirical
-    # distribution of the negative score deltas (that is, the ones
-    # corresponding to significant arcs) or use user-defined ones.
-    if (missing(cutpoints)) {
-
-      significant = strength[strength > threshold]
-      q = quantile(significant, c(0.50, 0.75, 0.90, 0.95, 1), names = FALSE)
-      cutpoints = sort(c(-Inf, threshold, unique(q), Inf))
-
-    }#THEN
-
-    arc.weights = cut(strength, cutpoints, labels = FALSE)
-
-  }#THEN
-
-  # arcs beyond the significance threshold are given a negative weight,
-  # so that graphviz.backend() will draw them as dashed lines.
-  arc.weights[arc.weights == 1] = -1
-
-  if (debug) {
-
-    cat("* using cut points for strength intervals:\n")
-    if (method == "boot")
-      print(1 - cutpoints)
-    else
-      print(cutpoints)
-    cat("* arc weights:", arc.weights, "\n")
-
-  }#THEN
-
-  return(arc.weights)
-
-}#STRENGTH2LWD
-
 # compute the significance threshold for Friedman's confidence.
 threshold = function(strength, method = "l1") {
 
@@ -560,7 +436,7 @@ threshold = function(strength, method = "l1") {
 
   p0 = optimize(f = norm, interval = c(0, 1))$minimum
 
-  # double check the boundaries, they are legal solutions but optimize() does
+  # double-check the boundaries, they are legal solutions but optimize() does
   # not check them.
   if (norm(1) < norm(p0))
     p0 = 1

@@ -7,20 +7,30 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
   # general check on the data.
   data.info = check.data(data)
 
+  # check the number of breaks.
+  if (method != "hartemink") {
+
+    if (length(breaks) == 1)
+      breaks = rep(breaks, ncol(data))
+    else if (length(breaks) != ncol(data))
+      stop("the 'breaks' vector must have an element for each variable in the data.")
+
+  }#THEN
+  if (!is.positive.vector(breaks))
+    stop("the numbers of breaks must be positive integer numbers.")
+  if (any(breaks == 1))
+    stop("the return value must have at least two levels for each variable.")
+
   # check the data.
   if (method %in% c("quantile", "interval")) {
 
-    # check the number of breaks.
-    if (length(breaks) == 1) {
-
-      # get an array of the correct length.
-      breaks = rep(breaks, ncol(data))
-
-    }#THEN
-    else if (length(breaks) != ncol(data))
-      stop("the 'breaks' vector must have an element for each variable in the data.")
-    if (!is.positive.vector(breaks))
-      stop("the numbers of breaks must be positive integer numbers.")
+    # check which/how many discretized variables should be ordered factors.
+    if (length(ordered) == 1)
+      ordered = rep(ordered, ncol(data))
+    else if (length(ordered) != ncol(data))
+      stop("the 'ordered' vector must have an element for each variable in the data.")
+    if (!is.logical.vector(ordered))
+      stop("the elements of the 'ordered' vector be logical values.")
 
   }#THEN
   else if (method == "hartemink") {
@@ -29,11 +39,6 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
     # nothing to compute mutual information from.
     if (ncol(data) < 2)
       stop("at least two variables are needed to compute mutual information.")
-    # check the number of breaks.
-    if (!is.positive.integer(breaks))
-      stop("the number of breaks must be a positive integer number.")
-    if (breaks == 1)
-      stop("the return value must have at least two levels for each variable.")
 
     # check the data types.
     if (data.info$type %in% discrete.data.types) {
@@ -57,7 +62,6 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
 
   # check debug and ordered.
   check.logical(debug)
-  check.logical(ordered)
   # check the extra arguments.
   extra.args = check.discretization.args(method, data, breaks, list(...))
 

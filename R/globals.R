@@ -23,8 +23,9 @@ available.continuous.scores =
   c("loglik-g", "aic-g", "bic-g", "pred-loglik-g",
     available.continuous.bayesian.scores)
 available.mixedcg.scores = c("loglik-cg", "aic-cg", "bic-cg", "pred-loglik-cg")
+available.omnibus.scores = c("custom")
 available.scores = c(available.discrete.scores, available.continuous.scores,
-  available.mixedcg.scores)
+  available.mixedcg.scores, available.omnibus.scores)
 
 available.discrete.mi = c("mi")
 available.continuous.mi = c("mi-g")
@@ -116,7 +117,8 @@ score.labels = c(
   'loglik-cg' = "Log-Likelihood (cond. Gauss.)",
   'pred-loglik-cg' = "Predictive Log-Likelihood (cond. Gauss.)",
   'aic-cg' = "AIC (cond. Gauss.)",
-  'bic-cg' = "BIC (cond. Gauss.)"
+  'bic-cg' = "BIC (cond. Gauss.)",
+  'custom' = "User-Provided Function"
 )
 
 score.extra.args = list(
@@ -138,7 +140,8 @@ score.extra.args = list(
   "loglik-cg" = character(0),
   "pred-loglik-cg" = c("newdata"),
   "aic-cg" = c("k"),
-  "bic-cg" = c("k")
+  "bic-cg" = c("k"),
+  "custom" = c("fun", "args")
 )
 
 mi.estimator.labels = c(

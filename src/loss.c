@@ -71,7 +71,7 @@ SEXP dparents, gparents, dlevels;
   /* find out which nodes to use in computing the entropy loss. */
   PROTECT(try = match(nodes, keep, 0));
   to_keep = INTEGER(try);
-  R_isort(to_keep, length(try));
+  R_qsort_int(to_keep, 1, length(try));
 
   /* dereference the data set's columns. */
   columns = Calloc1D(nnodes, sizeof(void *));

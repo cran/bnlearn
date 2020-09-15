@@ -114,8 +114,8 @@ SEXP nodes, node_t, parents, data_t, new_t;
   /* get the parents of the node. */
   parents = getListElement(node_t, "parents");
   /* extract the node's column from the data frame. */
-  data_t = c_dataframe_column(data, target, TRUE, FALSE);
-  new_t = c_dataframe_column(newdata, target, TRUE, FALSE);
+  PROTECT(data_t = c_dataframe_column(data, target, TRUE, FALSE));
+  PROTECT(new_t = c_dataframe_column(newdata, target, TRUE, FALSE));
 
   /* compute the log-likelihood. */
   if (length(parents) == 0)
@@ -126,6 +126,8 @@ SEXP nodes, node_t, parents, data_t, new_t;
   if (debugging > 0)
     Rprintf("  > loglikelihood is %lf.\n", loglik);
 
+  UNPROTECT(2);
+
   return loglik;
 
-}/*PREDICTIVE_GNODE*/
+}/*PREDICTIVE_LOGLIK_GNODE*/

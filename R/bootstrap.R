@@ -1,8 +1,8 @@
 
-# simple parametric and nonparametric bootstrap implementation.
-bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
-    algorithm, algorithm.args = list(), statistic.args = list(),
-    cluster = NULL, debug = FALSE) {
+# simple nonparametric bootstrap implementation.
+bootstrap.backend = function(data, statistic, R, m, algorithm,
+    algorithm.args = list(), statistic.args = list(), cluster = NULL,
+    debug = FALSE) {
 
   # allocate the result list.
   res = as.list(seq(R))
@@ -11,44 +11,7 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
   # check the data early on.
   data.info = check.data(data)
 
-  # initialize the bayesian network used by the paramentric bootstrap.
-  if (sim == "parametric") {
-
-    # the mbde score requires knowledge of which observations have been
-    # manipulated, and this is clearly not possible when samples are
-    # generated.
-    if (!is.null(algorithm.args$score) && (algorithm.args$score == "mbde"))
-      stop("the 'mbde' score is incompatible with parametric bootstrap.")
-
-    net = do.call(algorithm, c(list(x = data), algorithm.args))
-
-    if (!is.dag(arcs = net$arcs, nodes = names(net$nodes))) {
-
-    # trying to extend a skeleton (instead of a CPDAG) is probably not
-    # meaningful.
-    if (!is.null(net$learning$undirected) && net$learning$undirected)
-      warning("the network used to generate the bootstrap samples is just a ",
-        "skeleton (no arc directions have been learned) and trying to extend ",
-        "it is probably wrong.")
-
-      net = cpdag.extension(cpdag.backend(net))
-
-      if (any(which.undirected(net$arcs, names(net$nodes))))
-        stop("no consistent extension for the network used to generate the ",
-             "bootstrap samples.")
-
-    }#THEN
-
-    if (debug) {
-
-      cat("* initial network for parametric bootstrap is:\n")
-      print(net)
-
-    }#THEN
-
-  }#THEN
-
-  bootstrap.replicate = function(r, data, m, net, sim, algorithm, algorithm.args,
+  bootstrap.replicate = function(r, data, m, net, algorithm, algorithm.args,
       statistic, statistic.args, debug) {
 
     if (debug) {
@@ -58,39 +21,25 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
 
     }#THEN
 
-    # generate the r-th bootstrap sample.
-    if (sim == "ordinary") {
+    # generate the r-th bootstrap sample by resampling with replacement.
+    resampling = sample(nrow(data), m, replace = TRUE)
 
-      # perform the resampling with replacement.
-      resampling = sample(nrow(data), m, replace = TRUE)
+    # user-provided lists of manipulated observations for the mbde score must
+    # be remapped to match the bootstrap sample.
+    if (!is.null(algorithm.args$score) && (algorithm.args$score == "mbde") &&
+          !is.null(algorithm.args$exp)) {
 
-      # user-provided lists of manipulated observations for the mbde score must
-      # be remapped to match the bootstrap sample.
-      if (!is.null(algorithm.args$score) && (algorithm.args$score == "mbde") &&
-            !is.null(algorithm.args$exp)) {
+      algorithm.args$exp = lapply(algorithm.args$exp, function(x) {
 
-        algorithm.args$exp = lapply(algorithm.args$exp, function(x) {
+        x = match(x, resampling)
+        x = x[!is.na(x)]
 
-          x = match(x, resampling)
-          x = x[!is.na(x)]
-
-        })
-
-      }#THEN
-
-      # generate the bootstrap sample.
-      replicate = data[resampling, , drop = FALSE]
+      })
 
     }#THEN
-    else if (sim == "parametric") {
 
-      extra.args = check.fitting.args(method = "mle", net, data = data, list())
-      fitted = bn.fit.backend(net, data = data, method = "mle",
-                 extra.args = extra.args, data.info = data.info,
-                 keep.fitted = FALSE)
-      replicate = rbn.backend(fitted, n = m)
-
-    }#ELSE
+    # generate the bootstrap sample.
+    replicate = data[resampling, , drop = FALSE]
 
     if (debug)
       cat("* learning bayesian network structure.\n")
@@ -123,8 +72,8 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
 
   if (!is.null(cluster)) {
 
-    res = parallel::parLapply(cluster, res, bootstrap.replicate, data = data,
-            m = m, net = net, sim = sim, algorithm = algorithm,
+    res = parallel::parLapplyLB(cluster, res, bootstrap.replicate, data = data,
+            m = m, net = net, algorithm = algorithm,
             algorithm.args = algorithm.args, statistic = statistic,
             statistic.args = statistic.args, debug = debug)
 
@@ -132,7 +81,7 @@ bootstrap.backend = function(data, statistic, R, m, sim = "ordinary",
   else {
 
     res = lapply(res, bootstrap.replicate, data = data, m = m, net = net,
-            sim = sim, algorithm = algorithm, algorithm.args = algorithm.args,
+            algorithm = algorithm, algorithm.args = algorithm.args,
             statistic = statistic, statistic.args = statistic.args,
             debug = debug)
 

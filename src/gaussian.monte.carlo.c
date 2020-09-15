@@ -75,11 +75,8 @@ int *perm = NULL, *work = NULL;
     for (k = 0; k < num; k++)
       yperm[k] = yy[perm[k] - 1];
 
-    if (fabs(mc_cov(xx, yperm, xm, ym, num)) > fabs(*observed)) {
-
+    if (fabs(mc_cov(xx, yperm, xm, ym, num)) >= fabs(*observed))
       SEQUENTIAL_COUNTER_CHECK(*res);
-
-    }/*THEN*/
 
   }/*FOR*/
 
@@ -213,11 +210,8 @@ covariance cov = { 0 }, backup = { 0 };
     if (errcode != 0)
       error_counter++;
 
-    if (fabs(permuted) > fabs(*observed)) {
-
+    if (fabs(permuted) >= fabs(*observed))
       SEQUENTIAL_COUNTER_CHECK(*pvalue);
-
-    }/*THEN*/
 
   }/*FOR*/
 

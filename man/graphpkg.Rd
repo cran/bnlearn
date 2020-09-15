@@ -30,13 +30,6 @@
   \item{check.cycles}{a boolean value. If \code{FALSE} the returned network will
     not be checked for cycles.}
 }
-\note{
-
-  The corresponding S4 methods are exported as well, and are just wrappers
-  around the S3 ones. So, for example, both \code{as.graphNEL(x)} and
-  \code{as(x, "graphNEL")} work and return identical objects.
-
-}
 \value{
 
   An object of the relevant class.

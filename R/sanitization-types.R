@@ -118,6 +118,13 @@ is.string.vector = function(x) {
 
 }#IS.STRING.VECTOR
 
+is.logical.vector = function(x) {
+
+  is.logical(x) &&
+  !any(is.na(x))
+
+}#IS.LOGICAL.VECTOR
+
 is.ndmatrix = function(x) {
 
   is(x, c("table", "matrix", "array"))

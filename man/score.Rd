@@ -1,5 +1,8 @@
 \name{score}
 \alias{score}
+\alias{score,bn-method}
+\alias{score,bn.naive-method}
+\alias{score,bn.tan-method}
 \alias{logLik.bn}
 \alias{AIC.bn}
 \alias{BIC.bn}
@@ -10,7 +13,9 @@
 
 }
 \usage{
-score(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
+\S4method{score}{bn}(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
+\S4method{score}{bn.naive}(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
+\S4method{score}{bn.tan}(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
 
 \method{logLik}{bn}(object, data, ...)
 \method{AIC}{bn}(object, data, ..., k = 1)
@@ -104,7 +109,7 @@ score(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
   for large sample sizes BIC converges to log(BDe).
 
   When using the Castelo & Siebes prior in structure learning, the prior
-  probabilties associated with an arc are bound away from zero and one by
+  probabilities associated with an arc are bound away from zero and one by
   shrinking them towards the uniform distribution as per Hausser and Strimmer
   (2009) with a lambda equal to \code{3 * sqrt(.Machine$double.eps)}. This
   dramatically improves structure learning, which is less likely to get stuck

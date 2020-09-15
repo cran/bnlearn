@@ -7,12 +7,12 @@
 #include "include/blas.h"
 #include "include/data.table.h"
 
-#define PVALUE(testfun) \
-        pvalue = testfun; \
-        min_pvalue = pvalue < min_pvalue ? pvalue : min_pvalue; \
-        max_pvalue = pvalue > max_pvalue ? pvalue : max_pvalue; \
-        /* increment the test counter. */ \
-        test_counter++;
+static void update_pvalue_range(double pvalue, double *min, double *max) {
+
+  *min = pvalue < *min ? pvalue : *min;
+  *max = pvalue > *max ? pvalue : *max;
+
+}/*UPDATE_PVALUES*/
 
 static SEXP ast_prepare_retval(double pvalue, double min_pvalue,
   double max_pvalue, double alpha, const char **nodes, int nnodes) {
@@ -82,23 +82,29 @@ ddata sub = { 0 };
         /* mutual information and Pearson's X^2 asymptotic tests. */
         statistic = c_cchisqtest(xptr, llx, yptr, lly, zptr, llz, sub.m.nobs, &df,
                       test, (test == MI) || (test == MI_ADF));
-        PVALUE(pchisq(statistic, df, FALSE, FALSE));
+        pvalue = pchisq(statistic, df, FALSE, FALSE);
+        update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
       }/*THEN*/
       else if (test == MI_SH) {
 
         /* shrinkage mutual information test. */
         statistic = c_shcmi(xptr, llx, yptr, lly, zptr, llz, sub.m.nobs, &df, TRUE);
-        PVALUE(pchisq(statistic, df, FALSE, FALSE));
+        pvalue = pchisq(statistic, df, FALSE, FALSE);
+        update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
       }/*THEN*/
       else if (test == JT) {
 
         /* Jonckheere-Terpstra test. */
         statistic = c_cjt(xptr, llx, yptr, lly, zptr, llz, sub.m.nobs);
-        PVALUE(2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE));
+        pvalue = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
+        update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
       }/*THEN*/
+
+      /* increment the test counter. */
+      test_counter++;
 
       if (debugging) {
 
@@ -161,7 +167,7 @@ covariance cov = { 0 };
       /* if there are not enough degrees of freedom, return independence. */
       warning("trying to do a conditional independence test with zero degrees of freedom.");
 
-      PVALUE(1);
+      pvalue = min_pvalue = max_pvalue = 1;
 
       if (debugging) {
 
@@ -203,14 +209,16 @@ covariance cov = { 0 };
 
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
         statistic = cor_t_trans(statistic, (double)df);
-        PVALUE(2 * pt(fabs(statistic), df, FALSE, FALSE));
+        pvalue = 2 * pt(fabs(statistic), df, FALSE, FALSE);
+        update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
       }/*THEN*/
       else if (test == MI_G) {
 
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
         statistic = 2 * sub.m.nobs * cor_mi_trans(statistic);
-        PVALUE(pchisq(statistic, df, FALSE, FALSE));
+        pvalue = pchisq(statistic, df, FALSE, FALSE);
+        update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
       }/*THEN*/
       else if (test == MI_G_SH) {
@@ -220,16 +228,21 @@ covariance cov = { 0 };
         covmat_shrink(cov, lambda);
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
         statistic = 2 * sub.m.nobs * cor_mi_trans(statistic);
-        PVALUE(pchisq(statistic, df, FALSE, FALSE));
+        pvalue = pchisq(statistic, df, FALSE, FALSE);
+        update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
       }/*THEN*/
       else if (test == ZF) {
 
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
         statistic = cor_zf_trans(statistic, df);
-        PVALUE(2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE));
+        pvalue = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
+        update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
       }/*THEN*/
+
+      /* increment the test counter. */
+      test_counter++;
 
       if (debugging) {
 
@@ -319,7 +332,7 @@ covariance cov = { 0 };
         /* if there are not enough degrees of freedom, return independence. */
         warning("trying to do a conditional independence test with zero degrees of freedom.");
 
-        PVALUE(1);
+        pvalue = min_pvalue = max_pvalue = 1;
 
         if (debugging) {
 
@@ -350,14 +363,16 @@ covariance cov = { 0 };
 
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
         statistic = cor_t_trans(statistic, (double)df);
-        PVALUE(2 * pt(fabs(statistic), df, FALSE, FALSE));
+        pvalue = 2 * pt(fabs(statistic), df, FALSE, FALSE);
+        update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
       }/*THEN*/
       else if (test == MI_G) {
 
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
         statistic = 2 * ncomplete * cor_mi_trans(statistic);
-        PVALUE(pchisq(statistic, df, FALSE, FALSE));
+        pvalue = pchisq(statistic, df, FALSE, FALSE);
+        update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
       }/*THEN*/
       else if (test == MI_G_SH) {
@@ -367,16 +382,21 @@ covariance cov = { 0 };
         covmat_shrink(cov, lambda);
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
         statistic = 2 * ncomplete * cor_mi_trans(statistic);
-        PVALUE(pchisq(statistic, df, FALSE, FALSE));
+        pvalue = pchisq(statistic, df, FALSE, FALSE);
+        update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
       }/*THEN*/
       else if (test == ZF) {
 
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
         statistic = cor_zf_trans(statistic, df);
-        PVALUE(2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE));
+        pvalue = 2 * pnorm(fabs(statistic), 0, 1, FALSE, FALSE);
+        update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
       }/*THEN*/
+
+      /* increment the test counter. */
+      test_counter++;
 
       if (debugging) {
 
@@ -538,7 +558,11 @@ cgdata sub = { 0 };
 
       Free1D(zptr);
 
-      PVALUE(pchisq(statistic, df, FALSE, FALSE));
+      pvalue = pchisq(statistic, df, FALSE, FALSE);
+      update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
+
+      /* increment the test counter. */
+      test_counter++;
 
       if (debugging) {
 
@@ -625,7 +649,7 @@ cgdata dtx_complete = { 0 }, dty_complete = { 0 };
       /* assume independence and return if there are no complete observations. */
       if (sub_complete.m.nobs <= 1) {
 
-        PVALUE(1);
+        pvalue = min_pvalue = max_pvalue = 1;
         goto exit;
 
       }/*THEN*/
@@ -703,7 +727,11 @@ cgdata dtx_complete = { 0 }, dty_complete = { 0 };
 
       }/*ELSE*/
 
-      PVALUE(pchisq(statistic, df, FALSE, FALSE));
+      pvalue = pchisq(statistic, df, FALSE, FALSE);
+      update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
+
+      /* increment the test counter. */
+      test_counter++;
 
 exit:
 
@@ -789,7 +817,10 @@ ddata sub = { 0 };
 
       c_cmcarlo(xptr, llx, yptr, lly, zptr, llz, sub.m.nobs, nperms, &statistic,
         &pvalue, threshold, type, &df);
-      PVALUE(pvalue);
+      update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
+
+      /* increment the test counter. */
+      test_counter++;
 
       if (debugging) {
 
@@ -897,7 +928,10 @@ gdata sub = { 0 }, sub_complete = { 0 };
 
       c_gauss_cmcarlo(complete_column, sub.m.ncols, nc, 0, 1, nperms,
         &statistic, &pvalue, threshold, type);
-      PVALUE(pvalue);
+      update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
+
+      /* increment the test counter. */
+      test_counter++;
 
       if (debugging) {
 
@@ -962,10 +996,15 @@ bool debugging = isTRUE(debug);
 test_e test_type = test_to_enum(t);
 SEXP xx, yy, zz, cc, res = R_NilValue;
 
-  /* call indep_test to deal with zero-length conditioning subsets. */
+  /* call indep_test to deal with tests which have no moving parts, that is when
+   * the conditioning set is empty of completely fixed. */
   if (minsize == 0) {
 
-    PVALUE(NUM(indep_test(x, y, fixed, data, test, B, alpha, TRUESEXP, complete)));
+    pvalue = NUM(indep_test(x, y, fixed, data, test, B, alpha, TRUESEXP, complete));
+    update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
+
+    /* increment the test counter. */
+    test_counter++;
 
     if (debugging) {
 
@@ -1112,6 +1151,15 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
             debugging);
 
     FreeGDT(dt, FALSE);
+
+  }/*THEN*/
+
+  /* the p-values of the tests performed under minsize == 0 should be considered
+   * when computing the maximum and minimum p-values. */
+  if (minsize == 0) {
+
+    REAL(res)[1] = REAL(res)[1] < min_pvalue ? REAL(res)[1] : min_pvalue;
+    REAL(res)[2] = REAL(res)[2] > max_pvalue ? REAL(res)[2] : max_pvalue;
 
   }/*THEN*/
 

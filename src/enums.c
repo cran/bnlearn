@@ -2,6 +2,7 @@
 #include "include/tests.h"
 #include "include/scores.h"
 #include "include/fitted.h"
+#include "include/preprocessing.h"
 
 #define ENTRY(key, value) if (strcmp(label, key) == 0) return value;
 
@@ -73,6 +74,7 @@ score_e score_to_enum(const char *label) {
   ENTRY("aic-cg", AIC_CG);
   ENTRY("bic-cg", BIC_CG);
   ENTRY("pred-loglik-cg", PRED_LOGLIK_CG);
+  ENTRY("custom", CUSTOM);
 
   return ENOSCORE;
 
@@ -88,3 +90,13 @@ gprior_e gprior_to_enum(const char *label) {
   return ENOPRIOR;
 
 }/*GPRIOR_TO_ENUM*/
+
+discretization_e discretization_to_enum(const char *label) {
+
+  ENTRY("quantile", QUANTILE);
+  ENTRY("interval", INTERVAL);
+  ENTRY("hartemink", HARTEMINK);
+
+  return ENOMETHOD;
+
+}/*DISCRETIZATION_TO_ENUM*/

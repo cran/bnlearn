@@ -274,17 +274,30 @@ hamming.distance = function(learned, true, debug = FALSE) {
 
 }#HAMMING.DISTANCE
 
-# backend for extracting v-structures from a network.
-vstructures = function(x, arcs, including.moral = FALSE, debug = FALSE) {
+# backend for extracting colliders from a network.
+colliders.backend = function(x, return.arcs = FALSE, including.shielded = TRUE,
+    including.unshielded = TRUE, debug = FALSE) {
 
-  .Call(call_vstructures,
-        arcs = x$arcs,
-        nodes = names(x$nodes),
-        return.arcs = arcs,
-        including.moral = including.moral,
-        debug = debug)
+  nodes = names(x$nodes)
 
-}#VSTRUCTURES
+  coll = .Call(call_colliders,
+               arcs = x$arcs,
+               nodes = nodes,
+               return.arcs = return.arcs,
+               shielded = including.shielded,
+               unshielded = including.unshielded,
+               debug = debug)
+
+  if (return.arcs) {
+
+    coll = arcs.rbind(coll[, c("X", "Z")], coll[, c("Y", "Z")])
+    coll = unique.arcs(coll, nodes = nodes)
+
+  }#THEN
+
+  return(coll)
+
+}#COLLIDERS.BACKEND
 
 # test equality of two graphs (nodes and arcs).
 equal.backend.bn = function(target, current) {
@@ -368,16 +381,46 @@ tiers.backend = function(nodes, debug = FALSE) {
 }#TIERS.BACKEND
 
 # generate a subgraph spanning a subset of nodes.
-subgraph.backend = function(x, nodes) {
+subgraph.backend = function(x, nodes, preserve.learning = FALSE) {
+
+  spanned.arcs = function(x) all(!is.na(match(x, nodes)))
 
   # create the subgraph spanning the subset of nodes.
   res = empty.graph.backend(nodes)
   # identify which arcs are part of the subgraph.
-  spanning = apply(x$arcs, 1, function(x) all(!is.na(match(x, nodes))))
+  spanning = apply(x$arcs, 1, spanned.arcs)
   # update the arcs of the subgraph.
   res$arcs = x$arcs[spanning, , drop = FALSE]
   # update the network structure.
   res$nodes = cache.structure(nodes, arcs = res$arcs)
+
+  if (preserve.learning) {
+
+    # copy all the metadata.
+    res$learning = x$learning
+
+    # remove arcs incident on nodes that are no longer there from whitelists,
+    # blacklists, illegal arcs in a conditional Gaussian BN.
+    for (el in c("whitelist", "blacklist", "illegal")) {
+
+      if (is.null(x$learning[[el]]))
+        next
+
+      spanning = apply(x$learning[[el]], 1, spanned.arcs)
+      res$learning[[el]] = x$learning[[el]][spanning, , drop = FALSE]
+
+    }#FOR
+
+    # remove arcs incident on nodes that are no longer there from Castelo &
+    # Siebes prior.
+    if (!is.null(x$learning$args$prior) && (x$learning$args$prior == "cs")) {
+
+      spanning = apply(x$learning$args$beta[, c("from", "to")], 1, spanned.arcs)
+      res$learning$args$beta = res$learning$args$beta[spanning, , drop = FALSE]
+
+    }#THEN
+
+  }#THEN
 
   return(res)
 

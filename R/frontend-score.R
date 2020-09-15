@@ -1,6 +1,6 @@
 
 # compute the score of a network.
-score = function(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE) {
+network.score = function(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
@@ -33,7 +33,7 @@ score = function(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE) {
   else
     return(sum(local))
 
-}#SCORE
+}#NETWORK.SCORE
 
 # AIC method for class 'bn', an alias of score(..., type = "aic")
 AIC.bn = function(object, data, ..., k = 1) {
@@ -43,11 +43,11 @@ AIC.bn = function(object, data, ..., k = 1) {
 
   # parameter sanitization done in the score() function.
   if (type %in% discrete.data.types)
-    score(object, data = data, type = "aic", k = k, ...)
+    network.score(object, data = data, type = "aic", k = k, ...)
   else if (type == "continuous")
-    score(object, data = data, type = "aic-g", k = k, ...)
+    network.score(object, data = data, type = "aic-g", k = k, ...)
   else if (type == "mixed-cg")
-    score(object, data = data, type = "aic-cg", k = k, ...)
+    network.score(object, data = data, type = "aic-cg", k = k, ...)
 
 }#AIC.BN
 
@@ -59,11 +59,11 @@ BIC.bn = function(object, data, ...) {
 
   # parameter sanitization done in the score() function.
   if (type %in% discrete.data.types)
-    score(object, data = data, type = "bic", ...)
+    network.score(object, data = data, type = "bic", ...)
   else if (type == "continuous")
-    score(object, data = data, type = "bic-g", ...)
+    network.score(object, data = data, type = "bic-g", ...)
   else if (type == "mixed-cg")
-    score(object, data = data, type = "bic-cg", ...)
+    network.score(object, data = data, type = "bic-cg", ...)
 
 }#BIC.BN
 
@@ -75,11 +75,11 @@ logLik.bn = function(object, data, ...) {
 
   # parameter sanitization done in the score() function.
   if (type %in% discrete.data.types)
-    score(x = object, data = data, type = "loglik", ...)
+    network.score(x = object, data = data, type = "loglik", ...)
   else if (type == "continuous")
-    score(x = object, data = data, type = "loglik-g", ...)
+    network.score(x = object, data = data, type = "loglik-g", ...)
   else if (type == "mixed-cg")
-    score(x = object, data = data, type = "loglik-cg", ...)
+    network.score(x = object, data = data, type = "loglik-cg", ...)
 
 }#LOGLIK.BN
 

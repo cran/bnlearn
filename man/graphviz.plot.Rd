@@ -53,7 +53,7 @@ graphviz.plot(x, highlight = NULL, groups, layout = "dot",
     \item \code{textCol}: an integer or character string (the highlight colour
       for the labels of the nodes). The default value is \code{black}.
     \item \code{fill}: an integer or character string (the colour used as a
-      background colour for the nodes). The default value is \code{white}.
+      background colour for the nodes). The default value is \code{transparent}.
     \item \code{lwd}: a positive number (the line width of highlighted arcs).
       It overrides the line width settings in \code{strength.plot()}. The
       default value is to use the global settings of \pkg{Rgraphviz}.
@@ -64,12 +64,15 @@ graphviz.plot(x, highlight = NULL, groups, layout = "dot",
 
   }
 
+  Note that all these parameters take a single value that is then applied to all
+  nodes and arcs that will be highlighted.
+
 }
 \value{
 
-  \code{graphviz.plot()} returns invisibly the \code{graph} object produced by
-  \pkg{Rgraphviz}. It can be further modified using the commands present in the
-  \pkg{graph} and \pkg{Rgraphviz} packages.
+  \code{graphviz.plot()} returns invisibly the \code{graph} object produced from
+  the network passed as the \code{x} argument. It can be further modified using
+  the \pkg{graph} and \pkg{Rgraphviz} packages.
 
 }
 \seealso{\code{\link{plot.bn}}.}

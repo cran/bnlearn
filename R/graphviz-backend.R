@@ -139,7 +139,12 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, groups,
   graph.plot = Rgraphviz::layoutGraph(graph.obj, subGList = subGList,
                  attrs = attrs, nodeAttrs = node.attrs, layoutType = layout)
 
-  # kill the arroheads of undirected arcs.
+  # default arcs to solid lines of width 1; otherwise, when we set it for some
+  # arcs via weights or highlight the remaining arcs have it set to NA.
+  graph::edgeRenderInfo(graph.plot)[["lty"]] = "solid"
+  graph::edgeRenderInfo(graph.plot)[["lwd"]] = 1
+
+  # kill the arrowheads of undirected arcs.
   u = names(which(graph::edgeRenderInfo(graph.plot)[['direction']] == "both"))
 
   graph::edgeRenderInfo(graph.plot)[["arrowhead"]][u] = "none"

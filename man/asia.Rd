@@ -52,7 +52,8 @@ data(asia)
   probabilities equal to both 0 and 1. Monte Carlo tests seems to behave
   better than their parametric counterparts.
 
-  The complete BN can be downloaded from \url{http://www.bnlearn.com/bnrepository}.
+  The complete BN can be downloaded from
+  \url{https://www.bnlearn.com/bnrepository/}.
 
 }
 \source{

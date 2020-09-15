@@ -1,81 +1,83 @@
 
+# backend for sampling from conditional probability distributions.
+conditional.distribution = function(fitted, nodes, evidence, method, extra,
+    cluster = NULL, debug = FALSE) {
+
+  # consider only the upper closure of event and evidence to reduce the number
+  # of variables in the Monte Carlo simulation.
+  fitted = reduce.fitted(fitted = fitted, event = nodes, evidence = evidence,
+             nodes = extra$query.nodes, method = method, debug = debug)
+
+  if (method == "ls")
+    distribution = logic.distribution
+  else if (method == "lw")
+    distribution = weighting.distribution
+
+  if (!is.null(cluster)) {
+
+    # get the number of slaves.
+    s = nSlaves(cluster)
+    # divide the number of particles among the slaves.
+    batch = n = ceiling(extra$n / s)
+
+    results = parallel::parLapplyLB(cluster, seq(s),
+      function(x) {
+
+        distribution(fitted = fitted, nodes = nodes, evidence = evidence,
+          n = n, batch = batch, debug = debug)
+
+      })
+
+    return(do.call(rbind, results))
+
+  }#THEN
+  else {
+
+    distribution(fitted = fitted, nodes = nodes, evidence = evidence,
+      n = extra$n, batch = extra$batch, debug = debug)
+
+  }#ELSE
+
+}#CONDITIONAL.DISTRIBUTION
+
 # backend for conditional probability queries.
 conditional.probability.query = function(fitted, event, evidence, method,
-    extra, probability = TRUE, cluster = NULL, debug = FALSE) {
+    extra, cluster = NULL, debug = FALSE) {
 
   # consider only the upper closure of event and evidence to reduce the number
   # of variables in the Monte Carlo simulation.
   fitted = reduce.fitted(fitted = fitted, event = event, evidence = evidence,
              nodes = extra$query.nodes, method = method, debug = debug)
 
-  if (method %in% c("ls", "lw")) {
+  if (method == "ls")
+    sampling = logic.sampling
+  else if (method == "lw")
+    sampling = weighting.sampling
 
-    if (method == "ls") {
+  if (!is.null(cluster)) {
 
-      sampling = logic.sampling
-      distribution = logic.distribution
+    # get the number of slaves.
+    s = nSlaves(cluster)
+    # divide the number of particles among the slaves.
+    batch = n = ceiling(extra$n / s)
 
-    }#THEN
-    else if (method == "lw") {
-
-      sampling = weighting.sampling
-      distribution = weighting.distribution
-
-    }#ELSE
-
-    if (!is.null(cluster)) {
-
-      # get the number of slaves.
-      s = nSlaves(cluster)
-      # divide the number of particles among the slaves.
-      batch = n = ceiling(extra$n / s)
-
-      if (probability) {
-
-        results = parallel::parSapply(cluster, seq(s),
-          function(x) {
-
-            sampling(fitted = fitted, event = event, evidence = evidence,
-             n = n, batch = batch, debug = debug)
-
-          })
-
-        return(mean(results))
-
-      }#THEN
-      else {
-
-        results = parallel::parLapply(cluster, seq(s),
-          function(x) {
-
-            distribution(fitted = fitted, nodes = event, evidence = evidence,
-              n = n, batch = batch, debug = debug)
-
-          })
-
-        return(do.call(rbind, results))
-
-      }#ELSE
-
-    }#THEN
-    else {
-
-      if (probability) {
+    results = parallel::parSapplyLB(cluster, seq(s),
+      function(x) {
 
         sampling(fitted = fitted, event = event, evidence = evidence,
-          n = extra$n, batch = extra$batch, debug = debug)
+         n = n, batch = batch, debug = debug)
 
-      }#THEN
-      else {
+      })
 
-        distribution(fitted = fitted, nodes = event, evidence = evidence,
-          n = extra$n, batch = extra$batch, debug = debug)
-
-      }#ELSE
-
-    }#ELSE
+    return(mean(results))
 
   }#THEN
+  else {
+
+    sampling(fitted = fitted, event = event, evidence = evidence,
+      n = extra$n, batch = extra$batch, debug = debug)
+
+  }#ELSE
 
 }#CONDITIONAL.PROBABILITY.QUERY
 
@@ -233,10 +235,10 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
       r = rep(TRUE, m)
     else
       r = eval(evidence, generated.data, parent.frame())
-    # double check that this is a logical vector.
+    # double-check that this is a logical vector.
     if (!is.logical(r))
       stop("evidence must evaluate to a logical vector.")
-    # double check that it is of the right length.
+    # double-check that it has the right length.
     if (length(r) != m)
       stop("logical vector for evidence is of length ", length(r),
         " instead of ", m, ".")
@@ -263,10 +265,10 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
       r = rep(TRUE, m)
     else
       r = eval(event, generated.data, parent.frame())
-    # double check that this is a logical vector.
+    # double-check that this is a logical vector.
     if (!is.logical(r))
       stop("event must evaluate to a logical vector.")
-    # double check that it is of the right length.
+    # double-check that it has the right length.
     if (length(r) != m)
       stop("logical vector for event is of length ", length(r),
         " instead of ", m, ".")
@@ -336,10 +338,10 @@ logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) 
 
     # evaluate the expression defining the evidence.
     r = eval(evidence, generated.data, parent.frame())
-    # double check that this is a logical vector.
+    # double-check that this is a logical vector.
     if (!is.logical(r))
       stop("evidence must evaluate to a logical vector.")
-    # double check that it is of the right length.
+    # double-check that it has the right length.
     if ((length(r) != 1) && (length(r) != m))
       stop("logical vector for evidence is of length ", length(r),
         " instead of ", m, ".")
@@ -422,10 +424,10 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
       r = rep(TRUE, m)
     else
       r = eval(event, generated.data, parent.frame())
-    # double check that this is a logical vector.
+    # double-check that this is a logical vector.
     if (!is.logical(r))
       stop("event must evaluate to a logical vector.")
-    # double check that it is of the right length.
+    # double-check that it has the right length.
     if (length(r) != m)
       stop("logical vector for event is of length ", length(r),
         " instead of ", m, ".")

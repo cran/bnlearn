@@ -29,6 +29,7 @@ static const R_CallMethodDef CallEntries[] = {
   CALL_ENTRY(cgsd, 3),
   CALL_ENTRY(chow_liu, 7),
   CALL_ENTRY(class_err, 2),
+  CALL_ENTRY(colliders, 6),
   CALL_ENTRY(configurations, 3),
   CALL_ENTRY(count_observed_values, 1),
   CALL_ENTRY(cpdag, 9),
@@ -59,8 +60,10 @@ static const R_CallMethodDef CallEntries[] = {
   CALL_ENTRY(is_listed, 5),
   CALL_ENTRY(is_pdag_acyclic, 5),
   CALL_ENTRY(is_row_equal, 2),
+  CALL_ENTRY(joint_discretize, 6),
   CALL_ENTRY(lw_weights, 4),
   CALL_ENTRY(mappred, 7),
+  CALL_ENTRY(marginal_discretize, 4),
   CALL_ENTRY(match_brace, 4),
   CALL_ENTRY(mean_strength, 3),
   CALL_ENTRY(mi, 4),
@@ -93,7 +96,6 @@ static const R_CallMethodDef CallEntries[] = {
   CALL_ENTRY(topological_ordering, 4),
   CALL_ENTRY(tree_directions, 4),
   CALL_ENTRY(unique_arcs, 3),
-  CALL_ENTRY(vstructures, 5),
   CALL_ENTRY(which_undirected, 2),
   {NULL, NULL, 0}
 };

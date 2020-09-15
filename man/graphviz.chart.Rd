@@ -19,7 +19,7 @@ graphviz.chart(x, type = "barchart", layout = "dot", draw.levels = TRUE,
     network.}
   \item{type}{a character string, the type of graph used to plot the probability
     distributions in the nodes. Possible values are \code{barchart}, \code{dotplot}
-    and \code{barprob} (a brachart with probabilities printed over the bars).}
+    and \code{barprob} (a barchart with probabilities printed over the bars).}
   \item{layout}{a character string, the layout argument that will be passed to
     \pkg{Rgraphviz}. Possible values are \code{dots}, \code{neato},
     \code{twopi}, \code{circo} and \code{fdp}. See \pkg{Rgraphviz} documentation

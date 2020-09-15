@@ -91,7 +91,8 @@ data(insurance)
 }
 \note{
 
-  The complete BN can be downloaded from \url{http://www.bnlearn.com/bnrepository}.
+  The complete BN can be downloaded from
+  \url{https://www.bnlearn.com/bnrepository/}.
 
 }
 \examples{

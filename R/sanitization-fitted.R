@@ -8,8 +8,8 @@ check.dnode = function(x, node) {
       " must be a table, a matrix or a multidimensional array.")
   # all elements must be probabilities.
   if (!is.probability.vector(x))
-    stop("some elements of the conditional probability distributions of node ",
-      node, " are not probabilities.")
+    stop("the probabilities provided for node ",
+      node, " do not form a valid conditional probability distribution.")
 
   # convert the CPT into a table object.
   x = as.table(x)

@@ -95,7 +95,7 @@ long double temp = 0;
 
 }/*C_COVMAT*/
 
-/* fill a covariance matrix from incomplete data, computing means as well.*/
+/* fill a covariance matrix from incomplete data, computing means as well. */
 void c_covmat_with_missing(double **data, int nrow, int ncol,
     bool *missing_partial, bool *missing_all, double *mean, double *mat,
     int *ncomplete) {

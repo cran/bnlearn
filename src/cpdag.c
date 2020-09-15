@@ -12,7 +12,7 @@
 
 static void scan_graph(int *a, SEXP nodes, int nnodes, short int *collider,
     bool debugging);
-static void mark_vstructures(int *a, SEXP nodes, int nnodes, short int *collider,
+static void mark_colliders(int *a, SEXP nodes, int nnodes, short int *collider,
     bool debugging);
 static void unmark_shielded(int *a, SEXP nodes, int nnodes, short int *collider,
     bool debugging);
@@ -23,116 +23,6 @@ static int prevent_conflicts(int *a, SEXP nodes, int nnodes, short int *scratch,
     bool debugging);
 static int prevent_chains(int *a, SEXP nodes, int nnodes, bool debugging);
 static void renormalize_amat(int *a, int nnodes);
-static SEXP amat2vstructs(int *a, SEXP nodes, int nnodes, short int *collider);
-
-/* return the v-structures present in the graph. */
-SEXP vstructures(SEXP arcs, SEXP nodes, SEXP return_arcs, SEXP including_moral,
-    SEXP debug) {
-
-int i = 0, nnodes = length(nodes);
-int *a = NULL, *ret_arcs = LOGICAL(return_arcs);
-short int *collider = NULL;
-bool debugging = isTRUE(debug);
-SEXP amat, result;
-
-  /* build the adjacency matrix and dereference it. */
-  PROTECT(amat = arcs2amat(arcs, nodes));
-  a = INTEGER(amat);
-
-  /* allocate and initialize a status vector to identify the colliders. */
-  collider = Calloc1D(nnodes, sizeof(short int));
-
-  /* STEP 1: scan the graph. */
-  scan_graph(a, nodes, nnodes, collider, debugging);
-
-  /* STEP 2: all the arcs not part of a v-structure are now undirected. */
-  mark_vstructures(a, nodes, nnodes, collider, debugging);
-
-  /* decide whether or not to keep moral v-structures (i.e. shielded colliders). */
-  if (!isTRUE(including_moral))
-    unmark_shielded(a, nodes, nnodes, collider, debugging);
-
-  /* remove all non-fixed arcs (including compelled ones). */
-  for (i = 0; i < nnodes * nnodes; i++)
-    a[i] = (a[i] == FIXED) ? 1 : 0;
-
-  if (*ret_arcs > 0)
-    PROTECT(result = amat2arcs(amat, nodes));
-  else
-    PROTECT(result = amat2vstructs(a, nodes, nnodes, collider));
-
-  UNPROTECT(2);
-
-  Free1D(collider);
-
-  return result;
-
-}/*VSTRUCTURES*/
-
-static SEXP amat2vstructs(int *a, SEXP nodes, int nnodes, short int *collider) {
-
-int i = 0, j = 0, k = 0, nvstructs = 0, counter = 0, row = 0;
-SEXP result;
-
-  for (i = 0; i < nnodes; i++) {
-
-    /* this is not a collider, nothing to do. */
-    if (collider[i] == 0)
-      continue;
-
-    /* reset the parents' counter. */
-    counter = 0;
-
-    /* count the parents. */
-    for (j = 0; j < nnodes; j++)
-      counter += a[CMC(j, i, nnodes)];
-
-    /* only arcs that are part of a v-structure are still present in the
-     * adjacency matrix, so computing the number of v-structures is easy. */
-    nvstructs += counter * (counter - 1) / 2;
-
-  }/*FOR*/
-
-  PROTECT(result = allocMatrix(STRSXP, nvstructs, 3));
-
-  /* allocate and the colnames. */
-  setDimNames(result, R_NilValue, mkStringVec(3, "X", "Z", "Y"));
-
-  for (i = 0; i < nnodes; i++) {
-
-    /* this is not a collider, nothing to do. */
-    if (collider[i] == 0)
-      continue;
-
-    for (j = 0; j < nnodes; j++) {
-
-      /* this is no parent. */
-      if (a[CMC(j, i, nnodes)] == 0)
-        continue;
-
-      /* this is a parent, look for the other one. */
-      for (k = j + 1; k < nnodes; k++) {
-
-        /* again this is no parent. */
-        if (a[CMC(k, i, nnodes)] == 0)
-          continue;
-
-        SET_STRING_ELT(result, CMC(row, 0, nvstructs), STRING_ELT(nodes, j));
-        SET_STRING_ELT(result, CMC(row, 1, nvstructs), STRING_ELT(nodes, i));
-        SET_STRING_ELT(result, CMC(row, 2, nvstructs), STRING_ELT(nodes, k));
-        row++;
-
-      }/*FOR*/
-
-    }/*FOR*/
-
-  }/*FOR*/
-
-  UNPROTECT(1);
-
-  return result;
-
-}/*AMAT2VSTRUCTS*/
 
 static int fix_arcs(int *a, int nnodes, SEXP nodes, SEXP whitelist,
   SEXP blacklist, bool debugging) {
@@ -232,7 +122,7 @@ SEXP cpdag(SEXP arcs, SEXP nodes, SEXP moral, SEXP fix, SEXP wlbl,
 int i = 0, changed = 0, nnodes = length(nodes);
 short int *collider = NULL, *scratch = NULL;
 int *a = NULL, all_fixed = FALSE;
-bool debugging = isTRUE(debug);
+bool debugging = isTRUE(debug), include_moral = isTRUE(moral);
 SEXP amat;
 
   /* build the adjacency matrix and dereference it. */
@@ -280,11 +170,11 @@ SEXP amat;
 
   if (!all_fixed) {
 
-    /* STEP 2: all the arcs not part of a v-structure are now undirected. */
-    mark_vstructures(a, nodes, nnodes, collider, debugging);
+    /* STEP 2: all the arcs not part of a collider are now undirected. */
+    mark_colliders(a, nodes, nnodes, collider, debugging);
 
     /* decide whether or not to keep moral v-structures (i.e. shielded colliders). */
-    if (isTRUE(moral))
+    if (!include_moral)
       unmark_shielded(a, nodes, nnodes, collider, debugging);
 
   }/*THEN*/
@@ -379,7 +269,7 @@ static void scan_graph(int *a, SEXP nodes, int nnodes, short int *collider,
 
 }/*SCAN_GRAPH*/
 
-static void mark_vstructures(int *a, SEXP nodes, int nnodes, short int *collider,
+static void mark_colliders(int *a, SEXP nodes, int nnodes, short int *collider,
     bool debugging) {
 
 int i = 0, j = 0;
@@ -450,7 +340,7 @@ int i = 0, j = 0;
 
   }/*FOR*/
 
-}/*MARK_VSTRUCTURES*/
+}/*MARK_COLLIDERS*/
 
 static void unmark_shielded(int *a, SEXP nodes, int nnodes, short int *collider,
     bool debugging) {
@@ -468,7 +358,7 @@ int i = 0, j = 0, k = 0, check = FALSE;
 
     for (j = 0; j < nnodes; j++) {
 
-      /* this arc is not part of a v-structure. */
+      /* this arc is not part of a collider. */
       if ((a[CMC(j, i, nnodes)] != FIXED) && (a[CMC(j, i, nnodes)] != IMMUTABLE))
         continue;
 
@@ -485,7 +375,7 @@ int i = 0, j = 0, k = 0, check = FALSE;
           continue;
 
         if (debugging)
-          Rprintf("    > considering v-structure %s -> %s <- %s.\n", NODE(j), NODE(i), NODE(k));
+          Rprintf("    > considering collider %s -> %s <- %s.\n", NODE(j), NODE(i), NODE(k));
 
         /* it's a real v-structure if the parents are not connected or if both
          * arcs are marked IMMUTABLE. */
@@ -503,13 +393,13 @@ int i = 0, j = 0, k = 0, check = FALSE;
       if (check) {
 
         if (debugging)
-          Rprintf("  @ arc %s -> %s is part of a v-structure.\n", NODE(j), NODE(i));
+          Rprintf("  @ arc %s -> %s is part of an unshielded collider.\n", NODE(j), NODE(i));
 
       }/*THEN*/
       else {
 
         if (debugging)
-          Rprintf("  @ arc %s -> %s is not part of a v-structure.\n", NODE(j), NODE(i));
+          Rprintf("  @ arc %s -> %s is not part of an unshielded collider.\n", NODE(j), NODE(i));
 
         /* this arc should not be marked as FIXED and should not be directed;
          * leave it alone if marked IMMUTABLE. */

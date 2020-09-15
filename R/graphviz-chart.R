@@ -34,7 +34,8 @@ graphviz.chart.backend = function(fitted, type = "barchart", layout = "dot",
     }#FUNCTION
 
   # initialize the plot, and compute the margins for the title and the subtitle.
-  plot.new()
+  if (names(dev.cur()) == "null device")
+    plot.new()
 
   mai.sub = mai.title = 0
 

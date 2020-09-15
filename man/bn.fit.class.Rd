@@ -23,7 +23,7 @@
       parents of the node.
     \item \code{children}: a vector of character strings, the labels of the
       children of the node.
-    \item \code{prob}: a (multi)dimensional numeric table, the  conditional
+    \item \code{prob}: a (multi)dimensional numeric table, the conditional
       probability table of the node given its parents.
 
   }
@@ -31,7 +31,7 @@
   Nodes encoding ordinal variables (i.e. ordered factors) have class
   \code{bn.fit.onode} and contain the same elements as \code{bn.fit.dnode}
   nodes. Networks containing only ordinal nodes also have class
-  \code{bn.fit.onet}, while those contatining both ordinal and multinomial
+  \code{bn.fit.onet}, while those containing both ordinal and multinomial
   nodes also have class \code{bn.fit.donet}.
 
   If on the other hand the network is continuous (i.e. the nodes are Gaussian

@@ -35,7 +35,7 @@ int i = 0;
       uptri[i] = UPTRI3(from[i], to[i], nnodes);
 
     if (sort)
-      R_isort(uptri, narcs);
+      R_qsort_int(uptri, 1, narcs);
 
   }/*THEN*/
 
@@ -45,7 +45,7 @@ int i = 0;
       cmc[i] = CMC(from[i], to[i], nnodes);
 
     if (sort)
-      R_isort(cmc, narcs);
+      R_qsort_int(cmc, 1, narcs);
 
   }/*ELSE*/
 

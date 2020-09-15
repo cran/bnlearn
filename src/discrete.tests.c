@@ -1,4 +1,5 @@
 #include "include/rcore.h"
+#include "include/contingency.tables.h"
 #include "include/tests.h"
 
 #define MI_PART(cell, xmarg, ymarg, zmarg) \
@@ -31,41 +32,40 @@ SEXP result;
 double c_chisqtest(int *xx, int llx, int *yy, int lly, int num, double *df,
     test_e test, bool scale) {
 
-int **n = NULL, *ni = NULL, *nj = NULL, ncomplete = 0;
 double res = 0;
+counts2d joint = { 0 };
 
   /* initialize the contingency table and the marginal frequencies. */
-  ncomplete = fill_2d_table(xx, yy, &n, &ni, &nj, llx, lly, num);
+  joint = new_2d_table(llx, lly, TRUE);
+  fill_2d_table(xx, yy, &joint, num);
 
   /* compute the degrees of freedom. */
   if (df)
-    *df = discrete_df(test, ni, llx, nj, lly);
+    *df = discrete_df(test, joint.ni, joint.llx, joint.nj, joint.lly);
 
   /* if there are no complete data points, return independence. */
-  if (ncomplete == 0)
+  if (joint.nobs == 0)
     goto free_and_return;
 
   /* if there are less than 5 observations per cell on average, assume the
    * test does not have enough power and return independence. */
   if ((test == MI_ADF) || (test == X2_ADF))
-    if (ncomplete < 5 * llx * lly)
+    if (joint.nobs < 5 * joint.llx * joint.lly)
       goto free_and_return;
 
   /* compute the mutual information or Pearson's X^2. */
   if ((test == MI) || (test == MI_ADF))
-    res = mi_kernel(n, ni, nj, llx, lly, ncomplete) / ncomplete;
+    res = mi_kernel(joint) / joint.nobs;
   else if ((test == X2) || (test == X2_ADF))
-    res = x2_kernel(n, ni, nj, llx, lly, ncomplete);
+    res = x2_kernel(joint);
 
   /* rescale to match the G^2 test. */
   if (scale)
-    res *= 2 * ncomplete;
+    res *= 2 * joint.nobs;
 
 free_and_return:
 
-  Free2D(n, llx);
-  Free1D(ni);
-  Free1D(nj);
+  Free2DTAB(joint);
 
   return res;
 
@@ -75,125 +75,117 @@ free_and_return:
 double c_cchisqtest(int *xx, int llx, int *yy, int lly, int *zz, int llz,
     int num, double *df, test_e test, bool scale) {
 
-int ***n = NULL, **ni = NULL, **nj = NULL, *nk = NULL, ncomplete = 0;
 double res = 0;
+counts3d joint = { 0 };
 
-   /* initialize the contingency table and the marginal frequencies. */
-   ncomplete = fill_3d_table(xx, yy, zz, &n, &ni, &nj, &nk, llx, lly, llz, num);
+  /* initialize the contingency table and the marginal frequencies. */
+  joint = new_3d_table(llx, lly, llz);
+  fill_3d_table(xx, yy, zz, &joint, num);
 
   /* compute the degrees of freedom. */
   if (df)
-    *df = discrete_cdf(test, ni, llx, nj, lly, llz);
+    *df = discrete_cdf(test, joint.ni, joint.llx, joint.nj, joint.lly, joint.llz);
 
   /* if there are no complete data points, return independence. */
-  if (ncomplete == 0)
+  if (joint.nobs == 0)
     goto free_and_return;
 
   /* if there are less than 5 observations per cell on average, assume the
    * test does not have enough power and return independence. */
   if ((test == MI_ADF) || (test == X2_ADF))
-    if (ncomplete < 5 * llx * lly * llz)
+    if (joint.nobs < 5 * joint.llx * joint.lly * joint.llz)
       goto free_and_return;
 
   /* compute the conditional mutual information or Pearson's X^2. */
   if ((test == MI) || (test == MI_ADF))
-    res = cmi_kernel(n, ni, nj, nk, llx, lly, llz) / ncomplete;
+    res = cmi_kernel(joint) / joint.nobs;
   else if ((test == X2) || (test == X2_ADF))
-    res = cx2_kernel(n, ni, nj, nk, llx, lly, llz);
+    res = cx2_kernel(joint);
 
   /* rescale to match the G^2 test. */
   if (scale)
-    res *= 2 * ncomplete;
+    res *= 2 * joint.nobs;
 
 free_and_return:
 
-  Free3D(n, llz, llx);
-  Free2D(ni, llz);
-  Free2D(nj, llz);
-  Free1D(nk);
+  Free3DTAB(joint);
 
   return res;
 
 }/*C_CCHISQTEST*/
 
-/* compute the mutual information from the joint and marginal frequencies. */
-double mi_kernel(int **n, int *nrowt, int *ncolt, int nrow, int ncol,
-    int length) {
+/* compute the mutual information. */
+double mi_kernel(counts2d table) {
 
-int i = 0, j = 0;
-double res = 0;
+long double res = 0;
 
-  for (i = 0; i < nrow; i++)
-    for (j = 0; j < ncol; j++)
-      res += MI_PART(n[i][j], nrowt[i], ncolt[j], length);
+  for (int i = 0; i < table.llx; i++)
+    for (int j = 0; j < table.lly; j++)
+      res += MI_PART(table.n[i][j], table.ni[i], table.nj[j], table.nobs);
 
-  return res;
+  return (double)res;
 
 }/*MI_KERNEL*/
 
-/* compute Pearson's X^2 coefficient from the joint and marginal frequencies. */
-double x2_kernel(int **n, int *nrowt, int *ncolt, int nrow, int ncol,
-    int length) {
+/* compute Pearson's X^2 coefficient. */
+double x2_kernel(counts2d table) {
 
-int i = 0, j = 0;
-double res = 0, expected = 0;
+long double res = 0, expected = 0;
 
-  for (i = 0; i < nrow; i++)
-    for (j = 0; j < ncol; j++) {
+  for (int i = 0; i < table.llx; i++)
+    for (int j = 0; j < table.lly; j++) {
 
-      expected = nrowt[i] * (double)ncolt[j] / length;
+      expected = table.ni[i] * (double)table.nj[j] / table.nobs;
 
       if (expected != 0)
-        res += (n[i][j] - expected) * (n[i][j] - expected) / expected;
+        res += (table.n[i][j] - expected) *
+               (table.n[i][j] - expected) / expected;
 
     }/*FOR*/
 
-  return res;
+  return (double)res;
 
 }/*X2_KERNEL*/
 
-/* compute the conditional mutual information from the joint and marginal
- * frequencies. */
-double cmi_kernel(int ***n, int **nrowt, int **ncolt, int *ncond, int nr,
-    int nc, int nl) {
+/* compute the conditional mutual information. */
+double cmi_kernel(counts3d table) {
 
-int i = 0, j = 0, k = 0;
-double res = 0;
+long double res = 0;
 
-  for (k = 0; k < nl; k++)
-    for (j = 0; j < nc; j++)
-      for (i = 0; i < nr; i++)
-        res += MI_PART(n[k][i][j], nrowt[k][i], ncolt[k][j], ncond[k]);
+  for (int k = 0; k < table.llz; k++)
+    for (int i = 0; i < table.llx; i++)
+      for (int j = 0; j < table.lly; j++)
+        res += MI_PART(table.n[k][i][j], table.ni[k][i], table.nj[k][j],
+                 table.nk[k]);
 
-  return res;
+  return (double)res;
 
 }/*CMI_KERNEL*/
 
-/* compute the Pearson's conditional X^2 coefficient from the joint and
- * marginal frequencies. */
-double cx2_kernel(int ***n, int **nrowt, int **ncolt, int *ncond, int nr,
-    int nc, int nl) {
+/* compute the Pearson's conditional X^2 coefficient. */
+double cx2_kernel(counts3d table) {
 
-int i = 0, j = 0, k = 0;
-double expected = 0, res = 0;
+long double expected = 0, res = 0;
 
-  for (k = 0; k < nl; k++) {
+  for (int k = 0; k < table.llz; k++) {
 
-    if (ncond[k] == 0) continue;
+    if (table.nk[k] == 0)
+      continue;
 
-    for (j = 0; j < nc; j++)
-      for (i = 0; i < nr; i++) {
+    for (int i = 0; i < table.llx; i++)
+      for (int j = 0; j < table.lly; j++) {
 
-       expected = nrowt[k][i] * (double)ncolt[k][j] / ncond[k];
+       expected = table.ni[k][i] * (double)table.nj[k][j] / table.nk[k];
 
        if (expected != 0)
-          res += (n[k][i][j] - expected) * (n[k][i][j] - expected) / expected;
+          res += (table.n[k][i][j] - expected) *
+                 (table.n[k][i][j] - expected) / expected;
 
       }/*FOR*/
 
   }/*FOR*/
 
-  return res;
+  return (double)res;
 
 }/*CX2_KERNEL*/
 

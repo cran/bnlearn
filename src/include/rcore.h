@@ -17,6 +17,7 @@
 void *Calloc1D(size_t R, size_t size);
 void **Calloc2D(size_t R, size_t C, size_t size);
 void ***Calloc3D(size_t R, size_t C, size_t L, size_t size);
+void *Realloc1D(void *p, size_t R, size_t size);
 void BN_Free1D(void *p);
 void BN_Free2D(void **p, size_t R);
 void BN_Free3D(void ***p, size_t R, size_t C);

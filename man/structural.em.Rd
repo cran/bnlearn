@@ -31,7 +31,7 @@ structural.em(x, maximize = "hc", maximize.args = list(), fit = "mle",
     specified by \code{impute}.}
   \item{return.all}{a boolean value. See below for details.}
   \item{start}{a \code{bn} or \code{bn.fit} object, the network used to perform
-    the first imputation and as a starting point for for the score-based
+    the first imputation and as a starting point for the score-based
     algorithm specified by \code{maximize}.}
   \item{max.iter}{an integer, the maximum number of iterations.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is

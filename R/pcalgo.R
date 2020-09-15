@@ -8,7 +8,7 @@ pc.stable.backend = function(x, cluster = NULL, whitelist, blacklist, test,
   skeleton = subsets(nodes, 2)
   node.pairs =
     apply(skeleton, 1, function(x) list(arc = x, max.adjacent = nnodes - 1))
-  nbr.size = rep(nnodes - 1, nnodes)
+  nbr.size = rep(nnodes - 1, length(node.pairs))
 
   # set the size of the largest conditioning set using either the given limit
   # or the number of variables in the data, whichever is lower.

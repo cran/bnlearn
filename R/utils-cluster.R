@@ -41,7 +41,7 @@ smartSapply = function(cl, ..., simplify = FALSE, USE.NAMES = TRUE) {
   if (is.null(cl))
     sapply(..., simplify = simplify, USE.NAMES = USE.NAMES)
   else
-    parallel::parSapply(cl = cl, ..., simplify = simplify, USE.NAMES = USE.NAMES)
+    parallel::parSapplyLB(cl = cl, ..., simplify = simplify, USE.NAMES = USE.NAMES)
 
 }#SMARTSAPPLY
 

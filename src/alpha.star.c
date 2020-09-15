@@ -1,7 +1,7 @@
 #include "include/rcore.h"
 #include "include/data.frame.h"
 #include "include/sets.h"
-#include "include/tests.h"
+#include "include/contingency.tables.h"
 
 static int deff_node_root(int *n, int llx) {
 
@@ -59,10 +59,12 @@ double res = 0, alpha = 1 / (double)(llx * lly);
 SEXP alpha_star(SEXP x, SEXP data, SEXP debug) {
 
 int i = 0, nnodes = length(data), nobs = length(VECTOR_ELT(data, 0));
-int **columns = NULL, *levels = NULL, **n = NULL, *nrowt = NULL, *ncolt = NULL;
+int **columns = NULL, *levels = NULL;
 int *node_data = NULL;
 bool debugging = isTRUE(debug);
 long double num = 0, den = 0, ratio = 0;
+counts1d marginal = { 0 };
+counts2d joint = { 0 };
 SEXP nodes, labels, cur, node_info, parents, par_data, temp, cfg;
 
   /* dereference the columns of the data frame. */
@@ -96,14 +98,15 @@ SEXP nodes, labels, cur, node_info, parents, par_data, temp, cfg;
 
     if (length(parents) == 0) {
 
-      fill_1d_table(node_data, &ncolt, levels[i], nobs);
+      marginal = new_1d_table(levels[i]);
+      fill_1d_table(node_data, &marginal, nobs);
 
       /* add the effective degrees of freedom to the numerator. */
-      num += deff_node_root(ncolt, levels[i]);
+      num += deff_node_root(marginal.n, marginal.llx);
       /* add the entropy delta to the denominator. */
-      den += entropy1d(ncolt, levels[i], nobs);
+      den += entropy1d(marginal.n, marginal.llx, marginal.nobs);
 
-      Free1D(ncolt);
+      Free1DTAB(marginal);
 
     }/*THEN*/
     else {
@@ -112,17 +115,15 @@ SEXP nodes, labels, cur, node_info, parents, par_data, temp, cfg;
       PROTECT(par_data = c_dataframe_column(data, parents, FALSE, FALSE));
       PROTECT(cfg = c_configurations(par_data, TRUE, TRUE));
 
-      fill_2d_table(node_data, INTEGER(cfg), &n, &nrowt, &ncolt, levels[i],
-        NLEVELS(cfg), nobs);
+      joint = new_2d_table(levels[i], NLEVELS(cfg), TRUE);
+      fill_2d_table(node_data, INTEGER(cfg), &joint, nobs);
 
       /* add the effective degrees of freedom to the numerator. */
-      num += deff_node(n, ncolt, levels[i], NLEVELS(cfg));
+      num += deff_node(joint.n, joint.nj, joint.llx, joint.lly);
       /* add the entropy delta to the denominator. */
-      den += entropy2d(n, ncolt, levels[i], NLEVELS(cfg), nobs);
+      den += entropy2d(joint.n, joint.nj, joint.llx, joint.lly, joint.nobs);
 
-      Free1D(nrowt);
-      Free1D(ncolt);
-      Free2D(n, levels[i]);
+      Free2DTAB(joint);
 
       UNPROTECT(2);
 

@@ -63,7 +63,7 @@
   }
 
   \pkg{bnlearn} includes two implementations of each algorithm: a vanilla
-  implementationi, and a parallel one that requires a running cluster set
+  implementation, and a parallel one that requires a running cluster set
   up with the \code{makeCluster} function from the \pkg{parallel} package.
 
 }

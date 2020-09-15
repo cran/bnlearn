@@ -142,8 +142,8 @@ SEXP parent_vars, new_parents, config, config2;
   parents = getListElement(node_t, "parents");
   nparents = length(parents);
   /* extract the node's column from the data frame. */
-  data_t = c_dataframe_column(data, target, TRUE, FALSE);
-  new_t = c_dataframe_column(newdata, target, TRUE, FALSE);
+  PROTECT(data_t = c_dataframe_column(data, target, TRUE, FALSE));
+  PROTECT(new_t = c_dataframe_column(newdata, target, TRUE, FALSE));
 
   if (nparents == 0) {
 
@@ -209,6 +209,8 @@ SEXP parent_vars, new_parents, config, config2;
   if (debugging > 0)
     Rprintf("  > loglikelihood is %lf.\n", loglik);
 
+  UNPROTECT(2);
+
   return loglik;
 
-}/*PREDICTIVE_CGNODE*/
+}/*PREDICTIVE_LOGLIK_CGNODE*/

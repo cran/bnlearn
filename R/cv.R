@@ -41,7 +41,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
 
     if (!is.null(cluster)) {
 
-      kcv = parallel::parLapply(cluster, kcv, bn.cv.algorithm, data = data,
+      kcv = parallel::parLapplyLB(cluster, kcv, bn.cv.algorithm, data = data,
               algorithm = bn, algorithm.args = algorithm.args, loss = loss,
               loss.args = loss.args, fit = fit, fit.args = fit.args,
               data.info = data.info, debug = debug)
@@ -61,7 +61,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
 
     if (!is.null(cluster)) {
 
-      kcv = parallel::parLapply(cluster, kcv, bn.cv.structure, data = data,
+      kcv = parallel::parLapplyLB(cluster, kcv, bn.cv.structure, data = data,
               bn = bn, loss = loss, loss.args = loss.args, fit = fit,
               fit.args = fit.args, data.info = data.info, debug = debug)
 
@@ -131,7 +131,7 @@ bn.cv.structure = function(test, data, net, loss, loss.args, fit, fit.args,
       warning("the network in one of the folds is just a skeleton (no arc ",
         "directions have been learned) and trying to extend it is probably wrong.")
 
-    net = cpdag.extension(cpdag.backend(net))
+    net = cpdag.extension(cpdag.backend(net, moral = TRUE, wlbl = TRUE))
 
     if (loss %in% c("pred", "cor", "mse")) {
 

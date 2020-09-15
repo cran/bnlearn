@@ -847,6 +847,9 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents, root
   if (length(grep("model_data\\s+=", desc)) == 1)
     stop("unknown CPT format 'model_data'.")
 
+  # remove the experience table.
+  desc = sub("experience\\s*=[^;]+;", "", desc)
+
   # deparse the node's probability table.
   if (root) {
 

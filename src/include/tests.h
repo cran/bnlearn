@@ -41,10 +41,12 @@ test_e test_to_enum(const char *label);
    (t == MC_COR) || (t == MC_ZF) || (t == SMC_COR) || (t == SMC_ZF))
 
 #define SEQUENTIAL_COUNTER_CHECK(counter) \
-  (counter)++; \
-  if ((counter) >= enough) { \
-    (counter) = B; \
-    break; \
+  { \
+    (counter)++; \
+    if ((counter) >= enough) { \
+	  (counter) = B; \
+	  break; \
+    } \
   }
 
 /* from htest.c */
@@ -63,16 +65,12 @@ SEXP ctest(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP B, SEXP alpha,
 /* from discrete.tests.c */
 double c_chisqtest(int *xx, int llx, int *yy, int lly, int num, double *df,
     test_e test, bool scale);
-double mi_kernel(int **n, int *nrowt, int *ncolt, int nrow, int ncol,
-    int length);
-double x2_kernel(int **n, int *nrowt, int *ncolt, int nrow, int ncol,
-    int length);
+double mi_kernel(counts2d table);
+double x2_kernel(counts2d table);
 double c_cchisqtest(int *xx, int llx, int *yy, int lly, int *zz, int llz,
     int num, double *df, test_e test, bool scale);
-double cmi_kernel(int ***n, int **nrowt, int **ncolt, int *ncond, int nr,
-    int nc, int nl);
-double cx2_kernel(int ***n, int **nrowt, int **ncolt, int *ncond,
-    int nr, int nc, int nl);
+double cmi_kernel(counts3d table);
+double cx2_kernel(counts3d table);
 
 /* from gaussian.tests.c */
 double cor_t_trans(double cor, double df);
@@ -96,10 +94,12 @@ double gaussian_cdf(test_e test, int num, int nz);
 #define gaussian_df(test, num) gaussian_cdf(test, num, 0)
 
 /* from jonckheere.c */
-double c_jt_mean(int num, int *ni, int llx);
-double c_jt_var(int num, int *ni, int llx, int *nj, int lly);
 double c_jt(int *xx, int llx, int *yy, int lly, int num);
 double c_cjt(int *xx, int llx, int *yy, int lly, int *zz, int llz, int num);
+double jt_centered_kernel(counts2d table);
+double cjt_centered_kernel(counts3d table);
+double jt_var_kernel(counts2d table);
+double cjt_var_kernel(counts3d table);
 
 /* from shrinkage.c */
 void mi_lambda(double *n, double *lambda, double target, int num, int llx,
@@ -122,11 +122,4 @@ void c_gauss_mcarlo(double *xx, double *yy, int num, int B, double *res,
     double alpha, test_e test, double *observed);
 void c_gauss_cmcarlo(double **column, int ncol, int num, int v1, int v2, int B,
     double *observed, double *pvalue, double alpha, test_e test);
-
-/* from contingency.tables.c */
-int fill_1d_table(int *xx, int **n, int llx, int num);
-int fill_2d_table(int *xx, int *yy, int ***n, int **ni, int **nj, int llx,
-    int lly, int num);
-int fill_3d_table(int *xx, int *yy, int *zz, int ****n, int ***ni, int ***nj,
-    int **nk, int llx, int lly, int llz, int num);
 

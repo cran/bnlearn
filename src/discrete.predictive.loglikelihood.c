@@ -1,30 +1,31 @@
 #include "include/rcore.h"
 #include "include/sets.h"
-#include "include/tests.h"
+#include "include/contingency.tables.h"
 #include "include/data.frame.h"
 #include "include/data.table.h"
 
 double pdnode(SEXP x, SEXP new_x, double *nparams) {
 
-int i = 0, num = length(x), num2 = length(new_x);
-int *n = NULL, *n2 = NULL, *xx = INTEGER(x), *xx2 = INTEGER(new_x), llx = NLEVELS(x);
 double res = 0;
+counts1d train = { 0 }, test = { 0 };
 
-  /* initialize the contingency table. */
-  fill_1d_table(xx, &n, llx, num);
-  fill_1d_table(xx2, &n2, llx, num2);
+  /* initialize the contingency tables for train and test data. */
+  train = new_1d_table(NLEVELS(x));
+  test = new_1d_table(train.llx);
+  fill_1d_table(INTEGER(x), &train, length(x));
+  fill_1d_table(INTEGER(new_x), &test, length(new_x));
 
   /* compute the entropy from the joint and marginal frequencies. */
-  for (i = 0; i < llx; i++)
-    if (n[i] != 0)
-      res += (double)n2[i] * log((double)n[i] / num2);
+  for (int i = 0; i < train.llx; i++)
+    if (train.n[i] != 0)
+      res += (double)test.n[i] * log((double)train.n[i] / test.nobs);
 
   /* we may want to store the number of parameters. */
   if (nparams)
-    *nparams = llx - 1;
+    *nparams = train.llx - 1;
 
-  Free1D(n);
-  Free1D(n2);
+  Free1DTAB(train);
+  Free1DTAB(test);
 
   return res;
 
@@ -32,42 +33,27 @@ double res = 0;
 
 double cpdnode(SEXP x, SEXP y, SEXP x2, SEXP y2, double *nparams) {
 
-int i = 0, j = 0, k = 0;
-int **n = NULL, **n2 = NULL, *nj = NULL;
-int llx = NLEVELS(x), lly = NLEVELS(y), num = length(x), num2 = length(x2);
-int *xx = INTEGER(x), *yy = INTEGER(y), *xx2 = INTEGER(x2), *yy2 = INTEGER(y2);
 double res = 0;
+counts2d train = { 0 }, test = { 0 };
 
-  /* initialize the contingency table and the marginal frequencies. */
-  n = (int **) Calloc2D(llx, lly, sizeof(int));
-  n2 = (int **) Calloc2D(llx, lly, sizeof(int));
-  nj = Calloc1D(lly, sizeof(int));
+  /* initialize the contingency tables for train and test data. */
+  train = new_2d_table(NLEVELS(x), NLEVELS(y), TRUE);
+  test = new_2d_table(train.llx, train.lly, FALSE);
+  fill_2d_table(INTEGER(x), INTEGER(y), &train, length(x));
+  fill_2d_table(INTEGER(x2), INTEGER(y2), &test, length(x2));
 
-  /* compute the joint frequency of x and y. */
-  for (k = 0; k < num; k++)
-    n[xx[k] - 1][yy[k] - 1]++;
-  for (k = 0; k < num2; k++)
-    n2[xx2[k] - 1][yy2[k] - 1]++;
-
-  /* compute the marginals. */
-  for (i = 0; i < llx; i++)
-    for (j = 0; j < lly; j++)
-      nj[j] += n[i][j];
-
-  /* compute the conditional entropy from the joint and marginal
-       frequencies. */
-  for (i = 0; i < llx; i++)
-    for (j = 0; j < lly; j++)
-      if (n[i][j] != 0)
-        res += (double)n2[i][j] * log((double)n[i][j] / (double)nj[j]);
+  /* compute the conditional entropy from the joint and marginal frequencies. */
+  for (int i = 0; i < train.llx; i++)
+    for (int j = 0; j < train.lly; j++)
+      if (train.n[i][j] != 0)
+        res += (double)test.n[i][j] * log((double)train.n[i][j] / train.nj[j]);
 
   /* we may want to store the number of parameters. */
   if (nparams)
-    *nparams = (llx - 1) * lly;
+    *nparams = (train.llx - 1) * train.lly;
 
-  Free1D(nj);
-  Free2D(n, llx);
-  Free2D(n2, llx);
+  Free2DTAB(train);
+  Free2DTAB(test);
 
   return res;
 
@@ -87,8 +73,8 @@ SEXP parent_vars, new_parents, config, new_config;
   /* get the parents of the node. */
   parents = getListElement(node_t, "parents");
   /* extract the node's column from the data frame. */
-  data_t = c_dataframe_column(data, target, TRUE, FALSE);
-  new_t = c_dataframe_column(newdata, target, TRUE, FALSE);
+  PROTECT(data_t = c_dataframe_column(data, target, TRUE, FALSE));
+  PROTECT(new_t = c_dataframe_column(newdata, target, TRUE, FALSE));
 
   if (length(parents) == 0) {
 
@@ -113,6 +99,8 @@ SEXP parent_vars, new_parents, config, new_config;
 
   if (debuglevel > 0)
     Rprintf("  > loglikelihood is %lf.\n", loglik);
+
+  UNPROTECT(2);
 
   return loglik;
 

@@ -84,7 +84,7 @@ double tol = MACHINE_TOL;
   memcpy(buf, array, length * sizeof(double));
 
   /* sort the elements of the array. */
-  rsort_with_index(buf, indexes, length);
+  R_qsort_I(buf, indexes, 1, length);
 
   /* if both the first and the last element are NAs, then all elements are NAs
    * and there is no maximum. */

@@ -153,7 +153,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   else {
 
     # recover some arc directions.
-    res = second.principle(x = x, local.structure = local.structure,
+    res = learn.arc.directions(x = x, local.structure = local.structure,
             whitelist = whitelist, blacklist = full.blacklist, test = test,
             alpha = alpha, B = B, max.sx = max.sx,
             complete = data.info$complete.nodes, debug = debug)

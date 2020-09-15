@@ -18,11 +18,6 @@
 \alias{nodes,bn.fit-method}
 \alias{nodes,bn.naive-method}
 \alias{nodes,bn.tan-method}
-\alias{nodes<-}
-\alias{nodes<-,bn-method}
-\alias{nodes<-,bn.fit-method}
-\alias{nodes<-,bn.naive-method}
-\alias{nodes<-,bn.tan-method}
 \alias{amat}
 \alias{amat<-}
 \alias{parents}
@@ -43,8 +38,6 @@
 \alias{leaf.nodes}
 \alias{nparams}
 \alias{ntests}
-\alias{whitelist}
-\alias{blacklist}
 \title{Miscellaneous utilities}
 \description{
 
@@ -88,8 +81,6 @@ amat(x, check.cycles = TRUE, check.illegal = TRUE, debug = FALSE) <- value
 ## graphs
 nparams(x, data, effective = FALSE, debug = FALSE)
 ntests(x)
-whitelist(x)
-blacklist(x)
 
 ## shared with the graph package.
 # these used to be a simple nodes(x) function.
@@ -98,9 +89,6 @@ blacklist(x)
 # these used to be a simple degree(x, node) function.
 \S4method{degree}{bn}(object, Nodes)
 \S4method{degree}{bn.fit}(object, Nodes)
-# re-label the nodes.
-\S4method{nodes}{bn}(object) <- value
-\S4method{nodes}{bn.fit}(object) <- value
 }
 \arguments{
   \item{x,object}{an object of class \code{bn} or \code{bn.fit}. The replacement
@@ -146,8 +134,8 @@ blacklist(x)
 
   \code{arcs}, \code{directed.arcs}, \code{undirected.arcs},
   \code{incoming.arcs}, \code{outgoing.arcs}, \code{incident.arcs}, \cr
-  \code{compelled.arcs}, \code{reversible.arcs}, \code{whitelist} and
-  \code{blacklist} return a matrix of two columns of character strings.
+  \code{compelled.arcs}, \code{reversible.arcs}, return a matrix of two
+  columns of character strings.
 
   \code{narcs} and \code{nnodes} return the number of arcs and nodes in the
   graph, respectively.

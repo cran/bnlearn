@@ -67,4 +67,40 @@ typedef struct {
 
 } covariance;
 
+/* one-dimensional contingency table. */
+typedef struct {
+
+  int llx;     /* first (and only) dimension. */
+  int nobs;    /* total count over all cells. */
+  int *n;      /* contingency table. */
+
+} counts1d;
+
+/* two-dimensional contingency table. */
+typedef struct{
+
+  int llx;      /* first dimension. */
+  int lly;      /* second dimension */
+  int nobs;     /* total count over all cells. */
+  int **n;      /* contingency table. */
+  int *ni;      /* marginal counts for the first dimension. */
+  int *nj;      /* marginal counts for the second dimension. */
+
+} counts2d;
+
+/* three-dimensional contingency table, as an array of two-dimensional tables
+ * spanning the third dimension. */
+typedef struct {
+
+  int llx;      /* first dimension. */
+  int lly;      /* second dimension */
+  int llz;      /* third dimension. */
+  int nobs;     /* total count over all cells. */
+  int ***n;     /* contingency table. */
+  int **ni;     /* marginal counts for the first dimension. */
+  int **nj;     /* marginal counts for the second dimension. */
+  int *nk;      /* marginal counts for the third dimension. */
+
+} counts3d;
+
 #endif

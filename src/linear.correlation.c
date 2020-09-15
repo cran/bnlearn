@@ -31,7 +31,7 @@ double tol = MACHINE_TOL;
 
   /* safety check against "divide by zero" errors. */
   sum = SAFE_COR(sum, xsd, ysd);
-  /* double check that the coefficient is in the [-1, 1] range. */
+  /* double-check that the coefficient is in the [-1, 1] range. */
   COR_BOUNDS(sum);
 
   return (double)sum;
@@ -83,7 +83,7 @@ double tol = MACHINE_TOL, sv_tol = 0;
 
   /* safety check against "divide by zero" errors and negative variances. */
   res = SAFE_COR(-k12, k11, k22)
-  /* double check that partial correlation is in the [-1, 1] range. */
+  /* double-check that the partial correlation is in the [-1, 1] range. */
   COR_BOUNDS(res);
 
   return res;
@@ -132,7 +132,7 @@ long double xxm = 0, yym = 0, xxsd = 0, yysd = 0, cov = 0, cor = 0;
 
   /* safety check against "divide by zero" errors. */
   cor = SAFE_COR(cov, xxsd, yysd);
-  /* double check that the coefficient is in the [-1, 1] range. */
+  /* double-check that the coefficient is in the [-1, 1] range. */
   COR_BOUNDS(cor);
 
 end:

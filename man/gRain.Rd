@@ -13,16 +13,18 @@
 
 }
 \usage{
-\method{as.bn.fit}{grain}(x, ...)
+\method{as.bn.fit}{grain}(x, including.evidence = FALSE, ...)
 \method{as.grain}{bn.fit}(x)
-\method{as.bn}{grain}(x, ..., check.cycles = TRUE)
+\method{as.bn}{grain}(x, ...)
 }
 \arguments{
   \item{x}{an object of class \code{grain(code)} (for \code{as.bn.fit}) or
     \code{bn.fit()} (for \code{as.grain}).}
+  \item{including.evidence}{a boolean value. If \code{FALSE}, the \code{grain}
+    object is converted without considering any evidence that has been set into
+    it. If \code{TRUE}, any hard evidence is carried over into the \code{bn.fit}
+    object as a zero-one probability distribution.}
   \item{\dots}{extra arguments from the generic method (currently ignored).}
-  \item{check.cycles}{a boolean value. If \code{FALSE} the returned network will
-    not be checked for cycles.}
 }
 \note{
 
@@ -42,8 +44,8 @@
 }
 \value{
 
-  An object of class \code{grain} (for \code{as.grain}) or \code{bn.fit} (for
-  \code{as.bn.fit}).
+  An object of class \code{grain} (for \code{as.grain}), \code{bn.fit} (for
+  \code{as.bn.fit}) or \code{bn} (for \code{as.bn}).
 
 }
 \examples{

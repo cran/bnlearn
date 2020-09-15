@@ -99,7 +99,7 @@ check.bn.tan = function(bn) {
   # that root node must be the training variable, check.
   if (is(bn, "bn")) {
 
-    # double check just in case.
+    # double-check just in case.
     check.nodes(bn$learning$args$training)
 
     nodes = names(bn$nodes)
@@ -108,7 +108,7 @@ check.bn.tan = function(bn) {
   }#THEN
   else {
 
-    # double check just in case.
+    # double-check just in case.
     check.nodes(attr(bn, "training"))
 
     nodes = names(bn)

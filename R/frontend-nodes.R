@@ -180,9 +180,9 @@ spouses = function(x, node) {
   check.nodes(nodes = node, graph = x, max.nodes = 1)
 
   chld = children(x, node)
-  sp = sapply(chld, parents)
+  sp = sapply(chld, parents, x = x)
 
-  return(sp[sp != node])
+  return(setdiff(as.character(sp), node))
 
 }#SPOUSES
 
@@ -242,3 +242,45 @@ out.degree = function(x, node) {
 
 }#OUT.DEGREE
 
+# add a node to a network structure.
+add.node = function(x, node) {
+
+  # check x's class.
+  check.bn(x)
+  # a valid node (that is not already in the graph) is needed.
+  if (!is.string(node))
+    stop("'node' should be a single character string.")
+  if (node %in% names(x$nodes))
+    stop("node ", node, " is already present in the graph.")
+
+  # add the node, without adding arcs.
+  x$nodes[[node]] = list(mb = character(0), nbr = character(0),
+                         parents = character(0), children = character(0))
+
+  return(x)
+
+}#ADD.NODE
+
+# remove a node from a network structure.
+remove.node = function(x, node) {
+
+  # check x's class.
+  check.bn(x)
+  # the resulting graphs should have at least one node.
+  if (length(x$nodes) == 1)
+    stop("trying to remove the only node in the graph.")
+  # a valid node (that is already in the graph) is needed.
+  check.nodes(nodes = node, graph = x, max.nodes = 1)
+
+  # removing a single node is a special case of creating a subgraph.
+  subgraph.backend(x = x, nodes = setdiff(names(x$nodes), node),
+    preserve.learning = TRUE)
+
+}#REMOVE.NODE
+
+# rename the nodes of a network structure.
+rename.nodes = function(x, names) {
+
+  .relabel(x, value = names)
+
+}#RENAME.NODES

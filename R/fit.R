@@ -119,10 +119,15 @@ bn.fit.backend.continuous = function(dag, node, data, method, extra.args,
     lmreg = fast.lm(data, node, parents, keep.fitted = keep.fitted,
               with.missing = !all(data.info$complete.nodes[c(node, parents)]))
 
-    # replace unidentifiable regression coefficients with zeroes to prevent NAs
-    # from propagating.
-    if (extra.args$replace.unidentifiable)
+    # replace unidentifiable regression coefficients and the standard error
+    # with zeroes to prevent NAs from propagating.
+    if (extra.args$replace.unidentifiable) {
+
       lmreg$coefficients[is.na(lmreg$coefficients)] = 0
+      if (is.na(lmreg$sd))
+        lmreg$sd = 0
+
+    }#THEN
 
   }#THEN
 
@@ -159,11 +164,11 @@ bn.fit.backend.mixedcg = function(dag, node, data, method, extra.args,
   else {
 
     parents.data = data[, parents, drop = FALSE]
-    node.type = data.type(parents.data)
+    type.from.parents = data.type(parents.data)
 
     # if all parents are continuous, the local distribution is just a (single)
     # linear regression with parents as regressors.
-    if (node.type == "continuous") {
+    if (type.from.parents == "continuous") {
 
       return(bn.fit.backend.continuous(dag = dag, node = node, data = data,
         method = method, extra.args = extra.args, keep.fitted = keep.fitted,

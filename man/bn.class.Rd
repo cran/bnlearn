@@ -27,7 +27,7 @@
         as transformed by sanitization functions.
       \item \code{test}: the label of the conditional independence test used by
         the learning algorithm (a character string); the label of the network
-        score is used for score-based algorithms; the label of the newtork score
+        score is used for score-based algorithms; the label of the network score
         used in the \dQuote{Maximize} phase of hybrid algorithms; "none" for
         randomly generated graphs. For hybrid algorithms, \code{test} always
         has the same value as \code{maxscore} (see below).
@@ -63,6 +63,9 @@
              node in a Bayesian network classifier.
            \item \code{threshold}: the threshold used to determine which arcs
              are significant when averaging network structures.
+           \item \code{prior}: the graphical prior used in combination with a
+		     Bayesian score such as \code{bde} or \code{bge}.
+           \item \code{beta}: the parameters of the graphical prior.
 
         }
 
@@ -113,7 +116,7 @@
       \dQuote{Maximize} phase of a hybrid learning algorithm (a character
       string).
     \item \code{max.sx}: the maximum allowed size of the conditioning sets
-      in the conditional independence tests used in constraint-based algorithms. 
+      in the conditional independence tests used in constraint-based algorithms.
 
   }
 

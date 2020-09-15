@@ -42,12 +42,17 @@
   # ... blacklist...
   if (!is.null(x$learning$blacklist))
     x$learning$blacklist[] = value[match(x$learning$blacklist, nodes)]
+  # ... illegal arcs...
+  if (!is.null(x$learning$illegal))
+    x$learning$illegal[] = value[match(x$learning$illegal, nodes)]
   # ... Castelo & Siebes prior specification...
   if (("prior" %in% names(x$learning$args)) &&
       (x$learning$args$prior == "cs")) {
 
-    x$learning$args$beta[, c("from", "to")] =
-      value[match(x$learning$args$beta[, c("from", "to")], nodes)]
+    x$learning$args$beta[, "from"] =
+      value[match(x$learning$args$beta[, "from"], nodes)]
+    x$learning$args$beta[, "to"] =
+      value[match(x$learning$args$beta[, "to"], nodes)]
     attr(x$learning$args$beta, "nodes") = value
 
   }#THEN

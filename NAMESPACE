@@ -14,15 +14,16 @@ export(
   "naive.bayes", "tree.bayes",
   # whitelists and blacklists.
   "whitelist", "blacklist", "ordering2blacklist", "tiers2blacklist",
+  "set2blacklist",
   # functions to compare network structures.
   "compare", "hamming", "shd", "choose.direction",
   # get neighbours and Markov blankets.
   "mb", "nbr",
-  # get, set and count arcs and edges.
+  # get, set and count arcs and edges; add nodes.
   "arcs", "arcs<-", "directed.arcs", "undirected.arcs", "incoming.arcs",
   "outgoing.arcs", "incident.arcs", "compelled.arcs", "reversible.arcs",
   "narcs", "in.degree", "out.degree", "set.arc", "drop.arc", "reverse.arc",
-  "set.edge", "drop.edge",
+  "set.edge", "drop.edge", "add.node", "remove.node", "rename.nodes",
   # get, set and count sets of nodes: parents, children, etc.
   "parents", "parents<-", "children", "children<-", "spouses", "ancestors",
   "descendants", "root.nodes", "leaf.nodes", "nnodes",
@@ -34,13 +35,13 @@ export(
   "arc.strength", "boot.strength", "bf.strength", "custom.strength",
   "averaged.network",
   # networks scores and conditional independence tests.
-  "score", "alpha.star", "BF", "ci.test",
+  "alpha.star", "BF", "ci.test",
   # resampling and Bayesian networks.
   "bn.boot", "bn.cv", "loss",
   # notable network structures transforms.
   "skeleton", "pdag2dag", "cpdag", "cextend", "moral", "mutilated",
   # v-structures and d-separation.
-  "vstructs", "dsep",
+  "vstructs", "dsep", "colliders", "unshielded.colliders", "shielded.colliders", 
   # plotting network structures.
   "graphviz.plot", "strength.plot", "graphviz.compare", "graphviz.chart",
   # fitted Bayesian networks.
@@ -60,11 +61,11 @@ export(
   # utility functions to manipulate test/score counters.
   "test.counter", "increment.test.counter", "reset.test.counter",
   # assorted functions involving network structures.
-  "acyclic", "directed", "path", "node.ordering", "subgraph",
+  "acyclic", "directed", "path.exists", "node.ordering", "subgraph",
   # assorted functions to extract information.
-  "configs", "nparams", "ntests", "sigma",
+  "configs", "nparams", "ntests",
   # assorted conversion functions.
-  "as.bn", "as.bn.fit", "as.grain", "as.graphNEL", "as.graphAM",
+  "as.bn", "as.bn.fit", "as.grain", "as.graphNEL", "as.graphAM", "as.igraph",
   "as.prediction", "as.lm",
   # graph enumeration.
   "count.graphs"
@@ -75,10 +76,11 @@ useDynLib(bnlearn, .registration = TRUE)
 importFrom("methods", "new", "setClass", "setGeneric", "setMethod")
 importFrom("stats", "logLik", "AIC", "BIC", "coefficients", "complete.cases",
   "cor", "dnorm", "ecdf", "fitted", "formula", "knots", "lm", "optimize",
-  "quantile", "residuals", "sd", "weighted.mean", "median", "qunif")
-importFrom("grDevices", "col2rgb", "colors")
+  "quantile", "residuals", "sd", "weighted.mean", "median", "qunif", "sigma")
+importFrom("grDevices", "col2rgb", "colors", "dev.cur")
 importFrom("graphics", "abline", "arrows", "lines", "plot", "points",
   "strheight", "strwidth", "text", "plot.new", "title", "rect", "symbols")
+importFrom("parallel", "parLapplyLB", "parSapplyLB", "clusterEvalQ")
 
 S3method(as.bn, "fit")
 
@@ -108,6 +110,9 @@ S3method(as.graphNEL, "bn.fit")
 S3method(as.graphAM, "bn")
 S3method(as.bn, "graphAM")
 S3method(as.graphAM, "bn.fit")
+S3method(as.igraph, "bn")
+S3method(as.igraph, "bn.fit")
+S3method(as.bn, "igraph")
 S3method(as.prediction, "bn.strength")
 S3method(as.lm, "bn")
 S3method(as.lm, "bn.fit")
@@ -151,4 +156,4 @@ S3method("[[<-", "bn.fit")
 S3method(mean, "bn.strength")
 
 exportClasses("bn", "bn.fit")
-exportMethods("nodes", "nodes<-", "degree")
+exportMethods("nodes", "nodes<-", "degree", "path", "score")

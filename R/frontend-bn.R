@@ -114,7 +114,7 @@ blacklist = function(x) {
 }#BLACKLIST
 
 # reconstruct the equivalence class of a network.
-cpdag = function(x, moral = TRUE, wlbl = FALSE, debug = FALSE) {
+cpdag = function(x, moral = FALSE, wlbl = FALSE, debug = FALSE) {
 
   # check x's class.
   check.bn.or.fit(x)
@@ -138,6 +138,9 @@ cpdag = function(x, moral = TRUE, wlbl = FALSE, debug = FALSE) {
   if (wlbl)
     if (any(which.listed(x$arcs, x$learning$blacklist)))
       stop("blacklisted arcs present in the graph.")
+
+  if (moral)
+    warning("the 'moral' argument is deprecated and will be removed in 2021.")
 
   cpdag.backend(x = x, moral = moral, wlbl = wlbl, debug = debug)
 
@@ -175,6 +178,54 @@ cextend = function(x, strict = TRUE, debug = FALSE) {
 
 }#CEXTEND
 
+# return the colliders (both shielded and unshielded) in a network.
+colliders = function(x, arcs = FALSE, debug = FALSE) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  check.logical(arcs)
+
+  # go back to the network structure if needed.
+  if (is(x, "bn.fit"))
+    x = bn.net(x)
+
+  colliders.backend(x = x, return.arcs = arcs, including.shielded = TRUE,
+    including.unshielded = TRUE, debug = debug)
+
+}#COLLIDERS
+
+# return the unshielded colliders in a network.
+unshielded.colliders = function(x, arcs = FALSE, debug = FALSE) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  check.logical(arcs)
+
+  # go back to the network structure if needed.
+  if (is(x, "bn.fit"))
+    x = bn.net(x)
+
+  colliders.backend(x = x, return.arcs = arcs, including.shielded = FALSE,
+    including.unshielded = TRUE, debug = debug)
+
+}#UNSHIELDED.COLLIDERS
+
+# return the shielded colliders in a network.
+shielded.colliders = function(x, arcs = FALSE, debug = FALSE) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  check.logical(arcs)
+
+  # go back to the network structure if needed.
+  if (is(x, "bn.fit"))
+    x = bn.net(x)
+
+  colliders.backend(x = x, return.arcs = arcs, including.shielded = TRUE,
+    including.unshielded = FALSE, debug = debug)
+
+}#UNSHIELDED.COLLIDERS
+
 # return the v-structures in a network.
 vstructs = function(x, arcs = FALSE, moral = FALSE, debug = FALSE) {
 
@@ -185,11 +236,17 @@ vstructs = function(x, arcs = FALSE, moral = FALSE, debug = FALSE) {
   check.logical(moral)
   check.logical(debug)
 
-  # go back to the network structure if needed.
-  if (is(x, "bn.fit"))
-    x = bn.net(x)
+  if (moral) {
 
-  vstructures(x = x, arcs = arcs, including.moral = moral, debug = debug)
+    warning("the 'moral' argument is deprecated and will be removed in 2021.")
+    colliders(x, arcs = arcs, debug = debug)
+
+  }#THEN
+  else {
+
+    unshielded.colliders(x, arcs = arcs, debug = debug)
+
+  }#ELSE
 
 }#VSTRUCTS
 
@@ -246,7 +303,7 @@ dsep = function(bn, x, y, z) {
 
     # trying to extend a skeleton (instead of a CPDAG) is probably not
     # meaningful.
-    if (!is.null(x$learning$undirected) && x$learning$undirected)
+    if (!is.null(bn$learning$undirected) && bn$learning$undirected)
       warning(deparse(substitute(x)), " is just a skeleton (no arc directions ",
         "have been learned) and trying to extend it is probably wrong.")
 

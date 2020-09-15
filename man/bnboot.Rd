@@ -1,6 +1,6 @@
 \name{bn.boot}
 \alias{bn.boot}
-\title{Parametric and nonparametric bootstrap of Bayesian networks}
+\title{Nonparametric bootstrap of Bayesian networks}
 \description{
 
   Apply a user-specified function to the Bayesian network structures learned
@@ -8,9 +8,9 @@
 
 }
 \usage{
-bn.boot(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
-  algorithm, algorithm.args = list(), statistic.args = list(),
-  cluster = NULL, debug = FALSE)
+bn.boot(data, statistic, R = 200, m = nrow(data), algorithm,
+  algorithm.args = list(), statistic.args = list(), cluster = NULL,
+  debug = FALSE)
 }
 \arguments{
   \item{data}{a data frame containing the variables in the model.}
@@ -18,9 +18,6 @@ bn.boot(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
     to be applied to each bootstrap replicate.}
   \item{R}{a positive integer, the number of bootstrap replicates.}
   \item{m}{a positive integer, the size of each bootstrap replicate.}
-  \item{sim}{a character string indicating the type of simulation required.
-    Possible values are \code{"ordinary"} (the default, for nonparametric
-    bootstrap) and \code{"parametric"}.}
   \item{algorithm}{a character string, the learning algorithm to be applied
     to the bootstrap replicates. See \code{\link{structure learning}} and the
     documentation of each algorithm for details.}

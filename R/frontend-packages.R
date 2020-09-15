@@ -1,12 +1,6 @@
 
 ## generics for the S3 methods below (and others in the frontend-* files).
 
-sigma = function(object, ...) {
-
-  UseMethod("sigma")
-
-}#SIGMA
-
 as.grain = function(x) {
 
   UseMethod("as.grain")
@@ -37,6 +31,12 @@ as.graphAM = function(x) {
 
 }#AS.GRAPHAM
 
+as.igraph = function(x, ...) {
+
+  UseMethod("as.igraph")
+
+}#AS.IGRAPH
+
 as.prediction = function(x, ...) {
 
   UseMethod("as.prediction")
@@ -63,88 +63,32 @@ as.grain.bn.fit = function(x) {
   else if (!is(x, "bn.fit.dnet"))
     stop("the gRain package only supports discrete networks.")
 
-  cpt = vector(length(x), mode = "list")
-  names(cpt) = names(x)
-
-  for (node in names(x)) {
-
-    parents = x[[node]][["parents"]]
-
-    if (length(parents) == 0)
-      f = paste("~", node)
-    else
-      f = paste("~", paste(c(node, parents), collapse = "+"))
-
-    values = x[[node]][["prob"]]
-    levels = dimnames(values)[[1]]
-
-    # gRain requires completely specified CPTs, while bnlearn does not.
-    if (any(is.na(values))) {
-
-      warning("NaN conditional probabilities in ", node,
-        ", replaced with a uniform distribution.")
-
-      values[is.na(values)] = 1/dim(values)[1]
-
-    }#THEN
-
-    cpt[[node]] = gRain::cptable(formula(f), values = values, levels = levels)
-
-  }#FOR
-
-  return(gRain::grain.CPTspec(gRain::compileCPT(cpt)))
+  from.bn.fit.to.grain(x)
 
 }#AS.GRAIN.BN.FIT
 
 # convert a "grain" object from gRain into a "bn.fit" object.
-as.bn.fit.grain = function(x, ...) {
+as.bn.fit.grain = function(x, including.evidence = FALSE, ...) {
 
   # check whether gRain is loaded.
   check.and.load.package("gRain")
+  # check the evidence argument.
+  check.logical(including.evidence)
 
   if (!is(x, "grain"))
     stop("x must be an object of class 'grain'.")
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  grain.get.children = function(node) {
-
-    names(which(sapply(fitted, function(x) { node %in% x$parents } )))
-
-  }#GRAIN.GET.CHILDREN
-
-  nodes = names(x$cptlist)
-
-  fitted = vector(length(nodes), mode = "list")
-  names(fitted) = nodes
-
-  # first pass: get parents and CPTs.
-  for (node in nodes) {
-
-    prob = structure(as.table(x[["cptlist"]][[node]]), class = "table")
-    parents = names(dimnames(prob))[-1]
-
-    # marginal tables have no dimension names in bnlearn.
-    prob = cptattr(prob)
-
-    fitted[[node]] = structure(list(node = node, parents = parents,
-                       children = NULL, prob = prob), class = "bn.fit.dnode")
-
-  }#FOR
-
-  # second pass: get the children.
-  for (node in nodes) {
-
-    fitted[[node]][["children"]] = grain.get.children(node)
-
-  }#FOR
-
-  return(structure(fitted, class = c("bn.fit", determine.fitted.class(fitted))))
+  if (including.evidence)
+    from.grain.to.bn.fit.with.evidence(x)
+  else
+    from.grain.to.bn.fit(x)
 
 }#AS.BN.FIT.GRAIN
 
 # convert a "grain" object from gRain into a "bn" object.
-as.bn.grain = function(x, ..., check.cycles = TRUE) {
+as.bn.grain = function(x, ...) {
 
   # check whether gRain is loaded.
   check.and.load.package("gRain")
@@ -154,15 +98,7 @@ as.bn.grain = function(x, ..., check.cycles = TRUE) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  res = bn.net(as.bn.fit.grain(x))
-
-  # check whether the the graph contains directed cycles.
-  if (check.cycles)
-    if (!is.acyclic(nodes = names(res$nodes), arcs = res$arcs, debug = FALSE,
-          directed = TRUE))
-      stop("the grain object contains directed cycles.")
-
-  return(res)
+  bn.net(from.grain.to.bn.fit(x))
 
 }#AS.BN.GRAIN
 
@@ -281,6 +217,61 @@ as.bn.pcAlgo = function(x, ..., check.cycles = TRUE) {
   as.bn.graphNEL(x@graph, ..., check.cycles = check.cycles)
 
 }#AS.BN.PCALGO
+
+# convert a "bn" object into an "igraph" object.
+as.igraph.bn = function(x, ...) {
+
+  # check whether igraph is loaded.
+  check.and.load.package("igraph")
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  if (is(x, "bn")) {
+
+    nodes = names(x$nodes)
+    arcs = x$arcs
+
+  }#THEN
+  else{
+
+    nodes = names(x)
+    arcs = fit2arcs(x)
+
+  }#ELSE
+
+  res = igraph::make_empty_graph(length(nodes))
+  igraph::vertex_attr(res, "name") = nodes
+  res = igraph::add_edges(res, t(arcs))
+
+  return(res)
+
+}#AS.IGRAPH.BN
+
+as.igraph.bn.fit = as.igraph.bn
+
+# convert an "igraph" object into a "bn" object.
+as.bn.igraph = function(x, ..., check.cycles = TRUE) {
+
+  # check whether igraph is loaded.
+  check.and.load.package("igraph")
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  nodes = attr(igraph::V(x), "names")
+  arcs = igraph::as_edgelist(x, names = TRUE)
+
+  # check whether the the graph contains directed cycles.
+  if (check.cycles)
+    if (!is.acyclic(nodes = nodes, arcs = arcs, debug = FALSE, directed = TRUE))
+      stop("the igraph object contains directed cycles.")
+
+  res = empty.graph(nodes)
+  res$arcs = arcs
+  res$nodes = cache.structure(nodes, arcs)
+
+  return(res)
+
+}#AS.BN.IGRAPH
 
 # generate the input for a ROC curve from arc strengths.
 as.prediction.bn.strength = function(x, true, ..., consider.direction = TRUE) {

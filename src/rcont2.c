@@ -1,7 +1,29 @@
-/* Modified version of the rcont2() function from R. */
 #include "include/rcore.h"
+#include "include/sampling.h"
+#include "include/data.structures.h"
 
-void c_rcont2(int nrow, int ncol, int *nrowt, int *ncolt, int ntotal,
+static void c_rcont2(int nrow, int ncol, int *nrowt, int *ncolt, int ntotal,
+    double *fact, int *jwork, int **matrix);
+
+  /* generate a random two-dimensional contingency table. */
+void rcounts2d(counts2d table, double *fact, int *workspace) {
+
+  c_rcont2(table.llx, table.lly, table.ni, table.nj, table.nobs, fact,
+        workspace, table.n);
+
+}/*RCOUNTS2D*/
+
+/* generate a random three-dimensional contingency table. */
+void rcounts3d(counts3d table, double *fact, int *workspace) {
+
+  for (int k = 0; k < table.llz; k++)
+    c_rcont2(table.llx, table.lly, table.ni[k], table.nj[k], table.nk[k],
+      fact, workspace, table.n[k]);
+
+}/*RCOUNTS3D*/
+
+/* Modified version of the rcont2() function from R. */
+static void c_rcont2(int nrow, int ncol, int *nrowt, int *ncolt, int ntotal,
     double *fact, int *jwork, int **matrix) {
 
 int j = 0, l = 0, m = 0, nll = 0, nlm = 0, lsm = 0, lsp = 0;
@@ -70,8 +92,6 @@ double x = 0, y = 0, dummy = 0, sumprb = 0;
           }/*THEN*/
 
           do {
-
-            R_CheckUserInterrupt();
 
             /* Decrement entry in row L, column M */
             j = (int)(nll * (double)(ii + nll));

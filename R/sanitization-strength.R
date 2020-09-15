@@ -63,21 +63,67 @@ check.bn.strength = function(strength, nodes, valid = available.strength.methods
 check.threshold = function(threshold, strength) {
 
   if (missing(threshold))
-    threshold = attr(strength, "threshold")
-  else {
+    return(attr(strength, "threshold"))
 
-    s = strength[, "strength"]
+  method = attr(strength, "method")
 
-    if (!is.numeric(threshold) || (length(threshold) != 1) || is.nan(threshold))
-      stop("the threshold must be a numeric value.")
-    if ((threshold < min(s)) || (threshold > max(s)))
-      warning("the threshold is outside the range of the strength values.")
+  if (method %in% c("test", "bootstrap", "bayes-factor")) {
 
-  }#ELSE
+    if (!is.probability(threshold))
+      stop("the threshold must be a numeric value between 0 and 1.")
+
+  }#THEN
+  else if (method == "score"){
+
+    if (!is.real.number(threshold) && !is.infinite(threshold))
+      stop("the threshold must be numeric value.")
+
+  }#THEN
 
   return(threshold)
 
 }#CHECK.THRESHOLD
+
+# check the cutpoints used to bin arc strengths.
+check.cutpoints = function(cutpoints, strength, threshold, method) {
+
+  if (!missing(cutpoints)) {
+
+    if (method %in% c("test", "bootstrap", "bayes-factor")) {
+
+      if (!is.probability(cutpoints))
+        stop("the cutpoints must be numeric values between 0 and 1.")
+
+    }#THEN
+    else if (method == "score"){
+
+      if (!is.real.number(cutpoints))
+        stop("the cutpoints must be numeric values.")
+
+    }#THEN
+
+  }#THEN
+  else {
+
+    if (method == "test")
+      cutpoints = unique(c(0, threshold/c(10, 5, 2, 1.5, 1), 1))
+    else if (method %in% c("bootstrap", "bayes-factor"))
+      cutpoints = unique(c(0, (1 - threshold)/c(10, 5, 2, 1.5, 1), 1))
+    else if (method == "score") {
+
+      # define a set of cut points using the quantiles from the empirical
+      # distribution of the score deltas corresponding to significant arcs.
+      significant = strength[strength < threshold]
+      q = quantile(significant, 1 - c(0.50, 0.75, 0.90, 0.95, 1), names = FALSE)
+      cutpoints = c(-Inf, threshold, unique(q), Inf)
+
+    }#THEN
+
+  }#ELSE
+
+  return(sort(cutpoints))
+
+}#CHECK.CUTPOINTS
 
 # check a string that may be a score or a test label.
 check.criterion = function(criterion, data) {

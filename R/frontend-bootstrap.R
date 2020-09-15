@@ -1,8 +1,8 @@
 
 # generic frontend to {non,}parametric bootstrap.
-bn.boot = function(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
-    algorithm, algorithm.args = list(), statistic.args = list(),
-    cluster = NULL, debug = FALSE) {
+bn.boot = function(data, statistic, R = 200, m = nrow(data), algorithm,
+    algorithm.args = list(), statistic.args = list(), cluster = NULL,
+    debug = FALSE) {
 
   # check the data are there.
   check.data(data)
@@ -10,15 +10,6 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
   R = check.replicates(R)
   # check the size of each bootstrap sample.
   m = check.bootsize(m, data)
-  # check the sim parameter.
-  if (!is.string(sim) || (sim %!in% c("ordinary", "parametric"))) {
-
-    stop("the bootstrap simulation can be either 'ordinary' or 'parametric'.")
-
-    if (sim == "parametric")
-      warning("the 'parametric' option (and the 'sim' argument) are deprecated and will be removed in 2020.")
-
-  }#THEN
   # check debug.
   check.logical(debug)
   # check the learning algorithm.
@@ -27,6 +18,11 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
   algorithm.args = check.learning.algorithm.args(algorithm.args)
   # check the custom statistic function.
   statistic = match.fun(statistic)
+  # if the statistic fuction is I(), replace it with a NOP to avoid troubles
+  # with class dispatch.
+  if (isTRUE(all.equal(statistic, base::I)))
+    statistic = function(x) x
+
   # check the extra arguments for the statistic function.
   if (!is.list(statistic.args))
     statistic.args = as.list(statistic.args)
@@ -47,7 +43,7 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), sim = "ordinary",
   }#THEN
 
   bootstrap.backend(data = data, statistic = statistic, R = R, m = m,
-    sim = sim, algorithm = algorithm, algorithm.args = algorithm.args,
+    algorithm = algorithm, algorithm.args = algorithm.args,
     statistic.args = statistic.args, cluster = cluster, debug = debug)
 
 }#BNBOOT
@@ -166,8 +162,9 @@ bn.cv = function(data, bn, loss = NULL, ...,
         warning(deparse(substitute(bn)), " is just a skeleton (no arc directions ",
           "have been learned) and trying to extend it is probably wrong.")
 
-      # try to extend the network into a completely directed graph.
-      bn = cpdag.extension(cpdag.backend(bn))
+      # try to extend the network into a completely directed graph, keeping as
+      # many of the original arc directions are possible.
+      bn = cpdag.extension(cpdag.backend(bn, moral = TRUE, wlbl = TRUE))
 
       if (!is.dag(arcs = bn$arcs, nodes = nodes))
         stop("the network from the 'bn' argument has no consistent extension.")

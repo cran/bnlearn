@@ -12,16 +12,6 @@
 }
 \details{
 
-  \tabular{ll}{
-
-    Package: \tab bnlearn\cr
-    Type: \tab Package\cr
-    Version: \tab 4.5\cr
-    Date: \tab 2019-08-04\cr
-    License: \tab GPLv2 or later
-
-  }
-
   \pkg{bnlearn} implements key algorithms covering all stages of Bayesian
   network modelling: data preprocessing, structure learning combining data and
   expert/prior knowledge, parameter learning, and inference (including causal
@@ -75,10 +65,10 @@
   \pkg{lattice}; model averaging; random graphs and random samples generation;
   import/export functions to integrate \pkg{bnlearn} with software such as
   Hugin and GeNIe; an associated Bayesian network repository of golden-standard
-  networks at \url{http://www.bnlearn.com/bnrepository}.
+  networks at \url{https://www.bnlearn.com/bnrepository/}.
 
   Use \code{citation("bnlearn")} to find out how to cite \pkg{bnlearn} in
-  publications and other materials; and visit \url{http://www.bnlearn.com} for
+  publications and other materials; and visit \url{https://www.bnlearn.com/} for
   more examples and code from publications using \pkg{bnlearn}.
 
 }

@@ -6,7 +6,8 @@
 \title{Fit the parameters of a Bayesian network}
 \description{
 
-  Fit the parameters of a Bayesian network conditional on its structure.
+  Fit, assign or replace the parameters of a Bayesian network conditional on
+  its structure.
 
 }
 \usage{
@@ -108,7 +109,7 @@ bn.net(x, debug = FALSE)
   parameter estimates for discrete and conditional Gaussian nodes when there
   are (discrete) parents configurations that are not observed in \code{data}.
   To avoid this either set \code{replace.unidentifiable} to \code{TRUE} or, in
-  the case of discrete networks, use \code{method = "bayes"}. 
+  the case of discrete networks, use \code{method = "bayes"}.
 
 }
 \value{

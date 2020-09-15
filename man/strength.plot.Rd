@@ -44,22 +44,18 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL, groups,
   \itemize{
     \item if arc strengths have been computed using conditional independence
       tests, any strength coefficient (which is the p-value of the test) lesser
-      or equal than the threshold is considered significant. In this case the
-      default value of \code{threshold} is equal to the value of the
-      \code{alpha} argument used in the call to \code{arc.strength()}, which in
-      turn defaults to the one used by the learning algorithm (if any) or to
-      \code{0.05}.
+      than or equal to the threshold is considered significant.
     \item if arc strengths have been computed using network scores, any strength
       coefficient (which is the increase/decrease of the network score caused by
       the removal of the arc) lesser than the threshold is considered
-      significant. In this case the default value of \code{threshold} is
-      \code{0}.
-    \item if arc strengths have been computed using bootstrap, any strength
-      coefficient (which is the relative frequency of the arc in the networks
-      learned from the bootstrap replicates) greater or equal than the threshold
-      is considered significant. In this case the default value of
-      \code{threshold} is \code{0.5}.
+      significant.
+    \item if arc strengths have been computed using bootstrap or using Bayes
+      factors, any strength coefficient (which can be interpreted as a
+      probability for inclusion) greater or equal than the threshold is
+      considered significant.
   }
+  The default value is the value of the \code{strength} attribute of the
+  \code{bn.strength} object passed via the \code{strength} argument.
 
   Non-significant arcs are plotted as dashed lines.
 
@@ -72,13 +68,13 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL, groups,
 
   if the coefficients are computed from conditional independence tests, by
 
-    \code{  1 - unique(c(0, threshold/c(10, 5, 2, 1.5, 1), 1))}
+    \code{  unique(c(0, (1 - threshold)/c(10, 5, 2, 1.5, 1), 1))}
 
   for bootstrap estimates or by the quantiles
 
-    \code{  quantile(-s[s < threshold], c(0.50, 0.75, 0.90, 0.95, 1))}
+    \code{  quantile(s[s < threshold], 1 - c(0.50, 0.75, 0.90, 0.95, 1))}
 
-  of the significant coefficients if network scores are used.
+  of the significant differences if network scores are used.
 
 }
 \value{

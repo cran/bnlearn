@@ -53,8 +53,10 @@ check.cv.args = function(method, extra.args, data) {
 # check the number of splits.
 check.cv.splits = function(k, n) {
 
+  # the default is 10 folds, or leave-one-out cross-validation if there are
+  # fewer that 10 observations.
   if (is.null(k))
-    return(10)
+    k = min(10, n)
 
   if (!is.positive.integer(k))
     stop("the number of splits must be a positive integer number.")

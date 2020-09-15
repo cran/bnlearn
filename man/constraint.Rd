@@ -71,6 +71,9 @@ hpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
   Note that even when \code{undirected} is set to \code{FALSE} there is no
   guarantee that all arcs in the returned network will be directed; some arc
   directions are impossible to learn just from data due to score equivalence.
+  \code{cextend()} provides a consistent extension of partially directed
+  networks into directed acyclic graphs, which can then be used (for instance)
+  for parameter learning.
 
   See \code{\link{structure learning}} for a complete list of structure learning
   algorithms with the respective references.
@@ -84,5 +87,5 @@ hpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
 }
 \author{Marco Scutari}
 \seealso{\link{local discovery algorithms},
-  \link{score-based algorithms}, \link{hybrid algorithms}.}
+  \link{score-based algorithms}, \link{hybrid algorithms}, \link{cextend}.}
 \keyword{structure learning}

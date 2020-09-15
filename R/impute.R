@@ -95,11 +95,9 @@ impute.backend.map = function(fitted, data, n, debug = FALSE) {
     }#THEN
 
     # simulate the particles and the weights using likelihood weighting.
-    particles =
-      conditional.probability.query(fitted = fitted, event = to,
-        evidence = evidence, method = "lw",
-        extra = list(from = from, n = n), probability = FALSE,
-        cluster = NULL, debug = FALSE)
+    particles = conditional.distribution(fitted = fitted, nodes = to,
+                  evidence = evidence, method = "lw",
+                  extra = list(from = from, n = n), cluster = NULL, debug = FALSE)
 
     # impute by posterior mode (discrete variables) or posterior expectation
     # (continuous variables); discard missing weights.

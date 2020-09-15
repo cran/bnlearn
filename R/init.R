@@ -38,6 +38,37 @@ tryMethod = function(f, signature, definition, generic) {
 
   })
 
+  setHook(packageEvent("BiocGenerics", "attach"), action = "append",
+    function(...) {
+
+      # re-register S4 methods.
+      for (cl in bnlearn.classes) {
+
+        setMethod("path", cl, where = topenv(parent.frame()),
+          function(object, from, to, direct = TRUE, underlying.graph = FALSE,
+            debug = FALSE)
+              path.exists(object, from = from, to = to, direct = direct,
+                 underlying.graph = underlying.graph, debug = debug))
+        setMethod("score", cl, where = topenv(parent.frame()),
+          function(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
+            network.score(x = x, data = data, type = type, ...,
+              by.node = by.node, debug = debug))
+
+      }#FOR
+
+  })
+
+  setHook(packageEvent("igraph", "attach"), action = "append",
+    function(...) {
+
+      # re-register the S3 method for as.igraph().
+      registerS3method("as.igraph", class = "bn", method = as.igraph.bn,
+        envir = asNamespace("igraph"))
+      registerS3method("as.igraph", class = "bn.fit", method = as.igraph.bn.fit,
+        envir = asNamespace("igraph"))
+
+  })
+
   # make bnlearn's classes known to S4.
   setClass("bn")
   setClass("bn.fit")
@@ -56,6 +87,18 @@ tryMethod = function(f, signature, definition, generic) {
     tryMethod("degree", cl,
       definition = function(object, Nodes) .degree(object, Nodes),
       generic = function(object, Nodes, ...) standardGeneric("degree"))
+    tryMethod("path", cl,
+      definition = function(object, from, to, direct = TRUE,
+                     underlying.graph = FALSE, debug = FALSE)
+                       path.exists(object, from = from, to = to, direct = direct,
+                          underlying.graph = underlying.graph, debug = debug),
+      generic = function(object, ...) standardGeneric("path"))
+    tryMethod("score", cl,
+      definition = function(x, data, type = NULL, ..., by.node = FALSE,
+                     debug = FALSE)
+                       network.score(x = x, data = data, type = type, ...,
+                         by.node = by.node, debug = debug),
+      generic = function (x, ...) standardGeneric("score"))
 
   }#FOR
 

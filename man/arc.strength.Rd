@@ -71,7 +71,7 @@ averaged.network(strength, nodes, threshold)
     the network score (if \code{criterion} is the label of a score function,
     see \code{\link{score}} for details), the conditional independence test
     (currently the only one is \code{B}, the number of permutations). In
-    \code{mean}, additional objects of class \code{bn.strength} to average.}
+    \code{mean()}, additional objects of class \code{bn.strength} to average.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }
@@ -82,30 +82,33 @@ averaged.network(strength, nodes, threshold)
 
   If \code{criterion} is a conditional independence test, the strength is a
   p-value (so the lower the value, the stronger the relationship). The
-  conditional independence test would be that to drop the arc from the
-  network. The only possible additional argument is \code{B}, the number
-  of permutations to be generated for each permutation test.
+  conditional independence test would be that to drop the arc from the network.
+  The only two possible additional arguments are \code{alpha}, which sets the
+  significance threshold that is used in \code{strength.plot()}; and \code{B},
+  the number of permutations to be generated for each permutation test.
 
   If \code{criterion} is the label of a score function, the strength is
   measured by the score gain/loss which would be caused by the arc's removal.
   In other words, it is the difference between the score of the network
   in which the arc is not present and the score of the network in which the arc
   is present. Negative values correspond to decreases in the network score
-  and positive values correspond to increases in the network score (the
-  stronger the relationship, the more negative the difference). There may be
-  additional aguments depending on the choice of the score, see
-  \code{\link{score}} for details.
+  and positive values correspond to increases in the network score (the stronger
+  the relationship, the more negative the difference). There may be additional
+  arguments depending on the choice of the score, see \code{\link{score}} for
+  details. The significance threshold is set to \code{0}.
 
   \code{boot.strength()} estimates the strength of each arc as its empirical
   frequency over a set of networks learned from bootstrap samples. It computes
   the probability of each arc (modulo its direction) and the probabilities of
   each arc's directions conditional on the arc being present in the graph (in
-  either direction).
+  either direction). The significance threshold is computed automatically from
+  the strength estimates.
 
   \code{bf.strength()} estimates the strength of each arc using Bayes factors
   to overcome the fact that Bayesian posterior scores are not normalised, and
   uses the latter to estimate the probabilities of all possible states of an
-  arc given the rest of the network.
+  arc given the rest of the network. The significance threshold is set to
+  \code{1}.
 
   \code{custom.strength()} takes a list of networks and estimates arc strength
   in the same way as \cr \code{boot.strength()}.
@@ -145,7 +148,7 @@ averaged.network(strength, nodes, threshold)
 	Networks: A Bootstrap Approach". \emph{Proceedings of the 15th Annual
 	Conference on Uncertainty in Artificial Intelligence}, 196--201.
 
-  \bold{for the computation of the strength (confidence) significance
+  \bold{for the computation of the bootstrap strength (confidence) significance
     threshold:}
 
   Scutari M, Nagarajan R (2011). "On Identifying Significant Edges in Graphical

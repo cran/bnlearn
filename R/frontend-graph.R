@@ -1,3 +1,38 @@
+# check if there's a path between two specific nodes.
+path.exists = function(x, from, to, direct = TRUE,
+    underlying.graph = FALSE, debug = FALSE) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+  # a valid node is needed.
+  check.nodes(nodes = from, graph = x, max.nodes = 1)
+  # another valid node is needed.
+  check.nodes(nodes = to, graph = x, max.nodes = 1)
+  # 'from' must be different from 'to'.
+  if (identical(from, to))
+    stop("'from' and 'to' must be different from each other.")
+  # check underlying.path.
+  check.logical(underlying.graph)
+  # check debug.
+  check.logical(debug)
+
+  if (is(x, "bn")) {
+
+    nodes = names(x$nodes)
+    amat = arcs2amat(x$arcs, nodes)
+
+  }#THEN
+  else {
+
+    nodes = names(x)
+    amat = arcs2amat(fit2arcs(x), nodes)
+
+  }#ELSE
+
+  has.path(from, to, nodes = nodes, amat = amat, exclude.direct = !direct,
+    underlying.graph = underlying.graph, debug = debug)
+
+}#PATH.EXISTS
 
 # get the number of nodes of a graph.
 nnodes = function(x) {
@@ -64,42 +99,6 @@ directed = function(x) {
 
 }#DIRECTED
 
-# check if there's a path between two specific nodes.
-path = function(x, from, to, direct = TRUE, underlying.graph = FALSE,
-    debug = FALSE) {
-
-  # check x's class.
-  check.bn.or.fit(x)
-  # a valid node is needed.
-  check.nodes(nodes = from, graph = x, max.nodes = 1)
-  # another valid node is needed.
-  check.nodes(nodes = to, graph = x, max.nodes = 1)
-  # 'from' must be different from 'to'.
-  if (identical(from, to))
-    stop("'from' and 'to' must be different from each other.")
-  # check underlying.path.
-  check.logical(underlying.graph)
-  # check debug.
-  check.logical(debug)
-
-  if (is(x, "bn")) {
-
-    nodes = names(x$nodes)
-    amat = arcs2amat(x$arcs, nodes)
-
-  }#THEN
-  else {
-
-    nodes = names(x)
-    amat = arcs2amat(fit2arcs(x), nodes)
-
-  }#ELSE
-
-  has.path(from, to, nodes = nodes, amat = amat, exclude.direct = !direct,
-    underlying.graph = underlying.graph, debug = debug)
-
-}#PATH
-
 # return the partial node ordering implied by the graph structure.
 node.ordering = function(x, debug = FALSE) {
 
@@ -138,6 +137,22 @@ tiers2blacklist = function(tiers) {
   tiers.backend(tiers)
 
 }#TIERS2BLACKLIST
+
+# generate a blacklist containing all arcs between nodes in a set.
+set2blacklist = function(set) {
+
+  if (!is.string.vector(set))
+    stop("'set' should be a character vector, the labels of the nodes.")
+
+  # create the blacklist, excluding loops.
+  bl = expand.grid(from = set, to = set, stringsAsFactors = FALSE)
+  bl = bl[bl$from != bl$to, ]
+  # reset row numbers.
+  rownames(bl) = NULL
+
+  return(as.matrix(bl))
+
+}#SET2BLACKLIST
 
 # return the skeleton of a (partially) directed graph.
 skeleton = function(x) {
@@ -213,7 +228,8 @@ subgraph = function(x, nodes) {
   # check the nodes of the subgraph.
   check.nodes(nodes, graph = x, max.nodes = length(x$nodes))
 
-  subgraph.backend(x = x, nodes = nodes)
+  # creating a new graph, so do not preserve learning information.
+  subgraph.backend(x = x, nodes = nodes, preserve.learning = FALSE)
 
 }#SUBGRAPH
 

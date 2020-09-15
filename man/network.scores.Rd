@@ -134,5 +134,16 @@
 
   }
 
+  Other scores (and the respective labels):
+
+  \itemize{
+
+    \item a \emph{custom decomposable} (\code{custom}) score interface that
+	  takes an R function as an argument. It can be used to trial experimental
+	  score functions without having to code them in C and hook them up to the
+	  internals of \pkg{bnlearn}.
+
+  }
+
 }
 \keyword{package}

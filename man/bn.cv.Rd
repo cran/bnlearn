@@ -35,7 +35,7 @@ loss(x)
   \item{loss.args}{a list of extra arguments to be passed to the loss function
     specified by \code{loss}.}
   \item{fit}{a character string, the label of the method used to fit the
-    parameters of the newtork. See \code{\link{bn.fit}} for details.}
+    parameters of the network. See \code{\link{bn.fit}} for details.}
   \item{fit.args}{additional arguments for the parameter estimation procedure,
     see again \code{\link{bn.fit}} for details.}
   \item{method}{a character string, either \code{k-fold}, \code{custom-folds}
@@ -74,8 +74,8 @@ loss(x)
       average of the \code{k} loss estimates from the subsamples.
   }
 
-  If either cross-validation is used with multiple \code{runs}, the overall
-  loss is the averge of the loss estimates from the different runs.
+  If cross-validation is used with multiple \code{runs}, the overall loss is the
+  averge of the loss estimates from the different runs.
 
   To clarify, cross-validation methods accept the following optional arguments:
   \itemize{

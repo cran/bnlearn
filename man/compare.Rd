@@ -100,8 +100,9 @@ graphviz.compare(x, ..., groups, layout = "dot", shape = "circle", main = NULL,
   \code{shd()} and \code{hamming()} return a non-negative integer number.
 
   \code{graphviz.compare()} plots one or more figures and returns invisibly a
-  list containing the \code{graph} objects produced by \pkg{Rgraphviz}.
-
+  list containing the \code{graph} objects generated from the networks that were
+  passed as arguments (in the same order). They can be further modified using
+  the \pkg{graph} and \pkg{Rgraphviz} packages.
 }
 \examples{
 data(learning.test)

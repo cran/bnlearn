@@ -257,7 +257,8 @@ browser()
   )
 
   # Construct an edge list of arcs belonging to immoral v-stuctures
-  vstruct_arcs = vstructures(x, arcs = TRUE, including.moral = FALSE)
+  vstruct_arcs = colliders.backend(x, return.arcs = TRUE,
+                   including.unshielded = TRUE, including.shielded = FALSE)
 
   if (nrow(vstruct_arcs) > 0)
     arc.status[which.listed(arcs, vstruct_arcs), "skewed_prior"] = TRUE

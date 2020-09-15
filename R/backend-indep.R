@@ -1,6 +1,7 @@
 
-# second prinple of CI algorithms: infer arc orientation from graph structure.
-second.principle = function(x, cluster = NULL, local.structure, whitelist,
+# common steps in constraint-based structure learning: infer arc orientation
+# from the skeleton and the data.
+learn.arc.directions = function(x, cluster = NULL, local.structure, whitelist,
     blacklist, test, alpha, B = NULL, data, max.sx = ncol(data), complete,
     debug = FALSE) {
 
@@ -42,7 +43,7 @@ second.principle = function(x, cluster = NULL, local.structure, whitelist,
               nodes = structure(rep(0, length(nodes)), names = nodes),
               arcs = arcs)
 
-  return(cpdag.backend(pdag, moral = FALSE, fix = TRUE, debug = debug))
+  return(cpdag.backend(pdag, moral = TRUE, fix = TRUE, debug = debug))
 
 }#SECOND.PRINCIPLE
 

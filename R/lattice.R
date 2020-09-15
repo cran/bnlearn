@@ -63,13 +63,19 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
   # check whether lattice is loaded, and try to load if it is not.
   check.and.load.package("lattice")
 
+  are.present = function(x, element) {
+
+    (element %in% names(x)) && !all(is.na(x[[element]]))
+
+  }
+
   if (is(fitted, "bn.fit")) {
 
     # plot a panel for each node in the bayesian network.
     if (!is(fitted, "bn.fit.gnet"))
       stop("this plot is limited to Gaussian bayesian networks.")
-    # check whether the residuals are there.
-    if (any(!sapply(fitted, function(x) "residuals" %in% names(x))))
+    # check whether the residuals are present.
+    if (any(!sapply(fitted, are.present, "residuals")))
       stop("no residuals present in the bn.fit object.")
 
     nodes = names(fitted)
@@ -124,7 +130,7 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
     else if (type == "fitted") {
 
       # check whether the residuals are there.
-      if (any(!sapply(fitted, function(x) "fitted.values" %in% names(x))))
+      if (any(!sapply(fitted, are.present, "fitted.values" )))
         stop("no fitted values present in the bn.fit object.")
 
       p = lattice::xyplot(resid ~ fitted | node, data = temp,
@@ -140,7 +146,7 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
   else if (is(fitted, c("bn.fit.gnode", "bn.fit.cgnode"))) {
 
     # check whether the residuals are there.
-    if ("residuals" %!in% names(fitted))
+    if (!are.present(fitted, "residuals"))
       stop("no residuals present in the bn.fit.gnode object.")
 
     # print the equivalent plot for a single node.
@@ -180,7 +186,7 @@ lattice.gaussian.backend = function(fitted, type, xlab, ylab, main, ...) {
     else if (type == "fitted") {
 
       # check whether the fitted values are there.
-      if ("fitted.values" %!in% names(fitted))
+      if (!are.present(fitted, "fitted.values"))
         stop("no fitted values present in the bn.fit.gnode object.")
 
       f = formula(ifelse(is.null(fitted$configs),

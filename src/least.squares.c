@@ -3,14 +3,15 @@
 #include "include/blas.h"
 #include "include/globals.h"
 
-/* fast implementation of least squares with just the intercept. */
+/* ordinary least squares with just the intercept and complete data. */
 static void c_ols0(double *y, int nrow, double *fitted, double *resid,
     double *beta, double *sd) {
 
 int i = 0;
 double mean = c_mean(y, nrow);
 
-   /* the only coefficient is the intercept, which is the mean of the response. */
+  /* the only regression coefficient is the intercept, which is the mean of the
+   * response; the standard error is the standard deviation of the response. */
   if (beta)
     *beta = mean;
   if (sd)
@@ -19,14 +20,14 @@ double mean = c_mean(y, nrow);
     for (i = 0; i < nrow; i++)
       fitted[i] = mean;
   if (resid)
-    for (i  = 0; i < nrow; i++)
+    for (i = 0; i < nrow; i++)
       resid[i] = y[i] - mean;
 
 }/*C_OLS0*/
 
-/* fast implementation of least squares with one regression coefficient. */
-static void c_ols1(double **x, double *y, int nrow, double *fitted, double *resid,
-    double *beta, double *sd) {
+/* ordinary least squares with one regression coefficient and complete data. */
+static void c_ols1(double **x, double *y, int nrow, double *fitted,
+    double *resid, double *beta, double *sd) {
 
 int i = 0, singular = FALSE;
 double *m[2] = {y, *x}, mean[2] = {0, 0}, a = 0, b = 0;
@@ -40,7 +41,7 @@ covariance cov = { .dim = 2, .mat = (double[]){ 0, 0, 0, 0 },
   c_covmat(m, mean, nrow, 2, cov, 0);
 
   /* the only way for a simple regression to be singular is if the regressor
-   * is constant, so it is collinear with the intercept. */
+   * is constant, so if it is collinear with the intercept. */
   singular = (fabs(cov.mat[3]) < MACHINE_TOL);
 
   if (singular) {
@@ -65,28 +66,43 @@ covariance cov = { .dim = 2, .mat = (double[]){ 0, 0, 0, 0 },
 
   if (fitted) {
 
-    if (singular)
+    if (singular) {
+
       for (i = 0; i < nrow; i++)
         fitted[i] = a;
-    else
+
+    }/*THEN*/
+    else {
+
       for (i = 0; i < nrow; i++)
         fitted[i] = a + b * x[0][i];
+
+    }/*ELSE*/
 
   }/*THEN*/
 
   if (resid) {
 
-    if (fitted)
-      for (i  = 0; i < nrow; i++)
+    if (fitted) {
+
+      for (i = 0; i < nrow; i++)
         resid[i] = y[i] - fitted[i];
+
+    }/*THEN*/
     else {
 
-      if (singular)
-        for (i  = 0; i < nrow; i++)
+      if (singular) {
+
+        for (i = 0; i < nrow; i++)
           resid[i] = y[i] - a - b * x[0][i];
-      else
-        for (i  = 0; i < nrow; i++)
+
+      }/*THEN*/
+      else {
+
+        for (i = 0; i < nrow; i++)
           resid[i] = y[i] - a;
+
+      }/*THEN*/
 
     }/*ELSE*/
 
@@ -100,12 +116,18 @@ covariance cov = { .dim = 2, .mat = (double[]){ 0, 0, 0, 0 },
       *sd = 0;
     else {
 
-      if (resid)
+      if (resid) {
+
         for (i = 0; i < nrow; i++)
           sse += resid[i] * resid[i];
-      else if (fitted)
+
+      }/*THEN*/
+      else if (fitted) {
+
         for (i = 0; i < nrow; i++)
           sse += (y[i] - fitted[i]) * (y[i] - fitted[i]);
+
+      }/*THEN*/
       else {
 
         if (singular)
@@ -124,7 +146,7 @@ covariance cov = { .dim = 2, .mat = (double[]){ 0, 0, 0, 0 },
 
 }/*C_OLS1*/
 
-/* fast implementation of least squares with two regression coefficients. */
+/* ordinary least squares with two regression coefficients and complete data. */
 static void c_ols2(double **x, double *y, int nrow, double *fitted, double *resid,
     double *beta, double *sd) {
 
@@ -188,40 +210,67 @@ covariance cov = { .dim = 3, .mat = (double[]){ 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 
   if (fitted) {
 
-    if (singular1 && !singular2)
+    if (singular1 && !singular2) {
+
       for (i = 0; i < nrow; i++)
         fitted[i] = a + b2 * x[1][i];
-    else if (!singular1 && singular2)
+
+    }/*THEN*/
+    else if (!singular1 && singular2) {
+
       for (i = 0; i < nrow; i++)
         fitted[i] = a + b1 * x[0][i];
-    else if (singular1 && singular2)
+
+    }/*THEN*/
+    else if (singular1 && singular2) {
+
       for (i = 0; i < nrow; i++)
         fitted[i] = a;
-    else
+
+    }/*THEN*/
+    else {
+
       for (i = 0; i < nrow; i++)
         fitted[i] = a + b1 * x[0][i] + b2 * x[1][i];
+
+    }/*ELSE*/
 
   }/*THEN*/
 
   if (resid) {
 
-    if (fitted)
-      for (i  = 0; i < nrow; i++)
+    if (fitted) {
+
+      for (i = 0; i < nrow; i++)
         resid[i] = y[i] - fitted[i];
+
+    }/*THEN*/
     else {
 
-    if (singular1 && !singular2)
-      for (i  = 0; i < nrow; i++)
-        resid[i] = y[i] - a - b2 * x[1][i];
-    else if (!singular1 && singular2)
-      for (i  = 0; i < nrow; i++)
-        resid[i] = y[i] - a - b1 * x[0][i];
-    else if (singular1 && singular2)
-      for (i  = 0; i < nrow; i++)
-        resid[i] = y[i] - a;
-    else
-      for (i  = 0; i < nrow; i++)
-        resid[i] = y[i] - a - b1 * x[0][i] - b2 * x[1][i];
+      if (singular1 && !singular2) {
+
+        for (i = 0; i < nrow; i++)
+          resid[i] = y[i] - a - b2 * x[1][i];
+
+      }/*THEN*/
+      else if (!singular1 && singular2) {
+
+        for (i = 0; i < nrow; i++)
+          resid[i] = y[i] - a - b1 * x[0][i];
+
+      }/*THEN*/
+      else if (singular1 && singular2) {
+
+        for (i = 0; i < nrow; i++)
+          resid[i] = y[i] - a;
+
+      }/*THEN*/
+      else {
+
+        for (i = 0; i < nrow; i++)
+          resid[i] = y[i] - a - b1 * x[0][i] - b2 * x[1][i];
+
+      }/*ELSE*/
 
     }/*ELSE*/
 
@@ -235,26 +284,45 @@ covariance cov = { .dim = 3, .mat = (double[]){ 0, 0, 0, 0, 0, 0, 0, 0, 0 },
       *sd = 0;
     else {
 
-      if (resid)
+      if (resid) {
+
         for (i = 0; i < nrow; i++)
           sse += resid[i] * resid[i];
-      else if (fitted)
+
+      }/*THEN*/
+      else if (fitted) {
+
         for (i = 0; i < nrow; i++)
           sse += (y[i] - fitted[i]) * (y[i] - fitted[i]);
+
+      }/*THEN*/
       else {
 
-        if (singular1 && !singular2)
+        if (singular1 && !singular2) {
+
           for (i = 0; i < nrow; i++)
             sse += (y[i] - a - b2 * x[1][i]) * (y[i] - a - b2 * x[1][i]);
-        else if (!singular1 && singular2)
+
+        }/*THEN*/
+        else if (!singular1 && singular2) {
+
           for (i = 0; i < nrow; i++)
             sse += (y[i] - a - b1 * x[0][i]) * (y[i] - a - b1 * x[0][i]);
-        else if (singular1 && singular2)
+
+        }/*THEN*/
+        else if (singular1 && singular2) {
+
           for (i = 0; i < nrow; i++)
             sse += (y[i] - a) * (y[i] - a);
-        else
+
+        }/*THEN*/
+        else {
+
           for (i = 0; i < nrow; i++)
-            sse += (y[i] - a - b1 * x[0][i] - b2 * x[1][i]) * (y[i] - a - b1 * x[0][i] - b2 * x[1][i]);
+            sse += (y[i] - a - b1 * x[0][i] - b2 * x[1][i]) *
+                   (y[i] - a - b1 * x[0][i] - b2 * x[1][i]);
+
+        }/*ELSE*/
 
       }/*ELSE*/
 
@@ -266,6 +334,7 @@ covariance cov = { .dim = 3, .mat = (double[]){ 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 
 }/*C_OLS2*/
 
+/* general implementation of ordinary least squares with complete data. */
 static void c_olsp(double **x, double *y, int nrow, int ncol, double *fitted,
     double *resid, double *beta, double *sd) {
 
@@ -281,8 +350,7 @@ double *qr = NULL;
 
 }/*C_OLSP*/
 
-/* fast implementation of least squares with just the intercept and with missing
- * data. */
+/* ordinary least squares with just the intercept and with missing data. */
 static void c_ols0_with_missing(double *y, int nrow, double *fitted,
     double *resid, double *beta, double *sd) {
 
@@ -321,17 +389,394 @@ long double mean = 0, rsd = 0;
 
   }/*THEN*/
 
-  /* the only coefficient is the intercept, which is the mean of the response. */
+  /* the only regression coefficient is the intercept, which is the mean of the
+   * response; the standard error is the standard deviation of the response. */
   if (beta)
     *beta = mean;
+
   if (fitted)
     for (i = 0; i < nrow; i++)
       fitted[i] = mean;
+
   if (resid)
-    for (i  = 0; i < nrow; i++)
+    for (i = 0; i < nrow; i++)
       resid[i] = y[i] - mean;
 
 }/*C_OLS0_WITH_MISSING*/
+
+/* ordinary least squares with one regression coefficient and missing data. */
+static void c_ols1_with_missing(double **x, double *y, int nrow, double *fitted,
+    double *resid, double *beta, double *sd) {
+
+int i = 0, ncomplete = 0, singular = FALSE;
+double *m[2] = {y, *x}, mean[2] = {0, 0}, a = 0, b = 0;
+long double sse = 0;
+bool *missing = NULL;
+covariance cov = { .dim = 2, .mat = (double[]){ 0, 0, 0, 0 },
+                   .u = NULL, .d = NULL, .vt = NULL };
+
+  /* the regression coefficients are computed using the closed form estimators
+   * for simple regression. */
+  missing = Calloc1D(nrow, sizeof(bool));
+  c_covmat_with_missing(m, nrow, 2, NULL, missing, mean, cov.mat, &ncomplete);
+
+  /* the only way for a simple regression to be singular is if the regressor
+   * is constant, so if it is collinear with the intercept. */
+  singular = (fabs(cov.mat[3]) < MACHINE_TOL);
+
+  if (singular) {
+
+    b = NA_REAL;
+    a = mean[0];
+
+  }/*THEN*/
+  else {
+
+    b = cov.mat[1] / cov.mat[3];
+    a = mean[0] - mean[1] * b;
+
+  }/*ELSE*/
+
+  if (beta) {
+
+    beta[0] = a;
+    beta[1] = b;
+
+  }/*THEN*/
+
+  if (fitted) {
+
+    if (singular) {
+
+      for (i = 0; i < nrow; i++)
+        if (missing[i])
+          fitted[i] = NA_REAL;
+        else
+          fitted[i] = a;
+
+    }/*THEN*/
+    else {
+
+      for (i = 0; i < nrow; i++)
+        if (missing[i])
+          fitted[i] = NA_REAL;
+        else
+          fitted[i] = a + b * x[0][i];
+
+    }/*ELSE*/
+
+  }/*THEN*/
+
+  if (resid) {
+
+    if (fitted) {
+
+      for (i = 0; i < nrow; i++)
+        if (missing[i])
+          resid[i] = NA_REAL;
+        else
+          resid[i] = y[i] - fitted[i];
+
+    }/*THEN*/
+    else {
+
+      if (singular) {
+
+        for (i = 0; i < nrow; i++)
+          if (missing[i])
+            resid[i] = NA_REAL;
+          else
+            resid[i] = y[i] - a - b * x[0][i];
+
+      }/*THEN*/
+      else {
+
+        for (i = 0; i < nrow; i++)
+          if (missing[i])
+            resid[i] = NA_REAL;
+          else
+            resid[i] = y[i] - a;
+
+      }/*THEN*/
+
+    }/*ELSE*/
+
+  }/*THEN*/
+
+  if (sd) {
+
+    if (ncomplete == 0)
+      *sd = R_NaN;
+    else if (ncomplete <= 2)
+      *sd = 0;
+    else {
+
+      if (resid) {
+
+        for (i = 0; i < nrow; i++)
+          if (!missing[i])
+            sse += resid[i] * resid[i];
+
+      }/*THEN*/
+      else if (fitted) {
+
+        for (i = 0; i < nrow; i++)
+          if (!missing[i])
+            sse += (y[i] - fitted[i]) * (y[i] - fitted[i]);
+
+      }/*THEN*/
+      else {
+
+        if (singular) {
+
+          for (i = 0; i < nrow; i++)
+            if (!missing[i])
+              sse += (y[i] - a) * (y[i] - a);
+
+        }/*THEN*/
+        else {
+
+          for (i = 0; i < nrow; i++)
+            if (!missing[i])
+              sse += (y[i] - a - b * x[0][i]) * (y[i] - a - b * x[0][i]);
+
+        }/*ELSE*/
+
+      }/*ELSE*/
+
+      *sd = sqrt(sse / (ncomplete - 2));
+
+    }/*ELSE*/
+
+  }/*THEN*/
+
+  Free1D(missing);
+
+}/*C_OLS1_WITH_MISSING*/
+
+/* ordinary least squares with two regression coefficients and missing data. */
+static void c_ols2_with_missing(double **x, double *y, int nrow, double *fitted,
+    double *resid, double *beta, double *sd) {
+
+int i = 0, ncomplete = 0, singular1 = FALSE, singular2 = FALSE;
+double *m[3] = {y, *x, *(x + 1)}, a = 0, b1 = 0, b2 = 0, den = 0;
+double mean[3] = {0, 0, 0};
+long double sse = 0;
+bool *missing = NULL;
+covariance cov = { .dim = 3, .mat = (double[]){ 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                   .u = NULL, .d = NULL, .vt = NULL };
+
+  /* the regression coefficients are computed using the closed form estimates
+   * for the two-variable regression, which are effectively the same as the
+   * corresponding partial correlation estimates. */
+  missing = Calloc1D(nrow, sizeof(bool));
+  c_covmat_with_missing(m, nrow, 3, NULL, missing, mean, cov.mat, &ncomplete);
+
+  /* there are three possible collinear configurations:
+   *   1) the first variable is constant and collinear with the response;
+   *   2) the second variable is constant and collinear with the response;
+   *   3) the two variables are collinear with each other. */
+  singular1 = (fabs(cov.mat[4]) < MACHINE_TOL);
+  singular2 = (fabs(cov.mat[8]) < MACHINE_TOL) ||
+              (fabs(cov.mat[5]) / sqrt(cov.mat[4] * cov.mat[8]) > 1 - MACHINE_TOL);
+
+  if (singular1 && !singular2) {
+
+    b1 = NA_REAL;
+    b2 = cov.mat[2] / cov.mat[8];
+    a =  mean[0] - b2 * mean[2];
+
+  }/*THEN*/
+  else if (!singular1 && singular2) {
+
+    b1 = cov.mat[1] / cov.mat[4];
+    b2 = NA_REAL;
+    a =  mean[0] - b1 * mean[1];
+
+  }/*THEN*/
+  else if (singular1 && singular2) {
+
+    b1 = b2 = NA_REAL;
+    a = mean[0];
+
+  }/*THEN*/
+  else {
+
+    den = (cov.mat[4] * cov.mat[8] - cov.mat[5] * cov.mat[5]);
+    b1 = (cov.mat[8] * cov.mat[1] - cov.mat[5] * cov.mat[2]) / den;
+    b2 = (cov.mat[4] * cov.mat[2] - cov.mat[5] * cov.mat[1]) / den;
+    a = mean[0] - b1 * mean[1] - b2 * mean[2];
+
+  }/*THEN*/
+
+  if (beta) {
+
+    beta[0] = a;
+    beta[1] = b1;
+    beta[2] = b2;
+
+  }/*THEN*/
+
+  if (fitted) {
+
+    if (singular1 && !singular2) {
+
+      for (i = 0; i < nrow; i++)
+        if (missing[i])
+          fitted[i] = NA_REAL;
+        else
+          fitted[i] = a + b2 * x[1][i];
+
+    }/*THEN*/
+    else if (!singular1 && singular2) {
+
+      for (i = 0; i < nrow; i++)
+        if (missing[i])
+          fitted[i] = NA_REAL;
+        else
+          fitted[i] = a + b1 * x[0][i];
+
+    }/*THEN*/
+    else if (singular1 && singular2) {
+
+      for (i = 0; i < nrow; i++)
+        if (missing[i])
+          fitted[i] = NA_REAL;
+        else
+          fitted[i] = a;
+
+    }/*THEN*/
+    else {
+
+      for (i = 0; i < nrow; i++)
+        if (missing[i])
+          fitted[i] = NA_REAL;
+        else
+          fitted[i] = a + b1 * x[0][i] + b2 * x[1][i];
+
+    }/*ELSE*/
+
+  }/*THEN*/
+
+  if (resid) {
+
+    if (fitted) {
+
+      for (i = 0; i < nrow; i++)
+        if (missing[i])
+          resid[i] = NA_REAL;
+        else
+          resid[i] = y[i] - fitted[i];
+
+    }/*THEN*/
+    else {
+
+      if (singular1 && !singular2) {
+
+        for (i = 0; i < nrow; i++)
+          if (missing[i])
+            resid[i] = NA_REAL;
+          else
+            resid[i] = y[i] - a - b2 * x[1][i];
+
+      }/*THEN*/
+      else if (!singular1 && singular2) {
+
+        for (i = 0; i < nrow; i++)
+          if (missing[i])
+            resid[i] = NA_REAL;
+          else
+            resid[i] = y[i] - a - b1 * x[0][i];
+
+      }/*THEN*/
+      else if (singular1 && singular2) {
+
+        for (i = 0; i < nrow; i++)
+          if (missing[i])
+            resid[i] = NA_REAL;
+          else
+            resid[i] = y[i] - a;
+
+      }/*THEN*/
+      else {
+
+        for (i = 0; i < nrow; i++)
+          if (missing[i])
+            resid[i] = NA_REAL;
+          else
+            resid[i] = y[i] - a - b1 * x[0][i] - b2 * x[1][i];
+
+      }/*ELSE*/
+
+    }/*ELSE*/
+
+  }/*THEN*/
+
+  if (sd) {
+
+    if (ncomplete == 0)
+      *sd = R_NaN;
+    else if (ncomplete <= 3)
+      *sd = 0;
+    else {
+
+      if (resid) {
+
+        for (i = 0; i < nrow; i++)
+          if (!missing[i])
+            sse += resid[i] * resid[i];
+
+      }/*THEN*/
+      else if (fitted) {
+
+        for (i = 0; i < nrow; i++)
+          if (!missing[i])
+            sse += (y[i] - fitted[i]) * (y[i] - fitted[i]);
+
+      }/*THEN*/
+      else {
+
+        if (singular1 && !singular2) {
+
+          for (i = 0; i < nrow; i++)
+            if (!missing[i])
+              sse += (y[i] - a - b2 * x[1][i]) * (y[i] - a - b2 * x[1][i]);
+
+        }/*THEN*/
+        else if (!singular1 && singular2) {
+
+          for (i = 0; i < nrow; i++)
+            if (!missing[i])
+              sse += (y[i] - a - b1 * x[0][i]) * (y[i] - a - b1 * x[0][i]);
+
+        }/*THEN*/
+        else if (singular1 && singular2) {
+
+          for (i = 0; i < nrow; i++)
+            if (!missing[i])
+              sse += (y[i] - a) * (y[i] - a);
+
+        }/*THEN*/
+        else {
+
+          for (i = 0; i < nrow; i++)
+            if (!missing[i])
+              sse += (y[i] - a - b1 * x[0][i] - b2 * x[1][i]) *
+                     (y[i] - a - b1 * x[0][i] - b2 * x[1][i]);
+
+        }/*ELSE*/
+
+      }/*ELSE*/
+
+      *sd = sqrt(sse / (ncomplete - 3));
+
+    }/*ELSE*/
+
+  }/*THEN*/
+
+  Free1D(missing);
+
+}/*C_OLS2_WITH_MISSING*/
 
 /* general implementation of ordinary least squares with missing data. */
 static void c_olsp_with_missing(double **x, double *y, int nrow, int ncol,
@@ -439,6 +884,18 @@ void c_ols(double **x, double *y, int nrow, int ncol, double *fitted,
 
       /* special case: null model. */
       c_ols0_with_missing(y, nrow, fitted, resid, beta, sd);
+
+    }/*THEN*/
+    else if (ncol == 1) {
+
+      /* special case: simple regression. */
+      c_ols1_with_missing(x, y, nrow, fitted, resid, beta, sd);
+
+    }/*THEN*/
+    else if (ncol == 2) {
+
+      /* special case: two regression coefficients. */
+      c_ols2_with_missing(x, y, nrow, fitted, resid, beta, sd);
 
     }/*THEN*/
     else {

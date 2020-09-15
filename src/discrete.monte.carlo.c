@@ -1,5 +1,6 @@
 #include "include/rcore.h"
 #include "include/sampling.h"
+#include "include/contingency.tables.h"
 #include "include/tests.h"
 #include "include/matrix.h"
 
@@ -10,32 +11,29 @@
   for(k = 1; k <= n; k++) \
     fact[k] = lgammafn((double) (k + 1));
 
-static double mc_jt(int **n, int *nrowt, int nrow, int ncol, int length);
-static double mc_cjt(int ***n, int **nrowt, int *ncond, int nr, int nc, int nl);
-static double mc_cvjt(int **nrowt, int **ncolt, int *ncond, int nr, int nc,
-    int nl);
-
 /* unconditional Monte Carlo and semiparametric discrete tests. */
 void c_mcarlo(int *xx, int nr, int *yy, int nc, int num, int B,
     double *observed, double *pvalue, double alpha, test_e test, double *df) {
 
 double *fact = NULL;
-int **n = NULL, *ncolt = NULL, *nrowt = NULL, *workspace = NULL, ncomplete = 0;
+int *workspace = NULL;
 int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
+counts2d joint = { 0 };
 
   /* allocate and compute the factorials needed by rcont2. */
   allocfact(num);
   /* allocate and initialize the workspace for rcont2. */
   workspace = Calloc1D(nc, sizeof(int));
   /* initialize the contingency table and the marginal frequencies. */
-  ncomplete = fill_2d_table(xx, yy, &n, &nrowt, &ncolt, nr, nc, num);
+  joint = new_2d_table(nr, nc, TRUE);
+  fill_2d_table(xx, yy, &joint, num);
 
   /* if at least one of the two variables is constant, or if there are no
    * complete observations, the variables are taken to be independent. */
-  for (k = 0; k < nr; k++)
-    constx = constx && ((nrowt[k] == 0) || (nrowt[k] == ncomplete));
-  for (k = 0; k < nc; k++)
-    consty = consty && ((ncolt[k] == 0) || (ncolt[k] == ncomplete));
+  for (k = 0; k < joint.llx; k++)
+    constx = constx && ((joint.ni[k] == 0) || (joint.ni[k] == joint.nobs));
+  for (k = 0; k < joint.lly; k++)
+    consty = consty && ((joint.nj[k] == 0) || (joint.nj[k] == joint.nobs));
 
   if (constx || consty) {
 
@@ -56,17 +54,13 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
     case MC_MI:
     case SMC_MI:
-      *observed = mi_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
+      *observed = mi_kernel(joint);
 
       for (k = 0, *pvalue = 0; k < B; k++) {
 
-        c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
-
-        if (mi_kernel(n, nrowt, ncolt, nr, nc, ncomplete) > *observed) {
-
+        rcounts2d(joint, fact, workspace);
+        if (mi_kernel(joint) >= *observed)
           SEQUENTIAL_COUNTER_CHECK(*pvalue);
-
-        }/*THEN*/
 
       }/*FOR*/
 
@@ -76,30 +70,26 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
     case MC_X2:
     case SMC_X2:
-      *observed = x2_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
+      *observed = x2_kernel(joint);
 
       for (k = 0, *pvalue = 0; k < B; k++) {
 
-        c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
-
-        if (x2_kernel(n, nrowt, ncolt, nr, nc, ncomplete) > *observed) {
-
+        rcounts2d(joint, fact, workspace);
+        if (x2_kernel(joint) >= *observed)
           SEQUENTIAL_COUNTER_CHECK(*pvalue);
-
-        }/*THEN*/
 
       }/*FOR*/
 
       break;
 
     case SP_MI:
-      *observed = mi_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
+      *observed = mi_kernel(joint);
       *df = 0;
 
       for (k = 0, *pvalue = 0; k < B; k++) {
 
-        c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
-        *df += mi_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
+        rcounts2d(joint, fact, workspace);
+        *df += mi_kernel(joint);
 
       }/*FOR*/
 
@@ -111,13 +101,13 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
       break;
 
     case SP_X2:
-      *observed = x2_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
+      *observed = x2_kernel(joint);
       *df = 0;
 
       for (k = 0, *pvalue = 0; k < B; k++) {
 
-        c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
-        *df += x2_kernel(n, nrowt, ncolt, nr, nc, ncomplete);
+        rcounts2d(joint, fact, workspace);
+        *df += x2_kernel(joint);
 
       }/*FOR*/
 
@@ -128,22 +118,19 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
     case MC_JT:
     case SMC_JT:
-      *observed = mc_jt(n, nrowt, nr, nc, ncomplete);
+      *observed = jt_centered_kernel(joint);
 
       for (k = 0, *pvalue = 0; k < B; k++) {
 
-        c_rcont2(nr, nc, nrowt, ncolt, ncomplete, fact, workspace, n);
+        rcounts2d(joint, fact, workspace);
 
-        if (fabs(mc_jt(n, nrowt, nr, nc, ncomplete)) >= fabs(*observed)) {
-
+        if (fabs(jt_centered_kernel(joint)) >= fabs(*observed))
           SEQUENTIAL_COUNTER_CHECK(*pvalue);
-
-        }/*THEN*/
 
       }/*FOR*/
 
       /* standardize to match the parametric test. */
-      *observed /= sqrt(c_jt_var(ncomplete, nrowt, nr, ncolt, nc));
+      *observed /= sqrt(jt_var_kernel(joint));
 
       break;
 
@@ -163,11 +150,9 @@ int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
 free_and_return:
 
-  Free2D(n, nr);
-  Free1D(nrowt);
-  Free1D(ncolt);
   Free1D(workspace);
   Free1D(fact);
+  Free2DTAB(joint);
 
 }/*C_MCARLO*/
 
@@ -177,24 +162,26 @@ void c_cmcarlo(int *xx, int nr, int *yy, int nc, int *zz, int nl, int num,
     double *df) {
 
 double *fact = NULL;
-int ***n = NULL, **ncolt = NULL, **nrowt = NULL, *ncond = NULL, *workspace = NULL;
+int *workspace = NULL;
 int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
+counts3d joint = { 0 };
 
   /* allocate and compute the factorials needed by rcont2. */
   allocfact(num);
   /* allocate and initialize the workspace for rcont2. */
   workspace = Calloc1D(nc, sizeof(int));
   /* initialize the contingency table and the marginal frequencies. */
-  fill_3d_table(xx, yy, zz, &n, &nrowt, &ncolt, &ncond, nr, nc, nl, num);
+  joint = new_3d_table(nr, nc, nl);
+  fill_3d_table(xx, yy, zz, &joint, num);
 
   /* if at least one of the two variables is constant, or if there are no
    * complete observations, the variables are taken to be independent. */
-  for (k = 0; k < nl; k++)
-    for (j = 0; j < nr; j++)
-      constx = constx && ((nrowt[k][j] == 0) || (nrowt[k][j] == ncond[k]));
-  for (k = 0; k < nl; k++)
-    for (j = 0; j < nc; j++)
-      consty = consty && ((ncolt[k][j] == 0) || (ncolt[k][j] == ncond[k]));
+  for (k = 0; k < joint.llz; k++)
+    for (j = 0; j < joint.llx; j++)
+      constx = constx && ((joint.ni[k][j] == 0) || (joint.ni[k][j] == joint.nk[k]));
+  for (k = 0; k < joint.llz; k++)
+    for (j = 0; j < joint.lly; j++)
+      consty = consty && ((joint.nj[k][j] == 0) || (joint.nj[k][j] == joint.nk[k]));
 
   if (constx || consty) {
 
@@ -215,19 +202,13 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
     case MC_MI:
     case SMC_MI:
-      *observed = cmi_kernel(n, nrowt, ncolt, ncond, nr, nc, nl);
+      *observed = cmi_kernel(joint);
 
       for (j = 0, *pvalue = 0; j < B; j++) {
 
-        for (k = 0; k < nl; k++)
-          c_rcont2(nr, nc, nrowt[k], ncolt[k], ncond[k], fact, workspace, n[k]);
-
-        if (cmi_kernel(n, nrowt, ncolt, ncond, nr, nc, nl) > *observed) {
-
+        rcounts3d(joint, fact, workspace);
+        if (cmi_kernel(joint) >= *observed)
           SEQUENTIAL_COUNTER_CHECK(*pvalue);
-
-        }/*THEN*/
-
 
       }/*FOR*/
 
@@ -237,33 +218,26 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
     case MC_X2:
     case SMC_X2:
-      *observed = cx2_kernel(n, nrowt, ncolt, ncond, nr, nc, nl);
+      *observed = cx2_kernel(joint);
 
       for (j = 0, *pvalue = 0; j < B; j++) {
 
-        for (k = 0; k < nl; k++)
-          c_rcont2(nr, nc, nrowt[k], ncolt[k], ncond[k], fact, workspace, n[k]);
-
-        if (cx2_kernel(n, nrowt, ncolt, ncond, nr, nc, nl) > *observed) {
-
+        rcounts3d(joint, fact, workspace);
+        if (cx2_kernel(joint) >= *observed)
           SEQUENTIAL_COUNTER_CHECK(*pvalue);
-
-        }/*THEN*/
 
       }/*FOR*/
 
       break;
 
     case SP_MI:
-      *observed = cmi_kernel(n, nrowt, ncolt, ncond, nr, nc, nl);
+      *observed = cmi_kernel(joint);
       *df = 0;
 
       for (j = 0, *pvalue = 0; j < B; j++) {
 
-        for (k = 0; k < nl; k++)
-          c_rcont2(nr, nc, nrowt[k], ncolt[k], ncond[k], fact, workspace, n[k]);
-
-        *df += cmi_kernel(n, nrowt, ncolt, ncond, nr, nc, nl);
+        rcounts3d(joint, fact, workspace);
+        *df += cmi_kernel(joint);
 
       }/*FOR*/
 
@@ -275,15 +249,13 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
       break;
 
     case SP_X2:
-      *observed = cx2_kernel(n, nrowt, ncolt, ncond, nr, nc, nl);
+      *observed = cx2_kernel(joint);
       *df = 0;
 
       for (j = 0, *pvalue = 0; j < B; j++) {
 
-        for (k = 0; k < nl; k++)
-          c_rcont2(nr, nc, nrowt[k], ncolt[k], ncond[k], fact, workspace, n[k]);
-
-        *df += cx2_kernel(n, nrowt, ncolt, ncond, nr, nc, nl);
+        rcounts3d(joint, fact, workspace);
+        *df += cx2_kernel(joint);
 
       }/*FOR*/
 
@@ -294,23 +266,19 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
     case MC_JT:
     case SMC_JT:
-      *observed = mc_cjt(n, nrowt, ncond, nr, nc, nl);
+      *observed = cjt_centered_kernel(joint);
 
       for (j = 0, *pvalue = 0; j < B; j++) {
 
-        for (k = 0; k < nl; k++)
-          c_rcont2(nr, nc, nrowt[k], ncolt[k], ncond[k], fact, workspace, n[k]);
+        rcounts3d(joint, fact, workspace);
 
-        if (fabs(mc_cjt(n, nrowt, ncond, nr, nc, nl)) >= fabs(*observed)) {
-
+        if (fabs(cjt_centered_kernel(joint)) >= fabs(*observed))
           SEQUENTIAL_COUNTER_CHECK(*pvalue);
-
-        }/*THEN*/
 
       }/*FOR*/
 
       /* standardize to match the parametric test. */
-      *observed /= sqrt(mc_cvjt(nrowt, ncolt, ncond, nr, nc, nl));
+      *observed /= sqrt(cjt_var_kernel(joint));
 
       break;
 
@@ -330,83 +298,9 @@ int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
 
 free_and_return:
 
-  Free3D(n, nl, nr);
-  Free2D(nrowt, nl);
-  Free2D(ncolt, nl);
-  Free1D(ncond);
+  Free3DTAB(joint);
   Free1D(workspace);
   Free1D(fact);
 
 }/*C_CMCARLO*/
-
-/* unconditional Jonckheere-Terpstra test statistic. */
-static double mc_jt(int **n, int *nrowt, int nrow, int ncol, int length) {
-
-int i = 0, j = 0, s = 0, t = 0;
-double res = 0, nrt2 = 0, wi = 0, w = 0;
-double mean = c_jt_mean(length, nrowt, nrow);
-
-  for (i = 1; i < nrow; i++) {
-
-    nrt2 = (double)(nrowt[i]) * ((double)(nrowt[i]) + 1)/2;
-
-    for (j = 0; j < i; j++) {
-
-      for (s = 0, w = 0; s < ncol; s++) {
-
-        for (t = 0, wi = 0; t < s; t++)
-          wi += n[i][t] + n[j][t];
-
-        w += (wi + ((double)(n[i][s]) + (double)(n[j][s]) + 1)/2) *
-               (double)(n[i][s]);
-
-      }/*FOR*/
-
-      res += w - nrt2;
-
-    }/*FOR*/
-
-  }/*FOR*/
-
-  return res - mean;
-
-}/*MC_JT*/
-
-static double mc_cjt(int ***n, int **nrowt, int *ncond, int nr, int nc, int nl) {
-
-int k = 0;
-double res = 0;
-
-  /* sum up over the parents' configurations. */
-  for (k = 0; k < nl; k++) {
-
-    /* this one is never observed, skip. */
-    if (ncond[k] == 0)
-      continue;
-
-    res += mc_jt(n[k], nrowt[k], nr, nc, ncond[k]);
-
-  }/*FOR*/
-
-  return res;
-
-}/*MC_CJT*/
-
-static double mc_cvjt(int **nrowt, int **ncolt, int *ncond, int nr, int nc,
-    int nl) {
-
-int k = 0;
-double res = 0, var = 0;
-
-  for (k = 0; k < nl; k++) {
-
-    var = c_jt_var(ncond[k], nrowt[k], nr, ncolt[k], nc);
-    if (!ISNAN(var))
-      res += var;
-
-  }/*FOR*/
-
-  return res;
-
-}/*MC_CVJT*/
 

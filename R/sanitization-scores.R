@@ -117,9 +117,15 @@ check.score.args = function(score, network, data, extra.args, learning = FALSE) 
       network = network, data = data)
 
   # check the test data for predictive scores.
-  if (has.argument(score, "new.data", score.extra.args))
+  if (has.argument(score, "newdata", score.extra.args))
     extra.args$newdata = check.newdata(newdata = extra.args$newdata,
       network = network, data = data)
+
+  # check the R function implementing a custom score.
+  if (has.argument(score, "fun", score.extra.args))
+    extra.args$fun = check.custom.score.function(fun = extra.args$fun)
+  if (has.argument(score, "args", score.extra.args))
+    extra.args$args = check.custom.score.arguments(args = extra.args$args)
 
   check.unused.args(extra.args, score.extra.args[[score]])
 
@@ -418,7 +424,7 @@ check.l = function(l) {
 check.newdata = function(newdata, network = network, data = data) {
 
   if (is.null(newdata))
-    stop("predctive scores require a test set passed as 'newdata'.")
+    stop("predictive scores require a test set passed as 'newdata'.")
 
   # check whether data and newdata have the same columns.
   names.data = names(data)
@@ -445,7 +451,7 @@ check.newdata = function(newdata, network = network, data = data) {
 
   }#THEN
 
-  # reorder the columns of new.data to match data.
+  # reorder the columns of newdata to match data.
   newdata = .data.frame.column(newdata, names.data, drop = FALSE)
 
   # check whether data and newdata have the same data types.
@@ -462,10 +468,43 @@ check.newdata = function(newdata, network = network, data = data) {
 
   for (i in seq_along(levels.data))
     if (any(types.data[i] %in% "factor"))
-      if (!isTRUE(all.equal(levels.data[i], levels.newdata[i])))
+      if (!isTRUE(all.equal(levels.data[[i]], levels.newdata[[i]])))
         stop("variable ", names.data[i], " has a different levels in newdata.")
+
+  # make sure to return a data frame with column names.
+  newdata = .data.frame(newdata)
+  names(newdata) = names.data
 
   return(newdata)
 
 }#CHECK.NEWDATA
 
+# check the R function implementing a custom score.
+check.custom.score.function = function(fun) {
+
+  # there is no possible default value.
+  if (is.null(fun))
+    stop("missing the custom score function.")
+
+  # check the argument list.
+  fun.arguments = names(formals(fun))
+  if (!setequal(fun.arguments, c("node", "parents", "data", "args")) ||
+      anyDuplicated(fun.arguments))
+    stop("the custom score function must have signature function(node, parents, data, args).")
+
+  return(fun)
+
+}#CHECK.CUSTOM.SCORE.FUNCTION
+
+# check the additional arguments' list passed to a custom score.
+check.custom.score.arguments = function(args) {
+
+  # default to an empty argument list.
+  if (is.null(args))
+    args = list()
+  else if (!is.list(args))
+    stop("the arguments for the custom score must be passed as a list.")
+
+  return(args)
+
+}#CHECK.CUSTOM.SCORE.ARGUMENTS

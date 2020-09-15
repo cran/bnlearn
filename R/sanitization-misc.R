@@ -21,7 +21,7 @@ check.label = function(arg, choices, labels, argname, see) {
     nl = length(labels)
     choices = paste(choices, labels, collapse = ", ")
 
-  }#THEN
+  }#ELSE
 
   # mention the most relevant manual page.
   if (missing(see))

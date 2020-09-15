@@ -1,8 +1,11 @@
 \name{cpdag}
 \alias{cpdag}
 \alias{cextend}
-\alias{vstructs}
 \alias{moral}
+\alias{colliders}
+\alias{shielded.colliders}
+\alias{unshielded.colliders}
+\alias{vstructs}
 \title{Equivalence classes, moral graphs and consistent extensions}
 \description{
 
@@ -12,10 +15,14 @@
 
 }
 \usage{
-cpdag(x, moral = TRUE, wlbl = FALSE, debug = FALSE)
+cpdag(x, moral = FALSE, wlbl = FALSE, debug = FALSE)
 cextend(x, strict = TRUE, debug = FALSE)
-vstructs(x, arcs = FALSE, moral = FALSE, debug = FALSE)
 moral(x, debug = FALSE)
+
+colliders(x, arcs = FALSE, debug = FALSE)
+shielded.colliders(x, arcs = FALSE, debug = FALSE)
+unshielded.colliders(x, arcs = FALSE, debug = FALSE)
+vstructs(x, arcs = FALSE, moral = FALSE, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn} or \code{bn.fit} (with the exception of

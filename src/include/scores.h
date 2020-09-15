@@ -24,6 +24,8 @@ typedef enum {
   PRED_LOGLIK_CG = 201, /* predictive log-likelihood, conditional Gaussian data. */
   AIC_CG         = 202, /* AIC, conditional Gaussian data. */
   BIC_CG         = 203, /* BIC, conditional Gaussian data. */
+
+  CUSTOM         = 300  /* custom-function score. */
 } score_e;
 
 score_e score_to_enum(const char *label);
@@ -83,4 +85,5 @@ double dirichlet_averaged_node(SEXP target, SEXP x, SEXP data, SEXP l,
     SEXP prior, SEXP beta, int sparse, bool debugging);
 double wishart_node(SEXP target, SEXP x, SEXP data, SEXP iss, SEXP nu,
     SEXP iss_w, SEXP prior, SEXP beta, bool debugging);
-
+double custom_score_function(SEXP target, SEXP x, SEXP data, SEXP custom_fn,
+    SEXP custom_args, bool debugging);
