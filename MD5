@@ -1,5 +1,5 @@
-7ee51847100802c9dd12a90a6e7768c5 *Changelog
-0a08307c527378cabbbf49825a19a5de *DESCRIPTION
+d93b0515036e3e59df276cf11d96d049 *Changelog
+9f5d843b5b9fcd7006aae8ba6e481b79 *DESCRIPTION
 589f8309157cdf14a07ecef0ceebe455 *NAMESPACE
 bddbf1a9aededd9f1641ca1e4454db50 *R/aracne.R
 0cc417438560eefa77c83926d3542554 *R/arc.operations.R
@@ -17,7 +17,7 @@ cdf900dbd25a25eab2ba1d7c27f9e7a2 *R/cpq.R
 a90f59caa5c972fca5101fcb5214e57a *R/ctsdag.R
 b097a4ffed5cba81d99d816a12a17ea3 *R/custom.fit.R
 0127b2d88c2ec15241714411fe6c1d70 *R/cv.R
-a2d5ec6b2b7307d4a05bd7ba1b77a2f9 *R/data.preprocessing.R
+f2a6bfefa6f66550b605d65ff6e81a46 *R/data.preprocessing.R
 0144e9080a7c50ce3fbd319042bbc385 *R/enumeration.R
 c79fbd34bf39380312f56fc1a14b1ef1 *R/fast-iamb.R
 10e618ce8ca0d9b4870a428121f39050 *R/fast.lm.R
@@ -30,7 +30,7 @@ fb91bd48a7c176312811097f61a5b28a *R/formula.R
 61f7be066c84aa9378c4fbcf48f7617b *R/frontend-arcs.R
 adc7f0665911c9bfb0cb2f95e0d36b4d *R/frontend-bn.R
 9df5dda3948f064ef1594fa33e96a923 *R/frontend-bootstrap.R
-2b37c84d172e1f4a1c633ba0de1452ad *R/frontend-data.R
+64931c06bd6cf8778fd4c2641c79be4d *R/frontend-data.R
 36f3128b767bd9efdfce525522af3a3a *R/frontend-fit.R
 503208f16e49bff5586e097f64d7978d *R/frontend-foreign.R
 a66624cc9101fd8be0eb01bb94c512a8 *R/frontend-formula.R

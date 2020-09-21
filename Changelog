@@ -1,4 +1,9 @@
+bnlearn (4.6.1)
+
+  * Fixed out-of-bounds memory access in discretize().
+
 bnlearn (4.6)
+
   * removed support for parametric bootstrap in bn.boot().
   * path() has been renamed path.exists(); path() will be kept as an alias
      until 2021 when it will be removed to avoid clashing with BiocGenerics.

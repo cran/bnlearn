@@ -30,6 +30,11 @@ hartemink.discretization = function(data, breaks, ordered, initial.breaks,
   # perform an initial discretization if needed.
   if (type == "continuous") {
 
+    # make sure ordered is expanded, as expected by the backend implementing
+    # marginal discretization methods.
+    if (length(ordered) == 1)
+      ordered = rep(ordered, ncol(data))
+
     discretized = discretize.backend(data = data, method = initial.discretization,
                     breaks = rep(initial.breaks, ncol(data)), extra.args = list(),
                     ordered = ordered, debug = FALSE)

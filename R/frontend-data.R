@@ -60,7 +60,7 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
 
   }#THEN
 
-  # check debug and ordered.
+  # check debug.
   check.logical(debug)
   # check the extra arguments.
   extra.args = check.discretization.args(method, data, breaks, list(...))
