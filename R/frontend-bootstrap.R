@@ -1,8 +1,7 @@
 
 # generic frontend to {non,}parametric bootstrap.
 bn.boot = function(data, statistic, R = 200, m = nrow(data), algorithm,
-    algorithm.args = list(), statistic.args = list(), cluster = NULL,
-    debug = FALSE) {
+    algorithm.args = list(), statistic.args = list(), cluster, debug = FALSE) {
 
   # check the data are there.
   check.data(data)
@@ -28,9 +27,9 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), algorithm,
     statistic.args = as.list(statistic.args)
 
   # check the cluster.
-  if (!is.null(cluster)) {
+  cluster = check.cluster(cluster)
 
-    check.cluster(cluster)
+  if (!is.null(cluster)) {
 
     # disable debugging, the slaves do not cat() here.
     if (debug) {
@@ -49,11 +48,12 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), algorithm,
 }#BNBOOT
 
 # compute arcs' strength via nonparametric bootstrap.
-boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
-    algorithm, algorithm.args = list(), cpdag = TRUE, debug = FALSE) {
+boot.strength = function(data, cluster, R = 200, m = nrow(data), algorithm,
+  algorithm.args = list(), cpdag = TRUE, debug = FALSE) {
 
-  # check the data are there.
+  # check the data are there and get the node lables from the variables.
   data.info = check.data(data)
+  nodes = names(data)
   # check the number of bootstrap replicates.
   R = check.replicates(R)
   # check the size of each bootstrap sample.
@@ -68,9 +68,9 @@ boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
   algorithm.args = check.learning.algorithm.args(algorithm.args)
 
   # check the cluster.
-  if (!is.null(cluster)) {
+  cluster = check.cluster(cluster)
 
-    check.cluster(cluster)
+  if (!is.null(cluster)) {
 
     # set up the slave processes.
     slaves.setup(cluster)
@@ -88,9 +88,9 @@ boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
           algorithm = algorithm, algorithm.args = algorithm.args, arcs = NULL,
           cpdag = cpdag, debug = debug)
 
-  # add extra information for strength.plot().
-  res = structure(res, method = "bootstrap", threshold = threshold(res),
-          class = c("bn.strength", class(res)))
+  # add extra information for strength.plot() and averaged.network().
+  res = structure(res, nodes = nodes, method = "bootstrap",
+          threshold = threshold(res), class = c("bn.strength", class(res)))
   if (data.info$type == "mixed-cg")
     attr(res, "illegal") = list.cg.illegal.arcs(names(data), data)
 
@@ -101,9 +101,9 @@ boot.strength = function(data, cluster = NULL, R = 200, m = nrow(data),
 # perform cross-validation.
 bn.cv = function(data, bn, loss = NULL, ...,
     algorithm.args = list(), loss.args = list(), fit = "mle",
-    fit.args = list(), method = "k-fold", cluster = NULL, debug = FALSE) {
+    fit.args = list(), method = "k-fold", cluster, debug = FALSE) {
 
-  # check the data are there.
+  # check the data are there and get the node lables from the variables.
   data.info = check.data(data)
   nodes = names(data)
   # check the cross-validation method.
@@ -113,9 +113,9 @@ bn.cv = function(data, bn, loss = NULL, ...,
   # check the fitting method (maximum likelihood, bayesian, etc.)
   check.fitting.method(fit, data)
   # check the cluster.
-  if (!is.null(cluster)) {
+  cluster = check.cluster(cluster)
 
-    check.cluster(cluster)
+  if (!is.null(cluster)) {
 
     # disable debugging, the slaves do not cat() here.
     if (debug) {
@@ -136,7 +136,7 @@ bn.cv = function(data, bn, loss = NULL, ...,
     # check the extra arguments for the learning algorithm.
     algorithm.args = check.learning.algorithm.args(algorithm.args)
     # since we have no other way to guess, copy the label of the target
-    # variable from the parameters of the classifier.
+    # variable from the arguments of the classifier.
     if ((loss %in% c("pred", "pred-exact", "pred-lw")) &&
         (is.null(loss.args$target)) && (bn %in% classifiers))
       loss.args$target = algorithm.args$training

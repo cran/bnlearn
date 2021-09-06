@@ -55,7 +55,7 @@ model2network(string, ordering = NULL, debug = FALSE)
 }
 \examples{
 data(learning.test)
-res = set.arc(gs(learning.test), "A", "B")
+res = hc(learning.test)
 res
 modelstring(res)
 res2 = model2network(modelstring(res))

@@ -13,6 +13,12 @@ check.data = function(x, allowed.types = available.data.types,
   # x must be a data frame with at least one column.
   if (ncol(x) == 0)
     stop("the data must be in a data frame with at least one column.")
+  # check which type of data we are dealing with.
+  type = data.type(x)
+  # check whether the variables are of the expected types.
+  check.label(type, choices = allowed.types, labels = data.type.labels,
+    argname = "data type")
+
   # check the data for NULL/NaN/NA.
   observed = count.observed.values(x)
 
@@ -40,12 +46,6 @@ check.data = function(x, allowed.types = available.data.types,
       stop("some observations contain only missing values.")
     else
       warning("some observations contain only missing values.")
-
-  # check which type of data we are dealing with.
-  type = data.type(x)
-  # check whether the variables are of the expected types.
-  check.label(type, choices = allowed.types, labels = data.type.labels,
-    argname = "data type")
 
   # checks specific to a particular data type.
   if (type %in% discrete.data.types) {

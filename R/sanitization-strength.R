@@ -53,11 +53,22 @@ check.bn.strength = function(strength, nodes, valid = available.strength.methods
   if (attr(strength, "method") %!in% valid)
     check.label(attr(strength, "method"), choices = valid,
       argname = "strength estimation methods")
-  # check the consistency with a network's node set.
-  if (!missing(nodes))
-    check.arcs(strength[, c("from", "to"), drop = FALSE], nodes)
 
 }#CHECK.BN.STRENGTH
+
+# check that a bn.strength object is consistent with a bn object or node set.
+check.bn.strength.vs.bn = function(strength, reference) {
+
+  strength.nodes = attr(strength, "nodes")
+  if (is(reference, "bn"))
+    reference.nodes = names(reference$nodes)
+  else if (is(reference, "character"))
+    reference.nodes = reference
+
+  # check the consistency with the network's node set.
+  check.nodes(strength.nodes, graph = reference.nodes)
+
+}#CHECK.BN.STRENGTH.VS.BN
 
 # sanitize the threshold value.
 check.threshold = function(threshold, strength) {
@@ -91,14 +102,36 @@ check.cutpoints = function(cutpoints, strength, threshold, method) {
 
     if (method %in% c("test", "bootstrap", "bayes-factor")) {
 
-      if (!is.probability(cutpoints))
+      # make sure the cutpoints are in the [0, 1] interval.
+      if (!is.probability.vector(cutpoints))
         stop("the cutpoints must be numeric values between 0 and 1.")
+      # make sure that zero and one are included if needed, so that all strength
+      # values fall into an interval.
+      if (any(strength < min(cutpoints)) && all(cutpoints != 0))
+        cutpoints = c(0, cutpoints)
+      if (any(strength > max(cutpoints)) && all(cutpoints != 1))
+        cutpoints = c(cutpoints, 1)
 
     }#THEN
     else if (method == "score"){
 
-      if (!is.real.number(cutpoints))
+      # score differences are defined on the whole real axis.
+      if (!is.real.vector(cutpoints))
         stop("the cutpoints must be numeric values.")
+      # make sure to include +Inf and -Inf are included if needed, so that all
+      # strength values fall into an interval.
+      if (any(strength < min(cutpoints)) && all(cutpoints != -Inf))
+        cutpoints = c(-Inf, cutpoints)
+      if (any(strength > max(cutpoints)) && all(cutpoints != +Inf))
+        cutpoints = c(cutpoints, +Inf)
+
+    }#THEN
+
+    # make sure the cutpoints are unique.
+    if (anyDuplicated(cutpoints)) {
+
+      warning("removing duplicated cutpoints.")
+      cutpoints = unique(cutpoints)
 
     }#THEN
 

@@ -144,7 +144,7 @@ gdata dt = { 0 };
   Free1D(sse);
   Free1D(xx);
   Free1D(yy);
-  FreeGDT(dt, FALSE);
+  FreeGDT(dt);
 
   UNPROTECT(2);
 

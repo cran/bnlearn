@@ -2,10 +2,11 @@
 # measure the strength of the arcs in a directed graph.
 arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
-  # check x's class.
+  # check x's class and get the node labels.
   check.bn(x)
+  nodes = names(x$nodes)
   # arc strength is undefined in partially directed graphs.
-  if (is.pdag(x$arcs, names(x$nodes)))
+  if (is.pdag(x$arcs, nodes))
     stop("the graph is only partially directed.")
   # check the data are there.
   data.info = check.data(data)
@@ -33,37 +34,37 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
   # set the test/score counter.
   reset.test.counter()
 
-  # expand and sanitize score-specific arguments and the alpha threshold.
+  # expand and sanitize criterion-specific arguments.
+  extra.args = list(...)
+
   if (criterion %in% available.tests) {
 
     # sanitize the alpha threshold.
-    alpha = check.alpha(list(...)$alpha, network = x)
-
+    alpha = check.alpha(extra.args$alpha, network = x)
     # sanitize B (the number of bootstrap/permutation samples).
-    B = check.B(list(...)$B, criterion)
-
+    B = check.B(extra.args$B, criterion)
     # warn about unused arguments.
-    check.unused.args(list(...), c("alpha", "B"))
+    check.unused.args(extra.args, c("alpha", "B"))
 
     res = arc.strength.test(network = x, data = data, alpha = alpha,
             test = criterion, B = B, debug = debug,
             complete = data.info$complete.nodes)
 
     # add extra information for strength.plot().
-    res = structure(res, method = "test", threshold = alpha)
+    res = structure(res, nodes = nodes, method = "test", threshold = alpha)
 
   }#THEN
   else if (criterion %in% available.scores) {
 
     # expand and sanitize score-specific arguments.
     extra.args = check.score.args(score = criterion, network = x,
-                   data = data, extra.args = list(...), learning = FALSE)
+                   data = data, extra.args = extra.args, learning = FALSE)
 
     res = arc.strength.score(network = x, data = data, score = criterion,
             extra = extra.args, debug = debug)
 
     # add extra information for strength.plot().
-    res = structure(res, method = "score", threshold = 0)
+    res = structure(res, nodes = nodes, method = "score", threshold = 0)
 
   }#THEN
 
@@ -84,10 +85,11 @@ bf.strength = function(x, data, score, ..., debug = FALSE) {
 
   # check whether Rmpfr is loaded.
   check.and.load.package("Rmpfr")
-  # check x's class.
+  # check x's class and get the node labels.
   check.bn(x)
+  nodes = names(x$nodes)
   # arc strength is undefined in partially directed graphs.
-  if (is.pdag(x$arcs, names(x$nodes)))
+  if (is.pdag(x$arcs, nodes))
     stop("the graph is only partially directed.")
   # check the data are there.
   data.info = check.data(data)
@@ -123,9 +125,9 @@ bf.strength = function(x, data, score, ..., debug = FALSE) {
   res = bf.strength.backend(x = x, data = data, score = score, debug = debug,
           extra.args = extra.args)
 
-  # add extra information for strength.plot().
-  res = structure(res, method = "bayes-factor", threshold = threshold(res),
-          class = c("bn.strength", class(res)))
+  # add extra information for strength.plot() and averaged.network().
+  res = structure(res, nodes = nodes, method = "bayes-factor",
+          threshold = threshold(res), class = c("bn.strength", class(res)))
   if (data.info$type == "mixed-cg")
     attr(res, "illegal") = list.cg.illegal.arcs(names(data), data)
 
@@ -203,54 +205,18 @@ illegal = NULL
   # check the weights.
   weights = check.weights(weights, length(networks))
 
-  res = arc.strength.custom(custom.list = networks, nodes, cpdag = cpdag,
+  res = arc.strength.custom(custom.list = networks, nodes = nodes, cpdag = cpdag,
           arcs = NULL, weights = weights, illegal = illegal, debug = debug)
 
-  # add extra information for strength.plot().
-  res = structure(res, method = "bootstrap", threshold = threshold(res),
-          class = c("bn.strength", class(res)))
+  # add extra information for strength.plot() and averaged.network().
+  res = structure(res, nodes = nodes, method = "bootstrap",
+          threshold = threshold(res), class = c("bn.strength", class(res)))
   if (!is.null(illegal))
     attr(res, "illegal") = illegal
 
   return(res)
 
 }#CUSTOM.STRENGTH
-
-# build the averaged network structure using arc strengths and a
-# significance threshold.
-averaged.network = function(strength, nodes, threshold) {
-
-  # check the strength threshold.
-  threshold = check.threshold(threshold, strength)
-  # check nodes.
-  if (missing(nodes)) {
-
-    # check the strength parameter.
-    check.bn.strength(strength, valid = c("bootstrap", "bayes-factor"))
-    # use the bn.strength object to get a node set.
-    nodes = unique(c(strength[, "from"], strength[, "to"]))
-
-  }#THEN
-  else {
-
-    # sanitize the node set.
-    check.nodes(nodes = nodes)
-    # check the strength object and whether it agrees with the node set.
-    check.bn.strength(strength, nodes = nodes,
-      valid = c("bootstrap", "bayes-factor"))
-
-  }#ELSE
-
-  avg = averaged.network.backend(strength = strength, nodes = nodes,
-          threshold = threshold)
-
-  # add the metadata for the print() method.
-  avg$learning$algo = "averaged"
-  avg$learning$args = list(threshold = threshold)
-
-  return(avg)
-
-}#AVERAGED.NETWORK
 
 # average multiple bn.strength objects.
 mean.bn.strength = function(x, ..., weights = NULL) {
@@ -264,7 +230,8 @@ mean.bn.strength = function(x, ..., weights = NULL) {
   for (s in seq_along(strength)) {
 
     # check the nodes are the same, and that the object has the right structure.
-    check.bn.strength(strength[[s]], nodes = nodes)
+    check.bn.strength(strength[[s]])
+    check.bn.strength.vs.bn(strength[[s]], nodes)
     # check the objects have the same number of arcs.
     if (length(strength[[s]][, "from"]) != length(x[, "from"]))
       stop("the bn.strength objects have different numbers of arcs.")

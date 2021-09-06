@@ -39,8 +39,9 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
   check.and.load.package("Rgraphviz")
   # check x's class.
   check.bn(x)
-  # check the strength parameter.
-  check.bn.strength(strength, nodes = names(x$nodes))
+  # check the strength argument.
+  check.bn.strength(strength)
+  check.bn.strength.vs.bn(strength, x)
   # check the strength threshold.
   threshold = check.threshold(threshold, strength)
 
@@ -172,7 +173,7 @@ plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
             coords[a[1],]
 
       # if there's something to highlight, set the color according to
-      # the nature of the "highlight" parameter.
+      # the nature of the "highlight" argument.
       if (!is.null(highlight)) {
 
         if ((any(a %in% highlight) && (length(highlight) == 1)) ||

@@ -109,6 +109,26 @@ int i = 0, j = 0, k = 0, ncomplete = 0;
 
 }/*FILL_2D_TABLE*/
 
+/* same as the above, but zeroes the joint and marginal counts first. */
+void refill_2d_table(int *xx, int *yy, counts2d *table, int num) {
+
+  for (int i = 0; i < (*table).llx; i++)
+    memset((*table).n[i], '\0', (*table).lly * sizeof(int));
+  memset((*table).ni, '\0', (*table).llx * sizeof(int));
+  memset((*table).nj, '\0', (*table).lly * sizeof(int));
+
+  fill_2d_table(xx, yy, table, num);
+
+}/*REFILL_2D_TABLE*/
+
+/* change the dimensions of a two-dimensional contingency table. */
+void resize_2d_table(int llx, int lly, counts2d *table) {
+
+  (*table).llx = llx;
+  (*table).lly = lly;
+
+}/*RESIZE_2D_TABLE*/
+
 /* print a two-dimensional contingency table. */
 void print_2d_table(counts2d table) {
 

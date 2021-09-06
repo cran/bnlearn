@@ -96,14 +96,18 @@ drop.edge(x, from, to, debug = FALSE)
 
 }
 \examples{
-data(learning.test)
-res = gs(learning.test)
+res = cpdag(model2network("[A][C][F][B|A][D|A:C][E|B:F]"))
+res
 
 ## use debug = TRUE to get more information.
-set.arc(res, "A", "B")
-drop.arc(res, "A", "B")
-drop.edge(res, "A", "B")
-reverse.arc(res, "A", "D")
+updated = set.arc(res, "A", "B")
+updated
+updated = drop.arc(res, "A", "B")
+updated
+updated = drop.edge(res, "A", "B")
+updated
+updated = reverse.arc(res, "A", "D")
+updated
 }
 \author{Marco Scutari}
 \keyword{graphs}

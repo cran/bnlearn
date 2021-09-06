@@ -35,112 +35,115 @@ print.bn = function(x, ...) {
   cat("  model:\n")
 
   if (undirected.arcs == 0)
-    fcat(formula.backend(x))
+    fcat(formula.backend(x), indent = 2)
   else if (directed.arcs == 0)
     cat("    [undirected graph]\n")
   else
     cat("    [partially directed graph]\n")
 
-  wcat("  nodes:                                ", length(x$nodes))
-  wcat("  arcs:                                 ", arcs)
-  wcat("    undirected arcs:                    ", undirected.arcs)
-  wcat("    directed arcs:                      ", directed.arcs)
-  wcat("  average markov blanket size:          ", format(avg.mb, digits = 2, nsmall = 2))
-  wcat("  average neighbourhood size:           ", format(avg.nbr, digits = 2, nsmall = 2))
-  wcat("  average branching factor:             ", format(avg.ch, digits = 2, nsmall = 2))
+  wcat("nodes", length(x$nodes))
+  wcat("arcs", arcs)
+  wcat("undirected arcs", undirected.arcs, indent = 4)
+  wcat("directed arcs", directed.arcs, indent = 4)
+  wcat("average markov blanket size", format(avg.mb, digits = 2, nsmall = 2))
+  wcat("average neighbourhood size", format(avg.nbr, digits = 2, nsmall = 2))
+  wcat("average branching factor", format(avg.ch, digits = 2, nsmall = 2))
 
   cat("\n")
 
   if (x$learning$algo %in% graph.generation.algorithms) {
 
-    wcat("  generation algorithm:                 ", graph.generation.labels[x$learning$algo])
+    wcat("generation algorithm", graph.generation.labels[x$learning$algo])
 
     if ("prob" %in% params)
-      wcat("  arc sampling probability:             ", format(x$learning$args$prob))
+      wcat("arc sampling probability", format(x$learning$args$prob))
     if ("burn.in" %in% params)
-      wcat("  burn in length:                       ", format(x$learning$args$burn.in))
+      wcat("burn in length", format(x$learning$args$burn.in))
     if ("max.in.degree" %in% params)
-      wcat("  maximum in-degree:                    ", format(x$learning$args$max.in.degree))
+      wcat("maximum in-degree", format(x$learning$args$max.in.degree))
     if ("max.out.degree" %in% params)
-      wcat("  maximum out-degree:                   ", format(x$learning$args$max.out.degree))
+      wcat("maximum out-degree", format(x$learning$args$max.out.degree))
     if ("max.degree" %in% params)
-      wcat("  maximum degree:                       ", format(x$learning$args$max.degree))
+      wcat("maximum degree", format(x$learning$args$max.degree))
     if ("threshold" %in% params)
-      wcat("  significance threshold:               ", format(x$learning$args$threshold))
+      wcat("significance threshold", format(x$learning$args$threshold))
 
   }#THEN
   else {
 
-    wcat("  learning algorithm:                   ", method.labels[x$learning$algo])
+    wcat("learning algorithm", method.labels[x$learning$algo])
 
     if (x$learning$algo %in% constraint.based.algorithms)
-      wcat("  conditional independence test:        ", test.labels[x$learning$test])
+      wcat("conditional independence test", test.labels[x$learning$test])
     else if (x$learning$algo %in% score.based.algorithms)
-      wcat("  score:                                ", score.labels[x$learning$test])
+      wcat("score", score.labels[x$learning$test])
     else if (x$learning$algo %in% hybrid.algorithms) {
 
       if (x$learning$restrict %in% constraint.based.algorithms) {
 
-        wcat("  constraint-based method:              ", method.labels[x$learning$restrict])
-        wcat("  conditional independence test:        ", test.labels[x$learning$rstest])
+        wcat("constraint-based method", method.labels[x$learning$restrict])
+        wcat("conditional independence test", test.labels[x$learning$rstest])
 
       }#THEN
       else if (x$learning$restrict %in% mim.based.algorithms) {
 
-        wcat("  pairwise mutual information method:   ", method.labels[x$learning$restrict])
-        wcat("  mutual information estimator:         ", format(mi.estimator.labels[x$learning$args$estimator]))
+        wcat("pairwise mutual information method",
+          method.labels[x$learning$restrict])
+        wcat("mutual information estimator",
+          format(mi.estimator.labels[x$learning$args$estimator]))
 
       }#THEN
 
-      wcat("  score-based method:                   ", method.labels[x$learning$maximize])
-      wcat("  score:                                ", score.labels[x$learning$maxscore])
+      wcat("score-based method", method.labels[x$learning$maximize])
+      wcat("score", score.labels[x$learning$maxscore])
 
     }#THEN
     else if (x$learning$algo %in% em.algorithms) {
 
-      wcat("  score-based method:                   ", method.labels[x$learning$maximize])
-      wcat("  parameter learning method:            ", fitting.labels[x$learning$fit])
-      wcat("  imputation method:                    ", imputation.labels[x$learning$impute])
+      wcat("score-based method", method.labels[x$learning$maximize])
+      wcat("parameter learning method", fitting.labels[x$learning$fit])
+      wcat("imputation method", imputation.labels[x$learning$impute])
 
     }#THEN
 
     if ("prior" %in% params)
-      wcat("  graph prior:                          ", prior.labels[x$learning$args$prior])
+      wcat("graph prior", prior.labels[x$learning$args$prior])
     if ("beta" %in% params)
       if (x$learning$args$prior == "cs")
-        wcat("  beta sparsity parameter:              ", "Completed Prior over Arcs")
+        wcat("beta sparsity parameter", "Completed Prior over Arcs")
       else
-        wcat("  beta sparsity parameter:              ", format(x$learning$args$beta))
+        wcat("beta sparsity parameter", format(x$learning$args$beta))
     if ("alpha" %in% params)
-      wcat("  alpha threshold:                      ", format(x$learning$args$alpha))
+      wcat("alpha threshold", format(x$learning$args$alpha))
     if ("B" %in% params)
-      wcat("  permutations:                         ", format(x$learning$args$B))
+      wcat("permutations", format(x$learning$args$B))
     if ("iss" %in% params)
-      wcat("  imaginary sample size:                ", format(x$learning$args$iss))
+      wcat("imaginary sample size", format(x$learning$args$iss))
     if ("iss.mu" %in% params)
-      wcat("  imaginary sample size (normal):       ", format(x$learning$args$iss.mu))
+      wcat("imaginary sample size (normal)", format(x$learning$args$iss.mu))
     if ("iss.w" %in% params)
-      wcat("  imaginary sample size (Wishart):      ", format(x$learning$args$iss.w))
+      wcat("imaginary sample size (Wishart)", format(x$learning$args$iss.w))
     if ("l" %in% params)
-      wcat("  imaginary sample size stepping:       ", format(x$learning$args$l))
+      wcat("imaginary sample size stepping", format(x$learning$args$l))
     if ("k" %in% params)
-      wcat("  penalization coefficient:             ", format(x$learning$args$k))
+      wcat("penalization coefficient", format(x$learning$args$k))
     if ("maxp" %in% params)
-      wcat("  maximum parents:                      ", format(x$learning$args$maxp))
+      wcat("maximum parents", format(x$learning$args$maxp))
 
     if (x$learning$algo %in% c(mim.based.algorithms, classifiers)) {
 
       if ("estimator" %in% params)
-        wcat("  mutual information estimator:         ", format(mi.estimator.labels[x$learning$args$estimator]))
+        wcat("mutual information estimator",
+          format(mi.estimator.labels[x$learning$args$estimator]))
       if ("training" %in% params)
-        wcat("  training node:                        ", x$learning$args$training)
+        wcat("training node", x$learning$args$training)
 
     }#THEN
 
-    wcat("  tests used in the learning procedure: ", x$learning$ntests)
+    wcat("tests used in the learning procedure", x$learning$ntests)
 
     if (!is.null(x$learning$optimized))
-      wcat("  optimized:                            ", x$learning$optimized)
+      wcat("optimized", x$learning$optimized)
 
   }#ELSE
 
@@ -303,7 +306,7 @@ print.bn.kcv = function(x, print.loss = TRUE, ...) {
 
   if (is.character(a$bn)) {
 
-    wcat("  target learning algorithm:            ", method.labels[a$bn])
+    wcat("target learning algorithm", method.labels[a$bn])
 
   }#THEN
   else {
@@ -312,30 +315,30 @@ print.bn.kcv = function(x, print.loss = TRUE, ...) {
     if (is(a$bn, "bn.naive"))
       cat("   [Naive Bayes Classifier]\n")
     else
-      fcat(formula.backend(a$bn))
+      fcat(formula.backend(a$bn), indent = 2)
 
   }#ELSE
 
   if (a$method == "k-fold") {
 
-    wcat("  number of folds:                      ", length(x))
+    wcat("number of folds", length(x))
 
   }#THEN
   else if (a$method == "hold-out") {
 
-    wcat("  number of splits:                     ", length(x))
-    wcat("  size of the test subset:              ", length(x[[1]]$test))
+    wcat("number of splits", length(x))
+    wcat("size of the test subset", length(x[[1]]$test))
 
   }#ELSE
 
-  wcat("  loss function:                        ", loss.labels[a$loss])
+  wcat("loss function", loss.labels[a$loss])
 
   if ("target" %in% loss.extra.args[[a$loss]])
-    wcat("  training node:                        ", a$args$target)
+    wcat("training node", a$args$target)
 
   if (print.loss) {
 
-    wcat("  expected loss:                        ", format(a$mean))
+    wcat("expected loss", format(a$mean))
     cat("\n")
 
   }#THEN
@@ -350,9 +353,9 @@ print.bn.kcv.list = function(x, ...) {
   losses = sapply(x, function(x) attr(x, "mean"))
 
   print.bn.kcv(x[[1]], print.loss = FALSE)
-  wcat("  number of runs:                       ", length(x))
-  wcat("  average loss over the runs:           ", format(mean(losses)))
-  wcat("  standard deviation of the loss:       ", format(cgsd(losses)))
+  wcat("number of runs", length(x))
+  wcat("average loss over the runs", format(mean(losses)))
+  wcat("standard deviation of the loss", format(cgsd(losses)))
   cat("\n")
 
   invisible(x)

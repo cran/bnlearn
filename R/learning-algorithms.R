@@ -26,9 +26,9 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   max.sx = check.largest.sx.set(max.sx, x)
 
   # check the cluster.
-  if (!is.null(cluster)) {
+  cluster = check.cluster(cluster)
 
-    check.cluster(cluster)
+  if (!is.null(cluster)) {
 
     # enter in parallel mode.
     parallel = TRUE
@@ -199,9 +199,9 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   extra.args = extra[names(extra) %in% score.extra.args[[score]]]
   check.unused.args(extra, c(method.extra.args[[heuristic]], score.extra.args[[score]]))
 
-  # expand and check the max.iter parameter (common to all algorithms).
+  # expand and check the max.iter argument (common to all algorithms).
   max.iter = check.max.iter(misc.args$max.iter)
-  # expand and check the maxp parameter (common to all algorithms).
+  # expand and check the maxp argument (common to all algorithms).
   maxp = check.maxp(misc.args$maxp, data = x)
 
   if (heuristic == "hc") {
@@ -313,7 +313,7 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
 
   nodes = names(x)
 
-  # check the restrict and maximize parameters.
+  # check the restrict and maximize arguments.
   check.learning.algorithm(restrict, class = c("constraint", "mim"))
   check.learning.algorithm(maximize, class = "score")
   # choose the right method for the job.

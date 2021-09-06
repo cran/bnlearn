@@ -24,7 +24,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, groups,
       stop("mismatch between the number of weights and the number of arcs.")
 
   }#THEN
-  # sanitize the highlighting parameters (to be saved in *RenderInfo()).
+  # sanitize the highlighting argument list (to be saved in *RenderInfo()).
   if (!is.null(highlight) || length(highlight) > 0) {
 
     highlighting = TRUE

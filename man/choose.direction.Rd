@@ -47,7 +47,7 @@ choose.direction(x, arc, data, criterion = NULL, ..., debug = FALSE)
 }
 \examples{
 data(learning.test)
-res = gs(learning.test)
+res = pc.stable(learning.test)
 
 ## the arc A - B has no direction.
 choose.direction(res, learning.test, arc = c("A", "B"), debug = TRUE)

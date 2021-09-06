@@ -8,6 +8,8 @@ SEXP BN_WeightsSymbol;
 SEXP BN_DsepsetSymbol;
 SEXP TRUESEXP, FALSESEXP;
 
+double *regret_table;
+
 SEXP onLoad() {
 
   /* initialize symbols in .onLoad(), to do that only once. */

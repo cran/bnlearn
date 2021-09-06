@@ -417,36 +417,6 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
 
 }#ARC.STRENGTH.CUSTOM
 
-# compute the significance threshold for Friedman's confidence.
-threshold = function(strength, method = "l1") {
-
-  # do not blow up with graphs with only 1 node.
-  if (nrow(strength) == 0)
-    return(0)
-
-  e = ecdf(strength$strength)
-  u = knots(e)
-
-  if (method == "l1") {
-
-    norm = function(p)
-      sum( diff(unique(c(0, u, 1))) * abs(e(unique(c(0, u[u < 1]))) - p))
-
-  }#THEN
-
-  p0 = optimize(f = norm, interval = c(0, 1))$minimum
-
-  # double-check the boundaries, they are legal solutions but optimize() does
-  # not check them.
-  if (norm(1) < norm(p0))
-    p0 = 1
-  if (norm(0) < norm(p0))
-    p0 = 0
-
-  quantile(strength$strength, p0, type = 1, names = FALSE)
-
-}#THRESHOLD
-
 # weighted average of bn.strength objects.
 mean.strength = function(strength, nodes, weights) {
 

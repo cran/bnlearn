@@ -68,8 +68,8 @@ empty.graph = function(nodes, num = 1) {
 
 }#EMPTY.GRAPH
 
-# compute conditional probability distributions
-cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
+# compute conditional probability distributions.
+cpdist = function(fitted, nodes, evidence, cluster, method = "ls", ...,
     debug = FALSE) {
 
   # check fitted's class.
@@ -82,9 +82,9 @@ cpdist = function(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
   check.label(method, choices = cpq.algorithms, labels = cpq.labels,
     argname = "sampling method", see = "cpdist")
   # check the cluster.
-  if (!is.null(cluster)) {
+  cluster = check.cluster(cluster)
 
-    check.cluster(cluster)
+  if (!is.null(cluster)) {
 
     # disable debugging, the slaves do not cat() here.
     if (debug) {

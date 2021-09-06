@@ -9,9 +9,9 @@
 
 }
 \usage{
-cpquery(fitted, event, evidence, cluster = NULL, method = "ls", ...,
+cpquery(fitted, event, evidence, cluster, method = "ls", ...,
   debug = FALSE)
-cpdist(fitted, nodes, evidence, cluster = NULL, method = "ls", ...,
+cpdist(fitted, nodes, evidence, cluster, method = "ls", ...,
   debug = FALSE)
 
 mutilated(x, evidence)

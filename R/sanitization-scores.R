@@ -48,6 +48,9 @@ is.score.equivalent = function(score, nodes, extra) {
   # same with AIC and BIC.
   if (score %in% c("aic", "aic-g", "bic", "bic-g"))
     return(TRUE)
+  # the quotient NML is score equivalent, but the factorized NML is not.
+  if (score %in% c("qnml"))
+    return(TRUE)
   # BDe and BGe can score equivalent depending on the graph prior.
   else if ((score %in% c("bde", "bge")) &&
            (extra$prior %in% c("uniform", "marginal", "vsp")))

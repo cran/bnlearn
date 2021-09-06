@@ -34,13 +34,13 @@
   \itemize{
 
     \item \emph{mutual information}: an information-theoretic distance measure.
-	  It's proportional to the log-likelihood ratio (they differ by a
-	  \eqn{2n}{2n} factor) and is related to the deviance of the tested models.
-	  The asymptotic \eqn{\chi^2}{chi-square} test (\code{mi} and
-	  \code{mi-adf}, with adjusted degrees of freedom), the Monte Carlo
-	  permutation test (\code{mc-mi}), the sequential Monte Carlo permutation
-	  test (\code{smc-mi}), and the semiparametric test (\code{sp-mi}) are
-	  implemented.
+      It's proportional to the log-likelihood ratio (they differ by a
+      \eqn{2n}{2n} factor) and is related to the deviance of the tested models.
+      The asymptotic \eqn{\chi^2}{chi-square} test (\code{mi} and \code{mi-adf},
+      with adjusted degrees of freedom), the Monte Carlo permutation test
+      (\code{mc-mi}), the sequential Monte Carlo permutation test
+      (\code{smc-mi}), and the semiparametric test (\code{sp-mi}) are
+      implemented.
 
     \item \emph{shrinkage estimator} for the \emph{mutual information}
       (\code{mi-sh}): an improved asymptotic \eqn{\chi^2}{chi-square} test
@@ -52,11 +52,11 @@
         \strong{10}:1469--1484.
 
     \item \emph{Pearson's \eqn{X^2}{X^2}}: the classical Pearson's
-	  \eqn{X^2}{X^2} test for contingency tables. The asymptotic
-	  \eqn{\chi^2}{chi-square} test (\code{x2} and \code{x2-adf}, with adjusted
-	  degrees of freedom), the Monte Carlo permutation test (\code{mc-x2}), the
-	  sequential Monte Carlo permutation test (\code{smc-x2}) and
-	  semiparametric test (\code{sp-x2}) are implemented.
+      \eqn{X^2}{X^2} test for contingency tables. The asymptotic
+      \eqn{\chi^2}{chi-square} test (\code{x2} and \code{x2-adf}, with adjusted
+      degrees of freedom), the Monte Carlo permutation test (\code{mc-x2}), the
+      sequential Monte Carlo permutation test (\code{smc-x2}) and semiparametric
+      test (\code{sp-x2}) are implemented.
 
   }
 
@@ -81,16 +81,22 @@
       Student's t test (\code{cor}), the Monte Carlo permutation test
       (\code{mc-cor}) and the sequential Monte Carlo permutation test
       (\code{smc-cor}) are implemented.
+
+    Hotelling H (1953). "New Light on the Correlation Coefficient and its
+      Transforms". \emph{Journal of the Royal Statistical Society: Series B},
+      \strong{15}(2):193--225.
+
     \item \emph{Fisher's Z}: a transformation of the linear correlation with
-	  asymptotic normal distribution. The asymptotic normal test (\code{zf}),
-	  the Monte Carlo permutation test (\code{mc-zf}) and the sequential Monte
-	  Carlo permutation test (\code{smc-zf}) are implemented.
+      asymptotic normal distribution. The asymptotic normal test (\code{zf}),
+      the Monte Carlo permutation test (\code{mc-zf}) and the sequential Monte
+      Carlo permutation test (\code{smc-zf}) are implemented.
+
     \item \emph{mutual information}: an information-theoretic distance measure.
-	  Again it is proportional to the log-likelihood ratio (they differ by a
-	  \eqn{2n}{2n} factor). The asymptotic \eqn{\chi^2}{chi-square} test
-	  (\code{mi-g}), the Monte Carlo permutation test (\code{mc-mi-g}) and the
-	  sequential Monte Carlo permutation test (\code{smc-mi-g}) are
-	  implemented.
+      Again it is proportional to the log-likelihood ratio (they differ by a
+      \eqn{2n}{2n} factor). The asymptotic \eqn{\chi^2}{chi-square} test
+      (\code{mi-g}), the Monte Carlo permutation test (\code{mc-mi-g}) and the
+      sequential Monte Carlo permutation test (\code{smc-mi-g}) are implemented.
+
     \item \emph{shrinkage estimator} for the \emph{mutual information}
       (\code{mi-g-sh}): an improved asymptotic \eqn{\chi^2}{chi-square} test
       based on the James-Stein estimator for the mutual information.

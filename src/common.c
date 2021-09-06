@@ -2,7 +2,7 @@
 #include "include/matrix.h"
 
 /* class check to match that in the R code. */
-int c_is(SEXP obj, const char *str) {
+bool c_is(SEXP obj, const char *str) {
 
 int i = 0;
 SEXP class;

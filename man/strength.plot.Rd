@@ -87,8 +87,8 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL, groups,
 }
 \examples{
 \dontrun{
-# plot the network learned by gs().
-res = set.arc(gs(learning.test), "A", "B")
+# plot the network learned by hc().
+res = hc(learning.test)
 strength = arc.strength(res, learning.test, criterion = "x2")
 \dontrun{strength.plot(res, strength)}
 # add another (non-significant) arc and plot the network again.

@@ -250,3 +250,13 @@ lrm.round = function(prob, digits = 3) {
 
 }#LRM.ROUND
 
+# add some tolerance when computing differences, as we do in the C code.
+robust.difference = function(x1, x2) {
+
+  if (abs(x1 - x2) < sqrt(.Machine$double.eps))
+    return(0)
+  else
+    return(x1 - x2)
+
+}#ROBUST.DIFFERENCE
+

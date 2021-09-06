@@ -33,7 +33,7 @@ export(
   "modelstring", "modelstring<-", "model2network",
   # arc strength and model averaging.
   "arc.strength", "boot.strength", "bf.strength", "custom.strength",
-  "averaged.network",
+  "averaged.network", "inclusion.threshold",
   # networks scores and conditional independence tests.
   "alpha.star", "BF", "ci.test",
   # resampling and Bayesian networks.
@@ -156,4 +156,4 @@ S3method("[[<-", "bn.fit")
 S3method(mean, "bn.strength")
 
 exportClasses("bn", "bn.fit")
-exportMethods("nodes", "nodes<-", "degree", "path", "score")
+exportMethods("nodes", "nodes<-", "degree", "score")

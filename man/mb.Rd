@@ -157,7 +157,7 @@ ntests(x)
 }
 \examples{
 data(learning.test)
-res = gs(learning.test)
+res = pc.stable(learning.test)
 
 ##  the Markov blanket of A.
 mb(res, "A")

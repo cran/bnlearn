@@ -65,6 +65,8 @@ score_e score_to_enum(const char *label) {
   ENTRY("mbde", MBDE);
   ENTRY("bdla", BDLA);
   ENTRY("pred-loglik", PRED_LOGLIK);
+  ENTRY("fnml", FNML);
+  ENTRY("qnml", QNML);
   ENTRY("loglik-g", LOGLIK_G);
   ENTRY("aic-g", AIC_G);
   ENTRY("bic-g", BIC_G);

@@ -5,58 +5,42 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
   # check the label of the discretization method.
   method = check.discretization.method(method)
   # general check on the data.
-  data.info = check.data(data)
+  data.info = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
 
-  # check the number of breaks.
-  if (method != "hartemink") {
+  # the data should include at least some continuous variables, otherwise we
+  # have nothing to do.
+  if (data.info$type %in% discrete.data.types) {
 
-    if (length(breaks) == 1)
-      breaks = rep(breaks, ncol(data))
-    else if (length(breaks) != ncol(data))
-      stop("the 'breaks' vector must have an element for each variable in the data.")
+    warning("at least one variable should be continuous")
+    return(data)
 
   }#THEN
+
+  # check the number of breaks.
+  if (length(breaks) == 1)
+    breaks = rep(breaks, ncol(data))
+  else if (length(breaks) != ncol(data))
+    stop("the 'breaks' vector must have an element for each variable in the data.")
   if (!is.positive.vector(breaks))
-    stop("the numbers of breaks must be positive integer numbers.")
+    stop("the number(s) of breaks must be positive integer number(s).")
   if (any(breaks == 1))
     stop("the return value must have at least two levels for each variable.")
 
+  # check whether/which discretized variables should be ordered factors.
+  if (length(ordered) == 1)
+    ordered = rep(ordered, ncol(data))
+  else if (length(ordered) != ncol(data))
+    stop("the 'ordered' vector must have an element for each variable in the data.")
+  if (!is.logical.vector(ordered))
+    stop("the elements of the 'ordered' vector be logical values.")
+
   # check the data.
-  if (method %in% c("quantile", "interval")) {
-
-    # check which/how many discretized variables should be ordered factors.
-    if (length(ordered) == 1)
-      ordered = rep(ordered, ncol(data))
-    else if (length(ordered) != ncol(data))
-      stop("the 'ordered' vector must have an element for each variable in the data.")
-    if (!is.logical.vector(ordered))
-      stop("the elements of the 'ordered' vector be logical values.")
-
-  }#THEN
-  else if (method == "hartemink") {
+  if (method == "hartemink") {
 
     # check that the data contains at least two columns, otherwise there is
     # nothing to compute mutual information from.
     if (ncol(data) < 2)
       stop("at least two variables are needed to compute mutual information.")
-
-    # check the data types.
-    if (data.info$type %in% discrete.data.types) {
-
-      nlvls = unique(sapply(data, nlevels))
-      # this is implicit in Hartemink's definition of the algorithm.
-      if (length(nlvls) > 1)
-        stop("all variables must have the same number of levels.")
-      # we only aggregate levels, so must have enough of them.
-      if (nlvls < breaks)
-        stop("too many breaks, at most ", nlvls, " required.")
-
-    }#THEN
-    else if (data.info$type != "continuous") {
-
-      stop("all variables must be continuous.")
-
-    }#THEN
 
   }#THEN
 

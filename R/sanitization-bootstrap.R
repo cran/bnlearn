@@ -17,8 +17,8 @@ check.bootstrap.args = function(extra.args, network, data) {
   # remap additional arguments used in hybrid algorithms.
   if (algorithm %in% hybrid.algorithms) {
 
-    # there's no need to sanitize these parameters, it's done either in
-    # bnlearn() or in greedy.search() already.
+    # there's no need to sanitize these arguments, it's done either in
+    # the calls to the structure learning algorithms.
     if (is.null(extra.args[["algorithm.args"]]$restrict))
       extra.args[["algorithm.args"]]$restrict = network$learning$restrict
     if (is.null(extra.args[["algorithm.args"]]$maximize))

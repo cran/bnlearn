@@ -24,14 +24,15 @@ tryMethod = function(f, signature, definition, generic) {
   setHook(packageEvent("graph", "attach"), action = "append",
     function(...) {
 
-      # re-register S4 methods.
+      # re-register S4 methods (from .GlobalEnv, as we would do in an
+      # interactive session.
       for (cl in bnlearn.classes) {
 
-        setMethod("nodes", cl, where = topenv(parent.frame()),
+        setMethod("nodes", cl, where = .GlobalEnv,
           function(object) .nodes(object))
-        setMethod("nodes<-", cl, where = topenv(parent.frame()),
+        setMethod("nodes<-", cl, where = .GlobalEnv,
           function(object, value) .relabel(object, value))
-        setMethod("degree", cl, where = topenv(parent.frame()),
+        setMethod("degree", cl, where = .GlobalEnv,
           function(object, Nodes) .degree(object, Nodes))
 
       }#FOR
@@ -41,15 +42,11 @@ tryMethod = function(f, signature, definition, generic) {
   setHook(packageEvent("BiocGenerics", "attach"), action = "append",
     function(...) {
 
-      # re-register S4 methods.
+      # re-register S4 methods (from .GlobalEnv, as we would do in an
+      # interactive session.
       for (cl in bnlearn.classes) {
 
-        setMethod("path", cl, where = topenv(parent.frame()),
-          function(object, from, to, direct = TRUE, underlying.graph = FALSE,
-            debug = FALSE)
-              path.exists(object, from = from, to = to, direct = direct,
-                 underlying.graph = underlying.graph, debug = debug))
-        setMethod("score", cl, where = topenv(parent.frame()),
+        setMethod("score", cl, where = .GlobalEnv,
           function(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE)
             network.score(x = x, data = data, type = type, ...,
               by.node = by.node, debug = debug))
@@ -87,12 +84,6 @@ tryMethod = function(f, signature, definition, generic) {
     tryMethod("degree", cl,
       definition = function(object, Nodes) .degree(object, Nodes),
       generic = function(object, Nodes, ...) standardGeneric("degree"))
-    tryMethod("path", cl,
-      definition = function(object, from, to, direct = TRUE,
-                     underlying.graph = FALSE, debug = FALSE)
-                       path.exists(object, from = from, to = to, direct = direct,
-                          underlying.graph = underlying.graph, debug = debug),
-      generic = function(object, ...) standardGeneric("path"))
     tryMethod("score", cl,
       definition = function(x, data, type = NULL, ..., by.node = FALSE,
                      debug = FALSE)

@@ -1,7 +1,7 @@
 #include "data.structures.h"
 
 /* from linear.algebra.c */
-double c_det(double *matrix, int rows);
+double c_logdet(double *matrix, int rows);
 void c_udvt(double **u, double **d, double **vt, int ncol);
 void c_svd(double *A, double *U, double *D, double *V, int *nrow, int *ncol,
     int *mindim, bool strict, int *errcode);

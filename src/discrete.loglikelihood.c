@@ -3,7 +3,19 @@
 #include "include/data.frame.h"
 #include "include/contingency.tables.h"
 
-double dlik(SEXP x, double *nparams) {
+double dlik(counts1d marginal) {
+
+double res = 0;
+
+  for (int i = 0; i < marginal.llx; i++)
+    if (marginal.n[i] != 0)
+      res += (double)marginal.n[i] * log((double)marginal.n[i] / marginal.nobs);
+
+  return res;
+
+}/*DLIK*/
+
+double loglik_dnode_root(SEXP x, double *nparams) {
 
 double res = 0;
 counts1d marginal = { 0 };
@@ -13,9 +25,7 @@ counts1d marginal = { 0 };
   fill_1d_table(INTEGER(x), &marginal, length(x));
 
   /* compute the entropy from the marginal frequencies. */
-  for (int i = 0; i < marginal.llx; i++)
-    if (marginal.n[i] != 0)
-      res += (double)marginal.n[i] * log((double)marginal.n[i] / marginal.nobs);
+  res = dlik(marginal);
 
   /* we may want to store the number of parameters. */
   if (nparams)
@@ -25,9 +35,21 @@ counts1d marginal = { 0 };
 
   return res;
 
-}/*DLIK*/
+}/*LOGLIK_DNODE_ROOT*/
 
-double cdlik(SEXP x, SEXP y, double *nparams) {
+double cdlik(counts2d joint) {
+double res = 0;
+
+  for (int i = 0; i < joint.llx; i++)
+    for (int j = 0; j < joint.lly; j++)
+      if (joint.n[i][j] != 0)
+        res += (double)joint.n[i][j] * log((double)joint.n[i][j] / joint.nj[j]);
+
+  return res;
+
+}/*CDLIK*/
+
+double loglik_dnode_parents(SEXP x, SEXP y, double *nparams) {
 
 double res = 0;
 counts2d joint = { 0 };
@@ -36,12 +58,8 @@ counts2d joint = { 0 };
   joint = new_2d_table(NLEVELS(x), NLEVELS(y), TRUE);
   fill_2d_table(INTEGER(x), INTEGER(y), &joint, length(x));
 
-  /* compute the conditional entropy from the joint and marginal
-       frequencies. */
-  for (int i = 0; i < joint.llx; i++)
-    for (int j = 0; j < joint.lly; j++)
-      if (joint.n[i][j] != 0)
-        res += (double)joint.n[i][j] * log((double)joint.n[i][j] / joint.nj[j]);
+  /* compute the conditional entropy from the joint and marginal frequencies. */
+  res = cdlik(joint);
 
   /* we may want to store the number of parameters. */
   if (nparams)
@@ -51,7 +69,7 @@ counts2d joint = { 0 };
 
   return res;
 
-}/*CDLIK*/
+}/*LOGLIK_DNODE_PARENTS*/
 
 double loglik_dnode(SEXP target, SEXP x, SEXP data, double *nparams,
     bool debugging) {
@@ -70,7 +88,7 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
 
   if (length(parents) == 0) {
 
-    loglik = dlik(data_t, nparams);
+    loglik = loglik_dnode_root(data_t, nparams);
 
   }/*THEN*/
   else {
@@ -79,7 +97,7 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
     PROTECT(parent_vars = c_dataframe_column(data, parents, FALSE, FALSE));
     PROTECT(config = c_configurations(parent_vars, TRUE, TRUE));
     /* compute the log-likelihood. */
-    loglik = cdlik(data_t, config, nparams);
+    loglik = loglik_dnode_parents(data_t, config, nparams);
 
     UNPROTECT(2);
 

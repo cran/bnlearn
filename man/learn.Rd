@@ -46,6 +46,13 @@ learn.nbr(x, node, method, whitelist = NULL, blacklist = NULL,
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }
+\note{
+
+  All algorithms used by \code{learn.mb()} and \code{learn.nbr()} accept
+  incomplete data, which they handle by computing individual conditional
+  independence tests on locally complete observations.
+
+}
 \value{
 
   A vector of character strings, the labels of the nodes in the Markov blanket

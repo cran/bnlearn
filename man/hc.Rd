@@ -57,6 +57,7 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ...,
 
 }
 \author{Marco Scutari}
-\seealso{\link{constraint-based algorithms}, \link{hybrid algorithms}, \cr
-  \link{local discovery algorithms}, \link{alpha.star}.}
+\seealso{\code{\link{network scores}}, \link{constraint-based algorithms},
+  \link{hybrid algorithms}, \link{local discovery algorithms},
+  \link{alpha.star}.}
 \keyword{structure learning}

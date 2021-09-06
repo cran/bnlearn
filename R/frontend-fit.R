@@ -1,7 +1,7 @@
 
 # fit the parameters of the bayesian network for a given network stucture.
-bn.fit = function(x, data, cluster = NULL, method = "mle", ...,
-  keep.fitted = TRUE, debug = FALSE) {
+bn.fit = function(x, data, cluster, method = "mle", ..., keep.fitted = TRUE,
+    debug = FALSE) {
 
   # check x's class.
   check.bn(x)
@@ -27,9 +27,9 @@ bn.fit = function(x, data, cluster = NULL, method = "mle", ...,
   check.logical(keep.fitted)
 
   # check the cluster.
-  if (!is.null(cluster)) {
+  cluster = check.cluster(cluster)
 
-    check.cluster(cluster)
+  if (!is.null(cluster)) {
 
     # set up the slave processes.
     slaves.setup(cluster)

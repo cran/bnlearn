@@ -1,4 +1,4 @@
-\name{preprocess}
+\name{data preprocessing}
 \alias{discretize}
 \alias{dedup}
 \title{Pre-process data to better learn Bayesian networks}
@@ -23,10 +23,9 @@
     discretization}, \code{quantile} for \emph{quantile discretization}
     (the default) or \code{hartemink} for \emph{Hartemink's pairwise mutual
     information} method.}
-  \item{breaks}{if \code{method} is set to \code{hartemink}, an integer number,
-    the number of levels the variables are to be discretized into. Otherwise,
-    a vector of integer numbers, one for each column of the data set, specifying
-    the number of levels for each variable.}
+  \item{breaks}{an integer number, the number of levels the variables will be
+    discretized into; or a vector of integer numbers, one for each column of the
+    data set, specifying the number of levels for each variable.}
   \item{ordered}{a boolean value. If \code{TRUE} the discretized variables are
     returned as ordered factors instead of unordered ones.}
   \item{\dots}{additional tuning parameters, see below.}
@@ -35,26 +34,25 @@
 }
 \details{
 
-  \code{discretize()} takes a data frame of continuous variables as its first
-  argument and returns a secdond data frame of discrete variables, transformed
-  using of three methods: \code{interval}, \code{quantile} or \code{hartemink}.
+  \code{discretize()} takes a data frame as its first argument and returns a
+  secdond data frame of discrete variables, transformed using of three methods:
+  \code{interval}, \code{quantile} or \code{hartemink}. Discrete variables are
+  left unchanged.
+
+  The \code{hartemink} method has two additional tuning parameters:
+  \itemize{
+
+    \item \code{idisc}: the method used for the initial marginal discretization
+      of the variables, either \code{interval} or \code{quantile}.
+    \item \code{ibreaks}: the number of levels the variables are initially
+      discretized into, in the same format as in the \code{breaks} argument.
+
+  }
 
   \code{dedup()} screens the data for pairs of highly correlated variables, and
-   discards one in each pair.
+  discards one in each pair.
 
-}
-\note{
-
-  Hartemink's algorithm has been designed to deal with sets of homogeneous,
-  continuous variables; this is the reason why they are initially transformed
-  into discrete variables, all with the same number of levels (given by the
-  \code{ibreaks} argument). Which of the other algorithms is used is specified
-  by the \code{idisc} argument (\code{quantile} is the default). The
-  implementation in \pkg{bnlearn} also handles sets of discrete variables
-  with the same number of levels, which are treated as adjacent interval
-  identifiers. This allows the user to perform the initial discretization
-  with the algorithm of his choice, as long as all variables have the same
-  number of levels in the end.
+  Both \code{discretize()} and \code{dedup()} accept data with missing values.
 
 }
 \value{
@@ -68,7 +66,7 @@
 }
 \examples{
 data(gaussian.test)
-d = discretize(gaussian.test, method = 'hartemink', breaks = 4, ibreaks = 20)
+d = discretize(gaussian.test, method = 'hartemink', breaks = 4, ibreaks = 10)
 plot(hc(d))
 d2 = dedup(gaussian.test)
 }

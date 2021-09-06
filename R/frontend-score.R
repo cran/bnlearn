@@ -41,7 +41,7 @@ AIC.bn = function(object, data, ..., k = 1) {
   # check which type of data we are dealing with.
   type = data.type(data)
 
-  # parameter sanitization done in the score() function.
+  # argument sanitization is performed in the score() function.
   if (type %in% discrete.data.types)
     network.score(object, data = data, type = "aic", k = k, ...)
   else if (type == "continuous")
@@ -57,7 +57,7 @@ BIC.bn = function(object, data, ...) {
   # check which type of data we are dealing with.
   type = data.type(data)
 
-  # parameter sanitization done in the score() function.
+  # argument sanitization is performed in the score() function.
   if (type %in% discrete.data.types)
     network.score(object, data = data, type = "bic", ...)
   else if (type == "continuous")
@@ -73,7 +73,7 @@ logLik.bn = function(object, data, ...) {
   # check which type of data we are dealing with.
   type = data.type(data)
 
-  # parameter sanitization done in the score() function.
+  # argument sanitization is performed in the score() function.
   if (type %in% discrete.data.types)
     network.score(x = object, data = data, type = "loglik", ...)
   else if (type == "continuous")
@@ -103,6 +103,8 @@ alpha.star = function(x, data, debug = FALSE) {
 
 # infer the direction of an ipothetic arc between two specified nodes.
 choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) {
+
+  warning("the choose.direction() function is deprecated and will be removed in 2022.")
 
   # check x's class.
   check.bn(x)

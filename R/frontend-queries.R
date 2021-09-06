@@ -16,9 +16,9 @@ cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ...,
   check.label(method, choices = cpq.algorithms, labels = cpq.labels,
     argname = "query method", see = "cpquery")
   # check the cluster.
-  if (!is.null(cluster)) {
+  cluster = check.cluster(cluster)
 
-    check.cluster(cluster)
+  if (!is.null(cluster)) {
 
     # disable debugging, the slaves do not cat() here.
     if (debug) {

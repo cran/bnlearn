@@ -20,23 +20,23 @@
   constraint-based algorithms.
 }
 \usage{
-pc.stable(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+pc.stable(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
   alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = FALSE)
-gs(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+gs(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
   alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = FALSE)
-iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+iamb(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
   alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = FALSE)
-fast.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+fast.iamb(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
   alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = FALSE)
-inter.iamb(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+inter.iamb(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
   alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = FALSE)
-iamb.fdr(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+iamb.fdr(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
   alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = FALSE)
-mmpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+mmpc(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
   alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = TRUE)
-si.hiton.pc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+si.hiton.pc(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
   alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = TRUE)
-hpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
+hpc(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
   alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = TRUE)
 }
 \arguments{
@@ -76,7 +76,9 @@ hpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
   for parameter learning.
 
   See \code{\link{structure learning}} for a complete list of structure learning
-  algorithms with the respective references.
+  algorithms with the respective references. All algorithms accept incomplete
+  data, which they handle by computing individual conditional independence tests
+  on locally complete observations.
 
 }
 \value{
@@ -86,6 +88,6 @@ hpc(x, cluster = NULL, whitelist = NULL, blacklist = NULL, test = NULL,
 
 }
 \author{Marco Scutari}
-\seealso{\link{local discovery algorithms},
+\seealso{\code{\link{independence tests}}, \link{local discovery algorithms},
   \link{score-based algorithms}, \link{hybrid algorithms}, \link{cextend}.}
 \keyword{structure learning}

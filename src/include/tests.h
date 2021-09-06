@@ -67,6 +67,7 @@ double c_chisqtest(int *xx, int llx, int *yy, int lly, int num, double *df,
     test_e test, bool scale);
 double mi_kernel(counts2d table);
 double x2_kernel(counts2d table);
+double mi_kernel_collapsed(counts2d table, int k);
 double c_cchisqtest(int *xx, int llx, int *yy, int lly, int *zz, int llz,
     int num, double *df, test_e test, bool scale);
 double cmi_kernel(counts3d table);

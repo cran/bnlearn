@@ -58,14 +58,3 @@ roundrobin.test = function(x, z, fixed, data, test, B = 0L, alpha = 1,
 
 }#ROUNDROBIN.TEST
 
-# Mutual Information (discrete data)
-mi.test = function(x, y, ndata, gsquare = TRUE, adjusted = FALSE) {
-
-  .Call(call_mi,
-        x = x,
-        y = y,
-        gsquare = gsquare,
-        adjusted = adjusted)
-
-}#MI.TEST
-

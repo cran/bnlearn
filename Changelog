@@ -1,6 +1,28 @@
+bnlearn (4.7)
+
+  * removed the "moral" argument from vstructs() and cpdag().
+  * removed the path() alias to path.exists().
+  * the "nodes" argument has been removed from averaged.network(), it was not
+     meaningfully used anywhere.
+  * the choose.direction() function is now deprecated, and it will also be
+     removed by the end of 2022.
+  * faster sanitization of bn objects (thanks David Quesada).
+  * fixed an overflow in the BGe score that produced NaN values (thanks David
+     Quesada).
+  * Date and POSIXct objects are not valid inputs for functions in bnlearn
+     (thanks David Purves).
+  * export the function computing the significance threshold in
+     averaged.network() as inclusion.threshold() (thanks Noriaki Sato).
+  * fixed the sanitization of custom cutpoints in strength.plot().
+  * reimplemented discretize() in C for speed, Hartemink's discretization is
+     faster by a factor of at least 2x.
+  * discretize() now handles data with missing values.
+  * merged an implementation of the factorized NML and the quotient NML scores
+     from Tomi Silander.
+
 bnlearn (4.6.1)
 
-  * Fixed out-of-bounds memory access in discretize().
+  * Fixed out-of-bounds memory access in discretize() (thanks Brian Ripley).
 
 bnlearn (4.6)
 

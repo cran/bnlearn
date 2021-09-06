@@ -128,7 +128,7 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
 
     /* no parents, reuse the marginal likelihoods. */
     if (TYPEOF(data_t) == INTSXP)
-      loglik = dlik(data_t, nparams);
+      loglik = loglik_dnode_root(data_t, nparams);
     else
       loglik = glik(data_t, nparams);
 
@@ -161,7 +161,7 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
      else {
 
        PROTECT(config = c_configurations(parent_vars, TRUE, TRUE));
-       loglik = cdlik(data_t, config, nparams);
+       loglik = loglik_dnode_parents(data_t, config, nparams);
        UNPROTECT(1);
 
      }/*ELSE*/

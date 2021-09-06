@@ -180,7 +180,7 @@ spouses = function(x, node) {
   check.nodes(nodes = node, graph = x, max.nodes = 1)
 
   chld = children(x, node)
-  sp = sapply(chld, parents, x = x)
+  sp = unique(unlist(lapply(chld, parents, x = x)))
 
   return(setdiff(as.character(sp), node))
 

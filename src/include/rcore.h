@@ -49,7 +49,7 @@ void BN_Free3D(void ***p, size_t R, size_t C);
   length(getAttrib(VECTOR_ELT(data, j), R_LevelsSymbol))
 
 /* from common.c */
-int c_is(SEXP obj, const char *str);
+bool c_is(SEXP obj, const char *str);
 SEXP getListElement(SEXP list, char *str);
 void *DATAPTR(SEXP x);
 SEXP unique(SEXP array);

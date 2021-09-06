@@ -116,3 +116,32 @@ check.node.groups = function(groups, graph = NULL) {
   }#ELSE
 
 }#CHECK.NODE.GROUPS
+
+# check whether a graph is completely directed (has no undirected arcs).
+is.dag = function(arcs, nodes) {
+
+  if (nrow(arcs) == 0)
+    return(TRUE)
+
+  .Call(call_is_dag,
+        arcs = arcs,
+        nnodes = nodes)
+
+}#IS.DAG
+
+# alias of is.dag for readable code.
+is.pdag = function(arcs, nodes) !is.dag(arcs, nodes)
+
+# generic is.acyclic backend (calls the right one for the graph at hand).
+is.acyclic = function(arcs, nodes, return.nodes = FALSE, directed = FALSE,
+    debug = FALSE) {
+
+  .Call(call_is_pdag_acyclic,
+        arcs = arcs,
+        nodes = nodes,
+        return_nodes = return.nodes,
+        directed = directed,
+        debug = debug)
+
+}#IS.ACYCLIC.BACKEND
+

@@ -6,10 +6,6 @@
 
 void meta_init_flags(meta *m, int offset, SEXP complete, SEXP fixed) {
 
-  /* allocate the flags if not allocated already (as is the case for cgdata). */
-  if (!(*m).flag)
-    (*m).flag = Calloc1D((*m).ncols, sizeof(flags));
-
   if (complete != R_NilValue) {
 
     int *cc = LOGICAL(complete);
@@ -48,8 +44,6 @@ int i = 0, j = 0;
 
   if (!(*dest).names && (*src).names)
     (*dest).names = Calloc1D((*src).ncols, sizeof(char *));
-  if (!(*dest).flag && (*src).flag)
-    (*dest).flag = Calloc1D((*src).ncols, sizeof(flags));
 
   for (i = 0; i < (*src).ncols; i++) {
 
@@ -60,6 +54,12 @@ int i = 0, j = 0;
       (*dest).names[j] = (*src).names[i];
     if ((*src).flag)
       (*dest).flag[j] = (*src).flag[i];
+
+    /* the source and the destination are different structs, the columns belong
+     * with the former and not with the latter. */
+    if (src != dest)
+      (*dest).flag[j].own = FALSE;
+
     j++;
 
   }/*FOR*/
@@ -75,8 +75,6 @@ int i = 0;
 
   if (!(*dest).names && (*src).names)
     (*dest).names = Calloc1D((*src).ncols, sizeof(char *));
-  if (!(*dest).flag && (*src).flag)
-    (*dest).flag = Calloc1D((*src).ncols, sizeof(flags));
 
   for (i = 0; i < nids; i++) {
 
@@ -84,6 +82,11 @@ int i = 0;
       (*dest).names[i] = (*src).names[ids[i]];
     if ((*src).flag)
       (*dest).flag[i] = (*src).flag[ids[i]];
+
+    /* the source and the destination are different structs, the columns belong
+     * with the former and not with the latter. */
+    if (src != dest)
+      (*dest).flag[i].own = FALSE;
 
   }/*FOR*/
 
@@ -95,9 +98,17 @@ int i = 0;
 void meta_copy(meta *src, meta *dest) {
 
 int i = 0;
+bool own = FALSE;
 
-  for (i = 0; i < (*src).ncols; i++)
+  /* copy all the flags that describe the contents and the types of the columns,
+   * but preserve ownership of the memory in the destination struct. */
+  for (i = 0; i < (*src).ncols; i++) {
+
+    own = (*dest).flag[i].own;
     (*dest).flag[i] = (*src).flag[i];
+    (*dest).flag[i].own = own;
+
+  }/*FOR*/
 
   (*dest).nobs = (*src).nobs;
   (*dest).ncols = (*src).ncols;
@@ -107,15 +118,13 @@ int i = 0;
 void print_meta(meta *m, int i) {
 
   Rprintf("%10s", (*m).names ? (*m).names[i] : "");
-  if (!(*m).flag)
-    Rprintf("[····]");
-  else
-    Rprintf(" [%s%s%s%s]",
-      ((*m).flag[i].discrete ? "D" : " "),
-      ((*m).flag[i].gaussian ? "G" : " "),
-      ((*m).flag[i].complete ? "C" : " "),
-      ((*m).flag[i].fixed ? "F" : " "),
-      ((*m).flag[i].drop ? "D" : " "));
+  Rprintf(" [%s%s%s%s%s]",
+    ((*m).flag[i].own ? "O" : "P"),
+    ((*m).flag[i].discrete ? "D" : " "),
+    ((*m).flag[i].gaussian ? "G" : " "),
+    ((*m).flag[i].complete ? "C" : " "),
+    ((*m).flag[i].fixed ? "F" : " "),
+    ((*m).flag[i].drop ? "D" : " "));
 
 }/*PRINT_META*/
 
@@ -155,12 +164,17 @@ ddata dt = { 0 };
 
 ddata empty_ddata(int nobs, int ncols) {
 
+int i = 0;
 ddata dt = { 0 };
 
   dt.m.nobs = nobs;
   dt.m.ncols = ncols;
   dt.col = Calloc1D(ncols, sizeof(int *));
   dt.nlvl = Calloc1D(ncols, sizeof(int));
+
+  dt.m.flag = Calloc1D(ncols, sizeof(flags));
+  for (i = 0; i < ncols; i++)
+    dt.m.flag[i] = (flags){ .discrete = TRUE, .complete = TRUE, .own = FALSE };
 
   return dt;
 
@@ -224,15 +238,18 @@ int i = 0;
 }/*DDATA_SUBSET_COLUMNS*/
 
 /* free a discrete data table. */
-void FreeDDT(ddata dt, bool free_data) {
+void FreeDDT(ddata dt) {
 
-  /* free the columns holding the data and the pointers, or free just the
-   * pointers. */
-  if (free_data)
-    Free2D(dt.col, dt.m.ncols);
-  else
-    Free1D(dt.col);
+int i = 0;
 
+  /* free the columns that belong with the struct, and leave the rest alone. */
+  for (i = 0; i < dt.m.ncols; i++)
+    if (dt.m.flag[i].own)
+      Free1D(dt.col[i]);
+  /* free the column pointers, unconditionally. */
+  Free1D(dt.col);
+
+  /* free the numbers of levels and, finally, the meta data. */
   Free1D(dt.nlvl);
   FreeMETA(&(dt.m));
 
@@ -264,8 +281,13 @@ gdata new_gdata(int nobs, int ncols) {
 
 gdata dt = empty_gdata(nobs, ncols);
 
-  for (int j = 0; j < ncols; j++)
+  for (int j = 0; j < ncols; j++) {
+
     dt.col[j] = Calloc1D(nobs, sizeof(double));
+    /* the columns belong with the struct, flag them so that they are freed. */
+    dt.m.flag[j].own = TRUE;
+
+  }/*FOR*/
 
   return dt;
 
@@ -273,11 +295,16 @@ gdata dt = empty_gdata(nobs, ncols);
 
 gdata empty_gdata(int nobs, int ncols) {
 
+int i = 0;
 gdata dt = { 0 };
 
   dt.m.nobs = nobs;
   dt.m.ncols = ncols;
   dt.col = Calloc1D(ncols, sizeof(double *));
+
+  dt.m.flag = Calloc1D(ncols, sizeof(flags));
+  for (i = 0; i < ncols; i++)
+    dt.m.flag[i] = (flags){ .gaussian = TRUE, .complete = TRUE, .own = FALSE };
 
   return dt;
 
@@ -387,15 +414,18 @@ int i = 0, j = 0, k = 0;
 }/*GDATA_SUBSAMPLE_BY_LOGICAL*/
 
 /* free a Gaussian data table. */
-void FreeGDT(gdata dt, bool free_data) {
+void FreeGDT(gdata dt) {
 
-  /* free the columns holding the data and the pointers, or free just the
-   * pointers. */
-  if (free_data)
-    Free2D(dt.col, dt.m.ncols);
-  else
-    Free1D(dt.col);
+int i = 0;
 
+  /* free the columns that belong with the struct, and leave the rest alone. */
+  for (i = 0; i < dt.m.ncols; i++)
+    if (dt.m.flag[i].own)
+      Free1D(dt.col[i]);
+  /* free the column pointers, unconditionally. */
+  Free1D(dt.col);
+
+  /* free the cached means and, finally, the meta data. */
   Free1D(dt.mean);
   FreeMETA(&(dt.m));
 
@@ -489,12 +519,38 @@ cgdata dt = empty_cgdata(nobs, dcols, gcols);
   for (j = 0; j < gcols; j++)
     dt.gcol[j] = Calloc1D(nobs, sizeof(double));
 
+  /* the columns belong with the struct, flag them so that they are freed. */
+  for (j = 0; j < dcols + gcols; j++)
+    dt.m.flag[j].own = TRUE;
+
+  /* map the columns to the pointes, sequentially, starting from the discrete
+   * variables. */
+  for (j = 0; j < dcols; j++)
+    dt.map[j] = j;
+  for (j = 0; j < gcols; j++)
+    dt.map[dcols + j] = j;
+
+  /* set the flags for the data types to match the map. */
+  for (j = 0; j < dcols; j++) {
+
+    dt.m.flag[j].discrete = TRUE;
+    dt.m.flag[j].gaussian = FALSE;
+
+  }/*FOR*/
+  for (j = 0; j < gcols; j++) {
+
+    dt.m.flag[dcols + j].discrete = FALSE;
+    dt.m.flag[dcols + j].gaussian = TRUE;
+
+  }/*FOR*/
+
   return dt;
 
 }/*NEW_CGDATA*/
 
 cgdata empty_cgdata(int nobs, int dcols, int gcols) {
 
+int i = 0;
 cgdata dt = { 0 };
 
   dt.m.nobs = nobs;
@@ -505,7 +561,10 @@ cgdata dt = { 0 };
   dt.dcol = Calloc1D(dcols, sizeof(int *));
   dt.nlvl = Calloc1D(dcols, sizeof(int));
   dt.map = Calloc1D(dcols + gcols, sizeof(int));
+
   dt.m.flag = Calloc1D(dcols + gcols, sizeof(flags));
+  for (i = 0; i < dcols + gcols; i++)
+    dt.m.flag[i] = (flags){ .complete = TRUE, .own = FALSE };
 
   return dt;
 
@@ -522,17 +581,10 @@ int i = 0;
 
     print_meta(&(dt.m), i);
 
-    if (dt.m.flag[i].discrete) {
-
-      Rprintf("@%p", (void *)dt.dcol[dt.map[i]]);
+    if (dt.m.flag[i].discrete)
       Rprintf(" levels: %d", dt.nlvl[dt.map[i]]);
-
-    }/*THEN*/
-    else {
-
+    else
       Rprintf("@%p", (void *)dt.gcol[dt.map[i]]);
-
-    }/*ELSE*/
 
     Rprintf("\n");
 
@@ -670,23 +722,28 @@ int j = 0, k = 0, l = 0;
 
 }/*CGDATA_SUBSAMPLE_BY_LOGICAL*/
 
-void FreeCGDT(cgdata dt, bool free_data) {
+void FreeCGDT(cgdata dt) {
 
-  /* free the columns holding the data and the pointers, or free just the
-   * pointers. */
-  if (free_data) {
+int j = 0;
 
-    Free2D(dt.gcol, dt.ngcols);
-    Free2D(dt.dcol, dt.ndcols);
+  /* free the columns that belong with the struct, and leave the rest alone. */
+  for (j = 0; j < dt.m.ncols; j++) {
 
-  }/*THEN*/
-  else {
+    if (!dt.m.flag[j].own)
+      continue;
 
-    Free1D(dt.gcol);
-    Free1D(dt.dcol);
+    if (dt.m.flag[j].discrete)
+      Free1D(dt.dcol[dt.map[j]]);
+    else if (dt.m.flag[j].gaussian)
+      Free1D(dt.gcol[dt.map[j]]);
 
-  }/*ELSE*/
+  }/*FOR*/
 
+  /* free the column pointers, unconditionally. */
+  Free1D(dt.gcol);
+  Free1D(dt.dcol);
+
+  /* free the numbers of levels, the column map and, finally, the meta data. */
   Free1D(dt.nlvl);
   Free1D(dt.map);
   FreeMETA(&(dt.m));

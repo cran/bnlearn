@@ -9,7 +9,7 @@
 }
 \usage{
 bn.boot(data, statistic, R = 200, m = nrow(data), algorithm,
-  algorithm.args = list(), statistic.args = list(), cluster = NULL,
+  algorithm.args = list(), statistic.args = list(), cluster,
   debug = FALSE)
 }
 \arguments{

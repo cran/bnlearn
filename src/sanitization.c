@@ -83,7 +83,7 @@ SEXP counts, rows, cols, temp;
 SEXP data_type(SEXP data) {
 
 int i = 0, numeric = 0, categorical = 0, ordinal = 0, ncol = length(data);
-SEXP column, nodes = getAttrib(data, R_NamesSymbol);
+SEXP column, class, nodes = getAttrib(data, R_NamesSymbol);
 
   for (i = 0; i  < ncol; i++) {
 
@@ -92,23 +92,58 @@ SEXP column, nodes = getAttrib(data, R_NamesSymbol);
     switch(TYPEOF(column)) {
 
       case REALSXP:
+        /* dates are built on numeric variables, but are not interpretable as
+         * numbers because they are somewhat discrete instead of continuous. */
+        if (c_is(column, "Date")) {
+
+          error("variable %s is not supported in bnlearn (type: Date)).",
+              NODE(i));
+
+        }/*THEN*/
+        if (c_is(column, "POSIXct")) {
+
+          error("variable %s is not supported in bnlearn (type: POSIXct)).",
+              NODE(i));
+
+        }/*THEN*/
+
         numeric++;
         break;
 
       case INTSXP:
+        /* the only allowed integer types are factors and ordinals, for which we
+         * know the domain. */
         if (c_is(column, "ordered"))
           ordinal++;
         else if (c_is(column, "factor"))
           categorical++;
-        else
+        else {
+
           error("variable %s is not supported in bnlearn (type: %s).",
             NODE(i), type2char(TYPEOF(column)));
+
+        }/*ELSE*/
 
         break;
 
       default:
-          error("variable %s is not supported in bnlearn (type: %s).",
-            NODE(i), type2char(TYPEOF(column)));
+          class = getAttrib(column, R_ClassSymbol);
+
+          /* in the error message, report the class instead of the type if there
+           * is one, it is more informative because many classes are just lists
+           * with class attributes. */
+          if (length(class) == 0) {
+
+            error("variable %s is not supported in bnlearn (type: %s).",
+              NODE(i), type2char(TYPEOF(column)));
+
+          }/*THEN*/
+          else {
+
+            error("variable %s is not supported in bnlearn (class: %s).",
+              NODE(i), CHAR(STRING_ELT(class, 0)));
+
+          }/*ELSE*/
 
     }/*SWITCH*/
 

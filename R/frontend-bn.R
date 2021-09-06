@@ -114,12 +114,11 @@ blacklist = function(x) {
 }#BLACKLIST
 
 # reconstruct the equivalence class of a network.
-cpdag = function(x, moral = FALSE, wlbl = FALSE, debug = FALSE) {
+cpdag = function(x, wlbl = FALSE, debug = FALSE) {
 
   # check x's class.
   check.bn.or.fit(x)
-  # check moral, debug and wlbl.
-  check.logical(moral)
+  # check debug and wlbl.
   check.logical(debug)
   check.logical(wlbl)
 
@@ -139,10 +138,7 @@ cpdag = function(x, moral = FALSE, wlbl = FALSE, debug = FALSE) {
     if (any(which.listed(x$arcs, x$learning$blacklist)))
       stop("blacklisted arcs present in the graph.")
 
-  if (moral)
-    warning("the 'moral' argument is deprecated and will be removed in 2021.")
-
-  cpdag.backend(x = x, moral = moral, wlbl = wlbl, debug = debug)
+  cpdag.backend(x = x, wlbl = wlbl, debug = debug)
 
 }#CPDAG
 
@@ -227,26 +223,15 @@ shielded.colliders = function(x, arcs = FALSE, debug = FALSE) {
 }#UNSHIELDED.COLLIDERS
 
 # return the v-structures in a network.
-vstructs = function(x, arcs = FALSE, moral = FALSE, debug = FALSE) {
+vstructs = function(x, arcs = FALSE, debug = FALSE) {
 
   # check x's class.
   check.bn.or.fit(x)
-  # check debug, moral and arcs.
+  # check debug and arcs.
   check.logical(arcs)
-  check.logical(moral)
   check.logical(debug)
 
-  if (moral) {
-
-    warning("the 'moral' argument is deprecated and will be removed in 2021.")
-    colliders(x, arcs = arcs, debug = debug)
-
-  }#THEN
-  else {
-
-    unshielded.colliders(x, arcs = arcs, debug = debug)
-
-  }#ELSE
+  unshielded.colliders(x, arcs = arcs, debug = debug)
 
 }#VSTRUCTS
 

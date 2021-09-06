@@ -9,13 +9,15 @@ isClusterRunning = function(cl) {
 # check the status of the snow/parallel cluster.
 check.cluster = function(cluster) {
 
-  if (is.null(cluster))
-    return(TRUE)
-  if (!is(cluster, supported.clusters))
+  if (missing(cluster) || is.null(cluster))
+    return(NULL)
+  if (!is(cluster, "cluster"))
     stop("cluster is not a valid cluster object.")
   check.and.load.package("parallel")
   if (!isClusterRunning(cluster))
     stop("the cluster is stopped.")
+
+  return(cluster)
 
 }#CHECK.CLUSTER
 

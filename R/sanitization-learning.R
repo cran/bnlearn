@@ -82,7 +82,7 @@ check.maxp = function(maxp, data) {
 
 }#CHECK.MAXP
 
-# check parameters related to the random restart functions.
+# check arguments controlling random restart.
 check.restart = function(restart) {
 
   # set the default value if not specified.
@@ -163,7 +163,8 @@ check.learning.algorithm.args = function(args, algorithm, bn) {
   if (!is.list(args))
       args = as.list(args)
 
-  # if a reference bn is specified, guess as many parameters as possbile.
+  # if a reference bn is available, inherit the values of as many arguments as
+  # possbile.
   if (!(missing(algorithm) || missing(bn))) {
 
     # use the same score/conditional independence test.
@@ -175,7 +176,7 @@ check.learning.algorithm.args = function(args, algorithm, bn) {
         if (bn$learning$test %in% available.tests)
           args$test = bn$learning$test
 
-      # pass along all the parameters in bn$learning$args.
+      # pass along all the learning arguments in bn$learning$args.
       if (length(bn$learning$args) > 0) {
 
         if ("alpha" %!in% names(args))
@@ -198,9 +199,9 @@ check.learning.algorithm.args = function(args, algorithm, bn) {
       if ("optimized" %!in% names(args))
         args$optimized = bn$learning$optimized
 
-      # pass along the relevant parameters in bn$learning$args if the score
-      # function is the same (hint: different scores have paramenters with
-      # the same name but different meanings).
+      # pass along the relevant arguments in bn$learning$args if the score
+      # function is the same (different scores have paramenters with the same
+      # name but different meanings).
       if (("score" %in% names(args)) && (args$score == bn$learning$test))
         for (arg in names(bn$learning$args))
           if ((arg %!in% names(args)) && (arg %in% (score.extra.args[[args$score]])))

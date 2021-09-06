@@ -328,7 +328,7 @@ cgdata dtx_cur = { 0 };
   }/*FOR*/
 
   Free1D(zptr);
-  FreeCGDT(dtx_cur, FALSE);
+  FreeCGDT(dtx_cur);
 
   return statistic;
 
@@ -399,10 +399,10 @@ cgdata dty_complete = { 0 };
   Free1D(missing_x);
   Free1D(missing_yz);
   Free1D(missing_all);
-  FreeCGDT(dt_complete, TRUE);
-  FreeCGDT(dtx_cur, FALSE);
-  FreeCGDT(dtx_complete, TRUE);
-  FreeCGDT(dty_complete, TRUE);
+  FreeCGDT(dt_complete);
+  FreeCGDT(dtx_cur);
+  FreeCGDT(dtx_complete);
+  FreeCGDT(dty_complete);
 
   return statistic;
 
@@ -491,7 +491,7 @@ gdata dt_complete = { 0 };
   if (!complete) {
 
     Free1D(missing_yz);
-    FreeGDT(dt_complete, TRUE);
+    FreeGDT(dt_complete);
 
   }/*THEN*/
 
@@ -532,9 +532,9 @@ SEXP xx2, yy2, zz, cc, result;
 
     statistic = ct_discrete(dtx, dty, dtz, pvalue, &df, test_type);
 
-    FreeDDT(dtx, FALSE);
-    FreeDDT(dty, FALSE);
-    FreeDDT(dtz, FALSE);
+    FreeDDT(dtx);
+    FreeDDT(dty);
+    FreeDDT(dtz);
 
   }/*THEN*/
   else if ((test_type == COR) || (test_type == ZF) || (test_type == MI_G) ||
@@ -556,8 +556,8 @@ SEXP xx2, yy2, zz, cc, result;
 
     }/*ELSE*/
 
-    FreeGDT(dtx, FALSE);
-    FreeGDT(dt, FALSE);
+    FreeGDT(dtx);
+    FreeGDT(dt);
 
   }/*THEN*/
   else if (test_type == MI_CG) {
@@ -571,9 +571,9 @@ SEXP xx2, yy2, zz, cc, result;
     else
       statistic = ct_micg_with_missing(dtx, dty, dtz, pvalue, &df);
 
-    FreeCGDT(dtx, FALSE);
-    FreeCGDT(dty, FALSE);
-    FreeCGDT(dtz, FALSE);
+    FreeCGDT(dtx);
+    FreeCGDT(dty);
+    FreeCGDT(dtz);
 
   }/*THEN*/
   else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
@@ -585,9 +585,9 @@ SEXP xx2, yy2, zz, cc, result;
     statistic = ct_dperm(dtx, dty, dtz, pvalue, &df, test_type, INT(B),
                   IS_SMC(test_type) ? NUM(alpha) : 1);
 
-    FreeDDT(dtx, FALSE);
-    FreeDDT(dty, FALSE);
-    FreeDDT(dtz, FALSE);
+    FreeDDT(dtx);
+    FreeDDT(dty);
+    FreeDDT(dtz);
 
   }/*THEN*/
   else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
@@ -599,8 +599,8 @@ SEXP xx2, yy2, zz, cc, result;
     statistic = ct_gperm(dtx, dt, pvalue, &df, test_type, INT(B),
                   IS_SMC(test_type) ? NUM(alpha) : 1, all_equal(cc, TRUESEXP));
 
-    FreeGDT(dtx, FALSE);
-    FreeGDT(dt, FALSE);
+    FreeGDT(dtx);
+    FreeGDT(dt);
 
   }/*THEN*/
 

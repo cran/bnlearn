@@ -1,5 +1,5 @@
 
-# parameter sanitization for arc operations.
+# operate on arcs in a network.
 arc.operations = function(x, from, to, op = NULL, check.cycles,
     check.illegal, update = TRUE, debug = FALSE) {
 

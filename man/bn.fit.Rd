@@ -11,7 +11,7 @@
 
 }
 \usage{
-bn.fit(x, data, cluster = NULL, method = "mle", \dots, keep.fitted = TRUE,
+bn.fit(x, data, cluster, method = "mle", \dots, keep.fitted = TRUE,
   debug = FALSE)
 custom.fit(x, dist, ordinal, debug = FALSE)
 bn.net(x, debug = FALSE)
@@ -43,6 +43,10 @@ bn.net(x, debug = FALSE)
   \code{bn.fit()} fits the parameters of a Bayesian network given its structure
   and a data set; \code{bn.net} returns the structure underlying a fitted
   Bayesian network.
+
+  \code{bn.fit()} accepts data with missing values encoded as \code{NA}, and it
+  uses locally complete observations to fit the parameters of each local
+  distribution.
 
   Additional arguments for the \code{bn.fit()} function:
 
@@ -126,7 +130,7 @@ bn.net(x, debug = FALSE)
 data(learning.test)
 
 # learn the network structure.
-res = gs(learning.test)
+res = pc.stable(learning.test)
 # set the direction of the only undirected arc, A - B.
 res = set.arc(res, "A", "B")
 # estimate the parameters of the Bayesian network.

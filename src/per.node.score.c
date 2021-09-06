@@ -264,6 +264,33 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
       }/*FOR*/
       break;
 
+    /* Factorized Normalized Maximum Likelihood. */
+    case FNML:
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = fnml_node(cur, network, data, debugging);
+
+      }/*FOR*/
+      break;
+
+    /* Quotient Normalized Maximum Likelihood. */
+    case QNML:
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = qnml_node(cur, network, data, debugging);
+
+      }/*FOR*/
+
+      Free1D(regret_table);
+
+      break;
+
     case CUSTOM:
 
       custom_fn = getListElement(extra_args, "fun");

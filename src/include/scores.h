@@ -1,3 +1,4 @@
+#include "contingency.tables.h"
 
 /* enum for scores, to be matched from the label string passed down from R. */
 typedef enum {
@@ -13,6 +14,8 @@ typedef enum {
   K2             =   8, /* K2 score. */
   MBDE           =   9, /* Bayesian Dirichlet equivalent score, interventional data .*/
   BDLA           =  10, /* Bayesian Dirichlet score, locally averaged. */
+  FNML           =  11, /* Factorized Normalized Maximum Likelihood. */
+  QNML           =  12, /* Quotient Normalized Maximum Likelihood. */
 
   LOGLIK_G       = 100, /* log-likelihood, Gaussian data. */
   PRED_LOGLIK_G  = 101, /* predictive log-likelihood, Gaussian data. */
@@ -55,9 +58,11 @@ SEXP per_node_score(SEXP network, SEXP data, SEXP score, SEXP targets,
 void c_per_node_score(SEXP network, SEXP data, SEXP score, SEXP targets,
     SEXP extra_args, bool debugging, double *res);
 
-/* score functions exported to per.node.score.c */
-double dlik(SEXP x, double *nparams);
-double cdlik(SEXP x, SEXP y, double *nparams);
+/* score functions exported to per.node.score.c and to other score functions */
+double dlik(counts1d marginal);
+double cdlik(counts2d joint);
+double loglik_dnode_root(SEXP x, double *nparams);
+double loglik_dnode_parents(SEXP x, SEXP y, double *nparams);
 double loglik_dnode(SEXP target, SEXP x, SEXP data, double *nparams,
     bool debugging);
 double pdnode(SEXP x, SEXP new_x, double *nparams);
@@ -87,3 +92,13 @@ double wishart_node(SEXP target, SEXP x, SEXP data, SEXP iss, SEXP nu,
     SEXP iss_w, SEXP prior, SEXP beta, bool debugging);
 double custom_score_function(SEXP target, SEXP x, SEXP data, SEXP custom_fn,
     SEXP custom_args, bool debugging);
+double fnml_node(SEXP target, SEXP x, SEXP data, bool debugging);
+double qnml_node(SEXP target, SEXP x, SEXP data, bool debugging);
+
+/* exports for the regret table of normalized maximum likelihood scores. */
+#define MAX_REGRET_TABLE_N 1000
+#define MAX_REGRET_TABLE_K 100
+extern double *regret_table;
+
+double nml_regret(double n, double k);
+double *get_regret_table(int N, int K);

@@ -4,12 +4,13 @@
 /* flags for the columns (variables) of a data table, stored in the metadata. */
 typedef struct {
 
+  unsigned int own      : 1;  /* this column belongs with the struct. */
   unsigned int discrete : 1;  /* this column is discrete data. */
   unsigned int gaussian : 1;  /* this column is Gaussian data. */
   unsigned int complete : 1;  /* this column contains no missing data points. */
   unsigned int fixed    : 1;  /* this column should never be (re)moved. */
   unsigned int drop     : 1;  /* this column is to be removed. */
-  unsigned int padding  : 3;  /* pad to 1 byte. */
+  unsigned int padding  : 2;  /* pad to 1 byte. */
 
 } flags;
 

@@ -100,7 +100,7 @@ ddata sub = { 0 };
   }/*FOR*/
 
   Free1D(zptr);
-  FreeDDT(sub, FALSE);
+  FreeDDT(sub);
 
 }/*RRD_DISCRETE*/
 
@@ -116,7 +116,6 @@ covariance cov = { 0 }, backup = { 0 };
   /* allocate a second data table to hold the conditioning variables. */
   sub = empty_gdata(dt.m.nobs, dt.m.ncols);
   sub.m.names = Calloc1D(dt.m.ncols, sizeof(char *));
-  sub.m.flag = Calloc1D(dt.m.ncols, sizeof(flags));
   sub.mean = Calloc1D(dt.m.ncols, sizeof(double));
 
   /* allocate the covariance matrix. */
@@ -215,7 +214,7 @@ covariance cov = { 0 }, backup = { 0 };
 
   }/*WHILE*/
 
-  FreeGDT(sub, FALSE);
+  FreeGDT(sub);
   FreeCOV(backup);
   FreeCOV(cov);
 
@@ -235,7 +234,6 @@ covariance cov = { 0 }, backup = { 0 };
   /* allocate a second data table to hold the conditioning variables. */
   sub = empty_gdata(dt.m.nobs, dt.m.ncols);
   sub.m.names = Calloc1D(dt.m.ncols, sizeof(char *));
-  sub.m.flag = Calloc1D(dt.m.ncols, sizeof(flags));
 
   /* allocate the covariance matrix. */
   cov = new_covariance(dt.m.ncols, TRUE);
@@ -339,7 +337,7 @@ covariance cov = { 0 }, backup = { 0 };
 
   }/*WHILE*/
 
-  FreeGDT(sub, FALSE);
+  FreeGDT(sub);
   FreeCOV(backup);
   FreeCOV(cov);
   Free1D(missing);
@@ -478,8 +476,8 @@ cgdata sub = { 0 }, dty = { 0 };
   }/*FOR*/
 
   Free1D(configurations);
-  FreeCGDT(sub, FALSE);
-  FreeCGDT(dty, FALSE);
+  FreeCGDT(sub);
+  FreeCGDT(dty);
 
 }/*RRD_MICG_COMPLETE*/
 
@@ -494,13 +492,43 @@ double statistic = 0, df = 0;
 bool *missing_x = NULL, *missing_all = NULL;
 cgdata dtx_complete = { 0 }, dty = { 0 }, dty_complete = { 0 };
 cgdata sub = { 0 }, sub_complete = { 0 };
+meta sub_meta = { 0 }, dty_meta = { 0 }, dtx_complete_meta = { 0 };
+meta dty_complete_meta = { 0 }, sub_complete_meta = { 0 };
+int *sub_map = NULL, *dty_map = NULL, *dtx_complete_map = NULL;
+int *dty_complete_map = NULL, *sub_complete_map = NULL;
 
-  /* allocate a second data table to hold the conditioning variables. */
+  /* allocate a second data table to hold the conditioning variables, and back
+   * their metadata up to restore them later. */
   dty = empty_cgdata(dtz.m.nobs, 1, 1);
+  dty_meta.flag = Calloc1D(dty.m.ncols, sizeof(flags));
+  meta_copy(&(dty.m), &dty_meta);
+  dty_map = Calloc1D(dty.m.ncols, sizeof(int));
+  memcpy(dty_map, dty.map, dty.m.ncols * sizeof(int));
+
   sub = empty_cgdata(dtz.m.nobs, dtz.ndcols, dtz.ngcols);
+  sub_meta.flag = Calloc1D(sub.m.ncols, sizeof(flags));
+  meta_copy(&(sub.m), &sub_meta);
+  sub_map = Calloc1D(sub.m.ncols, sizeof(int));
+  memcpy(sub_map, sub.map, sub.m.ncols * sizeof(int));
+
   sub_complete = new_cgdata(dtz.m.nobs, dtz.ndcols, dtz.ngcols);
+  sub_complete_meta.flag = Calloc1D(sub_complete.m.ncols, sizeof(flags));
+  meta_copy(&(sub_complete.m), &sub_complete_meta);
+  sub_complete_map = Calloc1D(sub_complete.m.ncols, sizeof(int));
+  memcpy(sub_complete_map, sub_complete.map, sub_complete.m.ncols * sizeof(int));
+
   dtx_complete = new_cgdata(dtx.m.nobs, dtx.ndcols, dtx.ngcols);
+  dtx_complete_meta.flag = Calloc1D(dtx_complete.m.ncols, sizeof(flags));
+  meta_copy(&(dtx_complete.m), &dtx_complete_meta);
+  dtx_complete_map = Calloc1D(dtx_complete.m.ncols, sizeof(int));
+  memcpy(dtx_complete_map, dtx_complete.map, dtx_complete.m.ncols * sizeof(int));
+
   dty_complete = new_cgdata(dty.m.nobs, dty.ndcols, dty.ngcols);
+  dty_complete_meta.flag = Calloc1D(dty_complete.m.ncols, sizeof(flags));
+  meta_copy(&(dty_complete.m), &dty_complete_meta);
+  dty_complete_map = Calloc1D(dty_complete.m.ncols, sizeof(int));
+  memcpy(dty_complete_map, dty_complete.map, dty_complete.m.ncols * sizeof(int));
+
   configurations = Calloc1D(dtz.m.nobs, sizeof(int));
 
   /* allocate the missingness indicators. */
@@ -521,9 +549,9 @@ cgdata sub = { 0 }, sub_complete = { 0 };
      * that have already been found to be independent). */
     dtz.m.flag[i].drop = TRUE;
     cgdata_drop_flagged(&dtz, &sub);
+
     /* extract the variable to test. */
     cgdata_subset_columns(&dtz, &dty, &i, 1);
-
     /* find out which observations are missing... */
     memcpy(missing_all, missing_x, dtz.m.nobs * sizeof(bool));
     cgdata_incomplete_cases(&sub, missing_all, 1, 1);
@@ -575,17 +603,36 @@ end:
 
   }/*FOR*/
 
+  /* restore data tables to their original state to ensure memory is freed.*/
+  meta_copy(&dty_meta, &(dty.m));
+  memcpy(dty.map, dty_map, dty.m.ncols * sizeof(int));
+  meta_copy(&sub_meta, &(sub.m));
+  memcpy(sub.map, sub_map, sub.m.ncols * sizeof(int));
+  meta_copy(&sub_complete_meta, &(sub_complete.m));
+  memcpy(sub_complete.map, sub_complete_map, sub_complete.m.ncols * sizeof(int));
+  meta_copy(&dtx_complete_meta, &(dtx_complete.m));
+  memcpy(dtx_complete.map, dtx_complete_map, dtx_complete.m.ncols * sizeof(int));
+  meta_copy(&dty_complete_meta, &(dty_complete.m));
+  memcpy(dty_complete.map, dty_complete_map, dty_complete.m.ncols * sizeof(int));
+
+  Free1D(dty_map);
+  Free1D(sub_map);
+  Free1D(sub_complete_map);
+  Free1D(dtx_complete_map);
+  Free1D(dty_complete_map);
+  FreeMETA(&dty_meta);
+  FreeMETA(&sub_meta);
+  FreeMETA(&sub_complete_meta);
+  FreeMETA(&dtx_complete_meta);
+  FreeMETA(&dty_complete_meta);
   Free1D(missing_x);
   Free1D(missing_all);
   Free1D(configurations);
-  sub_complete.ndcols = dtz.ndcols;
-  sub_complete.ngcols = dtz.ngcols;
-  FreeCGDT(sub_complete, TRUE);
-  FreeCGDT(dtx_complete, TRUE);
-  dty_complete.ndcols = dty_complete.ngcols = 1;
-  FreeCGDT(dty_complete, TRUE);
-  FreeCGDT(dty, FALSE);
-  FreeCGDT(sub, FALSE);
+  FreeCGDT(sub_complete);
+  FreeCGDT(dtx_complete);
+  FreeCGDT(dty_complete);
+  FreeCGDT(dty);
+  FreeCGDT(sub);
 
 }/*RRD_MICG_WITH_MISSING*/
 
@@ -637,7 +684,7 @@ ddata sub = { 0 };
   }/*FOR*/
 
   Free1D(zptr);
-  FreeDDT(sub, FALSE);
+  FreeDDT(sub);
 
 }/*RRD_DPERM*/
 
@@ -653,14 +700,12 @@ gdata sub = { 0 }, sub_complete = { 0 };
   /* allocate a second data table to hold the conditioning variables. */
   sub = empty_gdata(dt.m.nobs, dt.m.ncols);
   sub.m.names = Calloc1D(dt.m.ncols, sizeof(char *));
-  sub.m.flag = Calloc1D(dt.m.ncols, sizeof(flags));
 
   if (!complete) {
 
     missing = Calloc1D(dt.m.nobs, sizeof(bool));
     sub_complete = new_gdata(dt.m.nobs, dt.m.ncols);
     sub_complete.m.names = Calloc1D(dt.m.ncols, sizeof(char *));
-    sub_complete.m.flag = Calloc1D(dt.m.ncols, sizeof(flags));
 
   }/*THEN*/
 
@@ -712,11 +757,11 @@ gdata sub = { 0 }, sub_complete = { 0 };
   if (!complete) {
 
     Free1D(missing);
-    FreeGDT(sub_complete, TRUE);
+    FreeGDT(sub_complete);
 
   }/*THEN*/
 
-  FreeGDT(sub, FALSE);
+  FreeGDT(sub);
 
 }/*RRD_GPERM*/
 
@@ -754,8 +799,8 @@ SEXP xx, zz, cc, which_fixed, result;
 
     rrd_discrete(dtx, dtz, test_type, pvalue, a, debugging);
 
-    FreeDDT(dtx, FALSE);
-    FreeDDT(dtz, FALSE);
+    FreeDDT(dtx);
+    FreeDDT(dtz);
 
   }/*THEN*/
   else if ((test_type == COR) || (test_type == ZF) || (test_type == MI_G) ||
@@ -781,7 +826,7 @@ SEXP xx, zz, cc, which_fixed, result;
 
     }/*ELSE*/
 
-    FreeGDT(dt, FALSE);
+    FreeGDT(dt);
 
   }/*THEN*/
   else if (test_type == MI_CG) {
@@ -804,8 +849,8 @@ SEXP xx, zz, cc, which_fixed, result;
 
     }/*ELSE*/
 
-    FreeCGDT(dtx, FALSE);
-    FreeCGDT(dtz, FALSE);
+    FreeCGDT(dtx);
+    FreeCGDT(dtz);
 
   }/*THEN*/
   else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
@@ -820,8 +865,8 @@ SEXP xx, zz, cc, which_fixed, result;
     rrd_dperm(dtx, dtz, test_type, pvalue, a, INT(B), IS_SMC(test_type) ? a : 1,
       debugging);
 
-    FreeDDT(dtx, FALSE);
-    FreeDDT(dtz, FALSE);
+    FreeDDT(dtx);
+    FreeDDT(dtz);
 
   }/*THEN*/
   else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
@@ -837,7 +882,7 @@ SEXP xx, zz, cc, which_fixed, result;
     rrd_gperm(dt, test_type, pvalue, a, INT(B), IS_SMC(test_type) ? a : 1,
       all_equal(cc, TRUESEXP), debugging);
 
-    FreeGDT(dt, FALSE);
+    FreeGDT(dt);
 
   }/*THEN*/
 

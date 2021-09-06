@@ -286,7 +286,8 @@ as.prediction.bn.strength = function(x, true, ..., consider.direction = TRUE) {
   if (is.pdag(true$arcs, nodes))
     stop("the graph is only partially directed.")
   # check the arc strengths.
-  check.bn.strength(x, nodes = nodes, valid = c("bootstrap", "bayes-factor"))
+  check.bn.strength(x, valid = c("bootstrap", "bayes-factor"))
+  check.bn.strength.vs.bn(x, nodes)
 
   # check consider.direction.
   check.logical(consider.direction)

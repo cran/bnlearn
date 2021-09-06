@@ -13,7 +13,7 @@
 \usage{
 bn.cv(data, bn, loss = NULL, ..., algorithm.args = list(),
   loss.args = list(), fit = "mle", fit.args = list(), method = "k-fold",
-  cluster = NULL, debug = FALSE)
+  cluster, debug = FALSE)
 
 \method{plot}{bn.kcv}(x, ..., main, xlab, ylab, connect = FALSE)
 \method{plot}{bn.kcv.list}(x, ..., main, xlab, ylab, connect = FALSE)
@@ -105,36 +105,42 @@ loss(x)
     \item \emph{Log-Likelihood Loss} (\code{logl}): also known as \emph{negative
       entropy} or \emph{negentropy}, it is the negated expected log-likelihood
       of the test set for the Bayesian network fitted from the training set.
+      Lower valuer are better.
     \item \emph{Gaussian Log-Likelihood Loss} (\code{logl-g}): the negated
-      expected log-likelihood for Gaussian Bayesian networks.
+      expected log-likelihood for Gaussian Bayesian networks. Lower values are
+      better.
     \item \emph{Classification Error} (\code{pred}): the \emph{prediction error}
       for a single node in a discrete network. Frequentist predictions are used,
       so the values of the target node are predicted using only the information
-      present in its local distribution (from its parents).
+      present in its local distribution (from its parents). Lower values are
+      better.
     \item \emph{Posterior Classification Error} (\code{pred-lw} and
       \code{pred-lw-cg}): similar to the above, but predictions are computed
       from an arbitrary set of nodes using likelihood weighting to obtain
       Bayesian posterior estimates. \code{pred-lw} applies to discrete Bayesian
-      networks, \code{pred-lw-cg} to (discrete nodes in) hybrid networks.
+      networks, \code{pred-lw-cg} to (discrete nodes in) hybrid networks. Lower
+      values are better.
     \item \emph{Exact Classification Error} (\code{pred-exact}): closed-form
-      exact posterior predictions are available for Bayesian network classifiers.
+      exact posterior predictions are available for Bayesian network
+      classifiers. Lower values are better.
     \item \emph{Predictive Correlation} (\code{cor}): the \emph{correlation}
       between the observed and the predicted values for a single node in a
-      Gaussian Bayesian network.
+      Gaussian Bayesian network. Higher values are better.
     \item \emph{Posterior Predictive Correlation} (\code{cor-lw} and
       \code{cor-lw-cg}): similar to the above, but predictions are computed from
       an arbitrary set of nodes using likelihood weighting to obtain Bayesian
       posterior estimates. \code{cor-lw} applies to Gaussian networks and
-      \code{cor-lw-cg} to (continuous nodes in) hybrid networks.
+      \code{cor-lw-cg} to (continuous nodes in) hybrid networks. Higher values
+      are better.
     \item \emph{Mean Squared Error} (\code{mse}): the \emph{mean squared error}
       between the observed and the predicted values for a single node in a
-      Gaussian Bayesian network.
+      Gaussian Bayesian network. Lower values are better.
     \item \emph{Posterior Mean Squared Error} (\code{mse-lw} and
       \code{mse-lw-cg}): similar to the above, but predictions are computed from
       an arbitrary set of nodes using likelihood weighting to obtain Bayesian
       posterior estimates. \code{mse-lw} applies to Gaussian networks and
-      \code{mse-lw-cg} to (continuous nodes in) hybrid networks.
-
+      \code{mse-lw-cg} to (continuous nodes in) hybrid networks. Lower values
+      are better.
 
   }
 

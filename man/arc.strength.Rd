@@ -3,8 +3,9 @@
 \alias{boot.strength}
 \alias{custom.strength}
 \alias{bf.strength}
-\alias{averaged.network}
 \alias{mean.bn.strength}
+\alias{averaged.network}
+\alias{inclusion.threshold}
 \title{Measure arc strength}
 \description{
 
@@ -17,7 +18,7 @@
 # strength of the arcs present in x.
 arc.strength(x, data, criterion = NULL, ..., debug = FALSE)
 # strength of all possible arcs, as learned from bootstrapped data.
-boot.strength(data, cluster = NULL, R = 200, m = nrow(data),
+boot.strength(data, cluster, R = 200, m = nrow(data),
   algorithm, algorithm.args = list(), cpdag = TRUE, debug = FALSE)
 # strength of all possible arcs, from a list of custom networks.
 custom.strength(networks, nodes, weights = NULL, cpdag = TRUE, debug = FALSE)
@@ -28,7 +29,9 @@ bf.strength(x, data, score, ..., debug = FALSE)
 \method{mean}{bn.strength}(x, ..., weights = NULL)
 
 # averaged network structure.
-averaged.network(strength, nodes, threshold)
+averaged.network(strength, threshold)
+# strength threshold for inclusion in the averaged network structure.
+inclusion.threshold(strength)
 }
 \arguments{
   \item{x}{an object of class \code{bn.strength} (for \code{mean()}) or of
@@ -46,8 +49,7 @@ averaged.network(strength, nodes, threshold)
     arc to be included in the averaged network. The default value is the
     \code{threshold} attribute of the \code{strength} argument.}
   \item{nodes}{a vector of character strings, the labels of the nodes in the
-    network. In \code{\link{averaged.network}}, it defaults to the set of the
-    unique node labels in the \code{strength} argument.}
+    network.}
   \item{criterion,score}{a character string. For \code{arc.strength()}, the
     label of a score function or an independence test; see
     \code{\link{network scores}} for details.} For \code{bf.strength()}, the
@@ -145,22 +147,20 @@ averaged.network(strength, nodes, threshold)
   \bold{for model averaging and boostrap strength (confidence):}
 
   Friedman N, Goldszmidt M, Wyner A (1999). "Data Analysis with Bayesian
-	Networks: A Bootstrap Approach". \emph{Proceedings of the 15th Annual
-	Conference on Uncertainty in Artificial Intelligence}, 196--201.
+	  Networks: A Bootstrap Approach". \emph{Proceedings of the 15th Annual
+	  Conference on Uncertainty in Artificial Intelligence}, 196--201.
 
   \bold{for the computation of the bootstrap strength (confidence) significance
     threshold:}
 
-  Scutari M, Nagarajan R (2011). "On Identifying Significant Edges in Graphical
-    Models". \emph{Proceedings of the Workshop 'Probabilistic Problem Solving
-    in Biomedicine' of the 13th Artificial Intelligence in Medicine Conference},
-    15--27.
+  Scutari M, Nagarajan R (2013). "On Identifying Significant Edges in Graphical
+    Models of Molecular Networks". \emph{Artificial Intelligence in Medicine},
+    \strong{57}(3):207--217.
 
 }
 \examples{
 data(learning.test)
-res = gs(learning.test)
-res = set.arc(res, "A", "B")
+res = hc(learning.test)
 arc.strength(res, learning.test)
 
 \dontrun{

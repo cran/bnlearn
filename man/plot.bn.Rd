@@ -34,7 +34,7 @@
 }
 \examples{
 data(learning.test)
-res = gs(learning.test)
+res = pc.stable(learning.test)
 
 plot(res)
 

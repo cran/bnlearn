@@ -27,56 +27,52 @@ check.discretization.args = function(method, data, breaks, extra.args) {
 
   if (method == "hartemink") {
 
-    if (type %in% discrete.data.types) {
+    if (!is.null(extra.args$idisc)) {
 
-      extra.args$ibreaks = nlevels(data[, 1])
-      warning("data are already discrete, 'ibreaks' and 'idisc' are ignored.")
+      other.methods = available.discretization.methods[available.discretization.methods != "hartemink"]
+
+      check.label(extra.args$idisc, choices = other.methods,
+        labels = discretization.labels, argname = "initial discretization method",
+        see = "discretize")
 
     }#THEN
     else {
 
-      if (!is.null(extra.args$idisc)) {
+      # default to quantile discretization as per Hartemink's recommendation.
+      extra.args$idisc = "quantile"
 
-        other.methods = available.discretization.methods[available.discretization.methods != "hartemink"]
+    }#ELSE
 
-        check.label(extra.args$idisc, choices = other.methods,
-          labels = discretization.labels, argname = "initial discretization method",
-          see = "discretize")
+    if (!is.null(extra.args$ibreaks)) {
 
-      }#THEN
-      else {
+      if (length(extra.args$ibreaks) == 1)
+        extra.args$ibreaks = rep(extra.args$ibreaks, ncol(data))
+      else if (length(extra.args$ibreaks) != ncol(data))
+        stop("the 'ibreaks' vector must have an element for each variable in the data.")
+      if (!is.positive.vector(extra.args$ibreaks))
+        stop("the number of initial breaks must be a (vector of) positive integer number(s).")
+      if (any(extra.args$ibreaks < breaks))
+        stop("insufficient number of initial breaks, need at least ", breaks + 1, ".")
+      else if (any(extra.args$ibreaks == breaks))
+        warning("the initial number of breaks is identical to the final number of breaks.")
 
-        # default to quantile discretization as per Hartemink's recommendation.
-        extra.args$idisc = "quantile"
+    }#THEN
+    else {
 
-      }#ELSE
+      ndata = nrow(data)
 
-      if (!is.null(extra.args$ibreaks)) {
+      if (ndata > 500)
+        extra.args$ibreaks = 50
+      else if (ndata > 100)
+        extra.args$ibreaks = 20
+      else if (ndata > 50)
+        extra.args$ibreaks = 10
+      else if (ndata > 10)
+        extra.args$ibreaks = 5
+      else
+        extra.args$ibreaks = ndata
 
-        if (!is.positive.integer(extra.args$ibreaks))
-          stop("the number of initial breaks must be a positive integer number.")
-        if (extra.args$ibreaks < breaks)
-          stop("insufficient number of initial breaks, need at least ", breaks + 1, ".")
-        else if (extra.args$ibreaks == breaks)
-          warning("the initial number of breaks is identical to the final number of breaks.")
-
-      }#THEN
-      else {
-
-        ndata = nrow(data)
-
-        if (ndata > 500)
-          extra.args$ibreaks = 100
-        else if (ndata > 100)
-          extra.args$ibreaks = 50
-        else if (ndata > 50)
-          extra.args$ibreaks = 20
-        else if (ndata > 10)
-          extra.args$ibreaks = 10
-        else
-          extra.args$ibreaks = ndata
-
-      }#ELSE
+      extra.args$ibreaks = rep(extra.args$ibreaks, ncol(data))
 
     }#ELSE
 

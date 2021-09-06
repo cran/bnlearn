@@ -23,11 +23,6 @@ acyclic(x, directed = FALSE, debug = FALSE)
 directed(x)
 # check whether there is a path between two nodes.
 path.exists(x, from, to, direct = TRUE, underlying.graph = FALSE, debug = FALSE)
-# deprecated alias of path.exists().
-\S4method{path}{bn}(object, from, to, direct = TRUE, underlying.graph = FALSE,
-    debug = FALSE)
-\S4method{path}{bn.fit}(object, from, to, direct = TRUE,
-    underlying.graph = FALSE, debug = FALSE)
 # build the skeleton or a complete orientation of the graph.
 skeleton(x)
 pdag2dag(x, ordering)
@@ -35,9 +30,9 @@ pdag2dag(x, ordering)
 subgraph(x, nodes)
 }
 \arguments{
-  \item{x, object}{an object of class \code{bn}. \code{skeleton()}, \code{acyclic()},
-    \code{directed()}, \code{path.exixsts()} and \code{path()} also accept
-    objects of class \code{bn.fit}.}
+  \item{x}{an object of class \code{bn}. \code{skeleton()}, \code{acyclic()},
+    \code{directed()} and \code{path.exixsts()} also accept objects of class
+    \code{bn.fit}.}
   \item{from}{a character string, the label of a node.}
   \item{to}{a character string, the label of a node (different from
     \code{from}).}
@@ -70,7 +65,7 @@ subgraph(x, nodes)
 }
 \examples{
 data(learning.test)
-res = gs(learning.test)
+res = pc.stable(learning.test)
 
 acyclic(res)
 directed(res)

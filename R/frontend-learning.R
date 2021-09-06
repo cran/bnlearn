@@ -1,6 +1,6 @@
 
 # PC algorithm, the stable version.
-pc.stable = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+pc.stable = function(x, cluster, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
     undirected = FALSE) {
 
@@ -12,9 +12,8 @@ pc.stable = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 }#PC.CLASSIC
 
 # Grow-Shrink frontend.
-gs = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
-    undirected = FALSE) {
+gs = function(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+    alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
@@ -23,9 +22,8 @@ gs = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 }#GS
 
 # Incremental Association frontend.
-iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
-    undirected = FALSE) {
+iamb = function(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+    alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
@@ -34,7 +32,7 @@ iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 }#IAMB
 
 # Fast-IAMB frontend.
-fast.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+fast.iamb = function(x, cluster, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
     undirected = FALSE) {
 
@@ -46,7 +44,7 @@ fast.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 }#FAST.IAMB
 
 # Inter-IAMB frontend.
-inter.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+inter.iamb = function(x, cluster, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL,  max.sx = NULL, debug = FALSE,
     undirected = FALSE) {
 
@@ -58,9 +56,8 @@ inter.iamb = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 }#INTER.IAMB
 
 # IAMB-FDR frontend.
-iamb.fdr = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL,  max.sx = NULL, debug = FALSE,
-    undirected = FALSE) {
+iamb.fdr = function(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+    alpha = 0.05, B = NULL,  max.sx = NULL, debug = FALSE, undirected = FALSE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
@@ -70,9 +67,8 @@ iamb.fdr = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 }#IAMB.FDR
 
 # MMPC frontend.
-mmpc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
-    undirected = TRUE) {
+mmpc = function(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+    alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = TRUE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
@@ -82,7 +78,7 @@ mmpc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 }#MMPC
 
 # Semi-Interleaved HITON-PC.
-si.hiton.pc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
+si.hiton.pc = function(x, cluster, whitelist = NULL, blacklist = NULL,
     test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
     undirected = TRUE) {
 
@@ -94,9 +90,8 @@ si.hiton.pc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 }#SI.HITON.PC
 
 # Hybrid PC.
-hpc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE,
-    undirected = TRUE) {
+hpc = function(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+    alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE, undirected = TRUE) {
 
   bnlearn(x = x, cluster = cluster, whitelist = whitelist,
     blacklist = blacklist, test = test, alpha = alpha, B = B,
@@ -106,7 +101,7 @@ hpc = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
 # ARACNE frontend.
 aracne = function(x, whitelist = NULL, blacklist = NULL, mi = NULL,
-    debug = FALSE) {
+  debug = FALSE) {
 
   mi.matrix(x = x, whitelist = whitelist, blacklist = blacklist,
     method = "aracne", mi = mi, debug = debug)
@@ -158,8 +153,8 @@ rsmax2 = function(x, whitelist = NULL, blacklist = NULL, restrict = "si.hiton.pc
 }#RSMAX2
 
 # MMHC frontend.
-mmhc = function(x, whitelist = NULL, blacklist = NULL,
-    restrict.args = list(), maximize.args = list(), debug = FALSE) {
+mmhc = function(x, whitelist = NULL, blacklist = NULL, restrict.args = list(),
+  maximize.args = list(), debug = FALSE) {
 
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
     restrict = "mmpc", maximize = "hc", restrict.args = restrict.args,
@@ -168,8 +163,8 @@ mmhc = function(x, whitelist = NULL, blacklist = NULL,
 }#MMHC
 
 # H2PC frontend.
-h2pc = function(x, whitelist = NULL, blacklist = NULL,
-    restrict.args = list(), maximize.args = list(), debug = FALSE) {
+h2pc = function(x, whitelist = NULL, blacklist = NULL, restrict.args = list(),
+  maximize.args = list(), debug = FALSE) {
 
   hybrid.search(x, whitelist = whitelist, blacklist = blacklist,
     restrict = "hpc", maximize = "hc", restrict.args = restrict.args,
@@ -208,8 +203,8 @@ naive.bayes = function(x, training, explanatory) {
 }#NAIVE.BAYES
 
 # tree-augmented naive Bayes frontend.
-tree.bayes = function(x, training, explanatory, whitelist = NULL, blacklist = NULL,
-    mi = NULL, root = NULL, debug = FALSE) {
+tree.bayes = function(x, training, explanatory, whitelist = NULL,
+    blacklist = NULL, mi = NULL, root = NULL, debug = FALSE) {
 
   bayesian.classifier(x, training = training, explanatory = explanatory,
     method = "tree.bayes", whitelist = whitelist, blacklist = blacklist,

@@ -5,16 +5,16 @@
 
 /* -------------------- C level interfaces to LAPACK -------------------- */
 
-/* C-level function to compute the determinant of a real-valued square matrix,
- * modeled after the moddet_ge_real() function in Lapack.c. */
-double c_det(double *matrix, int rows) {
+/* C-level function to compute the log-determinant of a symmetric real matrix,
+   which can be either positive or NaN. */
+double c_logdet(double *matrix, int rows) {
 
 int sign = 1, i = 0, info = 0, *jpvt = NULL;
-double det = 1;
+long double logdet = 0;
 
   jpvt = (int *) Calloc(rows, int);
 
-  /* comute the A = L*U decomposition. */
+  /* compute the A = L*U decomposition. */
   F77_CALL(dgetrf)(&rows, &rows, matrix, &rows, jpvt, &info);
 
   if (info < 0) {
@@ -25,7 +25,7 @@ double det = 1;
   else if (info > 0) {
 
     /* the matrix is singular, so the determinant is zero. */
-    det = 0;
+    logdet = R_NegInf;
 
   }/*THEN*/
   else {
@@ -33,10 +33,16 @@ double det = 1;
     /* the matrix is full rank, compute the determinant. */
     for (i = 0; i < rows; i++) {
 
+      /* cumulate the sign changes introduced by pivoting... */
       if (jpvt[i] != (i + 1))
         sign = -sign;
 
-      det *= matrix[CMC(i, i, rows)];
+      /* ... and the signs of the eigenvalues. */
+      if (matrix[CMC(i, i, rows)] < 0)
+        sign = -sign;
+
+      /* compute the determinant on the log-scale disregarding the sign. */
+      logdet += log(fabs(matrix[CMC(i, i, rows)]));
 
     }/*FOR*/
 
@@ -44,9 +50,9 @@ double det = 1;
 
   Free(jpvt);
 
-  return sign * det;
+  return (sign > 0) ? (double) logdet : R_NaN;
 
-}/*C_DET*/
+}/*C_LOGDET*/
 
 /* C-level wrapper around the dgesdd() F77 routine. Note that the input
  * matrix A is overwritten by dgesdd(), so it's sensible to have a

@@ -123,7 +123,7 @@ ddata sub = { 0 };
 
         Free1D(subset);
         Free1D(zptr);
-        FreeDDT(sub, FALSE);
+        FreeDDT(sub);
 
         UNPROTECT(1);
         return retval;
@@ -137,7 +137,7 @@ ddata sub = { 0 };
   }/*FOR*/
 
   Free1D(zptr);
-  FreeDDT(sub, FALSE);
+  FreeDDT(sub);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
@@ -182,7 +182,7 @@ covariance cov = { 0 };
       PROTECT(retval = ast_prepare_retval(pvalue, min_pvalue, max_pvalue,
                          a, dt.m.names + 2, cursize + nf));
 
-      FreeGDT(sub, FALSE);
+      FreeGDT(sub);
 
       UNPROTECT(1);
       return retval;
@@ -262,7 +262,7 @@ covariance cov = { 0 };
 
         Free1D(subset);
         FreeCOV(cov);
-        FreeGDT(sub, FALSE);
+        FreeGDT(sub);
 
         UNPROTECT(1);
         return retval;
@@ -276,7 +276,7 @@ covariance cov = { 0 };
 
   }/*FOR*/
 
-  FreeGDT(sub, FALSE);
+  FreeGDT(sub);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
@@ -347,7 +347,7 @@ covariance cov = { 0 };
         PROTECT(retval = ast_prepare_retval(pvalue, min_pvalue, max_pvalue,
                            a, dt.m.names + 2, cursize + nf));
 
-        FreeGDT(sub, FALSE);
+        FreeGDT(sub);
         Free1D(missing_xy);
         Free1D(missing_all);
         Free1D(subset);
@@ -416,7 +416,7 @@ covariance cov = { 0 };
 
         Free1D(subset);
         FreeCOV(cov);
-        FreeGDT(sub, FALSE);
+        FreeGDT(sub);
         Free1D(mean);
         Free1D(missing_xy);
         Free1D(missing_all);
@@ -436,7 +436,7 @@ covariance cov = { 0 };
   }/*FOR*/
 
   Free1D(missing_xy);
-  FreeGDT(sub, FALSE);
+  FreeGDT(sub);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
@@ -580,7 +580,7 @@ cgdata sub = { 0 };
                            a, sub.m.names + 2, sub.m.ncols - 2));
 
         Free1D(subset);
-        FreeCGDT(sub, FALSE);
+        FreeCGDT(sub);
 
         UNPROTECT(1);
         return retval;
@@ -593,7 +593,7 @@ cgdata sub = { 0 };
 
   }/*FOR*/
 
-  FreeCGDT(sub, FALSE);
+  FreeCGDT(sub);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
@@ -753,10 +753,10 @@ exit:
                            a, sub_complete.m.names + 2, sub_complete.m.ncols - 2));
 
         Free1D(subset);
-        FreeCGDT(sub, FALSE);
-        FreeCGDT(sub_complete, TRUE);
-        FreeCGDT(dtx_complete, TRUE);
-        FreeCGDT(dty_complete, TRUE);
+        FreeCGDT(sub);
+        FreeCGDT(sub_complete);
+        FreeCGDT(dtx_complete);
+        FreeCGDT(dty_complete);
         Free1D(missing_xy);
         Free1D(missing_all);
 
@@ -771,10 +771,10 @@ exit:
 
   }/*FOR*/
 
-  FreeCGDT(sub, FALSE);
-  FreeCGDT(sub_complete, TRUE);
-  FreeCGDT(dtx_complete, TRUE);
-  FreeCGDT(dty_complete, TRUE);
+  FreeCGDT(sub);
+  FreeCGDT(sub_complete);
+  FreeCGDT(dtx_complete);
+  FreeCGDT(dty_complete);
   Free1D(missing_xy);
   Free1D(missing_all);
 
@@ -839,7 +839,7 @@ ddata sub = { 0 };
 
         Free1D(subset);
         Free1D(zptr);
-        FreeDDT(sub, FALSE);
+        FreeDDT(sub);
 
         UNPROTECT(1);
         return retval;
@@ -853,7 +853,7 @@ ddata sub = { 0 };
   }/*FOR*/
 
   Free1D(zptr);
-  FreeDDT(sub, FALSE);
+  FreeDDT(sub);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
@@ -957,8 +957,8 @@ gdata sub = { 0 }, sub_complete = { 0 };
         }/*THEN*/
 
         Free1D(subset);
-        FreeGDT(sub, FALSE);
-        FreeGDT(sub_complete, TRUE);
+        FreeGDT(sub);
+        FreeGDT(sub_complete);
 
         UNPROTECT(1);
         return retval;
@@ -967,7 +967,7 @@ gdata sub = { 0 }, sub_complete = { 0 };
 
     } while (next_subset(subset + nf + 2, cursize, dt.m.ncols - nf - 2, nf + 2));
 
-    FreeGDT(sub_complete, TRUE);
+    FreeGDT(sub_complete);
     Free1D(subset);
 
   }/*FOR*/
@@ -979,7 +979,7 @@ gdata sub = { 0 }, sub_complete = { 0 };
 
   }/*THEN*/
 
-  FreeGDT(sub, FALSE);
+  FreeGDT(sub);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
@@ -1060,9 +1060,9 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
     res = ast_discrete(dtx, dty, dtz, nf, minsize, maxsize, test_type, a,
             debugging);
 
-    FreeDDT(dtx, FALSE);
-    FreeDDT(dty, FALSE);
-    FreeDDT(dtz, FALSE);
+    FreeDDT(dtx);
+    FreeDDT(dty);
+    FreeDDT(dtz);
 
   }/*THEN*/
   else if ((test_type == COR) || (test_type == ZF) || (test_type == MI_G) ||
@@ -1090,7 +1090,7 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
 
     }/*ELSE*/
 
-    FreeGDT(dt, FALSE);
+    FreeGDT(dt);
 
   }/*THEN*/
   else if (test_type == MI_CG) {
@@ -1115,9 +1115,9 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
 
     }/*ELSE*/
 
-    FreeCGDT(dtx, FALSE);
-    FreeCGDT(dty, FALSE);
-    FreeCGDT(dtz, FALSE);
+    FreeCGDT(dtx);
+    FreeCGDT(dty);
+    FreeCGDT(dtz);
 
   }/*THEN*/
   else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
@@ -1131,9 +1131,9 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
     res = ast_dperm(dtx, dty, dtz, nf, minsize, maxsize, a, test_type,
             INT(B), IS_SMC(test_type) ? a : 1, debugging);
 
-    FreeDDT(dtx, FALSE);
-    FreeDDT(dty, FALSE);
-    FreeDDT(dtz, FALSE);
+    FreeDDT(dtx);
+    FreeDDT(dty);
+    FreeDDT(dtz);
 
   }/*THEN*/
   else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
@@ -1150,7 +1150,7 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
             INT(B), IS_SMC(test_type) ? a : 1, all_equal(cc, TRUESEXP),
             debugging);
 
-    FreeGDT(dt, FALSE);
+    FreeGDT(dt);
 
   }/*THEN*/
 

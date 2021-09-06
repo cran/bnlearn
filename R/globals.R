@@ -17,7 +17,8 @@ asymptotic.tests = c("mi", "mi-adf", "mi-g", "x2", "x2-adf", "zf", "jt", "mi-sh"
 
 available.discrete.bayesian.scores = c("bde", "bds", "bdj", "k2", "mbde", "bdla")
 available.discrete.scores =
-  c("loglik", "aic", "bic", "pred-loglik", available.discrete.bayesian.scores)
+  c("loglik", "aic", "bic", "pred-loglik", "fnml", "qnml",
+    available.discrete.bayesian.scores)
 available.continuous.bayesian.scores = c("bge")
 available.continuous.scores =
   c("loglik-g", "aic-g", "bic-g", "pred-loglik-g",
@@ -109,6 +110,8 @@ score.labels = c(
   'bic' = "BIC (disc.)",
   'loglik' = "Log-Likelihood (disc.)",
   'pred-loglik' = "Predictive Log-Likelihood (disc.)",
+  'fnml' = "Factorized Normalized Maximum Likelihood",
+  'qnml' = "Quotient Normalized Maximum Likelihood",
   'bge' = "Bayesian Gaussian (BGe)",
   'loglik-g' = "Log-Likelihood (Gauss.)",
   'pred-loglik-g' = "Predictive Log-Likelihood (Gauss.)",
@@ -133,6 +136,8 @@ score.extra.args = list(
   "bge" = c("prior", "beta", "nu", "iss.mu", "iss.w"),
   "loglik" = character(0),
   "pred-loglik" = c("newdata"),
+  "fnml" = character(0),
+  "qnml" = character(0),
   "loglik-g" = character(0),
   "pred-loglik-g" = c("newdata"),
   "aic-g" = c("k"),
@@ -280,8 +285,6 @@ imputation.labels = c(
   "parents" = "Parents (Maximum Likelihood)",
   "bayes-lw" = "Posterior Expectation (Likelihood Weighting)"
 )
-
-supported.clusters = c("MPIcluster", "PVMcluster","SOCKcluster")
 
 available.discretization.methods = c("quantile", "interval", "hartemink")
 

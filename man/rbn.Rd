@@ -28,7 +28,7 @@
 
   \code{rbn()} implements forward/logic sampling: values for the root nodes are
   sampled from their (unconditional) distribution, then those of their children
-  conditional on the respective parent sets. This is done iteratively until 
+  conditional on the respective parent sets. This is done iteratively until
   values have been sampled for all nodes.
 
   If \code{x} contains \code{NA} parameter estimates (because of unobserved
@@ -56,12 +56,11 @@
 \examples{
 \dontrun{
 data(learning.test)
-res = gs(learning.test)
-res = set.arc(res, "A", "B")
-par(mfrow = c(1,2))
+res = hc(learning.test)
+par(mfrow = c(1, 2))
 plot(res)
 sim = rbn(res, 500, learning.test)
-plot(gs(sim))}}
+plot(hc(sim))}}
 \author{Marco Scutari}
 \seealso{\code{\link{bn.boot}}, \code{\link{bn.cv}}.}
 \keyword{inference}

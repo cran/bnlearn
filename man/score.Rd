@@ -69,13 +69,19 @@
       scores. The default value is \code{1} for AIC and \code{log(nrow(data))/2}
       for BIC.
     \item \code{prior}: the prior distribution to be used with the various
-	  Bayesian Dirichlet scores (\code{bde}, \code{mbde}, \code{bds}, \code{bdj},
-	  \code{bdla}) and the Bayesian Gaussian score (\code{bge}). Possible
-	  values are \code{uniform} (the default), \code{vsp} (the Bayesian
-	  variable selection prior, which puts a probability of inclusion on
-	  parents), \code{marginal} (an independent marginal uniform for each arc)
-	  and \code{cs} (the Castelo & Siebes prior, which puts an independent
-	  prior probability on each arc and direction).
+      Bayesian Dirichlet scores (\code{bde}, \code{mbde}, \code{bds},
+      \code{bdj}, \code{bdla}) and the Bayesian Gaussian score (\code{bge}).
+      Possible values are:
+      \itemize{
+
+        \item \code{uniform} (the default).
+        \item \code{vsp}: the Bayesian variable selection prior, which puts a
+          probability of inclusion on parents.
+        \item \code{marginal}: an independent marginal uniform for each arc.
+        \item \code{cs}: the Castelo & Siebes prior, which puts an independent
+          prior probability on each arc and direction).
+
+      }
     \item \code{beta}: the parameter associated with \code{prior}.
 
       \itemize{
@@ -98,6 +104,17 @@
       computed by \code{pred-loglik}, \code{pred-loglik-g} or
       \code{pred-loglik-cg}. It should be a data frame with the same variables
       as \code{data}.
+    \item \code{fun}: the function that computes the score component for a
+      single node in the \code{custom} score. \code{fun} must have arguments
+      \code{node}, \code{parents}, \code{data} and \code{args}, in this order;
+      in other words, it must have signature \code{function(node, parents, data,
+      args)}. \code{node} will contain the label of the node to be scored (a
+      character string); \code{parents} will contain the labels of its parents
+      (a character vector); \code{data} will contain the complete data sets,
+      with all the variables (a data frame); and \code{args} will be a list
+      containing any additional arguments to the score.
+    \item \code{args}: a list containing the optional arguments to \code{fun},
+      for tuning \code{custom} score functions.
 
   }
 
@@ -129,11 +146,11 @@
 }
 \examples{
 data(learning.test)
-res = set.arc(gs(learning.test), "A", "B")
+res = hc(learning.test)
 score(res, learning.test, type = "bde")
 
 ## let's see score equivalence in action!
-res2 = set.arc(gs(learning.test), "B", "A")
+res2 = set.arc(res, "B", "A")
 score(res2, learning.test, type = "bde")
 
 ## K2 score on the other hand is not score equivalent.
@@ -150,8 +167,32 @@ score(res, learning.test, type = "loglik")
 
 ## equivalent to AIC(res, learning.test)
 score(res, learning.test, type = "aic")
+
+## custom score, computing BIC manually.
+my.bic = function(node, parents, data, args) {
+
+  n = nrow(data)
+
+  if (length(parents) == 0) {
+
+    counts = table(data[, node])
+    nparams = dim(counts) - 1
+    sum(counts * log(counts / n)) - nparams * log(n) / 2
+
+  }#THEN
+  else {
+
+    counts = table(data[, node], configs(data[, parents, drop = FALSE]))
+    nparams = ncol(counts) * (nrow(counts) - 1)
+    sum(counts * log(prop.table(counts, 2))) - nparams * log(n) / 2
+
+  }#ELSE
+
+}#MY.BIC
+score(res, learning.test, type = "custom", fun = my.bic, by.node = TRUE)
+score(res, learning.test, type = "bic", by.node = TRUE)
 }
-\seealso{\code{\link{choose.direction}}, \code{\link{arc.strength}},
-  \code{\link{alpha.star}}.}
+\seealso{\code{\link{network scores}}, \code{\link{choose.direction}},
+  \code{\link{arc.strength}}, \code{\link{alpha.star}}.}
 \author{Marco Scutari}
 \keyword{network scores}

@@ -73,7 +73,7 @@ gdata dt = { 0 };
 
   }/*FOR*/
 
-  FreeGDT(dt, FALSE);
+  FreeGDT(dt);
   UNPROTECT(1);
 
   return result;
@@ -394,7 +394,7 @@ gdata dt = { 0 };
 
   UNPROTECT(1);
 
-  FreeGDT(dt, FALSE);
+  FreeGDT(dt);
 
   return result;
 

@@ -27,6 +27,8 @@
 
   \itemize{
 
+    \item \code{nodes}: a vector of character strings, the labels of the nodes
+      of the network(s) the strength were computed from.
     \item \code{method}: a character string, the method used to compute the
       strength coefficients. It can be equal to \code{test}, \code{score} or
       \code{bootstrap}.

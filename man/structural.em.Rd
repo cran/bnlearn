@@ -69,6 +69,26 @@ structural.em(x, maximize = "hc", maximize.args = list(), fit = "mle",
     Conference on Machine Learning}, 125--133.
 
 }
+\examples{
+data(learning.test)
+
+# learn with incomplete data.
+incomplete.data = learning.test
+incomplete.data[1:100, 1] = NA
+incomplete.data[101:200, 2] = NA
+incomplete.data[1:200, 5] = NA
+structural.em(incomplete.data)
+
+\dontrun{
+# learn with a latent variable.
+incomplete.data = learning.test
+incomplete.data[seq(nrow(incomplete.data)), 1] = NA
+start = bn.fit(empty.graph(names(learning.test)), learning.test)
+wl = data.frame(from = c("A", "A"), to = c("B", "D"))
+structural.em(incomplete.data, start = start,
+  maximize.args = list(whitelist = wl))
+}
+}
 \author{Marco Scutari}
 \seealso{\link{score-based algorithms}, \link{bn.fit}, \link{impute}.}
 \keyword{structure learning}

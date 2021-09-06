@@ -15,22 +15,20 @@
 
 }
 \usage{
-cpdag(x, moral = FALSE, wlbl = FALSE, debug = FALSE)
+cpdag(x, wlbl = FALSE, debug = FALSE)
 cextend(x, strict = TRUE, debug = FALSE)
 moral(x, debug = FALSE)
 
 colliders(x, arcs = FALSE, debug = FALSE)
 shielded.colliders(x, arcs = FALSE, debug = FALSE)
 unshielded.colliders(x, arcs = FALSE, debug = FALSE)
-vstructs(x, arcs = FALSE, moral = FALSE, debug = FALSE)
+vstructs(x, arcs = FALSE, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn} or \code{bn.fit} (with the exception of
     \code{cextend}, which only accepts objects of class \code{bn}).}
   \item{arcs}{a boolean value. If \code{TRUE} the arcs that are part of at least
     one v-structure are returned instead of the v-structures themselves.}
-  \item{moral}{a boolean value. If \code{FALSE} we define a v-structure as in
-    Pearl (2000); if \code{TRUE}, as in Koller and Friedman (2009). See below.}
   \item{wlbl}{a boolean value. If \code{TRUE} arcs whose directions have been
     fixed by a whitelist or a by blacklist are preserved when constructing
     the CPDAG.}
@@ -41,25 +39,6 @@ vstructs(x, arcs = FALSE, moral = FALSE, debug = FALSE)
     printed; otherwise the function is completely silent.}
 }
 \details{
-
-  What kind of arc configuration is called a v-structure is not uniquely
-  defined in literature. The original definition from Pearl (2000), which is
-  still followed by most texts and papers, states that the two parents in the
-  v-structure must not be connected by an arc. However, Koller and Friedman
-  (2009) call that a \emph{immoral v-structure} and call a \emph{moral
-  v-structure} a v-structure in which the parents are linked by an arc. This
-  mirrors the \emph{unshielded} versus \emph{shielded collider} naming
-  convention, but it is confusing.
-
-  Setting \code{moral} to \code{TRUE} in \code{cpdag()} and \code{vstructs()}
-  makes those functions follow the definition from Koller and Friedman (2009);
-  the default value of \code{FALSE}, on the other hand, makes those functions
-  follow the definition from Pearl (2000). The former call \emph{v-structures}
-  both shielded and unshielded colliders (respectively \emph{moral v-structures}
-  and \emph{immoral v-structures}); the latter requires v-structures to be
-  unshielded colliders. Hence, the \code{moral} argument controls whether moral
-  v-structures (shielded colliders) are returned along with immoral v-structures
-  (unshielded collides).
 
   Note that arcs whose directions are dictated by the parametric assumptions of
   conditional linear Gaussian networks are preserved as directed arcs in
@@ -93,7 +72,7 @@ vstructs(x, arcs = FALSE, moral = FALSE, debug = FALSE)
 }
 \examples{
 data(learning.test)
-res = gs(learning.test)
+res = hc(learning.test)
 cpdag(res)
 vstructs(res)
 }

@@ -31,7 +31,7 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit = "mle"
     check.data(x, allow.levels = TRUE, allow.missing = TRUE,
       warn.if.no.missing = TRUE, stop.if.all.missing = !is(start, "bn.fit"))
 
-  # check the max.iter parameter.
+  # check the max.iter argument.
   max.iter = check.max.iter(max.iter)
   # check debug and return.data.
   check.logical(debug)

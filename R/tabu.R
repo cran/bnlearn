@@ -71,7 +71,7 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
     # keep the best network seen so far and its score value for the
     # evaluation of the stopping rule; but always create a "best network" in
     # the first iteration using the starting network.
-    if ((sum(reference.score) > best.score) || (iter == 1)) {
+    if ((robust.difference(sum(reference.score), best.score) > 0) || (iter == 1)) {
 
       best.network = start
       best.score = sum(reference.score)
@@ -206,7 +206,7 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
     }#THEN
     else {
 
-      if (sum(reference.score) > best.score)
+      if (robust.difference(sum(reference.score), best.score) > 0)
         loss.iter = 0
 
     }#ELSE
@@ -239,12 +239,13 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
       cat("* current network is :\n")
       print(start)
       cat("* current score:", sum(reference.score), "\n")
-      cat(sprintf("* best score up to now: %s (delta: %s)\n", format(best.score),
-        format(sum(reference.score) - best.score)))
+      cat(sprintf("* best score up to now: %s (delta: %s)\n",
+        format(best.score),
+        format(robust.difference(sum(reference.score), best.score))))
 
     }#THEN
 
-    # check the current iteration index against the max.iter parameter.
+    # check the current iteration index against max.iter.
     if (iter >= max.iter) {
 
       if (debug)

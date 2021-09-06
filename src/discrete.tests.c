@@ -7,27 +7,6 @@
     ((double)(cell)) * log(((double)(cell)) * ((double)(zmarg)) / \
     (((double)(xmarg)) * ((double)(ymarg)))))
 
-/* unconditional mutual information, to be used for the asymptotic test. */
-SEXP mi(SEXP x, SEXP y, SEXP gsquare, SEXP adjusted) {
-
-int llx = NLEVELS(x), lly = NLEVELS(y), num = length(x);
-int *xx = INTEGER(x), *yy = INTEGER(y);
-double *res = NULL;
-SEXP result;
-
-  PROTECT(result = allocVector(REALSXP, 2));
-  res = REAL(result);
-  if (isTRUE(adjusted))
-    res[0] = c_chisqtest(xx, llx, yy, lly, num, res + 1, MI_ADF, isTRUE(gsquare));
-  else
-    res[0] = c_chisqtest(xx, llx, yy, lly, num, res + 1, MI, isTRUE(gsquare));
-
-  UNPROTECT(1);
-
-  return result;
-
-}/*MI*/
-
 /* unconditional parametric asymptotic tests for categorical data. */
 double c_chisqtest(int *xx, int llx, int *yy, int lly, int num, double *df,
     test_e test, bool scale) {
@@ -126,6 +105,29 @@ long double res = 0;
   return (double)res;
 
 }/*MI_KERNEL*/
+
+/* midified mutual information for Hartemink's discretization. */
+double mi_kernel_collapsed(counts2d table, int k) {
+
+long double res = 0;
+
+  for (int i = 0; i < table.llx; i++) {
+
+    if ((i == k) || (i == k + 1))
+      continue;
+
+    for (int j = 0; j < table.lly; j++)
+      res += MI_PART(table.n[i][j], table.ni[i], table.nj[j], table.nobs);
+
+  }/*FOR*/
+
+  for (int j = 0; j < table.lly; j++)
+    res += MI_PART((table.n[k][j] + table.n[k + 1][j]),
+             table.ni[k] + table.ni[k + 1], table.nj[j], table.nobs);
+
+  return (double)res;
+
+}/*MI_KERNEL_COLLAPSED*/
 
 /* compute Pearson's X^2 coefficient. */
 double x2_kernel(counts2d table) {
