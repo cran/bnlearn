@@ -1,5 +1,5 @@
-d92d389179bc0d1c7e0d5e3e9d4434b5 *Changelog
-164a0223fdea7f953ad0ecce16f68de4 *DESCRIPTION
+48f0ee0680c6fd2c33861252f981e854 *Changelog
+0b651cc7e455c8eaba92d053cca1c8bf *DESCRIPTION
 8f0df80e43d96df5c182691a89d27228 *NAMESPACE
 bddbf1a9aededd9f1641ca1e4454db50 *R/aracne.R
 9b9bff177487557e5b4df49826849d32 *R/arc.operations.R
@@ -139,7 +139,7 @@ bc93e44b4ad500400a70e128cd8e828c *man/bn.fit.plots.Rd
 5438afbad64f23b2218c7f2d9f0d42de *man/bn.kcv.class.Rd
 3f3d5355c9d8752f1bc4db27a5fcc27f *man/bn.strength-class.Rd
 51889f7c6eba9bfc3415da4eda3e9c15 *man/bnboot.Rd
-8c3cd9d2070cb1387aabea7b2746ce42 *man/bnlearn-package.Rd
+42ad0e11f083fd102cdd04147d00f120 *man/bnlearn-package.Rd
 9b4081532a66860ed4b14c0a45aea0af *man/choose.direction.Rd
 92c79a858acfa943b490d796c8d3f77a *man/ci.test.Rd
 a0ea3a40eda48add8036f3e41db32cd3 *man/clgaussian-test.Rd
@@ -251,13 +251,13 @@ fccb98f12f52cd80724343cc38015cd6 *src/include/covariance.h
 c395003048ecafa3c41d7b7387e6247c *src/include/data.structures.h
 d8f3b022271a9c7e36db91a70155ec90 *src/include/data.table.h
 0223dc1fad90496eed06e409b3f5e5e1 *src/include/fitted.h
-3347f3d3026e11214c8de4d988b11b97 *src/include/globals.h
+77bb0cdb1112bbbee282f7b41520e7b3 *src/include/globals.h
 d9a0b4cb1f04c595bd13369802cc79da *src/include/graph.h
 f46430b13f531e945f8dcd01333958ac *src/include/learning.h
 29ea64878a4fd1ea068ef2f69fa783d4 *src/include/loss.h
 e42ff4df9588a24383f7bc446a63e658 *src/include/matrix.h
 e32555eb08b050bb5fc25a0f5aab556a *src/include/preprocessing.h
-507782ac3edd1196a4a5a5b29d38c119 *src/include/rcore.h
+8bc76b5d78ba0a20ab011b26aeb0f8ad *src/include/rcore.h
 1aada37dcc42357d86b2e742758a1f8b *src/include/register.h
 014cc14b1f0cbf549c66f8a1b49b827c *src/include/sampling.h
 bb6bac7b47a2e8786dd6bd73b394f2b7 *src/include/scores.h
@@ -270,7 +270,7 @@ e7dae5d9eeb394d7722c3cf09d2e2e09 *src/is.row.equal.c
 162739fb033c3290b845285973bc526a *src/jonckheere.c
 2569acf589e1e7567b54381cd7ab3b54 *src/least.squares.c
 1628a2eadf685bce4748cab38a212f79 *src/likelihood.weighting.c
-71a264fa3e65c8c5258d1557677b8592 *src/linear.algebra.c
+46217ca1a71726846ab9d148826fa189 *src/linear.algebra.c
 0fafc2503917a46446014320ea1d9328 *src/linear.correlation.c
 3fce5f476609ed6ed893d90435b1f332 *src/loss.c
 31077f194d63c9e081da1407323ed09a *src/map.lw.c

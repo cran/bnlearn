@@ -68,14 +68,14 @@ double tmp = 0, *work = NULL;
 
   /* ask for the optimal size of the work array. */
   F77_CALL(dgesdd)(&jobz, nrow, ncol, A, nrow, D, U, nrow,
-                   V, mindim, &tmp, &lwork, iwork, errcode);
+                   V, mindim, &tmp, &lwork, iwork, errcode FCONE);
 
   lwork = (int)tmp;
   work = Calloc1D(lwork, sizeof(double));
 
   /* actual call */
   F77_NAME(dgesdd)(&jobz, nrow, ncol, A, nrow, D, U, nrow,
-                   V, mindim, work, &lwork, iwork, errcode);
+                   V, mindim, work, &lwork, iwork, errcode FCONE);
 
   Free1D(work);
   Free1D(iwork);
@@ -118,7 +118,7 @@ covariance backup = (covariance){ 0 };
 
     /* the second one, (U * D^{-1}) * Vt  is a real matrix multiplication. */
     F77_CALL(dgemm)(&transa, &transb, &cov.dim, &cov.dim, &cov.dim, &one, cov.u,
-      &cov.dim, cov.vt, &cov.dim, &zero, mpinv.mat, &cov.dim);
+      &cov.dim, cov.vt, &cov.dim, &zero, mpinv.mat, &cov.dim FCONE FCONE);
 
   }/*THEN*/
 

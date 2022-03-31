@@ -77,7 +77,7 @@
   Marco Scutari\cr
   Istituto Dalle Molle di Studi sull'Intelligenza Artificiale (IDSIA)\cr
 
-  Maintainer: Marco Scutari \email{marco.scutari@gmail.com}
+  Maintainer: Marco Scutari \email{scutari@bnlearn.com}
 
 }
 \references{

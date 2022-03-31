@@ -10,5 +10,5 @@ extern SEXP BN_DsepsetSymbol;
 extern SEXP TRUESEXP, FALSESEXP;
 
 /* numerical constants */
-#define MACHINE_TOL sqrt(DOUBLE_EPS)
+#define MACHINE_TOL sqrt(DBL_EPSILON)
 

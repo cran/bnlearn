@@ -1,3 +1,8 @@
+bnlearn (4.7.1)
+
+  * changed the maintainer email.
+  * compile fixes for the upcoming R 4.2.0 (thanks Brian Ripley).
+
 bnlearn (4.7)
 
   * removed the "moral" argument from vstructs() and cpdag().
