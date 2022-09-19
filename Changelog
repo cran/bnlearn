@@ -1,7 +1,32 @@
-bnlearn (4.7.1)
+bnlearn (4.8)
 
-  * changed the maintainer email.
-  * compile fixes for the upcoming R 4.2.0 (thanks Brian Ripley).
+  * the rbn() method for bn objects is now deprecated and will be removed by the
+     end of 2023.
+  * removed choose.direction().
+  * implemented gbn2mvnorm(), which converts a Gaussian BN to its multivariate
+     normal global distribution, and mvnorm2gbn(), which does the opposite.
+  * added the extended BIC from Foygel and Drton.
+  * the maximum likelihood estimators in bn.fit() now have distinct labels "mle"
+     (discrete BNs), "mle-g" (Gaussian BNs) and "mle-cg" (conditional Gaussian
+     BNs) to identify them without ambiguity.
+  * graphviz.chart() now supports Gaussian and conditional Gaussian BNs
+     (thanks Tom Waddell).
+  * the "draw.levels" argument of graphviz.chart() has been renamed to
+     "draw.labels".
+  * chow.liu(), aracne() and tree.bayes() now handle data with missing values.
+  * implemented the hierarchical Dirichlet parameter estimator for related
+     data sets from Azzimonti, Corani and Zaffalon.
+  * all unidentifiable parameters are now NAs, including those that were NaNs
+     before, for consistency across node types.
+  * structural.em() now returns descriptive error messages when the data
+     contain latent variables (thanks Bernard Liew).
+  * implemented the Kullback-Leibler divergence for discrete and Gaussian
+     networks.
+  * fixed spurious errors in bn.boot() resulting from changes in the
+     all.equal() method for functions in R 4.1.0 (thanks Fred Gruber).
+  * added a mean() method that averages bn.fit objects with the same network
+     structure, with optional weights.
+  * bn.boot(), bn.cv() and boot.strength() now handle data with missing values.
 
 bnlearn (4.7)
 
@@ -80,8 +105,8 @@ bnlearn (4.5)
   * loss function "pred" (classification error, predicted values from parents)
      is now distinct from "pred-exact" (classification error, exact posterior
      predicted values for classifiers); and it is now possible to use "pred" and
-     "pred-lw" in bn.cv() when the model is a Bayesian network classifier
-     (thanks Kostas Oikonomou).
+     "pred-lw" in bn.cv() when the model is a BN classifier (thanks Kostas 
+     Oikonomou).
   * graphviz.compare() now returns a list containing the graph objects
      corresponding to the networks provided as arguments (thanks William Raynor).
   * the "from-first" method in graphviz.compare() now has a "show.first"
@@ -261,7 +286,7 @@ bnlearn (4.1)
   * added warning about partially direct graphs in choose.direction() and
      improved its debugging output (thanks Wei Kong).
   * added spouses(), ancestors() and descendats().
-  * fixed a segfault in predict(..., method = "lw") with discrete BNS and
+  * fixed a segfault in predict(..., method = "lw") with discrete BNs and
      sparse CPTs that included NaNs.
 
 bnlearn (4.0)
@@ -642,7 +667,7 @@ bnlearn (2.4)
 
   * reimplemented naive Bayes prediction in C for speed.
   * added some debugging output to predict() methods.
-  * fixed printing of fitted Gaussian Bayesian networks.
+  * fixed printing of fitted Gaussian BNs.
   * fixed stack imbalance in Gaussian Monte Carlo tests.
   * implemented some discretization methods in discretize().
   * added custom.strength() for arbitrary sets of networks.

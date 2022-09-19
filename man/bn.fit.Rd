@@ -11,10 +11,10 @@
 
 }
 \usage{
-bn.fit(x, data, cluster, method = "mle", \dots, keep.fitted = TRUE,
+bn.fit(x, data, cluster, method, \dots, keep.fitted = TRUE,
   debug = FALSE)
 custom.fit(x, dist, ordinal, debug = FALSE)
-bn.net(x, debug = FALSE)
+bn.net(x)
 }
 \arguments{
   \item{x}{an object of class \code{bn} (for \code{bn.fit()} and
@@ -23,9 +23,7 @@ bn.net(x, debug = FALSE)
   \item{data}{a data frame containing the variables in the model.}
   \item{cluster}{an optional cluster object from package \pkg{parallel}.}
   \item{dist}{a named list, with element for each node of \code{x}. See below.}
-  \item{method}{a character string, either \code{mle} for \emph{Maximum
-    Likelihood parameter estimation} or \code{bayes} for \emph{Bayesian
-    parameter estimation} (currently implemented only for discrete data).}
+  \item{method}{a character string, see below for details.}
   \item{...}{additional arguments for the parameter estimation procedure, see
     below.}
   \item{ordinal}{a vector of character strings, the labels of the discrete
@@ -48,6 +46,38 @@ bn.net(x, debug = FALSE)
   uses locally complete observations to fit the parameters of each local
   distribution.
 
+  Available methods for \emph{discrete Bayesian networks} are:
+
+  \itemize{
+
+    \item \code{mle}: the maximum likelihood estimator for conditional
+      probabilities.
+    \item \code{bayes}: the classic Bayesian posterior estimator with a uniform
+      prior matching that in the Bayesian Dirichlet equivalent (\code{bde})
+      score.
+    \item \code{hdir}: the hierarchical Dirichlet posterior estimator for
+      related data sets from Azzimonti, Corani and Zaffalon (2019).
+
+  }
+
+  Available methods for \emph{hybrid Bayesian networks} are:
+
+  \itemize{
+
+    \item \code{mle-g}: the maximum likelihood estimator for least squares
+      regression models.
+
+  }
+
+  Available methods for \emph{discrete Bayesian networks} are:
+
+  \itemize{
+
+    \item \code{mle-cg}: a combination of the maximum likelihood estimators
+      \code{mle} and \code{mle-g}.
+
+  }
+
   Additional arguments for the \code{bn.fit()} function:
 
   \itemize{
@@ -55,11 +85,13 @@ bn.net(x, debug = FALSE)
     \item \code{iss}: a numeric value, the imaginary sample size used by the
       \code{bayes} method to estimate the conditional probability tables
       associated with discrete nodes (see \code{\link{score}} for details).
+
     \item \code{replace.unidentifiable}: a boolean value. If \code{TRUE} and
-      \code{method} is \code{mle}, unidentifiable parameters are replaced by
-      zeroes (in the case of regression coefficients and standard errors in
-      Gaussian and conditional Gaussian nodes) or by uniform conditional
-      probabilities (in discrete nodes).
+      \code{method} one of \code{mle}, \code{mle-g} or \code{mle-cg},
+      unidentifiable parameters are replaced by zeroes (in the case of
+      regression coefficients and standard errors in Gaussian and conditional
+      Gaussian nodes) or by uniform conditional probabilities (in discrete
+      nodes).
 
       If \code{FALSE} (the default), the conditional probabilities in the local
       distributions of discrete nodes have a mximum likelihood estimate of
@@ -68,6 +100,13 @@ bn.net(x, debug = FALSE)
       if the linear regressions correspoding to the local distributions of
       continuous nodes are singular. Such missing values propagate to the
       results of functions such as \code{predict()}.
+
+    \item \code{alpha0}: a positive number, the amount of information pooling
+      between the related data sets in the \code{hdir} estimator.
+
+    \item \code{group}: a character string, the label of the node with the
+      grouping of the observations into the related data sets in the \code{hdir}
+      estimator.
 
   }
 
@@ -125,6 +164,13 @@ bn.net(x, debug = FALSE)
 }
 \seealso{
   \code{\link{bn.fit utilities}}, \code{\link{bn.fit plots}}.
+}
+\references{
+
+  Azzimonti L, Corani G, Zaffalon M (2019). "Hierarchical Estimation of
+    Parameters in Bayesian Networks".  \emph{Computational Statistics & Data
+    Analysis}, \strong{137}:67--91.
+
 }
 \examples{
 data(learning.test)

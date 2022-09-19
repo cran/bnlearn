@@ -158,7 +158,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, groups,
     for (i in 1:length(to.weight)) {
 
       # plot an arc as a dotted line if it has a negative weight
-      # (i.e. it's removal would improve the goodness of fit).
+      # (i.e. its removal would improve the goodness of fit).
       if (arc.weights[i] > 0)
         graph::edgeRenderInfo(graph.plot)[["lwd"]][to.weight[i]] = arc.weights[i]
       else

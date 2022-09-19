@@ -7,7 +7,9 @@ rbn = function(x, n = 1, ...) {
 }#RBN
 
 # generate random data from a network structure (parameters are learned on the fly).
-rbn.bn = function(x, n = 1, data, fit = "mle", ..., debug = FALSE) {
+rbn.bn = function(x, n = 1, data, fit, ..., debug = FALSE) {
+
+  warning("the rbn.bn() method is deprecated and will be removed in 2023.")
 
   # fit the parameters of the bayesian network.
   fitted = bn.fit(x = x, data = data, method = fit, ..., debug = debug)
@@ -43,7 +45,7 @@ rbn.default = function(x, n = 1, ...) {
 random.graph = function(nodes, num = 1, method = "ordered", ..., debug = FALSE) {
 
   # check the generation method.
-  check.label(method, choices = graph.generation.algorithms,
+  check.label(method, choices = random.graph.generation.algorithms,
     labels = graph.generation.labels, argname = "graph generation method",
     see = "random.graph")
   # check the node labels.
@@ -51,6 +53,8 @@ random.graph = function(nodes, num = 1, method = "ordered", ..., debug = FALSE) 
   # check the number of graph to generate.
   if (!is.positive.integer(num))
     stop(" the number of graphs to generate must be a positive integer number.")
+  # check debug.
+  check.logical(debug)
 
   # expand and sanitize method-specific arguments.
   extra.args = check.graph.generation.args(method = method,

@@ -9,7 +9,7 @@
 
 }
 \usage{
-structural.em(x, maximize = "hc", maximize.args = list(), fit = "mle",
+structural.em(x, maximize = "hc", maximize.args = list(), fit,
     fit.args = list(), impute, impute.args = list(), return.all = FALSE,
     start = NULL, max.iter = 5, debug = FALSE)
 }

@@ -25,11 +25,14 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
       criterion = x$learning$test
 
   }#THEN
-  else  {
+  else {
 
     criterion = check.criterion(criterion, data)
 
   }#ELSE
+
+  # check whether the network is valid for the method.
+  check.arcs.against.assumptions(x$arcs, data, criterion)
 
   # set the test/score counter.
   reset.test.counter()
@@ -118,6 +121,9 @@ bf.strength = function(x, data, score, ..., debug = FALSE) {
 
   }#ELSE
 
+  # check whether the network is valid for the score.
+  check.arcs.against.assumptions(x$arcs, data, score)
+
   # expand and sanitize score-specific arguments.
   extra.args = check.score.args(score = score, network = x,
                  data = data, extra.args = list(...), learning = FALSE)
@@ -128,8 +134,8 @@ bf.strength = function(x, data, score, ..., debug = FALSE) {
   # add extra information for strength.plot() and averaged.network().
   res = structure(res, nodes = nodes, method = "bayes-factor",
           threshold = threshold(res), class = c("bn.strength", class(res)))
-  if (data.info$type == "mixed-cg")
-    attr(res, "illegal") = list.cg.illegal.arcs(names(data), data)
+  attr(res, "illegal") = list.illegal.arcs(nodes = names(data), data = data,
+                           criterion = score)
 
   return(res)
 

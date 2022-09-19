@@ -24,7 +24,7 @@ print.bn = function(x, ...) {
     cat("\n  Bayesian network learned via Hybrid methods\n\n")
   else if (x$learning$algo %in% mim.based.algorithms)
     cat("\n  Bayesian network learned via Pairwise Mutual Information methods\n\n")
-  else if (x$learning$algo %in% classifiers)
+  else if (x$learning$algo %in% classification.algorithms)
     cat("\n  Bayesian network Classifier\n\n")
   else if (x$learning$algo %in% em.algorithms)
     cat("\n  Bayesian network learned from Missing Data\n\n")
@@ -101,7 +101,7 @@ print.bn = function(x, ...) {
     else if (x$learning$algo %in% em.algorithms) {
 
       wcat("score-based method", method.labels[x$learning$maximize])
-      wcat("parameter learning method", fitting.labels[x$learning$fit])
+      wcat("parameter learning method", fits.labels[x$learning$fit])
       wcat("imputation method", imputation.labels[x$learning$impute])
 
     }#THEN
@@ -127,10 +127,12 @@ print.bn = function(x, ...) {
       wcat("imaginary sample size stepping", format(x$learning$args$l))
     if ("k" %in% params)
       wcat("penalization coefficient", format(x$learning$args$k))
+    if ("gamma" %in% params)
+      wcat("extra penalization coefficient", format(x$learning$args$gamma))
     if ("maxp" %in% params)
       wcat("maximum parents", format(x$learning$args$maxp))
 
-    if (x$learning$algo %in% c(mim.based.algorithms, classifiers)) {
+    if (x$learning$algo %in% c(mim.based.algorithms, classification.algorithms)) {
 
       if ("estimator" %in% params)
         wcat("mutual information estimator",

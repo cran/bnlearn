@@ -179,8 +179,8 @@ modelstring(averaged.network(arcs))
 
 bf.strength(res, learning.test, score = "bds", prior = "marginal")
 }
-\seealso{\code{\link{strength.plot}}, \code{\link{choose.direction}},
-  \code{\link{score}}, \code{\link{ci.test}}.}
+\seealso{\code{\link{strength.plot}}, \code{\link{score}},
+  \code{\link{ci.test}}.}
 \author{Marco Scutari}
 \keyword{network scores}
 \keyword{independence tests}

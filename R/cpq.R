@@ -102,7 +102,7 @@ fit.dummy.df = function(fitted, nodes) {
 }#FIT.DUMMY.DF
 
 # reduce a bn.fit object to the upper closure of event and evidence nodes.
-reduce.fitted = function(fitted, event, evidence, nodes, method, debug) {
+reduce.fitted = function(fitted, event, evidence, nodes, method, debug = FALSE) {
 
   if (is.null(nodes)) {
 
@@ -176,15 +176,17 @@ reduce.fitted = function(fitted, event, evidence, nodes, method, debug) {
   else
     try.event = try(eval(event, dummy), silent = TRUE)
 
-  # create the subgraph corresponding to the upper closure.
+  # create the subgraph corresponding to the upper closure, keeping the ordering
+  # of the node in the bn.fit object the same to avoid potentially affecting
+  # random simulations later.
   if (is.logical(try.event) && is.logical(try.evidence)) {
 
     if (debug)
       cat("  > generating observations from", length(upper.closure), "/",
         length(fitted), "nodes.\n")
 
-    fitted = fitted[upper.closure]
-    class(fitted) = "bn.fit"
+    fitted =
+      structure(fitted[names(fitted) %in% upper.closure], class = class(fitted))
 
   }#THEN
   else {

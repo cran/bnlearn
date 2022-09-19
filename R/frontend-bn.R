@@ -18,6 +18,10 @@ nparams = function(x, data, effective = FALSE, debug = FALSE) {
     if (is.pdag(x$arcs, names(x$nodes)))
       stop("the graph is only partially directed.")
 
+    # check whether the network is valid.
+    estimator = check.fitting.method(NULL, data)
+    check.arcs.against.assumptions(x$arcs, data, estimator)
+
     if (effective) {
 
       # fit the network to compute the number of non-zero parameters.

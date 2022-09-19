@@ -9,7 +9,7 @@
 
 }
 \usage{
-\method{rbn}{bn}(x, n = 1, data, fit = "mle", \dots, debug = FALSE)
+\method{rbn}{bn}(x, n = 1, data, fit, \dots, debug = FALSE)
 \method{rbn}{bn.fit}(x, n = 1, \dots, debug = FALSE)
 }
 \arguments{

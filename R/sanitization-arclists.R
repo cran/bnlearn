@@ -72,25 +72,14 @@ build.whitelist = function(whitelist, nodes, data, algo, criterion) {
 
 check.arcs.against.assumptions = function(arcs, data, criterion) {
 
-  if (is.null(criterion))
-    return(arcs)
-
-  if (criterion %in% c(available.mixedcg.tests, available.mixedcg.scores)) {
+  if (criterion %in% c(available.mixedcg.tests, available.mixedcg.scores,
+                       available.cgbn.fits, "bn.fit.cgnet")) {
 
     # arcs cannot point from continuous nodes to discrete nodes.
-    if (is.null(arcs)) {
-
-      arcs = list.cg.illegal.arcs(nodes = names(data), variables = data)
-
-    }#THEN
-    else {
-
-      arcs = .Call(call_arcs_cg_assumptions,
-                   arcs = arcs,
-                   nodes = names(data),
-                   data = data)
-
-    }#ELSE
+    arcs = .Call(call_arcs_cg_assumptions,
+                 arcs = arcs,
+                 nodes = names(data),
+                 data = data)
 
   }#THEN
 
@@ -98,11 +87,20 @@ check.arcs.against.assumptions = function(arcs, data, criterion) {
 
 }#CHECK.ARCS.AGAINST.ASSUMPTIONS
 
-list.cg.illegal.arcs = function(nodes, variables) {
+list.illegal.arcs = function(nodes, data, criterion) {
 
-  .Call(call_cg_banned_arcs,
-        nodes = nodes,
-        variables = variables)
+  arcs = NULL
+
+  if (criterion %in% c(available.mixedcg.tests, available.mixedcg.scores,
+                       available.cgbn.fits, "bn.fit.cgnet")) {
+
+   arcs = .Call(call_cg_banned_arcs,
+                nodes = nodes,
+                variables = data)
+
+  }#THEN
+
+  return(arcs)
 
 }#LIST.ILLEGAL.ARCS
 

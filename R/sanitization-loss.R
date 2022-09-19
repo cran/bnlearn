@@ -13,8 +13,8 @@ check.loss = function(loss, data, bn) {
 
     if (loss %in% classifiers.loss.functions) {
 
-      if ((is.character(bn) && (bn %!in% classifiers)) ||
-          (!is.character(bn) && !is(bn, c("bn.naive", "bn.tan"))))
+      if ((is.character(bn) && (bn %!in% classification.algorithms)) ||
+          (!is.character(bn) && !is(bn, available.classifiers)))
         stop("loss function '", loss, "' may only be used with classifiers.")
 
     }#THEN
@@ -31,8 +31,8 @@ check.loss = function(loss, data, bn) {
   }#THEN
   else {
 
-    if ((is.character(bn) && (bn %in% classifiers)) ||
-         is(bn, c("bn.naive", "bn.tan")))
+    if ((is.character(bn) && (bn %in% classification.algorithms)) ||
+         is(bn, available.classifiers))
       return("pred-exact")
     if (type %in% discrete.data.types)
       return("logl")
@@ -70,7 +70,7 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
     else {
 
       # the target node is obvious for classifiers.
-      if (is(bn, c("bn.naive", "bn.tan"))) {
+      if (is(bn, available.classifiers)) {
 
         if (is(bn, "bn"))
           extra.args$target = bn$learning$args$training
@@ -87,7 +87,8 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
     }#ELSE
 
     # check the prior distribution.
-    if ((is.string(bn) && (bn %in% classifiers)) || is(bn, c("bn.naive", "bn.tan"))) {
+    if ((is.string(bn) && (bn %in% classification.algorithms)) ||
+        is(bn, available.classifiers)) {
 
       extra.args$prior = check.classifier.prior(extra.args$prior, data[, extra.args$target])
       valid.args = c(valid.args, "prior")

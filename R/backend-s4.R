@@ -57,7 +57,7 @@
 
   }#THEN
   # ... training node for classifiers...
-  if (is(x, c("bn.naive", "bn.tan")))
+  if (is(x, available.classifiers))
     x$learning$args$training = value[match(x$learning$args$training, nodes)]
   # ... and the root node of TAN.
   if (is(x, "bn.tan"))

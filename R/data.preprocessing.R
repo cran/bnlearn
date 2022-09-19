@@ -41,7 +41,7 @@ marginal.discretize.backend = function(data, method, breaks, ordered = FALSE,
 }#MARGINAL.DISCRETIZE.BACKEND
 
 joint.discretize.backend = function(data, method, breaks, ordered = FALSE,
-    initial.discretization = "quantile", initial.breaks, debug = debug) {
+    initial.discretization = "quantile", initial.breaks, debug = FALSE) {
 
   .Call(call_joint_discretize,
         data = data,

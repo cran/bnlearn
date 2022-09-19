@@ -1,5 +1,5 @@
 
-# Global variables.
+# global variables.
 available.discrete.tests = c("mi", "mi-sh", "x2", "mc-mi", "smc-mi", "mi-adf",
   "x2-adf", "mc-x2", "smc-x2", "sp-mi", "sp-x2")
 available.ordinal.tests = c("jt", "mc-jt", "smc-jt")
@@ -17,13 +17,14 @@ asymptotic.tests = c("mi", "mi-adf", "mi-g", "x2", "x2-adf", "zf", "jt", "mi-sh"
 
 available.discrete.bayesian.scores = c("bde", "bds", "bdj", "k2", "mbde", "bdla")
 available.discrete.scores =
-  c("loglik", "aic", "bic", "pred-loglik", "fnml", "qnml",
+  c("loglik", "aic", "bic", "ebic", "pred-loglik", "fnml", "qnml",
     available.discrete.bayesian.scores)
 available.continuous.bayesian.scores = c("bge")
 available.continuous.scores =
-  c("loglik-g", "aic-g", "bic-g", "pred-loglik-g",
+  c("loglik-g", "aic-g", "bic-g", "ebic-g", "pred-loglik-g",
     available.continuous.bayesian.scores)
-available.mixedcg.scores = c("loglik-cg", "aic-cg", "bic-cg", "pred-loglik-cg")
+available.mixedcg.scores =
+  c("loglik-cg", "aic-cg", "bic-cg", "ebic-cg", "pred-loglik-cg")
 available.omnibus.scores = c("custom")
 available.scores = c(available.discrete.scores, available.continuous.scores,
   available.mixedcg.scores, available.omnibus.scores)
@@ -39,9 +40,9 @@ score.based.algorithms = c("hc", "tabu")
 em.algorithms = c("sem")
 hybrid.algorithms = c("rsmax2", "mmhc", "h2pc")
 mim.based.algorithms = c("chow.liu", "aracne")
-classifiers = c("naive.bayes", "tree.bayes")
+classification.algorithms = c("naive.bayes", "tree.bayes")
 available.learning.algorithms = c(constraint.based.algorithms, score.based.algorithms,
-  hybrid.algorithms, mim.based.algorithms, classifiers)
+  hybrid.algorithms, mim.based.algorithms, classification.algorithms)
 
 method.labels = c(
   'pc.stable' = "PC (Stable)",
@@ -108,6 +109,7 @@ score.labels = c(
   'bdla' = "Bayesian Dirichlet, Locally Averaged",
   'aic' = "AIC (disc.)",
   'bic' = "BIC (disc.)",
+  'ebic' = "eBIC (disc.)",
   'loglik' = "Log-Likelihood (disc.)",
   'pred-loglik' = "Predictive Log-Likelihood (disc.)",
   'fnml' = "Factorized Normalized Maximum Likelihood",
@@ -117,10 +119,12 @@ score.labels = c(
   'pred-loglik-g' = "Predictive Log-Likelihood (Gauss.)",
   'aic-g' = "AIC (Gauss.)",
   'bic-g' = "BIC (Gauss.)",
+  'ebic-g' = "eBIC (Gauss.)",
   'loglik-cg' = "Log-Likelihood (cond. Gauss.)",
   'pred-loglik-cg' = "Predictive Log-Likelihood (cond. Gauss.)",
   'aic-cg' = "AIC (cond. Gauss.)",
   'bic-cg' = "BIC (cond. Gauss.)",
+  'ebic-cg' = "eBIC (cond. Gauss.)",
   'custom' = "User-Provided Function"
 )
 
@@ -133,6 +137,7 @@ score.extra.args = list(
   "bdla" = c("prior", "beta", "l"),
   "aic" = c("k"),
   "bic" = c("k"),
+  "ebic" = c("k", "gamma"),
   "bge" = c("prior", "beta", "nu", "iss.mu", "iss.w"),
   "loglik" = character(0),
   "pred-loglik" = c("newdata"),
@@ -142,10 +147,12 @@ score.extra.args = list(
   "pred-loglik-g" = c("newdata"),
   "aic-g" = c("k"),
   "bic-g" = c("k"),
+  "ebic-g" = c("k", "gamma"),
   "loglik-cg" = character(0),
   "pred-loglik-cg" = c("newdata"),
   "aic-cg" = c("k"),
   "bic-cg" = c("k"),
+  "ebic-cg" = c("k", "gamma"),
   "custom" = c("fun", "args")
 )
 
@@ -159,7 +166,8 @@ mi.estimator.tests = c(
   'mi-g' = "mi-g"
 )
 
-graph.generation.algorithms = c("ordered", "ic-dag", "melancon", "empty", "averaged")
+random.graph.generation.algorithms = c("ordered", "ic-dag", "melancon", "empty")
+graph.generation.algorithms = c(random.graph.generation.algorithms, "averaged")
 
 graph.generation.labels = c(
   "ordered" = "Full Ordering",
@@ -236,16 +244,25 @@ loss.extra.args = list(
   "logl-cg" = character(0)
 )
 
-available.fitting.methods = c("mle", "bayes")
+available.dbn.fits = c("mle", "bayes", "hdir")
+available.gbn.fits = c("mle-g")
+available.cgbn.fits = c("mle-cg")
+available.fits = c(available.dbn.fits, available.gbn.fits, available.cgbn.fits)
 
-fitting.labels = c(
-  "mle" = "Maximum Likelihood",
-  "bayes" = "Bayesian Parameter Estimation"
+fits.labels = c(
+  "mle" = "Maximum Likelihood (disc.)",
+  "mle-g" = "Maximum Likelihood (Gauss.)",
+  "mle-cg" = "Maximum Likelihood (con. Gauss.)",
+  "bayes" = "Bayesian Dirichlet",
+  "hdir" = "Bayesian Hierarchical Dirichlet"
 )
 
-fitting.extra.args = list(
+fits.extra.args = list(
   "mle" = "replace.unidentifiable",
-  "bayes" = "iss"
+  "mle-g" = "replace.unidentifiable",
+  "mle-cg" = "replace.unidentifiable",
+  "bayes" = "iss",
+  "hdir" = c("iss", "alpha0", "group")
 )
 
 available.cv.methods = c("k-fold", "hold-out", "custom-folds")
@@ -299,6 +316,10 @@ discretization.extra.args = list(
   "interval" = character(0),
   "hartemink" = c("ibreaks", "idisc")
 )
+
+available.fitted = c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet",
+  "bn.fit.gnet", "bn.fit.cgnet")
+available.classifiers = c("bn.naive", "bn.tan")
 
 fitted.from.data = c(
   "continuous" = "bn.fit.gnet",

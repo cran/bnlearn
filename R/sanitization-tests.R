@@ -12,13 +12,13 @@ check.test = function(test, data) {
       argname = "conditional independence test", see = "bnlearn-package")
     # check if it's the right test for the data (discrete, continuous).
     if ((type != "ordered") && (test %in% available.ordinal.tests))
-      stop("test '", test, "' may be used with ordinal data only.")
+      stop("test '", test, "' may only be used with ordinal data.")
     if ((type %!in% discrete.data.types) && (test %in% available.discrete.tests))
-      stop("test '", test, "' may be used with discrete data only.")
+      stop("test '", test, "' may only be used with discrete data.")
     if ((type != "continuous") && (test %in% available.continuous.tests))
-      stop("test '", test, "' may be used with continuous data only.")
+      stop("test '", test, "' may only be used with continuous data.")
     if ((type != "mixed-cg") && (test %in% available.mixedcg.tests))
-      stop("test '", test, "' may be used with a mixture of continuous and discrete data only.")
+      stop("test '", test, "' may only be used with a mixture of continuous and discrete data.")
 
     return(test)
 

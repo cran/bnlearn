@@ -49,8 +49,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
                 algo = method, criterion = test)
   blacklist = build.blacklist(blacklist, whitelist, names(x), algo = method)
   # create the full blacklist incorporating model assumptions.
-  full.blacklist = arcs.rbind(blacklist,
-                     check.arcs.against.assumptions(NULL, x, test))
+  full.blacklist = arcs.rbind(blacklist, list.illegal.arcs(names(x), x, test))
   full.blacklist = unique.arcs(full.blacklist, names(x))
 
   # call the right backend.
@@ -174,7 +173,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   # save the maximum size of the tests' conditioning sets.
   res$learning$max.sx = max.sx
   # save arcs that are illegal according to parametric assumptions.
-  res$learning$illegal = check.arcs.against.assumptions(NULL, x, test)
+  res$learning$illegal = list.illegal.arcs(names(x), x, test)
 
   invisible(structure(res, class = "bn"))
 
@@ -234,6 +233,8 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     check.bn(start)
     # check the preseeded network against the data set.
     check.bn.vs.data(start, x)
+    # check whether the network is valid for the method.
+    check.arcs.against.assumptions(start$arcs, x, score)
     # check the preseeded network against the maximum number of parents.
     nparents = sapply(start$nodes, function(x) length(x$parents))
     if (any(nparents > maxp))
@@ -300,7 +301,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   res$learning = list(whitelist = whitelist, blacklist = blacklist,
     test = score, ntests = test.counter(),
     algo = heuristic, args = extra.args, optimized = optimized,
-    illegal = check.arcs.against.assumptions(NULL, x, score))
+    illegal = list.illegal.arcs(names(res$nodes), data = x, criterion = score))
 
   invisible(res)
 
@@ -397,7 +398,8 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
     optimized = res$learning$optimized,
     restrict = restrict, rstest = rst$learning$test, maximize = maximize,
     maxscore = res$learning$test,
-    illegal = check.arcs.against.assumptions(NULL, x, rst$learning$test))
+    illegal = list.illegal.arcs(names(res$nodes), data = x,
+                criterion = res$learning$test))
 
   invisible(res)
 
@@ -408,7 +410,8 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
     debug = FALSE) {
 
   # check the data are there.
-  check.data(x, allowed.types = c(discrete.data.types, continuous.data.types))
+  data.info = check.data(x, allow.missing = TRUE, stop.if.all.missing = TRUE,
+                allowed.types = c(discrete.data.types, continuous.data.types))
   # check the algorithm.
   check.learning.algorithm(method, class = "mim")
   # check debug.
@@ -425,8 +428,9 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
 
   if (method == "aracne") {
 
-    arcs = aracne.backend(x = x, estimator = match(estimator, available.mi),
-             whitelist = whitelist, blacklist = blacklist, debug = debug)
+    arcs = aracne.backend(x = x, estimator = estimator, whitelist = whitelist,
+             blacklist = blacklist, complete = data.info$complete.nodes,
+             debug = debug)
 
   }#THEN
   else if (method == "chow.liu") {
@@ -438,9 +442,9 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
     if (length(culprit) > 0)
       stop("all arcs incident on nodes '", culprit, "' are blacklisted.")
 
-    arcs = chow.liu.backend(x = x, nodes = nodes,
-             estimator = match(estimator, available.mi), whitelist = whitelist,
-             blacklist = blacklist, conditional = NULL, debug = debug)
+    arcs = chow.liu.backend(x = x, nodes = nodes, estimator = estimator,
+             whitelist = whitelist, blacklist = blacklist, conditional = NULL,
+             complete = data.info$complete.nodes, debug = debug)
 
   }#THEN
 
@@ -708,7 +712,7 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 
 }#NBR.BACKEND
 
-# baeysian network classifiers.
+# bayesian network classifiers.
 bayesian.classifier = function(data, method, training, explanatory, whitelist,
     blacklist, expand, debug = FALSE) {
 
@@ -719,7 +723,8 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
   # check the training node (the center of the star-shaped graph).
   check.nodes(training, max.nodes = 1)
   # check the data.
-  check.data(data, allowed.types = discrete.data.types)
+  data.info = check.data(data, allowed.types = discrete.data.types,
+                allow.missing = TRUE, stop.if.all.missing = TRUE)
 
   # check the explantory variables.
   if (missing(data)) {
@@ -788,8 +793,9 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
     # same for the test
     test = as.character(mi.estimator.tests[extra.args$estimator])
 
-    res = tan.backend(data = data, training = training, explanatory = explanatory,
-            whitelist = whitelist, blacklist = blacklist, mi = extra.args$estimator,
+    res = tan.backend(data = data, data.info = data.info, training = training,
+            explanatory = explanatory, whitelist = whitelist,
+            blacklist = blacklist, mi = extra.args$estimator,
             root = extra.args$root, debug = debug)
 
   }#THEN

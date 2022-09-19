@@ -53,6 +53,15 @@ check.fit = function(bn) {
 
   }#THEN
 
+  # all bn.fit objects have a secondary calls that encodes the distributional
+  # assumptions (and may have mode optional ones, say, for classifiers).
+  if (!is(bn, available.fitted)) {
+
+    stop(sprintf("%s must be an object of class '%s'.",
+           deparse(substitute(bn)), paste(available.fitted, collapse = "', '")))
+
+  }#THEN
+
 }#CHECK.FIT
 
 # check the structure of a naive Bayes classifier.

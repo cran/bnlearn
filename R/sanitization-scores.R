@@ -13,11 +13,11 @@ check.score = function(score, data, allowed = available.scores) {
     # check if it's the right score for the data (discrete, continuous, mixed).
     if ((type %!in% discrete.data.types) &&
          (score %in% available.discrete.scores))
-      stop("score '", score, "' may be used with discrete data only.")
+      stop("score '", score, "' may only be used with discrete data.")
     if ((type != "continuous") && (score %in% available.continuous.scores))
-      stop("score '", score, "' may be used with continuous data only.")
+      stop("score '", score, "' may only be used with continuous data.")
     if ((type != "mixed-cg") && (score %in% available.mixedcg.scores))
-      stop("score '", score, "' may be used with a mixture of continuous and discrete data only.")
+      stop("score '", score, "' may only be used with a mixture of continuous and discrete data.")
 
     return(score)
 
@@ -46,7 +46,7 @@ is.score.equivalent = function(score, nodes, extra) {
   if (score %in% c("loglik", "loglik-g", "pred-loglik", "pred-loglik-g"))
     return(TRUE)
   # same with AIC and BIC.
-  if (score %in% c("aic", "aic-g", "bic", "bic-g"))
+  if (score %in% c("aic", "aic-g", "bic", "bic-g", "ebic", "ebic-g"))
     return(TRUE)
   # the quotient NML is score equivalent, but the factorized NML is not.
   if (score %in% c("qnml"))
@@ -102,6 +102,11 @@ check.score.args = function(score, network, data, extra.args, learning = FALSE) 
   if (has.argument(score, "k", score.extra.args))
     extra.args$k = check.penalty(k = extra.args$k, network = network,
       data = data, score = score)
+
+  # check the additional penalty in the extended BIC.
+  if (has.argument(score, "gamma", score.extra.args))
+    extra.args$gamma = check.extended.penalty(gamma = extra.args$gamma,
+      network = network)
 
   # check the number of scores to average.
   if (has.argument(score, "l", score.extra.args))
@@ -301,7 +306,7 @@ check.penalty = function(k, network, data, score) {
     # warn if using a non-standard penalty.
     if (grepl("^aic", score) && (k != 1))
       warning("using AIC with a non-standard penalty k = ", k, ".")
-    if (grepl("^bic", score) && (k != log(nrow(data))/2))
+    if (grepl("^[e]*bic", score) && (k != log(nrow(data))/2))
       warning("using BIC with a non-standard penalty k = ", k, ".")
 
   }#THEN
@@ -316,9 +321,31 @@ check.penalty = function(k, network, data, score) {
 
   }#ELSE
 
-  return(k)
+  return(as.numeric(k))
 
 }#CHECK.PENALTY
+
+# check the additional penalty used in the extended BIC.
+check.extended.penalty = function(gamma, network) {
+
+  if (!is.null(gamma)) {
+
+    if (!is.probability(gamma))
+      stop("'gamma' must be a number between 0 and 1.")
+
+  }#THEN
+  else {
+
+    if (!is.null(network$learning$args$gamma))
+      gamma = network$learning$args$gamma
+    else
+      gamma = 0.5
+
+  }#ELSE
+
+  return(as.numeric(gamma))
+
+}#CHECK.EXTENDED.PENALTY
 
 # sanitize prior distributions over the graph space.
 check.graph.prior = function(prior, network) {

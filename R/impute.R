@@ -1,6 +1,6 @@
 
 # missing data imputation backend.
-impute.backend = function(fitted, data, method, extra.args, debug) {
+impute.backend = function(fitted, data, method, extra.args, debug = FALSE) {
 
   if (method == "parents") {
 

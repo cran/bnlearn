@@ -6,12 +6,8 @@ bootstrap.backend = function(data, statistic, R, m, algorithm,
 
   # allocate the result list.
   res = as.list(seq(R))
-  # allocate the bayesian network to use for parametric bootstrap.
-  net = NULL
-  # check the data early on.
-  data.info = check.data(data)
 
-  bootstrap.replicate = function(r, data, m, net, algorithm, algorithm.args,
+  bootstrap.replicate = function(r, data, m, algorithm, algorithm.args,
       statistic, statistic.args, debug) {
 
     if (debug) {
@@ -73,14 +69,14 @@ bootstrap.backend = function(data, statistic, R, m, algorithm,
   if (!is.null(cluster)) {
 
     res = parallel::parLapplyLB(cluster, res, bootstrap.replicate, data = data,
-            m = m, net = net, algorithm = algorithm,
+            m = m, algorithm = algorithm,
             algorithm.args = algorithm.args, statistic = statistic,
             statistic.args = statistic.args, debug = debug)
 
   }#THEN
   else {
 
-    res = lapply(res, bootstrap.replicate, data = data, m = m, net = net,
+    res = lapply(res, bootstrap.replicate, data = data, m = m,
             algorithm = algorithm, algorithm.args = algorithm.args,
             statistic = statistic, statistic.args = statistic.args,
             debug = debug)

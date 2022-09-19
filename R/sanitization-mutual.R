@@ -13,9 +13,9 @@ check.mi.estimator = function(estimator, data) {
     # check if it's the right estimator for the data (discrete, continuous).
     if ((type %!in% discrete.data.types) &&
         (estimator %in% available.discrete.mi))
-      stop("estimator '", estimator, "' may be used with discrete data only.")
+      stop("estimator '", estimator, "' may only be used with discrete data.")
     if ((type != "continuous") && (estimator %in% available.continuous.mi))
-      stop("estimator '", estimator, "' may be used with continuous data only.")
+      stop("estimator '", estimator, "' may only be used with continuous data.")
 
     return(estimator)
 

@@ -76,7 +76,7 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
 
 # combine barcharts and graph displays in a single plot.
 graphviz.chart = function(x, type = "barchart", layout = "dot",
-    draw.levels = TRUE, grid = FALSE, scale = c(0.75, 1.1), col = "black",
+    draw.labels = TRUE, grid = FALSE, scale = c(0.75, 1.1), col = "black",
     bg = "transparent", text.col = "black", bar.col = "black", strip.bg = bg,
     main = NULL, sub = NULL) {
 
@@ -89,17 +89,12 @@ graphviz.chart = function(x, type = "barchart", layout = "dot",
   check.and.load.package("gRain")
   # check x's class.
   check.fit(x)
-  # only discrete networks are supported.
-  if (!is(x, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
-    stop("only discrete networks are supported.")
 
   # check the plot type.
   check.label(type, choices = c("barchart", "dotplot", "barprob"),
     argname = "node display type", see = "graphviz.chart")
-  # check the levels switch.
-  check.logical(draw.levels)
-  # check the grid.
-  grid = check.quantile.grid(grid)
+  # check the labels switch.
+  check.logical(draw.labels)
   # check the nodes scale factors.
   if (!is.positive.vector(scale) || (length(scale) != 2))
     stop("the horizontal and vertical scale factors for the nodes must be two positive numbers.")
@@ -112,7 +107,7 @@ graphviz.chart = function(x, type = "barchart", layout = "dot",
   strip.bg = check.colour(strip.bg, num = nnodes, expand = TRUE, labels = nodes)
 
   graphviz.chart.backend(fitted = x, type = type, layout = layout,
-    draw.levels = draw.levels, grid = grid, scale = scale, col = col, bg = bg,
+    draw.labels = draw.labels, grid = grid, scale = scale, col = col, bg = bg,
     text.col = text.col, bar.col = bar.col, strip.bg = strip.bg, main = main,
     sub = sub)
 

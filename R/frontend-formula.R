@@ -18,6 +18,8 @@ modelstring = function(x) {
 
   # check value's class and format.
   check.modelstring(value)
+  # check debug.
+  check.logical(debug)
 
   model2network.backend(value, node.order = names(x$nodes), debug = debug)
 

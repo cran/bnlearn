@@ -68,6 +68,8 @@
     \item \code{k}: the penalty coefficient to be used by the AIC and BIC
       scores. The default value is \code{1} for AIC and \code{log(nrow(data))/2}
       for BIC.
+    \item \code{gamma}: the additional penalty in the extended BIC scores. The
+      default value is \code{0.5}.
     \item \code{prior}: the prior distribution to be used with the various
       Bayesian Dirichlet scores (\code{bde}, \code{mbde}, \code{bds},
       \code{bdj}, \code{bdla}) and the Bayesian Gaussian score (\code{bge}).
@@ -192,7 +194,7 @@ my.bic = function(node, parents, data, args) {
 score(res, learning.test, type = "custom", fun = my.bic, by.node = TRUE)
 score(res, learning.test, type = "bic", by.node = TRUE)
 }
-\seealso{\code{\link{network scores}}, \code{\link{choose.direction}},
-  \code{\link{arc.strength}}, \code{\link{alpha.star}}.}
+\seealso{\code{\link{network scores}}, \code{\link{arc.strength}},
+  \code{\link{alpha.star}}.}
 \author{Marco Scutari}
 \keyword{network scores}

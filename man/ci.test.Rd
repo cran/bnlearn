@@ -60,7 +60,6 @@ ci.test(gaussian.test)
 attach(learning.test)
 ci.test(x = F , y = B, z = data.frame(C, D))
 }
-\seealso{\code{\link{independence tests}}, \code{\link{choose.direction}},
-  \code{\link{arc.strength}}.}
+\seealso{\code{\link{independence tests}}, \code{\link{arc.strength}}.}
 \author{Marco Scutari}
 \keyword{independence tests}

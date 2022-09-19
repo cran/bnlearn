@@ -4,16 +4,17 @@ bibentry(bibtype = "Book",
   title        = "Bayesian Networks with Examples in {R}",
   author       = c(person(given = "Marco", family = "Scutari"),
                    person(given = "Jean-Baptiste", family = "Denis")),
+  edition      = "2nd",
   publisher    = "Chapman and Hall",
   address      = "Boca Raton",
-  year         = "2014",
-  note         = "ISBN 978-1-4822-2558-7, 978-1-4822-2560-0",
+  year         = "2021",
+  note         = "ISBN 978-0367366513",
 
   header       = "A teaching book about Bayesian networks based on bnlearn:",
   textVersion  =
-  paste("Marco Scutari, Jean-Baptiste Denis. (2014)",
-        "Bayesian Networks with Examples in R.",
-        "Chapman and Hall, Boca Raton. ISBN 978-1-4822-2558-7.")
+  paste("Marco Scutari, Jean-Baptiste Denis. (2021)",
+        "Bayesian Networks with Examples in R, 2nd edition.",
+        "Chapman and Hall, Boca Raton. ISBN 978-0367366513.")
 )
 
 bibentry(bibtype = "Book",

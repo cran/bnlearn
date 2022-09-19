@@ -27,11 +27,14 @@ check.data = function(x, allowed.types = available.data.types,
    if (warn.if.no.missing && all(observed$columns == nrow(x)))
      warning("no missing data are present even though some are expected.")
 
-   if (any(observed$columns == 0))
+   if (any(observed$columns == 0)) {
+
      if (stop.if.all.missing)
        stop("at least one variable has no observed values.")
      else
        warning("at least one variable has no observed values.")
+
+   }#THEN
 
   }#THEN
   else {
@@ -73,7 +76,8 @@ check.data = function(x, allowed.types = available.data.types,
 
   }#THEN
 
-  return(list(type = type, complete.nodes = (observed$columns == nrow(x))))
+  return(list(type = type, complete.nodes = (observed$columns == nrow(x)),
+              latent.nodes = (observed$columns == 0)))
 
 }#CHECK.DATA
 
@@ -92,3 +96,11 @@ count.observed.values = function(data) {
         data = data)
 
 }#COUNT.OBSERVED.VALUES
+
+# check that a matrix is symmetric and satisfies Cauchy-Schwarz.
+check.covariance = function(covmat) {
+
+  .Call(call_check_covariance,
+        covmat = covmat)
+
+}#CHECK.COVARIANCE

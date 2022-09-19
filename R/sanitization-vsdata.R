@@ -1,5 +1,5 @@
 
-# check bn metadata against the data it's used with.
+# check the bn against the data it's used with.
 check.bn.vs.data = function(bn, data) {
 
   # check which type of data we are dealing with.
@@ -11,9 +11,6 @@ check.bn.vs.data = function(bn, data) {
   # the variables must be the same.
   if (length(setdiff(names(bn$nodes), names(data))) != 0)
     stop("the variables in the data and in the network do not match.")
-  # data type versus network structure.
-  if (type == "mixed-cg")
-    check.arcs.against.assumptions(bn$arcs, data, "mi-cg")
 
 }#CHECK.BN.VS.DATA
 

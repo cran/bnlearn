@@ -12,7 +12,7 @@
 }
 \usage{
 bn.cv(data, bn, loss = NULL, ..., algorithm.args = list(),
-  loss.args = list(), fit = "mle", fit.args = list(), method = "k-fold",
+  loss.args = list(), fit, fit.args = list(), method = "k-fold",
   cluster, debug = FALSE)
 
 \method{plot}{bn.kcv}(x, ..., main, xlab, ylab, connect = FALSE)

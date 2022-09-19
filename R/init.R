@@ -19,13 +19,13 @@ tryMethod = function(f, signature, definition, generic) {
 # set up hooks, S4 classes and initialize global variables.
 .onLoad = function(lib, pkg) {
 
-  bnlearn.classes = c("bn", "bn.fit", "bn.naive", "bn.tan")
+  bnlearn.classes = c("bn", "bn.fit", available.classifiers)
 
+  # re-register S4 methods (from .GlobalEnv, as we would do manually in an
+  # interactive session.
   setHook(packageEvent("graph", "attach"), action = "append",
     function(...) {
 
-      # re-register S4 methods (from .GlobalEnv, as we would do in an
-      # interactive session.
       for (cl in bnlearn.classes) {
 
         setMethod("nodes", cl, where = .GlobalEnv,
@@ -39,11 +39,21 @@ tryMethod = function(f, signature, definition, generic) {
 
   })
 
+  setHook(packageEvent("gRbase", "attach"), action = "append",
+    function(...) {
+
+      for (cl in bnlearn.classes) {
+
+        setMethod("nodes", cl, where = .GlobalEnv,
+          function(object) .nodes(object))
+
+      }#FOR
+
+  })
+
   setHook(packageEvent("BiocGenerics", "attach"), action = "append",
     function(...) {
 
-      # re-register S4 methods (from .GlobalEnv, as we would do in an
-      # interactive session.
       for (cl in bnlearn.classes) {
 
         setMethod("score", cl, where = .GlobalEnv,
@@ -58,7 +68,6 @@ tryMethod = function(f, signature, definition, generic) {
   setHook(packageEvent("igraph", "attach"), action = "append",
     function(...) {
 
-      # re-register the S3 method for as.igraph().
       registerS3method("as.igraph", class = "bn", method = as.igraph.bn,
         envir = asNamespace("igraph"))
       registerS3method("as.igraph", class = "bn.fit", method = as.igraph.bn.fit,

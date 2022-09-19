@@ -209,7 +209,7 @@ compare = function(target, current, arcs = FALSE) {
   check.bn(current)
   # the two networks must have the same node set.
   match.bn(target, current)
-  # check debug.
+  # check arcs.
   check.logical(arcs)
 
   compare.backend(target$arcs, current$arcs,

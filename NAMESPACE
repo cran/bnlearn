@@ -16,7 +16,7 @@ export(
   "whitelist", "blacklist", "ordering2blacklist", "tiers2blacklist",
   "set2blacklist",
   # functions to compare network structures.
-  "compare", "hamming", "shd", "choose.direction",
+  "compare", "hamming", "shd", 
   # get neighbours and Markov blankets.
   "mb", "nbr",
   # get, set and count arcs and edges; add nodes.
@@ -38,14 +38,14 @@ export(
   "alpha.star", "BF", "ci.test",
   # resampling and Bayesian networks.
   "bn.boot", "bn.cv", "loss",
-  # notable network structures transforms.
+  # notable network structure transforms.
   "skeleton", "pdag2dag", "cpdag", "cextend", "moral", "mutilated",
   # v-structures and d-separation.
   "vstructs", "dsep", "colliders", "unshielded.colliders", "shielded.colliders", 
   # plotting network structures.
   "graphviz.plot", "strength.plot", "graphviz.compare", "graphviz.chart",
   # fitted Bayesian networks.
-  "bn.fit", "custom.fit", "bn.net",
+  "bn.fit", "custom.fit", "bn.net", "gbn2mvnorm", "mvnorm2gbn",
   # plotting fitted Bayesian networks.
   "bn.fit.qqplot", "bn.fit.histogram", "bn.fit.xyplot", "bn.fit.barchart",
   "bn.fit.dotplot",
@@ -54,7 +54,7 @@ export(
   # data preprocessing and imputation.
   "discretize", "dedup", "impute",
   # inference.
-  "cpquery",
+  "KL", "cpquery",
   # import/export functions for varous file formats.
   "read.bif", "write.bif", "read.dsc", "write.dsc", "read.net", "write.net",
   "write.dot",
@@ -154,6 +154,7 @@ S3method(predict, "bn.tan")
 S3method("$<-", "bn.fit")
 S3method("[[<-", "bn.fit")
 S3method(mean, "bn.strength")
+S3method(mean, "bn.fit")
 
 exportClasses("bn", "bn.fit")
 exportMethods("nodes", "nodes<-", "degree", "score")

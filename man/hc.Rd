@@ -40,8 +40,9 @@ tabu(x, start = NULL, whitelist = NULL, blacklist = NULL, score = NULL, ...,
   \item{perturb}{an integer, the number of attempts to randomly
     insert/remove/reverse an arc on every random restart.}
   \item{max.iter}{an integer, the maximum number of iterations.}
-  \item{maxp}{the maximum number of parents for a node. The default value is
-    \code{Inf}.}
+  \item{maxp}{the maximum number of parents allowed for a node in any network
+    that is considered in the search, including that that is returned. The
+    default value is \code{Inf}.}
   \item{optimized}{a boolean value. If \code{TRUE} (the default), score caching
     is used to speed up structure learning.}
 }

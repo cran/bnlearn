@@ -20,7 +20,7 @@ impute = function(object, data, method, ..., debug = FALSE) {
 }#IMPUTE
 
 # structural expectation-maximization.
-structural.em = function(x, maximize = "hc", maximize.args = list(), fit = "mle",
+structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
     fit.args = list(), impute, impute.args = list(), return.all = FALSE,
     start = NULL, max.iter = 5, debug = FALSE) {
 
@@ -29,7 +29,13 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit = "mle"
   # check the data are there.
   data.info =
     check.data(x, allow.levels = TRUE, allow.missing = TRUE,
-      warn.if.no.missing = TRUE, stop.if.all.missing = !is(start, "bn.fit"))
+      warn.if.no.missing = TRUE, stop.if.all.missing = FALSE)
+
+  # if the data contains latent variables, the network used to perform the
+  # imputation in the first iteration must already have parameters because we
+  # cannot estimate them from the data themselves in a meaningful way.
+  if (any(data.info$latent.nodes) && !is(start, "bn.fit"))
+    stop("the data contain latent variables, so the 'start' argument must be a 'bn.fit' object.")
 
   # check the max.iter argument.
   max.iter = check.max.iter(max.iter)
@@ -47,7 +53,7 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit = "mle"
     list(x = NULL, heuristic = maximize, start = NULL, debug = debug)
 
   # check the arguments used for parameter learning as in bn.cv().
-  check.fitting.method(method = fit, data = x)
+  fit = check.fitting.method(method = fit, data = x)
   fit.args = check.fitting.args(method = fit, network = NULL, data = x,
                extra.args = fit.args)
 
@@ -72,7 +78,7 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit = "mle"
 
       check.bn.vs.data(start, x)
       # check the preseeded network is valid for the model assumptions.
-      check.arcs.against.assumptions(start$arcs, x, maximize.args$score)
+      check.arcs.against.assumptions(start$arcs, x, fit)
 
       dag = start
       fitted = bn.fit.backend(start, data = x, method = fit,
@@ -90,6 +96,9 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit = "mle"
     }#THEN
 
   }#ELSE
+
+  if (is.bn.fit.ill.defined(fitted))
+    stop("the 'start' network is singular or has unidentifiable parameters.")
 
   # initialize the algorithm.
   if (debug) {

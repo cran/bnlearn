@@ -69,24 +69,16 @@ arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
 
 }#.DATA.FRAME
 
-.data.frame.column = function(dataframe, column, drop = TRUE) {
+.data.frame.column = function(dataframe, column, drop = TRUE,
+  keep.names = FALSE) {
 
   .Call(call_dataframe_column,
         dataframe = dataframe,
         column = column,
-        drop = drop)
+        drop = drop,
+        keep.names = keep.names)
 
 }#.DATA.FRAME.COLUMN
-
-# flatten 2-dimensional 1xc tables.
-flatten.2d.table = function(x) {
-
-  x = as.table(structure(c(x), names = colnames(x)))
-  names(dimnames(x)) = ""
-
-  return(x)
-
-}#FLATTEN.2D.TABLE
 
 # explode an unevaluated expression into a character vector.
 explode = function(x) {

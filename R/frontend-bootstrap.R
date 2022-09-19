@@ -4,7 +4,7 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), algorithm,
     algorithm.args = list(), statistic.args = list(), cluster, debug = FALSE) {
 
   # check the data are there.
-  check.data(data)
+  check.data(data, allow.missing = TRUE)
   # check the number of bootstrap replicates.
   R = check.replicates(R)
   # check the size of each bootstrap sample.
@@ -19,7 +19,7 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), algorithm,
   statistic = match.fun(statistic)
   # if the statistic fuction is I(), replace it with a NOP to avoid troubles
   # with class dispatch.
-  if (isTRUE(all.equal(statistic, base::I)))
+  if (isTRUE(all.equal(statistic, base::I, check.environment = FALSE)))
     statistic = function(x) x
 
   # check the extra arguments for the statistic function.
@@ -52,7 +52,7 @@ boot.strength = function(data, cluster, R = 200, m = nrow(data), algorithm,
   algorithm.args = list(), cpdag = TRUE, debug = FALSE) {
 
   # check the data are there and get the node lables from the variables.
-  data.info = check.data(data)
+  data.info = check.data(data, allow.missing = TRUE)
   nodes = names(data)
   # check the number of bootstrap replicates.
   R = check.replicates(R)
@@ -92,7 +92,7 @@ boot.strength = function(data, cluster, R = 200, m = nrow(data), algorithm,
   res = structure(res, nodes = nodes, method = "bootstrap",
           threshold = threshold(res), class = c("bn.strength", class(res)))
   if (data.info$type == "mixed-cg")
-    attr(res, "illegal") = list.cg.illegal.arcs(names(data), data)
+    attr(res, "illegal") = list.illegal.arcs(names(data), data, "bn.fit.cgnet")
 
   return(res)
 
@@ -100,18 +100,18 @@ boot.strength = function(data, cluster, R = 200, m = nrow(data), algorithm,
 
 # perform cross-validation.
 bn.cv = function(data, bn, loss = NULL, ...,
-    algorithm.args = list(), loss.args = list(), fit = "mle",
+    algorithm.args = list(), loss.args = list(), fit,
     fit.args = list(), method = "k-fold", cluster, debug = FALSE) {
 
   # check the data are there and get the node lables from the variables.
-  data.info = check.data(data)
+  data.info = check.data(data, allow.missing = TRUE)
   nodes = names(data)
   # check the cross-validation method.
   method = check.cv.method(method)
   # check the extra arguments for the cross-validation method.
   extra.args = check.cv.args(method, list(...), data)
   # check the fitting method (maximum likelihood, bayesian, etc.)
-  check.fitting.method(fit, data)
+  fit = check.fitting.method(fit, data)
   # check the cluster.
   cluster = check.cluster(cluster)
 
@@ -138,7 +138,7 @@ bn.cv = function(data, bn, loss = NULL, ...,
     # since we have no other way to guess, copy the label of the target
     # variable from the arguments of the classifier.
     if ((loss %in% c("pred", "pred-exact", "pred-lw")) &&
-        (is.null(loss.args$target)) && (bn %in% classifiers))
+        (is.null(loss.args$target)) && (bn %in% classification.algorithms))
       loss.args$target = algorithm.args$training
     # check the extra arguments passed down to the loss function.
     loss.args = check.loss.args(loss, bn, nodes, data, loss.args)
@@ -150,6 +150,8 @@ bn.cv = function(data, bn, loss = NULL, ...,
       warning("no learning algorithm is used, so 'algorithm.args' will be ignored.")
     # check whether the data agree with the bayesian network.
     check.bn.vs.data(bn, data)
+    # check whether the network is valid for the method.
+    check.arcs.against.assumptions(bn$arcs, data, fit)
     # check the loss function.
     loss = check.loss(loss, data, bn)
     # it is impossible to learn the parameters if the network structure is only

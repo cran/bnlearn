@@ -19,11 +19,9 @@ naive.bayes.backend = function(data, training, explanatory) {
 }#NAIVE.BAYES.BACKEND
 
 # backend of the TAN algorithm.
-tan.backend = function(data, training, explanatory, whitelist, blacklist,
-    mi, root, debug) {
+tan.backend = function(data, data.info, training, explanatory, whitelist,
+    blacklist, mi, root, debug = FALSE) {
 
-  # set a dummy estimator variable.
-  estimator = 1L
   # cache the node set.
   nodes = c(training, explanatory)
   # create the empty graph.
@@ -32,13 +30,18 @@ tan.backend = function(data, training, explanatory, whitelist, blacklist,
   class.arcs = matrix(c(rep(training, length(explanatory)), explanatory),
                  ncol = 2, byrow = FALSE)
 
+  # separate features and target class variable in data and metadata.
+  features.data =
+    .data.frame.column(data, explanatory, drop = FALSE, keep.names = TRUE)
+  class.data = .data.frame.column(data, training, drop = TRUE)
+
+  features.complete = data.info$complete.nodes[explanatory]
+
   # call chow-liu to build the rest of the network.
   chow.liu.arcs =
-    chow.liu.backend(x = .data.frame.column(data, explanatory, drop = FALSE),
-                     nodes = explanatory, estimator = estimator,
-                     whitelist = whitelist, blacklist = blacklist,
-                     conditional = .data.frame.column(data, training, drop = TRUE),
-                     debug = debug)
+    chow.liu.backend(x = features.data, nodes = explanatory, estimator = mi,
+      whitelist = whitelist, blacklist = blacklist, conditional = class.data,
+      complete = features.complete, debug = debug)
 
   # set the directions of the arcs in the Chow-Liu tree.
   chow.liu.arcs = .Call(call_tree_directions,

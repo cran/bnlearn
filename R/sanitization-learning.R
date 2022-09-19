@@ -16,7 +16,7 @@ check.learning.algorithm = function(algorithm, class = "all", bn) {
   if ("mim" %in% class)
     ok = c(ok, mim.based.algorithms)
   if ("classifier" %in% class)
-    ok = c(ok, classifiers)
+    ok = c(ok, classification.algorithms)
   if ("all" %in% class)
     ok = available.learning.algorithms
 

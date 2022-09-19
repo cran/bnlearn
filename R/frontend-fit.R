@@ -1,12 +1,12 @@
 
 # fit the parameters of the bayesian network for a given network stucture.
-bn.fit = function(x, data, cluster, method = "mle", ..., keep.fitted = TRUE,
+bn.fit = function(x, data, cluster, method, ..., keep.fitted = TRUE,
     debug = FALSE) {
 
   # check x's class.
   check.bn(x)
   # check the data.
-  if (is(x, c("bn.naive", "bn.tan")))
+  if (is(x, available.classifiers))
     data.info = check.data(data, allowed.types = discrete.data.types)
   else
     data.info = check.data(data, allow.missing = TRUE)
@@ -19,7 +19,9 @@ bn.fit = function(x, data, cluster, method = "mle", ..., keep.fitted = TRUE,
   if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
     stop("the graph contains cycles.")
   # check the fitting method (maximum likelihood, bayesian, etc.)
-  check.fitting.method(method, data)
+  method = check.fitting.method(method, data)
+  # check whether the network is valid for the method.
+  check.arcs.against.assumptions(x$arcs, data, method)
   # check the extra arguments.
   extra.args = check.fitting.args(method, x, data, list(...))
   # check debug and keep.fitted.
@@ -50,7 +52,7 @@ bn.fit = function(x, data, cluster, method = "mle", ..., keep.fitted = TRUE,
 }#BN.FIT
 
 # get back the network structure from the fitted object.
-bn.net = function(x, debug = FALSE) {
+bn.net = function(x) {
 
   # check x's class.
   check.fit(x)
@@ -59,8 +61,8 @@ bn.net = function(x, debug = FALSE) {
   net = empty.graph.backend(names(x))
   arcs(net) = fit2arcs(x)
   # re-create the set of illegal arcs.
-  if (is(x, "bn.fit.cgnet"))
-    net$learning$illegal = list.cg.illegal.arcs(names(x), x)
+  type = class(x)
+  net$learning$illegal = list.illegal.arcs(names(x), x, type[length(type)])
 
   return(net)
 
@@ -372,4 +374,54 @@ custom.fit = function(x, dist, ordinal, debug = FALSE) {
   custom.fit.backend(x = x, dist = dist, ordinal = ordinal, debug = debug)
 
 }#CUSTOM.FIT
+
+# Kullback-Leibler divergence between a network Q and a reference network P.
+KL = function(P, Q) {
+
+  # both should be fitted networks.
+  check.fit(P)
+  check.fit(Q)
+
+  # it is not feasible to represent the global distrbution of discrete networks
+  # directly: project the first onto the second so that they have the same
+  # structure and the local distribution can be compared.
+  if (is(P, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")) &&
+      is(Q, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet"))) {
+
+    # if the two networks have different structures, use exact inference to get
+    # the parameters from the first for the structure of the second.
+    if (!isTRUE(all.equal(bn.net(P), bn.net(Q))))
+      P = project.distributions(from = P, onto = Q)
+    # they should have the same set of local distributions, make those in P match
+    # those in Q by playing with invariants if possible.
+    P = check.fitted.vs.fitted(P, Q, local = TRUE)
+
+  }#THEN
+  else {
+
+    # other types of networks are compared through their global distribution, so
+    # there is no need to make local distributions match across networks.
+    P = check.fitted.vs.fitted(P, Q, local = FALSE)
+
+  }#ELSE
+
+  kullback.leibler(P, Q)
+
+}#KL
+
+# average (the parameters of) multiple bn.fit objects with identical structures.
+mean.bn.fit = function(x, ..., weights = NULL) {
+
+  # check the bn.fit objects.
+  fitted = c(list(x), list(...))
+  # check the nodes are the same, and that the object has the right structure.
+  for (s in seq_along(fitted))
+    check.fitted.vs.fitted(fitted[[1]], fitted[[s]])
+  # check the weights.
+  weights = check.weights(weights, length(fitted))
+
+  # average the objects.
+  mean.fitted(fitted, weights)
+
+}#MEAN.BN.FIT
 

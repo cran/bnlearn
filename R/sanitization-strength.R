@@ -47,8 +47,8 @@ check.bn.strength = function(strength, nodes, valid = available.strength.methods
       !identical(names(strength), c("from", "to", "strength", "direction")))
     stop("objects of class 'bn.strength' must be data frames with column names ",
          "'from', 'to', 'strength' and (optionally) 'direction'.")
-  if (any(c("method", "threshold") %!in% names(attributes(strength))))
-    stop("objects of class 'bn.strength' must have a 'method' and a 'strength' attributes.")
+  if (any(c("method", "threshold", "nodes") %!in% names(attributes(strength))))
+    stop("objects of class 'bn.strength' must have 'method', 'threshold' and 'nodes' attributes.")
   # check the estimation method.
   if (attr(strength, "method") %!in% valid)
     check.label(attr(strength, "method"), choices = valid,

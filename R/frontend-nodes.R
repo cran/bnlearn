@@ -57,6 +57,8 @@ parents = function(x, node) {
   # node must be a valid node label.
   if (!any(value %in% names(x$nodes)))
     stop("node not present in the graph.")
+  # check debug.
+  check.logical(debug)
 
   # remove duplicate labels from value.
   value = unique(value)
@@ -128,6 +130,8 @@ children = function(x, node) {
   # node must be a valid node label.
   if (!any(value %in% names(x$nodes)))
     stop("node not present in the graph.")
+  # check debug.
+  check.logical(debug)
 
   # remove duplicate labels from value.
   value = unique(value)

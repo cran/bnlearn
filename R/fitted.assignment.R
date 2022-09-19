@@ -8,9 +8,9 @@ fitted.assignment.backend = function(x, name, value) {
   if (is(to.replace, c("bn.fit.dnode", "bn.fit.onode"))) {
 
     # check the consistency of the new conditional distribution.
-    value = check.dnode(value, node = name)
+    value = check.dnode.rvalue(value, node = name)
     # sanity check the new object by comparing it to the old one.
-    value = check.dnode.vs.dnode(value, to.replace)
+    value = check.rvalue.vs.dnode(value, to.replace)
     # replace the conditional probability table.
     new$prob = value
 
@@ -43,12 +43,12 @@ fitted.assignment.backend = function(x, name, value) {
     else {
 
       # check the consistency of the new conditional distribution.
-      value = check.gnode(value, node = name)
+      value = check.gnode.rvalue(value, node = name)
 
     }#ELSE
 
     # sanity check the new object by comparing it to the old one.
-    value = check.gnode.vs.gnode(value, to.replace)
+    value = check.rvalue.vs.gnode(value, to.replace)
 
     # replace the regression coefficients, keeping the names and the ordering.
     if (is.null(names(value$coef)))
@@ -77,9 +77,9 @@ fitted.assignment.backend = function(x, name, value) {
     # carry discrete parents' configurations from the old object.
     value$configs = to.replace$configs
     # check the consistency of the new conditional distribution.
-    value = check.gnode(value, node = name)
+    value = check.cgnode.rvalue(value, node = name)
     # sanity check the new object by comparing it to the old one.
-    check.cgnode.vs.cgnode(value, to.replace)
+    check.rvalue.vs.cgnode(value, to.replace)
 
     # replace the regression coefficients, keeping the names and the ordering.
     if (is.null(names(value$coef)))

@@ -335,8 +335,8 @@ equal.backend.fit = function(target, current, tolerance) {
       tprob = tnode$prob
       cprob = cnode$prob
 
-      # sanity check the target distribuution by comparing it to the old one.
-      tprob = check.dnode.vs.dnode(tprob, cnode)
+      # sanity check the target distribution by comparing it to the old one.
+      tprob = check.rvalue.vs.dnode(tprob, cnode)
 
       # checking that the conditional probability tables are identical.
       if (!isTRUE(all.equal(tprob, cprob, tolerance = tolerance)))
@@ -349,9 +349,9 @@ equal.backend.fit = function(target, current, tolerance) {
                   dlevels = tnode$dlevels)
 
       if (target.type == "bn.fit.gnode")
-        tparams = check.gnode.vs.gnode(tparams, cnode)
+        tparams = check.rvalue.vs.gnode(tparams, cnode)
       if (target.type == "bn.fit.cgnode")
-        tparams = check.cgnode.vs.cgnode(tparams, cnode)
+        tparams = check.rvalue.vs.cgnode(tparams, cnode)
 
       # checking that the regression coefficients are identical.
       if (!isTRUE(all.equal(tparams$coef, cnode$coefficients, tolerance = tolerance)))

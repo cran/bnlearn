@@ -28,9 +28,9 @@ custom.fit.backend = function(x, dist, discrete, ordinal, debug = FALSE) {
     if (is.ndmatrix(dist[[node]])) {
 
       # first self-check the local distribution.
-      dist[[node]] = check.dnode(dist[[node]], node = node)
+      dist[[node]] = check.dnode.rvalue(dist[[node]], node = node)
       # check thee distribution against that of the parents.
-      dist[[node]] = check.dnode.vs.parents(node, new = dist[[node]],
+      dist[[node]] = check.dnode.rvalue.vs.parents(node, new = dist[[node]],
                        parents = fitted[node.parents])
       # store the new CPT in the bn.fit object.
       fitted[[node]]$prob = normalize.cpt(dist[[node]])
@@ -57,13 +57,14 @@ custom.fit.backend = function(x, dist, discrete, ordinal, debug = FALSE) {
 
       }#THEN
 
-      dist[[node]] = check.gnode(dist[[node]], node = node)
-      # sanity check the distribution by comparing it to the network structure.
       if (is(dist[[node]]$coef, "matrix")) {
 
+        # sanity check the components of the assignment.
+        dist[[node]] = check.cgnode.rvalue(dist[[node]], node = node)
+        # sanity check the assignment against the network structure.
         dist[[node]] =
-          check.cgnode.vs.parents(node, new = dist[[node]],
-                         parents = fitted[node.parents])
+          check.cgnode.rvalue.vs.parents(node, new = dist[[node]],
+            parents = fitted[node.parents])
 
         # identify discrete and continuous parents and configurations.
         configs = as.character(seq(from = 0, to = ncol(dist[[node]]$coef) - 1))
@@ -82,7 +83,10 @@ custom.fit.backend = function(x, dist, discrete, ordinal, debug = FALSE) {
       }#THEN
       else {
 
-        dist[[node]] = check.gnode.vs.parents(node, new = dist[[node]],
+        # sanity check the components of the assignment.
+        dist[[node]] = check.gnode.rvalue(dist[[node]], node = node)
+        # sanity check the assignment against the network structure.
+        dist[[node]] = check.gnode.rvalue.vs.parents(node, new = dist[[node]],
                          parents = fitted[node.parents])
         # store the new coefficients and standard deviations.
         fitted[[node]]$coefficients = noattr(dist[[node]]$coef, ok = "names")

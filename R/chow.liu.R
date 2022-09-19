@@ -1,6 +1,6 @@
 
 chow.liu.backend = function(x, nodes, estimator, whitelist, blacklist,
-    conditional = NULL, debug = FALSE) {
+    conditional = NULL, complete, debug = FALSE) {
 
   # fix the whitelist and the blacklist to keep the C side simple.
   if (!is.null(blacklist)) {
@@ -31,6 +31,7 @@ chow.liu.backend = function(x, nodes, estimator, whitelist, blacklist,
         estimator = estimator,
         whitelist = whitelist,
         blacklist = blacklist,
+        complete = complete,
         conditional = conditional,
         debug = debug)
 

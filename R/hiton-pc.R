@@ -138,7 +138,7 @@ si.hiton.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
 # backward stage of HITON-PC.
 si.hiton.pc.backward = function(target, candidate, cpc, data, test, alpha, B,
-    complete, debug) {
+    complete, debug = FALSE) {
 
   # the nodes are always marginally associated, otherwise the candidate would
   # not have been chosen as such.

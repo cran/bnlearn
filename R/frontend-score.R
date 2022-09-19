@@ -16,6 +16,8 @@ network.score = function(x, data, type = NULL, ..., by.node = FALSE, debug = FAL
     stop("the graph is only partially directed.")
   # check the score label.
   type = check.score(type, data)
+  # check whether the network is valid for the method.
+  check.arcs.against.assumptions(x$arcs, data, type)
 
   # expand and sanitize score-specific arguments.
   extra.args = check.score.args(score = type, network = x,
@@ -83,12 +85,13 @@ logLik.bn = function(object, data, ...) {
 
 }#LOGLIK.BN
 
+# estimate a reasonable guess at the best imaginary sample size.
 alpha.star = function(x, data, debug = FALSE) {
 
   # check x's class.
   check.bn(x)
   # the original data set is needed.
-  check.data(data)
+  check.data(data, allowed.types = discrete.data.types)
   # check the network against the data.
   check.bn.vs.data(x, data)
   # check debug.
@@ -100,94 +103,6 @@ alpha.star = function(x, data, debug = FALSE) {
   alpha.star.backend(x = x, data = data, debug = debug)
 
 }#ALPHA.STAR
-
-# infer the direction of an ipothetic arc between two specified nodes.
-choose.direction = function(x, arc, data, criterion = NULL, ..., debug = FALSE) {
-
-  warning("the choose.direction() function is deprecated and will be removed in 2022.")
-
-  # check x's class.
-  check.bn(x)
-  # check the data are there.
-  data.info = check.data(data)
-  # check the arc is there.
-  check.nodes(nodes = arc, graph = x, min.nodes = 2, max.nodes = 2)
-  # check debug.
-  check.logical(debug)
-  # check criterion.
-  if (is.null(criterion)) {
-
-    # if no criterion is specified use either the default one or the
-    # one used by the learning algorithm.
-    if (x$learning$test == "none")
-      criterion = check.test(criterion, data)
-    else
-      criterion = x$learning$test
-
-  }#THEN
-  else if (identical(criterion, "bootstrap")) {
-
-    # nothing to do, move along.
-
-  }#THEN
-  else {
-
-    criterion = check.criterion(criterion, data)
-
-  }#ELSE
-
-  # set the test/score counter.
-  reset.test.counter()
-
-  if (debug)
-    cat("* testing", arc[1], "-", arc[2], "for direction.\n" )
-
-  if (criterion %in% available.tests) {
-
-    # sanitize the alpha threshold.
-    alpha = check.alpha(list(...)$alpha, network = x)
-
-    # sanitize B (the number of bootstrap/permutation samples).
-    B = check.B(list(...)$B, criterion)
-
-    # warn about unused arguments.
-    check.unused.args(list(...), c("alpha", "B"))
-
-    x = choose.direction.test(x, data = data, arc = arc,
-          test = criterion, alpha = alpha, B = B, debug = debug,
-          complete = data.info$complete.nodes)
-
-  }#THEN
-  else if (criterion %in% available.scores) {
-
-    # expand and sanitize score-specific arguments.
-    extra.args = check.score.args(score = criterion, network = x,
-                   data = data, extra.args = list(...), learning = FALSE)
-
-    x = choose.direction.score(x, data = data, arc = arc, score = criterion,
-          extra.args = extra.args, debug = debug)
-
-  }#ELSE
-  else if (criterion == "bootstrap") {
-
-    # expand and check bootstrap-specific arguments.
-    extra.args = check.bootstrap.args(list(...), network = x, data = data)
-
-    if (!is.null(extra.args$cpdag))
-      check.logical(extra.args$cpdag)
-    else
-      extra.args$cpdag = TRUE
-
-    x = choose.direction.boot(x, data = data, arc = arc,
-          extra.args = extra.args, algorithm = extra.args[["algorithm"]],
-          algorithm.args = extra.args[["algorithm.args"]],
-          cpdag =  extra.args[["cpdag"]], debug = debug)
-
-  }#THEN
-
-  invisible(x)
-
-}#CHOOSE.DIRECTION
 
 # compute the Bayes factor of two networks.
 BF = function(num, den, data, score, ..., log = TRUE) {
@@ -229,6 +144,10 @@ BF = function(num, den, data, score, ..., log = TRUE) {
                           grep("bic", available.scores, value = TRUE)))
 
   }#ELSE
+
+  # check whether the networks are valid for the score.
+  check.arcs.against.assumptions(num$arcs, data, score)
+  check.arcs.against.assumptions(den$arcs, data, score)
 
   # expand and sanitize score-specific arguments.
   extra.args = check.score.args(score = score, network = num,

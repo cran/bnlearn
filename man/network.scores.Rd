@@ -17,14 +17,20 @@
 
     \item the multinomial \emph{log-likelihood} (\code{loglik}) score, which is
       equivalent to the \emph{entropy measure} used in Weka.
-    \item the \emph{Akaike Information Criterion} score (\code{aic}).
-    \item the \emph{Bayesian Information Criterion} score (\code{bic}), which is
-      equivalent to the \emph{Minimum Description Length} (MDL) and is also
-      known as \emph{Schwarz Information Criterion}.
+    \item the \emph{Akaike Information Criterion} (AIC) score (\code{aic}).
+    \item the \emph{Bayesian Information Criterion} (BIC) score (\code{bic}),
+      which is equivalent to the \emph{Minimum Description Length} (MDL) and is
+      also known as \emph{Schwarz Information Criterion}.
 
       Chickering DM (1995). "A Transformational Characterization of Equivalent
         Bayesian Network Structures". \emph{Proceedings of the Eleventh Annual
         Conference on Uncertainty in Artificial Intelligence}, 87--98.
+
+    \item the \emph{extended Bayesian Information Criterion} (\code{ebic}),
+      which adds a second penalty to BIC to penalize dense networks.
+
+      Foygel R, Drton M (2010). "Extended Bayesian Information Criteria for
+        Gaussian Graphical Models". NIPS 23, 604--612.
 
     \item the \emph{predictive log-likelihood} (\code{pred-loglik}) computed on
       a separate test set.
@@ -111,14 +117,20 @@
 
     \item the multivariate Gaussian \emph{log-likelihood} (\code{loglik-g})
       score.
-    \item the corresponding \emph{Akaike Information Criterion} score
+    \item the corresponding \emph{Akaike Information Criterion} (AIC) score
       (\code{aic-g}).
-    \item the corresponding \emph{Bayesian Information Criterion} score
+    \item the corresponding \emph{Bayesian Information Criterion} (BIC) score
       (\code{bic-g}).
 
       Geiger D, Heckerman D (1994). "Learning Gaussian Networks".
         \emph{Proceedings of the Tenth Annual Conference on Uncertainty in
         Artificial Intelligence}, 235--243.
+
+    \item the \emph{extended Bayesian Information Criterion} (\code{ebic-g}),
+      which adds a second penalty to BIC to penalize dense networks.
+
+      Foygel R, Drton M (2010). "Extended Bayesian Information Criteria for
+        Gaussian Graphical Models". NIPS 23, 604--612.
 
     \item the \emph{predictive log-likelihood} (\code{pred-loglik-g}) computed
       on a separate test set. The reference paper is the same as that for
@@ -140,10 +152,17 @@
 
     \item the conditional linear Gaussian \emph{log-likelihood}
       (\code{loglik-cg}) score.
-    \item the corresponding \emph{Akaike Information Criterion} score
-    \code{aic-cg}).
-    \item the corresponding \emph{Bayesian Information Criterion} score
+    \item the corresponding \emph{Akaike Information Criterion} (AIC) score
+      (\code{aic-cg}).
+    \item the corresponding \emph{Bayesian Information Criterion} (BIC) score
       (\code{bic-cg}).
+
+    \item the \emph{extended Bayesian Information Criterion} (\code{ebic-cg}),
+      which adds a second penalty to BIC to penalize dense networks.
+
+      Foygel R, Drton M (2010). "Extended Bayesian Information Criteria for
+        Gaussian Graphical Models". NIPS 23, 604--612.
+
     \item the \emph{predictive log-likelihood} (\code{pred-loglik-cg}) computed
       on a separate test set. The reference paper is the same as that for
       \code{pred-loglik}.

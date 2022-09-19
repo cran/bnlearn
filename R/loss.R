@@ -53,7 +53,7 @@ kfold.loss.postprocess = function(kcv, kcv.length, loss, extra.args, data) {
       pred = unlist(lapply(kcv, "[[", "predicted"))
       obs = unlist(lapply(kcv, "[[", "observed"))
       # compute the predictive correlation.
-      mean = cor(obs, pred)
+      mean = cor(obs, pred, use = "complete.obs")
 
     }#ELSE
 
@@ -78,8 +78,8 @@ mean.square.error = function(node, fitted, n, from, data, loss, debug = FALSE) {
   else if (loss %in% c("mse-lw", "mse-lw-cg"))
     pred = map.prediction(node, fitted, data, n = n, from = from)
 
-  return(list(loss = mean((data[, node] - pred)^2), predicted = pred,
-    observed = data[, node]))
+  return(list(loss = mean((data[, node] - pred)^2, na.rm = TRUE),
+              predicted = pred, observed = data[, node]))
 
 }#MEAN.SQUARE.ERROR
 
@@ -93,10 +93,10 @@ predictive.correlation = function(node, fitted, n, from, data, loss,
     pred = map.prediction(node, fitted, data, n = n, from = from)
 
   if (((loss == "cor") && length(fitted[[node]]$parents) == 0))
-    return(list(loss = NA, predictions = pred, observed = data[, node]))
+    return(list(loss = NA, predicted = pred, observed = data[, node]))
   else
-    return(list(loss = cor(data[, node], pred), predicted = pred,
-      observed = data[, node]))
+    return(list(loss = cor(data[, node], pred, use = "complete.obs"),
+                predicted = pred, observed = data[, node]))
 
 }#PREDICTIVE.CORRELATION
 

@@ -164,7 +164,7 @@ bn.cv.structure = function(test, data, net, loss, loss.args, fit, fit.args,
   # in the case of naive Bayes and TAN models, the prior must be computed on
   # the training sample for each fold to match the behaviour of the default
   # for non-cross-validated models.
-  if (is(fitted, c("bn.naive", "bn.tan")))
+  if (is(fitted, available.classifiers))
     if (all(loss.args$prior == 1))
       loss.args$prior = fitted[[attr(fitted, "training")]]$prob
 

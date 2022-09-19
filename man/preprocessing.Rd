@@ -49,6 +49,15 @@
 
   }
 
+  It is sometimes the case that the \code{quantile} method cannot discretize one
+  or more variables in the data without generating zero-length intervals because
+  the quantiles are not unique. If \code{method = "quantile"},
+  \code{discretize()} will produce an error. If \code{method = "quantile"} and
+  \code{idisc = "quantile"}, \code{discretize()} will try to lower the number of
+  breaks set by the \code{ibreaks} argument until quantiles are distinct. If
+  this is not possible without making \code{ibreaks} smaller than \code{breaks},
+  \code{discretize()} will produce an error.
+
   \code{dedup()} screens the data for pairs of highly correlated variables, and
   discards one in each pair.
 
