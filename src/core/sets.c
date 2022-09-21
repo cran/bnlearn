@@ -61,20 +61,21 @@ int i = 0, k = 0, n = length(elems), r = INT(size), *id = NULL;
 double nsub = choose(n, r);
 SEXP result;
 
+ /* after this it is safe to cast nsub to a integer. */
  if (nsub * r > INT_MAX)
    error("too many subsets of size %d.", r);
 
  /* allocate the scratch space and the return value. */
  id = Calloc1D(r, sizeof(int));
- PROTECT(result = allocMatrix(STRSXP, nsub, r));
+ PROTECT(result = allocMatrix(STRSXP, (int)nsub, r));
 
   /* iterate over subsets. */
   first_subset(id, r, 0);
 
-  for (k = 0;  k < nsub; k++) {
+  for (k = 0; k < nsub; k++) {
 
     for (i = 0; i < r; i++)
-      SET_STRING_ELT(result, CMC(k, i, nsub), STRING_ELT(elems, id[i]));
+      SET_STRING_ELT(result, CMC(k, i, (int)nsub), STRING_ELT(elems, id[i]));
 
     next_subset(id, r, n, 0);
 
@@ -177,13 +178,14 @@ long long *cumlevels = NULL, nl = 0;
   /* compute the number of possible configurations. */
   nl = cumlevels[ncol - 1] * levels[ncol - 1];
 
+  /* after this it is safe to cast nl to an integer. */
   if (nl >= INT_MAX)
     error("attempting to create a factor with more than INT_MAX levels.");
 
   /* if nlevels is not a NULL pointer, save the number of possible
    * configurations. */
   if (nlevels)
-    *nlevels = nl;
+    *nlevels = (int)nl;
 
   for (i = 0; i < nrow; i++) {
 

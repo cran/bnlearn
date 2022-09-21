@@ -190,11 +190,12 @@ long double *mean_y = NULL, *mean_x = NULL, *var_x = NULL, *cov = NULL, *ssr = N
 static void c_cls2(double **x, double *y, int *z, int nrow, int ncond,
     double *fitted, double *resid, double *beta, double *sd) {
 
-int i = 0, *nz = NULL, singular1 = FALSE, singular2 = FALSE;
+int i = 0, *nz = NULL;
 double *cc = NULL;
 long double *mean_y = NULL, *mean_x1 = NULL, *mean_x2 = NULL;
 long double **var = NULL, **cov = NULL;
 long double den = 0, *ssr = NULL;
+bool singular1 = FALSE, singular2 = FALSE;
 
   /* first pass: compute the conditional means of y and x1. */
   mean_y = Calloc1D(ncond, sizeof(long double));
@@ -785,11 +786,12 @@ long double *mean_y = NULL, *mean_x = NULL, *var_x = NULL, *cov = NULL, *ssr = N
 static void c_cls2_with_missing(double **x, double *y, int *z, int nrow,
     int ncond, double *fitted, double *resid, double *beta, double *sd) {
 
-int i = 0, *nz = NULL, singular1 = FALSE, singular2 = FALSE;
+int i = 0, *nz = NULL;
 double *cc = NULL;
 long double *mean_y = NULL, *mean_x1 = NULL, *mean_x2 = NULL;
 long double **var = NULL, **cov = NULL;
 long double den = 0, *ssr = NULL;
+bool singular1 = FALSE, singular2 = FALSE;
 
   /* first pass: compute the conditional means of y and x1. */
   mean_y = Calloc1D(ncond, sizeof(long double));
@@ -989,11 +991,12 @@ void c_clsp_with_missing(double **x, double *y, int *z, int nrow, int ncol,
 
 int i = 0, j = 0, *nz = NULL, *counter = NULL, qr_ncol = ncol + 1;
 double **qr_matrix = NULL, **yy = NULL, *ff = NULL, *rr = NULL;
-int check = FALSE, ncomplete = 0, *complete = NULL, **zid = NULL;
+int **zid = NULL;
+bool check = FALSE, *complete = NULL;
 
   /* first pass: count how many observations for each conditioning. */
   nz = Calloc1D(ncond, sizeof(int));
-  complete = Calloc1D(nrow, sizeof(int));
+  complete = Calloc1D(nrow, sizeof(bool));
 
   for (i = 0; i < nrow; i++) {
 
@@ -1005,7 +1008,6 @@ int check = FALSE, ncomplete = 0, *complete = NULL, **zid = NULL;
       check &= !ISNAN(x[j][i]);
 
     complete[i] = check;
-    ncomplete += check;
     if (check)
       nz[z[i] - 1]++;
 
@@ -1232,5 +1234,4 @@ void c_cls(double **x, double *y, int *z, int nrow, int ncol, int ncond,
   }/*ELSE*/
 
 }/*C_CLS*/
-
 

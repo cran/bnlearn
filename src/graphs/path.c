@@ -161,7 +161,7 @@ there:
 
 }/*C_HAS_PATH*/
 
-int c_directed_path(int start, int stop, int *amat, int n, SEXP nodes,
+bool c_directed_path(int start, int stop, int *amat, int n, SEXP nodes,
     int *path, int *counter, bool debugging) {
 
 int i = 0, path_pos = 0, cur = start;

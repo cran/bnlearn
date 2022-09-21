@@ -41,7 +41,7 @@ double min = R_PosInf, max = R_NegInf, delta = 0;
     if (orig[i] == min)
       factor[i] = 1;
     else
-      factor[i] = ceil((orig[i] - min) / delta);
+      factor[i] = (int)ceil((orig[i] - min) / delta);
 
   }/*FOR*/
 
@@ -123,7 +123,7 @@ double h = 0, *sorted = NULL;
     /* preserve missing values. */
     if (ISNAN(orig[i])) {
 
-      factor[i] = NA_REAL;
+      factor[i] = NA_INTEGER;
       continue;
 
     }/*THEN*/

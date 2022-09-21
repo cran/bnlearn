@@ -19,4 +19,6 @@
 #define INT(x) INTEGER(x)[0]
 #define NUM(x) REAL(x)[0]
 #define NODE(i) CHAR(STRING_ELT(nodes, i))
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 

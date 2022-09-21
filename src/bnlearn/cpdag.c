@@ -490,7 +490,7 @@ int *path = NULL, *scratch = NULL;
 
 }/*PREVENT_CYCLES*/
 
-short int creates_unshielded_collider(int *a, int nnodes, int j, int i) {
+bool creates_unshielded_collider(int *a, int nnodes, int j, int i) {
 
 int k = 0;
 
@@ -520,7 +520,7 @@ int i = 0, j = 0;
 int *path = NULL, *scratch = NULL;
 short int *has_parent = NULL, *has_neighbour = NULL;
 short int changed = FALSE, unshielded_i = FALSE, unshielded_j = FALSE;
-short int path_to_i = FALSE, path_to_j = FALSE;
+bool path_to_i = FALSE, path_to_j = FALSE;
 
   has_parent = Calloc1D(nnodes, sizeof(short int));
   has_neighbour = Calloc1D(nnodes, sizeof(short int));

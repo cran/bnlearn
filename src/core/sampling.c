@@ -18,7 +18,7 @@ int i = 0, j = 0;
 
   for (i = 0; i < k; i++) {
 
-    j = n * unif_rand();
+    j = (int)((double)n * unif_rand());
     y[i] = x[j] + 1;
     x[j] = x[--n];
 
@@ -37,7 +37,7 @@ void SampleReplace(int k, int n, int *y, int *x) {
 int i;
 
   for (i = 0; i < k; i++)
-    y[i] = x[(int)(n * unif_rand())];
+    y[i] = x[(int)((double)n * unif_rand())];
 
 }/*SAMPLEREPLACE*/
 

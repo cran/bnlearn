@@ -1,6 +1,13 @@
 #include "../include/rcore.h"
 #include "../include/globals.h"
 
+/* a rudimental function like fmax() but for integer variables. */
+int imax(int x, int y) {
+
+  return (x > y) ? x : y;
+
+}/*IMAX*/
+
 /* a rudimental C implementation of which.max() for a double array. */
 int d_which_max(double *array, int length) {
 

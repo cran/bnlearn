@@ -5,7 +5,7 @@
 /* check that a matrix is symmetric and satisfies Cauchy-Schwarz. */
 SEXP check_covariance(SEXP covmat) {
 
-int i = 0, j = 0, n = sqrt(length(covmat));
+int i = 0, j = 0, n = (int)sqrt(length(covmat));
 double *cov = REAL(covmat);
 
   for (i = 0; i < n; i++)

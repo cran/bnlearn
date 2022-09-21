@@ -375,12 +375,12 @@ long double loglik_kappa_tau = 0, loglik_kappa_tau_old = 0, relative_difference 
       Rprintf("the log-likelihood is %Lf.\n", loglik_kappa_tau);
 
     relative_difference = (loglik_kappa_tau - loglik_kappa_tau_old) /
-                            fabs(loglik_kappa_tau_old);
+                            fabsl(loglik_kappa_tau_old);
     loglik_kappa_tau_old = loglik_kappa_tau;
 
     /* the log-likelihood is not increasing any longer, which suggests it
      * reached its peak. */
-    if (fabs(relative_difference) < MACHINE_TOL)
+    if (fabsl(relative_difference) < MACHINE_TOL)
       break;
 
   }/*FOR*/

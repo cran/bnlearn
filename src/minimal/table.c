@@ -36,18 +36,17 @@ SEXP table, dims, dimnames, cur;
 
   }/*FOR*/
 
+  /* after this it is safe to cast ncels to an integer. */
   if (ncells > INT_MAX) {
 
     Free1D(columns);
-
     UNPROTECT(2);
-
     error("attempting to create a table with more than INT_MAX cells.");
 
   }/*THEN*/
 
   /* allocate and dereference the table. */
-  PROTECT(table = allocVector(INTSXP, ncells));
+  PROTECT(table = allocVector(INTSXP, (int)ncells));
   tt = INTEGER(table);
   memset(tt, '\0', ncells * sizeof(int));
 

@@ -9,6 +9,7 @@
 #include "../../core/covariance.matrix.h"
 #include "../../core/correlation.h"
 #include "../../core/data.table.h"
+#include "../../core/math.functions.h"
 #include "../../math/linear.algebra.h"
 
 void update_pvalue_range(double pvalue, double *min, double *max) {
@@ -64,7 +65,7 @@ ddata sub = { 0 };
   /* allocate the parents' configurations. */
   zptr = Calloc1D(dtz.m.nobs, sizeof(int));
 
-  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
+  for (cursize = imax(1, minsize); cursize <= maxsize; cursize++) {
 
     /* allocate and initialize the subset. */
     subset = Calloc1D(cursize + nf, sizeof(int));
@@ -151,8 +152,9 @@ ddata sub = { 0 };
 SEXP ast_gaustests_complete(gdata dt, int nf, int minsize, int maxsize,
     double a, bool debugging, test_e test) {
 
-int i = 0, cursize = 0, *subset = NULL, df = 0;
-double statistic = 0, lambda = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
+int i = 0, cursize = 0, *subset = NULL;
+double statistic = 0, lambda = 0, df = 0;
+double pvalue = 0, min_pvalue = 1, max_pvalue = 0;
 SEXP retval;
 gdata sub = { 0 };
 covariance cov = { 0 };
@@ -161,7 +163,7 @@ covariance cov = { 0 };
   sub = empty_gdata(dt.m.nobs, dt.m.ncols);
   sub.mean = Calloc1D(dt.m.ncols, sizeof(double));
 
-  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
+  for (cursize = imax(1, minsize); cursize <= maxsize; cursize++) {
 
     /* compute the degrees of freedom for correlation and mutual information. */
     df = gaussian_cdf(test, dt.m.nobs, cursize + nf);
@@ -212,7 +214,7 @@ covariance cov = { 0 };
       if (test == COR) {
 
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
-        statistic = cor_t_trans(statistic, (double)df);
+        statistic = cor_t_trans(statistic, df);
         pvalue = 2 * pt(fabs(statistic), df, FALSE, FALSE);
         update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
@@ -290,8 +292,9 @@ covariance cov = { 0 };
 SEXP ast_gaustests_with_missing(gdata dt, int nf, int minsize, int maxsize,
     double a, bool debugging, test_e test) {
 
-int i = 0, cursize = 0, *subset = NULL, df = 0, ncomplete = 0;
-double statistic = 0, lambda = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
+int i = 0, cursize = 0, *subset = NULL, ncomplete = 0;
+double statistic = 0, lambda = 0, df = 0;
+double pvalue = 0, min_pvalue = 1, max_pvalue = 0;
 double *mean = NULL;
 bool *missing_xy = NULL, *missing_all = NULL;
 SEXP retval;
@@ -305,7 +308,7 @@ covariance cov = { 0 };
   missing_xy = Calloc1D(dt.m.nobs, sizeof(bool));
   gdata_incomplete_cases_range(&dt, missing_xy, 0, 1);
 
-  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
+  for (cursize = imax(1, minsize); cursize <= maxsize; cursize++) {
 
     /* allocate a vector to store column means (from complete observations). */
     mean = Calloc1D(cursize + nf + 2, sizeof(double));
@@ -366,7 +369,7 @@ covariance cov = { 0 };
       if (test == COR) {
 
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
-        statistic = cor_t_trans(statistic, (double)df);
+        statistic = cor_t_trans(statistic, df);
         pvalue = 2 * pt(fabs(statistic), df, FALSE, FALSE);
         update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
@@ -491,7 +494,7 @@ cgdata sub = { 0 };
 
   }/*THEN*/
 
-  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
+  for (cursize = imax(1, minsize); cursize <= maxsize; cursize++) {
 
     /* allocate and initialize the subset. */
     subset = Calloc1D(cursize + nf + 2, sizeof(int));
@@ -629,7 +632,7 @@ cgdata dtx_complete = { 0 }, dty_complete = { 0 };
   cgdata_incomplete_cases(&dtx, missing_xy, 0, 0);
   cgdata_incomplete_cases(&dty, missing_xy, 0, 0);
 
-  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
+  for (cursize = imax(1, minsize); cursize <= maxsize; cursize++) {
 
     /* allocate and initialize the subset. */
     subset = Calloc1D(cursize + nf + 2, sizeof(int));
@@ -802,7 +805,7 @@ ddata sub = { 0 };
   /* allocate the parents' configurations. */
   zptr = Calloc1D(dtz.m.nobs, sizeof(int));
 
-  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
+  for (cursize = imax(1, minsize); cursize <= maxsize; cursize++) {
 
     /* allocate and initialize the subset. */
     subset = Calloc1D(cursize + nf, sizeof(int));
@@ -887,7 +890,7 @@ gdata sub = { 0 }, sub_complete = { 0 };
 
   }/*THEN*/
 
-  for (cursize = fmax(1, minsize); cursize <= maxsize; cursize++) {
+  for (cursize = imax(1, minsize); cursize <= maxsize; cursize++) {
 
     /* allocate and initialize the subset indexes array. */
     subset = Calloc1D(cursize + nf + 2, sizeof(int));

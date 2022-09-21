@@ -108,8 +108,8 @@ ddata sub = { 0 };
 void rrd_gaustests_complete(gdata dt, test_e test, double *pvalue, double
     alpha, bool debugging) {
 
-int i = 1, cur = 0, df = 0, valid = dt.m.ncols - 1, t = 0, run_svd = TRUE;
-double statistic = 0, lambda = 0;
+int i = 1, cur = 0, valid = dt.m.ncols - 1, t = 0, run_svd = TRUE;
+double statistic = 0, lambda = 0, df = 0;
 gdata sub = { 0 };
 covariance cov = { 0 }, backup = { 0 };
 
@@ -162,7 +162,7 @@ covariance cov = { 0 }, backup = { 0 };
     if (test == COR) {
 
       statistic = c_fast_pcor(cov, 0, t, NULL, run_svd);
-      statistic = cor_t_trans(statistic, (double)df);
+      statistic = cor_t_trans(statistic, df);
       pvalue[cur] = 2 * pt(fabs(statistic), df, FALSE, FALSE);
 
     }/*THEN*/
@@ -224,9 +224,9 @@ covariance cov = { 0 }, backup = { 0 };
 void rrd_gaustests_with_missing(gdata dt, test_e test, double *pvalue,
     double alpha, bool debugging) {
 
-int i = 1, cur = 0, df = 0, valid = dt.m.ncols - 1, t = 0, run_svd = TRUE;
+int i = 1, cur = 0, valid = dt.m.ncols - 1, t = 0, run_svd = TRUE;
 int ncomplete = 0;
-double statistic = 0, lambda = 0, *mean = NULL;
+double statistic = 0, lambda = 0, *mean = NULL, df = 0;
 bool *missing = NULL;
 gdata sub = { 0 };
 covariance cov = { 0 }, backup = { 0 };
@@ -283,7 +283,7 @@ covariance cov = { 0 }, backup = { 0 };
     if (test == COR) {
 
       statistic = c_fast_pcor(cov, 0, t, NULL, run_svd);
-      statistic = cor_t_trans(statistic, (double)df);
+      statistic = cor_t_trans(statistic, df);
       pvalue[cur] = 2 * pt(fabs(statistic), df, FALSE, FALSE);
 
     }/*THEN*/

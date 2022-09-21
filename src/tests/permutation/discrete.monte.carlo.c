@@ -17,7 +17,8 @@ void c_mcarlo(int *xx, int nr, int *yy, int nc, int num, int B,
 
 double *fact = NULL;
 int *workspace = NULL;
-int k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
+int k = 0, enough = (int)ceil(alpha * B) + 1;
+bool constx = TRUE, consty = TRUE;
 counts2d joint = { 0 };
 
   /* allocate and compute the factorials needed by rcont2. */
@@ -163,7 +164,8 @@ void c_cmcarlo(int *xx, int nr, int *yy, int nc, int *zz, int nl, int num,
 
 double *fact = NULL;
 int *workspace = NULL;
-int j = 0, k = 0, enough = ceil(alpha * B) + 1, constx = TRUE, consty = TRUE;
+int j = 0, k = 0, enough = (int)ceil(alpha * B) + 1;
+bool constx = TRUE, consty = TRUE;
 counts3d joint = { 0 };
 
   /* allocate and compute the factorials needed by rcont2. */
