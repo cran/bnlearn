@@ -50,7 +50,7 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   blacklist = build.blacklist(blacklist, whitelist, names(x), algo = method)
   # create the full blacklist incorporating model assumptions.
   full.blacklist = arcs.rbind(blacklist, list.illegal.arcs(names(x), x, test))
-  full.blacklist = unique.arcs(full.blacklist, names(x))
+  full.blacklist = arcs.unique(full.blacklist, names(x))
 
   # call the right backend.
   if (method == "pc.stable") {

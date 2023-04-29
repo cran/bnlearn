@@ -259,7 +259,7 @@ mean.bn.strength = function(x, ..., weights = NULL) {
   # check the weights.
   weights = check.weights(weights, length(strength))
   # average the objects.
-  res = mean.strength(strength, nodes, weights)
+  res = average.strength(strength, nodes, weights)
   # set the attributes of the return value.
   attributes(res) = attributes(x)
   if (attr(res, "method") == "bootstrap")

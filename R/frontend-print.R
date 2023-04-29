@@ -35,7 +35,7 @@ print.bn = function(x, ...) {
   cat("  model:\n")
 
   if (undirected.arcs == 0)
-    fcat(formula.backend(x), indent = 2)
+    fcat(modelstring.backend(x), indent = 2)
   else if (directed.arcs == 0)
     cat("    [undirected graph]\n")
   else
@@ -317,7 +317,7 @@ print.bn.kcv = function(x, print.loss = TRUE, ...) {
     if (is(a$bn, "bn.naive"))
       cat("   [Naive Bayes Classifier]\n")
     else
-      fcat(formula.backend(a$bn), indent = 2)
+      fcat(modelstring.backend(a$bn), indent = 2)
 
   }#ELSE
 

@@ -1,3 +1,7 @@
+bnlearn (4.8.2)
+
+  * fixed some harmless compiler warnings to pass the CRAN tests.
+
 bnlearn (4.8.1)
 
   * assorted fixes to the C code to pass the CRAN tests.

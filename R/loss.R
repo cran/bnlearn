@@ -22,9 +22,8 @@ loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
   }#THEN
   else if (loss %in% c("mse", "mse-lw", "mse-lw-cg")) {
 
-    result = mean.square.error(node = extra.args$target, fitted = fitted,
-               n = extra.args$n, from = extra.args$from, data = data,
-               loss = loss, debug = debug)
+    result = mse.loss(node = extra.args$target, fitted = fitted,
+               extra.args = extra.args, data = data, loss = loss, debug = debug)
 
   }#THEN
 
@@ -71,17 +70,19 @@ kfold.loss.postprocess = function(kcv, kcv.length, loss, extra.args, data) {
 }#LOSS.POSTPROCESS
 
 # predictive mean square error for gaussian networks.
-mean.square.error = function(node, fitted, n, from, data, loss, debug = FALSE) {
+mse.loss = function(node, fitted, data, loss, extra.args,
+    debug = FALSE) {
 
   if (loss == "mse")
     pred = gaussian.prediction(node, fitted, data)
   else if (loss %in% c("mse-lw", "mse-lw-cg"))
-    pred = map.prediction(node, fitted, data, n = n, from = from)
+    pred = map.prediction(node, fitted, data, n = extra.args$n,
+             from = extra.args$from)
 
   return(list(loss = mean((data[, node] - pred)^2, na.rm = TRUE),
               predicted = pred, observed = data[, node]))
 
-}#MEAN.SQUARE.ERROR
+}#MSE.LOSS
 
 # predictive correlation for gaussian networks.
 predictive.correlation = function(node, fitted, n, from, data, loss,

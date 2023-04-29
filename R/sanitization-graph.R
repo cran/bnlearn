@@ -78,7 +78,7 @@ check.arcs = function(arcs, nodes) {
          " not present in the graph.")
 
   # remove duplicate arcs.
-  arcs = unique.arcs(arcs, nodes, warn = TRUE)
+  arcs = arcs.unique(arcs, nodes, warn = TRUE)
 
   # check there are no loops among the arcs.
   loop = (arcs[, "from"] == arcs[, "to"])

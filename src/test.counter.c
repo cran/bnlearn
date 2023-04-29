@@ -23,7 +23,7 @@ SEXP increment_test_counter(SEXP n) {
 }/*INCREMENT_TEST_COUNTER*/
 
 /* reset the global test counter. */
-SEXP reset_test_counter() {
+SEXP reset_test_counter(void) {
 
   test_counter = 0;
 
@@ -32,7 +32,7 @@ SEXP reset_test_counter() {
 }/*RESET_TEST_COUNTER*/
 
 /* return the global test counter, for R to see. */
-SEXP get_test_counter() {
+SEXP get_test_counter(void) {
 
   return ScalarReal(test_counter);
 

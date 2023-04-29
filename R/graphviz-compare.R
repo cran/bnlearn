@@ -15,7 +15,7 @@ graphviz.compare.backend = function(netlist, nodes, groups, layout, shape, main,
 
   merged = empty.graph(nodes)
   arcs(merged, check.cycles = FALSE) =
-    unique.arcs(do.call("rbind", arclist), nodes = nodes)
+    arcs.unique(do.call("rbind", arclist), nodes = nodes)
 
   # lay out the graph.
   gr = graphviz.backend(nodes, merged$arcs, groups = groups, layout = layout,

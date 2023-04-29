@@ -1,5 +1,5 @@
 
-fitted.assignment.backend = function(x, name, value) {
+bn.fit.assignment.backend = function(x, name, value) {
 
   # preserve the original object for subsequent sanity checks.
   to.replace = x[[name]]
@@ -106,4 +106,4 @@ fitted.assignment.backend = function(x, name, value) {
 
   return(new)
 
-}#FITTED.ASSIGNMENT.BACKEND
+}#BN.FIT.ASSIGNMENT.BACKEND

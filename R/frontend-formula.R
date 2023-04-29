@@ -9,7 +9,7 @@ modelstring = function(x) {
     if (is.pdag(x$arcs, names(x$nodes)))
       stop("the graph is only partially directed.")
 
-  formula.backend(x)
+  modelstring.backend(x)
 
 }#MODELSTRING
 

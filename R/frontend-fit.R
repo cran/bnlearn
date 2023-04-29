@@ -327,7 +327,7 @@ BIC.bn.fit = function(object, data, ...) {
   # check the label of the node to replace.
   check.nodes(name, x)
 
-  x[name] = list(fitted.assignment.backend(x, name, value))
+  x[name] = list(bn.fit.assignment.backend(x, name, value))
 
   return(x)
 
@@ -421,7 +421,7 @@ mean.bn.fit = function(x, ..., weights = NULL) {
   weights = check.weights(weights, length(fitted))
 
   # average the objects.
-  mean.fitted(fitted, weights)
+  average.fitted(fitted, weights)
 
 }#MEAN.BN.FIT
 

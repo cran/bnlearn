@@ -219,16 +219,16 @@ nbr2arcs = function(nbr) {
 
 }#NBR2ARCS
 
-# remove duplicate arcs and re-orient them according to node
-# ordering specified by the labels.
-unique.arcs = function(arcs, nodes, warn = FALSE) {
+# remove duplicate arcs and re-orient them according to the node ordering
+# specified by the labels.
+arcs.unique = function(arcs, nodes, warn = FALSE) {
 
   .Call(call_unique_arcs,
         arcs = arcs,
         nodes = nodes,
         warn = warn)
 
-}#UNIQUE.ARCS
+}#ARCS.UNIQUE
 
 # return the arcs from an object of class bn.fit.
 fit2arcs = function(x) {

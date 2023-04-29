@@ -12,7 +12,7 @@ SEXP TRUESEXP, FALSESEXP;
 
 double *regret_table;
 
-SEXP onLoad() {
+SEXP onLoad(void) {
 
   /* initialize symbols in .onLoad(), to do that only once. */
   BN_ModelstringSymbol = install("modelstring");
@@ -30,7 +30,7 @@ SEXP onLoad() {
 
 }/*C_ONLOAD*/
 
-SEXP onUnload() {
+SEXP onUnload(void) {
 
   R_ReleaseObject(TRUESEXP);
   R_ReleaseObject(FALSESEXP);

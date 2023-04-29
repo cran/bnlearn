@@ -1,7 +1,7 @@
 
 # average discrete nodes whose parameters are organised in a conditional
 # probability table.
-mean.fitted.dnode = function(node, fitted, weights) {
+average.fitted.dnode = function(node, fitted, weights) {
 
   # create a conditional probability table filled with zeroes...
   cpt = fitted[[1]][[node]]$prob
@@ -13,11 +13,13 @@ mean.fitted.dnode = function(node, fitted, weights) {
   # ... and normalize the result so that columns sum up to 1 again.
   cpt = cpt / sum(weights)
 
-}#MEAN.FITTED.DNODE
+  return(cpt)
+
+}#AVERAGE.FITTED.DNODE
 
 # average continuous nodes whose parameters are organised in vectors or matrices
 # of regression coefficients and standard errors.
-mean.fitted.cgnode = function(node, fitted, weights) {
+average.fitted.cgnode = function(node, fitted, weights) {
 
   # allocate the vector of the regression coefficients and the standard
   # error, both zeroed...
@@ -38,10 +40,10 @@ mean.fitted.cgnode = function(node, fitted, weights) {
 
   return(list(coef = coefs, sd = sd))
 
-}#MEAN.FITTED.CGNODE
+}#AVERAGE.FITTED.CGNODE
 
 # average several bn.fit objects with the same structure.
-mean.fitted = function(fitted, weights) {
+average.fitted = function(fitted, weights) {
 
   # all the networks have the same structure and parameter sets, so we can
   # allocate the return value by copying one of them.
@@ -54,13 +56,13 @@ mean.fitted = function(fitted, weights) {
     if (is(averaged[[node]], c("bn.fit.dnode", "bn.fit.onode"))) {
 
       averaged[[node]]$prob =
-        mean.fitted.dnode(node = node, fitted = fitted, weights = weights)
+        average.fitted.dnode(node = node, fitted = fitted, weights = weights)
 
     }#THEN
     else if (is(averaged[[node]], c("bn.fit.gnode", "bn.fit.cgnode"))) {
 
       averaged[[node]][c("coefficients", "sd")] =
-        mean.fitted.cgnode(node = node, fitted = fitted, weights = weights)
+        average.fitted.cgnode(node = node, fitted = fitted, weights = weights)
 
       # in addition to averaging the parameters, remove the fitted values and
       # the residuals if present.
@@ -98,4 +100,4 @@ mean.fitted = function(fitted, weights) {
 
   return(averaged)
 
-}#MEAN.FITTED
+}#AVERAGE.FITTED

@@ -291,7 +291,7 @@ colliders.backend = function(x, return.arcs = FALSE, including.shielded = TRUE,
   if (return.arcs) {
 
     coll = arcs.rbind(coll[, c("X", "Z")], coll[, c("Y", "Z")])
-    coll = unique.arcs(coll, nodes = nodes)
+    coll = arcs.unique(coll, nodes = nodes)
 
   }#THEN
 

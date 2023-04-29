@@ -223,7 +223,7 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
     # generate random data from the bayesian network.
     if (m > 0) {
 
-      generated.data = rbn.backend(x = fitted, n = m)
+      generated.data = .rbn.backend(x = fitted, n = m)
 
     }#THEN
     else
@@ -331,7 +331,7 @@ logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) 
 
     # generate random data from the bayesian network.
     if (m > 0)
-      generated.data = rbn.backend(x = fitted, n = m)
+      generated.data = .rbn.backend(x = fitted, n = m)
     else
       break
 
@@ -414,7 +414,7 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
 
     # generate random data from the bayesian network.
     if (m > 0)
-      generated.data = rbn.backend(x = fitted, fix = evidence, n = m)
+      generated.data = .rbn.backend(x = fitted, fix = evidence, n = m)
     else
       break
 

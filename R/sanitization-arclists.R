@@ -34,7 +34,7 @@ build.whitelist = function(whitelist, nodes, data, algo, criterion) {
   }#ELSE
 
   # drop duplicate rows.
-  whitelist = unique.arcs(whitelist, nodes, warn = TRUE)
+  whitelist = arcs.unique(whitelist, nodes, warn = TRUE)
   # add column names for easy reference.
   colnames(whitelist) = c("from", "to")
 
@@ -55,7 +55,7 @@ build.whitelist = function(whitelist, nodes, data, algo, criterion) {
 
     # all arcs in the whitelist are treated as undirected, because these
     # algorithms operate in the space of undirected graphs.
-    whitelist = unique.arcs(arcs.rbind(whitelist, whitelist,
+    whitelist = arcs.unique(arcs.rbind(whitelist, whitelist,
                   reverse2 = TRUE), nodes)
 
   }#THEN
@@ -146,7 +146,7 @@ build.blacklist = function(blacklist, whitelist, nodes, algo) {
     }#THEN
 
     # drop duplicate rows.
-    blacklist = unique.arcs(blacklist, nodes)
+    blacklist = arcs.unique(blacklist, nodes)
 
   }#THEN
 
@@ -167,7 +167,7 @@ build.blacklist = function(blacklist, whitelist, nodes, algo) {
         function(x){ is.whitelisted(whitelist, x) }),]
 
       # also drop duplicate rows.
-      blacklist = unique.arcs(matrix(blacklist, ncol = 2, byrow = FALSE), nodes)
+      blacklist = arcs.unique(matrix(blacklist, ncol = 2, byrow = FALSE), nodes)
 
     }#THEN
 

@@ -4,7 +4,7 @@
 
 # write the model formula of an object of class 'bn' or 'bn.fit'.
 # (ported from the deal package)
-formula.backend = function(x) {
+modelstring.backend = function(x) {
 
   if (is(x, "bn"))
     base = x$nodes
@@ -19,7 +19,7 @@ formula.backend = function(x) {
 
     } ), collapse = "")
 
-}#FORMULA.BACKEND
+}#MODELSTRING.BACKEND
 
 # create an object of class 'bn' from a model formula.
 # (ported from the deal package)

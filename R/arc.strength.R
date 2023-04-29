@@ -418,11 +418,11 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
 }#ARC.STRENGTH.CUSTOM
 
 # weighted average of bn.strength objects.
-mean.strength = function(strength, nodes, weights) {
+average.strength = function(strength, nodes, weights) {
 
   .Call(call_mean_strength,
         strength = strength,
         nodes = nodes,
         weights = weights)
 
-}#MEAN.STRENGTH
+}#AVERAGE.STRENGTH
