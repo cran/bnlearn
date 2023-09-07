@@ -1,23 +1,45 @@
 
 # missing data imputation backend.
-impute.backend = function(fitted, data, method, extra.args, debug = FALSE) {
+impute.backend = function(fitted, data, cluster = NULL, method, extra.args,
+    debug = FALSE) {
 
-  if (method == "parents") {
+  # nothing to do if there are no observations.
+  if (nrow(data) == 0)
+    return(data)
 
-    impute.backend.parents(fitted = fitted, data = data, debug = debug)
+  # individual incomplete observations are imputed independently of each other,
+  # so they can be processed in parallel.
+  if (!is.null(cluster))
+    splits = parallel::clusterSplit(cluster, seq(nrow(data)))
+  else
+    splits = list(seq(nrow(data)))
 
-  }#THEN
-  else if (method == "bayes-lw") {
+  if (method == "parents")
+    fun = impute.backend.parents
+  else if (method == "bayes-lw")
+    fun = impute.backend.likelihood.weighting
+  else if (method == "exact")
+    fun = impute.backend.exact
 
-    impute.backend.map(fitted = fitted, data = data, n = extra.args$n,
-      debug = debug)
+  imputed = smartSapply(cluster, splits, function(ids) {
+    fun(fitted, data = data[ids, , drop = FALSE], extra.args = extra.args,
+        debug = debug)
+  })
 
-  }#THEN
+  if (!is.null(cluster))
+    imputed = do.call("rbind", imputed)
+  else
+    imputed = imputed[[1]]
+
+  # ensure that the metadata are upt-to-date.
+  attr(imputed, "metadata") = collect.metadata(imputed)
+
+  return(imputed)
 
 }#IMPUTE.BACKEND
 
 # missing data imputation with maximum likelihood predictions.
-impute.backend.parents = function(fitted, data, debug = FALSE) {
+impute.backend.parents = function(fitted, data, extra.args, debug = FALSE) {
 
   # check the variables in topological order, to ensure parents are complete.
   for (i in topological.ordering(fitted)) {
@@ -32,33 +54,15 @@ impute.backend.parents = function(fitted, data, debug = FALSE) {
       next
 
     if (debug)
-      cat("  > found", length(which(missing)), "missing value(s).\n")
+      cat("  > found", how.many(missing), "missing value(s).\n")
 
     # extract the data from the parents of the node.
     predict.from = data[missing, parents(fitted, i), drop = FALSE]
 
-    # call predict() backends so that arguments are not sanitized again.
-    if (is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet"))) {
-
-      data[missing, i] =
-        discrete.prediction(node = i, fitted = fitted, data = predict.from,
-          prob = FALSE, debug = FALSE)
-
-    }#THEN
-    else if (is(fitted, "bn.fit.gnet")) {
-
-      data[missing, i] =
-        gaussian.prediction(node = i, fitted = fitted, data = predict.from,
-          debug = FALSE)
-
-    }#THEN
-    else if (is(fitted, "bn.fit.cgnet")) {
-
-      data[missing, i] =
-        mixedcg.prediction(node = i, fitted = fitted, data = predict.from,
-          debug = FALSE)
-
-    }#ELSE
+    # call predict.backend() so that arguments are not sanitized again.
+    data[missing, i] =
+      predict.backend(fitted = fitted, node = i, data = predict.from,
+        cluster = NULL, method = "parents", prob = FALSE, debug = FALSE)
 
   }#FOR
 
@@ -67,18 +71,32 @@ impute.backend.parents = function(fitted, data, debug = FALSE) {
 }#IMPUTE.BACKEND.PARENTS
 
 # missing data imputation with maximum likelihood predictions.
-impute.backend.map = function(fitted, data, n, debug = FALSE) {
+impute.backend.likelihood.weighting = function(fitted, data, extra.args,
+    restrict.from = NULL, restrict.to = NULL, debug = FALSE) {
 
   nodes = names(data)
+  n = extra.args$n
 
   # if there is no missing value, nothing to do.
   missing = !complete.cases(data)
 
-  # call predict() backends so that arguments are not sanitized again.
   for (j in which(missing)) {
 
     from = nodes[which(!is.na(data[j, ]))]
     to = setdiff(nodes, from)
+
+    # further reduce the set of nodes to impute from, if required.
+    if (!is.null(restrict.from))
+      from = intersect(from, restrict.from)
+
+    # further reduce the set of nodes to impute, if required.
+    if (!is.null(restrict.to)) {
+
+      to = intersect(to, restrict.to)
+      if (length(to) == 0)
+        next
+
+    }#THEN
 
     # use the obseved part of the observation as the evidence.
     if (length(from) == 0)
@@ -113,6 +131,11 @@ impute.backend.map = function(fitted, data, n, debug = FALSE) {
 
     }, w = w)
 
+    # make sure unsuccessful imputations can be handled in the assignment later.
+    failures = sapply(estimates, function(x) is.na(x) || is.null(x))
+    if (any(failures))
+      estimates[failures] = NA
+
     if (debug) {
 
       cat("  > imputed value:", "\n")
@@ -126,5 +149,165 @@ impute.backend.map = function(fitted, data, n, debug = FALSE) {
 
   return(data)
 
-}#IMPUTE.BACKEND.MAP
+}#IMPUTE.BACKEND.LIKELIHOOD.WEIGHTING
 
+# missing data imputation with exact inference.
+impute.backend.exact = function(fitted, data, extra.args, restrict.from = NULL,
+    restrict.to = NULL, debug = FALSE) {
+
+  if (is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet"))) {
+
+    exact.discrete.imputation(fitted = fitted, data = data,
+      restrict.from = restrict.from, restrict.to = restrict.to, debug = debug)
+
+  }#THEN
+  else if (is(fitted, "bn.fit.gnet")) {
+
+    exact.gaussian.imputation(fitted = fitted, data = data,
+      restrict.from = restrict.from, restrict.to = restrict.to, debug = debug)
+
+  }#THEN
+  else if (is(fitted, "bn.fit.cgnet")) {
+
+    stop("'bn.fit.cgnet' networks are not supported.")
+
+  }#ELSE
+
+}#IMPUTE.BACKEND.EXACT
+
+# missing data imputation with junction trees and belief propagation.
+exact.discrete.imputation = function(fitted, data, restrict.from = NULL,
+    restrict.to = NULL, debug = FALSE) {
+
+  nodes = names(data)
+
+  # check whether gRain is loaded.
+  check.and.load.package("gRain")
+
+  jtree = from.bn.fit.to.grain(fitted, compile = TRUE)
+
+  # for each incomplete observation...
+  missing = !complete.cases(data)
+
+  for (j in which(missing)) {
+
+    # ... separate observed and unobserved values...
+    from = nodes[which(!is.na(data[j, ]))]
+    to = setdiff(nodes, from)
+
+    # further reduce the set of nodes to impute from, if required.
+    if (!is.null(restrict.from))
+      from = intersect(from, restrict.from)
+
+    # further reduce the set of nodes to impute, if required.
+    if (!is.null(restrict.to)) {
+
+      to = intersect(to, restrict.to)
+      if (length(to) == 0)
+        next
+
+    }#THEN
+
+    if (debug) {
+
+      cat("* observation", j, ", imputing", to, "from: \n")
+      print(data[j, from, drop = FALSE], row.names = FALSE)
+
+    }#THEN
+
+    # ... split the imputation into more manageable chunks if possible...
+    queries = query.partitioning(fitted, event = to, evidence = from,
+                debug = debug)
+
+    for (q in queries) {
+
+      # ... impute the missing values with their most probable explanation...
+      imputed = mpe.discrete.query(jtree, event = q$event,
+                  evidence = q$evidence, value = data[j, , drop = FALSE])
+
+      # ... and save the imputed observation back into the data set, if it was
+      # possible to compute them at all.
+      if (!is.null(imputed))
+        data[j, q$event] = imputed
+
+    }#FOR
+
+    if (debug) {
+
+      cat("  > imputed value:", "\n")
+      print(data.frame(data[j, to, drop = FALSE]), row.names = FALSE)
+
+    }#THEN
+
+  }#FOR
+
+  return(data)
+
+}#EXACT.DISCRETE.IMPUTATION
+
+# missing data imputation with closed-form Gaussian results.
+exact.gaussian.imputation = function(fitted, data, restrict.from = NULL,
+    restrict.to = NULL, debug = FALSE) {
+
+  nodes = names(data)
+
+  # get the global distribution...
+  mvn = gbn2mvnorm.backend(fitted)
+  # ... and check that it is not singular.
+  if (anyNA(mvn$mu) || anyNA(mvn$sigma))
+    return(data)
+
+  missing = !complete.cases(data)
+
+  # for each incomplete observation...
+  for (j in which(missing)) {
+
+    # ... separate observed and unobserved values...
+    from = nodes[which(!is.na(data[j, ]))]
+    to = setdiff(nodes, from)
+
+    # further reduce the set of nodes to impute from, if required.
+    if (!is.null(restrict.from))
+      from = intersect(from, restrict.from)
+
+    # further reduce the set of nodes to impute, if required.
+    if (!is.null(restrict.to)) {
+
+      to = intersect(to, restrict.to)
+      if (length(to) == 0)
+        next
+
+    }#THEN
+
+    if (debug) {
+
+      cat("* observation", j, ", imputing", to, "from: \n")
+      print(data[j, from, drop = FALSE], row.names = FALSE)
+
+    }#THEN
+
+    # ... split the imputation into more manageable chunks if possible...
+    queries = query.partitioning(fitted, event = to, evidence = from,
+                debug = debug)
+
+    for (q in queries) {
+
+      # ...and impute the missing values with their most probable explanation.
+      data[j, q$event] =
+        mpe.gaussian.query(mvn, event = q$event, evidence = q$evidence,
+                        value = data[j, q$evidence, drop = FALSE])
+
+    }#THEN
+
+    if (debug) {
+
+      cat("  > imputed value:", "\n")
+      print(data[j, to, drop = FALSE], row.names = FALSE)
+
+    }#THEN
+
+  }#FOR
+
+  return(data)
+
+}#EXACT.GAUSSIAN.IMPUTATION

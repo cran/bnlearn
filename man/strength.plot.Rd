@@ -9,8 +9,8 @@
 }
 \usage{
 strength.plot(x, strength, threshold, cutpoints, highlight = NULL, groups,
-  layout = "dot", shape = "circle", main = NULL, sub = NULL, render = TRUE,
-  debug = FALSE)
+  layout = "dot", shape = "circle", fontsize = 12, main = NULL, sub = NULL,
+  render = TRUE, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn}.}
@@ -27,6 +27,7 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL, groups,
     for details.}
   \item{shape}{a character string, the shape of the nodes. Can be \code{circle},
     \code{ellipse} or \code{rectangle}.}
+  \item{fontsize}{a positive number, the font size for the node labels.}
   \item{main}{a character string, the main title of the graph. It's plotted at
     the top of the graph.}
   \item{sub}{a character string, a subtitle which is plotted at the bottom of
@@ -88,13 +89,13 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL, groups,
 \examples{
 \dontrun{
 # plot the network learned by hc().
-res = hc(learning.test)
-strength = arc.strength(res, learning.test, criterion = "x2")
-\dontrun{strength.plot(res, strength)}
+dag = hc(learning.test)
+strength = arc.strength(dag, learning.test, criterion = "x2")
+strength.plot(dag, strength)
 # add another (non-significant) arc and plot the network again.
-res = set.arc(res, "A", "C")
-strength = arc.strength(res, learning.test, criterion = "x2")
-\dontrun{strength.plot(res, strength)}
+dag = set.arc(dag, "A", "C")
+strength = arc.strength(dag, learning.test, criterion = "x2")
+strength.plot(dag, strength)
 }
 }
 \author{Marco Scutari}

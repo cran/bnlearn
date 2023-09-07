@@ -42,9 +42,10 @@ bn.net(x)
   and a data set; \code{bn.net} returns the structure underlying a fitted
   Bayesian network.
 
-  \code{bn.fit()} accepts data with missing values encoded as \code{NA}, and it
-  uses locally complete observations to fit the parameters of each local
-  distribution.
+  \code{bn.fit()} accepts data with missing values encoded as \code{NA}. If the
+  parameter estimation method was not specifically designed to deal with
+  incomplete data, \code{bn.fit()} uses locally complete observations to fit the
+  parameters of each local distribution.
 
   Available methods for \emph{discrete Bayesian networks} are:
 
@@ -57,6 +58,8 @@ bn.net(x)
       score.
     \item \code{hdir}: the hierarchical Dirichlet posterior estimator for
       related data sets from Azzimonti, Corani and Zaffalon (2019).
+    \item \code{hard-em}: the Expectation-Maximization implementation of the
+      estimators above.
 
   }
 
@@ -66,6 +69,8 @@ bn.net(x)
 
     \item \code{mle-g}: the maximum likelihood estimator for least squares
       regression models.
+    \item \code{hard-em-g}: the Expectation-Maximization implementation of the
+      estimators above.
 
   }
 
@@ -75,6 +80,8 @@ bn.net(x)
 
     \item \code{mle-cg}: a combination of the maximum likelihood estimators
       \code{mle} and \code{mle-g}.
+    \item \code{hard-em-cg}: the Expectation-Maximization implementation of the
+      estimators above.
 
   }
 
@@ -108,6 +115,38 @@ bn.net(x)
       grouping of the observations into the related data sets in the \code{hdir}
       estimator.
 
+    \item \code{impute} and \code{impute.args}: a character string, the label of
+      the imputation method (and its arguments) used by \code{hard-em},
+      \code{hard-em-g} and \code{hard-em-cg} to complete the data in the
+      \emph{expectation} step. The default method is the same as for
+      \code{impute()}.
+
+    \item \code{fit} and \code{fit.args}: a character string, the label of the
+      parameter estimation method used by \code{hard-em}, \code{hard-em-g} and
+      \code{hard-em-cg} to estimate the parameters in the \emph{maximization}
+      step. The default method is the same as for \code{bn.fit()}.
+
+    \item \code{threshold}: a positive numeric value, the minimum improvement
+      threshold used to step iterating in \code{hard-em}, \code{hard-em-g} and
+      \code{hard-em-cg}. The threshold is defined as the relative likelihood
+      improvement divided by the sample size of \code{data}, and defaults to
+      \code{1e-3}.
+
+    \item \code{max.iter}: a positive integer value, the maximum number of
+      iterations in \code{hard-em}, \code{hard-em-g} and \code{hard-em-cg}. The
+      default value is \code{5}.
+
+    \item \code{start}: a \code{bn.fit} object, the fitted network used to
+      initialize the \code{hard-em}, \code{hard-em-g} and \code{hard-em-cg}
+      estimators. The default is to use the \code{bn.fit} object obtained from
+      \code{x} with the default parameter estimator for the data, which will use
+      locally complete data to fit the local distributions.
+
+    \item \code{newdata}: a data frame, a separate set of data used to assess
+      the convergence of the \code{hard-em}, \code{hard-em-g} and
+      \code{hard-em-cg} estimators. The data in \code{data} are used by default
+      for this purpose.
+
   }
 
   An in-place replacement method is available to change the parameters of each
@@ -140,19 +179,14 @@ bn.net(x)
 
   Due to the way Bayesian networks are defined it is possible to estimate their
   parameters only if the network structure is completely directed (i.e. there
-  are no undirected arcs). See \code{\link{set.arc}} and \code{\link{pdag2dag}}
+  are no undirected arcs). See \code{\link{set.arc}} and \code{\link{cextend}}
   for two ways of manually setting the direction of one or more arcs.
 
-  The \code{bayes} and \code{mle} methods in \code{bn.fit()} handle missing
-  values in \code{data} by estimating the parameters of each local distribution
-  using the observations that are complete for the variables involved (the node
-  and its parents).
-
-  When \code{method} is set to \code{mle}, \code{bn.fit()} produces \code{NA}
-  parameter estimates for discrete and conditional Gaussian nodes when there
-  are (discrete) parents configurations that are not observed in \code{data}.
-  To avoid this either set \code{replace.unidentifiable} to \code{TRUE} or, in
-  the case of discrete networks, use \code{method = "bayes"}.
+  In the case of maximum likelihood estimators, \code{bn.fit()} produces
+  \code{NA} parameter estimates for discrete and conditional Gaussian nodes when
+  there are (discrete) parents configurations that are not observed in
+  \code{data}. To avoid this either set \code{replace.unidentifiable} to
+  \code{TRUE} or, in the case of discrete networks, use \code{method = "bayes"}.
 
 }
 \value{
@@ -176,46 +210,46 @@ bn.net(x)
 data(learning.test)
 
 # learn the network structure.
-res = pc.stable(learning.test)
+cpdag = pc.stable(learning.test)
 # set the direction of the only undirected arc, A - B.
-res = set.arc(res, "A", "B")
+dag = set.arc(cpdag, "A", "B")
 # estimate the parameters of the Bayesian network.
-fitted = bn.fit(res, learning.test)
+fitted = bn.fit(dag, learning.test)
 # replace the parameters of the node B.
 new.cpt = matrix(c(0.1, 0.2, 0.3, 0.2, 0.5, 0.6, 0.7, 0.3, 0.1),
             byrow = TRUE, ncol = 3,
             dimnames = list(B = c("a", "b", "c"), A = c("a", "b", "c")))
 fitted$B = as.table(new.cpt)
 # the network structure is still the same.
-all.equal(res, bn.net(fitted))
+all.equal(dag, bn.net(fitted))
 
 # learn the network structure.
-res = hc(gaussian.test)
+dag = hc(gaussian.test)
 # estimate the parameters of the Bayesian network.
-fitted = bn.fit(res, gaussian.test)
+fitted = bn.fit(dag, gaussian.test)
 # replace the parameters of the node F.
 fitted$F = list(coef = c(1, 2, 3, 4, 5), sd = 3)
 # set again the original parameters
 fitted$F = lm(F ~ A + D + E + G, data = gaussian.test)
 
 # discrete Bayesian network from expert knowledge.
-net = model2network("[A][B][C|A:B]")
+dag = model2network("[A][B][C|A:B]")
 cptA = matrix(c(0.4, 0.6), ncol = 2, dimnames = list(NULL, c("LOW", "HIGH")))
 cptB = matrix(c(0.8, 0.2), ncol = 2, dimnames = list(NULL, c("GOOD", "BAD")))
 cptC = c(0.5, 0.5, 0.4, 0.6, 0.3, 0.7, 0.2, 0.8)
 dim(cptC) = c(2, 2, 2)
 dimnames(cptC) = list("C" = c("TRUE", "FALSE"), "A" =  c("LOW", "HIGH"),
                    "B" = c("GOOD", "BAD"))
-cfit = custom.fit(net, dist = list(A = cptA, B = cptB, C = cptC))
+cfit = custom.fit(dag, dist = list(A = cptA, B = cptB, C = cptC))
 # for ordinal nodes it is nearly the same.
-cfit = custom.fit(net, dist = list(A = cptA, B = cptB, C = cptC),
+cfit = custom.fit(dag, dist = list(A = cptA, B = cptB, C = cptC),
          ordinal = c("A", "B"))
 
 # Gaussian Bayesian network from expert knowledge.
 distA = list(coef = c("(Intercept)" = 2), sd = 1)
 distB = list(coef = c("(Intercept)" = 1), sd = 1.5)
 distC = list(coef = c("(Intercept)" = 0.5, "A" = 0.75, "B" = 1.32), sd = 0.4)
-cfit = custom.fit(net, dist = list(A = distA, B = distB, C = distC))
+cfit = custom.fit(dag, dist = list(A = distA, B = distB, C = distC))
 
 # conditional Gaussian Bayesian network from expert knowledge.
 cptA = matrix(c(0.4, 0.6), ncol = 2, dimnames = list(NULL, c("LOW", "HIGH")))
@@ -223,7 +257,7 @@ distB = list(coef = c("(Intercept)" = 1), sd = 1.5)
 distC = list(coef = matrix(c(1.2, 2.3, 3.4, 4.5), ncol = 2,
                dimnames = list(c("(Intercept)", "B"), NULL)),
           sd = c(0.3, 0.6))
-cgfit = custom.fit(net, dist = list(A = cptA, B = distB, C = distC))
+cgfit = custom.fit(dag, dist = list(A = cptA, B = distB, C = distC))
 }
 \author{Marco Scutari}
 \keyword{parameter learning}

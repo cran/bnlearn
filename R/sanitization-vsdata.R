@@ -1,21 +1,24 @@
 
 # check the bn against the data it's used with.
-check.bn.vs.data = function(bn, data) {
+check.bn.vs.data = function(bn, data, reorder = FALSE) {
 
-  # check which type of data we are dealing with.
-  type = data.type(data)
-
-  # the number of variables must be the same
+  # the number of variables must be the same.
   if (length(names(bn$nodes)) != ncol(data))
     stop("the network and the data have different numbers of variables.")
   # the variables must be the same.
   if (length(setdiff(names(bn$nodes), names(data))) != 0)
     stop("the variables in the data and in the network do not match.")
 
+  # reorder the columns in the data to match the nodes in the network.
+  if (reorder)
+    data = reorder.data.and.metadata(data, bn)
+
+  return(data)
+
 }#CHECK.BN.VS.DATA
 
 # check bn.fit metadata against the data it's used with.
-check.fit.vs.data = function(fitted, data, subset) {
+check.fit.vs.data = function(fitted, data, subset, reorder = FALSE) {
 
   fitted.names = names(fitted)
   # check which type of data we are dealing with.
@@ -56,7 +59,35 @@ check.fit.vs.data = function(fitted, data, subset) {
         data = data,
         subset = subset)
 
+  # reorder the columns in the data to match the nodes in the network.
+  if (reorder)
+    data = reorder.data.and.metadata(data, fitted)
+
+  return(data)
+
 }#CHECK.FIT.VS.DATA
+
+# reorder the columns in the data while keeping the metadata in sync.
+reorder.data.and.metadata = function(data, network) {
+
+  # get the order of the variables in the network.
+  if (is(network, "bn"))
+    nodes = names(network$nodes)
+  else if (is(network, "bn.fit"))
+    nodes = names(network)
+
+  # extract and reorder the metadata before they are dropped by subsetting.
+  metadata = attr(data, "metadata")
+  metadata$complete.nodes = metadata$complete.nodes[nodes]
+  metadata$latent.nodes = metadata$latent.nodes[nodes]
+
+  # reorder the columns and reattache the metadata.
+  data = data[, nodes]
+  attr(data, "metadata") = metadata
+
+  return(data)
+
+}#REORDER.DATA.AND.METADATA
 
 # check bn.fit.{d,g}node metadata against the data it's used with.
 check.fit.node.vs.data = function(fitted, data) {

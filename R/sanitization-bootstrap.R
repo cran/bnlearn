@@ -2,14 +2,15 @@
 check.bootstrap.args = function(extra.args, network, data) {
 
   # check the number of bootstrap replicates.
-  extra.args$R = check.replicates(extra.args$R)
+  extra.args[["R"]] = check.replicates(extra.args[["R"]])
   # check the size of each bootstrap sample.
-  extra.args$m = check.bootsize(extra.args$m, data)
+  extra.args[["m"]] = check.bootsize(extra.args[["m"]], data)
   # check the learning algorithm.
   algorithm = check.learning.algorithm(extra.args[["algorithm"]], bn = network)
   # check the extra arguments for the learning algorithm.
-  algorithm.args = check.learning.algorithm.args(extra.args[["algorithm.args"]],
-                     algorithm = algorithm, bn = network)
+  algorithm.args =
+    check.learning.algorithm.args(extra.args[["algorithm.args"]],
+      algorithm = algorithm, bn = network)
 
   extra.args[["algorithm"]] = algorithm
   extra.args[["algorithm.args"]] = algorithm.args
@@ -19,19 +20,20 @@ check.bootstrap.args = function(extra.args, network, data) {
 
     # there's no need to sanitize these arguments, it's done either in
     # the calls to the structure learning algorithms.
-    if (is.null(extra.args[["algorithm.args"]]$restrict))
-      extra.args[["algorithm.args"]]$restrict = network$learning$restrict
+    if (is.null(extra.args[["algorithm.args"]][["restrict"]]))
+      extra.args[["algorithm.args"]][["restrict"]] = network$learning$restrict
     if (is.null(extra.args[["algorithm.args"]]$maximize))
-      extra.args[["algorithm.args"]]$maximize = network$learning$maximize
+      extra.args[["algorithm.args"]][["maximize"]] = network$learning$maximize
     if (is.null(extra.args[["algorithm.args"]]$test))
-      extra.args[["algorithm.args"]]$test = network$learning$rstest
+      extra.args[["algorithm.args"]][["test"]] = network$learning$rstest
     if (is.null(extra.args[["algorithm.args"]]$score))
-      extra.args[["algorithm.args"]]$score = network$learning$maxscore
+      extra.args[["algorithm.args"]][["score"]] = network$learning$maxscore
 
   }#THEN
 
-  # warn about unused arguments.
-  check.unused.args(extra.args, c("R", "m", "algorithm", "algorithm.args"))
+  # warn about and remove unused arguments.
+  extra.args =
+    check.unused.args(extra.args, c("R", "m", "algorithm", "algorithm.args"))
 
   return(extra.args)
 

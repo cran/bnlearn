@@ -266,7 +266,7 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
       res[i] = NA_INTEGER;
 
       if (debugging)
-        Rprintf(" > prediction for observation %d is NA because at least one parent is NA.\n");
+        Rprintf("  > prediction for observation %d is NA because at least one parent is NA.\n", i + 1);
 
     }/*THEN*/
     else if (nmax[configs[i] - 1] == 0) {
@@ -274,7 +274,7 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
       res[i] = NA_INTEGER;
 
       if (debugging)
-        Rprintf("  > prediction for observation %d is NA because the probabilities are missing.\n");
+        Rprintf("  > prediction for observation %d is NA because the probabilities are missing.\n", i + 1);
 
     }/*THEN*/
     else if (nmax[configs[i] - 1] == 1) {
@@ -379,6 +379,14 @@ gdata dt = { 0 };
   res = REAL(result);
 
   for (i = 0; i < dt.m.nobs; i++)  {
+
+    /* is the configuration of the discrete parents defined? */
+    if (config[i] == NA_INTEGER) {
+
+      res[i] = NA_REAL;
+      continue;
+
+    }/*THEN*/
 
     /* find out which conditional regression to use for prediction. */
     cur_config = config[i] - 1;

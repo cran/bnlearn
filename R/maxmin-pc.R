@@ -1,21 +1,19 @@
 
 maxmin.pc = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
-  max.sx = ncol(x), complete, debug = FALSE) {
+  max.sx = ncol(x), debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Forward Phase (I)]
   mb = smartSapply(cluster, as.list(nodes), maxmin.pc.forward.phase, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, max.sx = max.sx,
-         complete = complete, debug = debug)
+         blacklist = blacklist, test = test, max.sx = max.sx, debug = debug)
   names(mb) = nodes
 
   # 2. [Backward Phase (II)]
   mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, max.sx = max.sx, markov = FALSE, complete = complete,
-         debug = debug)
+         test = test, max.sx = max.sx, markov = FALSE, debug = debug)
   names(mb) = nodes
 
   # make up a set of believable Markov blankets, using all the nodes within
@@ -31,7 +29,7 @@ maxmin.pc = function(x, cluster = NULL, whitelist, blacklist, test, alpha, B,
 }#MAXMIN.PC
 
 maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
-  blacklist, test, max.sx = ncol(x), complete, debug = FALSE) {
+  blacklist, test, max.sx = ncol(x), debug = FALSE) {
 
   nodes = nodes[nodes != x]
   whitelisted = nodes[sapply(nodes,
@@ -68,7 +66,7 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
     # get an association measure for each of the available nodes.
     association = sapply(to.be.checked, maxmin.pc.heuristic.optimized, y = x,
                     sx = cpc, data = data, test = test, alpha = alpha, B = B,
-                    association = association, complete = complete, debug = debug)
+                    association = association, debug = debug)
 
     # stop if there are no candidates for inclusion.
     if (all(association > alpha) || length(nodes) == 0 || is.null(nodes)) break
@@ -97,7 +95,7 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, B, whitelist,
 }#MAXMIN.PC.FORWARD.PHASE
 
 maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B,
-    association, complete, debug = FALSE) {
+    association, debug = FALSE) {
 
   min.assoc = association[x]
 
@@ -114,8 +112,7 @@ maxmin.pc.heuristic.optimized = function(x, y, sx, data, test, alpha, B,
   sx = sx[-length(sx)]
 
   new.min.assoc = allsubs.test(x = x, y = y, sx = sx, fixed = last, data = data,
-                    test = test, B = B, alpha = alpha, complete = complete,
-                    debug = debug)
+                    test = test, B = B, alpha = alpha, debug = debug)
 
   min.assoc = max(min.assoc, new.min.assoc["max.p.value"])
 

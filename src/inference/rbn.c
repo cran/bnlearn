@@ -1,7 +1,6 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
 #include "../core/sampling.h"
-#include "../include/sampling.h"
 #include "../core/sets.h"
 #include "../minimal/data.frame.h"
 #include "../minimal/common.h"
@@ -16,23 +15,6 @@ void rbn_gaussian(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
     int num, SEXP fixed);
 void rbn_mixedcg(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
     SEXP dpar, SEXP gpar, int num, SEXP fixed);
-
-/* generate random observations from a bayesian network. */
-SEXP rbn_master(SEXP fitted, SEXP n, SEXP fix, SEXP debug) {
-
-bool debugging = isTRUE(debug);
-SEXP result;
-
-  /* allocate the return value. */
-  PROTECT(result = fit2df(fitted, INT(n)));
-  /* perform the simulation. */
-  c_rbn_master(fitted, result, n, fix, debugging);
-
-  UNPROTECT(1);
-
-  return result;
-
-}/*RBN_MASTER*/
 
 void c_rbn_master(SEXP fitted, SEXP result, SEXP n, SEXP fix, bool debugging) {
 

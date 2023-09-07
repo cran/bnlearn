@@ -244,7 +244,7 @@ write.dot.backend = function(fd, graph) {
 
     wund = which.undirected(arcs, nodes)
 
-    type = ifelse(length(which(wund)) == nrow(arcs), "graph", "digraph")
+    type = ifelse(how.many(wund) == nrow(arcs), "graph", "digraph")
 
     if (type == "graph") {
 

@@ -4,13 +4,14 @@ check.enumeration.args = function(type, N, extra) {
 
   # check the number of root nodes.
   if (has.argument(type, "k", enumerations.extra.args))
-    check.graph.root.nodes(extra$k, N)
+    check.graph.root.nodes(extra[["k"]], N)
 
   # check the number of arcs.
   if (has.argument(type, "r", enumerations.extra.args))
-    check.graph.narcs(extra$r, N)
+    check.graph.narcs(extra[["r"]], N)
 
-  check.unused.args(extra, enumerations.extra.args[[type]])
+  # warn about and remove unused arguments.
+  extra = check.unused.args(extra, enumerations.extra.args[[type]])
 
   return(extra)
 

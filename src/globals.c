@@ -8,6 +8,7 @@ SEXP BN_ProbSymbol;
 SEXP BN_MethodSymbol;
 SEXP BN_WeightsSymbol;
 SEXP BN_DsepsetSymbol;
+SEXP BN_MetaDataSymbol;
 SEXP TRUESEXP, FALSESEXP;
 
 double *regret_table;
@@ -21,6 +22,7 @@ SEXP onLoad(void) {
   BN_MethodSymbol = install("method");
   BN_WeightsSymbol = install("weights");
   BN_DsepsetSymbol = install("dsep.set");
+  BN_MetaDataSymbol = install("metadata");
   TRUESEXP = ScalarLogical(TRUE);
   R_PreserveObject(TRUESEXP);
   FALSESEXP = ScalarLogical(FALSE);
@@ -81,7 +83,7 @@ static const R_CallMethodDef CallEntries[] = {
   CALL_ENTRY(dpred, 4),
   CALL_ENTRY(elist2arcs, 1),
   CALL_ENTRY(empty_graph, 2),
-  CALL_ENTRY(entropy_loss, 5),
+  CALL_ENTRY(entropy_loss, 3),
   CALL_ENTRY(fit2arcs, 1),
   CALL_ENTRY(fitted_mb, 2),
   CALL_ENTRY(fitted_vs_data, 3),
@@ -101,6 +103,7 @@ static const R_CallMethodDef CallEntries[] = {
   CALL_ENTRY(is_row_equal, 2),
   CALL_ENTRY(joint_discretize, 7),
   CALL_ENTRY(kullback_leibler_discrete, 2),
+  CALL_ENTRY(loglikelihood_function, 6),
   CALL_ENTRY(lw_weights, 4),
   CALL_ENTRY(mappred, 7),
   CALL_ENTRY(marginal_discretize, 5),

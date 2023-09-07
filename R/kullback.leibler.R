@@ -104,8 +104,7 @@ kullback.leibler.gaussian = function(P, Q) {
   inv.sigmaQ = svdQ$v[, pos, drop = FALSE] %*% diag(1 / svdQ$d[pos]) %*%
                  t(svdQ$u[, pos, drop = FALSE])
 
-  as.numeric(0.5 *
-    log(det(mvnQ$sigma) / det(mvnP$sigma)) +
+  0.5 * as.numeric(log(det(mvnQ$sigma) / det(mvnP$sigma)) +
     sum(diag(inv.sigmaQ %*% mvnP$sigma)) - nrow(mvnQ$sigma) +
     t(mvnP$mu - mvnQ$mu) %*% inv.sigmaQ %*% (mvnP$mu - mvnQ$mu)
   )

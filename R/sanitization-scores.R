@@ -2,8 +2,7 @@
 # check score labels.
 check.score = function(score, data, allowed = available.scores) {
 
-  # check which type of data we are dealing with.
-  type = data.type(data)
+  metadata = attr(data, "metadata")
 
   if (!is.null(score)) {
 
@@ -11,13 +10,19 @@ check.score = function(score, data, allowed = available.scores) {
     check.label(score, choices = allowed, labels = score.labels,
       argname = "score", see = "bnlearn-package")
     # check if it's the right score for the data (discrete, continuous, mixed).
-    if ((type %!in% discrete.data.types) &&
+    if ((metadata$type %!in% discrete.data.types) &&
          (score %in% available.discrete.scores))
       stop("score '", score, "' may only be used with discrete data.")
-    if ((type != "continuous") && (score %in% available.continuous.scores))
+    if ((metadata$type != "continuous") &&
+         (score %in% available.continuous.scores))
       stop("score '", score, "' may only be used with continuous data.")
-    if ((type != "mixed-cg") && (score %in% available.mixedcg.scores))
+    if ((metadata$type != "mixed-cg") &&
+         (score %in% available.mixedcg.scores))
       stop("score '", score, "' may only be used with a mixture of continuous and discrete data.")
+    # if the data are incomplete, check whether the score can be used at all.
+    if (any(!metadata$complete.nodes) &&
+         (score %!in% scores.for.incomplete.data))
+      stop("score '", score, "' cannot be used with incomplete data.")
 
     return(score)
 
@@ -25,14 +30,17 @@ check.score = function(score, data, allowed = available.scores) {
   else {
 
     # warn about ordinal data modelled as unordered categorical ones.
-    if (type %in% c("ordered", "mixed-do"))
+    if (metadata$type %in% c("ordered", "mixed-do"))
       warning("no score is available for ordinal data, disregarding the ordering of the levels.")
 
-    if (type %in% discrete.data.types)
+    if (any(!metadata$complete.nodes))
+      stop("no available score for incomplete data other than 'custom'.")
+
+    if (metadata$type %in% discrete.data.types)
       return("bic")
-    else if (type == "continuous")
+    else if (metadata$type == "continuous")
       return("bic-g")
-    else if (type == "mixed-cg")
+    else if (metadata$type == "mixed-cg")
       return("bic-cg")
 
   }#ELSE
@@ -51,9 +59,12 @@ is.score.equivalent = function(score, nodes, extra) {
   # the quotient NML is score equivalent, but the factorized NML is not.
   if (score %in% c("qnml"))
     return(TRUE)
-  # BDe and BGe can score equivalent depending on the graph prior.
-  else if ((score %in% c("bde", "bge")) &&
-           (extra$prior %in% c("uniform", "marginal", "vsp")))
+  # BDe and BGe can be score equivalent depending on the graph prior.
+  if ((score %in% c("bde", "bge")) &&
+      (extra$prior %in% c("uniform", "marginal", "vsp")))
+    return(TRUE)
+  # all the node-average likelihood scores are score equivalent.
+  if (score %in% c("nal", "nal-g", "pnal", "pnal-g"))
     return(TRUE)
 
   # a conservative default (BDla, BDs, BDj, all *-cg scores).
@@ -79,63 +90,70 @@ check.score.args = function(score, network, data, extra.args, learning = FALSE) 
 
   # check the imaginary sample size.
   if (has.argument(score, "iss", score.extra.args))
-    extra.args$iss = check.iss(iss = extra.args$iss,
-      network = network)
+    extra.args[["iss"]] =
+      check.iss(iss = extra.args[["iss"]], network = network)
 
   # check the graph prior distribution.
   if (has.argument(score, "prior", score.extra.args))
-    extra.args$prior = check.graph.prior(prior = extra.args$prior,
-      network = network)
+    extra.args[["prior"]] =
+      check.graph.prior(prior = extra.args[["prior"]], network = network)
 
   # check the sparsity parameter of the graph prior distribution.
   if (has.argument(score, "beta", score.extra.args))
-    extra.args$beta = check.graph.hyperparameters(beta = extra.args$beta,
-      prior = extra.args$prior, network = network, data = data,
-      learning = learning)
+    extra.args[["beta"]] =
+      check.graph.hyperparameters(beta = extra.args[["beta"]],
+        prior = extra.args[["prior"]], network = network, data = data,
+        learning = learning)
 
   # check the list of the experimental observations in the data set.
   if (has.argument(score, "exp", score.extra.args))
-    extra.args$exp = check.experimental(exp = extra.args$exp,
-      network = network, data = data)
+    extra.args[["exp"]] =
+      check.experimental(exp = extra.args[["exp"]], network = network,
+        data = data)
 
   # check the likelihood penalty.
   if (has.argument(score, "k", score.extra.args))
-    extra.args$k = check.penalty(k = extra.args$k, network = network,
-      data = data, score = score)
+    extra.args[["k"]] =
+      check.penalty(k = extra.args[["k"]], network = network, data = data,
+        score = score)
 
   # check the additional penalty in the extended BIC.
   if (has.argument(score, "gamma", score.extra.args))
-    extra.args$gamma = check.extended.penalty(gamma = extra.args$gamma,
-      network = network)
+    extra.args[["gamma"]] =
+      check.extended.penalty(gamma = extra.args[["gamma"]], network = network)
 
   # check the number of scores to average.
   if (has.argument(score, "l", score.extra.args))
-    extra.args$l = check.l(l = extra.args$l)
+    extra.args[["l"]] = check.l(l = extra.args[["l"]])
 
   # check the normal-Wishart prior arguments.
   if (has.argument(score, "nu", score.extra.args))
-    extra.args$nu = check.nu(nu = extra.args$nu, network = network, data = data)
+    extra.args$nu =
+      check.nu(nu = extra.args[["nu"]], network = network, data = data)
 
   if (has.argument(score, "iss.mu", score.extra.args))
-    extra.args$iss.mu = check.iss.mu(iss.mu = extra.args$iss.mu,
-      network = network)
+    extra.args[["iss.mu"]] =
+      check.iss.mu(iss.mu = extra.args[["iss.mu"]], network = network)
 
   if (has.argument(score, "iss.w", score.extra.args))
-    extra.args$iss.w = check.iss.w(iss.w = extra.args$iss.w,
-      network = network, data = data)
+    extra.args[["iss.w"]] =
+      check.iss.w(iss.w = extra.args[["iss.w"]], network = network, data = data)
 
   # check the test data for predictive scores.
   if (has.argument(score, "newdata", score.extra.args))
-    extra.args$newdata = check.newdata(newdata = extra.args$newdata,
-      network = network, data = data)
+    extra.args[["newdata"]] =
+      check.newdata(newdata = extra.args[["newdata"]], network = network,
+        data = data)
 
   # check the R function implementing a custom score.
   if (has.argument(score, "fun", score.extra.args))
-    extra.args$fun = check.custom.score.function(fun = extra.args$fun)
+    extra.args[["fun"]] = check.custom.score.function(fun = extra.args[["fun"]])
   if (has.argument(score, "args", score.extra.args))
-    extra.args$args = check.custom.score.arguments(args = extra.args$args)
+    extra.args[["args"]] =
+      check.custom.score.arguments(args = extra.args[["args"]])
 
-  check.unused.args(extra.args, score.extra.args[[score]])
+  # warn about and remove unused arguments.
+  extra.args = check.unused.args(extra.args, score.extra.args[[score]])
 
   return(extra.args)
 
@@ -306,7 +324,7 @@ check.penalty = function(k, network, data, score) {
     # warn if using a non-standard penalty.
     if (grepl("^aic", score) && (k != 1))
       warning("using AIC with a non-standard penalty k = ", k, ".")
-    if (grepl("^[e]*bic", score) && (k != log(nrow(data))/2))
+    if (grepl("^[e]*bic", score) && (k != log(nrow(data)) / 2))
       warning("using BIC with a non-standard penalty k = ", k, ".")
 
   }#THEN
@@ -316,8 +334,16 @@ check.penalty = function(k, network, data, score) {
     # use the default for the score function otherwise.
     if (!is.null(network$learning$args$k) && (score == network$learning$test))
       k = network$learning$args$k
-    else
-      k = ifelse(grepl("^aic", score), 1, log(nrow(data))/2)
+    else {
+
+      if (grepl("^aic", score))
+        k = 1
+      else if (grepl("^[e]*bic", score))
+        k = log(nrow(data)) / 2
+      else if (grepl("^[p]*nal", score))
+        k = 1 / length(network$nodes) * nrow(data) ^ -0.25
+
+    }#ELSE
 
   }#ELSE
 
@@ -451,10 +477,21 @@ check.l = function(l) {
 }#CHECK.L
 
 # check the test data for predictive scores.
-check.newdata = function(newdata, network = network, data = data) {
+check.newdata = function(newdata, network, data, required = TRUE,
+    allow.missing = FALSE) {
 
-  if (is.null(newdata))
-    stop("predictive scores require a test set passed as 'newdata'.")
+  if (is.null(newdata)) {
+
+    if (required)
+      stop("predictive scores require a test set passed as 'newdata'.")
+    else
+      return(NULL)
+
+  }#THEN
+
+  # newdata must be a data frame.
+  if (!is.data.frame(newdata))
+    stop("newdata must be in a data frame.")
 
   # check whether data and newdata have the same columns.
   names.data = names(data)
@@ -496,14 +533,24 @@ check.newdata = function(newdata, network = network, data = data) {
   levels.data = lapply(data, levels)
   levels.newdata = lapply(newdata, levels)
 
-  for (i in seq_along(levels.data))
+  for (i in seq_along(types.data))
     if (any(types.data[i] %in% "factor"))
-      if (!isTRUE(all.equal(levels.data[[i]], levels.newdata[[i]])))
-        stop("variable ", names.data[i], " has a different levels in newdata.")
+      if (!isTRUE(all.equal(levels.data[[i]], levels.newdata[[i]]))) {
+
+        if (setequal(levels.data[[i]], levels.newdata[[i]]))
+          levels(newdata[[i]]) = levels(data[[i]])
+        else
+          stop("variable ", names.data[i], " has a different levels in newdata.")
+
+      }#THEN
 
   # make sure to return a data frame with column names.
   newdata = .data.frame(newdata)
   names(newdata) = names.data
+
+  # sanitize the reworked data frame and add the metadata.
+  newdata = check.data(newdata, label = "newdata", allow.levels = TRUE,
+              allow.missing = allow.missing)
 
   return(newdata)
 

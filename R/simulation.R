@@ -22,7 +22,7 @@ topological.ordering = function(x, start = NULL, reverse = FALSE,
 
 # use the Logic Sampling (LS) algorithm as described in "Bayesian Artificial
 # Intelligence", Korb & Nicholson, chap 3.6.1.
-.rbn.backend = function(x, n, fix = TRUE, debug = FALSE) {
+rbn.backend = function(x, n, fix = TRUE, debug = FALSE) {
 
   .Call(call_rbn_master,
         fitted = x,

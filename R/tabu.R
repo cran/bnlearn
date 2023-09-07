@@ -68,10 +68,56 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
 
     current = as.integer((iter - 1) %% tabu)
 
-    # keep the best network seen so far and its score value for the
-    # evaluation of the stopping rule; but always create a "best network" in
-    # the first iteration using the starting network.
-    if ((robust.difference(sum(reference.score), best.score) > 0) || (iter == 1)) {
+    # keep the best network seen so far and its score value for the evaluation
+    # of the stopping rule; but always create a "best network" in the first
+    # iteration using the starting network.
+    if ((sum(reference.score) == -Inf) && (best.score == -Inf) && (iter > 1)) {
+
+      old.score = per.node.score(network = best.network, score = score,
+                      targets = nodes, extra.args = extra.args, data = x)
+
+      singular.old.nodes = (old.score == -Inf)
+      singular.new.nodes = (reference.score == -Inf)
+
+      if (all(singular.old.nodes == singular.new.nodes)) {
+
+        # if the same nodes are singular/not singular in both networks,
+        # disregard the singular nodes when comparing them.
+        delta = robust.score.difference(
+                  sum(reference.score[!singular.new.nodes]),
+                  sum(old.score[!singular.old.nodes]))
+
+      }#THEN
+      else if (sum(singular.new.nodes) > sum(singular.old.nodes)) {
+
+        # if there are more singular nodes in the new network than in the old
+        # network, the old one is better.
+        delta = -Inf
+
+      }#THEN
+      else if (sum(singular.new.nodes) < sum(singular.old.nodes)) {
+
+        # if the new network ha fewer singular nodes than the old network, the
+        # new one is better.
+        delta = +Inf
+
+      }#THEN
+      else {
+
+        delta = robust.score.difference(sum(reference.score), best.score)
+
+      }#ELSE
+
+      if (delta > 0) {
+
+        best.network = start
+        best.score = sum(reference.score)
+
+      }#THEN
+
+    }#ELSE
+    else if ((robust.score.difference(sum(reference.score), best.score) > 0) ||
+        (iter == 1)) {
 
       best.network = start
       best.score = sum(reference.score)
@@ -206,7 +252,7 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
     }#THEN
     else {
 
-      if (robust.difference(sum(reference.score), best.score) > 0)
+      if (robust.score.difference(sum(reference.score), best.score) > 0)
         loss.iter = 0
 
     }#ELSE
@@ -241,7 +287,7 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
       cat("* current score:", sum(reference.score), "\n")
       cat(sprintf("* best score up to now: %s (delta: %s)\n",
         format(best.score),
-        format(robust.difference(sum(reference.score), best.score))))
+        format(robust.score.difference(sum(reference.score), best.score))))
 
     }#THEN
 

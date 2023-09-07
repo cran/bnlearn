@@ -25,16 +25,21 @@ check.dnode.rvalue = function(x, node) {
 
   }#THEN
   # update dims and ndims.
-  dims = dim(x)
-  ndims = length(dims)
+  ndims = length(dim(x))
+
+  # one dimension name in a multi-dimensional table must be the node label.
+  dnn = dimnames(x)
+  if (ndims >= 2)
+    if (all(is.character(names(dnn))) && all(names(dnn) != node))
+      stop("node ", node, " does not have a corresponding dimension name.")
 
   # do not allow missing values as dimension names.
-  nas = sapply(dimnames(x), anyNA)
+  nas = sapply(dnn, anyNA)
   if (any(nas))
     stop("node ", node, " contains missing values in the dimension names.")
 
   # do not allow duplicated dimension names.
-  dupes = sapply(dimnames(x), anyDuplicated)
+  dupes = sapply(dnn, anyDuplicated)
   if (any(dupes > 0))
     stop("node ", node, " contains duplicate dimension names.")
 
@@ -52,8 +57,8 @@ check.dnode.rvalue = function(x, node) {
     # if the new table has dimensions names, use them to decide over which
     # dimension the probabilities should sum up to 1; otherwise assume that
     # probabilities sum up to 1 over rows.
-    if (node %in% names(dimnames(x)))
-      normalize.over = which(names(dimnames(x)) != node)
+    if (node %in% names(dnn))
+      normalize.over = which(names(dnn) != node)
     else
       normalize.over = seq(from = 2, to = ndims)
 
@@ -95,7 +100,7 @@ check.rvalue.vs.dnode = function(new, old) {
       if (!setequal(names(odnn), names(ndnn)))
         stop("wrong dimension names for node ", old$node, ".")
 
-      new = aperm(new, match(names(ndnn), names(odnn)))
+      new = aperm(new, match(names(odnn), names(ndnn)))
       ndnn = dimnames(new)
 
     }#THEN
@@ -203,6 +208,9 @@ check.gnode.rvalue = function(x, node) {
     if ((length(x$coef) == 0) || !is.real.vector(x$coef))
       stop("coef must be a vector of numeric values, the ",
         "regression coefficients for node ", node, " given its parents.")
+
+  # check that the coefficients are stored as numeric values, not integers.
+  x$coef[] = as.numeric(x$coef)
 
   for (comp in c("fitted", "resid"))
     if (!is.null(x[[comp]]))
@@ -344,6 +352,9 @@ check.cgnode.rvalue = function(x, node) {
     if ((length(x$coef) == 0) || !is.real.vector(x$coef))
       stop("coef must be a matrix of numeric values, the ",
         "regression coefficients for node ", node, " given its parents.")
+
+  # check that the coefficients are stored as numeric values, not integers.
+  x$coef[] = as.numeric(x$coef)
 
   for (comp in c("fitted", "resid"))
     if (!is.null(x[[comp]]))

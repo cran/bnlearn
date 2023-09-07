@@ -2,69 +2,44 @@
 # sanitize the extra arguments passed to the conditional probability algorithms.
 check.cpq.args = function(fitted, event, extra.args, method, action) {
 
-  if (method %in% c("ls", "lw")) {
+  if (has.argument(method, "n", cpq.extra.args))
+    extra.args[["n"]] = check.particles(extra.args[["n"]], fitted = fitted)
 
-    if (!is.null(extra.args$n)) {
+  if (has.argument(method, "batch", cpq.extra.args)) {
 
-      if (!is.positive.integer(extra.args$n))
-        stop("the number of observations to be sampled must be a positive integer number.")
+    if (!is.null(extra.args[["batch"]]) &&
+        (action == "cpdist") && (method == "lw")) {
 
-    }#THEN
-    else {
-
-      # this is a rule of thumb, the error of the estimate has no closed-form
-      # expression (Koller & Friedman).
-      if (!is(fitted, "bn.fit.gnet"))
-        extra.args$n = 5000 * max(1, round(log10(nparams.fitted(fitted))))
-      else
-        extra.args$n = 500 * nparams.fitted(fitted)
-
-    }#ELSE
-
-    if (!is.null(extra.args$batch)) {
-
-      if ((action == "cpdist") && (method == "lw")) {
-
-        extra.args$batch = NULL
-        warning(" 'batch' will be ignored for speed and memory efficience.")
-
-      }#THEN
-      else {
-
-        if (!is.positive.integer(extra.args$batch))
-          stop("the number of observations to be sampled must be a positive integer number.")
-
-        if (extra.args$batch > extra.args$n) {
-
-          warning("cannot generate a batch bigger than the whole generated data set.")
-          warning("batch size will be ignored.")
-
-        }#THEN
-
-      }#ELSE
+      extra.args[["batch"]] = NULL
+      warning(" 'batch' will be ignored for speed and memory efficience.")
 
     }#THEN
     else {
 
-      # perform small simulations in a single batch, and split larger ones.
-      extra.args$batch = min(extra.args$n, 10^4)
+      extra.args[["batch"]] =
+        check.batching(extra.args[["batch"]], sample.size = extra.args[["n"]])
 
     }#ELSE
 
-    if (!is.null(extra.args$query.nodes)) {
+  }#THEN
 
-      check.nodes(extra.args$query.nodes, graph = fitted)
+  if (has.argument(method, "query.nodes", cpq.extra.args)) {
+
+    if (!is.null(extra.args[["query.nodes"]])) {
+
+      check.nodes(extra.args[["query.nodes"]], graph = fitted)
 
       # make sure the nodes to be simulated are included.
       if (action == "cpdist")
-        extra.args$query.nodes = c(event, extra.args$query.nodes)
+        extra.args[["query.nodes"]] =
+          unique(c(event, extra.args[["query.nodes"]]))
 
     }#THEN
 
   }#THEN
 
-  # warn about unused arguments.
-  check.unused.args(extra.args, cpq.extra.args[[method]])
+  # warn about and remove unused arguments.
+  extra.args = check.unused.args(extra.args, cpq.extra.args[[method]])
 
   return(extra.args)
 
@@ -143,4 +118,55 @@ check.evidence = function(evidence, graph, ideal.only = FALSE) {
   return(evidence)
 
 }#CHECK.EVIDENCE
+
+# check the number of particles in Monte Carlo inference.
+check.particles = function(n, fitted) {
+
+  if (!is.null(n)) {
+
+    if (!is.positive.integer(n))
+      stop("the number of observations to be sampled must be a positive integer number.")
+
+  }#THEN
+  else {
+
+    # this is a rule of thumb, the error of the estimate has no closed-form
+    # expression (Koller & Friedman).
+    if (!is(fitted, "bn.fit.gnet"))
+      n = 5000 * max(1, round(log10(nparams.fitted(fitted))))
+    else
+      n = 500 * nparams.fitted(fitted)
+
+  }#ELSE
+
+  return(n)
+
+}#CHECK.PARTICLES
+
+# check batch size against sample size.
+check.batching = function(batch, sample.size) {
+
+  if (!is.null(batch)) {
+
+    if (!is.positive.integer(batch))
+      stop("the number of observations to be sampled must be a positive integer number.")
+
+    if (batch > sample.size) {
+
+      warning("cannot generate a batch bigger than the whole generated data set.")
+      warning("batch size will be ignored.")
+
+    }#THEN
+
+  }#THEN
+  else {
+
+    # perform small simulations in a single batch, and split larger ones.
+    batch = min(sample.size, 10^4)
+
+  }#ELSE
+
+  return(batch)
+
+}#CHECK.BATCHING
 

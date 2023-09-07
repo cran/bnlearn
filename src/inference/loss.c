@@ -16,9 +16,6 @@ double c_dloss(int *cur, SEXP cur_parents, int *configs, double *prob,
 double c_cgloss(int *cur, SEXP cur_parents, SEXP dparents, SEXP gparents,
     SEXP dlevels, double *coefs, double *sd, void **columns, SEXP nodes,
     int ndata, double *per_sample, bool allow_singular, int *dropped);
-double c_entropy_loss(SEXP fitted, SEXP orig_data, int ndata, int by,
-    double *res_sample, SEXP keep, bool allow_singular, bool warn,
-    bool debugging);
 
 #define UPDATE_LOSS(cond) \
       if (cond) \
@@ -28,35 +25,9 @@ double c_entropy_loss(SEXP fitted, SEXP orig_data, int ndata, int by,
       if (per_sample) \
         per_sample[i] += logprob;
 
-SEXP entropy_loss(SEXP fitted, SEXP data, SEXP by_sample, SEXP keep,
-    SEXP debug) {
-
-int *by = LOGICAL(by_sample), ndata = length(VECTOR_ELT(data, 0));
-double *res_sample = NULL, loss = 0;
-SEXP result_sample = R_NilValue;
-
-  /* allocate the sample's contributions if needed. */
-  if (*by) {
-
-    PROTECT(result_sample = allocVector(REALSXP, ndata));
-    res_sample = REAL(result_sample);
-    memset(res_sample, '\0', ndata * sizeof(double));
-
-  }/*THEN*/
-
-  loss = c_entropy_loss(fitted, data, ndata, *by, res_sample, keep,
-                  TRUE, TRUE, isTRUE(debug));
-
-  if (*by)
-    UNPROTECT(1);
-
-  return (*by) ? result_sample : ScalarReal(loss);
-
-}/*ENTROPY_LOSS*/
-
-double c_entropy_loss(SEXP fitted, SEXP orig_data, int ndata, int by,
-    double *res_sample, SEXP keep, bool allow_singular, bool warn,
-    bool debugging) {
+double c_entropy_loss(SEXP fitted, SEXP orig_data, int ndata, bool by,
+    double *res_sample, double *effective, SEXP keep, bool allow_singular,
+    bool warn, bool debugging) {
 
 int i = 0, k = 0, nnodes = length(fitted), nlevels = 0, dropped = 0;
 int *configs = NULL, *to_keep = NULL;
@@ -90,7 +61,7 @@ SEXP dparents, gparents, dlevels;
     if (i == to_keep[k] - 1) {
 
       /* prevent k from overflowing but do not break out of the loop, to allow
-       * the debuggin output to cover all the nodes. */
+       * the debugging output to cover all the nodes. */
       if (k < length(try) - 1)
         k++;
 
@@ -167,7 +138,17 @@ SEXP dparents, gparents, dlevels;
     /* add the node contribution to the return value. */
     result += cur_loss;
 
+    /* cumulate the number of data points that were used to compute the loss. */
+    if (effective)
+      *effective += (ndata - dropped);
+
   }/*FOR*/
+
+  /* average the number of data points over the number of variables to compute
+   * the effective sample size of the loss: in the absence of missing values
+   * the result simplifies to ndata. */
+  if (effective)
+    *effective /= (double)nnodes;
 
   Free1D(columns);
   if (!c_is(fitted, "bn.fit.gnet"))

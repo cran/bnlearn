@@ -19,7 +19,8 @@
 arc.strength(x, data, criterion = NULL, ..., debug = FALSE)
 # strength of all possible arcs, as learned from bootstrapped data.
 boot.strength(data, cluster, R = 200, m = nrow(data),
-  algorithm, algorithm.args = list(), cpdag = TRUE, debug = FALSE)
+  algorithm, algorithm.args = list(), cpdag = TRUE, shuffle = TRUE,
+  debug = FALSE)
 # strength of all possible arcs, from a list of custom networks.
 custom.strength(networks, nodes, weights = NULL, cpdag = TRUE, debug = FALSE)
 # strength of all possible arcs, computed using Bayes factors.
@@ -64,6 +65,9 @@ inclusion.threshold(strength)
   \item{cpdag}{a boolean value. If \code{TRUE} the (PDAG of) the equivalence
     class is used instead of the network structure itself. It should make it
     easier to identify score-equivalent arcs.}
+  \item{shuffle}{a boolean value. If \code{TRUE} the columns in the data are
+    permuted in each bootstrap sample to enforce the fact that the ordering of
+    the variables in the data should be an invariant.}
   \item{algorithm}{a character string, the structure learning algorithm to be
     applied to the bootstrap replicates. See \code{\link{structure learning}}
     and the documentation of each algorithm for details.}
@@ -160,8 +164,8 @@ inclusion.threshold(strength)
 }
 \examples{
 data(learning.test)
-res = hc(learning.test)
-arc.strength(res, learning.test)
+dag = hc(learning.test)
+arc.strength(dag, learning.test)
 
 \dontrun{
 arcs = boot.strength(learning.test, algorithm = "hc")
@@ -177,7 +181,7 @@ arcs[(arcs$strength > 0.85) & (arcs$direction >= 0.5), ]
 modelstring(averaged.network(arcs))
 }
 
-bf.strength(res, learning.test, score = "bds", prior = "marginal")
+bf.strength(dag, learning.test, score = "bds", prior = "marginal")
 }
 \seealso{\code{\link{strength.plot}}, \code{\link{score}},
   \code{\link{ci.test}}.}

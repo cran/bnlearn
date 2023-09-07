@@ -353,7 +353,7 @@ double *qr = NULL;
 
 /* ordinary least squares with just the intercept and with missing data. */
 static void c_ols0_with_missing(double *y, int nrow, double *fitted,
-    double *resid, double *beta, double *sd) {
+    double *resid, double *beta, double *sd, int *nobs) {
 
 int i = 0, ncomplete = 0;
 long double mean = 0, rsd = 0;
@@ -406,11 +406,14 @@ long double mean = 0, rsd = 0;
     for (i = 0; i < nrow; i++)
       resid[i] = y[i] - mean;
 
+  if (nobs)
+    *nobs = ncomplete;
+
 }/*C_OLS0_WITH_MISSING*/
 
 /* ordinary least squares with one regression coefficient and missing data. */
 static void c_ols1_with_missing(double **x, double *y, int nrow, double *fitted,
-    double *resid, double *beta, double *sd) {
+    double *resid, double *beta, double *sd, int *nobs) {
 
 int i = 0, ncomplete = 0, singular = FALSE;
 double *m[2] = {y, *x}, mean[2] = {0, 0}, a = 0, b = 0;
@@ -554,13 +557,16 @@ covariance cov = { .dim = 2, .mat = (double[]){ 0, 0, 0, 0 },
 
   }/*THEN*/
 
+  if (nobs)
+    *nobs = ncomplete;
+
   Free1D(missing);
 
 }/*C_OLS1_WITH_MISSING*/
 
 /* ordinary least squares with two regression coefficients and missing data. */
 static void c_ols2_with_missing(double **x, double *y, int nrow, double *fitted,
-    double *resid, double *beta, double *sd) {
+    double *resid, double *beta, double *sd, int *nobs) {
 
 int i = 0, ncomplete = 0, singular1 = FALSE, singular2 = FALSE;
 double *m[3] = {y, *x, *(x + 1)}, a = 0, b1 = 0, b2 = 0, den = 0;
@@ -778,13 +784,16 @@ covariance cov = { .dim = 3, .mat = (double[]){ 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 
   }/*THEN*/
 
+  if (nobs)
+    *nobs = ncomplete;
+
   Free1D(missing);
 
 }/*C_OLS2_WITH_MISSING*/
 
 /* general implementation of ordinary least squares with missing data. */
 static void c_olsp_with_missing(double **x, double *y, int nrow, int ncol,
-    double *fitted, double *resid, double *beta, double *sd) {
+    double *fitted, double *resid, double *beta, double *sd, int *nobs) {
 
 int i = 0, j = 0, k = 0, check = 0, ncomplete = 0;
 int *complete = NULL;
@@ -844,6 +853,9 @@ double *qr = 0, *new_y = 0;
 
   }/*THEN*/
 
+  if (nobs)
+    *nobs = ncomplete;
+
   Free1D(complete);
   Free1D(new_y);
   Free1D(qr);
@@ -852,9 +864,14 @@ double *qr = 0, *new_y = 0;
 
 /* compute least squares efficiently by special-casing whenever possible. */
 void c_ols(double **x, double *y, int nrow, int ncol, double *fitted,
-    double *resid, double *beta, double *sd, bool missing) {
+    double *resid, double *beta, double *sd, int *nobs, bool missing) {
 
   if (!missing) {
+
+    /* the number of observations is always equal to the number of rows for
+     * complete data. */
+    if (nobs)
+      *nobs = nrow;
 
     if (ncol == 0) {
 
@@ -887,25 +904,25 @@ void c_ols(double **x, double *y, int nrow, int ncol, double *fitted,
     if (ncol == 0) {
 
       /* special case: null model. */
-      c_ols0_with_missing(y, nrow, fitted, resid, beta, sd);
+      c_ols0_with_missing(y, nrow, fitted, resid, beta, sd, nobs);
 
     }/*THEN*/
     else if (ncol == 1) {
 
       /* special case: simple regression. */
-      c_ols1_with_missing(x, y, nrow, fitted, resid, beta, sd);
+      c_ols1_with_missing(x, y, nrow, fitted, resid, beta, sd, nobs);
 
     }/*THEN*/
     else if (ncol == 2) {
 
       /* special case: two regression coefficients. */
-      c_ols2_with_missing(x, y, nrow, fitted, resid, beta, sd);
+      c_ols2_with_missing(x, y, nrow, fitted, resid, beta, sd, nobs);
 
     }/*THEN*/
     else {
 
       /* general case: multiple regression with missing data. */
-      c_olsp_with_missing(x, y, nrow, ncol, fitted, resid, beta, sd);
+      c_olsp_with_missing(x, y, nrow, ncol, fitted, resid, beta, sd, nobs);
 
     }/*ELSE*/
 

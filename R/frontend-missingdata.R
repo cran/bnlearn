@@ -1,21 +1,58 @@
 
 # impute missing data from a bn.fit object.
-impute = function(object, data, method, ..., debug = FALSE) {
+impute = function(object, data, cluster, method, ..., strict = TRUE,
+    debug = FALSE) {
 
+  # check the network.
+  check.fit(object)
   # check the data are there.
-  check.data(data, allow.levels = TRUE, allow.missing = TRUE,
-    warn.if.no.missing = TRUE)
+  data = check.data(data, allow.levels = TRUE, allow.missing = TRUE,
+           warn.if.no.missing = TRUE)
   # check whether the data agree with the bayesian network.
   check.fit.vs.data(object, data)
   # check the imputation method.
   method = check.imputation.method(method, data)
   # check the extra arguments passed to the imputation methods.
   extra.args = check.imputation.extra.args(method, list(...))
-  # check debug.
+  # check debug and strict.
+  check.logical(strict)
   check.logical(debug)
 
-  impute.backend(fitted = object, data = data, method, extra.args = extra.args,
-    debug = debug)
+  # check the cluster.
+  cluster = check.cluster(cluster)
+
+  if (!is.null(cluster)) {
+
+    # set up the slave processes.
+    slaves.setup(cluster)
+    # disable debugging, the slaves do not cat() here.
+    if (debug) {
+
+      warning("disabling debugging output for parallel computing.")
+      debug = FALSE
+
+    }#THEN
+
+  }#THEN
+
+  # impute the missing data.
+  imputed = impute.backend(fitted = object, data = data, cluster = cluster,
+              method = method, extra.args = extra.args, debug = debug)
+
+  # check whether the imputation was successful.
+  if (!all(complete.cases(imputed))) {
+
+    if (strict)
+      stop("imputation unsuccessful, the data still contain NAs.")
+    else
+      warning("imputation unsuccessful, the data still contain NAs.")
+
+  }#THEN
+
+  # ensure that the attribute with the metadata set by check.data() is removed.
+  attr(imputed, "metadata") = NULL
+
+  return(imputed)
 
 }#IMPUTE
 
@@ -27,14 +64,13 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
   ntests = 0
 
   # check the data are there.
-  data.info =
-    check.data(x, allow.levels = TRUE, allow.missing = TRUE,
-      warn.if.no.missing = TRUE, stop.if.all.missing = FALSE)
+  x = check.data(x, allow.levels = TRUE, allow.missing = TRUE,
+        warn.if.no.missing = TRUE, stop.if.all.missing = FALSE)
 
   # if the data contains latent variables, the network used to perform the
   # imputation in the first iteration must already have parameters because we
   # cannot estimate them from the data themselves in a meaningful way.
-  if (any(data.info$latent.nodes) && !is(start, "bn.fit"))
+  if (any(attr(x, "metadata")$latent.nodes) && !is(start, "bn.fit"))
     stop("the data contain latent variables, so the 'start' argument must be a 'bn.fit' object.")
 
   # check the max.iter argument.
@@ -65,8 +101,7 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
   if (is.null(start)) {
 
     dag = empty.graph(nodes = names(x))
-    fitted = bn.fit.backend(dag, data = x, method = fit, extra.args = fit.args,
-               data.info = data.info)
+    fitted = bn.fit.backend(dag, data = x, method = fit, extra.args = fit.args)
 
   }#THEN
   else {
@@ -82,7 +117,7 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
 
       dag = start
       fitted = bn.fit.backend(start, data = x, method = fit,
-                 extra.args = fit.args, data.info = data.info)
+                 extra.args = fit.args)
 
     }#THEN
     else if (is(start, "bn.fit")) {
@@ -111,9 +146,6 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
 
   }#THEN
 
-  # from this point on the data are complete.
-  data.info$complete.nodes[names(x)] = TRUE
-
   for (i in seq(max.iter)) {
 
     if (debug) {
@@ -124,8 +156,8 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
     }#THEN
 
     # expectation step.
-    complete = impute.backend(fitted = fitted, data = x, method = impute,
-                 extra.args = impute.args, debug = debug)
+    complete = impute.backend(fitted = fitted, data = x, cluster = NULL,
+                 method = impute, extra.args = impute.args, debug = debug)
 
     if (debug) {
 
@@ -141,7 +173,7 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
 
     # maximization step, parameter learning.
     fitted.new = bn.fit.backend(dag, data = complete, method = fit,
-                   extra.args = fit.args, data.info = data.info)
+                   extra.args = fit.args)
 
     if (debug) {
 
@@ -164,10 +196,12 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
   }#FOR
 
   # set the metadata.
-  dag$learning$algo = "sem"
+  dag$learning$algo = "structural.em"
   dag$learning$maximize = maximize
   dag$learning$impute = impute
+  dag$learning$impute.args = impute.args
   dag$learning$fit = fit
+  dag$learning$fit.args = fit.args
   dag$learning$ntests = ntests
 
   if (return.all)

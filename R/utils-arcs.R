@@ -230,6 +230,16 @@ arcs.unique = function(arcs, nodes, warn = FALSE) {
 
 }#ARCS.UNIQUE
 
+# rbind-like function for arc sets.
+arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
+
+  .Call(call_arcs_rbind,
+        matrix1 = matrix1,
+        matrix2 = matrix2,
+        reverse2 = reverse2)
+
+}#ARCS.RBIND
+
 # return the arcs from an object of class bn.fit.
 fit2arcs = function(x) {
 

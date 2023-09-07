@@ -3,7 +3,7 @@
 print.bn = function(x, ...) {
 
   params = names(x$learning$args)
-  directed.arcs = length(which(which.directed(x$arcs)))
+  directed.arcs = how.many(which.directed(x$arcs))
   undirected.arcs = (nrow(x$arcs) - directed.arcs)/2
   arcs = undirected.arcs + directed.arcs
   nodes = names(x$nodes)
@@ -71,7 +71,7 @@ print.bn = function(x, ...) {
   }#THEN
   else {
 
-    wcat("learning algorithm", method.labels[x$learning$algo])
+    wcat("learning algorithm", learning.labels[x$learning$algo])
 
     if (x$learning$algo %in% constraint.based.algorithms)
       wcat("conditional independence test", test.labels[x$learning$test])
@@ -81,26 +81,26 @@ print.bn = function(x, ...) {
 
       if (x$learning$restrict %in% constraint.based.algorithms) {
 
-        wcat("constraint-based method", method.labels[x$learning$restrict])
+        wcat("constraint-based method", learning.labels[x$learning$restrict])
         wcat("conditional independence test", test.labels[x$learning$rstest])
 
       }#THEN
       else if (x$learning$restrict %in% mim.based.algorithms) {
 
         wcat("pairwise mutual information method",
-          method.labels[x$learning$restrict])
+          learning.labels[x$learning$restrict])
         wcat("mutual information estimator",
           format(mi.estimator.labels[x$learning$args$estimator]))
 
       }#THEN
 
-      wcat("score-based method", method.labels[x$learning$maximize])
+      wcat("score-based method", learning.labels[x$learning$maximize])
       wcat("score", score.labels[x$learning$maxscore])
 
     }#THEN
     else if (x$learning$algo %in% em.algorithms) {
 
-      wcat("score-based method", method.labels[x$learning$maximize])
+      wcat("score-based method", learning.labels[x$learning$maximize])
       wcat("parameter learning method", fits.labels[x$learning$fit])
       wcat("imputation method", imputation.labels[x$learning$impute])
 
@@ -308,7 +308,7 @@ print.bn.kcv = function(x, print.loss = TRUE, ...) {
 
   if (is.character(a$bn)) {
 
-    wcat("target learning algorithm", method.labels[a$bn])
+    wcat("target learning algorithm", learning.labels[a$bn])
 
   }#THEN
   else {

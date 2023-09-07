@@ -7,11 +7,12 @@
 typedef enum {
   ENOSCORE       =   0, /* error code, no such score. */
 
-  LOGLIK         =   1, /* log-likelihood, discrete data. */
-  PRED_LOGLIK    =   2, /* predictive log-likelihood, discrete data. */
-  AIC            =   3, /* AIC, discrete data. */
-  BIC            =   4, /* BIC, discrete data. */
-  EBIC           =   5, /* extended BIC, discrete data. */
+  /* scores for discrete data. */
+  LOGLIK         =   1, /* log-likelihood. */
+  PRED_LOGLIK    =   2, /* predictive log-likelihood. */
+  AIC            =   3, /* AIC. */
+  BIC            =   4, /* BIC. */
+  EBIC           =   5, /* extended BIC. */
   BDE            =   6, /* Bayesian Dirichlet equivalent score. */
   BDS            =   7, /* Bayesian Dirichlet sparse score. */
   BDJ            =   8, /* Bayesian Dirichlet with Jeffrey's prior. */
@@ -20,19 +21,27 @@ typedef enum {
   BDLA           =  11, /* Bayesian Dirichlet score, locally averaged. */
   FNML           =  12, /* Factorized Normalized Maximum Likelihood. */
   QNML           =  13, /* Quotient Normalized Maximum Likelihood. */
+  NAL            =  14, /* Node-average likelihood, discrete data. */
+  PNAL           =  15, /* Penalized node-average likelihood. */
 
-  LOGLIK_G       = 100, /* log-likelihood, Gaussian data. */
-  PRED_LOGLIK_G  = 101, /* predictive log-likelihood, Gaussian data. */
-  AIC_G          = 102, /* AIC, Gaussian data. */
-  BIC_G          = 103, /* BIC, Gaussian data. */
-  EBIC_G         = 104, /* extended BIC, Gaussian data. */
+  /* scores for Gaussian data. */
+  LOGLIK_G       = 100, /* log-likelihood. */
+  PRED_LOGLIK_G  = 101, /* predictive log-likelihood. */
+  AIC_G          = 102, /* AIC. */
+  BIC_G          = 103, /* BIC. */
+  EBIC_G         = 104, /* extended BIC. */
   BGE            = 105, /* Bayesian Gaussian equivalent score. */
+  NAL_G          = 106, /* Node-average likelihood. */
+  PNAL_G         = 107, /* Penalized node-average likelihood. */
 
-  LOGLIK_CG      = 200, /* log-likelihood, conditional Gaussian data. */
-  PRED_LOGLIK_CG = 201, /* predictive log-likelihood, conditional Gaussian data. */
-  AIC_CG         = 202, /* AIC, conditional Gaussian data. */
-  BIC_CG         = 203, /* BIC, conditional Gaussian data. */
-  EBIC_CG        = 204, /* extended BIC, conditional Gaussian data. */
+  /* scores for conditional Gaussian data. */
+  LOGLIK_CG      = 200, /* log-likelihood. */
+  PRED_LOGLIK_CG = 201, /* predictive log-likelihood. */
+  AIC_CG         = 202, /* AIC. */
+  BIC_CG         = 203, /* BIC. */
+  EBIC_CG        = 204, /* extended BIC. */
+  NAL_CG         = 205, /* Node-average likelihood. */
+  PNAL_CG        = 206, /* Penalized node-average likelihood. */
 
   CUSTOM         = 300  /* custom-function score. */
 } score_e;
@@ -74,14 +83,14 @@ double loglik_dnode(SEXP target, SEXP x, SEXP data, double *nparams,
 double pdnode(SEXP x, SEXP new_x, double *nparams);
 double cpdnode(SEXP x, SEXP y, SEXP x2, SEXP y2, double *nparams);
 double predictive_loglik_dnode(SEXP target, SEXP x, SEXP data, SEXP newdata,
-    double *nparams, int debuglevel);
+    double *nparams, bool debugging);
 double glik(SEXP x, double *nparams);
 double cglik(SEXP x, SEXP data, SEXP parents, double *nparams);
 double pgnode(SEXP x, SEXP new_x, double *nparams);
 double cpgnode(SEXP x, SEXP x2, SEXP data, SEXP newdata, SEXP parents,
     double *nparams);
 double predictive_loglik_gnode(SEXP target, SEXP x, SEXP data, SEXP newdata,
-    double *nparams, int debugging);
+    double *nparams, bool debugging);
 double c_fast_ccgloglik(double *xx, double **gp, int ngp, int nobs, int *config,
     int nconfig);
 double loglik_gnode(SEXP target, SEXP x, SEXP data, double *nparams,
@@ -89,7 +98,7 @@ double loglik_gnode(SEXP target, SEXP x, SEXP data, double *nparams,
 double loglik_cgnode(SEXP target, SEXP x, SEXP data, double *nparams,
     int *np, bool debugging);
 double predictive_loglik_cgnode(SEXP target, SEXP x, SEXP data, SEXP newdata,
-    double *nparams, int debugging);
+    double *nparams, bool debugging);
 double dirichlet_node(SEXP target, SEXP x, SEXP data, SEXP iss, int per_node,
     SEXP prior, SEXP beta, SEXP experimental, int sparse, bool debugging);
 double dirichlet_averaged_node(SEXP target, SEXP x, SEXP data, SEXP l,
@@ -100,6 +109,13 @@ double custom_score_function(SEXP target, SEXP x, SEXP data, SEXP custom_fn,
     SEXP custom_args, bool debugging);
 double fnml_node(SEXP target, SEXP x, SEXP data, bool debugging);
 double qnml_node(SEXP target, SEXP x, SEXP data, bool debugging);
+double nal_dnode_root(SEXP x, double k);
+double nal_dnode_parents(SEXP x, SEXP y, double k);
+double nal_dnode(SEXP target, SEXP x, SEXP data, double k, bool debugging);
+double glik_incomplete(SEXP x, double k);
+double cglik_incomplete(SEXP x, SEXP data, SEXP parents, double k);
+double nal_gnode(SEXP target, SEXP x, SEXP data, double k, bool debugging);
+double nal_cgnode(SEXP target, SEXP x, SEXP data, double k, bool debugging);
 
 /* exports for the regret table of normalized maximum likelihood scores. */
 #define MAX_REGRET_TABLE_N 1000

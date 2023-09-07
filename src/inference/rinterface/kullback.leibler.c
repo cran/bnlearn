@@ -1,5 +1,5 @@
-#include "../include/rcore.h"
-#include "../minimal/common.h"
+#include "../../include/rcore.h"
+#include "../../minimal/common.h"
 
 /* Kullback-Leibler divergence between conditional probability tables. */
 SEXP kullback_leibler_discrete(SEXP cptableP, SEXP cptableQ) {

@@ -33,6 +33,22 @@ int i = 0, ncomplete = 0;
 
 }/*FILL_1D_TABLE*/
 
+/* same as the above, but zeroes the joint counts first. */
+void refill_1d_table(int *xx, counts1d *table, int num) {
+
+  memset((*table).n, '\0', (*table).llx * sizeof(int));
+
+  fill_1d_table(xx, table, num);
+
+}/*REFILL_1D_TABLE*/
+
+/* change the dimension of a one-dimensional contingency table. */
+void resize_1d_table(int llx, counts1d *table) {
+
+  (*table).llx = llx;
+
+}/*RESIZE_1D_TABLE*/
+
 /* print a one-dimensional contingency table. */
 void print_1d_table(counts1d table) {
 

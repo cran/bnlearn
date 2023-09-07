@@ -65,9 +65,11 @@
       have been artificially manipulated). Each element of the list must be
       named after one of the nodes, and must contain a numeric vector with
       indexes of the observations whose value has been manipulated for that node.
-    \item \code{k}: the penalty coefficient to be used by the AIC and BIC
-      scores. The default value is \code{1} for AIC and \code{log(nrow(data))/2}
-      for BIC.
+    \item \code{k}: the penalty coefficient to be used by the AIC, BIC and
+      penalized node-average log-likelihood scores. The default value is
+      \code{1} for AIC, \code{log(nrow(data)) / 2} for BIC and
+      \code{1 / nnnodes(x) * nrow(data) ^ -0.25} for the node-average
+      log-likelihood scores.
     \item \code{gamma}: the additional penalty in the extended BIC scores. The
       default value is \code{0.5}.
     \item \code{prior}: the prior distribution to be used with the various
@@ -148,27 +150,27 @@
 }
 \examples{
 data(learning.test)
-res = hc(learning.test)
-score(res, learning.test, type = "bde")
+dag = hc(learning.test)
+score(dag, learning.test, type = "bde")
 
 ## let's see score equivalence in action!
-res2 = set.arc(res, "B", "A")
-score(res2, learning.test, type = "bde")
+dag2 = set.arc(dag, "B", "A")
+score(dag2, learning.test, type = "bde")
 
 ## K2 score on the other hand is not score equivalent.
-score(res, learning.test, type = "k2")
-score(res2, learning.test, type = "k2")
+score(dag, learning.test, type = "k2")
+score(dag2, learning.test, type = "k2")
 
 ## BDe with a prior.
 beta = data.frame(from = c("A", "D"), to = c("B", "F"),
          prob = c(0.2, 0.5), stringsAsFactors = FALSE)
-score(res, learning.test, type = "bde", prior = "cs", beta = beta)
+score(dag, learning.test, type = "bde", prior = "cs", beta = beta)
 
-## equivalent to logLik(res, learning.test)
-score(res, learning.test, type = "loglik")
+## equivalent to logLik(dag, learning.test)
+score(dag, learning.test, type = "loglik")
 
-## equivalent to AIC(res, learning.test)
-score(res, learning.test, type = "aic")
+## equivalent to AIC(dag, learning.test)
+score(dag, learning.test, type = "aic")
 
 ## custom score, computing BIC manually.
 my.bic = function(node, parents, data, args) {
@@ -191,8 +193,8 @@ my.bic = function(node, parents, data, args) {
   }#ELSE
 
 }#MY.BIC
-score(res, learning.test, type = "custom", fun = my.bic, by.node = TRUE)
-score(res, learning.test, type = "bic", by.node = TRUE)
+score(dag, learning.test, type = "custom", fun = my.bic, by.node = TRUE)
+score(dag, learning.test, type = "bic", by.node = TRUE)
 }
 \seealso{\code{\link{network scores}}, \code{\link{arc.strength}},
   \code{\link{alpha.star}}.}

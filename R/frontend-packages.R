@@ -276,6 +276,8 @@ as.bn.igraph = function(x, ..., check.cycles = TRUE) {
 # generate the input for a ROC curve from arc strengths.
 as.prediction.bn.strength = function(x, true, ..., consider.direction = TRUE) {
 
+  warning("the as.prediction() method is deprecated and will be removed in 2024.")
+
   # check whether ROCR is loaded.
   check.and.load.package("ROCR")
 
@@ -291,7 +293,7 @@ as.prediction.bn.strength = function(x, true, ..., consider.direction = TRUE) {
 
   # check consider.direction.
   check.logical(consider.direction)
-   # warn about unused arguments.
+  # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
   # create a data frame with all possible arcs, and merge the arc strengths
@@ -330,7 +332,7 @@ as.lm.bn = function(x, data, ...) {
   # check x's class.
   check.bn.or.fit(x)
   # check the data.
-  check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
+  data = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
 
   if (is(x, "bn")) {
 
@@ -379,7 +381,7 @@ as.lm.bn.fit = as.lm.bn
 as.lm.bn.fit.gnode = function(x, data, ...) {
 
   # check the data.
-  check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
+  data = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 

@@ -9,7 +9,8 @@
 }
 \usage{
 graphviz.plot(x, highlight = NULL, groups, layout = "dot",
-  shape = "circle", main = NULL, sub = NULL, render = TRUE)
+  shape = "circle", fontsize = 12, main = NULL, sub = NULL,
+  render = TRUE)
 }
 \arguments{
   \item{x}{an object of class \code{bn} or \code{bn.fit}.}
@@ -22,6 +23,7 @@ graphviz.plot(x, highlight = NULL, groups, layout = "dot",
     documentation for details.}
   \item{shape}{a character string, the shape of the nodes. Can be \code{circle},
     \code{ellipse} or \code{rectangle}.}
+  \item{fontsize}{a positive number, the font size for the node labels.}
   \item{main}{a character string, the main title of the graph. It's plotted at
     the top of the graph.}
   \item{sub}{a character string, a subtitle which is plotted at the bottom of

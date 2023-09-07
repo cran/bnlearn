@@ -60,8 +60,7 @@ build.whitelist = function(whitelist, nodes, data, algo, criterion) {
 
   }#THEN
 
-  # if the whitelist itself contains cycles, no acyclic graph
-  # can be learned.
+  # if the whitelist itself contains cycles, no acyclic graph can be learned.
   if (!is.acyclic(whitelist, nodes = nodes,
          directed = (algo %in% c(constraint.based.algorithms, "aracne"))))
     stop("this whitelist does not allow an acyclic graph.")

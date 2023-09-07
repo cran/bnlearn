@@ -25,24 +25,24 @@ check.cv.args = function(method, extra.args, data) {
 
   # check the number of splits.
   if (has.argument(method, "k", cv.extra.args))
-    extra.args$k = check.cv.splits(extra.args$k, n = n)
+    extra.args[["k"]] = check.cv.splits(extra.args[["k"]], n = n)
 
   # check the number of runs.
   if (has.argument(method, "runs", cv.extra.args))
-    extra.args$runs = check.cv.runs(extra.args$runs)
+    extra.args[["runs"]] = check.cv.runs(extra.args[["runs"]])
 
   # check the size of the test subsets in hold-out cross-validation.
   if (has.argument(method, "m", cv.extra.args))
-    extra.args$m = check.cv.holdout.size(extra.args$m, n = n)
+    extra.args[["m"]] = check.cv.holdout.size(extra.args[["m"]], n = n)
 
-  # warn about unused arguments (before adding more below).
-  check.unused.args(extra.args, cv.extra.args[[method]])
+  # warn about and remove unused arguments (before adding more below).
+  extra.args = check.unused.args(extra.args, cv.extra.args[[method]])
 
   # check custom folds.
   if (has.argument(method, "folds", cv.extra.args)) {
 
-    extra.args$folds = check.cv.folds(extra.args$folds, n = n)
-    extra.args$runs = length(extra.args$folds)
+    extra.args[["folds"]] = check.cv.folds(extra.args[["folds"]], n = n)
+    extra.args[["runs"]] = length(extra.args[["folds"]])
 
   }#THEN
 

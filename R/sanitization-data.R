@@ -1,23 +1,28 @@
 
-# check the data set.
-check.data = function(x, allowed.types = available.data.types,
-    allow.levels = FALSE, allow.missing = FALSE, warn.if.no.missing = FALSE,
+# check a data set.
+check.data = function(x, label = "the data",
+    allowed.types = available.data.types, allow.levels = FALSE,
+    allow.missing = FALSE, warn.if.no.missing = FALSE,
     stop.if.all.missing = FALSE, stop.if.missing.whole.obs = FALSE) {
 
   # check the data are there.
   if (missing(x))
-    stop("the data are missing.")
+    stop(label, " are missing.")
   # x must be a data frame.
   if (!is.data.frame(x))
-    stop("the data must be in a data frame.")
+    stop(label, " must be in a data frame.")
   # x must be a data frame with at least one column.
   if (ncol(x) == 0)
-    stop("the data must be in a data frame with at least one column.")
+    stop(label, " must be in a data frame with at least one column.")
+  # x must contain at least one observation.
+  if (nrow(x) == 0)
+    stop(label, " contain no observations.")
   # check which type of data we are dealing with.
   type = data.type(x)
   # check whether the variables are of the expected types.
   check.label(type, choices = allowed.types, labels = data.type.labels,
     argname = "data type")
+
 
   # check the data for NULL/NaN/NA.
   observed = count.observed.values(x)
@@ -25,14 +30,15 @@ check.data = function(x, allowed.types = available.data.types,
   if (allow.missing) {
 
    if (warn.if.no.missing && all(observed$columns == nrow(x)))
-     warning("no missing data are present even though some are expected.")
+     warning("no missing values are present in ", label,
+             " even though some are expected.")
 
    if (any(observed$columns == 0)) {
 
      if (stop.if.all.missing)
-       stop("at least one variable has no observed values.")
+       stop("at least one variable in ", label, " has no observed values.")
      else
-       warning("at least one variable has no observed values.")
+       warning("at least one variable in ", label, " has no observed values.")
 
    }#THEN
 
@@ -40,15 +46,15 @@ check.data = function(x, allowed.types = available.data.types,
   else {
 
     if (any(observed$columns < nrow(x)))
-      stop("the data set contains NaN/NA values.")
+      stop(label, " contains NaN/NA values.")
 
   }#ELSE
 
   if (any(observed$rows == 0))
     if (stop.if.missing.whole.obs)
-      stop("some observations contain only missing values.")
+      stop("some observations in ", label, " contain only missing values.")
     else
-      warning("some observations contain only missing values.")
+      warning("some observations in ", label, " contain only missing values.")
 
   # checks specific to a particular data type.
   if (type %in% discrete.data.types) {
@@ -58,13 +64,14 @@ check.data = function(x, allowed.types = available.data.types,
       # check the number of levels of discrete variables, to guarantee that
       # the degrees of freedom of the tests are positive.
       if (nlevels(x[, col]) < 2)
-        stop("variable ", col, " must have at least two levels.")
+        stop("variable ", col, " in ", label, " must have at least two levels.")
 
       # warn about levels with zero frequencies, it's not necessarily wrong
       # (data frame subsetting) but sure is fishy.
       counts = .table(x[, col, drop = FALSE], with.missing = allow.missing)
       if (!allow.levels && any(counts == 0))
-        warning("variable ", col, " has levels that are not observed in the data.")
+        warning("variable ", col, " in ", label,
+                " has levels that are not observed in the data.")
 
     }#FOR
 
@@ -76,10 +83,26 @@ check.data = function(x, allowed.types = available.data.types,
 
   }#THEN
 
-  return(list(type = type, complete.nodes = (observed$columns == nrow(x)),
-              latent.nodes = (observed$columns == 0)))
+  metadata = list(type = type, complete.nodes = (observed$columns == nrow(x)),
+               latent.nodes = (observed$columns == 0))
+  attr(x, "metadata") = metadata
+
+  return(x)
 
 }#CHECK.DATA
+
+# collect the metadata without performing a full data validation.
+collect.metadata = function(x) {
+
+  type = data.type(x)
+  observed = count.observed.values(x)
+
+  metadata = list(type = type, complete.nodes = (observed$columns == nrow(x)),
+               latent.nodes = (observed$columns == 0))
+
+  return(metadata)
+
+}#BUILD.METADATA
 
 # is the data of a particular type?
 data.type = function(data) {

@@ -1,10 +1,10 @@
 
-dedup.backend = function(data, threshold, complete, debug = FALSE) {
+dedup.backend = function(data, threshold, debug = FALSE) {
 
   .Call(call_dedup,
         data = data,
         threshold = threshold,
-        complete = complete,
+        complete = attr(data, "metadata")$complete.nodes,
         debug = debug)
 
 }#DEDUP.BACKEND
@@ -14,17 +14,23 @@ discretize.backend = function(data, method, breaks, ordered = FALSE, extra.args,
 
   if (method %in% c("quantile", "interval")) {
 
-    marginal.discretize.backend(data = data, method = method, breaks = breaks,
-      ordered = ordered, debug = debug)
+    discretized = marginal.discretize.backend(data = data, method = method,
+                    breaks = breaks, ordered = ordered, debug = debug)
 
   }#THEN
   else if (method == "hartemink") {
 
-    joint.discretize.backend(data = data, method = method, breaks = breaks,
-      ordered = ordered, initial.discretization = extra.args$idisc,
-      initial.breaks = extra.args$ibreaks, debug = debug)
+    discretized = joint.discretize.backend(data = data, method = method,
+                    breaks = breaks, ordered = ordered,
+                    initial.discretization = extra.args$idisc,
+                    initial.breaks = extra.args$ibreaks, debug = debug)
 
   }#ELSE
+
+  # ensure that the attribute with the metadata set by check.data() is removed.
+  attr(discretized, "metadata") = NULL
+
+  return(discretized)
 
 }#DISCRETIZE.BACKEND
 

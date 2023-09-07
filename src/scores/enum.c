@@ -18,17 +18,23 @@ score_e score_to_enum(const char *label) {
   ENTRY("pred-loglik", PRED_LOGLIK);
   ENTRY("fnml", FNML);
   ENTRY("qnml", QNML);
+  ENTRY("nal", NAL);
+  ENTRY("pnal", PNAL);
   ENTRY("loglik-g", LOGLIK_G);
   ENTRY("aic-g", AIC_G);
   ENTRY("bic-g", BIC_G);
   ENTRY("ebic-g", EBIC_G);
   ENTRY("bge", BGE);
   ENTRY("pred-loglik-g", PRED_LOGLIK_G);
+  ENTRY("nal-g", NAL_G);
+  ENTRY("pnal-g", PNAL_G);
   ENTRY("loglik-cg", LOGLIK_CG);
   ENTRY("aic-cg", AIC_CG);
   ENTRY("bic-cg", BIC_CG);
   ENTRY("ebic-cg", EBIC_CG);
   ENTRY("pred-loglik-cg", PRED_LOGLIK_CG);
+  ENTRY("nal-cg", NAL_CG);
+  ENTRY("pnal-cg", PNAL_CG);
   ENTRY("custom", CUSTOM);
 
   return ENOSCORE;

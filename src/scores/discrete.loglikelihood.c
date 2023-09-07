@@ -39,6 +39,7 @@ counts1d marginal = { 0 };
 }/*LOGLIK_DNODE_ROOT*/
 
 double cdlik(counts2d joint) {
+
 double res = 0;
 
   for (int i = 0; i < joint.llx; i++)
@@ -108,7 +109,7 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
     *nparents = length(parents);
 
   if (debugging)
-    Rprintf("  > loglikelihood is %lf.\n", loglik);
+    Rprintf("  > log-likelihood is %lf.\n", loglik);
 
   UNPROTECT(1);
 

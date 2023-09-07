@@ -86,7 +86,7 @@ check.threshold = function(threshold, strength) {
   }#THEN
   else if (method == "score"){
 
-    if (!is.real.number(threshold) && !is.infinite(threshold))
+    if (!is.real.number(threshold) && !any(is.infinite(threshold)))
       stop("the threshold must be numeric value.")
 
   }#THEN
@@ -169,15 +169,12 @@ check.criterion = function(criterion, data) {
       see = "bnlearn-package")
 
   }#THEN
-  else {
 
-    # set the defaults using check.score() and check.test().
-    if (criterion %in% available.tests)
-      criterion = check.test(criterion, data)
-    else if (criterion %in% available.scores)
-      criterion = check.score(criterion, data)
-
-  }#ELSE
+  # check scores and tests against the data, or set a default for either.
+  if (criterion %in% available.tests)
+    criterion = check.test(criterion, data = data)
+  else if (criterion %in% available.scores)
+    criterion = check.score(criterion, data = data)
 
   return(criterion)
 

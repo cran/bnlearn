@@ -34,19 +34,19 @@
 }
 \examples{
 data(learning.test)
-res = pc.stable(learning.test)
+cpdag = pc.stable(learning.test)
 
-plot(res)
+plot(cpdag)
 
 ## highlight node B and related arcs.
-plot(res, highlight = "B")
+plot(cpdag, highlight = "B")
 ## highlight B and its Markov blanket.
-plot(res, highlight = c("B", mb(res, "B")))
+plot(cpdag, highlight = c("B", mb(cpdag, "B")))
 
 ## a more compact plot.
 par(oma = rep(0, 4), mar = rep(0, 4), mai = rep(0, 4),
   plt = c(0.06, 0.94, 0.12, 0.88))
-plot(res)
+plot(cpdag)
 }
 \seealso{\code{\link{graphviz.plot}}.}
 \author{Marco Scutari}

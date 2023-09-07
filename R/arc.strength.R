@@ -1,7 +1,6 @@
 
 # compute arcs' strength as the p-value of the test for their removal.
-arc.strength.test = function(network, data, test, alpha, B, complete,
-    debug = FALSE) {
+arc.strength.test = function(network, data, test, alpha, B, debug = FALSE) {
 
   drop = function(arc) {
 
@@ -16,7 +15,7 @@ arc.strength.test = function(network, data, test, alpha, B, complete,
       network$nodes[[arc[2]]]$parents[network$nodes[[arc[2]]]$parents != arc[1]]
 
     a = indep.test(arc[1], arc[2], parents, data = data, test = test,
-          B = B, alpha = alpha, complete = complete)
+          B = B, alpha = alpha)
 
     if (debug) {
 
@@ -41,13 +40,12 @@ arc.strength.test = function(network, data, test, alpha, B, complete,
   if (nrow(network$arcs) == 0) {
 
     strength = as.data.frame(list(from = character(0), to = character(0),
-                 strength = numeric(0)), stringsAsFactors = FALSE)
+                 strength = numeric(0)))
 
   }#THEN
   else {
 
-    strength = data.frame(network$arcs, strength = apply(network$arcs, 1, drop),
-                 stringsAsFactors = FALSE)
+    strength = data.frame(network$arcs, strength = apply(network$arcs, 1, drop))
 
   }#ELSE
 
@@ -107,13 +105,12 @@ arc.strength.score = function(network, data, score, extra, debug = FALSE) {
   if (nrow(network$arcs) == 0) {
 
     strength = as.data.frame(list(from = character(0), to = character(0),
-                 strength = numeric(0)), stringsAsFactors = FALSE)
+                 strength = numeric(0)))
 
   }#THEN
   else {
 
-    strength = data.frame(network$arcs, strength = apply(network$arcs, 1, drop),
-                 stringsAsFactors = FALSE)
+    strength = data.frame(network$arcs, strength = apply(network$arcs, 1, drop))
 
   }#ELSE
 
@@ -123,10 +120,10 @@ arc.strength.score = function(network, data, score, extra, debug = FALSE) {
 
 # compute arcs' strength as the relative frequency in boostrapped networks.
 arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
-    algorithm.args, arcs, cpdag, debug = FALSE) {
+    algorithm.args, arcs, cpdag, shuffle = FALSE, debug = FALSE) {
 
   bootstrap.batch = function(data, R, m, algorithm, algorithm.args, arcs,
-    cpdag, debug) {
+    cpdag, shuffle, debug) {
 
     # allocate and initialize an empty adjacency matrix.
     prob = matrix(0, ncol = ncol(data), nrow = ncol(data))
@@ -144,6 +141,11 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
 
       # perform the resampling with replacement.
       resampling = sample(nrow(data), m, replace = TRUE)
+      # shuffle the variables in the data as well.
+      if (shuffle)
+        shuffling = sample(ncol(data), ncol(data))
+      else
+        shuffling = TRUE
 
       # user-provided lists of manipulated observations for the mbde score must
       # be remapped to match the bootstrap sample.
@@ -156,7 +158,7 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
       }#THEN
 
       # generate the r-th bootstrap sample.
-      replicate = data[resampling, , drop = FALSE]
+      replicate = data[resampling, shuffling, drop = FALSE]
 
       # learn the network structure from the bootstrap sample.
       net = do.call(algorithm, c(list(x = replicate), algorithm.args))
@@ -207,7 +209,7 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
     res = parallel::parLapplyLB(cluster, rep(ceiling(R / s), s),
             bootstrap.batch, data = data, m = m, arcs = arcs,
             algorithm = algorithm, algorithm.args = algorithm.args,
-            cpdag = cpdag, debug = debug)
+            cpdag = cpdag, shuffle = shuffle, debug = debug)
 
     .Call(call_bootstrap_reduce,
           x = res)
@@ -217,7 +219,7 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
 
     bootstrap.batch(data = data, R = R, m = m, algorithm = algorithm,
       algorithm.args = algorithm.args, arcs = arcs, cpdag = cpdag,
-      debug = debug)
+      shuffle = shuffle, debug = debug)
 
   }#THEN
 
@@ -330,7 +332,7 @@ bf.strength.backend = function(x, data, score, extra.args, precBits = 200,
 
       finite = is.finite(num)
       num[finite] = 0
-      num[!finite] = 1/length(which(!finite))
+      num[!finite] = 1 / how.many(!finite)
       norm = 1
 
     }#THEN
@@ -389,7 +391,7 @@ arc.strength.custom = function(custom.list, nodes, arcs, cpdag, weights = NULL,
 
     # switch to the equivalence class if asked to.
     if (cpdag)
-      net = cpdag.backend(net, moral = FALSE, wlbl = TRUE)
+      net = cpdag.backend(net, wlbl = TRUE)
 
     # update the counters in the matrix: undirected arcs are counted half
     # for each direction, so that when summing up strength and direction

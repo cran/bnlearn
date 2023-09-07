@@ -30,7 +30,7 @@ long double sd = 0;
 
   }/*ELSE*/
 
-  /* compute the log-likelihood (singular models haze zero density). */
+  /* compute the log-likelihood (singular models have zero density). */
   if (sd < MACHINE_TOL)
     res = R_NegInf;
   else
@@ -60,7 +60,7 @@ SEXP data_x;
   /* allocate the fitted values. */
   fitted = Calloc1D(nrow, sizeof(double));
 
-  c_ols(dd, xx, nrow, ncol, fitted, NULL, NULL, &sd, FALSE);
+  c_ols(dd, xx, nrow, ncol, fitted, NULL, NULL, &sd, NULL, FALSE);
 
   /* compute the log-likelihood (singular models have zero density). */
   if (sd < MACHINE_TOL)
@@ -108,7 +108,7 @@ SEXP nodes, node_t, parents, data_t;
     *nparents = length(parents);
 
   if (debugging)
-    Rprintf("  > loglikelihood is %lf.\n", loglik);
+    Rprintf("  > log-likelihood is %lf.\n", loglik);
 
   return loglik;
 

@@ -5,11 +5,14 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
   # check the label of the discretization method.
   method = check.discretization.method(method)
   # general check on the data.
-  data.info = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
+  data = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
 
   # the data should include at least some continuous variables, otherwise we
   # have nothing to do.
-  if (data.info$type %in% discrete.data.types) {
+  if (attr(data, "metadata")$type %in% discrete.data.types) {
+
+    # ensure that the attribute with the metadata set by check.data() is removed.
+    attr(data, "metadata") = NULL
 
     warning("at least one variable should be continuous")
     return(data)
@@ -58,8 +61,8 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FA
 dedup = function(data, threshold = 0.90, debug = FALSE) {
 
   # check the data (only continuous data are supported).
-  data.info = check.data(data, allowed.types = continuous.data.types,
-                allow.missing = TRUE)
+  data = check.data(data, allowed.types = continuous.data.types,
+           allow.missing = TRUE)
   # check the correlation threshold.
   if (missing(threshold))
     threshold = 0.90
@@ -68,8 +71,7 @@ dedup = function(data, threshold = 0.90, debug = FALSE) {
   # check debug.
   check.logical(debug)
 
-  dedup.backend(data = data, threshold = threshold,
-    complete = data.info$complete.nodes, debug = debug)
+  dedup.backend(data = data, threshold = threshold, debug = debug)
 
 }#DEDUP
 
@@ -77,7 +79,8 @@ dedup = function(data, threshold = 0.90, debug = FALSE) {
 configs = function(data, all = TRUE) {
 
   # check the data (only discrete data are supported).
-  check.data(data, allowed.types = discrete.data.types)
+  data = check.data(data, allowed.types = discrete.data.types,
+           allow.missing = TRUE, allow.levels = TRUE)
   # check the "all configurations" flag.
   check.logical(all)
 

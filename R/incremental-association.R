@@ -1,14 +1,13 @@
 
 incremental.association = function(x, cluster = NULL, whitelist, blacklist,
-  test, alpha, B, max.sx = ncol(x), complete, debug = FALSE) {
+  test, alpha, B, max.sx = ncol(x), debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
   mb = smartSapply(cluster, as.list(nodes), ia.markov.blanket, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, max.sx = max.sx,
-         complete = complete, debug = debug)
+         blacklist = blacklist, test = test, max.sx = max.sx, debug = debug)
   names(mb) = nodes
 
   # check markov blankets for consistency.
@@ -17,7 +16,7 @@ incremental.association = function(x, cluster = NULL, whitelist, blacklist,
   # 2. [Compute Graph Structure]
   mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, max.sx = max.sx, complete = complete, debug = debug)
+         test = test, max.sx = max.sx,  debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -28,7 +27,7 @@ incremental.association = function(x, cluster = NULL, whitelist, blacklist,
 }#INCREMENTAL.ASSOCIATION
 
 ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
-  start = character(0), test, max.sx = ncol(x), complete, debug = FALSE) {
+  start = character(0), test, max.sx = ncol(x), debug = FALSE) {
 
   nodes = nodes[nodes != x]
   whitelisted = nodes[sapply(nodes,
@@ -74,7 +73,7 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
     # get an association measure for each of the available nodes.
     association = indep.test(nodes, x, sx = mb, test = test, data = data,
-                    B = B, alpha = alpha, complete = complete)
+                    B = B, alpha = alpha)
 
     if (debug) {
 
@@ -118,7 +117,7 @@ ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
   fixed = fixed[fixed != ""]
 
   pv = roundrobin.test(x = x, z = mb, fixed = fixed, data = data, test = test,
-         B = B, alpha = alpha, complete = complete, debug = debug)
+         B = B, alpha = alpha, debug = debug)
 
   return(intersect(mb, c(names(pv[pv < alpha]), fixed)))
 

@@ -1,6 +1,5 @@
 
-aracne.backend = function(x, estimator, whitelist, blacklist, complete,
-    debug = FALSE) {
+aracne.backend = function(x, estimator, whitelist, blacklist, debug = FALSE) {
 
   # fix the whitelist and the blacklist to keep the C side simple.
   nodes = names(x)
@@ -27,7 +26,7 @@ aracne.backend = function(x, estimator, whitelist, blacklist, complete,
         estimator = estimator,
         whitelist = whitelist,
         blacklist = blacklist,
-        complete = complete,
+        complete = attr(x, "metadata")$complete.nodes,
         debug = debug)
 
 }#ARACNE.BACKEND

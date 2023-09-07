@@ -3,19 +3,24 @@
 check.classifier.args = function(method, data, training, explanatory,
     extra.args) {
 
-  if (method == "tree.bayes") {
+  # check the label of the mutual information estimator.
+  if (has.argument(method, "estimator", learning.extra.args))
+    extra.args[["estimator"]] =
+      check.mi.estimator(extra.args[["estimator"]], data = data)
 
-    # check the label of the mutual information estimator.
-    extra.args$estimator = check.mi.estimator(extra.args$estimator, data)
+  # check the node to use the root of the tree (if not specified pick the first
+  # explanatory variable assuming natural ordering).
+  if (has.argument(method, "root", learning.extra.args)) {
 
-    # check the node to use the root of the tree (if not specified pick the first
-    # explanatory variable assuming natural ordering).
-    if (!is.null(extra.args$root))
-      check.nodes(extra.args$root, graph = explanatory, max.nodes = 1)
+    if (!is.null(extra.args[["root"]]))
+      check.nodes(extra.args[["root"]], graph = explanatory, max.nodes = 1)
     else
-      extra.args$root = explanatory[1]
+      extra.args[["root"]] = explanatory[1]
 
   }#THEN
+
+  # warn about and remove unused arguments.
+  extra.args = check.unused.args(extra.args, learning.extra.args[[method]])
 
   return(extra.args)
 

@@ -121,7 +121,7 @@ bool debugging = isTRUE(debug), include_prob = isTRUE(prob);
   }/*FOR*/
 
   /* cache the sample size. */
-  nobs = length(temp);
+  nobs = length(VECTOR_ELT(data, 0));
 
   /* allocate a list to hold the evidence. */
   PROTECT(evidence = allocVector(VECSXP, nev));

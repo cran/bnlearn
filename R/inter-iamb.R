@@ -1,14 +1,13 @@
 
 inter.incremental.association = function(x, cluster = NULL, whitelist,
-  blacklist, test, alpha, B, max.sx = ncol(x), complete, debug = FALSE) {
+  blacklist, test, alpha, B, max.sx = ncol(x), debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
   mb = smartSapply(cluster, as.list(nodes), inter.ia.markov.blanket, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, max.sx = max.sx,
-         complete = complete, debug = debug)
+         blacklist = blacklist, test = test, max.sx = max.sx, debug = debug)
   names(mb) = nodes
 
   # check markov blankets for consistency.
@@ -17,7 +16,7 @@ inter.incremental.association = function(x, cluster = NULL, whitelist,
   # 2. [Compute Graph Structure]
   mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, max.sx = max.sx, complete = complete, debug = debug)
+         test = test, max.sx = max.sx, debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -28,8 +27,7 @@ inter.incremental.association = function(x, cluster = NULL, whitelist,
 }#INTER.INCREMENTAL.ASSOCIATION
 
 inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
-  blacklist, start = character(0), test, max.sx = ncol(x), complete,
-  debug = FALSE) {
+  blacklist, start = character(0), test, max.sx = ncol(x), debug = FALSE) {
 
   nodes = nodes[nodes != x]
   culprit = character(0)
@@ -78,8 +76,7 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
 
     # get an association measure for each of the available nodes.
     association = indep.test(nodes[nodes %!in% c(mb, culprit)], x, sx = mb,
-                    test = test, data = data, B = B, alpha = alpha,
-                    complete = complete)
+                    test = test, data = data, B = B, alpha = alpha)
 
     # stop if there are no candidates for inclusion; the markov blanket
     # would obviously be unchanged.
@@ -111,7 +108,7 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
     fixed = fixed[fixed != ""]
 
     pv = roundrobin.test(x = x, z = mb, fixed = fixed, data = data, test = test,
-           B = B, alpha = alpha, complete = complete, debug = debug)
+           B = B, alpha = alpha, debug = debug)
 
     mb = intersect(mb, c(names(pv[pv < alpha]), fixed))
 

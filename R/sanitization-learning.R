@@ -31,7 +31,7 @@ check.learning.algorithm = function(algorithm, class = "all", bn) {
   }#THEN
   else {
 
-    check.label(algorithm, choices = ok, labels = method.labels,
+    check.label(algorithm, choices = ok, labels = learning.labels,
       argname = "learning algorithm", see = "bnlearn-package")
 
   }#ELSE
@@ -110,16 +110,20 @@ check.perturb = function(perturb) {
 }#CHECK.PERTURB
 
 # check the maximum number of iterations.
-check.max.iter = function(max.iter) {
+check.max.iter = function(max.iter, default = Inf, max = Inf) {
 
   # set the default value if not specified.
   if (missing(max.iter) || is.null(max.iter))
-    return(Inf)
+    return(default)
 
-  if ((max.iter != Inf) && !is.positive.integer(max.iter))
+  # the number of iterations must be positive and not fractional.
+  if (!is.positive.integer(max.iter) && !any(is.infinite(max.iter)))
     stop("the maximum number of iterations must be a positive integer number.")
-  else
-    return(max.iter)
+  # check the upper bound, if any.
+  if (max.iter > max)
+    stop("the maximum number of iterations must be at most ", max, ".")
+
+  return(max.iter)
 
 }#CHECK.MAX.ITER
 
@@ -174,17 +178,17 @@ check.learning.algorithm.args = function(args, algorithm, bn) {
       # it could be a score function or NA.
       if ("test" %!in% names(args))
         if (bn$learning$test %in% available.tests)
-          args$test = bn$learning$test
+          args[["test"]] = bn$learning$test
 
       # pass along all the learning arguments in bn$learning$args.
       if (length(bn$learning$args) > 0) {
 
         if ("alpha" %!in% names(args))
-          args$alpha = bn$learning$args$alpha
+          args[["alpha"]] = bn$learning$args$alpha
 
         if ("test" %in% names(args) && ("B" %!in% names(args)))
-          if (args$test %in% resampling.tests)
-            args$B = bn$learning$args$B
+          if (args[["test"]] %in% resampling.tests)
+            args[["B"]] = bn$learning$args$B
 
       }#THEN
 
@@ -193,16 +197,16 @@ check.learning.algorithm.args = function(args, algorithm, bn) {
 
       if ("score" %!in% names(args))
         if (bn$learning$test %in% available.scores)
-          args$score = bn$learning$test
+          args[["score"]] = bn$learning$test
 
       # set the appropriate value for the optimization flag.
       if ("optimized" %!in% names(args))
-        args$optimized = bn$learning$optimized
+        args[["optimized"]] = bn$learning$optimized
 
       # pass along the relevant arguments in bn$learning$args if the score
       # function is the same (different scores have paramenters with the same
       # name but different meanings).
-      if (("score" %in% names(args)) && (args$score == bn$learning$test))
+      if (("score" %in% names(args)) && (args[["score"]] == bn$learning$test))
         for (arg in names(bn$learning$args))
           if ((arg %!in% names(args)) && (arg %in% (score.extra.args[[args$score]])))
             args[[arg]] = bn$learning$args[[arg]]
@@ -211,9 +215,9 @@ check.learning.algorithm.args = function(args, algorithm, bn) {
 
     # pass along whitelist and blacklist.
     if (!is.null(bn$learning$whitelist))
-      args$whitelist = bn$learning$whitelist
+      args[["whitelist"]] = bn$learning$whitelist
     if (!is.null(bn$learning$blacklist))
-      args$blacklist = bn$learning$blacklist
+      args[["blacklist"]] = bn$learning$blacklist
 
   }#THEN
 

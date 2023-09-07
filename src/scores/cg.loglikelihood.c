@@ -52,8 +52,8 @@ SEXP temp;
 
 }/*CCGLOGLIK*/
 
-double c_fast_ccgloglik(double *xx, double **gp, int ngp, int nobs, int *config,
-    int nconfig) {
+double c_fast_ccgloglik(double *xx, double **gp, int ngp, int nobs,
+    int *config, int nconfig) {
 
 int i = 0, j = 0;
 double res = 0, *fitted = NULL, *sd = NULL;
@@ -66,7 +66,7 @@ double res = 0, *fitted = NULL, *sd = NULL;
    * otherwise fit using the whole sample. */
   if (!config) {
 
-    c_ols(gp, xx, nobs, ngp, fitted, NULL, NULL, sd, FALSE);
+    c_ols(gp, xx, nobs, ngp, fitted, NULL, NULL, sd, NULL, FALSE);
 
     /* compute the log-likelihood (singular models haze zero density). */
     if (*sd < MACHINE_TOL)
@@ -78,7 +78,8 @@ double res = 0, *fitted = NULL, *sd = NULL;
   }/*THEN*/
   else {
 
-    c_cls(gp, xx, config, nobs, ngp, nconfig, fitted, NULL, NULL, sd, FALSE);
+    c_cls(gp, xx, config, nobs, ngp, nconfig, fitted, NULL, NULL, sd, NULL,
+      FALSE);
 
     /* if any standard error is zero, the model is singular and has density
      * zero. */
@@ -89,7 +90,7 @@ double res = 0, *fitted = NULL, *sd = NULL;
         res = R_NegInf;
         goto end;
 
-     }/*FOR*/
+      }/*THEN*/
 
     }/*FOR*/
 
@@ -188,7 +189,7 @@ SEXP nodes, node_t, parents, data_t, parent_vars, config;
     *np = nparents;
 
   if (debugging)
-    Rprintf("  > loglikelihood is %lf.\n", loglik);
+    Rprintf("  > log-likelihood is %lf.\n", loglik);
 
   UNPROTECT(1);
 

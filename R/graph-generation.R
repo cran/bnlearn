@@ -46,11 +46,6 @@ random.graph.backend = function(num, nodes, method, extra.args, debug = FALSE) {
     }#THEN
 
   }#THEN
-  else if (method == "empty") {
-
-    res = empty.graph.backend(num = num, nodes = nodes)
-
-  }#THEN
 
   return(res)
 

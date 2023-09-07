@@ -50,7 +50,7 @@ export(
   "bn.fit.qqplot", "bn.fit.histogram", "bn.fit.xyplot", "bn.fit.barchart",
   "bn.fit.dotplot",
   # simulation facilities.
-  "empty.graph", "random.graph", "cpdist", "rbn",
+  "empty.graph", "complete.graph", "random.graph", "cpdist", "rbn",
   # data preprocessing and imputation.
   "discretize", "dedup", "impute",
   # inference.
@@ -95,9 +95,6 @@ S3method(BIC, "bn")
 S3method(BIC, "bn.fit")
 S3method(logLik, "bn")
 S3method(logLik, "bn.fit")
-S3method(rbn, "bn")
-S3method(rbn, "bn.fit")
-S3method(rbn, "default")
 S3method(as.bn, "character")
 S3method(as.character, "bn")
 S3method(as.grain, "bn.fit")

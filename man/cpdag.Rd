@@ -72,9 +72,9 @@ vstructs(x, arcs = FALSE, debug = FALSE)
 }
 \examples{
 data(learning.test)
-res = hc(learning.test)
-cpdag(res)
-vstructs(res)
+dag = hc(learning.test)
+cpdag(dag)
+vstructs(dag)
 }
 \author{Marco Scutari}
 \keyword{graphs}

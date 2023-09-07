@@ -41,7 +41,7 @@ check.label = function(arg, choices, labels, argname, see) {
 
 }#CHECK.LABEL
 
-# warn about unused arguments.
+# warn about unused arguments and remove them.
 check.unused.args = function(dots, used.args) {
 
   if (is(dots, "list"))
@@ -53,6 +53,12 @@ check.unused.args = function(dots, used.args) {
 
   if (any(unused))
     warning("unused argument(s):", paste0(" '", args[unused], "'"), ".")
+
+  # remove unused args to avoid problems later on (like conflicts in partial
+  # name matching).
+  dots = dots[used.args]
+
+  return(dots)
 
 }#CHECK.UNUSED.ARGS
 

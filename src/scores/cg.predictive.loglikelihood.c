@@ -22,7 +22,7 @@ double res = 0, fitted = 0, *beta = NULL, *sd = NULL;
 
     beta = Calloc1D(ngp + 1, sizeof(double));
 
-    c_ols(gp, xx, nobs, ngp, NULL, NULL, beta, sd, FALSE);
+    c_ols(gp, xx, nobs, ngp, NULL, NULL, beta, sd, NULL, FALSE);
 
     /* compute the log-likelihood (singular models haze zero density). */
     if (*sd < MACHINE_TOL)
@@ -42,7 +42,7 @@ double res = 0, fitted = 0, *beta = NULL, *sd = NULL;
 
     beta = Calloc1D((ngp + 1) * nconfig, sizeof(double));
 
-    c_cls(gp, xx, config, nobs, ngp, nconfig, NULL, NULL, beta, sd, FALSE);
+    c_cls(gp, xx, config, nobs, ngp, nconfig, NULL, NULL, beta, sd, NULL, FALSE);
 
     /* if the model is not singular compute the log-likelihood. */
     for (j = 0; j < nobs2; j++) {
@@ -128,7 +128,7 @@ SEXP temp;
 }/*PCGNODE*/
 
 double predictive_loglik_cgnode(SEXP target, SEXP x, SEXP data, SEXP newdata,
-    double *nparams, int debugging) {
+    double *nparams, bool debugging) {
 
 double loglik = 0;
 int i = 0, nparents = 0, *type = NULL, cur_type = 0, dparents = 0;
@@ -208,7 +208,7 @@ SEXP parent_vars, new_parents, config, config2;
   }/*ELSE*/
 
   if (debugging > 0)
-    Rprintf("  > loglikelihood is %lf.\n", loglik);
+    Rprintf("  > log-likelihood is %lf.\n", loglik);
 
   UNPROTECT(2);
 

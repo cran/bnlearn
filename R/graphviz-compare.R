@@ -1,7 +1,7 @@
 
 # graphical comparison of different network structures.
-graphviz.compare.backend = function(netlist, nodes, groups, layout, shape, main,
-    sub, diff, diff.args) {
+graphviz.compare.backend = function(netlist, nodes, groups, layout, shape,
+    fontsize, main, sub, diff, diff.args) {
 
   # merge and deduplicate all the arcs.
   arclist = lapply(netlist, function(net) {
@@ -19,7 +19,7 @@ graphviz.compare.backend = function(netlist, nodes, groups, layout, shape, main,
 
   # lay out the graph.
   gr = graphviz.backend(nodes, merged$arcs, groups = groups, layout = layout,
-         shape = shape, render = FALSE)
+         shape = shape, fontsize = fontsize, render = FALSE)
   # extract the labels of the arcs of the first network.
   ref.arcs = apply(arclist[[1]], 1, paste, collapse = "~")
   # extract the labels of the arcs of the merged network.

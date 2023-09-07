@@ -114,7 +114,7 @@ is.string.vector = function(x) {
 
   is.character(x) &&
   !any(is.na(x)) &&
-  any(x != "")
+  (length(x) == 0 || any(x != ""))
 
 }#IS.STRING.VECTOR
 

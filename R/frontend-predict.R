@@ -1,10 +1,10 @@
 
 # estimate the predicted values for a particular node.
-predict.bn.fit = function(object, node, data, method = "parents", ...,
+predict.bn.fit = function(object, node, data, cluster, method = "parents", ...,
     prob = FALSE, debug = FALSE) {
 
   # check the data are there.
-  check.data(data, allow.levels = TRUE)
+  data = check.data(data, allow.missing = TRUE, allow.levels = TRUE)
   # a valid node is needed.
   check.nodes(nodes = node, graph = object, max.nodes = 1)
   # check the prediction method.
@@ -13,53 +13,70 @@ predict.bn.fit = function(object, node, data, method = "parents", ...,
   check.logical(debug)
   check.logical(prob)
 
+  # check the cluster.
+  cluster = check.cluster(cluster)
+
+  if (!is.null(cluster)) {
+
+    # set up the slave processes.
+    slaves.setup(cluster)
+    # disable debugging, the slaves do not cat() here.
+    if (debug) {
+
+      warning("disabling debugging output for parallel computing.")
+      debug = FALSE
+
+    }#THEN
+
+  }#THEN
+
   if (prob && !is(object, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
     stop("prediction probabilities are only available for discrete networks.")
 
-  # warn about unused arguments.
-  extra.args = list(...)
-  check.unused.args(extra.args, prediction.extra.args[[method]])
+  # check optional arguments.
+  extra.args = check.prediction.extra.args(method, list(...), node = node,
+                 fitted = object, data = data)
 
   if (method == "parents") {
 
     # check the fitted model (parents are the only nodes that are actually
-    # needed).
-    check.fit.vs.data(fitted = object, data = data,
-      subset = object[[node]]$parents)
-
-    if (is(object, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
-      discrete.prediction(node = node, fitted = object, data = data,
-        prob = prob, debug = debug)
-    else if (is(object, "bn.fit.gnet"))
-      gaussian.prediction(node = node, fitted = object, data = data,
-        debug = debug)
-    else if (is(object, "bn.fit.cgnet"))
-      mixedcg.prediction(node = node, fitted = object, data = data,
-        debug = debug)
+    # needed, but checking the target node itself is good if its present).
+    if (node %in% names(data))
+      nodes.to.check = c(node, object[[node]]$parents)
+    else
+      nodes.to.check = object[[node]]$parents
 
   }#THEN
   else if (method == "bayes-lw") {
 
-    # check the variables to predict from using the network as a reference.
-    if (is.null(extra.args$from))
-      extra.args$from = intersect(setdiff(names(data), node), names(object))
+    # check the fitted model, the conditioning variables and the target node if
+    # it is present in the data.
+    if (node %in% names(data))
+      nodes.to.check = c(node, extra.args$from)
     else
-      check.nodes(nodes = extra.args$from, graph = object, min.nodes = 1)
-    # check that they do not include the node to predict.
-    if (node %in% extra.args$from)
-      stop("node ", node, " is both a predictor and being predicted.")
-    # check the fitted model and the conditioning variables.
-    check.fit.vs.data(fitted = object, data = data, subset = extra.args$from)
-    # check the number of particles to be used for each prediction.
-    if (is.null(extra.args$n))
-      extra.args$n = 500
-    else if (!is.positive.integer(extra.args$n))
-      stop("the number of observations to be sampled must be a positive integer number.")
-
-    map.prediction(node = node, fitted = object, data = data, n = extra.args$n,
-      from = extra.args$from, prob = prob, debug = debug)
+      nodes.to.check = extra.args$from
 
   }#THEN
+  else if (method == "exact") {
+
+    # check the fitted model, the conditioning variables and the target node if
+    # it is present in the data.
+    if (node %in% names(data))
+      nodes.to.check = c(node, extra.args$from)
+    else
+      nodes.to.check = extra.args$from
+
+    # try to reduce the number of predictors, for speed.
+    extra.args$from = reduce.predictors.for.exact.inference(fitted = object,
+                        target = node, predictors = extra.args$from)
+
+  }#THEN
+
+  # check that the data and the network are consistent.
+  check.fit.vs.data(fitted = object, data = data, subset = nodes.to.check)
+
+  predict.backend(fitted = object, node = node, data = data, cluster = cluster,
+    method = method, extra.args = extra.args, prob = prob, debug = debug)
 
 }#PREDICT.BN.FIT
 
@@ -67,7 +84,8 @@ predict.bn.fit = function(object, node, data, method = "parents", ...,
 predict.bn.naive = function(object, data, prior, ..., prob = FALSE, debug = FALSE) {
 
   # check the data are there.
-  check.data(data, allowed.types = discrete.data.types, allow.levels = TRUE)
+  data = check.data(data, allowed.types = discrete.data.types,
+           allow.levels = TRUE)
   # check the bn.{naive,tan} object.
   if (is(object, "bn.naive"))
     check.bn.naive(object)

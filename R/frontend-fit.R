@@ -6,20 +6,27 @@ bn.fit = function(x, data, cluster, method, ..., keep.fitted = TRUE,
   # check x's class.
   check.bn(x)
   # check the data.
-  if (is(x, available.classifiers))
-    data.info = check.data(data, allowed.types = discrete.data.types)
-  else
-    data.info = check.data(data, allow.missing = TRUE)
+  if (is(x, available.classifiers)) {
+
+    data = check.data(data, allow.missing = TRUE,
+             allowed.types = discrete.data.types)
+
+  }#THEN
+  else {
+
+    data = check.data(data, allow.missing = TRUE)
+
+  }#ELSE
+  # check the fitting method (maximum likelihood, bayesian, etc.)
+  method = check.fitting.method(method, data)
   # check whether the data agree with the bayesian network.
-  check.bn.vs.data(x, data)
+  data = check.bn.vs.data(x, data, reorder = grepl("hard-em", method))
   # no parameters if the network structure is only partially directed.
   if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
   # also check that the network is acyclic.
   if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
     stop("the graph contains cycles.")
-  # check the fitting method (maximum likelihood, bayesian, etc.)
-  method = check.fitting.method(method, data)
   # check whether the network is valid for the method.
   check.arcs.against.assumptions(x$arcs, data, method)
   # check the extra arguments.
@@ -46,8 +53,7 @@ bn.fit = function(x, data, cluster, method, ..., keep.fitted = TRUE,
   }#THEN
 
   bn.fit.backend(x = x, data = data, cluster = cluster, method = method,
-    extra.args = extra.args, data.info = data.info, keep.fitted = keep.fitted,
-    debug = debug)
+    extra.args = extra.args, keep.fitted = keep.fitted, debug = debug)
 
 }#BN.FIT
 
@@ -275,12 +281,13 @@ coef.bn.fit.onode = coef.bn.fit.dnode = function(object, for.parents, ...) {
 }#COEF.BN.FIT.DNODE
 
 # logLik method for class 'bn.fit'.
-logLik.bn.fit = function(object, data, nodes, by.sample = FALSE, ...) {
+logLik.bn.fit = function(object, data, nodes, by.sample = FALSE,
+  na.rm = FALSE, debug = FALSE, ...) {
 
   # check the data are there.
-  check.data(data)
+  data = check.data(data, allow.missing = TRUE, allow.levels = TRUE)
   # check the fitted model.
-  check.fit.vs.data(fitted = object, data = data)
+  data = check.fit.vs.data(fitted = object, data = data, reorder = TRUE)
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
   # check the nodes whose logLik components we are going to compute.
@@ -288,14 +295,13 @@ logLik.bn.fit = function(object, data, nodes, by.sample = FALSE, ...) {
     nodes = names(object)
   else
     check.nodes(nodes, object)
+  # check the logical arguments.
+  check.logical(by.sample)
+  check.logical(na.rm)
+  check.logical(debug)
 
-  llik = entropy.loss(fitted = object, data = data, keep = nodes,
-           by.sample = by.sample)$loss
-
-  if (!by.sample)
-    llik = - nrow(data) * llik
-
-  return(llik)
+  loglikelihood(fitted = object, data = data, by.sample = by.sample,
+    keep = nodes, propagate.missing = !na.rm, debug = debug)
 
 }#LOGLIK.BN.FIT
 
@@ -360,7 +366,7 @@ custom.fit = function(x, dist, ordinal, debug = FALSE) {
 
   # do some basic sanity checks on dist.
   if (!is.list(dist) || is.null(names(dist)))
-    stop("the conditional probability distributions must be in a names list.")
+    stop("the conditional probability distributions must be in a named list.")
   if (length(dist) != nnodes)
     stop("wrong number of conditional probability distributions.")
   check.nodes(names(dist), nodes, min.nodes = nnodes)

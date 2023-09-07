@@ -1,8 +1,8 @@
 
 # unified backend for the graphviz calls.
 graphviz.backend = function(nodes, arcs, highlight = NULL, groups,
-    arc.weights = NULL, layout = "dot", shape = "circle", main = NULL,
-    sub = NULL, render = TRUE) {
+    arc.weights = NULL, layout = "dot", shape = "circle", fontsize = 12,
+    main = NULL, sub = NULL, render = TRUE) {
 
   node.shapes = c("ellipse", "circle", "rectangle")
   highlight.params = c("nodes", "arcs", "col", "fill", "lwd", "lty", "textCol")
@@ -24,6 +24,10 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, groups,
       stop("mismatch between the number of weights and the number of arcs.")
 
   }#THEN
+  # sanitize the font size of the node labels (to be saved in *RenderInfo()).
+  if (!is.positive(fontsize))
+    stop("fontsize must be a positive number.")
+
   # sanitize the highlighting argument list (to be saved in *RenderInfo()).
   if (!is.null(highlight) || length(highlight) > 0) {
 
@@ -138,6 +142,9 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, groups,
 
   graph.plot = Rgraphviz::layoutGraph(graph.obj, subGList = subGList,
                  attrs = attrs, nodeAttrs = node.attrs, layoutType = layout)
+
+  # chang the font size of the node labels.
+  graph::nodeRenderInfo(graph.plot)[["fontsize"]] = fontsize
 
   # default arcs to solid lines of width 1; otherwise, when we set it for some
   # arcs via weights or highlight the remaining arcs have it set to NA.

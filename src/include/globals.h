@@ -7,6 +7,7 @@ extern SEXP BN_ProbSymbol;
 extern SEXP BN_MethodSymbol;
 extern SEXP BN_WeightsSymbol;
 extern SEXP BN_DsepsetSymbol;
+extern SEXP BN_MetaDataSymbol;
 extern SEXP TRUESEXP, FALSESEXP;
 
 /* numerical constants */

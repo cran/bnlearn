@@ -2,8 +2,9 @@
 # check test labels.
 check.test = function(test, data) {
 
-  # check which type of data we are dealing with.
-  type = data.type(data)
+  data.type = attr(data, "metadata")$type
+  if (is.null(data.type))
+    data.type = data.type(data)
 
   if (!missing(test) && !is.null(test)) {
 
@@ -11,13 +12,17 @@ check.test = function(test, data) {
     check.label(test, choices = available.tests, labels = test.labels,
       argname = "conditional independence test", see = "bnlearn-package")
     # check if it's the right test for the data (discrete, continuous).
-    if ((type != "ordered") && (test %in% available.ordinal.tests))
+    if ((data.type != "ordered") &&
+        (test %in% available.ordinal.tests))
       stop("test '", test, "' may only be used with ordinal data.")
-    if ((type %!in% discrete.data.types) && (test %in% available.discrete.tests))
+    if ((data.type %!in% discrete.data.types) &&
+        (test %in% available.discrete.tests))
       stop("test '", test, "' may only be used with discrete data.")
-    if ((type != "continuous") && (test %in% available.continuous.tests))
+    if ((data.type != "continuous") &&
+        (test %in% available.continuous.tests))
       stop("test '", test, "' may only be used with continuous data.")
-    if ((type != "mixed-cg") && (test %in% available.mixedcg.tests))
+    if ((data.type != "mixed-cg") &&
+        (test %in% available.mixedcg.tests))
       stop("test '", test, "' may only be used with a mixture of continuous and discrete data.")
 
     return(test)
@@ -25,13 +30,13 @@ check.test = function(test, data) {
   }#THEN
   else {
 
-    if (type == "ordered")
+    if (data.type == "ordered")
       return("jt")
-    else if (type %in% c("factor", "mixed-do"))
+    else if (data.type %in% c("factor", "mixed-do"))
       return("mi")
-    else if (type == "continuous")
+    else if (data.type == "continuous")
       return("cor")
-    else if (type == "mixed-cg")
+    else if (data.type == "mixed-cg")
       return("mi-cg")
 
   }#ELSE

@@ -3,6 +3,7 @@
 
 int imax(int x, int y);
 int all_max(double *array, int length, int *maxima, int *indexes, double *buf);
+int i_which_max(int *array, int length);
 int d_which_max(double *array, int length);
 int ld_which_max(long double *array, int length);
 

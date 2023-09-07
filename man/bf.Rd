@@ -14,11 +14,11 @@ BF(num, den, data, score, ..., log = TRUE)
     and the denominator models in the Bayes factor.}
   \item{data}{a data frame containing the data to be used to compute the Bayes
     factor.}
-  \item{score}{a character string, the label of a posterior network score.
-    If none is specified, the default score is the \emph{Bayesian Dirichlet
-    equivalent} score (\code{bde}) for discrete networks and the \emph{Bayesian
-    Gaussian score} (\code{bge}) for Gaussian networks. Other kinds of Bayesian
-    networks are not currently supported.}
+  \item{score}{a character string, the label of a posterior network score or
+    \code{custom} for the custom score. If none is specified, the default score
+    is the \emph{Bayesian Dirichlet equivalent} score (\code{bde}) for discrete
+    networks and the \emph{Bayesian Gaussian score} (\code{bge}) for Gaussian
+    networks. Other kinds of Bayesian networks are not currently supported.}
   \item{\dots}{extra tuning arguments for the posterior scores. See
     \code{\link{score}} for details.}
   \item{log}{a boolean value. If \code{TRUE} the Bayes factor is given as

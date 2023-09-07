@@ -1,4 +1,4 @@
-\name{impute}
+\name{predict and impute}
 \alias{impute}
 \alias{predict.bn.fit}
 \title{Predict or impute missing data from a Bayesian network}
@@ -9,10 +9,10 @@
 
 }
 \usage{
-\method{predict}{bn.fit}(object, node, data, method = "parents", ..., prob = FALSE,
-  debug = FALSE)
+\method{predict}{bn.fit}(object, node, data, cluster, method = "parents", ...,
+  prob = FALSE, debug = FALSE)
 
-impute(object, data, method, ..., debug = FALSE)
+impute(object, data, cluster, method, ..., strict = TRUE, debug = FALSE)
 }
 \arguments{
   \item{object}{an object of class \code{bn.fit} for \code{impute}; or an
@@ -20,12 +20,17 @@ impute(object, data, method, ..., debug = FALSE)
   \item{data}{a data frame containing the data to be imputed. Complete
     observations will be ignored.}
   \item{node}{a character string, the label of a node.}
+  \item{cluster}{an optional cluster object from package \pkg{parallel}.}
   \item{method}{a character string, the method used to impute the missing
     values or predict new ones. The default value is \code{parents}.}
   \item{\dots}{additional arguments for the imputation method. See below.}
   \item{prob}{a boolean value. If \code{TRUE} and \code{object} is a discrete
     network, the probabilities used for prediction are attached to the
     predicted values as an attribute called \code{prob}.}
+  \item{strict}{a boolean value. If \code{TRUE}, \code{impute()} will produce an
+    error if the data were not imputed successfully, that is, if they still
+    contain missing values. If \code{FALSE}, it will return the partially
+    imputed data with a warning.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }
@@ -51,14 +56,22 @@ impute(object, data, method, ..., debug = FALSE)
       the default is to use all the relevant variables from the data. Note that
       the predicted values will differ in each call to \code{predict()} since
       this method is based on a stochastic simulation.
+    \item \code{exact}: the predicted values are computed using exact inference.
+      They are maximum a posteriori estimates obtained using junction trees and
+      belief propagation in the case of discrete networks, or posterior
+      expectations computed using closed-form results for the multivariate
+      normal distribution for Gaussian networks. Conditional Gaussian networks
+      are not supported. The variables that are used to compute the predicted
+      values can be specified with the \code{from} optional argument; the
+      default is to use those in the Markov blanket of \code{node}.
   }
 
   \code{impute()} is based on \code{predict()}, and can impute missing values
-  with the same \code{methods} (\code{parents} and \code{bayes-lw}). The
-  latter can take an additional argument \code{n} with the number of random
-  samples which are averaged for each observation. As in \code{predict()},
-  imputed values will differ in each call to \code{impute()} when \code{method}
-  is set to \code{bayes-lw}.
+  with the same \code{methods} (\code{parents}, \code{bayes-lw} and
+  \code{exact}). The method \code{bayes-lw} can take an additional argument
+  \code{n} with the number of random samples which are averaged for each
+  observation. As in \code{predict()}, imputed values will differ in each call
+  to \code{impute()} when \code{method} is set to \code{bayes-lw}.
 
   If \code{object} contains \code{NA} parameter estimates (because of
   unobserved discrete parents configurations in the data the parameters were

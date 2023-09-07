@@ -55,12 +55,12 @@ model2network(string, ordering = NULL, debug = FALSE)
 }
 \examples{
 data(learning.test)
-res = hc(learning.test)
-res
-modelstring(res)
-res2 = model2network(modelstring(res))
-res2
-all.equal(res, res2)
+dag = hc(learning.test)
+dag
+modelstring(dag)
+dag2 = model2network(modelstring(dag))
+dag2
+all.equal(dag, dag2)
 }
 \author{Marco Scutari}
 \keyword{convenience functions}

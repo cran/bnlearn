@@ -45,84 +45,90 @@ check.loss = function(loss, data, bn) {
 
 }#CHECK.LOSS
 
-# sanitize the extra arguments passed to loss functions.
-check.loss.args = function(loss, bn, nodes, data, extra.args) {
+# check the target node the loss is computed for.
+check.loss.target = function(target, loss, data, bn, nodes) {
 
-  valid.args = loss.extra.args[[loss]]
+  if (!is.null(target)) {
 
-  if (loss %in% c("pred", "pred-exact", "pred-lw", "pred-lw-cg", "cor",
-                  "cor-lw", "cor-lw-cg", "mse", "mse-lw", "mse-lw-cg")) {
+    if (!is.string(target) || (target %!in% nodes))
+      stop("target node must be a single, valid node label for the network.")
 
-    if (!is.null(extra.args$target)) {
+    # in hybrid networks, check the target has the right data type.
+    if (loss %in% c("cor-lw-cg", "mse-lw-cg"))
+      if (!is(data[, target], "numeric"))
+        stop("the target node must be a continuous variable.")
+    if (loss == "pred-lw-cg")
+      if (!is(data[, target], "factor"))
+        stop("the target node must be a factor.")
 
-      if (!is.string(extra.args$target) || (extra.args$target %!in% nodes))
-        stop("target node must be a single, valid node label for the network.")
+  }#THEN
+  else {
 
-      # in hybrid networks, check the target has the right data type.
-      if (loss %in% c("cor-lw-cg", "mse-lw-cg"))
-        if (!is(data[, extra.args$target], "numeric"))
-          stop("the target node must be a continuous variable.")
-      if (loss == "pred-lw-cg")
-        if (!is(data[, extra.args$target], "factor"))
-          stop("the target node must be a factor.")
+    # the target node is obvious for classifiers.
+    if (is(bn, available.classifiers)) {
+
+      if (is(bn, "bn"))
+        target = bn$learning$args$training
+      else
+        target = attr(bn, "training")
 
     }#THEN
     else {
 
-      # the target node is obvious for classifiers.
-      if (is(bn, available.classifiers)) {
-
-        if (is(bn, "bn"))
-          extra.args$target = bn$learning$args$training
-        else
-          extra.args$target = attr(bn, "training")
-
-      }#THEN
-      else {
-
-        stop("missing target node for which to compute the prediction error.")
-
-      }#ELSE
+      stop("missing target node for which to compute the prediction error.")
 
     }#ELSE
 
-    # check the prior distribution.
-    if ((is.string(bn) && (bn %in% classification.algorithms)) ||
-        is(bn, available.classifiers)) {
+  }#ELSE
 
-      extra.args$prior = check.classifier.prior(extra.args$prior, data[, extra.args$target])
-      valid.args = c(valid.args, "prior")
+  return(target)
 
-    }#THEN
+}#CHECK.LOSS.TARGET
 
-  }#THEN
+# sanitize the extra arguments passed to loss functions.
+check.loss.args = function(loss, bn, nodes, data, extra.args) {
 
-  if (loss %in% c("pred-lw", "pred-lw-cg", "cor-lw", "cor-lw-cg", "mse-lw",
-                  "mse-lw-cg")) {
+  # target node that that the loss is computed for.
+  if (has.argument(loss, "target", loss.extra.args))
+    extra.args[["target"]] =
+      check.loss.target(target = extra.args[["target"]], loss = loss,
+        data = data, bn = bn, nodes = nodes)
 
-    # number of particles for likelihood weighting.
-    if (!is.null(extra.args$n)) {
+  # check the prior distribution for the target variable of a classifier.
+  if (has.argument(loss, "prior", loss.extra.args))
+      extra.args[["prior"]] =
+        check.classifier.prior(prior = extra.args[["prior"]],
+          training = data[, extra.args[["target"]]])
 
-      if (!is.positive.integer(extra.args$n))
+  # number of particles for Monte Carlo-based losses.
+  if (has.argument(loss, "n", loss.extra.args)) {
+
+    if (!is.null(extra.args[["n"]])) {
+
+      if (!is.positive.integer(extra.args[["n"]]))
         stop("the number of observations to be sampled must be a positive integer number.")
 
     }#THEN
     else {
 
-      extra.args$n = 500
+      extra.args[["n"]] = 500
 
     }#ELSE
 
-    # which nodes to predict from.
-    if (!is.null(extra.args$from))
-      check.nodes(extra.args$from, graph = names(data), min.nodes = 1)
+  }#THEN
+
+  # which nodes to predict from (all of them unless told otherwise).
+  if (has.argument(loss, "from", loss.extra.args)) {
+
+    if (!is.null(extra.args[["from"]]))
+      check.nodes(extra.args[["from"]], graph = names(data), min.nodes = 1)
     else
-      extra.args$from = setdiff(names(data), extra.args$target)
+      extra.args[["from"]] = setdiff(names(data), extra.args[["target"]])
 
   }#THEN
 
-  # warn about unused arguments.
-  check.unused.args(extra.args, valid.args)
+  # warn about and remove unused arguments.
+  extra.args = check.unused.args(extra.args, loss.extra.args[[loss]])
 
   return(extra.args)
 

@@ -9,25 +9,25 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
   if (is.pdag(x$arcs, nodes))
     stop("the graph is only partially directed.")
   # check the data are there.
-  data.info = check.data(data)
+  data = check.data(data, allow.missing = TRUE)
   # check the network against the data.
   check.bn.vs.data(x, data)
   # check debug.
   check.logical(debug)
-  # check criterion.
+  # check the score or the test or whatever is used to measure strength.
   if (is.null(criterion)) {
 
     # if no criterion is specified use either the default one or the
     # one used by the learning algorithm.
     if (x$learning$test == "none")
-      criterion = check.test(criterion, data)
+      criterion = check.test(criterion, data = data)
     else
       criterion = x$learning$test
 
   }#THEN
   else {
 
-    criterion = check.criterion(criterion, data)
+    criterion = check.criterion(criterion, data = data)
 
   }#ELSE
 
@@ -46,12 +46,11 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
     alpha = check.alpha(extra.args$alpha, network = x)
     # sanitize B (the number of bootstrap/permutation samples).
     B = check.B(extra.args$B, criterion)
-    # warn about unused arguments.
-    check.unused.args(extra.args, c("alpha", "B"))
+    # warn about and remove unused arguments.
+    extra.args = check.unused.args(extra.args, c("alpha", "B"))
 
     res = arc.strength.test(network = x, data = data, alpha = alpha,
-            test = criterion, B = B, debug = debug,
-            complete = data.info$complete.nodes)
+            test = criterion, B = B, debug = debug)
 
     # add extra information for strength.plot().
     res = structure(res, nodes = nodes, method = "test", threshold = alpha)
@@ -95,28 +94,31 @@ bf.strength = function(x, data, score, ..., debug = FALSE) {
   if (is.pdag(x$arcs, nodes))
     stop("the graph is only partially directed.")
   # check the data are there.
-  data.info = check.data(data)
+  data = check.data(data, allow.missing = TRUE)
   # check the network against the data.
   check.bn.vs.data(x, data)
   # check debug.
   check.logical(debug)
 
   # make sure the score function is suitable for computing a Bayes factor.
+  data.type = attr(data, "metadata")$type
+
   if (missing(score)) {
 
-    if (data.info$type %in% discrete.data.types)
+    if (data.type %in% discrete.data.types)
       score = "bde"
-    else if (data.info$type %in% continuous.data.types)
+    else if (data.type %in% continuous.data.types)
       score = "bge"
-    else if (data.info$type %in% mixed.data.types)
+    else if (data.type %in% mixed.data.types)
       score = "bic-cg"
 
   }#THEN
   else {
 
-    score = check.score(score, data,
+    score = check.score(score, data = data,
               allowed = c(available.discrete.bayesian.scores,
                           available.continuous.bayesian.scores,
+                          available.omnibus.scores,
                           grep("bic", available.scores, value = TRUE)))
 
   }#ELSE
@@ -268,4 +270,3 @@ mean.bn.strength = function(x, ..., weights = NULL) {
   return(res)
 
 }#MEAN.BN.STRENGTH
-

@@ -35,7 +35,7 @@ void c_per_node_score(SEXP network, SEXP data, SEXP score, SEXP targets,
 
 int i = 0, ntargets = length(targets), nparents = 0;
 score_e s = score_to_enum(CHAR(STRING_ELT(score, 0)));
-double nparams = 0, *k = NULL, *gamma = NULL;
+double nparams = 0, k = 0, *gamma = NULL;
 SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
 
   /* allocate dummy variable for the current node's label. */
@@ -80,17 +80,17 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
     case AIC:
     case BIC:
 
-      k = REAL(getListElement(extra_args, "k"));
+      k = NUM(getListElement(extra_args, "k"));
 
       for (i = 0; i < ntargets; i++) {
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
         res[i] = loglik_dnode(cur, network, data, &nparams, NULL, debugging);
-        res[i] -= (*k) * nparams;
+        res[i] -= k * nparams;
 
         if (debugging)
-          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
+          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", k, nparams, k * nparams);
 
       }/*FOR*/
       break;
@@ -98,7 +98,7 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
     /* extended BIC score, discrete data. */
     case EBIC:
 
-      k = REAL(getListElement(extra_args, "k"));
+      k = NUM(getListElement(extra_args, "k"));
       gamma = REAL(getListElement(extra_args, "gamma"));
 
       for (i = 0; i < ntargets; i++) {
@@ -106,11 +106,11 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
         res[i] = loglik_dnode(cur, network, data, &nparams, &nparents, debugging);
-        res[i] -= (*k) * nparams +
+        res[i] -= k * nparams +
                     4 * (*gamma) * (nparents) * log((double)(length(data)));
 
         if (debugging)
-          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
+          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", k, nparams, k * nparams);
 
       }/*FOR*/
       break;
@@ -119,17 +119,17 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
     case AIC_G:
     case BIC_G:
 
-      k = REAL(getListElement(extra_args, "k"));
+      k = NUM(getListElement(extra_args, "k"));
 
       for (i = 0; i < ntargets; i++) {
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
         res[i] = loglik_gnode(cur, network, data, &nparams, NULL, debugging);
-        res[i] -= (*k) * nparams;
+        res[i] -= k * nparams;
 
         if (debugging)
-          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
+          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", k, nparams, k * nparams);
 
       }/*FOR*/
       break;
@@ -137,7 +137,7 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
     /* extended BIC score, Gaussian data. */
     case EBIC_G:
 
-      k = REAL(getListElement(extra_args, "k"));
+      k = NUM(getListElement(extra_args, "k"));
       gamma = REAL(getListElement(extra_args, "gamma"));
 
       for (i = 0; i < ntargets; i++) {
@@ -145,11 +145,11 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
         res[i] = loglik_gnode(cur, network, data, &nparams, &nparents, debugging);
-        res[i] -= (*k) * nparams +
+        res[i] -= k * nparams +
                     4 * (*gamma) * (nparents) * log((double)(length(data)));
 
         if (debugging)
-          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
+          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", k, nparams, k * nparams);
 
       }/*FOR*/
       break;
@@ -158,17 +158,17 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
     case AIC_CG:
     case BIC_CG:
 
-      k = REAL(getListElement(extra_args, "k"));
+      k = NUM(getListElement(extra_args, "k"));
 
       for (i = 0; i < ntargets; i++) {
 
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
         res[i] = loglik_cgnode(cur, network, data, &nparams, NULL, debugging);
-        res[i] -= (*k) * nparams;
+        res[i] -= k * nparams;
 
         if (debugging)
-          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
+          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", k, nparams, k * nparams);
 
       }/*FOR*/
       break;
@@ -176,7 +176,7 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
     /* extended BIC score, Conditional Linear Gaussian data. */
     case EBIC_CG:
 
-      k = REAL(getListElement(extra_args, "k"));
+      k = NUM(getListElement(extra_args, "k"));
       gamma = REAL(getListElement(extra_args, "gamma"));
 
       for (i = 0; i < ntargets; i++) {
@@ -184,11 +184,11 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
         SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
         DEBUG_BEFORE();
         res[i] = loglik_cgnode(cur, network, data, &nparams, &nparents, debugging);
-        res[i] -= (*k) * nparams +
+        res[i] -= k * nparams +
                     4 * (*gamma) * (nparents) * log((double)(length(data)));
 
         if (debugging)
-          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", *k, nparams, (*k) * nparams);
+          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", k, nparams, k * nparams);
 
       }/*FOR*/
       break;
@@ -350,6 +350,72 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
       }/*FOR*/
 
       Free1D(regret_table);
+
+      break;
+
+    /* Discrete (penalized) node-average likelihood. */
+    case NAL:
+    case PNAL:
+
+      if (s == PNAL)
+        k = NUM(getListElement(extra_args, "k"));
+      else
+        k = 0;
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = nal_dnode(cur, network, data, k, debugging);
+
+        if (debugging)
+          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", k, nparams, k * nparams);
+
+      }/*FOR*/
+
+      break;
+
+    /* Gaussian (penalized) node-average likelihood. */
+    case NAL_G:
+    case PNAL_G:
+
+      if (s == PNAL_G)
+        k = NUM(getListElement(extra_args, "k"));
+      else
+        k = 0;
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = nal_gnode(cur, network, data, k, debugging);
+
+        if (debugging)
+          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", k, nparams, k * nparams);
+
+      }/*FOR*/
+
+      break;
+
+    /* Gaussian (penalized) node-average likelihood. */
+    case NAL_CG:
+    case PNAL_CG:
+
+      if (s == PNAL_CG)
+        k = NUM(getListElement(extra_args, "k"));
+      else
+        k = 0;
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = nal_cgnode(cur, network, data, k, debugging);
+
+        if (debugging)
+          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", k, nparams, k * nparams);
+
+      }/*FOR*/
 
       break;
 

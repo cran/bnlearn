@@ -34,6 +34,13 @@ smaller = function(a, b) {
 
 }#SMALLER
 
+# count true elements in a logical vector.
+how.many = function(x) {
+
+  length(which(x))
+
+}#HOW.MANY
+
 # build an array containing the configurations of the variables.
 configurations = function(data, factor = TRUE, all = TRUE) {
 
@@ -43,16 +50,6 @@ configurations = function(data, factor = TRUE, all = TRUE) {
         all = all)
 
 }#CONFIGURATIONS
-
-# rbind-like function for arc sets.
-arcs.rbind = function(matrix1, matrix2, reverse2 = FALSE) {
-
-  .Call(call_arcs_rbind,
-        matrix1 = matrix1,
-        matrix2 = matrix2,
-        reverse2 = reverse2)
-
-}#ARCS.RBIND
 
 .table = function(x, with.missing = FALSE) {
 
@@ -243,12 +240,22 @@ lrm.round = function(prob, digits = 3) {
 }#LRM.ROUND
 
 # add some tolerance when computing differences, as we do in the C code.
-robust.difference = function(x1, x2) {
+robust.score.difference = function(new, old) {
 
-  if (abs(x1 - x2) < sqrt(.Machine$double.eps))
+  # if both scores are -Inf, the new score is not any better than the old one
+  # and the difference should be negative (instead of NaN).
+  if ((new == -Inf) && (old == -Inf))
+    return(-Inf)
+
+  # if the old score is -Inf and the new one is finite, the new one is better
+  # and the difference should be positive.
+  if ((new != -Inf) && (old == -Inf))
+    return(abs(new))
+
+  if (abs(new - old) < sqrt(.Machine$double.eps))
     return(0)
   else
-    return(x1 - x2)
+    return(new - old)
 
-}#ROBUST.DIFFERENCE
+}#ROBUST.SCORE.DIFFERENCE
 

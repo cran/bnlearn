@@ -1,26 +1,8 @@
 
 # generate random data from a bayesian network.
-rbn = function(x, n = 1, ...) {
+rbn = function(x, n = 1, ..., debug = FALSE) {
 
-  UseMethod("rbn")
-
-}#RBN
-
-# generate random data from a network structure (parameters are learned on the fly).
-rbn.bn = function(x, n = 1, data, fit, ..., debug = FALSE) {
-
-  warning("the rbn.bn() method is deprecated and will be removed in 2023.")
-
-  # fit the parameters of the bayesian network.
-  fitted = bn.fit(x = x, data = data, method = fit, ..., debug = debug)
-  # call the other method.
-  rbn.bn.fit(x = fitted, n = n, debug = debug)
-
-}#RBN.BN
-
-# generate random data from a bayesian network.
-rbn.bn.fit = function(x, n = 1, ..., debug = FALSE) {
-
+  check.bn.or.fit(x)
   # check the size of the sample to be generated.
   if (!is.positive.integer(n))
     stop("the number of observations to be generated must be a positive integer number.")
@@ -30,16 +12,9 @@ rbn.bn.fit = function(x, n = 1, ..., debug = FALSE) {
   check.unused.args(list(...), character(0))
 
   # call the backend.
-  .rbn.backend(x = x, n = n, debug = debug)
+  rbn.backend(x = x, n = n, debug = debug)
 
 }#RBN.BN.FIT
-
-# catch-all, fallback method.
-rbn.default = function(x, n = 1, ...) {
-
-  check.bn.or.fit(x)
-
-}#RBN.DEFAULT
 
 # generate a random graph.
 random.graph = function(nodes, num = 1, method = "ordered", ..., debug = FALSE) {
@@ -68,9 +43,40 @@ random.graph = function(nodes, num = 1, method = "ordered", ..., debug = FALSE) 
 # create an empty graph from a given set of nodes.
 empty.graph = function(nodes, num = 1) {
 
-  random.graph(nodes = nodes, num = num, method = "empty", debug = FALSE)
+  # check the node labels.
+  check.nodes(nodes)
+  # check the number of graph to generate.
+  if (!is.positive.integer(num))
+    stop(" the number of graphs to generate must be a positive integer number.")
+
+  empty.graph.backend(nodes = nodes, num = num)
 
 }#EMPTY.GRAPH
+
+# create a complete graph from a given set of nodes.
+complete.graph = function(nodes, num = 1) {
+
+  # check the node labels.
+  check.nodes(nodes)
+  # check the number of graph to generate.
+  if (!is.positive.integer(num))
+    stop(" the number of graphs to generate must be a positive integer number.")
+
+  # create an empty graph...
+  dag = empty.graph.backend(nodes = nodes, num = 1)
+  # ... insert all the arcs...
+  dag$arcs = tiers.backend(rev(nodes))
+  dag$nodes = cache.structure(nodes, arcs = dag$arcs)
+  # ... store the generation method...
+  dag$learning$algo = "complete"
+
+  # ... and replicate the complete graph if needed.
+  if (num == 1)
+    return(dag)
+  else
+    return(rep(list(dag), num))
+
+}#COMPLETE.GRAPH
 
 # compute conditional probability distributions.
 cpdist = function(fitted, nodes, evidence, cluster, method = "ls", ...,

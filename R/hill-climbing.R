@@ -117,7 +117,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
           # if the network found by the algorithm is better, use that one as
           # starting network for the next random restart; use the old one
           # otherwise (and keep amat in sync).
-          if (robust.difference(best.network.score, sum(reference.score)) > 0) {
+          if (robust.score.difference(best.network.score, sum(reference.score)) > 0) {
 
             start = best.network
             amat = arcs2amat(best.network$arcs, nodes)
@@ -178,7 +178,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
         start$nodes = cache.structure(nodes, arcs = start$arcs)
 
         # update the scores of the nodes as needed.
-        if (robust.difference(best.network.score, sum(reference.score)) > 0) {
+        if (robust.score.difference(best.network.score, sum(reference.score)) > 0) {
 
           # all scores must be updated; this happens when both the network
           # resulted from the random restart is discarded and the old network

@@ -487,9 +487,9 @@ compare.backend = function(target.arcs, current.arcs, nodes, arcs = FALSE) {
   else {
 
     # return the counts for each category.
-    tp = length(which(which.tp.dir)) + length(which(which.tp.und))/2
-    fn = length(which(which.fn.dir)) + length(which(which.fn.und))/2
-    fp = length(which(which.fp.dir)) + length(which(which.fp.und))/2
+    tp = how.many(which.tp.dir) + how.many(which.tp.und)/2
+    fn = how.many(which.fn.dir) + how.many(which.fn.und)/2
+    fp = how.many(which.fp.dir) + how.many(which.fp.und)/2
 
   }#ELSE
 

@@ -91,7 +91,7 @@ graphviz.chart.backend = function(fitted, type = "barchart", layout = "dot",
           height = node@height, width = node@rWidth + node@lWidth,
           draw.labels = draw.labels, grid = grid[[nl]], type = type,
           max.levels = max(sapply(values, length)),
-          col = col[nl], bg = bg[nl], text.col = text.col,
+          col = col[nl], bg = bg[nl], text.col = text.col[nl],
           bar.col = bar.col[nl], strip.bg = strip.bg[nl])
 
     }#FUNCTION

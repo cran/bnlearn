@@ -2,120 +2,140 @@
 # sanitize the extra arguments passed to the random graph generation algorithms.
 check.graph.generation.args = function(method, nodes, extra.args) {
 
-  if (method == "ordered") {
+  # check the probability of generating arcs in a random graph.
+  if (has.argument(method, "prob", graph.generation.extra.args))
+    extra.args[["prob"]] =
+      check.arc.generation.prob(extra.args[["prob"]], nodes = nodes)
 
-    if (!is.null(extra.args$prob)) {
+  # check the thinning factor of a Markov chain.
+  if (has.argument(method, "every", graph.generation.extra.args))
+    extra.args[["every"]] =
+      check.thinning(extra.args[["every"]])
 
-      # prob must be numeric.
-      if (!is.probability(extra.args$prob))
-        stop("the branching probability must be a numeric value in [0,1].")
+  # this magic number for the burn-in comes from the reference implementation
+  # of Ide-Cozman.
+  if (has.argument(method, "burn.in", graph.generation.extra.args))
+    extra.args[["burn.in"]] =
+      check.burn.in(extra.args[["burn.in"]], default = 6 * length(nodes)^2)
 
-    }#THEN
-    else {
+  if (has.argument(method, "max.in.degree", graph.generation.extra.args))
+    extra.args[["max.in.degree"]] =
+      check.max.degree(extra.args[["max.in.degree"]], label = "in-degree",
+        nodes = nodes)
 
-      # this default produces graphs with about the same number of
-      # arcs as there are nodes.
-      extra.args$prob = 2 / (length(nodes) - 1)
+  if (has.argument(method, "max.out.degree", graph.generation.extra.args))
+    extra.args[["max.out.degree"]] =
+      check.max.degree(extra.args[["max.out.degree"]], label = "out-degree",
+        nodes = nodes)
 
-    }#ELSE
+  if (has.argument(method, "max.degree", graph.generation.extra.args)) {
 
-  }#THEN
-  else if (method %in% c("ic-dag", "melancon")) {
+    extra.args[["max.degree"]] =
+      check.max.degree(extra.args[["max.degree"]], label = "degree",
+        nodes = nodes)
 
-    if (!is.null(extra.args$every)) {
+    if (is.finite(extra.args[["max.in.degree"]]) &&
+        extra.args[["max.in.degree"]] > extra.args[["max.degree"]])
+      stop("the maximun in-degree must be lesser or equal to the maximum degree.")
 
-      if (!is.positive(extra.args$every))
-        stop("'every' must be a positive integer number.")
-
-    }#THEN
-    else {
-
-      extra.args$every = 1
-
-    }#ELSE
-
-    if (!is.null(extra.args$burn.in)) {
-
-      if (!is.positive(extra.args$burn.in))
-        stop("the burn in length must be a positive integer number.")
-
-    }#THEN
-    else {
-
-      extra.args$burn.in = 6 * length(nodes)^2
-
-    }#ELSE
-
-    if (!is.null(extra.args$max.in.degree)) {
-
-      if (!is.positive.integer(extra.args$max.in.degree))
-        stop("the maximum in-degree must be a positive integer number.")
-
-      if (extra.args$max.in.degree >= length(nodes)) {
-
-        warning("a node cannot have an in-degree greater or equal to the number of nodes in the graph.")
-        warning("the condition on the in-degree will be ignored.")
-
-      }#THEN
-
-    }#THEN
-    else {
-
-      extra.args$max.in.degree = Inf
-
-    }#ELSE
-
-    if (!is.null(extra.args$max.out.degree)) {
-
-      if (!is.positive.integer(extra.args$max.out.degree))
-        stop("the maximum out-degree must be a positive integer number.")
-
-      if (extra.args$max.out.degree >= length(nodes)) {
-
-        warning("a node cannot have an out-degree greater or equal to the number of nodes in the graph.")
-        warning("the condition on the out-degree will be ignored.")
-
-      }#THEN
-
-    }#THEN
-    else {
-
-      extra.args$max.out.degree = Inf
-
-    }#ELSE
-
-    if (!is.null(extra.args$max.degree)) {
-
-      if (!is.positive.integer(extra.args$max.degree))
-        stop("the maximum out-degree must be a positive integer number.")
-
-      if (is.finite(extra.args$max.in.degree) &&
-          extra.args$max.in.degree > extra.args$max.degree)
-        stop("the maximun in-degree must be lesser or equal to the maximum degree.")
-
-      if (is.finite(extra.args$max.out.degree) &&
-          extra.args$max.out.degree > extra.args$max.degree)
-        stop("the maximun out-degree must be lesser or equal to the maximum degree.")
-
-      if (extra.args$max.degree >= length(nodes)) {
-
-        warning("a node cannot have a degree greater or equal to the number of nodes in the graph.")
-        warning("the condition on the degree will be ignored.")
-
-      }#THEN
-
-    }#THEN
-    else {
-
-      extra.args$max.degree = Inf
-
-    }#ELSE
+    if (is.finite(extra.args[["max.out.degree"]]) &&
+        extra.args[["max.out.degree"]] > extra.args[["max.degree"]])
+      stop("the maximun out-degree must be lesser or equal to the maximum degree.")
 
   }#THEN
 
-  check.unused.args(extra.args, graph.generation.extra.args[[method]])
+  # warn about and remove unused arguments.
+  extra.args = check.unused.args(extra.args, graph.generation.extra.args[[method]])
 
   return(extra.args)
 
 }#CHECK.GRAPH.GENERATION.ARGS
+
+# check the probability of generating arcs in a random graph.
+check.arc.generation.prob = function(prob, nodes) {
+
+  if (!is.null(prob)) {
+
+    # prob must be a probability.
+    if (!is.probability(prob))
+      stop("the branching probability must be a numeric value in [0,1].")
+
+  }#THEN
+  else {
+
+    # this default produces graphs with about the same number of arcs as there
+    # are nodes.
+    prob = 2 / (length(nodes) - 1)
+
+  }#ELSE
+
+  return(prob)
+
+}#CHECK.ARC.GENERATION.PROB
+
+# check the thinning factor of a Markov chain.
+check.thinning = function(every) {
+
+  if (!is.null(every)) {
+
+    if (!is.positive(every))
+      stop("'every' must be a positive integer number.")
+
+  }#THEN
+  else {
+
+    # default to no thinning.
+    every = 1
+
+  }#ELSE
+
+  return(every)
+
+}#CHECK.THINNING
+
+# check the length of burn-in of a Markov chain.
+check.burn.in = function(burn.in, default) {
+
+  if (!is.null(burn.in)) {
+
+    if (!is.positive(burn.in))
+      stop("the burn in length must be a positive integer number.")
+
+  }#THEN
+  else {
+
+    burn.in = default
+
+  }#ELSE
+
+  return(burn.in)
+
+}#CHECK.BURN.IN
+
+# check bounds on various types of node degrees.
+check.max.degree = function(degree, label, nodes) {
+
+  if (!is.null(degree)) {
+
+    if (!is.positive.integer(degree))
+      stop("the maximum ", label, " must be a positive integer number.")
+
+    if (degree >= length(nodes)) {
+
+      warning("a node cannot have ", label,
+              " greater or equal to the number of nodes in the graph.")
+      warning("the condition on the ", label, " will be ignored.")
+
+    }#THEN
+
+  }#THEN
+  else {
+
+    degree = Inf
+
+  }#ELSE
+
+  return(degree)
+
+}#CHECK.MAX.DEGREE
 

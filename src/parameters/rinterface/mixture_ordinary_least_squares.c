@@ -56,7 +56,7 @@ SEXP data_x, result, confnames, dummy_configs;
     PROTECT(residuals = allocVector(REALSXP, n));
     /* estimate all relevant quantities via least squares. */
     c_cls(x, y, z, n, ncol, nz, REAL(fitted), REAL(residuals), coefs, sds,
-      isTRUE(missing));
+      NULL, isTRUE(missing));
 
   }/*THEN*/
   else {
@@ -70,7 +70,7 @@ SEXP data_x, result, confnames, dummy_configs;
     setAttrib(dummy_configs, R_LevelsSymbol, confnames);
     SET_VECTOR_ELT(result, 2, dummy_configs);
     /* estimate all relevant quantities via least squares. */
-    c_cls(x, y, z, n, ncol, nz, NULL, NULL, coefs, sds, isTRUE(missing));
+    c_cls(x, y, z, n, ncol, nz, NULL, NULL, coefs, sds, NULL, isTRUE(missing));
 
   }/*ELSE*/
 

@@ -19,8 +19,9 @@ compare(target, current, arcs = FALSE)
 shd(learned, true, wlbl = FALSE, debug = FALSE)
 hamming(learned, true, debug = FALSE)
 
-graphviz.compare(x, ..., groups, layout = "dot", shape = "circle", main = NULL,
-  sub = NULL, diff = "from-first", diff.args = list())
+graphviz.compare(x, ..., groups, layout = "dot", shape = "circle",
+  fontsize = 12, main = NULL, sub = NULL, diff = "from-first",
+  diff.args = list())
 }
 \arguments{
   \item{target, learned}{an object of class \code{bn}.}
@@ -43,6 +44,7 @@ graphviz.compare(x, ..., groups, layout = "dot", shape = "circle", main = NULL,
     documentation for details.}
   \item{shape}{a character string, the shape of the nodes. Can be \code{circle},
     \code{ellipse} or \code{rectangle}.}
+  \item{fontsize}{a positive number, the font size for the node labels.}
   \item{main}{a vector of character strings, one for each network. They
     are plotted at the top of the corresponding figure(s).}
   \item{sub}{a vector of character strings, the subtitles that are plotted at

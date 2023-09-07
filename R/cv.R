@@ -1,7 +1,7 @@
 
 crossvalidation = function(data, bn, loss = NULL, k = 10,
     m = ceiling(nrow(data)/10), folds, algorithm.args, loss.args, fit,
-    fit.args, method, cluster = NULL, data.info, debug = FALSE) {
+    fit.args, method, cluster = NULL, debug = FALSE) {
 
   n = nrow(data)
 
@@ -44,7 +44,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
       kcv = parallel::parLapplyLB(cluster, kcv, bn.cv.algorithm, data = data,
               algorithm = bn, algorithm.args = algorithm.args, loss = loss,
               loss.args = loss.args, fit = fit, fit.args = fit.args,
-              data.info = data.info, debug = debug)
+              debug = debug)
 
     }#THEN
     else {
@@ -52,7 +52,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
       kcv = lapply(kcv, bn.cv.algorithm, data = data, algorithm = bn,
               algorithm.args = algorithm.args, loss = loss,
               loss.args = loss.args, fit = fit, fit.args = fit.args,
-              data.info = data.info, debug = debug)
+              debug = debug)
 
     }#ELSE
 
@@ -63,14 +63,14 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
 
       kcv = parallel::parLapplyLB(cluster, kcv, bn.cv.structure, data = data,
               bn = bn, loss = loss, loss.args = loss.args, fit = fit,
-              fit.args = fit.args, data.info = data.info, debug = debug)
+              fit.args = fit.args, debug = debug)
 
     }#THEN
     else {
 
       kcv = lapply(kcv, bn.cv.structure, data = data, net = bn, loss = loss,
               loss.args = loss.args, fit = fit, fit.args = fit.args,
-              data.info = data.info, debug = debug)
+              debug = debug)
 
     }#ELSE
 
@@ -97,7 +97,7 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
 }#CROSSVALIDATION
 
 bn.cv.algorithm = function(test, data, algorithm, algorithm.args, loss,
-    loss.args, fit, fit.args, data.info, debug = FALSE) {
+    loss.args, fit, fit.args, debug = FALSE) {
 
   if (debug)
     cat("* learning the structure of the network from the training sample.\n")
@@ -110,13 +110,12 @@ bn.cv.algorithm = function(test, data, algorithm, algorithm.args, loss,
 
   # go on with fitting the parameters.
   bn.cv.structure(test = test, data = data, net = net, loss = loss,
-    loss.args = loss.args, fit = fit, fit.args = fit.args,
-    data.info = data.info, debug = debug)
+    loss.args = loss.args, fit = fit, fit.args = fit.args, debug = debug)
 
 }#BN.CV.ALGORITHM
 
 bn.cv.structure = function(test, data, net, loss, loss.args, fit, fit.args,
-    data.info, debug = FALSE) {
+    debug = FALSE) {
 
   if (debug)
     cat("* fitting the parameters of the network from the training sample.\n")
@@ -159,7 +158,7 @@ bn.cv.structure = function(test, data, net, loss, loss.args, fit, fit.args,
   fit.args = check.fitting.args(fit, net, data[-test, ], fit.args)
   # fit the parameters.
   fitted = bn.fit.backend(x = net, data = data[-test, ], method = fit,
-             extra.args = fit.args, data.info = data.info)
+             extra.args = fit.args)
 
   # in the case of naive Bayes and TAN models, the prior must be computed on
   # the training sample for each fold to match the behaviour of the default

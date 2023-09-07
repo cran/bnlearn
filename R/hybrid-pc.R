@@ -1,13 +1,12 @@
 
 hybrid.pc.backend = function(x, cluster = NULL, whitelist, blacklist,
-  test, alpha, B, max.sx = ncol(x), complete, debug = FALSE) {
+  test, alpha, B, max.sx = ncol(x), debug = FALSE) {
 
   nodes = names(x)
 
   mb = smartSapply(cluster, as.list(nodes), hybrid.pc.heuristic, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, max.sx = max.sx,
-         complete = complete, debug = debug)
+         blacklist = blacklist, test = test, max.sx = max.sx, debug = debug)
   names(mb) = nodes
 
   # make up a set of believable Markov blankets, using all the nodes within
@@ -23,12 +22,12 @@ hybrid.pc.backend = function(x, cluster = NULL, whitelist, blacklist,
 }#HYBRID.PC.BACKEND
 
 hybrid.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
-    test, max.sx = ncol(data), complete, debug = FALSE) {
+    test, max.sx = ncol(data), debug = FALSE) {
 
   # identify the parents-and-children superset.
   pvalues = hybrid.pc.de.pcs(x = x, data = data, nodes = nodes, alpha = alpha,
-              B = B, whitelist = whitelist, blacklist = blacklist,
-              test = test, complete = complete, debug = debug)
+              B = B, whitelist = whitelist, blacklist = blacklist, test = test,
+              debug = debug)
   pc.superset = names(pvalues)
 
   # if the superset contains zero or just one nodes, there is nothing else to do
@@ -41,7 +40,7 @@ hybrid.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
   sp.superset = hybrid.pc.de.sps(x = x, data = data, nodes = nodes,
                   pc.superset = pc.superset, dsep.set = attr(pvalues, "dsep.set"),
                   alpha = alpha, B = B, test = test, max.sx = max.sx,
-                  complete = complete, debug = debug)
+                  debug = debug)
 
   # if there are just two nodes in the parents-and-children set and no spouse,
   # the superset is necessarily the same as the set..
@@ -56,7 +55,7 @@ hybrid.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
   pc = hybrid.pc.nbr.search(x, data = data,
          nodes = c(x, pc.superset, sp.superset), alpha = alpha, B = B,
          whitelist = whitelist, blacklist = blacklist, test = test,
-         max.sx = max.sx, complete = complete, start = start, debug = debug)
+         max.sx = max.sx, start = start, debug = debug)
 
   # one more scan to identify possible false negatives.
   for (node in setdiff(pc.superset, pc)) {
@@ -64,8 +63,7 @@ hybrid.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
     fn = hybrid.pc.nbr.search(node, data = data,
             nodes = c(x, pc.superset, sp.superset), alpha = alpha, B = B,
             whitelist = whitelist, blacklist = blacklist, test = test,
-            max.sx = max.sx, complete = complete, start = start,
-            debug = debug, looking.for = x)
+            max.sx = max.sx, start = start, debug = debug, looking.for = x)
 
     # add the nodes which appear to be neighbours.
     if (x %in% fn) {
@@ -85,12 +83,12 @@ hybrid.pc.heuristic = function(x, data, nodes, alpha, B, whitelist, blacklist,
 }#HYBRID.PC.HEURISTIC
 
 hybrid.pc.nbr.search = function(x, data, nodes, alpha, B, whitelist, blacklist,
-    test, max.sx = ncol(data), complete, debug = FALSE, start = start,
+    test, max.sx = ncol(data), debug = FALSE, start = start,
     looking.for = NULL) {
 
   mb = ia.fdr.markov.blanket(x, data = data, nodes = nodes, alpha = alpha,
          B = B, whitelist = whitelist, blacklist = blacklist, start = start,
-         test = test, max.sx = max.sx, complete = complete, debug = debug)
+         test = test, max.sx = max.sx, debug = debug)
 
   # if the node is not in the markov blanket it cannot be a neighbour either.
   if (!is.null(looking.for) && (looking.for %!in% mb))
@@ -98,14 +96,14 @@ hybrid.pc.nbr.search = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
   pc = hybrid.pc.filter(x, pc.superset = mb, sp.superset = NULL, data = data,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, max.sx = max.sx, complete = complete, debug = debug)
+         test = test, max.sx = max.sx, debug = debug)
 
   return(pc)
 
 }#HYBRID.PC.NBR.SEARCH
 
 hybrid.pc.de.pcs = function(x, data, nodes, alpha, B, whitelist, blacklist,
-    test, complete, debug = FALSE) {
+    test, debug = FALSE) {
 
   whitelisted = nodes[sapply(nodes,
           function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
@@ -129,7 +127,7 @@ hybrid.pc.de.pcs = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
   # exclude nodes that are marginally independent from the target.
   association = indep.test(to.check, x, sx = character(0), data = data,
-                  test = test, B = B, alpha = alpha, complete = complete)
+                  test = test, B = B, alpha = alpha)
 
   to.keep = names(association[association <= alpha])
   to.drop = names(association[association > alpha])
@@ -187,7 +185,7 @@ hybrid.pc.de.pcs = function(x, data, nodes, alpha, B, whitelist, blacklist,
 
     a = allsubs.test(x = x, y = node, sx = to.check.against, min = 1,
           max = 1, data = data, test = test, alpha = alpha, B = B,
-          complete = complete, debug = debug)
+          debug = debug)
 
     if (a["p.value"] > alpha) {
 
@@ -208,7 +206,7 @@ hybrid.pc.de.pcs = function(x, data, nodes, alpha, B, whitelist, blacklist,
 }#HYBRID.PC.DE.PCS
 
 hybrid.pc.de.sps = function(x, data, nodes, pc.superset, dsep.set, alpha, B,
-    test, max.sx, complete, debug = FALSE) {
+    test, max.sx, debug = FALSE) {
 
   spouses.superset = character(0)
 
@@ -243,7 +241,7 @@ hybrid.pc.de.sps = function(x, data, nodes, pc.superset, dsep.set, alpha, B,
         cat("  > checking node", y, "for inclusion.\n")
 
       a = indep.test(x = x, y = y, sx = c(dsep.set[[y]], cpc), data = data,
-            test = test, B = B, alpha = alpha, complete = complete)
+            test = test, B = B, alpha = alpha)
 
       if (debug)
         cat("    > node", x, "is",
@@ -277,8 +275,7 @@ hybrid.pc.de.sps = function(x, data, nodes, pc.superset, dsep.set, alpha, B,
         cat("  > checking node", y, "for removal.\n")
 
       a = allsubs.test(x = x, y = y, sx = sx, fixed = cpc, data = data,
-            test = test, B = B, alpha = alpha, complete = complete, min = 1,
-            max = 1, debug = debug)
+            test = test, B = B, alpha = alpha, min = 1, max = 1, debug = debug)
 
       if (a["p.value"] > alpha) {
 
@@ -300,7 +297,7 @@ hybrid.pc.de.sps = function(x, data, nodes, pc.superset, dsep.set, alpha, B,
 }#HYBRID.PC.DE.SPS
 
 hybrid.pc.filter = function(x, pc.superset, sp.superset, data, alpha, B = B,
-     whitelist, blacklist, test, max.sx, complete, debug = FALSE) {
+     whitelist, blacklist, test, max.sx, debug = FALSE) {
 
   nodes = names(data)
   mb.superset = c(pc.superset, sp.superset)
@@ -333,7 +330,7 @@ hybrid.pc.filter = function(x, pc.superset, sp.superset, data, alpha, B = B,
 
     a = allsubs.test(x = x, y = node, sx = setdiff(mb.superset, node),
           data = data, test = test, B = B, alpha = alpha, max = max.sx,
-          complete = complete, debug = debug)
+          debug = debug)
 
     return(as.logical(a["p.value"] < alpha))
 

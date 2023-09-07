@@ -26,9 +26,10 @@ void c_qr(double *qr, double *y, int nrow, int ncol, double *fitted,
     double *resid, double *beta, double *sd);
 
 void c_ols(double **x, double *y, int nrow, int ncol, double *fitted,
-    double *resid, double *beta, double *sd, bool missing);
+    double *resid, double *beta, double *sd, int *nobs, bool missing);
 void c_cls(double **x, double *y, int *z, int nrow, int ncol, int ncond,
-    double *fitted, double *resid, double *beta, double *sd, bool missing);
+    double *fitted, double *resid, double *beta, double *sd, int *nobs,
+    bool missing);
 
 void c_qr_matrix(double *qr, double **x, int nrow, int ncol, int *complete,
     int ncomplete);

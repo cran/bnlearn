@@ -1,13 +1,16 @@
 \name{graph generation utilities}
 \alias{graph generation utilities}
 \alias{empty.graph}
+\alias{complete.graph}
 \alias{random.graph}
-\title{Generate empty or random graphs}
+\title{Generate empty, complete or random graphs}
 \description{
-  Generate empty or random directed acyclic graphs from a given set of nodes.
+  Generate empty, complete or random directed acyclic graphs from a given set
+  of nodes.
 }
 \usage{
 empty.graph(nodes, num = 1)
+complete.graph(nodes, num = 1)
 random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
 }
 \arguments{
@@ -15,9 +18,9 @@ random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
   \item{num}{an integer, the number of graphs to be generated.}
   \item{method}{a character string, the label of a score. Possible values are
     \code{ordered} (\emph{full ordering} based generation), \code{ic-dag}
-    (Ide's and Cozman's \emph{Generating Multi-connected DAGs} algorithm),
+    (Ide's and Cozman's \emph{Generating Multi-connected DAGs} algorithm) and
     \code{melancon} (Melancon's and Philippe's \emph{Uniform Random Acyclic
-    Digraphs} algorithm) and \code{empty} (generates empty graphs).}
+    Digraphs} algorithm).}
   \item{\dots}{additional tuning parameters (see below).}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent. Ignored in some
@@ -25,7 +28,7 @@ random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
 }
 \details{
 
-  Available graph generation algorithms are:
+  Graph generation algorithms available in \code{random.graph()} are:
 
   \itemize{
 
@@ -39,11 +42,10 @@ random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
     \item Melancon's and Philippe's \emph{Uniform Random Acyclic Digraphs}
       algorithm (\code{melancon}): generates graphs with a uniform probability
       distribution over the set of all possible graphs.
-    \item \emph{empty graphs} (\code{empty}): generates graphs without any arc.
 
   }
 
-  Additional arguments for the \code{random.graph} function are:
+  Additional arguments for the \code{random.graph()} function are:
 
   \itemize{
     \item \code{prob}: the probability of each arc to be present in a graph
@@ -71,14 +73,18 @@ random.graph(nodes, num = 1, method = "ordered", ..., debug = FALSE)
 
   }
 
+  \code{empty.graph()} generates \code{num} identical empty graphs, while
+  \code{complete.graph()} generates \code{num} identical complete directed
+  acyclic graphs.
+
 }
 \value{
 
-  Both \code{empty.graph()} and \code{random.graph()} return an object of class
-  \code{bn} (if \code{num} is equal to \code{1}) or a list of objects of class
-  \code{bn} (otherwise). If \code{every} is greated than \code{1},
-  \code{random.graph} always returns a list, regardless of the number of graphs
-  it contains.
+  \code{empty.graph()}, \code{complete.graph()} and \code{random[.graph()}
+  return an object of class \code{bn} (if \code{num} is equal to \code{1}) or a
+  list of objects of class \code{bn} (otherwise). If \code{every} is greated
+  than \code{1}, \code{random.graph()} always returns a list, regardless of the
+  number of graphs it contains.
 
 }
 \references{

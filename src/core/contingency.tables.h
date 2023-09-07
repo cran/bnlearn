@@ -45,9 +45,11 @@ void fill_1d_table(int *xx, counts1d *table, int num);
 void fill_2d_table(int *xx, int *yy, counts2d *table, int num);
 void fill_3d_table(int *xx, int *yy, int *zz, counts3d *table, int num);
 
+void refill_1d_table(int *xx, counts1d *table, int num);
 void refill_2d_table(int *xx, int *yy, counts2d *table, int num);
 void refill_3d_table(int *xx, int *yy, int *zz, counts3d *table, int num);
 
+void resize_1d_table(int llx, counts1d *table);
 void resize_2d_table(int llx, int lly, counts2d *table);
 void resize_3d_table(int llx, int lly, int llz, counts3d *table);
 

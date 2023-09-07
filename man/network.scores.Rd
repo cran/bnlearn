@@ -108,6 +108,13 @@
         Maximum Likelihood Criterion for Learning Bayesian Network Structures".
         \emph{Proceedings of Machine Learning Research}, \strong{84}:948--957.
 
+    \item the node-average (log-)likelihood (\code{nal}) and the penalized
+      node-average (log-)likelihood (\code{pnal}).
+
+      Bodewes T, Scutari M (2021). "Learning Bayesian Networks from Incomplete
+        Data with the Node-Averaged Likelihood". \emph{International Journal of
+        Approximate Reasoning}, \strong{138}:145--160.
+
   }
 
   Available scores (and the respective labels) for \emph{Gaussian Bayesian
@@ -143,6 +150,13 @@
         Gaussian Directed Acyclic Graphical Models". \emph{The Annals of
         Statistics}, \strong{42}(4):1689--1691.
 
+    \item the node-average (log-)likelihood (\code{nal-g}) and the penalized
+      node-average (log-)likelihood (\code{pnal-g}).
+
+      Bodewes T, Scutari M (2021). "Learning Bayesian Networks from Incomplete
+        Data with the Node-Averaged Likelihood". \emph{International Journal of
+        Approximate Reasoning}, \strong{138}:145--160.
+
   }
 
   Available scores (and the respective labels) for \emph{hybrid Bayesian
@@ -166,6 +180,13 @@
     \item the \emph{predictive log-likelihood} (\code{pred-loglik-cg}) computed
       on a separate test set. The reference paper is the same as that for
       \code{pred-loglik}.
+
+    \item the node-average (log-)likelihood (\code{nal-cg}) and the penalized
+      node-average (log-)likelihood (\code{pnal-cg}).
+
+      Bodewes T, Scutari M (2021). "Learning Bayesian Networks from Incomplete
+        Data with the Node-Averaged Likelihood". \emph{International Journal of
+        Approximate Reasoning}, \strong{138}:145--160.
 
   }
 

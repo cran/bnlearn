@@ -47,7 +47,7 @@ ci.test = function(x, y, z, data, test, B, debug = FALSE) {
 ci.test.character = function(x, y, z, data, test, B, debug = FALSE) {
 
   # the original data set is needed.
-  data.info = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
+  data = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
   # check debug.
   check.logical(debug)
   # check the variables involved in the test.
@@ -73,13 +73,13 @@ ci.test.character = function(x, y, z, data, test, B, debug = FALSE) {
 
   }#ELSE
   # check the test label.
-  test = check.test(test, .data.frame.column(data, c(x, y, z)))
+  test = check.test(test, data = .data.frame.column(data, c(x, y, z)))
   # check B (the number of permutation samples).
   B = check.B(B, test)
 
   # create the htest object.
   htest = indep.test(x = x, y = y, sx = z, data = data, test = test, B = B,
-            alpha = 1, learning = FALSE, complete = data.info$complete.nodes)
+            alpha = 1, learning = FALSE)
   htest$method = test.labels[test]
   htest$data.name = paste(x, "~", y, ifelse(length(z) > 0, "|", ""),
                       paste(z, collapse = " + "))
@@ -135,15 +135,15 @@ ci.test.vector = function(x, y, z, xlab, ylab, zlab, test, B, debug = FALSE) {
   }#ELSE
 
   # check the data are there.
-  data.info = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
+  data = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
   # check the test label.
-  test = check.test(test, data)
+  test = check.test(test, data = data)
   # check B (the number of permutation samples).
   B = check.B(B, test)
 
   # create the htest object.
   htest = indep.test(x = 1L, y = 2L, sx = sx, data = data, test = test, B = B,
-            alpha = 1, learning = FALSE, complete = data.info$complete.nodes)
+            alpha = 1, learning = FALSE)
   htest$method = test.labels[test]
   htest$data.name = paste(xlab, "~", ylab,
         ifelse(length(z) > 0, paste("|", zlab), ""))

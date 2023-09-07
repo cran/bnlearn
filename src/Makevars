@@ -1,5 +1,5 @@
-PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
-# PKG_CFLAGS = -Wall -pedantic -std=c99 -march=native -flto=10 -Wabsolute-value
+PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) 
+# PKG_CFLAGS = -Wall -pedantic -march=native -flto=10 -Wabsolute-value -Wstrict-prototypes
 
 SOURCES = \
   arcs/arcs2amat.c \
@@ -28,6 +28,7 @@ SOURCES = \
   core/sets.c \
   core/uppertriangular.c \
   fitted/enums.c \
+  fitted/fitted.c \
   foreign/parse.c \
   globals.c \
   graphs/acyclic.c \
@@ -36,11 +37,19 @@ SOURCES = \
   graphs/pdag2dag.c \
   graphs/random/graph.generation.c \
   graphs/topological.ordering.c \
-  inference/cpdist.c \
-  inference/kullback.leibler.c \
   inference/likelihood.weighting.c \
+  inference/loglikelihood/common.c \
+  inference/loglikelihood/discrete.c \
+  inference/loglikelihood/gaussian.c \
+  inference/loglikelihood/conditional.gaussian.c \
   inference/loss.c \
   inference/rbn.c \
+  inference/rinterface/kullback.leibler.c \
+  inference/rinterface/loglikelihood.c \
+  inference/rinterface/loss.c \
+  inference/rinterface/cpdist.c \
+  inference/rinterface/rbn.c \
+  inference/rinterface/likelihood.weighting.c \
   learning/averaging/averaging.c \
   learning/averaging/bootstrap.c \
   learning/local/mi.matrix.c \
@@ -73,13 +82,16 @@ SOURCES = \
   scores/alpha.star.c \
   scores/cg.loglikelihood.c \
   scores/cg.predictive.loglikelihood.c \
+  scores/cg.nal.c \
   scores/custom.score.c \
   scores/dirichlet.averaged.posterior.c \
   scores/dirichlet.posterior.c \
   scores/discrete.loglikelihood.c \
+  scores/discrete.nal.c \
   scores/discrete.predictive.loglikelihood.c \
   scores/enum.c \
   scores/gaussian.loglikelihood.c \
+  scores/gaussian.nal.c \
   scores/gaussian.predictive.loglikelihood.c \
   scores/graph.priors.c \
   scores/nml_regret.c \

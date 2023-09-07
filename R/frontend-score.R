@@ -5,7 +5,7 @@ network.score = function(x, data, type = NULL, ..., by.node = FALSE, debug = FAL
   # check x's class.
   check.bn(x)
   # the original data set is needed.
-  check.data(data)
+  data = check.data(data, allow.missing = TRUE)
   # check the network against the data.
   check.bn.vs.data(x, data)
   # check debug and by.node.
@@ -15,7 +15,7 @@ network.score = function(x, data, type = NULL, ..., by.node = FALSE, debug = FAL
   if (is.pdag(x$arcs, names(x$nodes)))
     stop("the graph is only partially directed.")
   # check the score label.
-  type = check.score(type, data)
+  type = check.score(type, data = data)
   # check whether the network is valid for the method.
   check.arcs.against.assumptions(x$arcs, data, type)
 
@@ -113,7 +113,7 @@ BF = function(num, den, data, score, ..., log = TRUE) {
   match.bn(num, den)
   nodes = names(num$nodes)
   # check the data.
-  data.info = check.data(data)
+  data = check.data(data, allow.missing = TRUE)
   # check the networks against the data.
   check.bn.vs.data(num, data)
   check.bn.vs.data(den, data)
@@ -126,21 +126,24 @@ BF = function(num, den, data, score, ..., log = TRUE) {
     stop("the graph in the denominator on the BF is only partially directed.")
 
   # make sure the score function is suitable for computing a Bayes factor.
+  data.type = attr(data, "metadata")$type
+
   if (missing(score)) {
 
-    if (data.info$type %in% discrete.data.types)
+    if (data.type %in% discrete.data.types)
       score = "bde"
-    else if (data.info$type %in% continuous.data.types)
+    else if (data.type %in% continuous.data.types)
       score = "bge"
-    else if (data.info$type %in% mixed.data.types)
+    else if (data.type %in% mixed.data.types)
       score = "bic-cg"
 
   }#THEN
   else {
 
-    score = check.score(score, data,
+    score = check.score(score, data = data,
               allowed = c(available.discrete.bayesian.scores,
                           available.continuous.bayesian.scores,
+                          available.omnibus.scores,
                           grep("bic", available.scores, value = TRUE)))
 
   }#ELSE

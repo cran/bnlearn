@@ -4,7 +4,7 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), algorithm,
     algorithm.args = list(), statistic.args = list(), cluster, debug = FALSE) {
 
   # check the data are there.
-  check.data(data, allow.missing = TRUE)
+  data = check.data(data, allow.missing = TRUE)
   # check the number of bootstrap replicates.
   R = check.replicates(R)
   # check the size of each bootstrap sample.
@@ -49,10 +49,10 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), algorithm,
 
 # compute arcs' strength via nonparametric bootstrap.
 boot.strength = function(data, cluster, R = 200, m = nrow(data), algorithm,
-  algorithm.args = list(), cpdag = TRUE, debug = FALSE) {
+  algorithm.args = list(), cpdag = TRUE, shuffle = TRUE, debug = FALSE) {
 
   # check the data are there and get the node lables from the variables.
-  data.info = check.data(data, allow.missing = TRUE)
+  data = check.data(data, allow.missing = TRUE)
   nodes = names(data)
   # check the number of bootstrap replicates.
   R = check.replicates(R)
@@ -62,6 +62,8 @@ boot.strength = function(data, cluster, R = 200, m = nrow(data), algorithm,
   check.logical(debug)
   # check cpdag.
   check.logical(cpdag)
+  # check shuffle.
+  check.logical(shuffle)
   # check the learning algorithm.
   check.learning.algorithm(algorithm)
   # check the extra arguments for the learning algorithm.
@@ -86,12 +88,12 @@ boot.strength = function(data, cluster, R = 200, m = nrow(data), algorithm,
 
   res = arc.strength.boot(data = data, cluster = cluster, R = R, m = m,
           algorithm = algorithm, algorithm.args = algorithm.args, arcs = NULL,
-          cpdag = cpdag, debug = debug)
+          cpdag = cpdag, shuffle = shuffle, debug = debug)
 
   # add extra information for strength.plot() and averaged.network().
   res = structure(res, nodes = nodes, method = "bootstrap",
           threshold = threshold(res), class = c("bn.strength", class(res)))
-  if (data.info$type == "mixed-cg")
+  if (attr(data, "metadata")$type == "mixed-cg")
     attr(res, "illegal") = list.illegal.arcs(names(data), data, "bn.fit.cgnet")
 
   return(res)
@@ -104,7 +106,7 @@ bn.cv = function(data, bn, loss = NULL, ...,
     fit.args = list(), method = "k-fold", cluster, debug = FALSE) {
 
   # check the data are there and get the node lables from the variables.
-  data.info = check.data(data, allow.missing = TRUE)
+  data = check.data(data, allow.missing = TRUE)
   nodes = names(data)
   # check the cross-validation method.
   method = check.cv.method(method)
@@ -197,7 +199,7 @@ bn.cv = function(data, bn, loss = NULL, ...,
                     folds = extra.args$folds[[r]],
                     algorithm.args = algorithm.args, loss.args = loss.args,
                     fit = fit, fit.args = fit.args, method = method,
-                    cluster = cluster, data.info = data.info, debug = debug)
+                    cluster = cluster, debug = debug)
 
   # return a bn.kcv object (for a single run) or a bn.kcv.list object (for
   # multiple runs).

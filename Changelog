@@ -1,6 +1,56 @@
-bnlearn (4.8.2)
+bnlearn (4.9)
 
-  * fixed some harmless compiler warnings to pass the CRAN tests.
+  * as.prediction() is now deprecated and will be removed by the end of 2024.
+  * graphviz.plot(), strength.plot() and graphviz.compare() now have a
+     "fontsize" argument that controls the font size of the node labels.
+  * removed the rbn() method for bn objects.
+  * predict() and impute() can now use exact inference with method = "exact" for
+     discrete and Gaussian networks.
+  * the "custom" score now accepts incomplete data.
+  * it is now possible to use the "custom" score to implement custom Bayesian
+     scores in BF() and bf.strength().
+  * fixed the conditional probabilities computed by cpquery(), which now 
+     disregards particles for which either the evidence or the event
+     expressions evaluate to NA (thanks Simon Rauch).
+  * added a complete.graph() function to complement empty.graph().
+  * removed the "empty" method of random.graph(), use empty.graph() instead.
+  * structural.em() can now use exact inference in the expectation step with 
+      impute = "exact".
+  * structural.em() can now be called from bn.boot(), boot.strength() and 
+      bn.cv().
+  * updated as.bn.fit() to work with the latest gRain release.
+  * fixed segfault in tree.bayes() with illegal whitelists and blacklists.
+  * predict(method = "bayes-lw") and predict(method = "exact") now work even
+     when from = character(0).
+  * implemented hard EM in bn.fit() with method = "hard-em" (discrete BNs),
+     method = "hard-em-g" (Gaussian BNs) and method = "hard-em-cg"
+     (conditional Gaussian BNs).
+  * predict() and impute() can use clusters from the parallel package with all 
+     available methods.
+  * hard EM methods in bn.fit() can use clusters from the parallel package
+     like previously available parameter estimators.
+  * boot.strength() now shuffles the columns of the data by default, which seems
+     to broadly improve structural accuracy.
+  * constraint-based algorithms are now guaranteed to return a CPDAG; this was
+     not the case previously because shielded colliders were preserved along
+     with unshielded ones (thanks Ruben Camilo Wisskott).
+  * bn.fit() now works with network classifiers (thanks Riley Mulhern).
+  * logLik() has been re-implemented and now accepts incomplete data.
+  * tabu search now works with continuous data containing latent variables
+     (thanks David Purves).
+  * read.net() can now parse interval nodes (thanks Marco Valtorta).
+  * graphviz.chart() now handles text.col correctly even when it contains a 
+     separate colour for each node.
+  * impute() now produces an error instead of returning data still containing
+     missing values (with "strict" set to TRUE, the default) or at least it
+     produces a warning (with "strict" set to FALSE).
+  * better sanitization of CPTs in custom.fit() (thanks Dave Costello).
+  * implemented the node-average (penalized) likelihood scores from Bodewes
+     and Scutari for discrete ("nal" and "pnal"), Gaussian ("nal-g" and
+     "pnal-g") and conditional Gaussian ("nal-cg" and "pnal-cg") BNs.
+  * predict() for bn.fit objects now accepts incomplete data, conditioning on
+     the observed values and averaging over the missing values in each
+     observations in the case of method = "bayes-lw" and method = "exact".
 
 bnlearn (4.8.1)
 

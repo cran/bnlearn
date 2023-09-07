@@ -568,9 +568,22 @@ net.get.levels = function(node, start, lines) {
   # get all the node's description on one line for easy handling.
   desc = paste(lines[start.line:end.line], collapse = "")
 
-  # deparse the node's level.
+  # deparse the node's levels.
   levels = sub(".+states\\s*[=]{0,1}\\s*\\(\\s*(.+?)\\s*\\).+", "\\1", desc)
   levels = gsub("\"", "", strsplit(levels, "\"\\s*\"")[[1]])
+
+  # no labels stored in the states; state_values may contain the endpoints of
+  # the intervals that define the node's levels.
+  if (all(trimws(levels) == "")) {
+
+    if (!grepl("subtype\\s*=\\s*[\"]*interval[\"]*", desc))
+      stop("unable to parse the levels of node ", node, ".\n")
+
+    levels = sub(".+state_values\\s*[=]{0,1}\\s*\\(\\s*(.+?)\\s*\\).+", "\\1", desc)
+    levels = as.numeric(strsplit(levels, "\\s+")[[1]])
+    levels = levels(cut(levels, breaks = levels, include.lowest = TRUE))
+
+  }#THEN
 
   if (any(duplicated(levels)))
     stop("duplicated levels '", paste(levels[duplicated(levels)], collapse = "' '"), "' for node ", node, ".\n")

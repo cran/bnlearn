@@ -7,7 +7,7 @@ grain.get.children = function(fitted, node) {
 }#GRAIN.GET.CHILDREN
 
 # convert a "bn.fit" object from bnlearn into a "grain" object.
-from.bn.fit.to.grain = function(x) {
+from.bn.fit.to.grain = function(x, compile = TRUE) {
 
   cpt = vector(length(x), mode = "list")
   names(cpt) = names(x)
@@ -38,7 +38,7 @@ from.bn.fit.to.grain = function(x) {
 
   }#FOR
 
-  return(gRain::grain(gRain::compileCPT(cpt)))
+  return(gRain::grain(gRain::compileCPT(cpt), compile = compile))
 
 }#FROM.BN.FIT.TO.GRAIN
 
@@ -103,7 +103,7 @@ from.grain.to.bn.fit.with.evidence = function(x) {
 
       if (node %in% ev$nodes) {
 
-        prob[] = ev$evidence[[which(node == ev$nodes)]]
+        prob[] = ev$evi_weight[[which(node == ev$nodes)]]
         propagated = prob
 
       }#THEN
@@ -141,3 +141,11 @@ from.grain.to.bn.fit.with.evidence = function(x) {
   return(structure(fitted, class = c("bn.fit", determine.fitted.class(fitted))))
 
 }#FROM.GRAIN.TO.BN.FIT.WITH.EVIDENCE
+
+# determine the amount of memory used by a gRain junction tree.
+tree.size = function(jtree, node.nlevels) {
+
+  sum(sapply(jtree$rip$cliques, function(x) prod(node.nlevels[x])))
+
+}#TREE.SIZE
+

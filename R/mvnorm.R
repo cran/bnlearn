@@ -41,8 +41,8 @@ mvnorm2gbn.backend = function(dag, mu, sigma) {
 
   # reorder both the mean vector and the covariance matrix to follow the node
   # ordering of the nodes.
-  mu = mu[ordnodes]
-  sigma = sigma[ordnodes, ordnodes, drop = FALSE]
+  mu = mu[ordnodes, drop = FALSE]
+  orig = sigma = sigma[ordnodes, ordnodes, drop = FALSE]
 
   # patch the covariance matrix: if a root node has variance zero, all
   # covariances are zero as well which means that we can replace the variance
@@ -71,10 +71,16 @@ mvnorm2gbn.backend = function(dag, mu, sigma) {
 
   # the standard errors are on the diagonal, where we put them
   # (chol[node, node] = stderr).
-  sigma = diag(chol);
+  stderr = diag(chol)
+  # floating point errors may have made the standard errors of leaf nodes
+  # smaller than 1 by up to sqrt(.Machine$double.eps), fix that.
+  stderr[leaves][stderr[leaves] < 1] = 1
 
-  # and here we inver the quadratic form chol %*% t(chol).
-  rho = diag(1, nrow = nnodes) - diag(diag(chol)) %*% solve(chol)
+  # and here we invert the quadratic form chol %*% t(chol).
+  if (nnodes == 1)
+    rho = matrix(0, nrow = 1, ncol = 1)
+  else
+    rho = diag(1, nrow = nnodes) - diag(diag(chol)) %*% solve(chol)
   dimnames(rho) = dimnames(chol)
 
   for (node in nodes) {
@@ -89,9 +95,9 @@ mvnorm2gbn.backend = function(dag, mu, sigma) {
     if (node %in% zero.variance.roots)
       sd = 0
     else if (node %in% leaves)
-      sd = sqrt(sigma[node]^2 - 1)
+      sd = sqrt(stderr[node]^2 - 1)
     else
-      sd = sigma[node]
+      sd = stderr[node]
 
     params[[node]] = list(coef = coefs, sd = sd)
 
@@ -104,3 +110,22 @@ mvnorm2gbn.backend = function(dag, mu, sigma) {
   return(fitted)
 
 }#MVNORM2GBN.BACKEND
+
+# compute a conditional multivariate distribution from the joint.
+conditional.mvnorm = function(mu, sigma, to, from, value) {
+
+  # use a pseudoinverse, computed in the same way as in the C implementation.
+  decomp = svd(sigma[from, from, drop = FALSE])
+  positive = decomp$d > max(.Machine$double.eps * decomp$d[1L], 0)
+  if (!any(positive))
+    ginv = matrix(0, nrow = length(from), ncol = length(from))
+  else
+    ginv = decomp$v[, positive, drop = FALSE] %*%
+           ((1 / decomp$d[positive]) *
+           t(decomp$u[, positive, drop = FALSE]))
+
+  mu[to] + sigma[to, from, drop = FALSE] %*%
+    ginv %*% as.numeric(value - mu[from])
+
+}#CONDITIONAL.MVNORM
+

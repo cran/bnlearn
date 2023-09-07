@@ -46,7 +46,7 @@ SEXP data_x, result, response, coefficients, residuals, fitted, coefnames;
     PROTECT(residuals = allocVector(REALSXP, n));
     /* estimate all relevant quantities via least squares. */
     c_ols(x, y, n, ncol, REAL(fitted), REAL(residuals),
-      coefs, &sd, isTRUE(missing));
+      coefs, &sd, NULL, isTRUE(missing));
 
   }/*THEN*/
   else {
@@ -54,7 +54,7 @@ SEXP data_x, result, response, coefficients, residuals, fitted, coefnames;
     /* fitted values and residuals are just dummy NAs. */
     fitted = residuals = ScalarReal(NA_REAL);
     /* estimate regression coefficients and standard error via least squares. */
-    c_ols(x, y, n, ncol, NULL, NULL, coefs, &sd, isTRUE(missing));
+    c_ols(x, y, n, ncol, NULL, NULL, coefs, &sd, NULL, isTRUE(missing));
 
   }/*ELSE*/
 

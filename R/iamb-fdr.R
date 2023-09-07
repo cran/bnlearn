@@ -1,14 +1,13 @@
 
 incremental.association.fdr = function(x, cluster = NULL, whitelist,
-  blacklist, test, alpha, B, max.sx = ncol(x), complete, debug = FALSE) {
+  blacklist, test, alpha, B, max.sx = ncol(x), debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
   mb = smartSapply(cluster, as.list(nodes), ia.fdr.markov.blanket, data = x,
          nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, max.sx = max.sx,
-         complete = complete, debug = debug)
+         blacklist = blacklist, test = test, max.sx = max.sx, debug = debug)
   names(mb) = nodes
 
   # check markov blankets for consistency.
@@ -17,7 +16,7 @@ incremental.association.fdr = function(x, cluster = NULL, whitelist,
   # 2. [Compute Graph Structure]
   mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
          alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, max.sx = max.sx, complete = complete, debug = debug)
+         test = test, max.sx = max.sx, debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -28,7 +27,7 @@ incremental.association.fdr = function(x, cluster = NULL, whitelist,
 }#INCREMENTAL.ASSOCIATION.FDR
 
 ia.fdr.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
-  start = character(0), test, max.sx = ncol(x), complete, debug = FALSE) {
+  start = character(0), test, max.sx = ncol(x), debug = FALSE) {
 
   nodes = nodes[nodes != x]
   fdr.threshold = length(nodes) / seq_along(nodes) * sum(1 / seq_along(nodes))
@@ -105,7 +104,8 @@ ia.fdr.markov.blanket = function(x, data, nodes, alpha, B, whitelist, blacklist,
     # get an association measure for each of the available nodes.
     association = sapply(nodes, function(node) {
        indep.test(x, node, sx = setdiff(mb, node), data = data, test = test,
-                        B = B, alpha = alpha, complete = complete)})
+         B = B, alpha = alpha)
+    })
     names(association) = nodes
 
     # sort the p-values and the FDR thresholds.

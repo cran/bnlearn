@@ -25,63 +25,80 @@ check.discretization.args = function(method, data, breaks, extra.args) {
   # check which type of data we are dealing with.
   type = data.type(data)
 
-  if (method == "hartemink") {
+  # check the initial discretization algorithm.
+  if (has.argument(method, "idisc", discretization.extra.args))
+    extra.args[["idisc"]] = check.idisc(extra.args[["idisc"]])
 
-    if (!is.null(extra.args$idisc)) {
+  # check the initial number of breaks.
+  if (has.argument(method, "ibreaks", discretization.extra.args))
+    extra.args[["ibreaks"]] =
+      check.ibreaks(extra.args[["ibreaks"]], breaks = breaks, data = data)
 
-      other.methods = available.discretization.methods[available.discretization.methods != "hartemink"]
-
-      check.label(extra.args$idisc, choices = other.methods,
-        labels = discretization.labels, argname = "initial discretization method",
-        see = "discretize")
-
-    }#THEN
-    else {
-
-      # default to quantile discretization as per Hartemink's recommendation.
-      extra.args$idisc = "quantile"
-
-    }#ELSE
-
-    if (!is.null(extra.args$ibreaks)) {
-
-      if (length(extra.args$ibreaks) == 1)
-        extra.args$ibreaks = rep(extra.args$ibreaks, ncol(data))
-      else if (length(extra.args$ibreaks) != ncol(data))
-        stop("the 'ibreaks' vector must have an element for each variable in the data.")
-      if (!is.positive.vector(extra.args$ibreaks))
-        stop("the number of initial breaks must be a (vector of) positive integer number(s).")
-      if (any(extra.args$ibreaks < breaks))
-        stop("insufficient number of initial breaks, need at least ", breaks + 1, ".")
-      else if (any(extra.args$ibreaks == breaks))
-        warning("the initial number of breaks is identical to the final number of breaks.")
-
-    }#THEN
-    else {
-
-      ndata = nrow(data)
-
-      if (ndata > 500)
-        extra.args$ibreaks = 50
-      else if (ndata > 100)
-        extra.args$ibreaks = 20
-      else if (ndata > 50)
-        extra.args$ibreaks = 10
-      else if (ndata > 10)
-        extra.args$ibreaks = 5
-      else
-        extra.args$ibreaks = ndata
-
-      extra.args$ibreaks = rep(extra.args$ibreaks, ncol(data))
-
-    }#ELSE
-
-  }#THEN
-
-  # warn about unused arguments.
-  check.unused.args(extra.args, discretization.extra.args[[method]])
+  # warn about and remove unused arguments.
+  extra.args = check.unused.args(extra.args, discretization.extra.args[[method]])
 
   return(extra.args)
 
 }#CHECK.DISCRETIZATION.ARGS
 
+# check the initial discretization algorithm.
+check.idisc = function(idisc) {
+
+  if (!is.null(idisc)) {
+
+    other.methods = setdiff(available.discretization.methods, "hartemink")
+
+    check.label(idisc, choices = other.methods, labels = discretization.labels,
+      argname = "initial discretization method", see = "discretize")
+
+  }#THEN
+  else {
+
+    # default to quantile discretization as per Hartemink's recommendation.
+    idisc = "quantile"
+
+  }#ELSE
+
+  return(idisc)
+
+}#CHECK.IDISC
+
+# check the initial number of breaks.
+check.ibreaks = function(ibreaks, breaks, data) {
+
+  if (!is.null(ibreaks)) {
+
+    if (length(ibreaks) == 1)
+      ibreaks = rep(ibreaks, ncol(data))
+    else if (length(ibreaks) != ncol(data))
+      stop("the 'ibreaks' vector must have an element for each variable in the data.")
+    if (!is.positive.vector(ibreaks))
+      stop("the number of initial breaks must be a (vector of) positive integer number(s).")
+    if (any(ibreaks < breaks))
+      stop("insufficient number of initial breaks, need at least ", breaks + 1, ".")
+    else if (any(ibreaks == breaks))
+      warning("the initial number of breaks is identical to the final number of breaks.")
+
+  }#THEN
+  else {
+
+    ndata = nrow(data)
+
+    if (ndata > 500)
+      ibreaks = 50
+    else if (ndata > 100)
+      ibreaks = 20
+    else if (ndata > 50)
+      ibreaks = 10
+    else if (ndata > 10)
+      ibreaks = 5
+    else
+      ibreaks = ndata
+
+    ibreaks = rep(ibreaks, ncol(data))
+
+  }#ELSE
+
+  return(ibreaks)
+
+}#CHECK.IBREAKS

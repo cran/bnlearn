@@ -65,14 +65,14 @@ subgraph(x, nodes)
 }
 \examples{
 data(learning.test)
-res = pc.stable(learning.test)
+cpdag = pc.stable(learning.test)
 
-acyclic(res)
-directed(res)
-res = pdag2dag(res, ordering = LETTERS[1:6])
-res
-directed(res)
-skeleton(res)
+acyclic(cpdag)
+directed(cpdag)
+dag = pdag2dag(cpdag, ordering = LETTERS[1:6])
+dag
+directed(dag)
+skeleton(dag)
 }
 \author{Marco Scutari}
 \keyword{graphs}

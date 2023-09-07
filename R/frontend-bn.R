@@ -11,7 +11,7 @@ nparams = function(x, data, effective = FALSE, debug = FALSE) {
   if (is(x, "bn")) {
 
     # check the data are there.
-    check.data(data, allow.missing = TRUE)
+    data = check.data(data, allow.missing = TRUE)
     # check the network against the data.
     check.bn.vs.data(x, data)
     # the number of parameters is unknown for partially directed graphs.

@@ -8,6 +8,39 @@ int imax(int x, int y) {
 
 }/*IMAX*/
 
+/* a rudimental C implementation of which.max() for an int array. */
+int i_which_max(int *array, int length) {
+
+int i = 0, imax = -1;
+/* R defines NA_INTEGER as INT_MIN, so use the acutal smallest integer. */
+int max = INT_MIN + 1;
+
+  for (i = 0; i < length; i++) {
+
+    /* NA cannot be compared with valid integer numbers. */
+    if (array[i] == NA_INTEGER)
+      continue;
+
+    if (array[i] > max) {
+
+      imax = i;
+      max = array[i];
+
+    }/*THEN*/
+
+  }/*FOR*/
+
+  if (imax < 0) {
+
+    /* if all elements are NA/NaN return NA. */
+    return NA_INTEGER;
+
+  }/*THEN*/
+
+  return imax + 1;
+
+}/*I_WHICH_MAX*/
+
 /* a rudimental C implementation of which.max() for a double array. */
 int d_which_max(double *array, int length) {
 

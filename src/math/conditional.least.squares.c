@@ -510,7 +510,7 @@ double **qr_matrix = NULL, **yy = NULL, *ff = NULL, *rr = NULL;
         continue;
 
       for (i = 0; i < qr_ncol; i++)
-        if (beta[CMC(i, j, qr_ncol)] == NA_REAL)
+        if (ISNAN(beta[CMC(i, j, qr_ncol)]))
           beta[CMC(i, j, qr_ncol)] = 0;
 
     }/*FOR*/
@@ -528,7 +528,7 @@ double **qr_matrix = NULL, **yy = NULL, *ff = NULL, *rr = NULL;
 
 /* conditional least squares with just the intercept and missing data. */
 static void c_cls0_with_missing(double *y, int *z, int nrow, int ncond,
-    double *fitted, double *resid, double *beta, double *sd) {
+    double *fitted, double *resid, double *beta, double *sd, int *nobs) {
 
 int i = 0, *nz = NULL;
 long double *means = NULL, *ssr = NULL;
@@ -625,6 +625,10 @@ long double *means = NULL, *ssr = NULL;
 
   }/*THEN*/
 
+  if (nobs)
+    for (i = 0; i < ncond; i++)
+      *nobs += nz[i];
+
   Free1D(nz);
   Free1D(means);
 
@@ -632,7 +636,8 @@ long double *means = NULL, *ssr = NULL;
 
 /* conditional least squares with one regression coefficient and missing data. */
 static void c_cls1_with_missing(double **x, double *y, int *z, int nrow,
-    int ncond, double *fitted, double *resid, double *beta, double *sd) {
+    int ncond, double *fitted, double *resid, double *beta, double *sd,
+    int *nobs) {
 
 int i = 0, *nz = NULL;
 double *cc = NULL;
@@ -773,6 +778,10 @@ long double *mean_y = NULL, *mean_x = NULL, *var_x = NULL, *cov = NULL, *ssr = N
 
   }/*THEN*/
 
+  if (nobs)
+    for (i = 0; i < ncond; i++)
+      *nobs += nz[i];
+
   Free1D(cc);
   Free1D(mean_y);
   Free1D(mean_x);
@@ -784,7 +793,8 @@ long double *mean_y = NULL, *mean_x = NULL, *var_x = NULL, *cov = NULL, *ssr = N
 
 /* conditional least squares with two regression coefficients and missing data. */
 static void c_cls2_with_missing(double **x, double *y, int *z, int nrow,
-    int ncond, double *fitted, double *resid, double *beta, double *sd) {
+    int ncond, double *fitted, double *resid, double *beta, double *sd,
+    int *nobs) {
 
 int i = 0, *nz = NULL;
 double *cc = NULL;
@@ -975,6 +985,10 @@ bool singular1 = FALSE, singular2 = FALSE;
 
   }/*THEN*/
 
+  if (nobs)
+    for (i = 0; i < ncond; i++)
+      *nobs += nz[i];
+
   Free1D(mean_y);
   Free1D(mean_x1);
   Free1D(mean_x2);
@@ -987,7 +1001,8 @@ bool singular1 = FALSE, singular2 = FALSE;
 
 /* general implementation of conditional least squares with missing data. */
 void c_clsp_with_missing(double **x, double *y, int *z, int nrow, int ncol,
-    int ncond, double *fitted, double *resid, double *beta, double *sd) {
+    int ncond, double *fitted, double *resid, double *beta, double *sd,
+    int *nobs) {
 
 int i = 0, j = 0, *nz = NULL, *counter = NULL, qr_ncol = ncol + 1;
 double **qr_matrix = NULL, **yy = NULL, *ff = NULL, *rr = NULL;
@@ -1162,12 +1177,16 @@ bool check = FALSE, *complete = NULL;
         continue;
 
       for (i = 0; i < qr_ncol; i++)
-        if (beta[CMC(i, j, qr_ncol)] == NA_REAL)
+        if (ISNAN(beta[CMC(i, j, qr_ncol)]))
           beta[CMC(i, j, qr_ncol)] = 0;
 
     }/*FOR*/
 
   }/*THEN*/
+
+  if (nobs)
+    for (i = 0; i < ncond; i++)
+      *nobs += nz[i];
 
   Free1D(nz);
   Free1D(counter);
@@ -1182,9 +1201,15 @@ bool check = FALSE, *complete = NULL;
 /* compute conditional least squares efficiently by special-casing whenever
  * possible. */
 void c_cls(double **x, double *y, int *z, int nrow, int ncol, int ncond,
-    double *fitted, double *resid, double *beta, double *sd, bool missing) {
+    double *fitted, double *resid, double *beta, double *sd, int *nobs,
+    bool missing) {
 
   if (!missing) {
+
+    /* the number of observations is always equal to the number of rows for
+     * complete data. */
+    if (nobs)
+      *nobs = nrow;
 
     if (ncol == 0) {
 
@@ -1212,22 +1237,23 @@ void c_cls(double **x, double *y, int *z, int nrow, int ncol, int ncond,
 
     if (ncol == 0) {
 
-      c_cls0_with_missing(y, z, nrow, ncond, fitted, resid, beta, sd);
+      c_cls0_with_missing(y, z, nrow, ncond, fitted, resid, beta, sd, nobs);
 
     }/*THEN*/
     else if (ncol == 1) {
 
-      c_cls1_with_missing(x, y, z, nrow, ncond, fitted, resid, beta, sd);
+      c_cls1_with_missing(x, y, z, nrow, ncond, fitted, resid, beta, sd, nobs);
 
     }/*THEN*/
     else if (ncol == 2) {
 
-      c_cls2_with_missing(x, y, z, nrow, ncond, fitted, resid, beta, sd);
+      c_cls2_with_missing(x, y, z, nrow, ncond, fitted, resid, beta, sd, nobs);
 
     }/*THEN*/
     else {
 
-      c_clsp_with_missing(x, y, z, nrow, ncol, ncond, fitted, resid, beta, sd);
+      c_clsp_with_missing(x, y, z, nrow, ncol, ncond, fitted, resid, beta, sd,
+          nobs);
 
     }/*ELSE*/
 

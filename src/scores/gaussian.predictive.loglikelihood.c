@@ -67,7 +67,7 @@ SEXP data_x, new_x;
 
   beta = Calloc1D(ncol + 1, sizeof(double));
 
-  c_ols(dd, xx, nrow, ncol, NULL, NULL, beta, &sd, FALSE);
+  c_ols(dd, xx, nrow, ncol, NULL, NULL, beta, &sd, NULL, FALSE);
 
   /* this estimate is not unbiased; the denominator is set to match the
    * corresponding denominator in the root nodes to ensure score equivalence. */
@@ -104,7 +104,7 @@ SEXP data_x, new_x;
 }/*CPGNODE*/
 
 double predictive_loglik_gnode(SEXP target, SEXP x, SEXP data, SEXP newdata,
-    double *nparams, int debugging) {
+    double *nparams, bool debugging) {
 
 double loglik = 0;
 char *t = (char *)CHAR(STRING_ELT(target, 0));
@@ -126,7 +126,7 @@ SEXP nodes, node_t, parents, data_t, new_t;
     loglik = cpgnode(data_t, new_t, data, newdata, parents, nparams);
 
   if (debugging > 0)
-    Rprintf("  > loglikelihood is %lf.\n", loglik);
+    Rprintf("  > log-likelihood is %lf.\n", loglik);
 
   UNPROTECT(2);
 

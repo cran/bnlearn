@@ -61,7 +61,7 @@ counts2d train = { 0 }, test = { 0 };
 }/*CPDNODE*/
 
 double predictive_loglik_dnode(SEXP target, SEXP x, SEXP data, SEXP newdata,
-    double *nparams, int debuglevel) {
+    double *nparams, bool debugging) {
 
 double loglik = 0;
 char *t = (char *)CHAR(STRING_ELT(target, 0));
@@ -98,8 +98,8 @@ SEXP parent_vars, new_parents, config, new_config;
 
   //loglik -= /* log(test_size)/2 */ (*nparams);
 
-  if (debuglevel > 0)
-    Rprintf("  > loglikelihood is %lf.\n", loglik);
+  if (debugging)
+    Rprintf("  > log-likelihood is %lf.\n", loglik);
 
   UNPROTECT(2);
 

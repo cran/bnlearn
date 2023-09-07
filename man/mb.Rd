@@ -157,29 +157,29 @@ ntests(x)
 }
 \examples{
 data(learning.test)
-res = pc.stable(learning.test)
+cpdag = pc.stable(learning.test)
 
 ##  the Markov blanket of A.
-mb(res, "A")
+mb(cpdag, "A")
 ## the neighbourhood of F.
-nbr(res, "F")
+nbr(cpdag, "F")
 ## the arcs in the graph.
-arcs(res)
+arcs(cpdag)
 ## the nodes of the graph.
-nodes(res)
+nodes(cpdag)
 ## the adjacency matrix for the nodes of the graph.
-amat(res)
+amat(cpdag)
 ## the parents of D.
-parents(res, "D")
+parents(cpdag, "D")
 ## the children of A.
-children(res, "A")
+children(cpdag, "A")
 ## the root nodes of the graph.
-root.nodes(res)
+root.nodes(cpdag)
 ## the leaf nodes of the graph.
-leaf.nodes(res)
+leaf.nodes(cpdag)
 ## number of parameters of the Bayesian network.
-res = set.arc(res, "A", "B")
-nparams(res, learning.test)
+dag = set.arc(cpdag, "A", "B")
+nparams(dag, learning.test)
 }
 \author{Marco Scutari}
 \keyword{convenience functions}

@@ -2,7 +2,7 @@
 # common steps in constraint-based structure learning: infer arc orientation
 # from the skeleton and the data.
 learn.arc.directions = function(x, cluster = NULL, local.structure, whitelist,
-    blacklist, test, alpha, B = NULL, data, max.sx = ncol(data), complete,
+    blacklist, test, alpha, B = NULL, data, max.sx = ncol(data),
     debug = FALSE) {
 
   nodes = names(x)
@@ -19,7 +19,7 @@ learn.arc.directions = function(x, cluster = NULL, local.structure, whitelist,
   vs = do.call("rbind",
          vstruct.detect(nodes = nodes, arcs = arcs, mb = local.structure,
            data = x, alpha = alpha, B = B, test = test, blacklist = blacklist,
-           max.sx = max.sx, complete = complete, debug = debug))
+           max.sx = max.sx, debug = debug))
   rownames(vs) = NULL
 
   if (!is.null(vs)) {
@@ -43,7 +43,7 @@ learn.arc.directions = function(x, cluster = NULL, local.structure, whitelist,
               nodes = structure(rep(0, length(nodes)), names = nodes),
               arcs = arcs)
 
-  return(cpdag.backend(pdag, moral = TRUE, fix = TRUE, debug = debug))
+  return(cpdag.backend(pdag, fix = TRUE, debug = debug))
 
 }#SECOND.PRINCIPLE
 
@@ -60,8 +60,7 @@ fake.markov.blanket = function(learn, target) {
 
 # build the neighbourhood of a node from the markov blanket.
 neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
-  test, empty.dsep = TRUE, markov = TRUE, max.sx = ncol(x), complete,
-  debug = FALSE) {
+  test, empty.dsep = TRUE, markov = TRUE, max.sx = ncol(x), debug = FALSE) {
 
   # initialize the neighbourhood using the markov blanket.
   candidate.neighbours = mb[[x]]
@@ -122,8 +121,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
     a = allsubs.test(x = x, y = y, sx = dsep.set,
           min = ifelse(empty.dsep, 0, 1), max = min(length(dsep.set), max.sx),
-          data = data, test = test, alpha = alpha, B = B,
-          complete = complete, debug = debug)
+          data = data, test = test, alpha = alpha, B = B, debug = debug)
 
     # update the neighbourhood.
     if (a["p.value"] > alpha)
@@ -141,7 +139,7 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
 # detect v-structures in the graph.
 vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
-    blacklist, max.sx = ncol(data), complete, debug = FALSE) {
+    blacklist, max.sx = ncol(data), debug = FALSE) {
 
   vstruct.centered.on = function(x, mb, data, dsep.set) {
 
@@ -195,7 +193,7 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
           if (debug)
             cat("    @ detected v-structure", y, "->", x, "<-", z, "from d-separating set.\n")
 
-          vs = rbind(vs, data.frame(max_a = el$p.value, y, x, z, stringsAsFactors = FALSE))
+          vs = rbind(vs, data.frame(max_a = el$p.value, y, x, z))
 
         }#THEN
 
@@ -212,14 +210,14 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
 
         a = allsubs.test(x = y, y = z, fixed = x, sx = sx, data = data,
               test = test, B = B, alpha = alpha, max = min(max.sx, length(sx)),
-              complete = complete, debug = debug)
+              debug = debug)
 
         if (a["p.value"] <= alpha) {
 
           if (debug)
             cat("    @ detected v-structure", y, "->", x, "<-", z, "\n")
 
-          vs = rbind(vs, data.frame(max_a = a["max.p.value"], y, x, z, stringsAsFactors = FALSE))
+          vs = rbind(vs, data.frame(max_a = a["max.p.value"], y, x, z))
 
         }#THEN
 

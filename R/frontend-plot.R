@@ -1,7 +1,7 @@
 
 # generic plot of an object of class 'bn' or 'bn.fit' using graphviz.
 graphviz.plot = function(x, highlight = NULL, groups, layout = "dot",
-    shape = "circle", main = NULL, sub = NULL, render = TRUE) {
+    shape = "circle", fontsize = 12, main = NULL, sub = NULL, render = TRUE) {
 
   # check whether graphviz is loaded.
   check.and.load.package("Rgraphviz")
@@ -23,17 +23,17 @@ graphviz.plot = function(x, highlight = NULL, groups, layout = "dot",
 
   }#ELSE
 
-  # return the graph object for further customization, not NULL.
+  # return the graph object for further customization.
   graphviz.backend(nodes = nodes, arcs = arcs, highlight = highlight,
-    groups = groups, layout = layout, shape = shape, main = main, sub = sub,
-    render = render)
+    groups = groups, layout = layout, shape = shape, fontsize = fontsize,
+    main = main, sub = sub, render = render)
 
 }#GRAPHVIZ.PLOT
 
 # plot a graph with arcs formatted according to their own strength.
 strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
-    groups, layout = "dot", shape = "circle", main = NULL, sub = NULL,
-    render = TRUE, debug = FALSE) {
+    groups, layout = "dot", shape = "circle", fontsize = 12, main = NULL,
+    sub = NULL, render = TRUE, debug = FALSE) {
 
   # check whether graphviz is loaded.
   check.and.load.package("Rgraphviz")
@@ -62,8 +62,8 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
   # create and maybe plot the graph object.
   gr = graphviz.backend(nodes = names(x$nodes), arcs = x$arcs,
          highlight = highlight, groups = groups, arc.weights = arc.weights,
-         layout = layout, shape = shape, main = main, sub = sub,
-         render = render)
+         layout = layout, shape = shape, fontsize = fontsize, main = main,
+         sub = sub, render = render)
 
   # save the arc strengths in the weights.
   graph::edgeData(gr, from = x$arcs[, 1], to = x$arcs[, 2],
@@ -309,7 +309,8 @@ plot.bn.kcv.list = function(x, ..., main, xlab, ylab, connect = FALSE) {
 
 # graphical comparison of different network structures.
 graphviz.compare = function(x, ..., groups, layout = "dot", shape = "circle",
-    main = NULL, sub = NULL, diff = "from-first", diff.args = list()) {
+    fontsize = 12, main = NULL, sub = NULL, diff = "from-first",
+    diff.args = list()) {
 
   available.diff.methods = c("none", "from-first")
 
@@ -335,7 +336,7 @@ graphviz.compare = function(x, ..., groups, layout = "dot", shape = "circle",
   if (diff == "none") {
 
     # nothing to do.
-    check.unused.args(diff.args, character(0))
+    diff.args = check.unused.args(diff.args, character(0))
 
   }#THEN
   else if (diff == "from-first") {
@@ -343,8 +344,8 @@ graphviz.compare = function(x, ..., groups, layout = "dot", shape = "circle",
     args = c("tp.col", "tp.lty", "tp.lwd", "fp.col", "fp.lty", "fp.lwd",
              "fn.col", "fn.lty", "fn.lwd", "show.first")
 
-    # check unused extra arguments.
-    check.unused.args(diff.args, args)
+    # warn about and remove unused arguments.
+    diff.args = check.unused.args(diff.args, args)
 
     # check the line type of the different classes of arcs.
     if ("tp.lty" %in% names(diff.args))
@@ -393,8 +394,8 @@ graphviz.compare = function(x, ..., groups, layout = "dot", shape = "circle",
   # the sanitization of "layout" and "shape" is left to the backend.
 
   graphviz.compare.backend(netlist = netlist, nodes = nodes, groups = groups,
-    layout = layout, shape = shape, main = main, sub = sub, diff = diff,
-    diff.args = diff.args)
+    layout = layout, shape = shape, fontsize = fontsize, main = main, sub = sub,
+    diff = diff, diff.args = diff.args)
 
 }#GRAPHVIZ.COMPARE
 

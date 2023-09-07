@@ -223,7 +223,7 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
     # generate random data from the bayesian network.
     if (m > 0) {
 
-      generated.data = .rbn.backend(x = fitted, n = m)
+      generated.data = rbn.backend(x = fitted, n = m)
 
     }#THEN
     else
@@ -244,23 +244,9 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
     if (length(r) != m)
       stop("logical vector for evidence is of length ", length(r),
         " instead of ", m, ".")
-    # filter out the samples not matching the evidence we assume.
+    # filter out the samples not matching the evidence we assume, and those for
+    # which the evidence evaluates to NA because the network is singular.
     filtered = r & !is.na(r)
-
-    # update the global counters.
-    cpe = cpe + length(which(filtered))
-
-    if (debug) {
-
-      lwfilter = length(which(filtered))
-      if (!identical(evidence, TRUE))
-        cat("  > evidence matches ", lwfilter, " samples out of ", m,
-          " (p = ", lwfilter/m, ").\n", sep = "")
-      else
-        cat("  > evidence matches ", m, " samples out of ", m,
-          " (p = 1).\n", sep = "")
-
-    }#THEN
 
     # evaluate the expression defining the event.
     if (identical(event, TRUE))
@@ -274,22 +260,33 @@ logic.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) {
     if (length(r) != m)
       stop("logical vector for event is of length ", length(r),
         " instead of ", m, ".")
-    # filter out the samples not matching the event we are looking for.
+    # filter out the samples not matching the event we are looking for, and
+    # those for which the event evaluates to NA because the network is singular.
     matching = filtered & r & !is.na(r)
+    filtered = filtered & !is.na(r)
 
     # update the global counters.
-    cpxe = cpxe + length(which(matching))
+    cpe = cpe + how.many(filtered)
+    cpxe = cpxe + how.many(matching)
 
     if (debug) {
 
-      lwmatch = length(which(matching))
-      lwratio = ifelse(lwfilter == 0, 0, lwmatch/lwfilter)
-      if (!identical(event, TRUE))
-        cat("  > event matches ", lwmatch, " samples out of ", lwfilter,
-          " (p = ", lwratio, ").\n", sep = "")
+      filter.count = how.many(filtered)
+      if (!identical(evidence, TRUE))
+        cat("  > evidence matches ", filter.count, " samples out of ", m,
+          " (p = ", filter.count / m, ").\n", sep = "")
       else
-        cat("  > event matches ", lwfilter, " samples out of ", lwfilter,
+        cat("  > evidence matches ", m, " samples out of ", m,
           " (p = 1).\n", sep = "")
+
+      match.count = how.many(matching)
+      fmratio = ifelse(filter.count == 0, 0, match.count / filter.count)
+      if (!identical(event, TRUE))
+        cat("  > event matches ", match.count, " samples out of ",
+          filter.count, " (p = ", fmratio, ").\n", sep = "")
+      else
+        cat("  > event matches ", filter.count, " samples out of ",
+          filter.count, " (p = 1).\n", sep = "")
 
     }#THEN
 
@@ -331,7 +328,7 @@ logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) 
 
     # generate random data from the bayesian network.
     if (m > 0)
-      generated.data = .rbn.backend(x = fitted, n = m)
+      generated.data = rbn.backend(x = fitted, n = m)
     else
       break
 
@@ -352,10 +349,10 @@ logic.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) 
 
     if (debug) {
 
-      lwfilter = length(which(filtered))
+      filter.count = how.many(filtered)
       if (!identical(evidence, TRUE))
-        cat("  > evidence matches ", lwfilter, " samples out of ", m,
-          " (p = ", lwfilter/m, ").\n", sep = "")
+        cat("  > evidence matches ", filter.count, " samples out of ", m,
+          " (p = ", filter.count / m, ").\n", sep = "")
       else
         cat("  > evidence matches ", m, " samples out of ", m,
           " (p = 1).\n", sep = "")
@@ -414,7 +411,7 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
 
     # generate random data from the bayesian network.
     if (m > 0)
-      generated.data = .rbn.backend(x = fitted, fix = evidence, n = m)
+      generated.data = rbn.backend(x = fitted, fix = evidence, n = m)
     else
       break
 
@@ -438,7 +435,7 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
 
     # compute the probabilities and use them as weigths.
     w = weights(generated.data)
-    cpe = cpe + sum(w)
+    cpe = cpe + sum(w[!is.na(r)])
     cpxe = cpxe + sum(w[matching])
 
     if (debug)

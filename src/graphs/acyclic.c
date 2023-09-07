@@ -129,7 +129,7 @@ there:
           ((crossprod[i] == 1) && (rowsums[i] == 1) && (colsums[i] == 1))) {
 
         if (debugging)
-          Rprintf("  @ node %s is cannot be part of a cycle.\n", NODE(i));
+          Rprintf("  @ node %s is not part of a cycle.\n", NODE(i));
 
         /* update the adjacency matrix and the row/column totals. */
         for (j = 0; j < nrow; j++)
@@ -156,7 +156,7 @@ there:
             ((rowsums[i] == 1) && (rowsums[j] == 1))) {
 
           if (debugging)
-            Rprintf("  @ arc %s - %s is cannot be part of a cycle.\n", NODE(i), NODE(j));
+            Rprintf("  @ arc %s - %s is not part of a cycle.\n", NODE(i), NODE(j));
 
           /* update the adjacency matrix and the row/column totals. */
           a[CMC(i, j, nrow)] = a[CMC(j, i, nrow)] = 0;
