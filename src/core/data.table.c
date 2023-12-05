@@ -120,7 +120,7 @@ bool own = FALSE;
 void print_meta(meta *m, int i) {
 
   Rprintf("%10s", (*m).names ? (*m).names[i] : "");
-  Rprintf(" [%s%s%s%s%s]",
+  Rprintf(" [%s%s%s%s%s%s]",
     ((*m).flag[i].own ? "O" : "P"),
     ((*m).flag[i].discrete ? "D" : " "),
     ((*m).flag[i].gaussian ? "G" : " "),

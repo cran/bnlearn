@@ -42,7 +42,7 @@ long double wsum = 0, wtot = 0;
     if (ISNAN(wsum))
       Rprintf("  > prediction is NA.\n");
     else
-      Rprintf("  > prediction is %Lf.\n", wsum);
+      Rprintf("  > prediction is %lf.\n", (double)wsum);
 
   }/*THEN*/
 
@@ -79,7 +79,7 @@ int k = 0, max_prob = 0;
     Rprintf("  > prediction is '%s' with weight sums:\n",
       max_prob == NA_INTEGER ? "NA" : CHAR(STRING_ELT(levels, max_prob - 1)));
     for (k = 0; k < nlvls; k++)
-      Rprintf("%Lf ", counts[k]);
+      Rprintf("%lf ", (double)(counts[k]));
     Rprintf("\n");
 
   }/*THEN*/

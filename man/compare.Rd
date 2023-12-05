@@ -19,7 +19,7 @@ compare(target, current, arcs = FALSE)
 shd(learned, true, wlbl = FALSE, debug = FALSE)
 hamming(learned, true, debug = FALSE)
 
-graphviz.compare(x, ..., groups, layout = "dot", shape = "circle",
+graphviz.compare(x, ..., groups, layout = "dot", shape = "rectangle",
   fontsize = 12, main = NULL, sub = NULL, diff = "from-first",
   diff.args = list())
 }

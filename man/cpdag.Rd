@@ -41,8 +41,9 @@ vstructs(x, arcs = FALSE, debug = FALSE)
 \details{
 
   Note that arcs whose directions are dictated by the parametric assumptions of
-  conditional linear Gaussian networks are preserved as directed arcs in
-  \code{cpdag()}.
+  the network are preserved as directed arcs in  \code{cpdag()}. This means
+  that, in a conditional Gaussian network, arcs from discrete nodes to
+  continuous nodes will be treated as whitelisted in their only valid direction.
 
 }
 \value{

@@ -372,7 +372,7 @@ long double loglik_kappa_tau = 0, loglik_kappa_tau_old = 0, relative_difference 
       estimate_loglik_kappa_and_tau(nu, kappa, *tau, alpha0, s, x_dim, y_dim);
 
     if (debugging)
-      Rprintf("the log-likelihood is %Lf.\n", loglik_kappa_tau);
+      Rprintf("the log-likelihood is %lf.\n", (double)loglik_kappa_tau);
 
     relative_difference = (loglik_kappa_tau - loglik_kappa_tau_old) /
                             fabsl(loglik_kappa_tau_old);
@@ -443,7 +443,7 @@ hdstatus err = { 0 };
     loglik_cur = estimate_global_loglik(nu, kappa, tau, alpha0, s, counts);
 
     if (debugging)
-      Rprintf("  > the log-likelihood is now %Lf.\n", loglik_cur);
+      Rprintf("  > the log-likelihood is now %lf.\n", (double)loglik_cur);
 
     /* check for convergence using the relative difference between the
      * log-likelihood in the current and previous iteration. */

@@ -11,7 +11,7 @@ void *p = NULL;
   p = calloc(R, size);
 
   if (!p)
-    error("unable to allocate a %d array.", R);
+    error("unable to allocate a %llu array.", (unsigned long long)R);
 
   return p ;
 
@@ -22,7 +22,7 @@ void *Realloc1D(void *p, size_t R, size_t size) {
   p = realloc(p, R * size);
 
   if (!p)
-    error("unable to reallocate a %d array.", R);
+    error("unable to reallocate a %llu array.", (unsigned long long)R);
 
   return p;
 
@@ -40,7 +40,8 @@ void **p = NULL;
 
   /* no corner cases, both dimensions required to be positive. */
   if ((R == 0) || (C == 0))
-    error("trying to allocate a %dx%d two-dimensional array.", R, C);
+    error("trying to allocate a %llux%llu two-dimensional array.",
+        (unsigned long long)R, (unsigned long long)C);
 
   p = Calloc1D(R, sizeof(void *));
 
@@ -67,7 +68,8 @@ void ***p = NULL;
 
   /* no corner cases, all three dimensions required to be positive. */
   if ((R == 0) || (C == 0) || (L == 0))
-    error("trying to allocate a %dx%dx%d three-dimensional array.", R, C, L);
+    error("trying to allocate a %llux%llux%llu three-dimensional array.",
+        (unsigned long long)R, (unsigned long long)C, (unsigned long long)L);
 
   p = Calloc1D(R, sizeof(void *));
   for (int i = 0; i < R; i++)

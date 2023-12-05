@@ -1,4 +1,33 @@
 
+# helper function to ensure that query results have dimensions in the same order
+# as the nodes in query.
+grain.query = function(jtree, nodes, type = "marginal") {
+
+   probdist = gRain::querygrain(jtree, nodes = nodes, type = type)
+
+   if (length(nodes) > 1) {
+
+     if (type == "marginal") {
+
+       # probdist is a named list.
+       if (any(names(probdist) != nodes))
+         probdist = probdist[nodes]
+
+     }#THEN
+     else if (type %in% c("joint", "conditional")) {
+
+       # probdist is a multidimensional table.
+       if (any(names(dimnames(probdist)) != nodes))
+         probdist = aperm(probdist, perm = nodes)
+
+     }#ELSE
+
+   }#THEN
+
+   return(probdist)
+
+}#GRAIN.QUERY
+
 # helper function to extract the childern of a node in a "grain" object.
 grain.get.children = function(fitted, node) {
 
@@ -38,7 +67,10 @@ from.bn.fit.to.grain = function(x, compile = TRUE) {
 
   }#FOR
 
-  return(gRain::grain(gRain::compileCPT(cpt), compile = compile))
+  # suppress deprecation warnings from gRbase.
+  cpt.list = suppressWarnings(gRain::compileCPT(cpt))
+
+  return(gRain::grain(cpt.list, compile = compile))
 
 }#FROM.BN.FIT.TO.GRAIN
 
@@ -91,7 +123,7 @@ from.grain.to.bn.fit.with.evidence = function(x) {
   fitted = vector(length(nodes), mode = "list")
   names(fitted) = nodes
 
-  # build the conditional probability tables using querygrain().
+  # build the conditional probability tables using gRain.
   for (node in nodes) {
 
     prob = structure(as.table(x[["cptlist"]][[node]]), class = "table")
@@ -109,24 +141,28 @@ from.grain.to.bn.fit.with.evidence = function(x) {
       }#THEN
       else {
 
-        propagated = gRain::querygrain(x, nodes = cpt.dimensions, type = "conditional")
+        propagated =
+          grain.query(x, nodes = cpt.dimensions, type = "conditional")
 
       }#ELSE
 
     }#THEN
     else {
 
-      if (length(parents) == 0)
-        propagated = cptattr(gRain::querygrain(x, nodes = node)[[node]])
-      else
-        propagated = gRain::querygrain(x, nodes = cpt.dimensions, type = "conditional")
+      if (length(parents) == 0) {
+
+        propagated =
+          cptattr(grain.query(x, nodes = node, type = "marginal")[[node]])
+
+      }#THEN
+      else {
+
+        propagated =
+          grain.query(x, nodes = cpt.dimensions, type = "conditional")
+
+      }#ELSE
 
     }#ELSE
-
-    # make sure the dimensions of the conditional probability table are in the
-    # right order, as gRain seems to shuffle them at random.
-    if (length(dim(propagated)) > 1)
-      propagated = aperm(propagated, match(cpt.dimensions, names(dimnames(propagated))))
 
     fitted[[node]] = structure(list(node = node, parents = parents,
                        children = NULL, prob = propagated),

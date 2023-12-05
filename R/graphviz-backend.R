@@ -1,10 +1,9 @@
 
 # unified backend for the graphviz calls.
 graphviz.backend = function(nodes, arcs, highlight = NULL, groups,
-    arc.weights = NULL, layout = "dot", shape = "circle", fontsize = 12,
+    arc.weights = NULL, layout = "dot", shape = "rectangle", fontsize = 12,
     main = NULL, sub = NULL, render = TRUE) {
 
-  node.shapes = c("ellipse", "circle", "rectangle")
   highlight.params = c("nodes", "arcs", "col", "fill", "lwd", "lty", "textCol")
   highlighting = FALSE
 
@@ -13,8 +12,8 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, groups,
   # sanitize nodes' shape.
   if (!is.string(shape))
     stop("node shape must be a character string.")
-  if (shape %!in% node.shapes)
-    stop("valid node schapes are:", paste0(" '", node.shapes, "'"), ".")
+  if (shape %!in% graphviz.node.shapes)
+    stop("valid node schapes are:", paste0(" '", graphviz.node.shapes, "'"), ".")
   # sanitize arc weights.
   if (!is.null(arc.weights)) {
 

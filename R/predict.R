@@ -300,7 +300,7 @@ targeted.exact.discrete.prediction = function(jtree, node, data, from,
 
   # generate the conditional probability table of the target variable given
   # the predictors...
-  cpt = gRain::querygrain(jtree, nodes = c(node, from), type = "conditional")
+  cpt = grain.query(jtree, nodes = c(node, from), type = "conditional")
   # ... embed it in a minimal bn.fit object...
   fitted.node = structure(list(node = node, parents = from, prob = cpt),
                           class = "bn.fit.dnode")
@@ -345,7 +345,7 @@ compact.exact.discrete.prediction = function(jtree, node, data, from,
 
     }#THEN
     # ... get the probability distribution of the node being predicted...
-    predprob = gRain::querygrain(jpred, nodes = node)[[node]]
+    predprob = grain.query(jpred, nodes = node, type = "marginal")[[node]]
     # ... and choose the level with the highest probability, breaking ties
     # randomly.
     all.maxima = names(predprob[predprob == max(predprob)])

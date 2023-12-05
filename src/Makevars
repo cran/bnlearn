@@ -44,7 +44,6 @@ SOURCES = \
   inference/loglikelihood/conditional.gaussian.c \
   inference/loss.c \
   inference/rbn.c \
-  inference/rinterface/kullback.leibler.c \
   inference/rinterface/loglikelihood.c \
   inference/rinterface/loss.c \
   inference/rinterface/cpdist.c \

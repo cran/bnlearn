@@ -31,7 +31,7 @@
   Conditional probability tables in \code{grain} objects must be completely
   specified; on the other hand, \code{bn.fit} allows \code{NaN} values for
   unobserved parents' configurations. Such \code{bn.fit} objects will be
-  converted to $m$ code{grain} objects by replacing the missing conditional
+  converted to $m$ \code{grain} objects by replacing the missing conditional
   probability distributions with uniform distributions.
 
   Another solution to this problem is to fit another \code{bn.fit} with

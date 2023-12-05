@@ -1,3 +1,14 @@
+bnlearn (4.9.1)
+
+  * assorted fixes to the Rprintf() format strings to pass the CRAN tests.
+  * the default node shape in graphviz.plot(), strength.plot() and
+     graphviz.compare() is now "rectangle", which is more space-efficient for
+     typical node labels.
+  * graphviz.compare() now accepts bn.fit objects, converting them to the
+     corresponding bn objects to compare the respective network structures.
+  * fixed a segfault in ci.test(), triggered by setting the conditioning 
+     variable set to a zero-column matrix (thanks Qingyuan Zheng).
+
 bnlearn (4.9)
 
   * as.prediction() is now deprecated and will be removed by the end of 2024.

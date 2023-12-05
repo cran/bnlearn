@@ -1,7 +1,7 @@
 
 # generic plot of an object of class 'bn' or 'bn.fit' using graphviz.
 graphviz.plot = function(x, highlight = NULL, groups, layout = "dot",
-    shape = "circle", fontsize = 12, main = NULL, sub = NULL, render = TRUE) {
+    shape = "rectangle", fontsize = 12, main = NULL, sub = NULL, render = TRUE) {
 
   # check whether graphviz is loaded.
   check.and.load.package("Rgraphviz")
@@ -32,7 +32,7 @@ graphviz.plot = function(x, highlight = NULL, groups, layout = "dot",
 
 # plot a graph with arcs formatted according to their own strength.
 strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
-    groups, layout = "dot", shape = "circle", fontsize = 12, main = NULL,
+    groups, layout = "dot", shape = "rectangle", fontsize = 12, main = NULL,
     sub = NULL, render = TRUE, debug = FALSE) {
 
   # check whether graphviz is loaded.
@@ -308,19 +308,21 @@ plot.bn.kcv.list = function(x, ..., main, xlab, ylab, connect = FALSE) {
 }#PLOT.BN.KCV.LIST
 
 # graphical comparison of different network structures.
-graphviz.compare = function(x, ..., groups, layout = "dot", shape = "circle",
+graphviz.compare = function(x, ..., groups, layout = "dot", shape = "rectangle",
     fontsize = 12, main = NULL, sub = NULL, diff = "from-first",
     diff.args = list()) {
-
-  available.diff.methods = c("none", "from-first")
 
   # check whether graphviz is loaded.
   check.and.load.package("Rgraphviz")
   # check the first network structure.
-  check.bn(x)
-  nodes = names(x$nodes)
-  # collect all the networks in a singe list.
+  check.bn.or.fit(x)
+  nodes = .nodes(x)
+  # collect all the networks in a single list.
   netlist = c(list(x), list(...))
+  # transform fitted networks back into network structures.
+  for (i in seq_along(netlist))
+    if (is(netlist[[i]], "bn.fit"))
+      netlist[[i]] = bn.net(netlist[[i]])
   # check that the networks in the list are valid and agree with each other.
   check.customlist(netlist, nodes = nodes)
   # check the titles and the subtitles for the networks.
@@ -331,18 +333,16 @@ graphviz.compare = function(x, ..., groups, layout = "dot", shape = "circle",
     if (!is.string.vector(sub) || (length(sub) != length(netlist)))
       stop("'sub' must a vector of character strings, one for each network.")
   # check the diff method.
-  check.label(diff, choices = available.diff.methods, argname = "diff")
+  check.label(diff, choices = graphviz.network.diff.methods, argname = "diff")
   # check the diff extra arguments.
+  args = graphviz.network.diff.extra.args[[diff]]
   if (diff == "none") {
 
-    # nothing to do.
-    diff.args = check.unused.args(diff.args, character(0))
+    # nothing to do, this method has not extra arguments.
+    diff.args = check.unused.args(diff.args, args)
 
   }#THEN
   else if (diff == "from-first") {
-
-    args = c("tp.col", "tp.lty", "tp.lwd", "fp.col", "fp.lty", "fp.lwd",
-             "fn.col", "fn.lty", "fn.lwd", "show.first")
 
     # warn about and remove unused arguments.
     diff.args = check.unused.args(diff.args, args)

@@ -6,13 +6,15 @@ query.partitioning = function(fitted, event, evidence, debug = FALSE) {
   catchall = list(event = character(0), evidence = evidence)
   queries = list()
 
+  dag = bn.net(fitted)
+
   # until all the event nodes in the query have been evaluated...
   while (length(event) > 0) {
 
     # ... take the first one...
     target = event[1]
     # ... find out its markov blanket...
-    target.mb = mb.fitted(fitted, target)
+    target.mb = dag$nodes[[target]]$mb
 
     if (debug)
       cat("  > considering event node", target, "with markov blanket",
@@ -27,7 +29,7 @@ query.partitioning = function(fitted, event, evidence, debug = FALSE) {
             "are also event nodes, considering them as well.\n")
 
       target = c(target, intersect(event, target.mb))
-      target.mb = unique(unlist(sapply(target, mb.fitted, x = fitted)))
+      target.mb = unique(unlist(sapply(target, function(t) dag$nodes[[t]]$mb)))
       target.mb = setdiff(target.mb, target)
 
       if (debug) {
@@ -60,8 +62,25 @@ query.partitioning = function(fitted, event, evidence, debug = FALSE) {
 
   }#WHILE
 
-  if (length(catchall$event) > 0)
+  # in the simple case where the catchall has a single event node, try to reduce
+  # it using d-separation.
+
+  # merge back events for which reduction to a subquery was impossible...
+  if (length(catchall$event) > 0) {
+
+    # ... but try to reduce the evidence first using d-separation if there is a
+    # single event node left.
+    if (length(catchall$event) == 1) {
+
+      for (e in catchall$evidence)
+        if (dseparation(dag, catchall$event, e, setdiff(catchall$evidence, e)))
+          catchall$evidence = setdiff(catchall$evidence, e)
+
+    }#THEN
+
     queries = c(queries, list(catchall))
+
+  }#THEN
 
   if (debug) {
 
@@ -105,7 +124,7 @@ mpe.discrete.query = function(jtree, event, evidence, value) {
   }#ELSE
 
   # ... get the joint probability table of the event nodes...
-  ppp = gRain::querygrain(jpred, nodes = event, type = "joint")
+  ppp = grain.query(jpred, nodes = event, type = "joint")
   # ... find the coordinates of the largest probability...
   id = which(ppp == max(ppp), arr.ind = TRUE)
   # ... pick one at random if there are multiple maxima...

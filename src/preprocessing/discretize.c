@@ -341,7 +341,7 @@ counts2d *counts = NULL;
       }/*FOR*/
 
       if (debugging)
-        Rprintf("  > mutual information is %Lf.\n", cumulated);
+        Rprintf("  > mutual information is %lf.\n", (double)cumulated);
 
       /* for each level of the i-th variable... */
       for (k = 0, current_best = 0, index_best = 0; k < work.nlvl[i] - 1; k++) {
@@ -358,7 +358,7 @@ counts2d *counts = NULL;
             candidate += mi_kernel_collapsed(counts[j], k) / counts[j].nobs;
 
         if (debugging)
-          Rprintf("mutual information is now %Lf.\n", candidate);
+          Rprintf("mutual information is now %lf.\n", (double)candidate);
 
         /* ... and pick the level which increases the mutual information the
          * least. */
@@ -372,10 +372,10 @@ counts2d *counts = NULL;
       }/*FOR*/
 
       if (debugging)
-        Rprintf("  @ best collapse is [%g, %g] and [%g, %g] with mutual information %Lf.\n",
+        Rprintf("  @ best collapse is [%g, %g] and [%g, %g] with mutual information %lf.\n",
           cutpoints[i][index_best], cutpoints[i][index_best + 1],
           cutpoints[i][index_best + 1], cutpoints[i][index_best + 2],
-          current_best);
+          (double)current_best);
 
       /* remove the cutpoint in between the now-merged levels (remember that
        * there is one more cutpoint than the number of breaks. */

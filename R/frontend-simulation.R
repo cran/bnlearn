@@ -2,7 +2,7 @@
 # generate random data from a bayesian network.
 rbn = function(x, n = 1, ..., debug = FALSE) {
 
-  check.bn.or.fit(x)
+  check.fit(x)
   # check the size of the sample to be generated.
   if (!is.positive.integer(n))
     stop("the number of observations to be generated must be a positive integer number.")
@@ -14,7 +14,7 @@ rbn = function(x, n = 1, ..., debug = FALSE) {
   # call the backend.
   rbn.backend(x = x, n = n, debug = debug)
 
-}#RBN.BN.FIT
+}#RBN
 
 # generate a random graph.
 random.graph = function(nodes, num = 1, method = "ordered", ..., debug = FALSE) {

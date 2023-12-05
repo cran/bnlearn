@@ -284,7 +284,7 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
       if (debugging) {
 
         if (res[i] == NA_INTEGER)
-          Rprintf("  > prediction for observation %d is NA with probabilities:\n");
+          Rprintf("  > prediction for observation %d is NA with probabilities:\n", i + 1);
         else
           Rprintf("  > prediction for observation %d is '%s' with probabilities:\n",
             i + 1, CHAR(STRING_ELT(tr_levels, res[i] - 1)));
@@ -622,7 +622,7 @@ wrap_up:
       res[i] = NA_INTEGER;
 
       if (debugging)
-        Rprintf(" > prediction for observation %d is NA because at least one predictor is NA.\n");
+        Rprintf(" > prediction for observation %d is NA because at least one predictor is NA.\n", i + 1);
 
     }/*THEN*/
     else if (nmax == 0) {
@@ -630,7 +630,7 @@ wrap_up:
       res[i] = NA_INTEGER;
 
       if (debugging)
-        Rprintf("  > prediction for observation %d is NA because the probabilities are missing.\n");
+        Rprintf("  > prediction for observation %d is NA because the probabilities are missing.\n", i + 1);
 
     }/*THEN*/
     else if (nmax == 1) {

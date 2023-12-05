@@ -9,7 +9,7 @@
 }
 \usage{
 graphviz.plot(x, highlight = NULL, groups, layout = "dot",
-  shape = "circle", fontsize = 12, main = NULL, sub = NULL,
+  shape = "rectangle", fontsize = 12, main = NULL, sub = NULL,
   render = TRUE)
 }
 \arguments{

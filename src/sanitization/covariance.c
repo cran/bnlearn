@@ -1,6 +1,7 @@
 #include "../include/rcore.h"
 #include "../core/covariance.matrix.h"
 #include "../math/linear.algebra.h"
+#include "../include/globals.h"
 
 /* check that a matrix is symmetric and satisfies Cauchy-Schwarz. */
 SEXP check_covariance(SEXP covmat) {
@@ -12,7 +13,7 @@ double *cov = REAL(covmat);
     for (j = i + 1; j < n; j++) {
 
       /* firstly, check symmetry. */
-      if (cov[CMC(i, j, n)] != cov[CMC(j, i, n)])
+      if (fabs(cov[CMC(i, j, n)] - cov[CMC(j, i, n)]) > MACHINE_TOL)
         error("'covmat' (%d, %d) is not symmetric.", i + 1, j + 1);
 
       /* secondly, check Cauchy-Schwarz. */

@@ -243,6 +243,9 @@ check.gnode.rvalue = function(x, node) {
 
   }#THEN
 
+  # make sure that the standard error is not an integer variable.
+  storage.mode(x$sd) = "double"
+
   # one residual for each fitted value.
   if (!is.null(x$resid) && !is.null(x$fitted))
     if (length(x$resid) != length(x$fitted))
@@ -380,7 +383,7 @@ check.cgnode.rvalue = function(x, node) {
         "residuals of node ", node, ".")
 
     if (length(x$sd) != ncol(x$coef))
-      stop("the dimensions of sd and coef do not match.")
+      stop("the dimensions of sd and coef do not match in node ", node, ".")
 
     if (!is.null(x$resid) && !is.null(x$configs)) {
 
@@ -403,6 +406,10 @@ check.cgnode.rvalue = function(x, node) {
              p = ifelse(is.matrix(x$coef), nrow(x$coef), length(x$coef)))
 
   }#THEN
+
+
+  # make sure that the standard error is not an integer variable.
+  storage.mode(x$sd) = "double"
 
   # one residual for each fitted value.
   if (!is.null(x$resid) && !is.null(x$fitted))

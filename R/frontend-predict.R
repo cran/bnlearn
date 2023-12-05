@@ -66,9 +66,15 @@ predict.bn.fit = function(object, node, data, cluster, method = "parents", ...,
     else
       nodes.to.check = extra.args$from
 
-    # try to reduce the number of predictors, for speed.
-    extra.args$from = reduce.predictors.for.exact.inference(fitted = object,
-                        target = node, predictors = extra.args$from)
+    # try to reduce the number of predictors, for speed, but only if all
+    # predictors are complete (imputation code takes care of that for incomplete
+    # data).
+    complete.nodes = attr(data, "metadata")$complete.nodes
+    complete.predictors = complete.nodes[extra.args$from]
+
+    if (all(complete.predictors))
+      extra.args$from = reduce.predictors.for.exact.inference(fitted = object,
+                          target = node, predictors = extra.args$from)
 
   }#THEN
 

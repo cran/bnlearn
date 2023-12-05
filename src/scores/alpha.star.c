@@ -132,7 +132,8 @@ SEXP nodes, labels, cur, node_info, parents, par_data, temp, cfg;
     }/*ELSE*/
 
     if (debugging)
-      Rprintf("  > numerator is now %Lf, denominator is now %Lf.\n", num, den);
+      Rprintf("  > numerator is now %lf, denominator is now %lf.\n",
+        (double)num, (double)den);
 
     UNPROTECT(1);
 
@@ -146,7 +147,8 @@ SEXP nodes, labels, cur, node_info, parents, par_data, temp, cfg;
   ratio = num / den;
 
   if (ratio < 1)
-    warning("the estimated imaginary sample size is very small (%Lf).", ratio);
+    warning("the estimated imaginary sample size is very small (%lf).",
+      (double)ratio);
 
   return ScalarReal((double)ratio);
 

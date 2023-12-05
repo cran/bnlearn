@@ -57,7 +57,6 @@ extern SEXP is_listed(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP is_pdag_acyclic(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP is_row_equal(SEXP, SEXP);
 extern SEXP joint_discretize(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP kullback_leibler_discrete(SEXP, SEXP);
 extern SEXP loglikelihood_function(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP lw_weights(SEXP, SEXP, SEXP, SEXP);
 extern SEXP mappred(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);

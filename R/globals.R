@@ -417,8 +417,17 @@ data.type.labels = c(
 fitted.node.types = c("bn.fit.dnode", "bn.fit.onode", "bn.fit.gnode",
   "bn.fit.cgnode")
 
-#-- graphviz plot layouts -----------------------------------------------------#
+#-- graphviz plots option lists -----------------------------------------------#
 graphviz.layouts = c("dot", "neato", "twopi", "circo", "fdp")
+graphviz.node.shapes = c("ellipse", "circle", "rectangle")
+
+graphviz.network.diff.methods = c("none", "from-first")
+
+graphviz.network.diff.extra.args = list(
+  "none" = character(0),
+  "from-first" = c("tp.col", "tp.lty", "tp.lwd", "fp.col", "fp.lty", "fp.lwd",
+                   "fn.col", "fn.lty", "fn.lwd", "show.first")
+)
 
 #-- functions to manipulate the global test counter from R --------------------#
 # global test counter.

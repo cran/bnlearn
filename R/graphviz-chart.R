@@ -19,8 +19,7 @@ graphviz.chart.backend = function(fitted, type = "barchart", layout = "dot",
   if (is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet"))) {
 
     # create the marginal probabilities.
-    values =
-      gRain::querygrain(as.grain(fitted), nodes = nodes, type = "marginal")
+    values = grain.query(as.grain(fitted), nodes = nodes, type = "marginal")
     # range of the values across all the nodes, used for scaling.
     value.range = structure(rep(list(c(0, 1)), nnodes), names = nodes)
 

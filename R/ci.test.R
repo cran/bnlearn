@@ -107,7 +107,10 @@ ci.test.vector = function(x, y, z, xlab, ylab, zlab, test, B, debug = FALSE) {
       if (nrow(z) != length(x))
         stop("'x', 'y', and 'z' must have the same length.")
 
-      sx = 3:(2 + ncol(z))
+      if (ncol(z) == 0)
+        sx = integer(0)
+      else
+        sx = 3:(2 + ncol(z))
 
     }#THEN
     else if (is.vector(z)) {

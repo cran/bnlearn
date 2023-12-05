@@ -126,7 +126,7 @@ mutilated(x, evidence)
   Note that the samples returned by \code{cpdist()} are generated from the
   mutilated network, and need to be weighted appropriately when computing
   summary statistics (for more details, see the references below).
-  {cpquery} does that automatically when computing the final conditional
+  \code{cpquery} does that automatically when computing the final conditional
   probability. Also note that the \code{batch} argument is ignored in
   \code{cpdist()} for speed and memory efficiency. Furthermore, the
   probabilities returned by \code{cpquery()} are approximate estimates and they

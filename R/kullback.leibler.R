@@ -21,7 +21,7 @@ project.distributions = function(from, onto) {
 
       parents = onto.dag$nodes[[node]]$parents
       local.dists[[node]] =
-        gRain::querygrain(jtree, nodes = c(node, parents), type = "conditional")
+        grain.query(jtree, nodes = c(node, parents), type = "conditional")
 
     }#FOR
 
@@ -65,13 +65,37 @@ kullback.leibler = function(P, Q) {
 # Kullback-Leibler divergence for discrete networks.
 kullback.leibler.discrete = function(P, Q) {
 
+  jtree = from.bn.fit.to.grain(P)
+
   # the divergence decomposes cleanly into one component for each local
   # distribution.
   sum(sapply(nodes(P), function(node) {
 
-    .Call("call_kullback_leibler_discrete",
-          cptableP = P[[node]]$prob,
-          cptableQ = Q[[node]]$prob)
+    pars = P[[node]]$parents
+    probP = P[[node]]$prob
+    probQ = Q[[node]]$prob
+
+    if (anyNA(probP) || anyNA(probQ))
+      return(NA)
+
+    if (length(pars) > 0) {
+
+      parprobP = grain.query(jtree, nodes = pars, type = "joint")
+      dim(probP) = dim(probQ) = c(nrow(probP), length(probP) / nrow(probP))
+      kl.node = 0
+
+      for (i in seq(ncol(probP)))
+        kl.node = kl.node +
+          parprobP[i] * sum(probP[, i] * log(probP[, i] / probQ[, i]), na.rm = TRUE)
+
+    }#THEN
+    else {
+
+      kl.node = sum(probP * log(probP / probQ), na.rm = TRUE)
+
+    }#ELSE
+
+    return(kl.node)
 
   }))
 

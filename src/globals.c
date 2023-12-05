@@ -102,7 +102,6 @@ static const R_CallMethodDef CallEntries[] = {
   CALL_ENTRY(is_pdag_acyclic, 5),
   CALL_ENTRY(is_row_equal, 2),
   CALL_ENTRY(joint_discretize, 7),
-  CALL_ENTRY(kullback_leibler_discrete, 2),
   CALL_ENTRY(loglikelihood_function, 6),
   CALL_ENTRY(lw_weights, 4),
   CALL_ENTRY(mappred, 7),
