@@ -607,7 +607,7 @@ bnlearn (3.2)
   * fixed outstanding typo affecting the sequential Monte Carlo
      implementation of Pearson's X^2 (thanks Maxime Gasse).
   * switch from Margaritis' set of rules to the more standard
-     Meek/Sprites set of rules, which are implemented in cpdag().
+     Meek/Spirtes set of rules, which are implemented in cpdag().
      Now the networks returned by constraint-based algorithms are
      guaranteed to be CPDAGs, which was not necessarily the case
      until now.

@@ -1,5 +1,5 @@
-a059fce82ee2cd32a1002943f6607441 *Changelog
-9f5458c137dec15a2d601dfb46a1410f *DESCRIPTION
+37e01345dc994107491c95112d8ff2ab *Changelog
+d28e2c75244a2050d880e93431473551 *DESCRIPTION
 b2560eaa807f21024254ba3557e08044 *NAMESPACE
 e3d8ac1e5735d528308bf96aef26d710 *R/aracne.R
 9b9bff177487557e5b4df49826849d32 *R/arc.operations.R
@@ -167,7 +167,7 @@ c79bafb24b541a494c8987b00ee96e36 *man/graphviz.plot.Rd
 68f319f4e22ccfd1982108c47b0073c7 *man/hailfinder.Rd
 e3fc1cfd8663abe6dab8e05ee90ba6ee *man/hc.Rd
 84260c91dd97a6ae3b1e59c922a2cc67 *man/hybrid.Rd
-4c95e0209e24e8d087636390d6856504 *man/igraphpkg.Rd
+c5a1a5ddcb39860ed811a653e87efbfc *man/igraphpkg.Rd
 f0d7c9aab68743a192de591c4a418475 *man/insurance.Rd
 42b1878e40b4e0ba1c52aa8bbf7cea47 *man/kl.Rd
 95725f7f8401a27932d2b9aae971734c *man/learn.Rd

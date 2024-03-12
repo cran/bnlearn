@@ -31,7 +31,7 @@
 a = bn.fit(hc(learning.test), learning.test)
 b = as.igraph(a)
 plot(b, edge.arrow.mode = 2L * !igraph::which_mutual(b))
-c = as.bn(b)}:}
+c = as.bn(b)}}
 \author{Marco Scutari}
 \keyword{utilities}
 \keyword{interfaces to other packages}
