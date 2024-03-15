@@ -33,6 +33,7 @@ tan.backend = function(data, training, explanatory, whitelist, blacklist, mi,
   # separate features and target class variable in data and metadata.
   features.data =
     .data.frame.column(data, explanatory, drop = FALSE, keep.names = TRUE)
+  features.data = .data.frame(features.data)
   attr(features.data, "metadata") = collect.metadata(features.data)
   class.data = .data.frame.column(data, training, drop = TRUE)
 

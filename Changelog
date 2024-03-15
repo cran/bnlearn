@@ -1,3 +1,11 @@
+bnlearn (4.9.3)
+
+  * fixed a buffer overflow by ASAN in the CRAN tests.
+
+bnlearn (4.9.2)
+
+  * fixed a syntax error in a manpage to pass CRAN tests.
+
 bnlearn (4.9.1)
 
   * assorted fixes to the Rprintf() format strings to pass the CRAN tests.
