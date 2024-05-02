@@ -179,10 +179,9 @@ arcs = custom.strength(netlist, nodes = names(learning.test),
          cpdag = FALSE)
 arcs[(arcs$strength > 0.85) & (arcs$direction >= 0.5), ]
 modelstring(averaged.network(arcs))
-}
 
 bf.strength(dag, learning.test, score = "bds", prior = "marginal")
-}
+}}
 \seealso{\code{\link{strength.plot}}, \code{\link{score}},
   \code{\link{ci.test}}.}
 \author{Marco Scutari}

@@ -1,3 +1,7 @@
+bnlearn (4.9.4)
+
+  * added some PROTECT()s to pass the CRAN tests.
+
 bnlearn (4.9.3)
 
   * fixed a buffer overflow by ASAN in the CRAN tests.

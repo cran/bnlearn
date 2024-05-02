@@ -8,7 +8,7 @@ fitted_bn fitted_network_from_SEXP(SEXP fitted) {
 
 fitted_net_e type = fitted_net_to_enum(fitted);
 fitted_bn bn;
-SEXP temp, fitted_bn_nodes, cur_node, parents;
+SEXP temp, nodes_in_fitted_bn, cur_node, parents;
 
   /* find out the type and the size of the network, and allocate its
    * components (node types and labels, local distributions. */
@@ -19,9 +19,9 @@ SEXP temp, fitted_bn_nodes, cur_node, parents;
   bn.labels = Calloc1D(bn.nnodes, sizeof(const char *));
 
   /* copy the node labels. */
-  fitted_bn_nodes = getAttrib(fitted, R_NamesSymbol);
+  PROTECT(nodes_in_fitted_bn = getAttrib(fitted, R_NamesSymbol));
   for (int i = 0; i < bn.nnodes; i++)
-    bn.labels[i] = CHAR(STRING_ELT(fitted_bn_nodes, i));
+    bn.labels[i] = CHAR(STRING_ELT(nodes_in_fitted_bn, i));
 
   /* save pointers to the parameters in the SEXP and their dimensions. */
   for (int i = 0; i < bn.nnodes; i++) {
@@ -30,7 +30,7 @@ SEXP temp, fitted_bn_nodes, cur_node, parents;
     bn.node_types[i] = fitted_node_to_enum(cur_node);
 
     temp = getListElement(cur_node, "parents");
-    PROTECT(parents = match(fitted_bn_nodes, temp, 0));
+    PROTECT(parents = match(nodes_in_fitted_bn, temp, 0));
     bn.ldists[i].nparents = length(parents);
     bn.ldists[i].parents = Calloc1D(length(parents), sizeof(int));
     for (int j = 0; j < length(parents); j++)
@@ -80,6 +80,8 @@ SEXP temp, fitted_bn_nodes, cur_node, parents;
     }/*THEN*/
 
   }/*FOR*/
+
+  UNPROTECT(1);
 
   return bn;
 

@@ -60,10 +60,6 @@ SEXP nodes_in_order, relevant_data, relevant_df, counts, cptable;
 
   }/*FOR*/
 
-  PrintValue(cptable);
-
-  UNPROTECT(5);
-
   /* warnings at the end of the function, so that they do not cause leaks even
    * if warnings are transformed into errors via options(). */
   if (err.outer_em_convergence_fail)
@@ -81,6 +77,8 @@ SEXP nodes_in_order, relevant_data, relevant_df, counts, cptable;
   if (err.tau_is_zero)
     warning("tau is zero, restarting the Newton updates for node %s.",
       CHAR(STRING_ELT(node, 0)));
+
+  UNPROTECT(5);
 
   return cptable;
 

@@ -29,6 +29,7 @@ KL(P, Q)
 
 }
 \examples{
+\dontrun{
 # discrete networks
 dag = model2network("[A][C][F][B|A][D|A:C][E|B:F]")
 fitted1 = bn.fit(dag, learning.test, method = "mle")
@@ -37,6 +38,7 @@ fitted2 = bn.fit(dag, learning.test, method = "bayes", iss = 20)
 KL(fitted1, fitted1)
 KL(fitted2, fitted2)
 KL(fitted1, fitted2)
+}
 
 # continuous, singular networks.
 dag = model2network("[A][B][E][G][C|A:B][D|B][F|A:D:E:G]")

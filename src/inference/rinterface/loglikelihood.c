@@ -16,7 +16,7 @@ double *loglik = NULL;
 fitted_bn bn = fitted_network_from_SEXP(fitted);
 bool by = isTRUE(by_sample), propagate = isTRUE(propagate_missing);
 bool debugging = isTRUE(debug);
-SEXP keep, loglikelihood, metadata, complete_nodes;
+SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
 
   /* allocate the return value: a vector with length equal to the sample size if
    * we are returning the log-likelihood of each observation, or a vector of
@@ -36,7 +36,8 @@ SEXP keep, loglikelihood, metadata, complete_nodes;
   }/*ELSE*/
 
   /* find out which nodes to compute the log-likelihood for, zero-indexed. */
-  PROTECT(keep = match(keep_nodes, getAttrib(fitted, R_NamesSymbol), 0));
+  PROTECT(nodes_in_fitted = getAttrib(fitted, R_NamesSymbol));
+  PROTECT(keep = match(keep_nodes, nodes_in_fitted, 0));
 
   /* extract the metadata from the data. */
   PROTECT(metadata = getAttrib(data, BN_MetaDataSymbol));
@@ -123,7 +124,7 @@ SEXP keep, loglikelihood, metadata, complete_nodes;
   if (!by)
     Free1D(loglik);
   FreeFittedBN(bn);
-  UNPROTECT(4);
+  UNPROTECT(5);
 
   return loglikelihood;
 

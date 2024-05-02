@@ -1,5 +1,5 @@
-e23247fb391b894fc4c2e72782f30adf *Changelog
-0ef80ba2558cbce6b8d26a355453c2a2 *DESCRIPTION
+46eda6c21611e2efa33bb3d0cef5122f *Changelog
+6c599e1b09706ade20ba86f3457dc4d3 *DESCRIPTION
 b2560eaa807f21024254ba3557e08044 *NAMESPACE
 e3d8ac1e5735d528308bf96aef26d710 *R/aracne.R
 9b9bff177487557e5b4df49826849d32 *R/arc.operations.R
@@ -129,7 +129,7 @@ e6314a9c19cc6fd2053306493cd6d3cc *data/marks.rda
 9fd568b513ee236b30d367f4cb42b43d *inst/CITATION
 87628a680b8a6578929d673577f09cea *man/alarm.Rd
 86baa97aee00cbdb467e4e92d7055315 *man/alpha.star.Rd
-447c87cdc591e6d19fdc0249dced4681 *man/arc.strength.Rd
+27c9c566db8e0634c44a72cdd3a38453 *man/arc.strength.Rd
 bb581962240df79ac80748f611a70fe6 *man/arcops.Rd
 7b1e830ddf011b816eb1e9e4e921b8a7 *man/asia.Rd
 61d0d51ae25f8d3d9fc23a7c92db0c24 *man/bayesian.network.classifiers.Rd
@@ -169,7 +169,7 @@ e3fc1cfd8663abe6dab8e05ee90ba6ee *man/hc.Rd
 84260c91dd97a6ae3b1e59c922a2cc67 *man/hybrid.Rd
 c5a1a5ddcb39860ed811a653e87efbfc *man/igraphpkg.Rd
 f0d7c9aab68743a192de591c4a418475 *man/insurance.Rd
-42b1878e40b4e0ba1c52aa8bbf7cea47 *man/kl.Rd
+4a39ff63924327e24a7c9dabc59dec29 *man/kl.Rd
 95725f7f8401a27932d2b9aae971734c *man/learn.Rd
 8ef8580535b64353aaa3972fb5e058c7 *man/learning-test.Rd
 ae296f55b7592aa30d691f5739f02340 *man/lizards.Rd
@@ -233,7 +233,7 @@ d96637beb91b51057b2c8c5ab69ce64a *src/core/sampling.c
 7da02a73363b65ca98346f2064486f87 *src/core/uppertriangular.c
 252e98286f5b837ca8ccd88f25c9ae0c *src/core/uppertriangular.h
 eb6b259dde94cb4fc1535a2b47e77ce1 *src/fitted/enums.c
-888923be481c952680a1d17f4178249d *src/fitted/fitted.c
+7e1c3ac8a3c11816d8678081818a1ee9 *src/fitted/fitted.c
 119d95876daaab4246e208c18646602c *src/fitted/fitted.h
 8794611e497f87b65c1e88f08e7a31f2 *src/foreign/parse.c
 111575ce064fcf168b41f6ca4504a836 *src/globals.c
@@ -261,7 +261,7 @@ e390de54b94e1c14430d433fea798bba *src/inference/loss.h
 ca93818f192043f71bfeeeb7d8dcd36f *src/inference/rbn.c
 d19c86fcfcf27d4f0f58cfcb5e3cfae8 *src/inference/rinterface/cpdist.c
 29a88740c9301ae278d77366b500f6a3 *src/inference/rinterface/likelihood.weighting.c
-5fae39f6e3f6d3c8ec330ac69b269c92 *src/inference/rinterface/loglikelihood.c
+2efaf3f0ee42bee786629365434dbc7e *src/inference/rinterface/loglikelihood.c
 c9be64e5e297c4c4304450f2148fb791 *src/inference/rinterface/loss.c
 7ade552e91be87d29e2a3176b995c68e *src/inference/rinterface/rbn.c
 d301c0527c821cc28d0eadfc5993ed03 *src/learning/averaging/averaging.c
@@ -289,7 +289,7 @@ c4ababea9ed7d088e27c49a5105acddb *src/parameters/discrete/classic_discrete.c
 8166fa08014366b8cede0d56cfad60e4 *src/parameters/discrete/hierarchical_dirichlet.c
 0a6a98686a731ace8a26514ef099dec4 *src/parameters/parameters.h
 74d3bd841a6777e0668b4ec5de2f0083 *src/parameters/rinterface/classic_discrete.c
-a0a8d28ae1e3c1b811f97e200e9e52fa *src/parameters/rinterface/hierarchical_dirichlet.c
+bd291fc649166dc0539f830255463b1e *src/parameters/rinterface/hierarchical_dirichlet.c
 64c41869828fb660ed86103a7649a08d *src/parameters/rinterface/mixture_ordinary_least_squares.c
 6e0802298ded59cd84320c0e5d4e05f6 *src/parameters/rinterface/ordinary_least_squares.c
 07ca46ea0e99b8b36beea1c2b51c8d35 *src/predict/map.lw.c
