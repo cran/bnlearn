@@ -6,7 +6,7 @@
 #include "../patterns.h"
 
 /* unconditional independence tests. */
-SEXP utest(SEXP x, SEXP y, SEXP data, SEXP test, SEXP B, SEXP alpha,
+SEXP utest(SEXP x, SEXP y, SEXP data, SEXP test, SEXP alpha, SEXP extra_args,
     SEXP learning, SEXP complete) {
 
 int ntests = length(x), nobs = 0;
@@ -59,14 +59,29 @@ SEXP xx, yy, cc, result;
   }/*THEN*/
   else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
 
-    statistic = ut_dperm(xx, yy, nobs, ntests, pvalue, &df, test_type, INT(B),
+    /* discrete permutation tests. */
+    int B = INT(getListElement(extra_args, "B"));
+
+    statistic = ut_dperm(xx, yy, nobs, ntests, pvalue, &df, test_type, B,
                   IS_SMC(test_type) ? NUM(alpha) : 1);
 
   }/*THEN*/
   else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
 
-    statistic = ut_gperm(xx, yy, nobs, ntests, pvalue, test_type, INT(B),
+    /* continuous permutation tests. */
+    int B = INT(getListElement(extra_args, "B"));
+
+    statistic = ut_gperm(xx, yy, nobs, ntests, pvalue, test_type, B,
                   IS_SMC(test_type) ? NUM(alpha) : 1, all_equal(cc, TRUESEXP));
+
+  }/*THEN*/
+  else if (test_type == CUSTOM_T) {
+
+    /* user-provided test function. */
+    SEXP custom_fn = getListElement(extra_args, "fun");
+    SEXP custom_args = getListElement(extra_args, "args");
+
+    statistic = ut_custom(x, y, data, custom_fn, custom_args, pvalue);
 
   }/*THEN*/
 
@@ -82,7 +97,7 @@ SEXP xx, yy, cc, result;
   if (isTRUE(learning))
     return result;
   else
-    return c_create_htest(statistic, test, pvalue[ntests - 1], df, B);
+    return c_create_htest(statistic, test, pvalue[ntests - 1], df, extra_args);
 
 }/*UTEST*/
 

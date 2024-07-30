@@ -32,14 +32,15 @@ typedef enum {
   SMC_COR   = 80, /* linear correlation (sequential permutation). */
   SMC_MI_G  = 81, /* Gaussian mutual information test (sequential permutation). */
   SMC_ZF    = 82, /* Fisher's Z test (sequential permutation). */
+  CUSTOM_T  = 99, /* user-provided test function. */
 } test_e;
 
 /* from enums.c */
 test_e test_to_enum(const char *label);
 #define IS_DISCRETE_ASYMPTOTIC_TEST(t) (((t >= MI) && (t < COR)) || t == MI_SH)
 #define IS_DISCRETE_PERMUTATION_TEST(t) ((t >= MC_MI) && (t < MC_COR))
-#define IS_CONTINUOUS_PERMUTATION_TEST(t) (t >= MC_COR)
-#define IS_SMC(t) (((t >= SMC_MI) && (t < MC_COR)) || (t >= SMC_COR))
+#define IS_CONTINUOUS_PERMUTATION_TEST(t) ((t >= MC_COR) && (t < CUSTOM_T))
+#define IS_SMC(t) (((t >= SMC_MI) && (t < MC_COR)) || ((t >= SMC_COR) && (t < CUSTOM_T)))
 #define IS_TWO_SIDED(t) \
   ((t == JT) || (t == COR) || (t == ZF) || (t == MC_JT) || (t == SMC_JT) || \
    (t == MC_COR) || (t == MC_ZF) || (t == SMC_COR) || (t == SMC_ZF))
@@ -54,17 +55,18 @@ test_e test_to_enum(const char *label);
   }
 
 /* from htest.c */
-SEXP c_create_htest(double stat, SEXP test, double pvalue, double df, SEXP B);
+SEXP c_create_htest(double stat, SEXP test, double pvalue, double df,
+    SEXP extra_args);
 
 /* from indep.test.c */
 SEXP indep_test(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP B,
     SEXP alpha, SEXP learning, SEXP complete);
 
 /* conditional independence tests. */
-SEXP utest(SEXP x, SEXP y, SEXP data, SEXP test, SEXP B, SEXP alpha,
+SEXP utest(SEXP x, SEXP y, SEXP data, SEXP test, SEXP alpha, SEXP extra_args,
     SEXP learning, SEXP complete);
-SEXP ctest(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP B, SEXP alpha,
-    SEXP learning, SEXP complete);
+SEXP ctest(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP alpha,
+    SEXP extra_args, SEXP learning, SEXP complete);
 
 /* from discrete.tests.c */
 double c_chisqtest(int *xx, int llx, int *yy, int lly, int num, double *df,
@@ -127,5 +129,9 @@ void c_gauss_mcarlo(double *xx, double *yy, int num, int B, double *res,
     double alpha, test_e test, double *observed);
 void c_gauss_cmcarlo(double **column, int ncol, int num, int v1, int v2, int B,
     double *observed, double *pvalue, double alpha, test_e test);
+
+/* from custom.test.c */
+double custom_test_function(SEXP x, SEXP y, SEXP z, SEXP data, SEXP custom_fn,
+    SEXP custom_args, double *pvalue);
 
 #endif

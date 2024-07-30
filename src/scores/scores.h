@@ -43,7 +43,7 @@ typedef enum {
   NAL_CG         = 205, /* Node-average likelihood. */
   PNAL_CG        = 206, /* Penalized node-average likelihood. */
 
-  CUSTOM         = 300  /* custom-function score. */
+  CUSTOM         = 300  /* user-provided score function. */
 } score_e;
 
 score_e score_to_enum(const char *label);

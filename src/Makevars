@@ -29,6 +29,8 @@ SOURCES = \
   core/uppertriangular.c \
   fitted/enums.c \
   fitted/fitted.c \
+  fitted/nparams.c \
+  fitted/rinterface/nparams.c \
   foreign/parse.c \
   globals.c \
   graphs/acyclic.c \
@@ -45,7 +47,6 @@ SOURCES = \
   inference/loss.c \
   inference/rbn.c \
   inference/rinterface/loglikelihood.c \
-  inference/rinterface/loss.c \
   inference/rinterface/cpdist.c \
   inference/rinterface/rbn.c \
   inference/rinterface/likelihood.weighting.c \
@@ -108,6 +109,7 @@ SOURCES = \
   tests/gaussian/df.adjust.c \
   tests/gaussian/gaussian.tests.c \
   tests/gaussian/shrinkage.c \
+  tests/omnibus/custom.test.c \
   tests/patterns/allsubs.test.c \
   tests/patterns/ctest.c \
   tests/patterns/roundrobin.test.c \

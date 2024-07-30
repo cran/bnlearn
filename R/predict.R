@@ -10,6 +10,7 @@ predict.backend = function(fitted, node, data, cluster = NULL, method,
   else
     splits = list(seq(nrow(data)))
 
+  # choose the right function for the prediction method.
   if (method == "parents") {
 
     if (is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
@@ -48,15 +49,30 @@ predict.backend = function(fitted, node, data, cluster = NULL, method,
 
   }#THEN
 
-  predicted = smartSapply(cluster, splits, function(ids) {
+  # compute the predicted values.
+  values = smartSapply(cluster, splits, function(ids) {
     fun(node = node, fitted = fitted, data = data[ids, , drop = FALSE],
         extra.args = extra.args, prob = prob, debug = debug)
   })
 
-  if (!is.null(cluster))
-    predicted = do.call("c", predicted)
-  else
-    predicted = predicted[[1]]
+  if (!is.null(cluster)) {
+
+    predicted = do.call("c", values)
+
+    # reassemble and attach the classification probabilities.
+    if (prob) {
+
+      clprobs = lapply(values, attr, "prob")
+      attr(predicted, "prob") = do.call(cbind, clprobs)
+
+    }#THEN
+
+  }#THEN
+  else {
+
+    predicted = values[[1]]
+
+  }#THEN
 
   return(predicted)
 
@@ -316,7 +332,7 @@ targeted.exact.discrete.prediction = function(jtree, node, data, from,
 # prediction using exact inference in discrete networks, iterating over
 # observations and propagating the predictors as evidence.
 compact.exact.discrete.prediction = function(jtree, node, data, from,
-   prob = FALSE, debug = FALSE) {
+    prob = FALSE, debug = FALSE) {
 
   # the predicted values are a factor with the target node's levels, taken
   # from the junction tree since the target node is not necessarily available.

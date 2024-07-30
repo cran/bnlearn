@@ -102,7 +102,7 @@ collect.metadata = function(x) {
 
   return(metadata)
 
-}#BUILD.METADATA
+}#COLLECT.METADATA
 
 # is the data of a particular type?
 data.type = function(data) {

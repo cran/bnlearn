@@ -33,15 +33,26 @@ check.score = function(score, data, allowed = available.scores) {
     if (metadata$type %in% c("ordered", "mixed-do"))
       warning("no score is available for ordinal data, disregarding the ordering of the levels.")
 
-    if (any(!metadata$complete.nodes))
-      stop("no available score for incomplete data other than 'custom'.")
+    if (all(metadata$complete.nodes)) {
 
-    if (metadata$type %in% discrete.data.types)
-      return("bic")
-    else if (metadata$type == "continuous")
-      return("bic-g")
-    else if (metadata$type == "mixed-cg")
-      return("bic-cg")
+      if (metadata$type %in% discrete.data.types)
+        return("bic")
+      else if (metadata$type == "continuous")
+        return("bic-g")
+      else if (metadata$type == "mixed-cg")
+        return("bic-cg")
+
+    }#THEN
+    else {
+
+      if (metadata$type %in% discrete.data.types)
+        return("pnal")
+      else if (metadata$type == "continuous")
+        return("pnal-g")
+      else if (metadata$type == "mixed-cg")
+        return("pnal-cg")
+
+    }#ELSE
 
   }#ELSE
 
@@ -124,7 +135,7 @@ check.score.args = function(score, network, data, extra.args, learning = FALSE) 
 
   # check the number of scores to average.
   if (has.argument(score, "l", score.extra.args))
-    extra.args[["l"]] = check.l(l = extra.args[["l"]])
+    extra.args[["l"]] = check.l(l = extra.args[["l"]], network = network)
 
   # check the normal-Wishart prior arguments.
   if (has.argument(score, "nu", score.extra.args))
@@ -147,10 +158,11 @@ check.score.args = function(score, network, data, extra.args, learning = FALSE) 
 
   # check the R function implementing a custom score.
   if (has.argument(score, "fun", score.extra.args))
-    extra.args[["fun"]] = check.custom.score.function(fun = extra.args[["fun"]])
+    extra.args[["fun"]] =
+      check.custom.score.function(fun = extra.args[["fun"]], network = network)
   if (has.argument(score, "args", score.extra.args))
     extra.args[["args"]] =
-      check.custom.score.arguments(args = extra.args[["args"]])
+      check.custom.score.arguments(args = extra.args[["args"]], network = network)
 
   # warn about and remove unused arguments.
   extra.args = check.unused.args(extra.args, score.extra.args[[score]])
@@ -244,7 +256,7 @@ check.iss.mu = function(iss.mu, network) {
   # coerce iss to integer.
   return(as.numeric(iss.mu))
 
-}#CHECK.ISS
+}#CHECK.ISS.MU
 
 # check the imaginary sample size for the Wishart prior over the covariance.
 check.iss.w = function(iss.w, network, data) {
@@ -464,13 +476,22 @@ check.graph.hyperparameters = function(beta, prior, network, data,
 }#CHECK.GRAPH.SPARSITY
 
 # check the number of scores to average.
-check.l = function(l) {
+check.l = function(l, network) {
 
-  if (is.null(l))
-    l = 5
-  else
+  if (is.null(l)) {
+
+    if (!is.null(network$learning$args$l))
+      l = network$learning$args$l
+    else
+      l = 5
+
+  }#THEN
+  else {
+
     if (!is.positive.integer(l))
       stop("l must be a positive integer, the number of scores to average.")
+
+  }#ELSE
 
   return(as.numeric(l))
 
@@ -482,7 +503,9 @@ check.newdata = function(newdata, network, data, required = TRUE,
 
   if (is.null(newdata)) {
 
-    if (required)
+    if (!is.null(network$learning$args$newdata))
+      return(network$learning$args$newdata)
+    else if (required)
       stop("predictive scores require a test set passed as 'newdata'.")
     else
       return(NULL)
@@ -557,30 +580,48 @@ check.newdata = function(newdata, network, data, required = TRUE,
 }#CHECK.NEWDATA
 
 # check the R function implementing a custom score.
-check.custom.score.function = function(fun) {
+check.custom.score.function = function(fun, network) {
 
   # there is no possible default value.
-  if (is.null(fun))
-    stop("missing the custom score function.")
+  if (is.null(fun)) {
 
-  # check the argument list.
-  fun.arguments = names(formals(fun))
-  if (!setequal(fun.arguments, c("node", "parents", "data", "args")) ||
-      anyDuplicated(fun.arguments))
-    stop("the custom score function must have signature function(node, parents, data, args).")
+    if (!is.null(network$learning$args$fun))
+      fun = network$learning$args$fun
+    else
+      stop("missing the custom score function.")
+
+  }#THEN
+  else {
+
+    # check the argument list.
+    fun.arguments = names(formals(fun))
+    if (!identical(fun.arguments, c("node", "parents", "data", "args")))
+      stop("the custom score function must have signature function(node, parents, data, args).")
+
+  }#ELSE
 
   return(fun)
 
 }#CHECK.CUSTOM.SCORE.FUNCTION
 
-# check the additional arguments' list passed to a custom score.
-check.custom.score.arguments = function(args) {
+# check the additional argument list passed to a custom test.
+check.custom.score.arguments = function(args, network) {
 
   # default to an empty argument list.
-  if (is.null(args))
-    args = list()
-  else if (!is.list(args))
-    stop("the arguments for the custom score must be passed as a list.")
+  if (is.null(args)) {
+
+    if (!is.null(network$learning$args$args))
+      args = network$learning$args$args
+    else
+      args = list()
+
+  }#THEN
+  else {
+
+    if (!is.list(args))
+      stop("the arguments for the custom score must be passed as a list.")
+
+  }#ELSE
 
   return(args)
 

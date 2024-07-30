@@ -202,7 +202,7 @@ bool debugging = isTRUE(debug), include_prob = isTRUE(prob);
     }/*THEN*/
 
     /* generate samples from the conditional posterior distribution. */
-    c_rbn_master(fitted, cpdist, n, evidence, FALSE);
+    c_rbn_master(fitted, cpdist, n, evidence, TRUE, FALSE);
     /* compute the weights. */
     c_lw_weights(fitted, cpdist, nsims, wgt, from, FALSE);
 

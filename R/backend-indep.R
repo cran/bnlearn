@@ -2,7 +2,7 @@
 # common steps in constraint-based structure learning: infer arc orientation
 # from the skeleton and the data.
 learn.arc.directions = function(x, cluster = NULL, local.structure, whitelist,
-    blacklist, test, alpha, B = NULL, data, max.sx = ncol(data),
+    blacklist, test, alpha, extra.args = list(), data, max.sx = ncol(data),
     debug = FALSE) {
 
   nodes = names(x)
@@ -18,8 +18,8 @@ learn.arc.directions = function(x, cluster = NULL, local.structure, whitelist,
   # 3.1 detect v-structures.
   vs = do.call("rbind",
          vstruct.detect(nodes = nodes, arcs = arcs, mb = local.structure,
-           data = x, alpha = alpha, B = B, test = test, blacklist = blacklist,
-           max.sx = max.sx, debug = debug))
+           data = x, alpha = alpha, extra.args = extra.args, test = test,
+           blacklist = blacklist, max.sx = max.sx, debug = debug))
   rownames(vs) = NULL
 
   if (!is.null(vs)) {
@@ -31,21 +31,14 @@ learn.arc.directions = function(x, cluster = NULL, local.structure, whitelist,
 
   }#THEN
 
-  # save the status of the learning algorithm.
-  learning = list(whitelist = whitelist, blacklist = blacklist,
-    test = test, args = list(alpha = alpha), ntests = test.counter())
-  # include also the number of permutations/bootstrap samples if it makes sense.
-  if (!is.null(B))
-    learning$args$B = B
-
   # 4. propagate directions.
-  pdag = list(learning = learning,
+  pdag = list(learning = list(whitelist = whitelist, blacklist = blacklist),
               nodes = structure(rep(0, length(nodes)), names = nodes),
               arcs = arcs)
 
-  return(cpdag.backend(pdag, fix = TRUE, debug = debug))
+  return(cpdag.backend(pdag, fix = TRUE, debug = debug)$arcs)
 
-}#SECOND.PRINCIPLE
+}#LEARN.ARC.DIRECTIONS
 
 # construct a fake markov blanket using all the nodes within distance 2.
 fake.markov.blanket = function(learn, target) {
@@ -59,8 +52,9 @@ fake.markov.blanket = function(learn, target) {
 }#FAKE.MARKOV.BLANKET
 
 # build the neighbourhood of a node from the markov blanket.
-neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
-  test, empty.dsep = TRUE, markov = TRUE, max.sx = ncol(x), debug = FALSE) {
+neighbour = function(x, mb, data, alpha, extra.args = list(),
+    whitelist, blacklist, test, empty.dsep = TRUE, markov = TRUE,
+    max.sx = ncol(x), debug = FALSE) {
 
   # initialize the neighbourhood using the markov blanket.
   candidate.neighbours = mb[[x]]
@@ -121,7 +115,8 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 
     a = allsubs.test(x = x, y = y, sx = dsep.set,
           min = ifelse(empty.dsep, 0, 1), max = min(length(dsep.set), max.sx),
-          data = data, test = test, alpha = alpha, B = B, debug = debug)
+          data = data, test = test, alpha = alpha, extra.args = extra.args,
+          debug = debug)
 
     # update the neighbourhood.
     if (a["p.value"] > alpha)
@@ -138,8 +133,8 @@ neighbour = function(x, mb, data, alpha, B = NULL, whitelist, blacklist,
 }#NEIGHBOUR
 
 # detect v-structures in the graph.
-vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
-    blacklist, max.sx = ncol(data), debug = FALSE) {
+vstruct.detect = function(nodes, arcs, mb, data, alpha, extra.args = list(),
+    test, blacklist, max.sx = ncol(data), debug = FALSE) {
 
   vstruct.centered.on = function(x, mb, data, dsep.set) {
 
@@ -209,8 +204,8 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, B = NULL, test,
           cat("    > chosen d-separating set: '", sx, "'\n")
 
         a = allsubs.test(x = y, y = z, fixed = x, sx = sx, data = data,
-              test = test, B = B, alpha = alpha, max = min(max.sx, length(sx)),
-              debug = debug)
+              test = test, extra.args = extra.args, alpha = alpha,
+              max = min(max.sx, length(sx)), debug = debug)
 
         if (a["p.value"] <= alpha) {
 

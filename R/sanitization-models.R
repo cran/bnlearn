@@ -133,7 +133,8 @@ check.bn.tan = function(bn) {
   # all the explanatory variables save one must have exactly two parents, check.
   nparents = sapply(explanatory, function(node) { length(parents(bn, node))  })
 
-  if (!( (how.many(nparents == 2) == length(explanatory) - 1) && (how.many(nparents == 1) == 1) ))
+  if (!( (how.many(nparents == 2) == length(explanatory) - 1) &&
+         (how.many(nparents == 1) == 1) ))
     stop("the explanatory variables must form a tree.")
 
 }#CHECK.BN.TAN

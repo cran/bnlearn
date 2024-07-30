@@ -8,7 +8,7 @@ predict.bn.fit = function(object, node, data, cluster, method = "parents", ...,
   # a valid node is needed.
   check.nodes(nodes = node, graph = object, max.nodes = 1)
   # check the prediction method.
-  check.prediction.method(method, data)
+  check.prediction.method(method)
   # check debug and prob.
   check.logical(debug)
   check.logical(prob)
@@ -87,7 +87,8 @@ predict.bn.fit = function(object, node, data, cluster, method = "parents", ...,
 }#PREDICT.BN.FIT
 
 # estimate the predicted values for a naive Bayes classfier.
-predict.bn.naive = function(object, data, prior, ..., prob = FALSE, debug = FALSE) {
+predict.bn.naive = function(object, data, prior, ..., prob = FALSE,
+    debug = FALSE) {
 
   # check the data are there.
   data = check.data(data, allowed.types = discrete.data.types,

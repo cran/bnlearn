@@ -55,7 +55,7 @@ ddata local_data = { 0 };
 
           if (obs[j] == NA_INTEGER)
             loglik[j] = NA_REAL;
-           else
+          else
             loglik[j] += log(cpt[obs[j] - 1]);
 
         }/*FOR*/
@@ -108,7 +108,7 @@ ddata local_data = { 0 };
 
 /* log-likelihood of a whole sample for a discrete network. */
 double data_discrete_loglikelihood(fitted_bn bn, ddata dt, bool propagate,
-    bool debugging) {
+    bool loss, bool debugging) {
 
 int max_nlvls = 0, cumdim = 0, max_cfgs = 0, *parcfgs = NULL;
 double loglik = 0, node_loglik = 0;
@@ -129,15 +129,9 @@ ddata local_data = { 0 };
   /* find out the largest number of levels that a variable can take to bound the
    * size of the contingency tables for the counts. */
   max_nlvls = dt.nlvl[i_which_max(dt.nlvl, dt.m.ncols) - 1];
-  for (int i = 0; i < bn.nnodes; i++) {
-
-    cumdim = 1;
-    for (int j = 1; j < bn.ldists[i].d.ndims; j++)
-      cumdim *= bn.ldists[i].d.dims[j];
-
-    max_cfgs = (max_cfgs > cumdim) ? max_cfgs : cumdim;
-
-  }/*FOR*/
+  for (int i = 0; i < bn.nnodes; i++)
+    max_cfgs = (max_cfgs > bn.ldists[i].d.nconfigs) ?
+                  max_cfgs : bn.ldists[i].d.nconfigs;
 
   freq = new_1d_table(max_nlvls);
   freq2 = new_2d_table(max_nlvls, max_cfgs, FALSE);
@@ -149,7 +143,7 @@ ddata local_data = { 0 };
     if (!dt.m.flag[i].fixed)
       continue;
 
-    if (debugging)
+    if (debugging && !loss)
       Rprintf("* processing node %s.\n", bn.labels[i]);
 
     /* ... reset the log-likelihood accumulator... */
@@ -160,22 +154,24 @@ ddata local_data = { 0 };
       /* ... compute the frequencies... */
       resize_1d_table(dt.nlvl[i], &freq);
       refill_1d_table(dt.col[i], &freq, dt.m.nobs);
+
       /* ... if there are frequencies... */
-      if (freq.nobs == 0)
+      if (freq.nobs == 0) {
+
         node_loglik = R_NegInf;
-      else {
+        goto tail_of_the_loop;
 
-        /* ... combine them with the probabilities to compute the
-         * log-likelihood... */
-        for (int j = 0; j < freq.llx; j++)
-          if (freq.n[j] > 0)
-            node_loglik += freq.n[j] * log(bn.ldists[i].d.cpt[j]);
-        /* ... and scale the log-likelihood to compensate for any missing values
-         * (which will not be propagated as a result). */
-        if (freq.nobs < dt.m.nobs)
-          node_loglik = node_loglik / freq.nobs * dt.m.nobs;
+      }/*THEN*/
 
-      }/*ELSE*/
+      /* ... combine them with the probabilities to compute the
+       * log-likelihood... */
+      for (int j = 0; j < freq.llx; j++)
+        if (freq.n[j] > 0)
+          node_loglik += freq.n[j] * log(bn.ldists[i].d.cpt[j]);
+      /* ... and scale the log-likelihood to compensate for any missing values
+       * (which will not be propagated as a result). */
+      if (freq.nobs < dt.m.nobs)
+        node_loglik = node_loglik / freq.nobs * dt.m.nobs;
 
     }/*THEN*/
     else {
@@ -190,31 +186,44 @@ ddata local_data = { 0 };
       resize_2d_table(dt.nlvl[i], cumdim, &freq2);
       refill_2d_table(dt.col[i], parcfgs, &freq2, dt.m.nobs);
       /* ... if there are usable locally-complete observations... */
-      if (freq2.nobs == 0)
+      if (freq2.nobs == 0) {
+
         node_loglik = R_NegInf;
-      else {
+        goto tail_of_the_loop;
 
-        /* ... combine them with the probabilities to compute the
-         * log-likelihood... */
-        for (int j = 0; j < freq2.llx; j++)
-          for (int k = 0; k < freq2.lly; k++)
-            if (freq2.n[j][k] > 0)
-              node_loglik += freq2.n[j][k] *
-                       log(bn.ldists[i].d.cpt[CMC(j, k, bn.ldists[i].d.dims[0])]);
-        /* ... and scale the log-likelihood to compensate for any missing values
-         * (which will not be propagated as a result). */
-        if (freq2.nobs < dt.m.nobs)
-          node_loglik = node_loglik / freq2.nobs * dt.m.nobs;
+      }/*THEN*/
 
-      }/*ELSE*/
+      /* ... combine them with the probabilities to compute the
+       * log-likelihood... */
+      for (int j = 0; j < freq2.llx; j++)
+        for (int k = 0; k < freq2.lly; k++)
+          if (freq2.n[j][k] > 0)
+            node_loglik += freq2.n[j][k] *
+                     log(bn.ldists[i].d.cpt[CMC(j, k, bn.ldists[i].d.dims[0])]);
+      /* ... and scale the log-likelihood to compensate for any missing values
+       * (which will not be propagated as a result). */
+      if (freq2.nobs < dt.m.nobs)
+        node_loglik = node_loglik / freq2.nobs * dt.m.nobs;
 
     }/*ELSE*/
 
+tail_of_the_loop:
+
     if (debugging) {
 
-      Rprintf("  > %d locally-complete observations out of %d.\n",
-        (bn.ldists[i].nparents == 0) ? freq.nobs: freq2.nobs, dt.m.nobs);
-      Rprintf("  > log-likelihood is %lf.\n", node_loglik);
+      if (loss) {
+
+        Rprintf("  > log-likelihood loss for node %s is %lf.\n",
+          bn.labels[i], - node_loglik / dt.m.nobs);
+
+      }/*THEN*/
+      else {
+
+        Rprintf("  > %d locally-complete observations out of %d.\n",
+          (bn.ldists[i].nparents == 0) ? freq.nobs: freq2.nobs, dt.m.nobs);
+        Rprintf("  > log-likelihood is %lf.\n", node_loglik);
+
+      }/*THEN*/
 
     }/*THEN*/
 

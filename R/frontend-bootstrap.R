@@ -49,7 +49,7 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), algorithm,
 
 # compute arcs' strength via nonparametric bootstrap.
 boot.strength = function(data, cluster, R = 200, m = nrow(data), algorithm,
-  algorithm.args = list(), cpdag = TRUE, shuffle = TRUE, debug = FALSE) {
+    algorithm.args = list(), cpdag = TRUE, shuffle = TRUE, debug = FALSE) {
 
   # check the data are there and get the node lables from the variables.
   data = check.data(data, allow.missing = TRUE)

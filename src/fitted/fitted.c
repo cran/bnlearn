@@ -42,9 +42,12 @@ SEXP temp, nodes_in_fitted_bn, cur_node, parents;
       /* discrete nodes. */
       temp = getListElement(cur_node, "prob");
       bn.ldists[i].d.cpt = REAL(temp);
+      bn.ldists[i].d.nconfigs = length(temp);
       temp = getAttrib(temp, R_DimSymbol);
       bn.ldists[i].d.ndims = length(temp);
       bn.ldists[i].d.dims = INTEGER(temp);
+      /* for root nodes, the number of parent configurations will be 1. */
+      bn.ldists[i].d.nconfigs /= bn.ldists[i].d.dims[0];
 
     }/*THEN*/
     else if (bn.node_types[i] == GNODE) {

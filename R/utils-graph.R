@@ -237,7 +237,8 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
 
     }#ELSE
 
-    # update the adjacency matrix, so that has.path() works on the next iteration.
+    # update the adjacency matrix, so that has.path() works on the next
+    # iteration.
     amat = arcs2amat(arcs = new$arcs, nodes = nodes)
 
     # decrease the iteration counter.
@@ -255,7 +256,8 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
 }#PERTURB.BACKEND
 
 # structural hamming distance backend.
-structural.hamming.distance = function(learned, true, wlbl = FALSE, debug = FALSE) {
+structural.hamming.distance = function(learned, true, wlbl = FALSE,
+    debug = FALSE) {
 
   .Call(call_shd,
         learned = cpdag.backend(learned, wlbl = wlbl),

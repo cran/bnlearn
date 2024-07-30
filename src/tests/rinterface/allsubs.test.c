@@ -12,7 +12,7 @@
 #include "../patterns.h"
 
 SEXP allsubs_test(SEXP x, SEXP y, SEXP sx, SEXP fixed, SEXP data, SEXP test,
-    SEXP B, SEXP alpha, SEXP min, SEXP max, SEXP complete, SEXP debug) {
+    SEXP alpha, SEXP extra_args, SEXP min, SEXP max, SEXP complete, SEXP debug) {
 
 int minsize = INT(min), maxsize = INT(max);
 int i = 0, nf = length(fixed);
@@ -26,7 +26,8 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
    * the conditioning set is empty of completely fixed. */
   if (minsize == 0) {
 
-    pvalue = NUM(indep_test(x, y, fixed, data, test, B, alpha, TRUESEXP, complete));
+    pvalue = NUM(indep_test(x, y, fixed, data, test, alpha, extra_args,
+                   TRUESEXP, complete));
     update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
 
     /* increment the test counter. */
@@ -148,14 +149,16 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
   }/*THEN*/
   else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
 
+    /* discrete permutation tests. */
     ddata dtx = ddata_from_SEXP(xx, 0), dty = ddata_from_SEXP(yy, 0);
     ddata dtz = ddata_from_SEXP(zz, 0);
     meta_copy_names(&(dtx.m), 0, xx);
     meta_copy_names(&(dty.m), 0, yy);
     meta_copy_names(&(dtz.m), 0, zz);
+    int B = INT(getListElement(extra_args, "B"));
 
-    res = ast_dperm(dtx, dty, dtz, nf, minsize, maxsize, a, test_type,
-            INT(B), IS_SMC(test_type) ? a : 1, debugging);
+    res = ast_dperm(dtx, dty, dtz, nf, minsize, maxsize, a, test_type, B,
+            IS_SMC(test_type) ? a : 1, debugging);
 
     FreeDDT(dtx);
     FreeDDT(dty);
@@ -164,6 +167,7 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
   }/*THEN*/
   else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
 
+    /* continuous permutation tests. */
     gdata dt = gdata_from_SEXP(zz, 2);
     meta_copy_names(&(dt.m), 2, zz);
     dt.col[0] = REAL(VECTOR_ELT(xx, 0));
@@ -171,12 +175,22 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
     dt.m.names[0] = CHAR(STRING_ELT(x, 0));
     dt.m.names[1] = CHAR(STRING_ELT(y, 0));
     gdata_cache_means(&dt, 0);
+    int B = INT(getListElement(extra_args, "B"));
 
-    res = ast_gperm(dt, nf, minsize, maxsize, a, test_type,
-            INT(B), IS_SMC(test_type) ? a : 1, all_equal(cc, TRUESEXP),
-            debugging);
+    res = ast_gperm(dt, nf, minsize, maxsize, a, test_type, B,
+            IS_SMC(test_type) ? a : 1, all_equal(cc, TRUESEXP), debugging);
 
     FreeGDT(dt);
+
+  }/*THEN*/
+  else if (test_type == CUSTOM_T) {
+
+    /* user-provided test function. */
+    SEXP custom_fn = getListElement(extra_args, "fun");
+    SEXP custom_args = getListElement(extra_args, "args");
+
+    res = ast_custom(x, y, sx, fixed, data, minsize, maxsize, a, custom_fn,
+            custom_args, debugging);
 
   }/*THEN*/
 

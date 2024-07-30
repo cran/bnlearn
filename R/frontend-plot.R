@@ -1,7 +1,8 @@
 
 # generic plot of an object of class 'bn' or 'bn.fit' using graphviz.
 graphviz.plot = function(x, highlight = NULL, groups, layout = "dot",
-    shape = "rectangle", fontsize = 12, main = NULL, sub = NULL, render = TRUE) {
+    shape = "rectangle", fontsize = 12, main = NULL, sub = NULL,
+    render = TRUE) {
 
   # check whether graphviz is loaded.
   check.and.load.package("Rgraphviz")

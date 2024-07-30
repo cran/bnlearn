@@ -1,4 +1,11 @@
 
+# dummy methods for error handling.
+residuals.bn = sigma.bn = fitted.bn = coef.bn = function(object, ...) {
+
+  stop("not applicable to 'bn' objects.")
+
+}#RESIDUALS.BN
+
 # get the number of parameters of the bayesian network.
 nparams = function(x, data, effective = FALSE, debug = FALSE) {
 
@@ -7,6 +14,8 @@ nparams = function(x, data, effective = FALSE, debug = FALSE) {
   # check debug and  effective.
   check.logical(debug)
   check.logical(effective)
+
+  warning("the effective argument is deprecated and will be removed in 2025.")
 
   if (is(x, "bn")) {
 

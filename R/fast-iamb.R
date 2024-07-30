@@ -1,13 +1,15 @@
 
 fast.incremental.association = function(x, cluster = NULL, whitelist,
-  blacklist, test, alpha, B, max.sx = ncol(x), debug = FALSE) {
+    blacklist, test, alpha, extra.args = list(), max.sx = ncol(x),
+    debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
   mb = smartSapply(cluster, as.list(nodes), fast.ia.markov.blanket,
-         data = x, nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, max.sx = max.sx, debug = debug)
+         data = x, nodes = nodes, alpha = alpha, extra.args = extra.args,
+         whitelist = whitelist, blacklist = blacklist, test = test,
+         max.sx = max.sx, debug = debug)
   names(mb) = nodes
 
   # check markov blankets for consistency.
@@ -15,8 +17,8 @@ fast.incremental.association = function(x, cluster = NULL, whitelist,
 
   # 2. [Compute Graph Structure]
   mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
-         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, max.sx = max.sx, debug = debug)
+         alpha = alpha, extra.args = extra.args, whitelist = whitelist,
+         blacklist = blacklist, test = test, max.sx = max.sx, debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -26,8 +28,9 @@ fast.incremental.association = function(x, cluster = NULL, whitelist,
 
 }#FAST.INCREMENTAL.ASSOCIATION
 
-fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
-  blacklist, start = character(0), test, max.sx = ncol(x), debug = FALSE) {
+fast.ia.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
+    whitelist, blacklist, start = character(0), test, max.sx = ncol(x),
+    debug = FALSE) {
 
   nodes = nodes[nodes != x]
   whitelisted = nodes[sapply(nodes,
@@ -79,7 +82,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
 
     # get an association measure for each of the available nodes.
     association = indep.test(nodes[nodes %!in% mb], x, sx = mb, test = test,
-                    data = data, B = B, alpha = alpha)
+                    data = data, extra.args = extra.args, alpha = alpha)
 
     if (debug) {
 
@@ -164,7 +167,7 @@ fast.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
     fixed = whitelisted[whitelisted != ""]
 
     pv = roundrobin.test(x = x, z = mb, fixed = fixed, data = data, test = test,
-           B = B, alpha = alpha, debug = debug)
+           extra.args = extra.args, alpha = alpha, debug = debug)
 
     mb = intersect(mb, c(names(pv[pv < alpha]), fixed))
 

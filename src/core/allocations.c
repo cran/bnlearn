@@ -13,7 +13,7 @@ void *p = NULL;
   if (!p)
     error("unable to allocate a %llu array.", (unsigned long long)R);
 
-  return p ;
+  return p;
 
 }/*CALLOC1D*/
 

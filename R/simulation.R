@@ -28,6 +28,7 @@ rbn.backend = function(x, n, fix = TRUE, debug = FALSE) {
         fitted = x,
         n = as.integer(n),
         fix = fix,
+        add.metadata = FALSE,
         debug = debug)
 
 }#RBN.BACKEND

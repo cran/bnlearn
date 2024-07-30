@@ -716,8 +716,7 @@ static void print_modelstring(SEXP bn) {
 SEXP s, t;
 
   /* allocate and populate the pairlist to be valuated. */
-  PROTECT(t = s = allocList(2));
-  SET_TYPEOF(s, LANGSXP);
+  PROTECT(t = s = allocLang(2));
   /* first slot, the function name. */
   SETCAR(t, BN_ModelstringSymbol);
   t = CDR(t);

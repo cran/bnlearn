@@ -9,8 +9,7 @@ double custom_score_function(SEXP target, SEXP x, SEXP data, SEXP custom_fn,
 SEXP nodes_info, target_info, parents, call, args_iterator, result;
 
   /* allocate and populate the pairlist to be valuated. */
-  PROTECT(args_iterator = call = allocList(5));
-  SET_TYPEOF(call, LANGSXP);
+  PROTECT(args_iterator = call = allocLang(5));
   /* first slot, the function name. */
   SETCAR(args_iterator, custom_fn);
   args_iterator = CDR(args_iterator);

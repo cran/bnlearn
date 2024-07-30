@@ -5,17 +5,16 @@
 #include "../../core/allocations.h"
 #include "../../minimal/common.h"
 #include "../loglikelihood/loglikelihood.h"
-#include "../loss.h"
 
 /* multi-purpose log-likelihood function for data and a fitted network. */
 SEXP loglikelihood_function(SEXP fitted, SEXP data, SEXP by_sample,
-    SEXP keep_nodes, SEXP propagate_missing, SEXP debug) {
+    SEXP keep_nodes, SEXP propagate_missing, SEXP as_loss, SEXP debug) {
 
-int ndata = length(VECTOR_ELT(data, 0));
+int ndata = length(VECTOR_ELT(data, 0)), nparams = 0;
 double *loglik = NULL;
 fitted_bn bn = fitted_network_from_SEXP(fitted);
 bool by = isTRUE(by_sample), propagate = isTRUE(propagate_missing);
-bool debugging = isTRUE(debug);
+bool loss = isTRUE(as_loss), debugging = isTRUE(debug);
 SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
 
   /* allocate the return value: a vector with length equal to the sample size if
@@ -45,7 +44,7 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
 
   if (bn.type == DNET || bn.type == ONET || bn.type == DONET) {
 
-    if (debugging)
+    if (debugging && !loss)
       Rprintf("> computing the log-likelihood of a discrete network.\n");
 
     ddata dt = ddata_from_SEXP(data, 0);
@@ -60,7 +59,7 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
     else {
 
       NUM(loglikelihood) =
-        data_discrete_loglikelihood(bn, dt, propagate, debugging);
+        data_discrete_loglikelihood(bn, dt, propagate, loss, debugging);
 
     }/*ELSE*/
 
@@ -69,7 +68,7 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
   }/*THEN*/
   else if (bn.type == GNET) {
 
-    if (debugging)
+    if (debugging && !loss)
       Rprintf("> computing the log-likelihood of a Gaussian network.\n");
 
     gdata dt = gdata_from_SEXP(data, 0);
@@ -78,13 +77,13 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
 
     if (by) {
 
-      bysample_gaussian_loglikelihood(bn, dt, loglik, debugging);
+      bysample_gaussian_loglikelihood(bn, dt, loglik, FALSE, debugging);
 
     }/*THEN*/
     else {
 
       NUM(loglikelihood) =
-        data_gaussian_loglikelihood(bn, dt, loglik, propagate, debugging);
+        data_gaussian_loglikelihood(bn, dt, loglik, propagate, loss, debugging);
 
     }/*ELSE*/
 
@@ -93,7 +92,7 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
   }/*THEN*/
   else if (bn.type == CGNET) {
 
-    if (debugging)
+    if (debugging && !loss)
       Rprintf("> computing the log-likelihood of a conditional Gaussian network.\n");
 
     cgdata dt = cgdata_from_SEXP(data, 0, 0);
@@ -102,13 +101,13 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
 
     if (by) {
 
-      bysample_clgaussian_loglikelihood(bn, dt, loglik, debugging);
+      bysample_clgaussian_loglikelihood(bn, dt, loglik, FALSE, debugging);
 
     }/*THEN*/
     else {
 
       NUM(loglikelihood) =
-        data_clgaussian_loglikelihood(bn, dt, loglik, propagate, debugging);
+        data_clgaussian_loglikelihood(bn, dt, loglik, propagate, loss, debugging);
 
     }/*ELSE*/
 
@@ -120,6 +119,15 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
     error("unknown network type, unable to compute the log-likelihood.");
 
   }/*ELSE*/
+
+  /* compute the number of parameters. */
+  for (int i = 0; i < bn.nnodes; i++)
+    nparams += nparams_fitted_node(bn.ldists[i], bn.node_types[i], FALSE);
+
+  /* set the class and the expected attributes. */
+  setAttrib(loglikelihood, R_ClassSymbol, mkString("logLik"));
+  setAttrib(loglikelihood, BN_NobsSymbol, ScalarReal(ndata));
+  setAttrib(loglikelihood, BN_DfSymbol, ScalarReal(nparams));
 
   if (!by)
     Free1D(loglik);

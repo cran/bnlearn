@@ -7,6 +7,8 @@
 #include "../include/graph.h"
 #include "../include/globals.h"
 #include "../fitted/fitted.h"
+#include "../minimal/strings.h"
+#include "../sanitization/data.h"
 
 void rbn_discrete_root(SEXP result, int cur, SEXP cpt, int num, SEXP fixed);
 void rbn_discrete_cond(SEXP result, SEXP nodes, int cur, SEXP parents, SEXP cpt,
@@ -16,7 +18,8 @@ void rbn_gaussian(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
 void rbn_mixedcg(SEXP result, int cur, SEXP parents, SEXP coefs, SEXP sigma,
     SEXP dpar, SEXP gpar, int num, SEXP fixed);
 
-void c_rbn_master(SEXP fitted, SEXP result, SEXP n, SEXP fix, bool debugging) {
+void c_rbn_master(SEXP fitted, SEXP result, SEXP n, SEXP fix, bool add_metadata,
+    bool debugging) {
 
 int num = INT(n), *poset = NULL, *mf = NULL;
 int has_fixed = (TYPEOF(fix) != LGLSXP);
@@ -200,6 +203,36 @@ SEXP dpar = R_NilValue, gpar = R_NilValue;
 
   Free1D(poset);
 
+  if (add_metadata) {
+
+    SEXP metadata, counts, complete, latent;
+    int *columns = NULL;
+
+    /* add the metadata including ... */
+    PROTECT(metadata = allocVector(VECSXP, 3));
+    setAttrib(metadata, R_NamesSymbol,
+        mkStringVec(3, "type", "complete.nodes", "latent.nodes"));
+    /* ... the data type... */
+    SET_VECTOR_ELT(metadata, 0, data_type(result));
+    /* ... and the complete/latent variables. */
+    PROTECT(counts = count_observed_values(result));
+    columns = INTEGER(VECTOR_ELT(counts, 1));
+
+    PROTECT(complete = allocVector(LGLSXP, length(fitted)));
+    for (int i = 0; i < length(complete); i++)
+      LOGICAL(complete)[i] = (columns[i] == INT(n));
+    SET_VECTOR_ELT(metadata, 1, complete);
+
+    PROTECT(latent = allocVector(LGLSXP, length(fitted)));
+    for (int i = 0; i < length(latent); i++)
+      LOGICAL(latent)[i] = (columns[i] == 0);
+    SET_VECTOR_ELT(metadata, 2, latent);
+
+    setAttrib(result, BN_MetaDataSymbol, metadata);
+
+    UNPROTECT(4);
+
+  }/*THEN*/
   UNPROTECT(1 + has_fixed);
 
 }/*C_RBN_MASTER*/

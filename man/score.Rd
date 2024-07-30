@@ -114,7 +114,7 @@
       in other words, it must have signature \code{function(node, parents, data,
       args)}. \code{node} will contain the label of the node to be scored (a
       character string); \code{parents} will contain the labels of its parents
-      (a character vector); \code{data} will contain the complete data sets,
+      (a character vector); \code{data} will contain the complete data set,
       with all the variables (a data frame); and \code{args} will be a list
       containing any additional arguments to the score.
     \item \code{args}: a list containing the optional arguments to \code{fun},
@@ -193,7 +193,7 @@ my.bic = function(node, parents, data, args) {
   }#ELSE
 
 }#MY.BIC
-score(dag, learning.test, type = "custom", fun = my.bic, by.node = TRUE)
+score(dag, learning.test, type = "custom-score", fun = my.bic, by.node = TRUE)
 score(dag, learning.test, type = "bic", by.node = TRUE)
 }
 \seealso{\code{\link{network scores}}, \code{\link{arc.strength}},

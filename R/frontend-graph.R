@@ -1,6 +1,6 @@
 # check if there's a path between two specific nodes.
-path.exists = function(x, from, to, direct = TRUE,
-    underlying.graph = FALSE, debug = FALSE) {
+path.exists = function(x, from, to, direct = TRUE, underlying.graph = FALSE,
+    debug = FALSE) {
 
   # check x's class.
   check.bn.or.fit(x)

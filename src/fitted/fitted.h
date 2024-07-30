@@ -35,6 +35,7 @@ typedef struct {
 
       int ndims;       /* number of dimensions of the CPT. */
       int *dims;       /* dimensions of the CPT. */
+      int nconfigs;    /* number of parents configurations. */
       double *cpt;     /* conditional probability table. */
 
     } d;
@@ -78,5 +79,7 @@ typedef struct {
 fitted_bn fitted_network_from_SEXP(SEXP fitted);
 void print_fitted_network(fitted_bn);
 void FreeFittedBN(fitted_bn bn);
+
+double nparams_fitted_node(ldist ld, fitted_node_e type, bool effective);
 
 #endif

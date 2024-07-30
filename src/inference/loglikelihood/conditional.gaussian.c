@@ -1,4 +1,5 @@
 #include "../../include/rcore.h"
+#include "../../include/globals.h"
 #include "../../fitted/fitted.h"
 #include "../../core/data.table.h"
 #include "../../core/allocations.h"
@@ -11,7 +12,7 @@
 /* log-likelihood of individual observations for a conditional Gaussian
  * network. */
 void bysample_clgaussian_loglikelihood(fitted_bn bn, cgdata dt, double *loglik,
-    bool debugging) {
+    bool robust, bool debugging) {
 
 int *pars = NULL, *dobs = NULL, *parcfgs = NULL, ncoefs = 0;
 double *gobs = NULL, *coefs = NULL, sd = 0, *sds = NULL, *scratch = NULL;
@@ -123,6 +124,10 @@ cgdata local_data = { 0 };
         pars = bn.ldists[i].parents;
         sd = bn.ldists[i].g.sd;
 
+        /* ... move away from singular distribtions ... */
+        if ((sd < MACHINE_TOL) && robust)
+          sd = MACHINE_TOL;
+
         /* ... initialize the log-likelihoods with the intercept... */
         for (int j = 0; j < dt.m.nobs; j++)
           scratch[j] = coefs[0];
@@ -178,8 +183,14 @@ cgdata local_data = { 0 };
 
           /* ... and use them together with the standard error to compute the
            * log-likelihood. */
-          for (int j = 0; j < dt.m.nobs; j++)
-            loglik[j] += dnorm(gobs[j], scratch[j], sds[parcfgs[j]], TRUE);
+          for (int j = 0; j < dt.m.nobs; j++) {
+
+            if ((sds[parcfgs[j]] < MACHINE_TOL) && robust)
+              loglik[j] += dnorm(gobs[j], scratch[j], MACHINE_TOL, TRUE);
+            else
+              loglik[j] += dnorm(gobs[j], scratch[j], sds[parcfgs[j]], TRUE);
+
+          }/*FOR*/
 
         }/*THEN*/
         else {
@@ -208,8 +219,14 @@ cgdata local_data = { 0 };
 
             if (ISNAN(scratch[j]))
               loglik[j] = NA_REAL;
-            else
-              loglik[j] += dnorm(gobs[j], scratch[j], sds[parcfgs[j]], TRUE);
+            else {
+
+              if ((sds[parcfgs[j]] < MACHINE_TOL) && robust)
+                loglik[j] += dnorm(gobs[j], scratch[j], MACHINE_TOL, TRUE);
+              else
+                loglik[j] += dnorm(gobs[j], scratch[j], sds[parcfgs[j]], TRUE);
+
+            }/*ELSE*/
 
           }/*FOR*/
 
@@ -231,7 +248,7 @@ cgdata local_data = { 0 };
 
 /* log-likelihood of a whole sample for a Gaussian network. */
 double data_clgaussian_loglikelihood(fitted_bn bn, cgdata dt, double *scratch,
-    bool propagate, bool debugging) {
+    bool propagate, bool loss, bool debugging) {
 
 int max_nlvls = 0, cumdim = 0, max_cfgs = 0, ncomplete = 0;
 int *pars = NULL, *parcfgs = NULL, ncoefs = 0;
@@ -262,6 +279,7 @@ cgdata local_data = { 0 };
       goto unidentifiable_model;
 
     }/*THEN*/
+
     for (int j = 0; j < bn.ldists[i].g.ncoefs; j++)
       if (ISNAN(bn.ldists[i].g.coefs[j])) {
 
@@ -291,33 +309,11 @@ unidentifiable_model:
   /* find out the largest number of levels that a variable can take to bound the
    * size of the contingency tables for the counts. */
   max_nlvls = dt.nlvl[i_which_max(dt.nlvl, dt.ndcols) - 1];
-  for (int i = 0; i < bn.nnodes; i++) {
 
-    cumdim = 1;
-
-    switch(bn.node_types[i]) {
-
-      case DNODE:
-      case ONODE:
-
-        for (int j = 1; j < bn.ldists[i].d.ndims; j++)
-          cumdim *= bn.ldists[i].d.dims[j];
-        break;
-
-      case CGNODE:
-
-        cumdim = bn.ldists[i].cg.nconfigs;
-        break;
-
-      case ENOFIT:
-      default:
-        break;
-
-    }/*SWITCH*/
-
-    max_cfgs = (max_cfgs > cumdim) ? max_cfgs : cumdim;
-
-  }/*FOR*/
+  for (int i = 0; i < bn.nnodes; i++)
+    if ((bn.node_types[i] == DNODE) || (bn.node_types[i] == ONODE))
+      max_cfgs = (max_cfgs > bn.ldists[i].d.nconfigs) ?
+                    max_cfgs : bn.ldists[i].d.nconfigs;
 
   freq = new_1d_table(max_nlvls);
   freq2 = new_2d_table(max_nlvls, max_cfgs, FALSE);
@@ -329,7 +325,7 @@ unidentifiable_model:
     if (!dt.m.flag[i].fixed)
       continue;
 
-    if (debugging)
+    if (debugging && !loss)
       Rprintf("* processing node %s.\n", bn.labels[i]);
 
     /* ... reset the log-likelihood accumulator... */
@@ -534,9 +530,19 @@ unidentifiable_model:
 
     if (debugging) {
 
-      Rprintf("  > %d locally-complete observations out of %d.\n",
-        ncomplete, dt.m.nobs);
-      Rprintf("  > log-likelihood is %lf.\n", node_loglik);
+      if (loss) {
+
+        Rprintf("  > log-likelihood loss for node %s is %lf.\n",
+          bn.labels[i], - node_loglik / dt.m.nobs);
+
+      }/*THEN*/
+      else {
+
+        Rprintf("  > %d locally-complete observations out of %d.\n",
+          ncomplete, dt.m.nobs);
+        Rprintf("  > log-likelihood is %lf.\n", node_loglik);
+
+      }/*ELSE*/
 
     }/*THEN*/
 

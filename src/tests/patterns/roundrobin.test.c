@@ -765,3 +765,74 @@ gdata sub = { 0 }, sub_complete = { 0 };
 
 }/*RRD_GPERM*/
 
+/* user-provided test function. */
+void rrd_custom(SEXP x, SEXP z, SEXP fixed, SEXP data, SEXP custom_fn,
+    SEXP custom_args, double *pvalue, double alpha, bool debugging) {
+
+int i = 0, j = 0, k = 0, l = 0, valid = length(z) - 1;
+int *fixed_nodes = NULL;
+bool *dropped_nodes = NULL;
+SEXP yi, sxi, ff;
+
+  PROTECT(yi = allocVector(STRSXP, 1));
+  PROTECT(ff = match(fixed, z, 0));
+  fixed_nodes = INTEGER(ff);
+  dropped_nodes = Calloc1D(length(z), sizeof(bool));
+
+  /* note that, unlike other round-robin patterns above, nodes are not removed
+   * from consideration when they are found to be non-significant. */
+
+  for (i = 0, l = 0; i < length(z); i++) {
+
+    /* nothing to do if there is just one variable left. */
+    if (valid < 1)
+      break;
+    /* fixed nodes are not tested. */
+    if (fixed_nodes[i] > 0)
+      continue;
+
+    /* iterate over the nodes, one at a time... */
+    SET_STRING_ELT(yi, 0 , STRING_ELT(z, i));
+    /* ... use all other nodes as the conditioning set... */
+    PROTECT(sxi = allocVector(STRSXP, valid));
+    for (j = 0, k = 0; j < length(z); j++)
+      if ((j != i) && !dropped_nodes[j])
+        SET_STRING_ELT(sxi, k++ , STRING_ELT(z, j));
+    /* ... compute the test statistic, and fill the p-value array. */
+    custom_test_function(x, yi, sxi, data, custom_fn, custom_args,
+        pvalue + l);
+
+    if (debugging) {
+
+      Rprintf("    > node %s is %s %s given ", CHAR(STRING_ELT(x, 0)),
+        (pvalue[l] <= alpha ? "dependent on" : "independent from"),
+        CHAR(STRING_ELT(yi, 0)));
+      for (j = 0; j < length(sxi); j++)
+        Rprintf("%s ", CHAR(STRING_ELT(sxi, j)));
+      Rprintf("(p-value: %g).\n", pvalue[l]);
+
+    }/*THEN*/
+
+    /* if the p-value is not significant... */
+    if (pvalue[l] > alpha) {
+
+      /* .. remove the node from consideration... */
+      dropped_nodes[i] = TRUE;
+      /* ...and adjust the size of the next conditioning set. */
+      valid--;
+
+    }/*THEN*/
+
+    /* move on to the next p-value. */
+    l++;
+
+    UNPROTECT(1);
+
+  }/*FOR*/
+
+
+  Free1D(dropped_nodes);
+  UNPROTECT(2);
+
+}/*RRD_CUSTOM*/
+

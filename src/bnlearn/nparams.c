@@ -2,7 +2,6 @@
 #include "../core/allocations.h"
 #include "../minimal/common.h"
 #include "../math/linear.algebra.h"
-#include "../fitted/fitted.h"
 
 /* get the number of parameters of the whole network (mixed case, also handles
  * discrete and Gaussian networks). */
@@ -66,111 +65,4 @@ SEXP nodes = R_NilValue, node_data, parents, temp;
 
 }/*NPARAMS_CGNET*/
 
-/* compute the number of parameters of a fitted model. */
-SEXP nparams_fitted(SEXP bn, SEXP effective, SEXP debug) {
-
-int i = 0, j = 0, k = 0, nnodes = length(bn), *pd = NULL;
-bool debugging = isTRUE(debug), eff = isTRUE(effective);
-double *ps = NULL, counter = 0, node_params = 0, all_params = 0;
-SEXP nodes = R_NilValue, node_data, param_set, param_dims;
-fitted_node_e node_type = ENOFIT;
-
-  if (debugging)
-    PROTECT(nodes = getAttrib(bn, R_NamesSymbol));
-
-  for (i = 0; i < nnodes; i++) {
-
-    /* get the node's data. */
-    node_data = VECTOR_ELT(bn, i);
-    node_type = fitted_node_to_enum(node_data);
-
-    switch (node_type) {
-
-      case DNODE:
-      case ONODE:
-        /* get the conditional probability table and its dimension. */
-        param_set = getListElement(node_data, "prob");
-        param_dims = getAttrib(param_set, R_DimSymbol);
-        pd = INTEGER(param_dims);
-        ps = REAL(param_set);
-
-        if (eff) {
-
-          /* count the number of non-zero free parameters. */
-          for (k = 0, node_params = 0; k < length(param_set) / pd[0]; k++) {
-
-            /* check the elements of each conditional probability distribution. */
-            for (j = 0, counter = 0; j < pd[0]; j++)
-              counter += !ISNAN(ps[CMC(j, k, pd[0])]) && (ps[CMC(j, k, pd[0])] > 0);
-            /* subtract the column total to get the free parameters. */
-            if (counter > 0)
-              counter--;
-
-            node_params += counter;
-
-          }/*FOR*/
-
-        }/*THEN*/
-        else {
-
-          /* compute the number of parameters. */
-          for (j = 1, node_params = 1; j < length(param_dims); j++)
-            node_params *= pd[j];
-
-          node_params *= pd[0] - 1;
-
-        }/*ELSE*/
-
-        break;
-
-      case GNODE:
-      case CGNODE:
-        /* get the vector (or matrix) of regression coefficients. */
-        param_set = getListElement(node_data, "coefficients");
-        param_dims = getAttrib(param_set, R_DimSymbol);
-        ps = REAL(param_set);
-
-        if (eff) {
-
-          /* count the number of non-zero regression coefficients. */
-          for (j = 0, node_params = 0; j < length(param_set); j++)
-            node_params += !ISNAN(ps[j]) && (ps[j] != 0);
-
-        }/*THEN*/
-        else {
-
-          /* compute the number of parameters. */
-          node_params = length(param_set);
-
-        }/*ELSE*/
-
-        /* residual standard errors are also parameters: Gaussian nodes have
-         * just one, conditional Gaussian nodes have one for each configuration
-         * of the discrete parents. */
-        if (param_dims == R_NilValue)
-          node_params += 1;
-        else
-          node_params += INTEGER(param_dims)[1];
-
-        break;
-
-      default:
-        error("unknown node type (class: %s).",
-           CHAR(STRING_ELT(getAttrib(node_data, R_ClassSymbol), 0)));
-
-    }/*SWITCH*/
-
-    if (debugging)
-      Rprintf("* node %s has %.0lf parameter(s).\n", NODE(i), node_params);
-
-    all_params += node_params;
-
-  }/*FOR*/
-
-  if (debugging)
-    UNPROTECT(1);
-
-  return ScalarReal(all_params);
-
-}/*NPARAMS_FITTED*/
 

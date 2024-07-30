@@ -7,7 +7,7 @@
 
 }
 \usage{
-ci.test(x, y, z, data, test, B, debug = FALSE)
+ci.test(x, y, z, data, test, ..., debug = FALSE)
 }
 \arguments{
   \item{x}{a character string (the name of a variable), a data frame, a numeric
@@ -24,12 +24,36 @@ ci.test(x, y, z, data, test, B, debug = FALSE)
     Jonckheere-Terpstra test for ordered factors and the \emph{linear
     correlation} for continuous variables. See \code{\link{independence tests}}
     for details.}
-  \item{B}{a positive integer, the number of permutations considered for each
-    permutation test. It will be ignored with a warning if the conditional
-    independence test specified by the \code{test} argument is not a
-    permutation test.}
+  \item{\dots}{optional arguments to be passed to the test specified by
+    \code{test}. See below for details.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
+}
+\details{
+
+  Additional arguments of the \code{ci.test()} function:
+
+  \itemize{
+
+    \item \code{B}: a positive integer, the number of permutations used to
+      compute the p-value of permutation tests. The default value is \code{5000}
+      for nonparametric permutation tests and \code{100} for semiparametric
+      permutation tests.
+    \item \code{fun}: the function that computes the conditional independence
+      test in the \code{custom-test} test. \code{fun} must have arguments
+      \code{x}, \code{y}, \code{z}, \code{data} and \code{args}, in this order;
+      in other words, it must have signature \code{function(x, y, z, data,
+      args)}. \code{x} and \code{y} will be the labels of the nodes to test for
+      independence (one character string each); \code{z} will be the labels of
+      the nodes in the conditioning set (a vector of character strings,
+      possibily \code{NULL} for empty sets); \code{data} will contain the
+      complete data set, with all the variables (a data frame); and \code{args}
+      will be a list containing any additional arguments to the test.
+    \item \code{args}: a list containing the optional arguments to \code{fun},
+      for tuning \code{custom-test} test functions.
+
+  }
+
 }
 \value{
 

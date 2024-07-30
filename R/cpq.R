@@ -434,6 +434,7 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
     matching = r & !is.na(r)
 
     # compute the probabilities and use them as weigths.
+    attr(generated.data, "metadata") = collect.metadata(generated.data)
     w = weights(generated.data)
     cpe = cpe + sum(w[!is.na(r)])
     cpxe = cpxe + sum(w[matching])
@@ -460,7 +461,8 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
 
 # generate random observations from conditional distributions with likelihood
 # weighting.
-weighting.distribution = function(fitted, nodes, evidence, n, batch, debug = FALSE) {
+weighting.distribution = function(fitted, nodes, evidence, n, batch,
+    debug = FALSE) {
 
   .Call(call_cpdist_lw,
         fitted = fitted,

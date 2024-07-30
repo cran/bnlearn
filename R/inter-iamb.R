@@ -1,13 +1,15 @@
 
 inter.incremental.association = function(x, cluster = NULL, whitelist,
-  blacklist, test, alpha, B, max.sx = ncol(x), debug = FALSE) {
+    blacklist, test, alpha, extra.args = list(), max.sx = ncol(x),
+    debug = FALSE) {
 
   nodes = names(x)
 
   # 1. [Compute Markov Blankets]
   mb = smartSapply(cluster, as.list(nodes), inter.ia.markov.blanket, data = x,
-         nodes = nodes, alpha = alpha, B = B, whitelist = whitelist,
-         blacklist = blacklist, test = test, max.sx = max.sx, debug = debug)
+         nodes = nodes, alpha = alpha, extra.args = extra.args,
+         whitelist = whitelist, blacklist = blacklist, test = test,
+         max.sx = max.sx, debug = debug)
   names(mb) = nodes
 
   # check markov blankets for consistency.
@@ -15,8 +17,8 @@ inter.incremental.association = function(x, cluster = NULL, whitelist,
 
   # 2. [Compute Graph Structure]
   mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
-         alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-         test = test, max.sx = max.sx, debug = debug)
+         alpha = alpha, extra.args = extra.args, whitelist = whitelist,
+         blacklist = blacklist, test = test, max.sx = max.sx, debug = debug)
   names(mb) = nodes
 
   # check neighbourhood sets for consistency.
@@ -26,8 +28,9 @@ inter.incremental.association = function(x, cluster = NULL, whitelist,
 
 }#INTER.INCREMENTAL.ASSOCIATION
 
-inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
-  blacklist, start = character(0), test, max.sx = ncol(x), debug = FALSE) {
+inter.ia.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
+    whitelist, blacklist, start = character(0), test, max.sx = ncol(x),
+    debug = FALSE) {
 
   nodes = nodes[nodes != x]
   culprit = character(0)
@@ -76,7 +79,8 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
 
     # get an association measure for each of the available nodes.
     association = indep.test(nodes[nodes %!in% c(mb, culprit)], x, sx = mb,
-                    test = test, data = data, B = B, alpha = alpha)
+                    test = test, data = data, extra.args = extra.args,
+                    alpha = alpha)
 
     # stop if there are no candidates for inclusion; the markov blanket
     # would obviously be unchanged.
@@ -92,7 +96,8 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
         function(x) {  cat("    >", x, "has p-value", association[x], ".\n")})
       cat("    @", to.add, "included in the markov blanket ( p-value:",
         association[to.add], ").\n")
-      cat("    > markov blanket (", length(mb) + 1, " nodes ) now is '", c(mb, to.add), "'.\n")
+      cat("    > markov blanket (", length(mb) + 1, " nodes ) now is '",
+        c(mb, to.add), "'.\n")
 
     }#THEN
 
@@ -108,7 +113,7 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
     fixed = fixed[fixed != ""]
 
     pv = roundrobin.test(x = x, z = mb, fixed = fixed, data = data, test = test,
-           B = B, alpha = alpha, debug = debug)
+           extra.args = extra.args, alpha = alpha, debug = debug)
 
     mb = intersect(mb, c(names(pv[pv < alpha]), fixed))
 
@@ -139,7 +144,8 @@ inter.ia.markov.blanket = function(x, data, nodes, alpha, B, whitelist,
       # reset the loop counter to match.
       loop.counter = loop.counter - 1
 
-      warning("prevented infinite loop in Markov blanket learning (node '", x, "').")
+      warning("prevented infinite loop in Markov blanket learning (node '",
+        x, "').")
 
     }#THEN
 

@@ -1,6 +1,7 @@
 
 # compute arcs' strength as the p-value of the test for their removal.
-arc.strength.test = function(network, data, test, alpha, B, debug = FALSE) {
+arc.strength.test = function(network, data, test, alpha, extra.args,
+    debug = FALSE) {
 
   drop = function(arc) {
 
@@ -15,7 +16,7 @@ arc.strength.test = function(network, data, test, alpha, B, debug = FALSE) {
       network$nodes[[arc[2]]]$parents[network$nodes[[arc[2]]]$parents != arc[1]]
 
     a = indep.test(arc[1], arc[2], parents, data = data, test = test,
-          B = B, alpha = alpha)
+          extra.args = extra.args, alpha = alpha)
 
     if (debug) {
 
@@ -228,7 +229,7 @@ arc.strength.boot = function(data, cluster = NULL, R, m, algorithm,
 # compute an approximation of arc and direction strength from the Bayes factors
 # that can be computed from a single MAP network.
 bf.strength.backend = function(x, data, score, extra.args, precBits = 200,
-  debug = FALSE) {
+    debug = FALSE) {
 
   # construct all pairs of nodes.
   nodes = names(x$nodes)

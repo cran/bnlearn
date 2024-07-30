@@ -352,7 +352,8 @@ net.get.cpt.names = function(lines) {
 # get the starting lines of node descriptions in a BIF file.
 bif.get.node.descriptions = function(lines, nodes) {
 
-  desc = grep(paste("variable\\s+(", paste(nodes, collapse = "|"), ")", sep = ""), lines)
+  desc = grep(paste("variable\\s+(",
+                    paste(nodes, collapse = "|"), ")", sep = ""), lines)
   names(desc) = nodes
 
   return(desc)
@@ -362,7 +363,8 @@ bif.get.node.descriptions = function(lines, nodes) {
 # get the starting lines of node descriptions in a DSC file.
 dsc.get.node.descriptions = function(lines, nodes) {
 
-  desc = grep(paste("node\\s+(", paste(nodes, collapse = "|"), ")", sep = ""), lines)
+  desc = grep(paste("node\\s+(",
+                    paste(nodes, collapse = "|"), ")", sep = ""), lines)
   names(desc) = nodes
 
   return(desc)
@@ -372,7 +374,8 @@ dsc.get.node.descriptions = function(lines, nodes) {
 # get the starting lines of node descriptions in a NET file.
 net.get.node.descriptions = function(lines, nodes) {
 
-  desc = grep(paste("node\\s+(", paste(nodes, collapse = "|"), ")", sep = ""), lines)
+  desc = grep(paste("node\\s+(",
+                    paste(nodes, collapse = "|"), ")", sep = ""), lines)
   names(desc) = nodes
 
   return(desc)
@@ -382,7 +385,8 @@ net.get.node.descriptions = function(lines, nodes) {
 # get the starting lines of CPTs in a BIF file.
 bif.get.cpt.descriptions = function(lines, cpts) {
 
-  desc = grep(paste("probability\\s*\\(\\s*(", paste(cpts, collapse = "|"), ")", sep = ""), lines)
+  desc = grep(paste("probability\\s*\\(\\s*(",
+                    paste(cpts, collapse = "|"), ")", sep = ""), lines)
   names(desc) = cpts
 
   return(desc)
@@ -395,7 +399,8 @@ dsc.get.cpt.descriptions = bif.get.cpt.descriptions
 # get the starting lines of CPTs in a NET file.
 net.get.cpt.descriptions = function(lines, cpts) {
 
-  desc = grep(paste("potential\\s*\\(\\s*(", paste(cpts, collapse = "|"), ")", sep = ""), lines)
+  desc = grep(paste("potential\\s*\\(\\s*(",
+                    paste(cpts, collapse = "|"), ")", sep = ""), lines)
   names(desc) = cpts
 
   return(desc)
@@ -525,7 +530,9 @@ bif.get.levels = function(node, start, lines) {
   levels = sub("^\\s*(.+?)\\s*$", "\\1", levels)
 
   if (any(duplicated(levels)))
-    stop("duplicated levels '", paste(levels[duplicated(levels)], collapse = "' '"), "' for node ", node, ".\n")
+    stop("duplicated levels '",
+         paste(levels[duplicated(levels)], collapse = "' '"),
+         "' for node ", node, ".\n")
 
   return(levels)
 
@@ -549,7 +556,9 @@ dsc.get.levels = function(node, start, lines) {
   levels = sub("^\\s*\"*(.+?)\"*\\s*$", "\\1", levels)
 
   if (any(duplicated(levels)))
-    stop("duplicated levels '", paste(levels[duplicated(levels)], collapse = "' '"), "' for node ", node, ".\n")
+    stop("duplicated levels '",
+         paste(levels[duplicated(levels)], collapse = "' '"),
+         "' for node ", node, ".\n")
 
   return(levels)
 
@@ -586,14 +595,17 @@ net.get.levels = function(node, start, lines) {
   }#THEN
 
   if (any(duplicated(levels)))
-    stop("duplicated levels '", paste(levels[duplicated(levels)], collapse = "' '"), "' for node ", node, ".\n")
+    stop("duplicated levels '",
+         paste(levels[duplicated(levels)], collapse = "' '"),
+         "' for node ", node, ".\n")
 
   return(levels)
 
 }#NET.GET.LEVELS
 
 # build the (conditional) probability table for a node in a BIF file.
-bif.get.probabilities = function(node, start, lines, nodes.levels, parents, root) {
+bif.get.probabilities = function(node, start, lines, nodes.levels, parents,
+    root) {
 
   end.line = 0
 
@@ -704,7 +716,8 @@ bif.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 }#BIF.GET.PROBABILITIES
 
 # build the (conditional) probability table for a node in a DSC file.
-dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root) {
+dsc.get.probabilities = function(node, start, lines, nodes.levels, parents,
+    root) {
 
   end.line = 0
 
@@ -844,7 +857,8 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents, root
 }#DSC.GET.PROBABILITIES
 
 # build the (conditional) probability table for a node in a NET file.
-net.get.probabilities = function(node, start, lines, nodes.levels, parents, root) {
+net.get.probabilities = function(node, start, lines, nodes.levels, parents,
+    root) {
 
   end.line = 0
 

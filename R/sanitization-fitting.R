@@ -99,9 +99,14 @@ check.fitting.args = function(method, network, data, extra.args) {
       check.max.iter(extra.args[["max.iter"]], default = 5)
 
   # check the threshold for the log-likelihood difference in EM-like approaches.
-  if (has.argument(method, "threshold", fits.extra.args))
-    extra.args[["threshold"]] =
-      check.loglik.threshold(extra.args[["threshold"]])
+  if (has.argument(method, "loglik.threshold", fits.extra.args))
+    extra.args[["loglik.threshold"]] =
+      check.loglik.threshold(extra.args[["loglik.threshold"]])
+
+  # check the threshold for the parameter differences in EM-like approaches.
+  if (has.argument(method, "params.threshold", fits.extra.args))
+    extra.args[["params.threshold"]] =
+      check.params.threshold(extra.args[["params.threshold"]])
 
   # check the test data for testing convergence in EM-like approaches.
   if (has.argument(method, "newdata", fits.extra.args))
@@ -115,14 +120,16 @@ check.fitting.args = function(method, network, data, extra.args) {
       check.start.fitted(start = extra.args[["start"]], network = network,
         data = data)
 
-  # make sure that the threshold and the maximum number of iterations of EM-like
-  # algorithms cannot be infinite at the same time.
-  if (has.argument(method, "threshold", fits.extra.args) &&
+  # make sure that either the thresholds or the maximum number of iterations are
+  # set to stop EM-like algorithms.
+  if (has.argument(method, "loglik.threshold", fits.extra.args) &&
+      has.argument(method, "params.threshold", fits.extra.args) &&
       has.argument(method, "max.iter", fits.extra.args)) {
 
-    if (is.infinite(extra.args[["threshold"]]) &&
+    if ((extra.args[["loglik.threshold"]] == 0) &&
+        (extra.args[["params.threshold"]] == 0) &&
         is.infinite(extra.args[["max.iter"]]))
-      stop("'threshold' and 'max.iter' cannot be infinite at the same time.")
+      stop("'max.iter' cannot be infinite while 'loglik.threshold' and 'params.threshold' are both zero.")
 
   }#THEN
 
@@ -138,8 +145,8 @@ check.loglik.threshold = function(threshold) {
 
   if (!is.null(threshold)) {
 
-    if (!is.positive(threshold) && !isTRUE(all.equal(threshold, Inf)))
-      stop("the threshold must be a positive numeric value.")
+    if (!is.non.negative(threshold) && !is.infinite(threshold))
+      stop("the log-likelihood threshold must be a non-negative numeric value.")
 
   }#THEN
   else {
@@ -152,8 +159,29 @@ check.loglik.threshold = function(threshold) {
 
 }#CHECK.LOGLIK.THRESHOLD
 
+# check the relative threshold for parameter changes between iterations.
+check.params.threshold = function(threshold) {
+
+  if (!is.null(threshold)) {
+
+    if (!is.non.negative(threshold) && !is.infinite(threshold))
+      stop("the parameters threshold must be a non-negative numeric value.")
+
+  }#THEN
+  else {
+
+    threshold = 1e-3
+
+  }#ELSE
+
+  return(threshold)
+
+}#CHECK.PARAMS.THRESHOLD
+
 # check the fitted network used for initializing EM-like approaches.
 check.start.fitted = function(start, network, data) {
+
+  latent = attr(data, "metadata")$latent.nodes
 
   # having no custom starting model is fine, one will be fitted by EM later.
   if (!is.null(start)) {
@@ -163,12 +191,27 @@ check.start.fitted = function(start, network, data) {
     # check the starting network against the data.
     check.fit.vs.data(start, data)
 
+    # if there are any latent variables, they must be connected to at least one
+    # non latent-variable for the imputation to work.
+    if (any(latent)) {
+
+      for (l in names(which(latent))) {
+
+        nb = c(start[[l]]$parents, start[[l]]$children)
+
+        if ((length(nb) == 0) || (all(nb %in% latent)))
+          warning("latent node", l, "is not connected to any observed nodes.")
+
+      }#FOR
+
+    }#THEN
+
   }#THEN
   else {
 
     # if there are any latent variables in the data, a starting model is
     # required for the initial imputation.
-    if (any(attr(data, "metadata")$latent.nodes))
+    if (any(latent))
       stop("a starting model is required to initialize parameter estimation.")
 
   }#ELSE

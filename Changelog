@@ -1,6 +1,44 @@
-bnlearn (4.9.4)
+bnlearn (5.0)
 
-  * added some PROTECT()s to pass the CRAN tests.
+  * the "effective" argument of nparams() is now deprecated and will be removed
+     by the end of 2025.
+  * the cross-validation loss functions "pred-lw", "cor-lw" and "mse-lw" are
+     now deprecated in favour of "pred", "cor" and "mse" with optional
+     arguments predict = "bayes-lw"; they will be removed in 2025.
+  * the cross-validation loss functions "logl-g" and "logl-cg" are now
+     deprecated in favour of "logl"; they will be removed in 2025.
+  * the cross-validation loss functions "pred", "cor" and "mse" can now be
+     computed with exact inference using predict = "exact".
+  * completed the implementation of KL(), which now supports conditional 
+     Gaussian networks in addition to discrete and Gaussian ones.
+  * implemented Shannon's entropy.
+  * conditional independence tests now have optional arguments like network
+     scores.
+  * added a "custom-test" conditional independence test allowing user-provided
+     test statistics in the same way as "custom" allows user-provided network
+     scores.
+  * the custom score now has label "custom-score", instead of just "custom",
+     for clarity and to make it consistent with "custom-test".
+  * added a "params.threshold" to hard EM methods in bn.fit(), and renamed
+     the log-likelihood threshold to "loglik.threshold".
+  * the log-likelihood stopping rule in hard EM now uses the log-likelihood of
+     the completed data, which works better in the presence of latent
+     variables and is more appropriate accoridng to Koller & Friedman (thanks
+     Laura Azzimonti).
+  * coefficients(), sigma(), fitted() and residuals() return an error when
+     called on bn objects instead of failing silently and returning NULL.
+  * preserve and return the probabilities from predict(..., prob = TRUE) when
+     using the parallel package (thanks Alex Rudge).
+  * logLik() now returns an object of class "logLik" with the expected
+     attributes.
+  * added an identifiable() function to tell whether a bn.fit object contains NA
+     parameter values; and a singular() function to tell whether it is
+     singular (with 0-1 probability distributions, zero standard errors).
+  * the entropy loss in bn.cv() is now estimated now uses the node-average 
+     (log-)likelihood; it does not produce warnings for incomplete data and
+     may occasionally return +Inf instead of NA in some corner cases (for
+     instance, when the model learning from training has NA parameters or
+     conditional probabilities equal to zero).
 
 bnlearn (4.9.3)
 

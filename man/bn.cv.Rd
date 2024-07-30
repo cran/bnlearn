@@ -148,6 +148,12 @@ loss(x)
 
   \itemize{
 
+    \item \code{predict}: a character string, the label of the method used to
+      predict the observations in the test set. The default is \code{"parents"}.
+      Other possible values are the same as in \code{predict()}.
+    \item \code{predict.args}: a list containing the optional arguments for
+      the prediction method. See the documentation for \code{predict()} for
+      more details.
     \item \code{target}: a character string, the label of target node for
       prediction in all loss functions but \code{logl}, \code{logl-g} and
       \code{logl-cg}.

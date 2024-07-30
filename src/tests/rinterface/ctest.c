@@ -7,8 +7,8 @@
 #include "../patterns.h"
 
 /* conditional independence tests. */
-SEXP ctest(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP B, SEXP alpha,
-    SEXP learning, SEXP complete) {
+SEXP ctest(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP alpha,
+    SEXP extra_args, SEXP learning, SEXP complete) {
 
 int ntests = length(x);
 double *pvalue = NULL, statistic = 0, df = NA_REAL;
@@ -89,7 +89,9 @@ SEXP xx2, yy2, zz, cc, result;
     ddata dtx = ddata_from_SEXP(xx2, 0), dty = ddata_from_SEXP(yy2, 0);
     ddata dtz = ddata_from_SEXP(zz, 0);
 
-    statistic = ct_dperm(dtx, dty, dtz, pvalue, &df, test_type, INT(B),
+    int B = INT(getListElement(extra_args, "B"));
+
+    statistic = ct_dperm(dtx, dty, dtz, pvalue, &df, test_type, B,
                   IS_SMC(test_type) ? NUM(alpha) : 1);
 
     FreeDDT(dtx);
@@ -103,11 +105,22 @@ SEXP xx2, yy2, zz, cc, result;
     gdata dtx = gdata_from_SEXP(xx2, 0), dt = gdata_from_SEXP(zz, 2);
     dt.col[1] = REAL(VECTOR_ELT(yy2, 0));
 
-    statistic = ct_gperm(dtx, dt, pvalue, &df, test_type, INT(B),
+    int B = INT(getListElement(extra_args, "B"));
+
+    statistic = ct_gperm(dtx, dt, pvalue, &df, test_type, B,
                   IS_SMC(test_type) ? NUM(alpha) : 1, all_equal(cc, TRUESEXP));
 
     FreeGDT(dtx);
     FreeGDT(dt);
+
+  }/*THEN*/
+  else if (test_type == CUSTOM_T) {
+
+    /* user-provided test function. */
+    SEXP custom_fn = getListElement(extra_args, "fun");
+    SEXP custom_args = getListElement(extra_args, "args");
+
+    statistic = ct_custom(x, y, sx, data, custom_fn, custom_args, pvalue);
 
   }/*THEN*/
 
@@ -123,7 +136,7 @@ SEXP xx2, yy2, zz, cc, result;
   if (isTRUE(learning))
     return result;
   else
-    return c_create_htest(statistic, test, pvalue[ntests - 1], df, B);
+    return c_create_htest(statistic, test, pvalue[ntests - 1], df, extra_args);
 
 }/*CTEST*/
 

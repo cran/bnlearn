@@ -1,12 +1,11 @@
 
 # constraint-based learning algorithms.
 bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = NULL, B = NULL, method = "gs", max.sx = NULL,
-    debug = FALSE, undirected = FALSE) {
+    test = NULL, alpha = NULL, extra.args = list(), method = "gs",
+    max.sx = NULL, debug = FALSE, undirected = FALSE) {
 
   reset.test.counter()
 
-  res = NULL
   parallel = FALSE
 
   # check the data are there.
@@ -20,8 +19,8 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
   check.logical(undirected)
   # check alpha.
   alpha = check.alpha(alpha)
-  # check B (the number of bootstrap/permutation samples).
-  B = check.B(B, test)
+  # check the optional arguments to the test.
+  extra.args = check.test.args(test = test, extra.args = extra.args, data = x)
   # check size of the largest conditioning set in the independence tests.
   max.sx = check.largest.sx.set(max.sx, x)
 
@@ -57,117 +56,116 @@ bnlearn = function(x, cluster = NULL, whitelist = NULL, blacklist = NULL,
 
     local.structure =
       pc.stable.backend(x = x, whitelist = whitelist,
-        blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-        max.sx = max.sx, debug = debug, cluster = cluster)
+        blacklist = full.blacklist, test = test, alpha = alpha,
+        extra.args = extra.args, max.sx = max.sx, debug = debug,
+        cluster = cluster)
 
   }#THEN
   else if (method == "gs") {
 
     local.structure =
       grow.shrink(x = x, whitelist = whitelist, blacklist = full.blacklist,
-        test = test, alpha = alpha, B = B, max.sx = max.sx, debug = debug,
-        cluster = cluster)
+        test = test, alpha = alpha, extra.args = extra.args, max.sx = max.sx,
+        debug = debug, cluster = cluster)
 
   }#THEN
   else if (method == "iamb") {
 
     local.structure =
       incremental.association(x = x, whitelist = whitelist,
-        blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-        max.sx = max.sx, debug = debug, cluster = cluster)
+        blacklist = full.blacklist, test = test, alpha = alpha,
+        extra.args = extra.args, max.sx = max.sx, debug = debug,
+        cluster = cluster)
 
   }#THEN
   else if (method == "fast.iamb") {
 
     local.structure =
       fast.incremental.association(x = x, whitelist = whitelist,
-        blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-        max.sx = max.sx, debug = debug, cluster = cluster)
+        blacklist = full.blacklist, test = test, alpha = alpha,
+        extra.args = extra.args, max.sx = max.sx, debug = debug,
+        cluster = cluster)
 
   }#THEN
   else if (method == "inter.iamb") {
 
     local.structure =
       inter.incremental.association(x = x, whitelist = whitelist,
-        blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-        max.sx = max.sx, debug = debug, cluster = cluster)
+        blacklist = full.blacklist, test = test, alpha = alpha,
+        extra.args = extra.args, max.sx = max.sx, debug = debug,
+        cluster = cluster)
 
   }#THEN
   else if (method == "iamb.fdr") {
 
     local.structure =
       incremental.association.fdr(x = x, whitelist = whitelist,
-        blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-        max.sx = max.sx, debug = debug, cluster = cluster)
+        blacklist = full.blacklist, test = test, alpha = alpha,
+        extra.args = extra.args, max.sx = max.sx, debug = debug,
+        cluster = cluster)
 
   }#THEN
   else if (method == "mmpc") {
 
     local.structure =
       maxmin.pc(x = x, whitelist = whitelist, blacklist = full.blacklist,
-        test = test, alpha = alpha, B = B, debug = debug, max.sx = max.sx,
-        cluster = cluster)
+        test = test, alpha = alpha, extra.args = extra.args, debug = debug,
+        max.sx = max.sx, cluster = cluster)
 
   }#THEN
   else if (method == "si.hiton.pc") {
 
     local.structure =
       si.hiton.pc.backend(x = x, whitelist = whitelist,
-        blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-        max.sx = max.sx, debug = debug, cluster = cluster)
+        blacklist = full.blacklist, test = test, alpha = alpha,
+        extra.args = extra.args, max.sx = max.sx, debug = debug,
+        cluster = cluster)
 
   }#THEN
   else if (method == "hpc") {
 
       local.structure =
         hybrid.pc.backend(x = x, whitelist = whitelist,
-          blacklist = full.blacklist, test = test, alpha = alpha, B = B,
-          max.sx = max.sx, debug = debug, cluster = cluster)
+          blacklist = full.blacklist, test = test, alpha = alpha,
+          extra.args = extra.args, max.sx = max.sx, debug = debug,
+          cluster = cluster)
 
   }#THEN
 
+  # recover some arc directions, or not.
   if (undirected) {
 
-    # save the status of the learning algorithm.
     arcs = nbr2arcs(local.structure)
-    learning = list(whitelist = whitelist, blacklist = blacklist,
-      test = test, args = list(alpha = alpha), ntests = test.counter())
-
-    # include also the number of permutations/bootstrap samples
-    # if it makes sense.
-    if (!is.null(B))
-      learning$args$B = B
-
-    res = list(learning = learning,
-      nodes = cache.structure(names(x), arcs = arcs), arcs = arcs)
 
   }#THEN
   else {
 
-    # recover some arc directions.
-    res = learn.arc.directions(x = x, local.structure = local.structure,
-            whitelist = whitelist, blacklist = full.blacklist, test = test,
-            alpha = alpha, B = B, max.sx = max.sx, debug = debug)
-    # return the user-specified blacklist, not the full one, as in other
-    # classes of learning algorithms.
-    res$learning["blacklist"] = list(blacklist)
+    arcs = learn.arc.directions(x = x, local.structure = local.structure,
+             whitelist = whitelist, blacklist = full.blacklist, test = test,
+             alpha = alpha, extra.args = extra.args, max.sx = max.sx,
+             debug = debug)
 
   }#ELSE
 
+  # group all the test arguments.
+  all.args = c(list(alpha = alpha), extra.args)
+  # join them with the relevant counters and learning arguments.
+  learning = list(whitelist = whitelist, blacklist = blacklist, test = test,
+                  args = all.args, ntests = test.counter(),
+                  algo = method, undirected = undirected, max.sx = max.sx)
+  # add the list of illegal arcs, if we have one.
+  learning$illegal = list.illegal.arcs(names(x), x, test)
   # add tests performed by the slaves to the test counter.
   if (parallel)
-    res$learning$ntests = res$learning$ntests +
+    learning$ntests = learning$ntests +
       sum(unlist(parallel::clusterEvalQ(cluster, test.counter())))
-  # save the learning method used.
-  res$learning$algo = method
-  # save the 'undirected' flag.
-  res$learning$undirected = undirected
-  # save the maximum size of the tests' conditioning sets.
-  res$learning$max.sx = max.sx
-  # save arcs that are illegal according to parametric assumptions.
-  res$learning$illegal = list.illegal.arcs(names(x), x, test)
 
-  invisible(structure(res, class = "bn"))
+  pdag = structure(list(learning = learning,
+                        nodes = cache.structure(names(x), arcs = arcs),
+                        arcs = arcs),
+                   class = "bn")
+
+  invisible(pdag)
 
 }#BNLEARN
 
@@ -275,7 +273,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   # call the right backend.
   if (heuristic == "hc") {
 
-    res = hill.climbing(x = x, start = start, whitelist = whitelist,
+    dag = hill.climbing(x = x, start = start, whitelist = whitelist,
       blacklist = blacklist, score = score, extra.args = extra.args,
       restart = restart, perturb = perturb, max.iter = max.iter,
       maxp = maxp, optimized = optimized, debug = debug)
@@ -283,7 +281,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   }#THEN
   else if (heuristic == "tabu"){
 
-    res = tabu.search(x = x, start = start, whitelist = whitelist,
+    dag = tabu.search(x = x, start = start, whitelist = whitelist,
       blacklist = blacklist, score = score, extra.args = extra.args,
       max.iter = max.iter, optimized = optimized, tabu = tabu,
       maxp = maxp, debug = debug)
@@ -291,12 +289,12 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   }#THEN
 
   # set the metadata of the network in one stroke.
-  res$learning = list(whitelist = whitelist, blacklist = blacklist,
+  dag$learning = list(whitelist = whitelist, blacklist = blacklist,
     test = score, ntests = test.counter(),
     algo = heuristic, args = extra.args, optimized = optimized,
-    illegal = list.illegal.arcs(names(res$nodes), data = x, criterion = score))
+    illegal = list.illegal.arcs(names(dag$nodes), data = x, criterion = score))
 
-  invisible(res)
+  invisible(dag)
 
 }#GREEDY.SEARCH
 
@@ -383,20 +381,20 @@ hybrid.search = function(x, whitelist = NULL, blacklist = NULL,
     list(x, start = NULL, heuristic = maximize, whitelist = whitelist, blacklist = constraints,
          debug = debug)
 
-  res = do.call("greedy.search", maximize.args)
+  dag = do.call("greedy.search", maximize.args)
 
   # set the metadata of the network in one stroke.
-  res$learning = list(whitelist = rst$learning$whitelist,
-    blacklist = rst$learning$blacklist, test = res$learning$test,
-    ntests = res$learning$ntests + rst$learning$ntests, algo = method,
-    args = c(res$learning$args, rst$learning$args),
-    optimized = res$learning$optimized,
+  dag$learning = list(whitelist = rst$learning$whitelist,
+    blacklist = rst$learning$blacklist, test = dag$learning$test,
+    ntests = dag$learning$ntests + rst$learning$ntests, algo = method,
+    args = c(dag$learning$args, rst$learning$args),
+    optimized = dag$learning$optimized,
     restrict = restrict, rstest = rst$learning$test, maximize = maximize,
-    maxscore = res$learning$test,
-    illegal = list.illegal.arcs(names(res$nodes), data = x,
-                criterion = res$learning$test))
+    maxscore = dag$learning$test,
+    illegal = list.illegal.arcs(names(dag$nodes), data = x,
+                criterion = dag$learning$test))
 
-  invisible(res)
+  invisible(dag)
 
 }#HYBRID.SEARCH
 
@@ -459,7 +457,7 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
 
 # learn the markov blanket of a single node.
 mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
-    start = NULL, test = NULL, alpha = 0.05, B = NULL, max.sx = NULL,
+    start = NULL, test = NULL, alpha = 0.05, extra.args = list(), max.sx = NULL,
     debug = FALSE) {
 
   reset.test.counter()
@@ -478,8 +476,8 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   check.logical(debug)
   # check alpha.
   alpha = check.alpha(alpha)
-  # check B (the number of bootstrap/permutation samples).
-  B = check.B(B, test)
+  # check the optional arguments to the test.
+  extra.args = check.test.args(test = test, extra.args = extra.args, data = x)
   # check size of the largest conditioning set in the independence tests.
   max.sx = check.largest.sx.set(max.sx, x)
 
@@ -547,36 +545,39 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   if (method == "gs") {
 
     mb = gs.markov.blanket(x = target, data = x, nodes = nodes, alpha = alpha,
-           B = B, whitelist = whitelist, blacklist = NULL, start = start,
-           test = test, max.sx = max.sx, debug = debug)
+           extra.args = extra.args, whitelist = whitelist, blacklist = NULL,
+           start = start, test = test, max.sx = max.sx, debug = debug)
 
   }#THEN
   else if (method == "iamb") {
 
     mb = ia.markov.blanket(x = target, data = x, nodes = nodes, alpha = alpha,
-           B = B, whitelist = whitelist, blacklist = NULL, start = start,
-           test = test, max.sx = max.sx, debug = debug)
+           extra.args = extra.args, whitelist = whitelist, blacklist = NULL,
+           start = start, test = test, max.sx = max.sx, debug = debug)
 
   }#THEN
   else if (method == "fast.iamb") {
 
     mb = fast.ia.markov.blanket(x = target, data = x, nodes = nodes,
-           alpha = alpha, B = B, whitelist = whitelist, blacklist = NULL,
-           start = start, test = test, max.sx = max.sx, debug = debug)
+           alpha = alpha, extra.args = extra.args, whitelist = whitelist,
+           blacklist = NULL, start = start, test = test, max.sx = max.sx,
+           debug = debug)
 
   }#THEN
   else if (method == "inter.iamb") {
 
     mb = inter.ia.markov.blanket(x = target, data = x, nodes = nodes,
-           alpha = alpha, B = B, whitelist = whitelist, blacklist = NULL,
-           start = start, test = test, max.sx = max.sx, debug = debug)
+           alpha = alpha, extra.args = extra.args, whitelist = whitelist,
+           blacklist = NULL, start = start, test = test, max.sx = max.sx,
+           debug = debug)
 
   }#THEN
   else if (method == "iamb.fdr") {
 
     mb = ia.fdr.markov.blanket(x = target, data = x, nodes = nodes,
-           alpha = alpha, B = B, whitelist = whitelist, blacklist = NULL,
-           start = start, test = test, max.sx = max.sx, debug = debug)
+           alpha = alpha, extra.args = extra.args, whitelist = whitelist,
+           blacklist = NULL, start = start, test = test, max.sx = max.sx,
+           debug = debug)
 
   }#THEN
 
@@ -586,7 +587,8 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 
 # learn the neighbourhood of a single node.
 nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
-    test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE) {
+    test = NULL, alpha = 0.05, extra.args = list(), max.sx = NULL,
+    debug = FALSE) {
 
   reset.test.counter()
 
@@ -604,8 +606,8 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   check.logical(debug)
   # check alpha.
   alpha = check.alpha(alpha)
-  # check B (the number of bootstrap/permutation samples).
-  B = check.B(B, test)
+  # check the optional arguments to the test.
+  extra.args = check.test.args(test = test, extra.args = extra.args, data = x)
   # check size of the largest conditioning set in the independence tests.
   max.sx = check.largest.sx.set(max.sx, x)
 
@@ -659,22 +661,25 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
     if (method == "mmpc") {
 
       nbr = maxmin.pc.forward.phase(target, data = x, nodes = nodes,
-             alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-             test = test, max.sx = max.sx, debug = debug)
+             alpha = alpha, extra.args = extra.args, whitelist = whitelist,
+             blacklist = blacklist, test = test, max.sx = max.sx,
+             debug = debug)
 
     }#THEN
     else if (method == "si.hiton.pc") {
 
-      nbr = si.hiton.pc.heuristic(target, data = x, nodes = nodes, alpha = alpha,
-              B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-              max.sx = max.sx, debug = debug)
+      nbr = si.hiton.pc.heuristic(target, data = x, nodes = nodes,
+              alpha = alpha, extra.args = extra.args, whitelist = whitelist,
+              blacklist = blacklist, test = test, max.sx = max.sx,
+              debug = debug)
 
     }#ELSE
 
     # this is the backward phase.
     nbr = neighbour(target, mb = structure(list(nbr), names = target), data = x,
-            alpha = alpha, B = B, whitelist = whitelist, blacklist = blacklist,
-            test = test, max.sx = max.sx, markov = FALSE, debug = debug)
+            alpha = alpha, extra.args = extra.args, whitelist = whitelist,
+            blacklist = blacklist, test = test, max.sx = max.sx, markov = FALSE,
+            debug = debug)
 
     parents.and.children = nbr[["nbr"]]
 
@@ -682,8 +687,8 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   else if (method == "hpc") {
 
     nbr = hybrid.pc.heuristic(target, data = x, nodes = nodes, alpha = alpha,
-            B = B, whitelist = whitelist, blacklist = blacklist, test = test,
-            max.sx = max.sx, debug = debug)
+            extra.args = extra.args, whitelist = whitelist,
+            blacklist = blacklist, test = test, max.sx = max.sx, debug = debug)
 
     parents.and.children = nbr$nbr
 
@@ -691,7 +696,8 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   else if (method == "pc.stable") {
 
     nbr = pc.stable.backend(x = x, whitelist = whitelist, blacklist = blacklist,
-            test = test, alpha = alpha, B = B, max.sx = max.sx, debug = debug)
+            test = test, alpha = alpha, extra.args = extra.args,
+            max.sx = max.sx, debug = debug)
 
     parents.and.children = nbr[[target]]$nbr
 
@@ -768,7 +774,7 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
     # not test statistiic involved.
     test = "none"
 
-    res = naive.bayes.backend(data = data, training = training,
+    dag = naive.bayes.backend(data = data, training = training,
             explanatory = explanatory)
 
   }#THEN
@@ -779,7 +785,7 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
     # same for the test
     test = as.character(mi.estimator.tests[extra.args$estimator])
 
-    res = tan.backend(data = data, training = training,
+    dag = tan.backend(data = data, training = training,
             explanatory = explanatory, whitelist = whitelist,
             blacklist = blacklist, mi = extra.args$estimator,
             root = extra.args$root, debug = debug)
@@ -787,14 +793,14 @@ bayesian.classifier = function(data, method, training, explanatory, whitelist,
   }#THEN
 
   # set the learning algorithm.
-  res$learning$algo = method
+  dag$learning$algo = method
   # set the metadata of the network in one stroke.
-  res$learning = list(whitelist = whitelist, blacklist = blacklist,
+  dag$learning = list(whitelist = whitelist, blacklist = blacklist,
     test = test, ntests = ntests, algo = method, args = extra.args)
   # set the trainign variable, for use by predict() & co.
-  res$learning$args$training = training
+  dag$learning$args$training = training
 
-  invisible(res)
+  invisible(dag)
 
 }#BAYESIAN.CLASSIFIER
 

@@ -216,6 +216,19 @@ descendants = function(x, node) {
 
 }#DESCENDANTS
 
+# get the isolated nodes in the network.
+isolated.nodes = function(x) {
+
+  # check x's class.
+  check.bn.or.fit(x)
+
+  # isolated nodes have degree equal to zero.
+  isolated = (sapply(nodes(x), .degree, x = x) == 0)
+
+  return(names(which(isolated)))
+
+}#ISOLATED.NODES
+
 # get the in-degree of a node.
 in.degree = function(x, node) {
 

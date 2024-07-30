@@ -10,9 +10,9 @@
 }
 \usage{
 learn.mb(x, node, method, whitelist = NULL, blacklist = NULL, start = NULL,
-  test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE)
+  test = NULL, alpha = 0.05, ..., max.sx = NULL, debug = FALSE)
 learn.nbr(x, node, method, whitelist = NULL, blacklist = NULL,
-  test = NULL, alpha = 0.05, B = NULL, max.sx = NULL, debug = FALSE)
+  test = NULL, alpha = 0.05, ..., max.sx = NULL, debug = FALSE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
@@ -36,10 +36,8 @@ learn.nbr(x, node, method, whitelist = NULL, blacklist = NULL,
     correlation} for continuous variables. See \code{\link{independence tests}}
     for details.}
   \item{alpha}{a numeric value, the target nominal type I error rate.}
-  \item{B}{a positive integer, the number of permutations considered for each
-    permutation test. It will be ignored with a warning if the conditional
-    independence test specified by the \code{test} argument is not a permutation
-    test.}
+  \item{\dots}{optional arguments to be passed to the test specified by
+    \code{test}. See \code{\link{ci.test}} for details.}
   \item{max.sx}{a positive integer, the maximum allowed size of the conditioning
     sets used in conditional independence tests. The default is that there is
     no limit on size.}

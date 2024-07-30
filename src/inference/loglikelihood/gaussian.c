@@ -3,10 +3,12 @@
 #include "../../core/data.table.h"
 #include "../../core/allocations.h"
 #include "loglikelihood.h"
+#include "../../include/globals.h"
+
 
 /* log-likelihood of individual observations for a Gaussian network. */
 void bysample_gaussian_loglikelihood(fitted_bn bn, gdata dt, double *loglik,
-    bool debugging) {
+    bool robust, bool debugging) {
 
 int *pars = NULL;
 double *obs = NULL, *coefs = NULL, sd = 0, *scratch = NULL;
@@ -25,11 +27,15 @@ double *obs = NULL, *coefs = NULL, sd = 0, *scratch = NULL;
     if (debugging)
       Rprintf("* processing node %s.\n", bn.labels[i]);
 
-    /* ... extract the relevant quantities from the data and the network...*/
+    /* ... extract the relevant quantities from the data and the network... */
     obs = dt.col[i];
     coefs = bn.ldists[i].g.coefs;
     pars = bn.ldists[i].parents;
     sd = bn.ldists[i].g.sd;
+
+    /* ... move away from singular distribtions ... */
+    if ((sd < MACHINE_TOL) && robust)
+      sd = MACHINE_TOL;
 
     /* ... initialize the log-likelihoods with the intercept... */
     for (int j = 0; j < dt.m.nobs; j++)
@@ -55,7 +61,7 @@ double *obs = NULL, *coefs = NULL, sd = 0, *scratch = NULL;
 
 /* log-likelihood of a whole sample for a Gaussian network. */
 double data_gaussian_loglikelihood(fitted_bn bn, gdata dt, double *scratch,
-    bool propagate, bool debugging) {
+    bool propagate, bool loss, bool debugging) {
 
 int ncomplete = 0, *pars = NULL;
 double loglik = 0, node_loglik = 0;
@@ -108,7 +114,7 @@ unidentifiable_model:
     if (!dt.m.flag[i].fixed)
       continue;
 
-    if (debugging)
+    if (debugging && !loss)
       Rprintf("* processing node %s.\n", bn.labels[i]);
 
     /* ... reset the log-likelihood accumulator... */
@@ -144,21 +150,32 @@ unidentifiable_model:
 
     }/*FOR*/
 
-    /* ... and scale it to compensate for any missing values (which will not be
-     * propagated as a result), or return -Inf if there are no locally-complete
-     * observations. */
+    /* scale the likelihood to compensate for any missing values (which will
+     * not be propagated as a result), or return -Inf if there are no
+     * locally-complete observations. */
     if (ncomplete == 0)
       node_loglik = R_NegInf;
     else if (ncomplete < dt.m.nobs)
       node_loglik = node_loglik / ncomplete * dt.m.nobs;
 
-    if (debugging) {
+    if (loss) {
 
-       Rprintf("  > %d locally-complete observations out of %d.\n",
-         ncomplete, dt.m.nobs);
-       Rprintf("  > log-likelihood is %lf.\n", node_loglik);
+      if (debugging)
+        Rprintf("  > log-likelihood loss for node %s is %lf.\n",
+          bn.labels[i], - node_loglik / dt.m.nobs);
 
-     }/*THEN*/
+    }/*THEN*/
+    else {
+
+      if (debugging) {
+
+        Rprintf("  > %d locally-complete observations out of %d.\n",
+          ncomplete, dt.m.nobs);
+        Rprintf("  > log-likelihood is %lf.\n", node_loglik);
+
+      }/*THEN*/
+
+    }/*ELSE*/
 
     /* cumulate the log-likelihood. */
     loglik += node_loglik;

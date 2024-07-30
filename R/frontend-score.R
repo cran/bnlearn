@@ -1,6 +1,7 @@
 
 # compute the score of a network.
-network.score = function(x, data, type = NULL, ..., by.node = FALSE, debug = FALSE) {
+network.score = function(x, data, type = NULL, ..., by.node = FALSE,
+    debug = FALSE) {
 
   # check x's class.
   check.bn(x)

@@ -20,6 +20,8 @@
 \alias{coef.bn.fit.cgnode}
 \alias{residuals.bn.fit.cgnode}
 \alias{sigma.bn.fit.cgnode}
+\alias{identifiable}
+\alias{singular}
 \title{Utilities to manipulate fitted Bayesian networks}
 \description{
 
@@ -37,6 +39,10 @@
 \method{logLik}{bn.fit}(object, data, nodes, by.sample = FALSE, na.rm = FALSE, debug = FALSE, ...)
 \method{AIC}{bn.fit}(object, data, ..., k = 1)
 \method{BIC}{bn.fit}(object, data, ...)
+
+## non-method functions for "bn.fit"
+identifiable(x, by.node = FALSE)
+singular(x, by.node = FALSE)
 
 ## methods available for "bn.fit.dnode"
 \method{coef}{bn.fit.dnode}(object, for.parents, ...)
@@ -59,6 +65,7 @@
 \arguments{
   \item{object}{an object of class \code{bn.fit}, \code{bn.fit.dnode},
     \code{bn.fit.gnode}, \code{bn.fit.cgnode} or \code{bn.fit.onode}.}
+  \item{x}{an object of class \code{bn.fit}.}
   \item{nodes}{a vector of character strings, the label of a nodes whose
     log-likelihood components are to be computed.}
   \item{data}{a data frame containing the variables in the model.}
@@ -66,9 +73,13 @@
   \item{k}{a numeric value, the penalty coefficient to be used; the default
     \code{k = 1} gives the expression used to compute AIC.}
   \item{by.sample}{a boolean value. If \code{TRUE}, \code{logLik()} returns
-    a vector containing the the log-likelihood of each observations in the
-    sample. If \code{FALSE}, \code{logLik()} returns a single value, the
-    likelihood of the whole sample.}
+    a vector containing the log-likelihood of each observations in the sample.
+    If \code{FALSE}, \code{logLik()} returns a single value, the log-likelihood
+    of the whole sample.}
+  \item{by.node}{a boolean value. if \code{TRUE}, \code{identifiable()} and
+    \code{singular()} return a vector containing one value for each local
+    distributions. If \code{FALSE}, \code{identifiable()} and \code{singular()}
+    return a single value for the whole model.}
   \item{na.rm}{a boolean value, whether missing values should be used in
     computing the log-likelihood. See below for details. The default value is
     \code{FALSE}, and it only has an effect if \code{by.sample = FALSE}.}

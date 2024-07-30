@@ -43,7 +43,7 @@ check.test = function(test, data) {
 
 }#CHECK.TEST
 
-# check the the target nominal type I error rate
+# check the the target nominal type I error rate.
 check.alpha = function(alpha, network = NULL) {
 
   # check the the target nominal type I error rate
@@ -69,8 +69,31 @@ check.alpha = function(alpha, network = NULL) {
 
 }#CHECK.ALPHA
 
+# sanitize the extra arguments passed to the conditional independence tests.
+check.test.args = function(test, network = NULL, data, extra.args) {
+
+  # check the imaginary sample size.
+  if (has.argument(test, "B", test.extra.args))
+    extra.args[["B"]] =
+      check.B(B = extra.args[["B"]], network = network, criterion = test)
+
+  # check the R function implementing a custom test.
+  if (has.argument(test, "fun", test.extra.args))
+    extra.args[["fun"]] =
+      check.custom.test.function(fun = extra.args[["fun"]], network = network)
+  if (has.argument(test, "args", test.extra.args))
+    extra.args[["args"]] =
+      check.custom.test.arguments(args = extra.args[["args"]], network = network)
+
+  # warn about and remove unused arguments.
+  extra.args = check.unused.args(extra.args, test.extra.args[[test]])
+
+  return(extra.args)
+
+}#CHECK.TEST.ARGS
+
 # check the number of permutation/boostrap samples.
-check.B = function(B, criterion) {
+check.B = function(B, network, criterion) {
 
   if (criterion %in% resampling.tests) {
 
@@ -84,7 +107,9 @@ check.B = function(B, criterion) {
     }#THEN
     else {
 
-      if (criterion %in% semiparametric.tests)
+      if (!is.null(network$learning$args$B))
+        B = network$learning$args$B
+      else if (criterion %in% semiparametric.tests)
         B = 100L
       else
         B = 5000L
@@ -105,3 +130,50 @@ check.B = function(B, criterion) {
 
 }#CHECK.B
 
+# check the R function implementing a custom score.
+check.custom.test.function = function(fun, network) {
+
+  # there is no possible default value.
+  if (is.null(fun)) {
+
+    if (!is.null(network$learning$args$fun))
+      fun = network$learning$args$fun
+    else
+      stop("missing the custom test function.")
+
+  }#THEN
+  else {
+
+    # check the argument list.
+    fun.arguments = names(formals(fun))
+    if (!identical(fun.arguments, c("x", "y", "z", "data", "args")))
+      stop("the custom test function must have signature function(x, y, z, data, args).")
+
+  }#ELSE
+
+  return(fun)
+
+}#CHECK.CUSTOM.TEST.FUNCTION
+
+# check the additional argument list passed to a custom test.
+check.custom.test.arguments = function(args, network) {
+
+  # default to an empty argument list.
+  if (is.null(args)) {
+
+    if (!is.null(network$learning$args$args))
+      args = network$learning$args$args
+    else
+      args = list()
+
+  }#THEN
+  else {
+
+    if (!is.list(args))
+      stop("the arguments for the custom test must be passed as a list.")
+
+  }#ELSE
+
+  return(args)
+
+}#CHECK.CUSTOM.TEST.ARGUMENTS

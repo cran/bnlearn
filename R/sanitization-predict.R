@@ -1,6 +1,6 @@
 
 # check the method used for prediction.
-check.prediction.method = function(method, data) {
+check.prediction.method = function(method) {
 
   if (!missing(method) && !is.null(method)) {
 
@@ -36,7 +36,7 @@ check.prediction.extra.args = function(method, extra.args, node, fitted, data) {
 
     # check the variables to predict from, using the network as a reference.
     if (is.null(extra.args[["from"]]))
-      extra.args$from = intersect(setdiff(names(data), node), names(fitted))
+      extra.args$from = intersect(setdiff(names(data), node), .nodes(fitted))
     else
       check.nodes(nodes = extra.args[["from"]], graph = fitted, min.nodes = 0)
     # check that they do not include the node to predict.

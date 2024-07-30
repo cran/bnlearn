@@ -248,21 +248,24 @@ lattice.cv.bwplot = function(means, labels, losses, main, xlab, ylab,
   labels = factor(labels, levels = unique(labels))
   levels(labels) = xlab
 
-   p = lattice::bwplot(means ~ factor(labels),
-         horizontal = FALSE, pch = 19, ylab = ylab, main = main,
-         panel = function(...) {
+  # remove infinite loss values to avoid warnings on the plot's scaling.
+  means[!is.finite(means)] = NA
 
-           lattice::panel.grid(..., h = -1, v = 0, lty = 2)
-           lattice::panel.bwplot(...)
+  p = lattice::bwplot(means ~ factor(labels),
+        horizontal = FALSE, pch = 19, ylab = ylab, main = main,
+        panel = function(...) {
 
-           # connect the median points of the boxplots.
-           if (connect)
-             lattice::panel.average(..., fun = median, col.line = "black")
+          lattice::panel.grid(..., h = -1, v = 0, lty = 2)
+          lattice::panel.bwplot(...)
 
-         },
-         par.settings = list(box.umbrella = list(lty = 1, col = "black"),
-           box.rectangle = list(col = "black", fill = "ivory"),
-           plot.symbol = list(col = "black")))
+          # connect the median points of the boxplots.
+          if (connect)
+            lattice::panel.average(..., fun = median, col.line = "black")
+
+        },
+        par.settings = list(box.umbrella = list(lty = 1, col = "black"),
+          box.rectangle = list(col = "black", fill = "ivory"),
+          plot.symbol = list(col = "black")))
 
   # print the plot explicitly, do not rely on auto-printing.
   print(p)

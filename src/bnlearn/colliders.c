@@ -9,7 +9,8 @@
 int c_colliders(int *a, int nnodes, int **colliders, bool want_shielded,
     bool want_unshielded, char **node_labels, bool debugging) {
 
-int i = 0, j = 0, k = 0, cursor = 0, capacity = nnodes * 3;
+int i = 0, j = 0, k = 0, cursor = 0;
+int capacity = nnodes * 3, increment = nnodes * 3;
 bool shielded = FALSE;
 
   /* for each potential head of a directed arc... */
@@ -46,9 +47,14 @@ bool shielded = FALSE;
         /* .. and save it if it is a collider we want to return. */
         if ((shielded && want_shielded) || (!shielded && want_unshielded)) {
 
-          /* extend as needed. */
-          if (cursor + 3 > capacity)
-            Realloc1D(*colliders, capacity + nnodes * 3, sizeof(int));
+          /* extend as needed (updating both the pointer and the capacity). */
+          if (cursor + 3 > capacity) {
+
+            *colliders =
+              Realloc1D(*colliders, capacity + increment, sizeof(int));
+            capacity = capacity + nnodes * 3;
+
+          }/*THEN*/
 
           (*colliders)[cursor++] = i;
           (*colliders)[cursor++] = j;

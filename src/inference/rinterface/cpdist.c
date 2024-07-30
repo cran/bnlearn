@@ -15,7 +15,7 @@ SEXP result, simulation, wgt, from;
   /* allocate the scratch space for the simulation. */
   PROTECT(simulation = fit2df(fitted, nsims));
   /* generate the random observations. */
-  c_rbn_master(fitted, simulation, n, fix, FALSE);
+  c_rbn_master(fitted, simulation, n, fix, TRUE, FALSE);
 
   if (isTRUE(debug))
     Rprintf("* generated %d samples from the bayesian network.\n", nsims);

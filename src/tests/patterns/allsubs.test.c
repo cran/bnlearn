@@ -992,3 +992,79 @@ gdata sub = { 0 }, sub_complete = { 0 };
 
 }/*AST_GPERM*/
 
+/* user-provided test function. */
+SEXP ast_custom(SEXP x, SEXP y, SEXP sx, SEXP fixed, SEXP data, int minsize,
+    int maxsize, double a, SEXP custom_fn, SEXP custom_args,
+    bool debugging) {
+
+int i = 0, j = 0, cursize = 0, nf = length(fixed), *subset = NULL;
+double pvalue = 0, min_pvalue = 1, max_pvalue = 0;
+SEXP sxi, retval;
+
+  for (cursize = imax(1, minsize); cursize <= maxsize; cursize++) {
+
+    /* allocate and initialize the subset. */
+    subset = Calloc1D(cursize + nf, sizeof(int));
+    /* initialize the first subset. */
+    first_subset(subset + nf, cursize, nf);
+    for (i = 0; i < nf; i++)
+      subset[i] = i;
+
+    /* iterate over subsets. */
+    do {
+
+      /* prepare the current subset. */
+      PROTECT(sxi = allocVector(STRSXP, cursize + nf));
+       for (j = 0; j < cursize + nf; j++)
+         SET_STRING_ELT(sxi, j, STRING_ELT(sx, subset[j]));
+
+      /* compute the test statistic and update the p-values. */
+      custom_test_function(x, y, sxi, data, custom_fn, custom_args, &pvalue);
+      update_pvalue_range(pvalue, &min_pvalue, &max_pvalue);
+      /* increment the test counter. */
+      test_counter++;
+
+      if (debugging) {
+
+        Rprintf("    > node %s is %s %s given ", CHAR(STRING_ELT(x, 0)),
+          (pvalue > a) ? "independent from" : "dependent on",
+          CHAR(STRING_ELT(y, 0)));
+        for (j = 0; j < length(sxi); j++)
+          Rprintf("%s ", CHAR(STRING_ELT(sxi, j)));
+        Rprintf("(p-value: %g).\n", pvalue);
+
+      }/*THEN*/
+
+      /* if the p-value is not significant... */
+      if (pvalue > a) {
+
+        const char **subnames = NULL;
+
+        /* ... collect the labels of the nodes in the separating set... */
+        subnames = Calloc1D(length(sxi), sizeof(char*));
+        for (j = 0; j < length(sxi); j++)
+          subnames[j] = CHAR(STRING_ELT(sxi, j));
+
+        /*... and return. */
+        PROTECT(retval = ast_prepare_retval(pvalue, min_pvalue, max_pvalue,
+                           a, subnames, length(sxi)));
+
+        Free1D(subset);
+        Free1D(subnames);
+
+        UNPROTECT(2);
+        return retval;
+
+      }/*THEN*/
+
+      UNPROTECT(1);
+
+    } while (next_subset(subset + nf, cursize, length(sx) - nf, nf));
+
+    Free1D(subset);
+
+  }/*FOR*/
+
+  return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
+
+}/*AST_CUSTOM*/

@@ -18,6 +18,8 @@ double ut_dperm(SEXP xx, SEXP yy, int nobs, int ntests, double *pvalue,
     double *df, test_e type, int B, double a);
 double ut_gperm(SEXP xx, SEXP yy, int nobs, int ntests, double *pvalue,
     test_e type, int B, double a, bool complete);
+double ut_custom(SEXP x, SEXP y, SEXP data, SEXP custom_fn, SEXP custom_args,
+    double *pvalue);
 
 /* conditional tests. */
 double ct_discrete(ddata dtx, ddata dty, ddata dtz, double *pvalue, double *df,
@@ -36,6 +38,8 @@ double ct_dperm(ddata dtx, ddata dty, ddata dtz, double *pvalue, double *df,
     test_e type, int B, double a);
 double ct_gperm(gdata dtx, gdata dt, double *pvalue, double *df, test_e type,
     int B, double a, bool complete);
+double ct_custom(SEXP x, SEXP y, SEXP z, SEXP data, SEXP custom_fn,
+    SEXP custom_args, double *pvalue);
 
 /* round-robin tests. */
 void rrd_discrete(ddata dtx, ddata dtz, test_e test, double *pvalue,
@@ -54,6 +58,8 @@ void rrd_dperm(ddata dtx, ddata dtz, test_e test, double *pvalue, double alpha,
     int nperms, double threshold, bool debugging);
 void rrd_gperm(gdata dt, test_e test, double *pvalue, double alpha, int nperms,
     double threshold, bool complete, bool debugging);
+void rrd_custom(SEXP x, SEXP z, SEXP fixed, SEXP data, SEXP custom_fn,
+    SEXP custom_args, double *pvalue, double alpha, bool debugging);
 
 /* all-subsets tests. */
 SEXP ast_discrete(ddata dtx, ddata dty, ddata dtz, int nf, int minsize,
@@ -71,6 +77,9 @@ SEXP ast_dperm(ddata dtx, ddata dty, ddata dtz, int nf, int minsize,
     bool debugging);
 SEXP ast_gperm(gdata dt, int nf, int minsize, int maxsize, double a,
     test_e type, int nperms, double threshold, bool complete, bool debugging);
+SEXP ast_custom(SEXP x, SEXP y, SEXP sx, SEXP fixed, SEXP data, int minsize,
+    int maxsize, double a, SEXP custom_fn, SEXP custom_args,
+    bool debugging);
 
 SEXP ast_prepare_retval(double pvalue, double min_pvalue, double max_pvalue,
     double alpha, const char **nodes, int nnodes);

@@ -282,7 +282,7 @@ coef.bn.fit.onode = coef.bn.fit.dnode = function(object, for.parents, ...) {
 
 # logLik method for class 'bn.fit'.
 logLik.bn.fit = function(object, data, nodes, by.sample = FALSE,
-  na.rm = FALSE, debug = FALSE, ...) {
+    na.rm = FALSE, debug = FALSE, ...) {
 
   # check the data are there.
   data = check.data(data, allow.missing = TRUE, allow.levels = TRUE)
@@ -311,7 +311,9 @@ AIC.bn.fit = function(object, data, ..., k = 1) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  logLik(object, data) - k * nparams(object)
+  ll = logLik.bn.fit(object, data)
+
+  return(ll - k * attr(ll, "df"))
 
 }#AIC.BN.FIT
 
@@ -321,7 +323,9 @@ BIC.bn.fit = function(object, data, ...) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  logLik(object, data) - log(nrow(data))/2 * nparams(object)
+  ll = logLik.bn.fit(object, data)
+
+  return(ll - log(nrow(data)) / 2 * attr(ll, "df"))
 
 }#BIC.BN.FIT
 
@@ -381,35 +385,24 @@ custom.fit = function(x, dist, ordinal, debug = FALSE) {
 
 }#CUSTOM.FIT
 
+# Shannon's entropy of a fitted network.
+H = function(P) {
+
+  # check the bn.fit object.
+  check.fit(P)
+
+  shannon.entropy(P)
+
+}#H
+
 # Kullback-Leibler divergence between a network Q and a reference network P.
 KL = function(P, Q) {
 
-  # both should be fitted networks.
+  # both should be fitted networks...
   check.fit(P)
   check.fit(Q)
-
-  # it is not feasible to represent the global distrbution of discrete networks
-  # directly: project the first onto the second so that they have the same
-  # structure and the local distribution can be compared.
-  if (is(P, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")) &&
-      is(Q, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet"))) {
-
-    # if the two networks have different structures, use exact inference to get
-    # the parameters from the first for the structure of the second.
-    if (!isTRUE(all.equal(bn.net(P), bn.net(Q))))
-      P = project.distributions(from = P, onto = Q)
-    # they should have the same set of local distributions, make those in P match
-    # those in Q by playing with invariants if possible.
-    P = check.fitted.vs.fitted(P, Q, local = TRUE)
-
-  }#THEN
-  else {
-
-    # other types of networks are compared through their global distribution, so
-    # there is no need to make local distributions match across networks.
-    P = check.fitted.vs.fitted(P, Q, local = FALSE)
-
-  }#ELSE
+  # ... and they should have compatible distributions.
+  P = check.fitted.vs.fitted(P, Q, local = FALSE)
 
   kullback.leibler(P, Q)
 
@@ -431,3 +424,67 @@ mean.bn.fit = function(x, ..., weights = NULL) {
 
 }#MEAN.BN.FIT
 
+# does the bn.fit object contain any NA parameter values?
+identifiable = function(x, by.node = FALSE) {
+
+  # check the bn.fit object.
+  check.fit(x)
+
+  per.node = sapply(x, function(ld) {
+
+    if (is(ld, c("bn.fit.dnode", "bn.fit.onode")))
+      return(!anyNA(ld$prob))
+    else if (is(ld, c("bn.fit.gnode", "bn.fit.cgnode")))
+      !anyNA(ld$coefficients) && !anyNA(ld$sd)
+
+  })
+
+  # the model is identifiable if all nodes are identifiable.
+  if (by.node)
+    return(per.node)
+  else
+    return(all(per.node))
+
+}#IDENTIFIABLE
+
+# does the bn.fit object encode a singular model?
+singular = function(x, by.node = FALSE) {
+
+  # check the bn.fit object.
+  check.fit(x)
+
+  per.node = sapply(x, function(ld) {
+
+    if (is(ld, c("bn.fit.dnode", "bn.fit.onode"))) {
+
+      cpt.dims = dim(ld$prob)
+
+      if (length(cpt.dims) == 1)
+        return(all(ld$prob %in% c(0, 1)))
+      else {
+
+        # cast the CPT into two dimensions, so that we can ...
+        two.d = array(ld$prob, dim = c(cpt.dims[1], prod(cpt.dims[-1])))
+        # ... check all conditional distributions in a single apply() call.
+        sing = apply(two.d, 2, function(p) all(p %in% c(0, 1)))
+        # discount NAs from unidentifiable conditional distributions.
+        return(any(sing, na.rm = TRUE))
+
+      }#ELSE
+
+    }#THEN
+    else if (is(ld, c("bn.fit.gnode", "bn.fit.cgnode"))) {
+
+      return(any(ld$sd == 0, na.rm = TRUE))
+
+    }#THEN
+
+  })
+
+  # the model is singular if at least one node is singular.
+  if (by.node)
+    return(per.node)
+  else
+    return(any(per.node))
+
+}#SINGULAR

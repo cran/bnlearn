@@ -420,3 +420,29 @@ double statistic = 0;
 
 }/*UT_GPERM*/
 
+/* user-provided test function. */
+double ut_custom(SEXP x, SEXP y, SEXP data, SEXP custom_fn, SEXP custom_args,
+    double *pvalue) {
+
+double statistic = 0;
+int i = 0;
+SEXP xi;
+
+  PROTECT(xi = allocVector(STRSXP, 1));
+
+  for (i = 0; i < length(x); i++) {
+
+    /* iterate over the nodes, one at a time... */
+    SET_STRING_ELT(xi, 0 , STRING_ELT(x, i));
+    /* ... compute the test statistic, and fill the p-value array. */
+    statistic = custom_test_function(xi, y, R_NilValue, data, custom_fn,
+                  custom_args, pvalue + i);
+
+  }/*FOR*/
+
+  UNPROTECT(1);
+
+  return statistic;
+
+}/*UT_CUSTOM*/
+

@@ -35,7 +35,7 @@ score_e score_to_enum(const char *label) {
   ENTRY("pred-loglik-cg", PRED_LOGLIK_CG);
   ENTRY("nal-cg", NAL_CG);
   ENTRY("pnal-cg", PNAL_CG);
-  ENTRY("custom", CUSTOM);
+  ENTRY("custom-score", CUSTOM);
 
   return ENOSCORE;
 

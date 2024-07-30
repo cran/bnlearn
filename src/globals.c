@@ -9,6 +9,8 @@ SEXP BN_MethodSymbol;
 SEXP BN_WeightsSymbol;
 SEXP BN_DsepsetSymbol;
 SEXP BN_MetaDataSymbol;
+SEXP BN_NobsSymbol;
+SEXP BN_DfSymbol;
 SEXP TRUESEXP, FALSESEXP;
 
 double *regret_table;
@@ -23,6 +25,8 @@ SEXP onLoad(void) {
   BN_WeightsSymbol = install("weights");
   BN_DsepsetSymbol = install("dsep.set");
   BN_MetaDataSymbol = install("metadata");
+  BN_NobsSymbol = install("nobs");
+  BN_DfSymbol = install("df");
   TRUESEXP = ScalarLogical(TRUE);
   R_PreserveObject(TRUESEXP);
   FALSESEXP = ScalarLogical(FALSE);
@@ -83,7 +87,6 @@ static const R_CallMethodDef CallEntries[] = {
   CALL_ENTRY(dpred, 4),
   CALL_ENTRY(elist2arcs, 1),
   CALL_ENTRY(empty_graph, 2),
-  CALL_ENTRY(entropy_loss, 3),
   CALL_ENTRY(fit2arcs, 1),
   CALL_ENTRY(fitted_mb, 2),
   CALL_ENTRY(fitted_vs_data, 3),
@@ -102,7 +105,7 @@ static const R_CallMethodDef CallEntries[] = {
   CALL_ENTRY(is_pdag_acyclic, 5),
   CALL_ENTRY(is_row_equal, 2),
   CALL_ENTRY(joint_discretize, 7),
-  CALL_ENTRY(loglikelihood_function, 6),
+  CALL_ENTRY(loglikelihood_function, 7),
   CALL_ENTRY(lw_weights, 4),
   CALL_ENTRY(mappred, 7),
   CALL_ENTRY(marginal_discretize, 5),
@@ -123,7 +126,7 @@ static const R_CallMethodDef CallEntries[] = {
   CALL_ENTRY(pdag_extension, 3),
   CALL_ENTRY(pdag2dag, 2),
   CALL_ENTRY(per_node_score, 6),
-  CALL_ENTRY(rbn_master, 4),
+  CALL_ENTRY(rbn_master, 5),
   CALL_ENTRY(reset_test_counter, 0),
   CALL_ENTRY(root_nodes, 2),
   CALL_ENTRY(roundrobin_test, 9),

@@ -37,12 +37,6 @@ as.igraph = function(x, ...) {
 
 }#AS.IGRAPH
 
-as.prediction = function(x, ...) {
-
-  UseMethod("as.prediction")
-
-}#AS.PREDICTION
-
 as.lm = function(x, ...) {
 
   UseMethod("as.lm")
@@ -272,59 +266,6 @@ as.bn.igraph = function(x, ..., check.cycles = TRUE) {
   return(res)
 
 }#AS.BN.IGRAPH
-
-# generate the input for a ROC curve from arc strengths.
-as.prediction.bn.strength = function(x, true, ..., consider.direction = TRUE) {
-
-  warning("the as.prediction() method is deprecated and will be removed in 2024.")
-
-  # check whether ROCR is loaded.
-  check.and.load.package("ROCR")
-
-  # check whether true is a bn object.
-  check.bn(true)
-  # check whether it encodes a completely directed graph.
-  nodes = names(true$nodes)
-  if (is.pdag(true$arcs, nodes))
-    stop("the graph is only partially directed.")
-  # check the arc strengths.
-  check.bn.strength(x, valid = c("bootstrap", "bayes-factor"))
-  check.bn.strength.vs.bn(x, nodes)
-
-  # check consider.direction.
-  check.logical(consider.direction)
-  # warn about unused arguments.
-  check.unused.args(list(...), character(0))
-
-  # create a data frame with all possible arcs, and merge the arc strengths
-  # (with or without taking the direction into account.)
-  dd = structure(data.frame(subsets(nodes, 2)), names = c("from", "to"))
-
-  if(consider.direction) {
-
-    true.arcs.mat = true$arcs
-    x$pred = x$strength * x$direction
-
-  }#THEN
-  else {
-
-    true.arcs.mat = arcs(skeleton(true))
-    x$pred = x$strength
-
-  }#ELSE
-
-  # add a 0/1 indicator that encodes the arcs in the true network.
-  dd = merge(dd, x[, c("from", "to", "pred")], by = c("from", "to"))
-  true.arcs = data.frame(true.arcs.mat, label = 1)
-  dd = merge(dd, true.arcs, by = c("from", "to"), all.x = TRUE)
-  dd$label[is.na(dd$label)] = 0
-
-  # export the (true arcs, arc probabilities) pairs to the ROCR package.
-  pred = ROCR::prediction(dd$pred, dd$label)
-
-  return(pred)
-
-}#AS.PREDICTION.BN.STRENGTH
 
 # fit the local distributions of a (Gaussian) network using lm().
 as.lm.bn = function(x, data, ...) {

@@ -6,8 +6,9 @@ available.ordinal.tests = c("jt", "mc-jt", "smc-jt")
 available.continuous.tests = c("cor", "zf", "mi-g", "mi-g-sh", "mc-mi-g",
   "smc-mi-g", "mc-cor", "smc-cor", "mc-zf", "smc-zf")
 available.mixedcg.tests = c("mi-cg")
+available.omnibus.tests = c("custom-test")
 available.tests = c(available.discrete.tests, available.ordinal.tests,
-  available.continuous.tests, available.mixedcg.tests)
+  available.continuous.tests, available.mixedcg.tests, available.omnibus.tests)
 
 semiparametric.tests = c("sp-mi", "sp-x2")
 resampling.tests = c("mc-mi", "smc-mi", "mc-x2", "smc-x2", "mc-mi-g",
@@ -41,7 +42,37 @@ test.labels = c(
   "smc-cor" = "Pearson's Correlation (Seq. MC)",
   "zf" = "Fisher's Z",
   "mc-zf" = "Fisher's Z (MC)",
-  "smc-zf" = "Fisher's Z (Seq. MC)"
+  "smc-zf" = "Fisher's Z (Seq. MC)",
+  "custom-test" = "User-Provided Test Function"
+)
+
+test.extra.args = list(
+  "mi" = character(0),
+  "mi-adf" = character(0),
+  "mi-sh" = character(0),
+  "mc-mi" = c("B"),
+  "smc-mi" = c("B"),
+  "sp-mi" = c("B"),
+  "mi-g" = character(0),
+  "mi-g-sh" = character(0),
+  "mc-mi-g" = c("B"),
+  "smc-mi-g" = c("B"),
+  "mi-cg" = character(0),
+  "x2" = character(0),
+  "x2-adf" = character(0),
+  "mc-x2"= c("B"),
+  "smc-x2"= c("B"),
+  "sp-x2"= c("B"),
+  "jt" = character(0),
+  "mc-jt" = c("B"),
+  "smc-jt" = c("B"),
+  "cor" = character(0),
+  "mc-cor" = c("B"),
+  "smc-cor" = c("B"),
+  "zf" = character(0),
+  "mc-zf" = c("B"),
+  "smc-zf" = c("B"),
+  "custom-test" = c("fun", "args")
 )
 
 #-- network scores ------------------------------------------------------------#
@@ -57,12 +88,12 @@ available.continuous.scores =
 available.mixedcg.scores =
   c("loglik-cg", "aic-cg", "bic-cg", "ebic-cg", "pred-loglik-cg", "nal-cg",
     "pnal-cg")
-available.omnibus.scores = c("custom")
+available.omnibus.scores = c("custom-score")
 available.scores = c(available.discrete.scores, available.continuous.scores,
   available.mixedcg.scores, available.omnibus.scores)
 
 scores.for.incomplete.data =
-  c("custom", "nal", "pnal", "nal-g", "pnal-g", "nal-cg", "pnal-cg")
+  c("custom-score", "nal", "pnal", "nal-g", "pnal-g", "nal-cg", "pnal-cg")
 
 score.labels = c(
   "k2" = "Cooper & Herskovits' K2",
@@ -95,7 +126,7 @@ score.labels = c(
   "ebic-cg" = "eBIC (cond. Gauss.)",
   "nal-cg" = "Node-Average Likelihood (cond. Gauss.)",
   "pnal-cg" = "Penalized Node-Average Likelihood (cond. Gauss.)",
-  "custom" = "User-Provided Function"
+  "custom-score" = "User-Provided Score Function"
 )
 
 score.extra.args = list(
@@ -129,7 +160,7 @@ score.extra.args = list(
   "ebic-cg" = c("k", "gamma"),
   "nal-cg" = character(0),
   "pnal-cg" = c("k"),
-  "custom" = c("fun", "args")
+  "custom-score" = c("fun", "args")
 )
 
 prior.distributions = c("uniform", "vsp", "cs", "marginal")
@@ -263,15 +294,15 @@ loss.labels = c(
 
 loss.extra.args = list(
   "logl" = character(0),
-  "pred" = c("target"),
+  "pred" = c("predict", "target", "predict.args"),
   "pred-exact" = c("target", "prior"),
   "pred-lw" = c("target", "n", "from"),
   "pred-lw-cg" = c("target", "n", "from"),
   "logl-g" = character(0),
-  "cor" = "target",
+  "cor" = c("predict", "target", "predict.args"),
   "cor-lw" = c("target", "n", "from"),
   "cor-lw-cg" = c("target", "n", "from"),
-  "mse" = "target",
+  "mse" = c("predict", "target", "predict.args"),
   "mse-lw" = c("target", "n", "from"),
   "mse-lw-cg" = c("target", "n", "from"),
   "logl-cg" = character(0)
@@ -301,12 +332,15 @@ fits.extra.args = list(
   "mle-cg" = "replace.unidentifiable",
   "bayes" = "iss",
   "hdir" = c("iss", "alpha0", "group"),
-  "hard-em" = c("impute", "impute.args", "fit", "fit.args", "threshold",
-                "max.iter", "newdata", "start"),
-  "hard-em-g" = c("impute", "impute.args", "fit", "fit.args", "threshold",
-                  "max.iter", "newdata", "start"),
-  "hard-em-cg" = c("impute", "impute.args", "fit", "fit.args", "threshold",
-                   "max.iter", "newdata", "start")
+  "hard-em" = c("impute", "impute.args", "fit", "fit.args",
+                "loglik.threshold", "params.threshold", "max.iter",
+                "newdata", "start"),
+  "hard-em-g" = c("impute", "impute.args", "fit", "fit.args",
+                  "loglik.threshold", "params.threshold", "max.iter",
+                  "newdata", "start"),
+  "hard-em-cg" = c("impute", "impute.args", "fit", "fit.args",
+                   "loglik.threshold", "params.threshold", "max.iter",
+                   "newdata", "start")
 )
 
 fitted.from.method = c(

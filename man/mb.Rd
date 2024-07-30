@@ -36,6 +36,7 @@
 \alias{degree,bn.tan-method}
 \alias{root.nodes}
 \alias{leaf.nodes}
+\alias{isolated.nodes}
 \alias{nparams}
 \alias{ntests}
 \title{Miscellaneous utilities}
@@ -60,6 +61,7 @@ in.degree(x, node)
 out.degree(x, node)
 root.nodes(x)
 leaf.nodes(x)
+isolated.nodes(x)
 nnodes(x)
 
 ## arcs
@@ -129,8 +131,9 @@ ntests(x)
 \value{
 
   \code{mb}, \code{nbr}, \code{nodes}, \code{parents}, \code{children},
-  \code{spouses}, \code{ancestors}, \code{descendants}, \code{root.nodes} and
-  \code{leaf.nodes} return a vector of character strings.
+  \code{spouses}, \code{ancestors}, \code{descendants}, \code{root.nodes},
+  \code{leaf.nodes} and \code{isolated.nodes} return a vector of character
+  strings.
 
   \code{arcs}, \code{directed.arcs}, \code{undirected.arcs},
   \code{incoming.arcs}, \code{outgoing.arcs}, \code{incident.arcs}, \cr

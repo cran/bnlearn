@@ -30,6 +30,7 @@ test_e test_to_enum(const char *label) {
   ENTRY("smc-cor", SMC_COR);
   ENTRY("smc-zf", SMC_ZF);
   ENTRY("smc-mi-g", SMC_MI_G);
+  ENTRY("custom-test", CUSTOM_T);
 
   return ENOTEST;
 

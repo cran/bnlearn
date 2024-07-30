@@ -43,7 +43,7 @@ SEXP try, new_array;
 
   }/*THEN*/
 
-  /*allocate the new arra. */
+  /* allocate the new array. */
   PROTECT(new_array = allocVector(STRSXP, n - 1));
 
   for (i = 0, k = 0; i < n; i++)

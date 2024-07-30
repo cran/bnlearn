@@ -1,14 +1,14 @@
 
 # do a single conditional independence test.
-ci.test = function(x, y, z, data, test, B, debug = FALSE) {
+ci.test = function(x, y, z, data, test, ..., debug = FALSE) {
 
   if (missing(x))
     stop("one or both of the variables to test are missing.")
 
   if (is.string(x)) {
 
-    ci.test.character(x = x, y = y, z = z, data = data, test = test, B = B,
-      debug = debug)
+    ci.test.character(x = x, y = y, z = z, data = data, test = test,
+      extra.args = list(...), debug = debug)
 
   }#THEN
   else if (is(x, c("matrix", "data.frame"))) {
@@ -22,7 +22,7 @@ ci.test = function(x, y, z, data, test, B, debug = FALSE) {
 
     nodes = names(x)
     ci.test.character(x = nodes[1], y = nodes[2], z = nodes[-(1:2)],
-      data = x, test = test, B = B, debug = debug)
+      data = x, test = test, extra.args = list(...), debug = debug)
 
   }#THEN
   else if (is.vector(x)) {
@@ -32,7 +32,7 @@ ci.test = function(x, y, z, data, test, B, debug = FALSE) {
 
     ci.test.vector(x = x, y = y, z = z, xlab = deparse(substitute(x)),
       ylab = deparse(substitute(y)), zlab = deparse(substitute(z)),
-      test = test, B = B, debug = debug)
+      test = test, extra.args = list(...), debug = debug)
 
   }#THEN
   else {
@@ -44,7 +44,7 @@ ci.test = function(x, y, z, data, test, B, debug = FALSE) {
 }#CI.TEST
 
 # do a single conditional independence test (nodes as character strings).
-ci.test.character = function(x, y, z, data, test, B, debug = FALSE) {
+ci.test.character = function(x, y, z, data, test, extra.args, debug = FALSE) {
 
   # the original data set is needed.
   data = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
@@ -74,12 +74,13 @@ ci.test.character = function(x, y, z, data, test, B, debug = FALSE) {
   }#ELSE
   # check the test label.
   test = check.test(test, data = .data.frame.column(data, c(x, y, z)))
-  # check B (the number of permutation samples).
-  B = check.B(B, test)
+  # check the optional arguments to the test.
+  extra.args = check.test.args(test = test, extra.args = extra.args,
+                 data = .data.frame.column(data, c(x, y, z)))
 
   # create the htest object.
-  htest = indep.test(x = x, y = y, sx = z, data = data, test = test, B = B,
-            alpha = 1, learning = FALSE)
+  htest = indep.test(x = x, y = y, sx = z, data = data, test = test,
+            extra.args = extra.args, alpha = 1, learning = FALSE)
   htest$method = test.labels[test]
   htest$data.name = paste(x, "~", y, ifelse(length(z) > 0, "|", ""),
                       paste(z, collapse = " + "))
@@ -89,7 +90,8 @@ ci.test.character = function(x, y, z, data, test, B, debug = FALSE) {
 }#CI.TEST.CHARACTER
 
 # do a single conditional independence test (data vectors).
-ci.test.vector = function(x, y, z, xlab, ylab, zlab, test, B, debug = FALSE) {
+ci.test.vector = function(x, y, z, xlab, ylab, zlab, test, extra.args,
+    debug = FALSE) {
 
   # check debug.
   check.logical(debug)
@@ -141,12 +143,12 @@ ci.test.vector = function(x, y, z, xlab, ylab, zlab, test, B, debug = FALSE) {
   data = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
   # check the test label.
   test = check.test(test, data = data)
-  # check B (the number of permutation samples).
-  B = check.B(B, test)
+  # check the optional arguments to the test.
+  extra.args = check.test.args(test = test, extra.args = extra.args, data = data)
 
   # create the htest object.
-  htest = indep.test(x = 1L, y = 2L, sx = sx, data = data, test = test, B = B,
-            alpha = 1, learning = FALSE)
+  htest = indep.test(x = 1L, y = 2L, sx = sx, data = data, test = test,
+            extra.args = extra.args, alpha = 1, learning = FALSE)
   htest$method = test.labels[test]
   htest$data.name = paste(xlab, "~", ylab,
         ifelse(length(z) > 0, paste("|", zlab), ""))

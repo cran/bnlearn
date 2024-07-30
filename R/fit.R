@@ -280,39 +280,20 @@ bn.fit.backend.hard.em = function(x, data, cluster, extra.args, keep.fitted,
   # initial model for imputation.
   if (!is.null(extra.args$start)) {
 
-    fitted = extra.args$start
+    current.fitted = extra.args$start
 
   }#THEN
   else {
 
-    fitted = bn.fit.backend(x, data = data, cluster = cluster,
-               method = extra.args$fit, extra.args = extra.args$fit.args,
-               keep.fitted = FALSE, debug = FALSE)
+    current.fitted =
+      bn.fit.backend(x, data = data, cluster = cluster, method = extra.args$fit,
+        extra.args = extra.args$fit.args, keep.fitted = FALSE, debug = FALSE)
 
   }#ELSE
 
-  # compute the node-average log-likelihood of the data/newdata with the initial
-  # parameter set, checking that it is well-defined (with allowances for latent
-  # variables.
-  if (!is.null(extra.args$newdata))
-    target.data = extra.args$newdata
-  else
-    target.data = data
-
-  if (any(attr(target.data, "metadata")$latent.nodes))
-    current.loglik = -Inf
-  else {
-
-    current.loglik = loglikelihood(fitted, data = target.data,
-                       propagate.missing = FALSE) / nrow(target.data)
-
-    if (is.na(current.loglik) || (current.loglik == -Inf))
-      if (!is.null(extra.args$newdata))
-        stop("the starting fitted network is singular for newdata.")
-      else
-        stop("the starting fitted network is singular for the data.")
-
-  }#ELSE
+  # set the log-likelihood of the initial model to -Inf, instead of imputing the
+  # data and computing it, to make sure to complete at least one iteration.
+  current.loglik = -Inf
 
   # start iterating.
   iter = 1
@@ -323,9 +304,10 @@ bn.fit.backend.hard.em = function(x, data, cluster, extra.args, keep.fitted,
       cat("* expectation-maximization iteration", iter, ".\n")
 
     # E-step: complete the data by imputing the missing values.
-    completed = impute.backend(fitted = fitted, data = data,
-                  cluster = cluster, method = extra.args$impute,
-                  extra.args = extra.args$impute.args, debug = FALSE)
+    completed =
+      impute.backend(fitted = current.fitted, data = data, cluster = cluster,
+        method = extra.args$impute, extra.args = extra.args$impute.args,
+        debug = FALSE)
 
     # check whether the imputation has been successful so that there are no
     # more missing values.
@@ -336,44 +318,92 @@ bn.fit.backend.hard.em = function(x, data, cluster, extra.args, keep.fitted,
            paste(which(!successfully.imputed), collapse = ", "), ".")
 
     # M-step: fit the parameters from the completed data.
-    fitted = bn.fit.backend(x, data = completed, cluster = cluster,
-               method = extra.args$fit, extra.args = extra.args$fit.args,
-               keep.fitted = keep.fitted, debug = FALSE)
+    new.fitted =
+      bn.fit.backend(x, data = completed, cluster = cluster,
+         method = extra.args$fit, extra.args = extra.args$fit.args,
+         keep.fitted = keep.fitted, debug = FALSE)
 
-    # compute the node-average log-likelihood with the new parameters.
-    new.loglik = loglikelihood(fitted, data = target.data,
-                   propagate.missing = FALSE) / nrow(target.data)
+    # compute the node-average log-likelihood with the new parameters, either
+    # for the completed validation data set or the completed training ones.
+    if (!is.null(extra.args$newdata)) {
 
-    # check convergence: is the new node-average log-likelihood better enough?
-    reldiff = robust.score.difference(new.loglik, current.loglik) /
-                ifelse(is.finite(new.loglik), abs(new.loglik), 1)
+      completed =
+        impute.backend(fitted = current.fitted, data = extra.args$newdata,
+          cluster = cluster, method = extra.args$impute,
+          extra.args = extra.args$impute.args, debug = FALSE)
 
-    if (debug)
-      cat("  > the relative difference in log-likelihood is:", reldiff, ".\n")
+    }#THEN
 
-    if (reldiff <= extra.args$threshold) {
+    new.loglik = loglikelihood(new.fitted, data = completed,
+                   propagate.missing = FALSE) / nrow(completed)
 
-      if (debug)
-        cat("  @ the difference is smaller than the threshold, stopping.\n")
+    # check convergence: are parameters different enough (if the two network
+    # structures are the same, which is not a given in the first iteration)?
+    if ((iter > 1) ||
+        isTRUE(equal.backend.bn(bn.net(new.fitted), bn.net(current.fitted)))) {
 
-      break
+      reldiff.params =
+        sapply(names(new.fitted), function(node) {
+
+          diff = abs(.coefficients(new.fitted)[[node]] -
+                     .coefficients(current.fitted)[[node]])
+
+          scale = .coefficients(new.fitted)[[node]]
+          scale[scale == 0] = sqrt(.Machine$double.eps)
+
+          return(max(diff / scale, na.rm = TRUE))
+
+        })
+
+      reldiff.params = max(reldiff.params)
 
     }#THEN
     else {
 
-      current.loglik = new.loglik
+      reldiff.params = Inf
 
     }#ELSE
 
+    # check convergence: is the new node-average log-likelihood better enough?
+    reldiff.loglik = robust.score.difference(new.loglik, current.loglik) /
+                       ifelse(is.finite(new.loglik), abs(new.loglik), 1)
+
+    if (debug) {
+
+      cat("  > the relative difference in the parameters is:",
+          reldiff.params, ".\n")
+      cat("  > the relative difference in log-likelihood is:",
+          reldiff.loglik, ".\n")
+      if (reldiff.params <= extra.args$params.threshold)
+        cat("  @ the difference in the parameters is smaller than the threshold, stopping.\n")
+      if (reldiff.loglik <= extra.args$loglik.threshold)
+        cat("  @ the difference in log-likelihood is smaller than the threshold, stopping.\n")
+
+    }#THEN
+
+    # stop if either convergence criterion is satisfied.
+    if (reldiff.params <= extra.args$params.threshold)
+      break
+    if (reldiff.loglik <= extra.args$loglik.threshold)
+      break
+
+    # update the model and the associated log-likelihood for the next iteration.
+    current.fitted = new.fitted
+    current.loglik = new.loglik
     # increase the iteration counter.
     iter = iter + 1
 
   }#WHILE
 
-  if (debug)
-    if ((reldiff > extra.args$threshold) && (iter == extra.args$max.iter))
+  if (debug) {
+
+    if ((reldiff.loglik > extra.args$loglik.threshold) &&
+        (reldiff.params > extra.args$params.threshold) &&
+        (iter == extra.args$max.iter))
       cat("@ reached the maximum number of iterations, stopping.\n")
 
-  return(fitted)
+  }#THEN
+
+  return(current.fitted)
 
 }#BN.FIT.BACKEND.HARD.EM

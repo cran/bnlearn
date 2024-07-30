@@ -34,7 +34,7 @@ bn.boot(data, statistic, R = 200, m = nrow(data), algorithm,
   The first argument of \code{statistic} is the \code{bn} object encoding the
   network structure learned from the bootstrap sample; the arguments specified
   in \code{statistics.args} are extracted from the list and passed to
-  \code{statitstics} as the 2nd, 3rd, etc. arguments.
+  \code{statistics} as the 2nd, 3rd, etc. arguments.
 
 }
 \value{

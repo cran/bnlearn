@@ -1,6 +1,7 @@
 
 # transform continuous data into discrete ones.
-discretize = function(data, method, breaks = 3, ordered = FALSE, ..., debug = FALSE) {
+discretize = function(data, method, breaks = 3, ordered = FALSE, ...,
+    debug = FALSE) {
 
   # check the label of the discretization method.
   method = check.discretization.method(method)

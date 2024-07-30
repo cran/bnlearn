@@ -26,6 +26,15 @@ check.loss = function(loss, data, bn) {
     if ((type != "mixed-cg") && (loss %in% mixedcg.loss.functions))
       stop("loss function '", loss, "' may only be used with a mixture of continuous and discrete data.")
 
+    if (loss %in% c("logl-g", "logl-cg"))
+      warning("this loss function is deprecated in favour of 'logl' and will be removed in 2025.")
+    if (loss %in% c("pred-lw", "pred-lw-cg"))
+      warning("this loss function is deprecated in favour of 'pred' and will be removed in 2025.")
+    if (loss %in% c("cor-lw", "cor-lw-cg"))
+      warning("this loss function is deprecated in favour of 'cor' and will be removed in 2025.")
+    if (loss %in% c("mse-lw", "mse-lw-cg"))
+      warning("this loss function is deprecated in favour of 'mse' and will be removed in 2025.")
+
     return(loss)
 
   }#THEN
@@ -45,46 +54,6 @@ check.loss = function(loss, data, bn) {
 
 }#CHECK.LOSS
 
-# check the target node the loss is computed for.
-check.loss.target = function(target, loss, data, bn, nodes) {
-
-  if (!is.null(target)) {
-
-    if (!is.string(target) || (target %!in% nodes))
-      stop("target node must be a single, valid node label for the network.")
-
-    # in hybrid networks, check the target has the right data type.
-    if (loss %in% c("cor-lw-cg", "mse-lw-cg"))
-      if (!is(data[, target], "numeric"))
-        stop("the target node must be a continuous variable.")
-    if (loss == "pred-lw-cg")
-      if (!is(data[, target], "factor"))
-        stop("the target node must be a factor.")
-
-  }#THEN
-  else {
-
-    # the target node is obvious for classifiers.
-    if (is(bn, available.classifiers)) {
-
-      if (is(bn, "bn"))
-        target = bn$learning$args$training
-      else
-        target = attr(bn, "training")
-
-    }#THEN
-    else {
-
-      stop("missing target node for which to compute the prediction error.")
-
-    }#ELSE
-
-  }#ELSE
-
-  return(target)
-
-}#CHECK.LOSS.TARGET
-
 # sanitize the extra arguments passed to loss functions.
 check.loss.args = function(loss, bn, nodes, data, extra.args) {
 
@@ -94,7 +63,17 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
       check.loss.target(target = extra.args[["target"]], loss = loss,
         data = data, bn = bn, nodes = nodes)
 
-  # check the prior distribution for the target variable of a classifier.
+  # method used for prediction and its optional arguments.
+  if (has.argument(loss, "predict", loss.extra.args))
+    extra.args[["predict"]] =
+      check.prediction.method(method = extra.args[["predict"]])
+  if (has.argument(loss, "predict.args", loss.extra.args))
+    extra.args[["predict.args"]] =
+      check.prediction.extra.args(method = extra.args[["predict"]],
+        extra.args = extra.args[["predict.args"]],
+        node = extra.args[["target"]], fitted = bn, data = data)
+
+  # prior distribution for the target variable of a classifier.
   if (has.argument(loss, "prior", loss.extra.args))
       extra.args[["prior"]] =
         check.classifier.prior(prior = extra.args[["prior"]],
@@ -133,4 +112,44 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
   return(extra.args)
 
 }#CHECK.LOSS.ARGS
+
+# check the target node the loss is computed for.
+check.loss.target = function(target, loss, data, bn, nodes) {
+
+  if (!is.null(target)) {
+
+    if (!is.string(target) || (target %!in% nodes))
+      stop("target node must be a single, valid node label for the network.")
+
+    # in hybrid networks, check the target has the right data type.
+    if (loss %in% c("cor", "mse", "cor-lw-cg", "mse-lw-cg"))
+      if (!is(data[, target], "numeric"))
+        stop("the target node must be a continuous variable.")
+    if (loss %in% c("pred", "pred-lw-cg"))
+      if (!is(data[, target], "factor"))
+        stop("the target node must be a factor.")
+
+  }#THEN
+  else {
+
+    # the target node is obvious for classifiers.
+    if (is(bn, available.classifiers)) {
+
+      if (is(bn, "bn"))
+        target = bn$learning$args$training
+      else
+        target = attr(bn, "training")
+
+    }#THEN
+    else {
+
+      stop("missing target node for which to compute the prediction error.")
+
+    }#ELSE
+
+  }#ELSE
+
+  return(target)
+
+}#CHECK.LOSS.TARGET
 

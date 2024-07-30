@@ -44,13 +44,12 @@ arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
     # sanitize the alpha threshold.
     alpha = check.alpha(extra.args$alpha, network = x)
-    # sanitize B (the number of bootstrap/permutation samples).
-    B = check.B(extra.args$B, criterion)
-    # warn about and remove unused arguments.
-    extra.args = check.unused.args(extra.args, c("alpha", "B"))
+    # check the optional arguments to the test.
+    extra.args = check.test.args(test = criterion, extra.args = extra.args,
+                   network = x, data = data)
 
     res = arc.strength.test(network = x, data = data, alpha = alpha,
-            test = criterion, B = B, debug = debug)
+            test = criterion, extra.args = extra.args, debug = debug)
 
     # add extra information for strength.plot().
     res = structure(res, nodes = nodes, method = "test", threshold = alpha)
@@ -148,7 +147,7 @@ bf.strength = function(x, data, score, ..., debug = FALSE) {
 custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
     debug = FALSE) {
 
-illegal = NULL
+  illegal = NULL
 
   # check debug.
   check.logical(debug)

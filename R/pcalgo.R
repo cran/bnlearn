@@ -1,6 +1,6 @@
 
 pc.stable.backend = function(x, cluster = NULL, whitelist, blacklist, test,
-  alpha, B, max.sx = ncol(x), debug = FALSE) {
+    alpha, extra.args = list(), max.sx = ncol(x), debug = FALSE) {
 
   nodes = names(x)
   nnodes = length(nodes)
@@ -23,7 +23,7 @@ pc.stable.backend = function(x, cluster = NULL, whitelist, blacklist, test,
     # perform the conditional independence tests.
     node.pairs[dsep.size <= nbr.size] =
       smartSapply(cluster, node.pairs[dsep.size <= nbr.size], pc.heuristic,
-        data = x, alpha = alpha, B = B, whitelist = whitelist,
+        data = x, alpha = alpha, extra.args = extra.args, whitelist = whitelist,
         blacklist = blacklist, test = test, skeleton = skeleton,
         dsep.size = dsep.size, debug = debug)
 
@@ -67,8 +67,8 @@ pc.stable.backend = function(x, cluster = NULL, whitelist, blacklist, test,
 
 }#PC.STABLE.BACKEND
 
-pc.heuristic = function(pair, data, alpha, B, whitelist, blacklist, test,
-    skeleton, dsep.size, debug = FALSE) {
+pc.heuristic = function(pair, data, alpha, extra.args = list(), whitelist,
+    blacklist, test, skeleton, dsep.size, debug = FALSE) {
 
   arc = pair$arc
 
@@ -107,8 +107,8 @@ pc.heuristic = function(pair, data, alpha, B, whitelist, blacklist, test,
   if (length(nbr1) >= dsep.size) {
 
     a1 = allsubs.test(x = arc[1], y = arc[2], sx = nbr1, min = dsep.size,
-           max = dsep.size, data = data, test = test, alpha = alpha, B = B,
-           debug = debug)
+           max = dsep.size, data = data, test = test, alpha = alpha,
+           extra.args = extra.args, debug = debug)
 
     if (a1["p.value"] > alpha)
       return(list(arc = arc, p.value = a1["p.value"],
@@ -133,8 +133,8 @@ pc.heuristic = function(pair, data, alpha, B, whitelist, blacklist, test,
   if ((length(nbr2) >= dsep.size) && (dsep.size > 0) && !setequal(nbr1, nbr2)) {
 
     a2 = allsubs.test(x = arc[2], y = arc[1], sx = nbr2, min = dsep.size,
-           max = dsep.size, data = data, test = test, alpha = alpha, B = B,
-           debug = debug)
+           max = dsep.size, data = data, test = test, alpha = alpha,
+           extra.args = extra.args, debug = debug)
 
     if (a2["p.value"] > alpha)
       return(list(arc = arc, p.value = a2["p.value"],

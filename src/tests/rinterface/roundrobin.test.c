@@ -7,12 +7,13 @@
 #include "../tests.h"
 #include "../patterns.h"
 
-SEXP roundrobin_test(SEXP x, SEXP z, SEXP fixed, SEXP data, SEXP test, SEXP B,
-    SEXP alpha, SEXP complete, SEXP debug) {
+SEXP roundrobin_test(SEXP x, SEXP z, SEXP fixed, SEXP data, SEXP test,
+    SEXP alpha, SEXP extra_args, SEXP complete, SEXP debug) {
 
 double *pvalue = NULL, a = NUM(alpha);
 bool debugging = isTRUE(debug);
-test_e test_type = test_to_enum(CHAR(STRING_ELT(test, 0)));
+const char *t = CHAR(STRING_ELT(test, 0));
+test_e test_type = test_to_enum(t);
 SEXP xx, zz, cc, which_fixed, result;
 
   /* extract the variables from the data. */
@@ -99,12 +100,13 @@ SEXP xx, zz, cc, which_fixed, result;
 
     /* discrete permutation tests. */
     ddata dtx = ddata_from_SEXP(xx, 0), dtz = ddata_from_SEXP(zz, 0);
+    int B = INT(getListElement(extra_args, "B"));
 
     meta_copy_names(&(dtx.m), 0, xx);
     meta_copy_names(&(dtz.m), 0, zz);
     meta_init_flags(&(dtz.m), 0, R_NilValue, which_fixed);
 
-    rrd_dperm(dtx, dtz, test_type, pvalue, a, INT(B), IS_SMC(test_type) ? a : 1,
+    rrd_dperm(dtx, dtz, test_type, pvalue, a, B, IS_SMC(test_type) ? a : 1,
       debugging);
 
     FreeDDT(dtx);
@@ -115,23 +117,37 @@ SEXP xx, zz, cc, which_fixed, result;
 
     /* continuous permutation tests. */
     gdata dt = gdata_from_SEXP(zz, 1);
+    int B = INT(getListElement(extra_args, "B"));
 
     meta_copy_names(&(dt.m), 1, zz);
     meta_init_flags(&(dt.m), 1, R_NilValue, which_fixed);
     dt.col[0] = REAL(VECTOR_ELT(xx, 0));
     dt.m.names[0] = CHAR(STRING_ELT(x, 0));
 
-    rrd_gperm(dt, test_type, pvalue, a, INT(B), IS_SMC(test_type) ? a : 1,
+    rrd_gperm(dt, test_type, pvalue, a, B, IS_SMC(test_type) ? a : 1,
       all_equal(cc, TRUESEXP), debugging);
 
     FreeGDT(dt);
 
   }/*THEN*/
+  else if (test_type == CUSTOM_T) {
+
+    /* user-provided test function. */
+    SEXP custom_fn = getListElement(extra_args, "fun");
+    SEXP custom_args = getListElement(extra_args, "args");
+
+    rrd_custom(x, z, fixed, data, custom_fn, custom_args, pvalue, a, debugging);
+
+  }/*THEN*/
+
+  UNPROTECT(5);
+
+  /* catch-all for unknown tests (after deallocating memory.) */
+  if (test_type == ENOTEST)
+    error("unknown test statistic '%s'.", t);
 
   /* increment the test counter. */
   test_counter += length(zz) - length(fixed);
-
-  UNPROTECT(5);
 
   return result;
 

@@ -16,8 +16,7 @@ loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
   else if (loss %in% c("cor", "cor-lw", "cor-lw-cg")) {
 
     result = predictive.correlation(node = extra.args$target, fitted = fitted,
-               n = extra.args$n, from = extra.args$from, data = data,
-               loss = loss, debug = debug)
+               extra.args = extra.args, data = data, loss = loss, debug = debug)
 
   }#THEN
   else if (loss %in% c("mse", "mse-lw", "mse-lw-cg")) {
@@ -71,12 +70,11 @@ kfold.loss.postprocess = function(kcv, kcv.length, loss, extra.args, data) {
 }#LOSS.POSTPROCESS
 
 # predictive mean square error for gaussian networks.
-mse.loss = function(node, fitted, data, loss, extra.args,
-    debug = FALSE) {
+mse.loss = function(node, fitted, data, loss, extra.args, debug = FALSE) {
 
   if (loss == "mse")
     pred = predict.backend(fitted = fitted, node = node, data = data,
-             method = "parents")
+             method = extra.args$predict, extra.args = extra.args$predict.args)
   else if (loss %in% c("mse-lw", "mse-lw-cg"))
     pred = predict.backend(fitted = fitted, node = node, data = data,
              method = "bayes-lw", extra.args = extra.args)
@@ -90,15 +88,15 @@ mse.loss = function(node, fitted, data, loss, extra.args,
 }#MSE.LOSS
 
 # predictive correlation for gaussian networks.
-predictive.correlation = function(node, fitted, n, from, data, loss,
+predictive.correlation = function(node, fitted, extra.args, data, loss,
     debug = FALSE) {
 
   if (loss == "cor")
     pred = predict.backend(fitted = fitted, node = node, data = data,
-             method = "parents")
+             method = extra.args$predict, extra.args = extra.args$predict.args)
   else if (loss %in% c("cor-lw", "cor-lw-cg"))
     pred = predict.backend(fitted = fitted, node = node, data = data,
-             method = "bayes-lw", extra.args = list(n = n, from = from))
+             method = "bayes-lw", extra.args = extra.args)
 
   effective.size = how.many(!is.na(pred) & !is.na(data[, node]))
 
@@ -114,10 +112,11 @@ predictive.correlation = function(node, fitted, n, from, data, loss,
 # log-likelihood loss function for gaussian and discrete networks.
 entropy.loss = function(fitted, data, debug = FALSE) {
 
-  .Call(call_entropy_loss,
-        fitted = fitted,
-        data = data,
-        debug = debug)
+  attr(data, "metadata") = collect.metadata(data)
+  l = loglikelihood(fitted, data = data, as.loss = TRUE, debug = debug)
+
+  return(list(loss = - as.numeric(l) / attr(l, "nobs"),
+              effective.size = attr(l, "nobs")))
 
 }#ENTROPY.LOSS
 
@@ -129,7 +128,7 @@ classification.error = function(node, fitted, prior = NULL, data, loss,
     pred = naive.classifier(node, fitted, prior, data)
   else if (loss == "pred")
     pred = predict.backend(fitted = fitted, node = node, data = data,
-             method = "parents")
+             method = extra.args$predict, extra.args = extra.args$predict.args)
   else if (loss %in% c("pred-lw", "pred-lw-cg"))
     pred = predict.backend(fitted = fitted, node = node, data = data,
              method = "bayes-lw", extra.args = extra.args)

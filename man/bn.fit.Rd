@@ -126,11 +126,20 @@ bn.net(x)
       \code{hard-em-cg} to estimate the parameters in the \emph{maximization}
       step. The default method is the same as for \code{bn.fit()}.
 
-    \item \code{threshold}: a positive numeric value, the minimum improvement
-      threshold used to step iterating in \code{hard-em}, \code{hard-em-g} and
-      \code{hard-em-cg}. The threshold is defined as the relative likelihood
-      improvement divided by the sample size of \code{data}, and defaults to
-      \code{1e-3}.
+    \item \code{loglik.threshold}: a non-negative numeric value, the minimum
+      improvement threshold to continue iterating in \code{hard-em},
+      \code{hard-em-g} and \code{hard-em-cg}. The threshold is defined as the
+      relative likelihood improvement divided by the sample size of \code{data},
+      and defaults to \code{1e-3}. Setting it to zero means that iterations only
+      stop in case of negative improvement, which can happen due to stochastic
+      noise if the imputation of the missing data uses approximate inference.
+
+    \item \code{params.threshold}: a non-negative numeric value, the minimum
+      maximum elative change in the parameter values to continue iterating in
+      \code{hard-em}, \code{hard-em-g} and \code{hard-em-cg}. The threshold is
+      defined as the maximum of the differences between parameter values divided
+      scaled by the parameter value in the lastest iteration. The default value
+      is \code{1e-3}.
 
     \item \code{max.iter}: a positive integer value, the maximum number of
       iterations in \code{hard-em}, \code{hard-em-g} and \code{hard-em-cg}. The
