@@ -1,3 +1,7 @@
+bnlearn (5.0.1)
+
+  * updated C code not to use R C APIs scheduled for removal.
+
 bnlearn (5.0)
 
   * the "effective" argument of nparams() is now deprecated and will be removed

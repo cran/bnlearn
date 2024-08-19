@@ -1,5 +1,5 @@
-b543e4024346f6cbcce247cefcf31a9c *Changelog
-7eb6167511c08bf9e403a5be18d5220b *DESCRIPTION
+d847ced25b968a4fe0458c6607ed9a3d *Changelog
+5f0b0019a89f3c05137a71da618447c9 *DESCRIPTION
 081d0dc78987fe33bd9cf0f65baecfd1 *NAMESPACE
 e3d8ac1e5735d528308bf96aef26d710 *R/aracne.R
 9b9bff177487557e5b4df49826849d32 *R/arc.operations.R
@@ -271,7 +271,7 @@ f0f07d1a3c1e8d8bdff2df9dfa1d663b *src/learning/score/score.delta.c
 e4a191fc783d7a8b7cc5a5fa5fc562eb *src/learning/score/tabu.c
 d74781da89266d57af65170c7abfeec6 *src/math/conditional.least.squares.c
 70ee1c5ad27edde81d7c4ed52036bfee *src/math/least.squares.c
-7efe13b6a417674d43f0bcdfa40cb22e *src/math/linear.algebra.c
+7347094afc084cac2ef81d691a1e3d89 *src/math/linear.algebra.c
 6b2e402c1d04bb97d3b4c44f86eedd83 *src/math/linear.algebra.h
 893c3bc88158a691f3030b3b41473425 *src/minimal/common.c
 75aad3aae55455c2a2cd6c4cd3897ff1 *src/minimal/common.h

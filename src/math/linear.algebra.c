@@ -14,7 +14,7 @@ double c_logdet(double *matrix, int rows) {
 int sign = 1, i = 0, info = 0, *jpvt = NULL;
 long double logdet = 0;
 
-  jpvt = (int *) Calloc(rows, int);
+  jpvt = Calloc1D(rows, sizeof(int));
 
   /* compute the A = L*U decomposition. */
   F77_CALL(dgetrf)(&rows, &rows, matrix, &rows, jpvt, &info);
@@ -50,7 +50,7 @@ long double logdet = 0;
 
   }/*ELSE*/
 
-  Free(jpvt);
+  Free1D(jpvt);
 
   return (sign > 0) ? (double) logdet : R_NaN;
 
