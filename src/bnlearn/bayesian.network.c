@@ -2,6 +2,7 @@
 #include "../include/graph.h"
 #include "../minimal/strings.h"
 #include "../minimal/common.h"
+#include "../core/sort.h"
 
 /* convert a set of neighbourhoods into an arc set. */
 SEXP nbr2arcs(SEXP nbr) {
@@ -97,7 +98,7 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash;
   PROTECT(cmatch = match(tnodes, cnodes, 0));
   c = INTEGER(cmatch);
   /* sorting takes care of different node orderings. */
-  R_qsort_int(c, 1, nnodes);
+  i_sort(c, NULL, nnodes);
 
   /* check that every node in the first network is also present in the
    * second one; this is enough because the node sets have the same size
@@ -143,8 +144,8 @@ SEXP tnodes, cnodes, cmatch, tarcs, carcs, thash, chash;
     t = INTEGER(thash);
     c = INTEGER(chash);
     /* sorting takes care of different arc orderings. */
-    R_qsort_int(t, 1, narcs);
-    R_qsort_int(c, 1, narcs);
+    i_sort(t, NULL, narcs);
+    i_sort(c, NULL, narcs);
 
     /* compare the integer vectors as generic memory areas. */
     if (memcmp(t, c, narcs * sizeof(int))) {

@@ -1,5 +1,6 @@
 #include "../../include/rcore.h"
 #include "../../core/allocations.h"
+#include "../../core/sort.h"
 #include "../../include/globals.h"
 #include "../../minimal/data.frame.h"
 #include "../../include/graph.h"
@@ -29,7 +30,7 @@ SEXP weights2, amat, try, acyclic;
   poset = Calloc1D(nrow, sizeof(int));
   for (k = 0; k < nrow; k++)
     poset[k] = k;
-  R_qsort_I(w, poset, 1, nrow);
+  d_sort(w, poset, nrow);
 
   /* allocate buffers for c_has_path(). */
   path = Calloc1D(dims, sizeof(int));

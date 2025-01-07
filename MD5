@@ -1,5 +1,5 @@
-d847ced25b968a4fe0458c6607ed9a3d *Changelog
-5f0b0019a89f3c05137a71da618447c9 *DESCRIPTION
+363f4de9738741c6db31f2e78d590071 *Changelog
+a83024185f38e329fb654bc0bc9b5205 *DESCRIPTION
 081d0dc78987fe33bd9cf0f65baecfd1 *NAMESPACE
 e3d8ac1e5735d528308bf96aef26d710 *R/aracne.R
 9b9bff177487557e5b4df49826849d32 *R/arc.operations.R
@@ -195,14 +195,14 @@ e578f2ac2055f409124c07f46a3e9f3b *man/structural.em.Rd
 0133f3186b8a774001abcc68c8b79ceb *man/structure.learning.Rd
 25586396ee326c88477d4620351364a8 *man/test.counter.Rd
 d5187ff4935a55fd7b3f336827883e9d *man/whitelists.and.blacklists.Rd
-f04f9bb789de4aecda9e215ebb786517 *src/Makevars
+d6297a43f94c77e0438ee6ce7000ccfe *src/Makevars
 72efcbd066e5342fda216009cae038a2 *src/arcs/arcs2amat.c
 a8432dec80849be5e173da78b6c8f304 *src/arcs/arcs2elist.c
 1f07ce9eff2595d101be484df0191aaf *src/arcs/bind.c
 f07f62a8162c6091fe11d6c8779cb9fd *src/arcs/filter.arcs.c
-274f7179040ada9f353c334529e1ab3b *src/arcs/hash.c
+cea53163c9562aaec6c8808cddac2eac *src/arcs/hash.c
 b06b67b13d20bc86abc987bc9485ba7a *src/arcs/is.row.equal.c
-26b5b957d218030ec67d69232ce108fa *src/bnlearn/bayesian.network.c
+fc2932bb333b8c2289015cea4b993fa8 *src/bnlearn/bayesian.network.c
 336efdefae6ca250f43a62cb7434b76e *src/bnlearn/bn.recovery.c
 18f6e15ee984e3e2ffc3880e98061d2c *src/bnlearn/cache.structure.c
 a15f21f5898e3c3e64b388a8cc5461c1 *src/bnlearn/cextend.c
@@ -221,7 +221,7 @@ d9d3de3e5394881467b69e746387ef60 *src/core/contingency.tables.c
 365bb9a410e6a8e87933931039704dec *src/core/covariance.matrix.h
 66fc1534aa70d71cfd576ceab975674c *src/core/data.table.c
 c5d15579a8a3c95c69a461bf633e5509 *src/core/data.table.h
-44a75eda42030c5663e79fa57bb0aa8e *src/core/math.functions.c
+9ba66ff548a2f6f36c1473074c723188 *src/core/math.functions.c
 92512547128f6dd6859e69a333770d4e *src/core/math.functions.h
 95a1021044e6ebab32e1c94b47434364 *src/core/moments.c
 7fe6077472bbbeaf249afd3d0158fb12 *src/core/moments.h
@@ -229,6 +229,8 @@ d96637beb91b51057b2c8c5ab69ce64a *src/core/sampling.c
 56930e2c3ac644045984a2dcf6f7fa9a *src/core/sampling.h
 1723647639ce74522c33c2e300d96404 *src/core/sets.c
 52271c571d8f0e67adf128a4354d0065 *src/core/sets.h
+1f6af66cdff555fd78ab63af6247036f *src/core/sort.c
+7c7739d5c79f08319bd9b26e28164e21 *src/core/sort.h
 7da02a73363b65ca98346f2064486f87 *src/core/uppertriangular.c
 252e98286f5b837ca8ccd88f25c9ae0c *src/core/uppertriangular.h
 eb6b259dde94cb4fc1535a2b47e77ce1 *src/fitted/enums.c
@@ -243,7 +245,7 @@ ff4e94b9d65a0f6925c26c64193956d8 *src/fitted/nparams.c
 d8e815cb3b8fe6fef4a724c1356fd144 *src/graphs/path.c
 f3f0dd8bfb5ab2d2f9405b40c37d2729 *src/graphs/pdag2dag.c
 91fe34131164a394ab2fbff3bb891f3e *src/graphs/random/graph.generation.c
-ba1b2346003cd16b9163ce8e7c86e9bb *src/graphs/topological.ordering.c
+d99744534e3945cd2c92e2808e2145f5 *src/graphs/topological.ordering.c
 5bc4ac9ec3b7b5a8332c0e47f81de474 *src/include/bn.h
 f272ce30d37f730b063e812bde07e69e *src/include/globals.h
 b7fafb8bb198bb9f029fa89fea612ca3 *src/include/graph.h
@@ -263,9 +265,9 @@ f2545cc3fb1ce5fc639c4a86c53eb75f *src/inference/loglikelihood/gaussian.c
 29a88740c9301ae278d77366b500f6a3 *src/inference/rinterface/likelihood.weighting.c
 beb05d3676f0510656d4fb3571eb90d1 *src/inference/rinterface/loglikelihood.c
 553cc26d748a2f5bf7d13f99acbc02b9 *src/inference/rinterface/rbn.c
-d301c0527c821cc28d0eadfc5993ed03 *src/learning/averaging/averaging.c
+ccfd1b99e680a52db7d77db3a1f8e439 *src/learning/averaging/averaging.c
 e0320207918b88ea9d145b23db4fcc92 *src/learning/averaging/bootstrap.c
-fd825c04c7733b8ff7f129f9b1d3a0be *src/learning/local/mi.matrix.c
+822e1abe808b202470868ad0b0d4188d *src/learning/local/mi.matrix.c
 65054dfb94e475ec92abb338371f99e9 *src/learning/score/hc.cache.lookup.c
 f0f07d1a3c1e8d8bdff2df9dfa1d663b *src/learning/score/score.delta.c
 e4a191fc783d7a8b7cc5a5fa5fc562eb *src/learning/score/tabu.c
@@ -294,7 +296,7 @@ bd291fc649166dc0539f830255463b1e *src/parameters/rinterface/hierarchical_dirichl
 0458172ae4a4fe0299d38d0ac4ea7deb *src/predict/map.lw.c
 af7cd6303136552a43c84e24dbdc26e6 *src/predict/predict.c
 ea47e140d46bf96a9de4194fac1377a1 *src/preprocessing/dedup.c
-59f44e661f5547d7c772f713d75c8de8 *src/preprocessing/discretize.c
+73ca152d7a354ff2930fd574794da753 *src/preprocessing/discretize.c
 d101f147b36afe0c634ad84ca481adb6 *src/preprocessing/enums.c
 a3e54cbd08a42090d965b942318e48b2 *src/preprocessing/preprocessing.h
 b69fc1624d03d7c4b9c852da8065ee58 *src/sanitization/cg.assumptions.c
@@ -315,7 +317,7 @@ cbac2b925e48b6f8a66eacb9a3772660 *src/scores/discrete.nal.c
 657fced8e9ef401fb967f4e048e8523c *src/scores/gaussian.loglikelihood.c
 5e15b008d76f821856409ffd273b55bd *src/scores/gaussian.nal.c
 a860dc1502c02445cb30becdd9739fc8 *src/scores/gaussian.predictive.loglikelihood.c
-0b2da96f56e14747be34a86410febc67 *src/scores/graph.priors.c
+b8cfd107f0e6723558b1c37584deee08 *src/scores/graph.priors.c
 64457a152a824e3084edcb64aa33590a *src/scores/nml_regret.c
 17c0a2f2065961c689d070e5afa7ff06 *src/scores/nml_regret_table.c
 b7995f0ed55f82e6c9c60a84d26770d8 *src/scores/normalized.maximum.likelihood.c

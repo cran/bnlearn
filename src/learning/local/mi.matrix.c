@@ -1,5 +1,6 @@
 #include "../../include/rcore.h"
 #include "../../core/allocations.h"
+#include "../../core/sort.h"
 #include "../../core/uppertriangular.h"
 #include "../../include/graph.h"
 #include "../../tests/tests.h"
@@ -488,7 +489,7 @@ uppertriangular mimatrix = { 0 };
   poset = Calloc1D(uppertriangular_size(mimatrix), sizeof(int));
   for (i = 0; i < uppertriangular_size(mimatrix); i++)
     poset[i] = i;
-  R_qsort_I(mimatrix.mat, poset, 1, uppertriangular_size(mimatrix));
+  d_sort(mimatrix.mat, poset, uppertriangular_size(mimatrix));
 
   depth = Calloc1D(ncol, sizeof(int));
 

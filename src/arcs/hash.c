@@ -1,6 +1,7 @@
 #include "../include/rcore.h"
 #include "../core/uppertriangular.h"
 #include "../math/linear.algebra.h"
+#include "../core/sort.h"
 
 SEXP arc_hash_matrix(SEXP arcs, SEXP nodes, bool uptri, bool sort);
 SEXP arc_hash_dataframe(SEXP arcs, SEXP nodes, bool uptri, bool sort);
@@ -36,7 +37,7 @@ int i = 0;
       uptri[i] = UPTRI3(from[i], to[i], nnodes);
 
     if (sort)
-      R_qsort_int(uptri, 1, narcs);
+      i_sort(uptri, NULL, narcs);
 
   }/*THEN*/
 
@@ -46,7 +47,7 @@ int i = 0;
       cmc[i] = CMC(from[i], to[i], nnodes);
 
     if (sort)
-      R_qsort_int(cmc, 1, narcs);
+      i_sort(cmc, NULL, narcs);
 
   }/*ELSE*/
 

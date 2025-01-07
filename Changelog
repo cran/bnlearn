@@ -1,3 +1,7 @@
+bnlearn (5.0.2)
+
+  * updated C code make qsort work with zero-length arrays.
+
 bnlearn (5.0.1)
 
   * updated C code not to use R C APIs scheduled for removal.

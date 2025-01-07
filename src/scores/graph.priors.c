@@ -1,6 +1,7 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
 #include "../core/uppertriangular.h"
+#include "../core/sort.h"
 #include "../minimal/data.frame.h"
 #include "../minimal/strings.h"
 #include "../minimal/unique.h"
@@ -226,7 +227,7 @@ SEXP result, from, to, nid, dir1, dir2;
   poset = Calloc1D(narcs1, sizeof(int));
   for (k = 0; k < narcs1; k++)
     poset[k] = k;
-  R_qsort_int_I(aid, poset, 1, narcs1);
+  i_sort(aid, poset, narcs1);
 
   for (i = 0, k = 0; i < narcs1; i++) {
 

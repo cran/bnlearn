@@ -26,6 +26,7 @@ SOURCES = \
   core/moments.c \
   core/sampling.c \
   core/sets.c \
+  core/sort.c \
   core/uppertriangular.c \
   fitted/enums.c \
   fitted/fitted.c \

@@ -1,5 +1,6 @@
 #include "../include/rcore.h"
 #include "../include/globals.h"
+#include "../core/sort.h"
 
 /* a rudimental function like fmax() but for integer variables. */
 int imax(int x, int y) {
@@ -124,7 +125,7 @@ double tol = MACHINE_TOL;
   memcpy(buf, array, length * sizeof(double));
 
   /* sort the elements of the array. */
-  R_qsort_I(buf, indexes, 1, length);
+  d_sort(buf, indexes, length);
 
   /* if both the first and the last element are NAs, then all elements are NAs
    * and there is no maximum. */

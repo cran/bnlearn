@@ -1,6 +1,7 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
 #include "../core/contingency.tables.h"
+#include "../core/sort.h"
 #include "../include/globals.h"
 #include "../core/data.table.h"
 #include "../minimal/data.frame.h"
@@ -72,7 +73,7 @@ double h = 0, *sorted = NULL;
   /* sort a copy of the data... */
   sorted = Calloc1D(nobs, sizeof(double));
   memcpy(sorted, orig, nobs * sizeof(double));
-  R_qsort(sorted, 1, nobs);
+  d_sort(sorted, NULL, nobs);
 
   if (debugging)
     Rprintf("  > the range is [%lf, %lf].\n", sorted[0], sorted[nobs - 1]);
