@@ -10,11 +10,10 @@ nparams.backend = function(x, data, debug = FALSE) {
 }#NPARAMS.BACKEND
 
 # number of parameters for a fitted network.
-nparams.fitted = function(x, effective = FALSE, debug = FALSE) {
+nparams.fitted = function(x, debug = FALSE) {
 
   .Call(call_nparams_fitted,
         bn = x,
-        effective = effective,
         debug = debug)
 
 }#NPARAMS.FITTED

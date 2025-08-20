@@ -1,5 +1,6 @@
 #include "../include/rcore.h"
 
+/* quick sort of an integer vector, with or without indexes. */
 void i_sort(int *array, int *indexes, int length) {
 
   if (length == 0)
@@ -12,6 +13,7 @@ void i_sort(int *array, int *indexes, int length) {
 
 }/*I_SORT*/
 
+/* quick sort of a double vector, with or without indexes. */
 void d_sort(double *array, int *indexes, int length) {
 
   if (length == 0)

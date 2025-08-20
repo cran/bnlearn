@@ -19,13 +19,13 @@
   Additionally for continuous permutation tests:
 
   Legendre P (2000). "Comparison of Permutation Methods for the Partial
-    Correlation and Partial Mantel Tests". \emph{Journal of Statistical
+    Correlation and Partial Mantel Tests." \emph{Journal of Statistical
     Computation and Simulation}, \strong{67}:37--73.
 
   and for semiparametric discrete tests:
 
   Tsamardinos I, Borboudakis G (2010). "Permutation Testing Improves Bayesian
-    Network Learning". \emph{Machine Learning and Knowledge Discovery in
+    Network Learning." \emph{Machine Learning and Knowledge Discovery in
     Databases}, 322--337.
 
   Available conditional independence tests (and the respective labels) for
@@ -36,18 +36,20 @@
     \item \emph{mutual information}: an information-theoretic distance measure.
       It's proportional to the log-likelihood ratio (they differ by a
       \eqn{2n}{2n} factor) and is related to the deviance of the tested models.
-      The asymptotic \eqn{\chi^2}{chi-square} test (\code{mi} and \code{mi-adf},
-      with adjusted degrees of freedom), the Monte Carlo permutation test
-      (\code{mc-mi}), the sequential Monte Carlo permutation test
-      (\code{smc-mi}), and the semiparametric test (\code{sp-mi}) are
-      implemented.
+      The asymptotic \eqn{\chi^2}{chi-square} test (\code{mi} and
+      \code{mi-adf}), the Monte Carlo permutation test (\code{mc-mi}), the
+      sequential Monte Carlo permutation test (\code{smc-mi}), and the
+      semiparametric test (\code{sp-mi}) are implemented. Compared to \code{mi},
+      \code{mi-adf} adjusts the degrees of freedom for structural zeroes and
+      automatically favours independence if there are fewer than 5 observations
+      per parameter.
 
     \item \emph{shrinkage estimator} for the \emph{mutual information}
       (\code{mi-sh}): an improved asymptotic \eqn{\chi^2}{chi-square} test
       based on the James-Stein estimator for the mutual information.
 
-      Hausser J, Strimmer K (2009). "Entropy inference and the James-Stein
-        estimator, with application to nonlinear gene association networks".
+      Hausser J, Strimmer K (2009). "Entropy Inference and the James-Stein
+        Estimator, with Application to Nonlinear Gene Association Networks."
         \emph{Statistical Applications in Genetics and Molecular Biology},
         \strong{10}:1469--1484.
 
@@ -83,7 +85,7 @@
       (\code{smc-cor}) are implemented.
 
     Hotelling H (1953). "New Light on the Correlation Coefficient and its
-      Transforms". \emph{Journal of the Royal Statistical Society: Series B},
+      Transforms." \emph{Journal of the Royal Statistical Society: Series B},
       \strong{15}(2):193--225.
 
     \item \emph{Fisher's Z}: a transformation of the linear correlation with
@@ -102,13 +104,14 @@
       based on the James-Stein estimator for the mutual information.
 
       Ledoit O, Wolf M (2003). "Improved Estimation of the Covariance Matrix
-      of Stock Returns with an Application to Portfolio Selection".
-      \emph{Journal of Empirical Finance}, \strong{10}:603--621.
+        of Stock Returns with an Application to Portfolio Selection."
+        \emph{Journal of Empirical Finance}, \strong{10}:603--621.
 
   }
 
   Available conditional independence tests (and the respective labels) for
-  \emph{hybrid Bayesian networks} (mixed discrete and normal variables) are:
+  \emph{conditional Gaussian Bayesian networks} (mixed discrete and normal
+  variables) are:
 
   \itemize{
 

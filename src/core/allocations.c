@@ -54,9 +54,7 @@ void **p = NULL;
 
 void BN_Free2D(void **p, size_t R) {
 
-int i = 0;
-
-  for (i = 0; i < R; i++)
+  for (int i = 0; i < R; i++)
     free(p[i]);
   free(p);
 
@@ -81,9 +79,7 @@ void ***p = NULL;
 
 void BN_Free3D(void ***p, size_t R, size_t C) {
 
-int i = 0;
-
-  for (i = 0; i < R; i++)
+  for (int i = 0; i < R; i++)
     BN_Free2D(p[i], C);
   free(p);
 

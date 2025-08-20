@@ -27,7 +27,9 @@
     \item \code{learning}: the \code{learning} element of the \code{bn} object
       that was used for parameter learning from the training set (either learned
       from the training set as well or specified by the user).
-    \item \code{loss}: the value of the loss function.
+    \item \code{loss}: the value of the loss function (for
+      \code{method = "hold-out"} or \code{loss = "logl"}), or \code{NA}
+      (otherwise).
 
   }
 

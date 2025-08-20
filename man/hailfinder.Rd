@@ -168,7 +168,7 @@ data(hailfinder)
 \source{
 
   Abramson B, Brown J, Edwards W, Murphy A, Winkler RL (1996). "Hailfinder: A
-    Bayesian system for forecasting severe weather". \emph{International
+    Bayesian System for Forecasting Severe Weather." \emph{International
     Journal of Forecasting}, \strong{12}(1):57--71.
 
 }

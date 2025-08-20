@@ -2,7 +2,6 @@
 # return the arcs in the graph.
 arcs = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   if (is(x, "bn"))
@@ -16,7 +15,6 @@ arcs = function(x) {
 "arcs<-" = function(x, check.cycles = TRUE, check.illegal = TRUE, debug = FALSE,
     value) {
 
-  # check x's class.
   check.bn(x)
   # a set of arcs is needed.
   if (missing(value))
@@ -61,7 +59,6 @@ arcs = function(x) {
 # return the directed arcs in the graph.
 directed.arcs = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   if (is(x, "bn"))
@@ -74,7 +71,6 @@ directed.arcs = function(x) {
 # return the undirected arcs in the graph.
 undirected.arcs = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   if (is(x, "bn"))
@@ -88,7 +84,6 @@ undirected.arcs = function(x) {
 # return the arcs pointing to a particular node.
 incoming.arcs = function(x, node) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
@@ -102,7 +97,6 @@ incoming.arcs = function(x, node) {
 # return the arcs originating from a particular node.
 outgoing.arcs = function(x, node) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
@@ -116,7 +110,6 @@ outgoing.arcs = function(x, node) {
 # return the arcs incident on a particular node.
 incident.arcs = function(x, node) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
@@ -130,7 +123,6 @@ incident.arcs = function(x, node) {
 # return compelled arcs.
 compelled.arcs = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   if (is(x, "bn.fit"))
@@ -145,7 +137,6 @@ compelled.arcs = function(x) {
 # return reversible arcs.
 reversible.arcs = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   if (is(x, "bn.fit"))

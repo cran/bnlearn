@@ -318,8 +318,18 @@ SEXP temp, result, tr_levels, probtab = R_NilValue;
     /* attach the prediction probabilities to the return value. */
     if (include_prob) {
 
-      memcpy(pt + i * tr_nlevels, cpt + nrow * (configs[i] - 1),
-        tr_nlevels * sizeof(double));
+      if (configs[i] == NA_INTEGER) {
+
+        for (k = 0; k < tr_nlevels; k++)
+          (pt + i * tr_nlevels)[k] = NA_REAL;
+
+      }/*THEN*/
+      else {
+
+        memcpy(pt + i * tr_nlevels, cpt + nrow * (configs[i] - 1),
+          tr_nlevels * sizeof(double));
+
+      }/*ELSE*/
 
     }/*THEN*/
 
@@ -607,13 +617,18 @@ wrap_up:
       /* copy the log-probabilities from scratch. */
       memcpy(pt + i * tr_nlevels, scratch, tr_nlevels * sizeof(double));
 
-      /* transform log-probabilities into plain probabilities. */
-      for (k = 0, sum = 0; k < tr_nlevels; k++)
-        sum += pt[i * tr_nlevels + k] = exp(pt[i * tr_nlevels + k] - scratch[maxima[0] - 1]);
+      if (!incomplete_observation) {
 
-      /* rescale them to sum up to 1. */
-      for (k = 0; k < tr_nlevels; k++)
-        pt[i * tr_nlevels + k] /= sum;
+        /* transform log-probabilities into plain probabilities. */
+        for (k = 0, sum = 0; k < tr_nlevels; k++)
+          sum += pt[i * tr_nlevels + k] =
+            exp(pt[i * tr_nlevels + k] - scratch[maxima[0] - 1]);
+
+        /* rescale them to sum up to 1. */
+        for (k = 0; k < tr_nlevels; k++)
+          pt[i * tr_nlevels + k] /= sum;
+
+      }/*THEN*/
 
     }/*THEN*/
 

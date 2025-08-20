@@ -3,9 +3,7 @@
 cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ...,
     debug = FALSE) {
 
-  # check fitted's class.
   check.fit(fitted)
-  # check debug.
   check.logical(debug)
   # check event and evidence.
   if (missing(event))

@@ -16,7 +16,7 @@ export(
   "whitelist", "blacklist", "ordering2blacklist", "tiers2blacklist",
   "set2blacklist",
   # functions to compare network structures.
-  "compare", "hamming", "shd", 
+  "compare", "hamming", "shd", "sid",
   # get neighbours and Markov blankets.
   "mb", "nbr",
   # get, set and count arcs and edges; add nodes.
@@ -39,7 +39,7 @@ export(
   # resampling and Bayesian networks.
   "bn.boot", "bn.cv", "loss",
   # notable network structure transforms.
-  "skeleton", "pdag2dag", "cpdag", "cextend", "moral", "mutilated",
+  "skeleton", "pdag2dag", "cpdag", "cextend", "moral", "mutilated", "twin",
   # v-structures and d-separation.
   "vstructs", "dsep", "colliders", "unshielded.colliders", "shielded.colliders", 
   # plotting network structures.
@@ -53,15 +53,18 @@ export(
   "empty.graph", "complete.graph", "random.graph", "cpdist", "rbn",
   # data preprocessing and imputation.
   "discretize", "dedup", "impute",
-  # inference.
+  # probabilistic inference.
   "H", "KL", "cpquery",
+  # causal inference.
+  "intervention", "counterfactual",
   # import/export functions for varous file formats.
   "read.bif", "write.bif", "read.dsc", "write.dsc", "read.net", "write.net",
   "write.dot",
   # utility functions to manipulate test/score counters.
   "test.counter", "increment.test.counter", "reset.test.counter",
   # assorted functions involving network structures.
-  "acyclic", "directed", "path.exists", "node.ordering", "subgraph",
+  "acyclic", "directed", "valid.cpdag", "valid.dag", "valid.ug", "path.exists",
+  "node.ordering", "subgraph",
   # assorted functions involving fitted networks.
   "identifiable", "singular", 
   # assorted functions to extract information.
@@ -70,7 +73,7 @@ export(
   "as.bn", "as.bn.fit", "as.grain", "as.graphNEL", "as.graphAM", "as.igraph",
   "as.lm",
   # graph enumeration.
-  "count.graphs"
+  "count.graphs", "cextend.all"
 )
 
 useDynLib(bnlearn, .registration = TRUE)
@@ -78,7 +81,8 @@ useDynLib(bnlearn, .registration = TRUE)
 importFrom("methods", "new", "setClass", "setGeneric", "setMethod")
 importFrom("stats", "logLik", "AIC", "BIC", "coefficients", "complete.cases",
   "cor", "dnorm", "ecdf", "fitted", "formula", "knots", "lm", "optimize",
-  "quantile", "residuals", "sd", "weighted.mean", "median", "qunif", "sigma")
+  "quantile", "residuals", "sd", "weighted.mean", "median", "qunif", "sigma",
+  "relevel")
 importFrom("grDevices", "col2rgb", "colors", "dev.cur")
 importFrom("graphics", "abline", "arrows", "lines", "plot", "points",
   "strheight", "strwidth", "text", "plot.new", "title", "rect", "symbols")

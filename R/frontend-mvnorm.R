@@ -18,7 +18,7 @@ mvnorm2gbn = function(dag, mu, sigma) {
 
   # the network must be completely directed and acyclic.
   check.bn(dag)
-  if (is.pdag(dag$arcs, names(dag$nodes)))
+  if (!is.completely.directed(dag))
     stop("'dag' is only partially directed.")
   if (!is.acyclic(dag$arcs, names(dag$nodes), directed = TRUE))
     stop("'dag' contains cycles.")

@@ -3,8 +3,9 @@
 impute = function(object, data, cluster, method, ..., strict = TRUE,
     debug = FALSE) {
 
-  # check the network.
   check.fit(object)
+  check.logical(strict)
+  check.logical(debug)
   # check the data are there.
   data = check.data(data, allow.levels = TRUE, allow.missing = TRUE,
            warn.if.no.missing = TRUE)
@@ -14,9 +15,6 @@ impute = function(object, data, cluster, method, ..., strict = TRUE,
   method = check.imputation.method(method, data)
   # check the extra arguments passed to the imputation methods.
   extra.args = check.imputation.extra.args(method, list(...))
-  # check debug and strict.
-  check.logical(strict)
-  check.logical(debug)
 
   # check the cluster.
   cluster = check.cluster(cluster)
@@ -75,7 +73,7 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
 
   # check the max.iter argument.
   max.iter = check.max.iter(max.iter)
-  # check debug and return.data.
+
   check.logical(debug)
   check.logical(return.all)
 
@@ -106,7 +104,6 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
   }#THEN
   else {
 
-    # check start's class.
     check.bn.or.fit(start)
     # check the preseeded network against the data set.
     if (is(start, "bn")) {

@@ -61,7 +61,7 @@ double *obs = NULL, *coefs = NULL, sd = 0, *scratch = NULL;
 
 /* log-likelihood of a whole sample for a Gaussian network. */
 double data_gaussian_loglikelihood(fitted_bn bn, gdata dt, double *scratch,
-    bool propagate, bool loss, bool debugging) {
+    bool propagate, bool debugging) {
 
 int ncomplete = 0, *pars = NULL;
 double loglik = 0, node_loglik = 0;
@@ -114,7 +114,7 @@ unidentifiable_model:
     if (!dt.m.flag[i].fixed)
       continue;
 
-    if (debugging && !loss)
+    if (debugging)
       Rprintf("* processing node %s.\n", bn.labels[i]);
 
     /* ... reset the log-likelihood accumulator... */
@@ -154,28 +154,17 @@ unidentifiable_model:
      * not be propagated as a result), or return -Inf if there are no
      * locally-complete observations. */
     if (ncomplete == 0)
-      node_loglik = R_NegInf;
+      node_loglik = NA_REAL;
     else if (ncomplete < dt.m.nobs)
       node_loglik = node_loglik / ncomplete * dt.m.nobs;
 
-    if (loss) {
+    if (debugging) {
 
-      if (debugging)
-        Rprintf("  > log-likelihood loss for node %s is %lf.\n",
-          bn.labels[i], - node_loglik / dt.m.nobs);
+      Rprintf("  > %d locally-complete observations out of %d.\n",
+        ncomplete, dt.m.nobs);
+      Rprintf("  > log-likelihood is %lf.\n", node_loglik);
 
     }/*THEN*/
-    else {
-
-      if (debugging) {
-
-        Rprintf("  > %d locally-complete observations out of %d.\n",
-          ncomplete, dt.m.nobs);
-        Rprintf("  > log-likelihood is %lf.\n", node_loglik);
-
-      }/*THEN*/
-
-    }/*ELSE*/
 
     /* cumulate the log-likelihood. */
     loglik += node_loglik;

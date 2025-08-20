@@ -3,18 +3,30 @@
 network.score = function(x, data, type = NULL, ..., by.node = FALSE,
     debug = FALSE) {
 
-  # check x's class.
   check.bn(x)
+  check.logical(by.node)
+  check.logical(debug)
   # the original data set is needed.
   data = check.data(data, allow.missing = TRUE)
   # check the network against the data.
   check.bn.vs.data(x, data)
-  # check debug and by.node.
-  check.logical(by.node)
-  check.logical(debug)
-  # no score if the graph is partially directed.
-  if (is.pdag(x$arcs, names(x$nodes)))
-    stop("the graph is only partially directed.")
+  # if the network is only partially directed: tentatively extend it until we
+  # can validate the other arguments, then check again.
+  if (!is.completely.directed(x)) {
+
+    x = cpdag.extension(x)
+    recheck.extendability = TRUE
+
+    if (!is.completely.directed(x))
+      stop("the graph is only partially directed and is not extendable.")
+
+  }#THEN
+  else {
+
+    recheck.extendability = FALSE
+
+  }#ELSE
+
   # check the score label.
   type = check.score(type, data = data)
   # check whether the network is valid for the method.
@@ -26,6 +38,15 @@ network.score = function(x, data, type = NULL, ..., by.node = FALSE,
   # check that the score is decomposable when returning node contributions.
   if (by.node && !is.score.decomposable(type, extra.args))
     stop("the score is not decomposable, node terms are not defined.")
+
+  if (recheck.extendability) {
+
+    # it turns out that the score is not score equivalent, so extending the
+    # network into a DAG did not make sense.
+    if (!is.score.equivalent(type, data, extra.args))
+      stop("the graph is only partially directed.")
+
+  }#THEN
 
   # compute the node contributions to the network score.
   local = per.node.score(network = x, data = data, score = type,
@@ -44,7 +65,7 @@ AIC.bn = function(object, data, ..., k = 1) {
   # check which type of data we are dealing with.
   type = data.type(data)
 
-  # argument sanitization is performed in the score() function.
+  # argument sanitization is performed in the network.score() function.
   if (type %in% discrete.data.types)
     network.score(object, data = data, type = "aic", k = k, ...)
   else if (type == "continuous")
@@ -60,7 +81,7 @@ BIC.bn = function(object, data, ...) {
   # check which type of data we are dealing with.
   type = data.type(data)
 
-  # argument sanitization is performed in the score() function.
+  # argument sanitization is performed in the network.score() function.
   if (type %in% discrete.data.types)
     network.score(object, data = data, type = "bic", ...)
   else if (type == "continuous")
@@ -76,7 +97,7 @@ logLik.bn = function(object, data, ...) {
   # check which type of data we are dealing with.
   type = data.type(data)
 
-  # argument sanitization is performed in the score() function.
+  # argument sanitization is performed in the network.score() function.
   if (type %in% discrete.data.types)
     network.score(x = object, data = data, type = "loglik", ...)
   else if (type == "continuous")
@@ -89,16 +110,14 @@ logLik.bn = function(object, data, ...) {
 # estimate a reasonable guess at the best imaginary sample size.
 alpha.star = function(x, data, debug = FALSE) {
 
-  # check x's class.
   check.bn(x)
+  check.logical(debug)
   # the original data set is needed.
   check.data(data, allowed.types = discrete.data.types)
   # check the network against the data.
   check.bn.vs.data(x, data)
-  # check debug.
-  check.logical(debug)
   # no score if the graph is partially directed.
-  if (is.pdag(x$arcs, names(x$nodes)))
+  if (!is.completely.directed(x))
     stop("the graph is only partially directed.")
 
   alpha.star.backend(x = x, data = data, debug = debug)
@@ -121,9 +140,9 @@ BF = function(num, den, data, score, ..., log = TRUE) {
   # check the log argument.
   check.logical(log)
   # no score if at least one of the networks is partially directed.
-  if (is.pdag(num$arcs, names(num$nodes)))
+  if (!is.completely.directed(num))
     stop("the graph in the numerator on the BF is only partially directed.")
-  if (is.pdag(den$arcs, names(den$nodes)))
+  if (!is.completely.directed(den))
     stop("the graph in the denominator on the BF is only partially directed.")
 
   # make sure the score function is suitable for computing a Bayes factor.

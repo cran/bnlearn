@@ -23,25 +23,25 @@
       also known as \emph{Schwarz Information Criterion}.
 
       Chickering DM (1995). "A Transformational Characterization of Equivalent
-        Bayesian Network Structures". \emph{Proceedings of the Eleventh Annual
+        Bayesian Network Structures." \emph{Proceedings of the Eleventh Annual
         Conference on Uncertainty in Artificial Intelligence}, 87--98.
 
     \item the \emph{extended Bayesian Information Criterion} (\code{ebic}),
       which adds a second penalty to BIC to penalize dense networks.
 
       Foygel R, Drton M (2010). "Extended Bayesian Information Criteria for
-        Gaussian Graphical Models". NIPS 23, 604--612.
+        Gaussian Graphical Models." NIPS 23, 604--612.
 
     \item the \emph{predictive log-likelihood} (\code{pred-loglik}) computed on
       a separate test set.
 
       Chickering DM, Heckerman D (2000). "A Comparison of Scientific and
-        Engineering Criteria for Bayesian Model Selection". \emph{Statistics
+        Engineering Criteria for Bayesian Model Selection." \emph{Statistics
         and Computing}, \strong{10}:55--62.
 
       Scutari M, Vitolo C, Tucker A (2019). "Learning Bayesian Networks from
         Big Data with Greedy Search: Computational Complexity and Efficient
-        Implementation". \emph{Statistics and Computing},
+        Implementation." \emph{Statistics and Computing},
         \strong{25}(9):1095--1108.
 
     \item the logarithm of the \emph{Bayesian Dirichlet equivalent (uniform)}
@@ -49,11 +49,11 @@
       posterior density.
 
       Heckerman D, Geiger D, Chickering DM (1995). "Learning Bayesian Networks:
-        The Combination of Knowledge and Statistical Data".  \emph{Machine
+        The Combination of Knowledge and Statistical Data."  \emph{Machine
         Learning}, \strong{20}(3):197--243.
 
       Castelo R, Siebes A (2000). "Priors on Network Structures. Biasing the
-        Search for Bayesian Networks". \emph{International Journal of
+        Search for Bayesian Networks." \emph{International Journal of
         Approximate	Reasoning}, \strong{24}(1):39--57.
 
     \item the logarithm of the \emph{Bayesian Dirichlet sparse} score
@@ -61,14 +61,14 @@
 	  score equivalent).
 
       Scutari M (2016). "An Empirical-Bayes Score for Discrete Bayesian
-        Networks". \emph{Journal of Machine Learning Research},
+        Networks." \emph{Journal of Machine Learning Research},
         \strong{52}:438--448.
 
     \item the logarithm of the \emph{Bayesian Dirichlet} score with
       \emph{Jeffrey's prior} (not score equivalent).
 
       Suzuki J (2016). "A Theoretical Analysis of the BDeu Scores in Bayesian
-        Network Structure Learning". \emph{Behaviormetrika},
+        Network Structure Learning." \emph{Behaviormetrika},
         \strong{44}(1):97--116.
 
     \item the logarithm of the modified \emph{Bayesian Dirichlet equivalent}
@@ -76,7 +76,7 @@
 	  (not score equivalent).
 
       Cooper GF, Yoo C (1999). "Causal Discovery from a Mixture of Experimental
-        and Observational Data". \emph{Proceedings of the Fifteenth Annual
+        and Observational Data." \emph{Proceedings of the Fifteenth Annual
         Conference on Uncertainty in Artificial Intelligence}, 116--125.
 
     \item the logarithm of the \emph{locally averaged Bayesian Dirichlet} score
@@ -84,7 +84,7 @@
 
       Cano A, Gomez-Olmedo M, Masegosa AR, Moral S (2013). "Locally Averaged
         Bayesian Dirichlet Metrics for Learning the Structure and the
-        Parameters of Bayesian Networks". \emph{International Journal of
+        Parameters of Bayesian Networks." \emph{International Journal of
         Approximate Reasoning}, \strong{54}:526--540.
 
     \item the logarithm of the \emph{K2} score (\code{k2}), a Dirichlet
@@ -98,21 +98,21 @@
 
       Silander T, Roos T, Kontkanen P, Myllymaki P (2008). "Factorized
         Normalized Maximum Likelihood Criterion for Learning Bayesian Network
-        Structures". \emph{Proceedings of the 4th European Workshop on
+        Structures." \emph{Proceedings of the 4th European Workshop on
         Probabilistic Graphical Models}, 257--272.
 
     \item the logarithm of the \emph{quotient normalized maximum likelihood}
       (\code{qnml}).
 
       Silander T, Leppa-Abo J, Jaasaari, Roos T (2018). "Quotient Normalized
-        Maximum Likelihood Criterion for Learning Bayesian Network Structures".
+        Maximum Likelihood Criterion for Learning Bayesian Network Structures."
         \emph{Proceedings of Machine Learning Research}, \strong{84}:948--957.
 
     \item the node-average (log-)likelihood (\code{nal}) and the penalized
       node-average (log-)likelihood (\code{pnal}).
 
       Bodewes T, Scutari M (2021). "Learning Bayesian Networks from Incomplete
-        Data with the Node-Averaged Likelihood". \emph{International Journal of
+        Data with the Node-Averaged Likelihood." \emph{International Journal of
         Approximate Reasoning}, \strong{138}:145--160.
 
   }
@@ -129,7 +129,7 @@
     \item the corresponding \emph{Bayesian Information Criterion} (BIC) score
       (\code{bic-g}).
 
-      Geiger D, Heckerman D (1994). "Learning Gaussian Networks".
+      Geiger D, Heckerman D (1994). "Learning Gaussian Networks."
         \emph{Proceedings of the Tenth Annual Conference on Uncertainty in
         Artificial Intelligence}, 235--243.
 
@@ -137,7 +137,7 @@
       which adds a second penalty to BIC to penalize dense networks.
 
       Foygel R, Drton M (2010). "Extended Bayesian Information Criteria for
-        Gaussian Graphical Models". NIPS 23, 604--612.
+        Gaussian Graphical Models." NIPS 23, 604--612.
 
     \item the \emph{predictive log-likelihood} (\code{pred-loglik-g}) computed
       on a separate test set. The reference paper is the same as that for
@@ -147,20 +147,20 @@
     \item a score equivalent \emph{Gaussian posterior density} (\code{bge}).
 
       Kuipers J, Moffa G, Heckerman D (2014). "Addendum on the Scoring of
-        Gaussian Directed Acyclic Graphical Models". \emph{The Annals of
+        Gaussian Directed Acyclic Graphical Models." \emph{The Annals of
         Statistics}, \strong{42}(4):1689--1691.
 
     \item the node-average (log-)likelihood (\code{nal-g}) and the penalized
       node-average (log-)likelihood (\code{pnal-g}).
 
       Bodewes T, Scutari M (2021). "Learning Bayesian Networks from Incomplete
-        Data with the Node-Averaged Likelihood". \emph{International Journal of
+        Data with the Node-Averaged Likelihood." \emph{International Journal of
         Approximate Reasoning}, \strong{138}:145--160.
 
   }
 
-  Available scores (and the respective labels) for \emph{hybrid Bayesian
-  networks} (mixed categorical and normal variables) are:
+  Available scores (and the respective labels) for \emph{conditional Gaussian
+  Bayesian networks} (mixed categorical and normal variables) are:
 
   \itemize{
 
@@ -175,7 +175,7 @@
       which adds a second penalty to BIC to penalize dense networks.
 
       Foygel R, Drton M (2010). "Extended Bayesian Information Criteria for
-        Gaussian Graphical Models". NIPS 23, 604--612.
+        Gaussian Graphical Models." NIPS 23, 604--612.
 
     \item the \emph{predictive log-likelihood} (\code{pred-loglik-cg}) computed
       on a separate test set. The reference paper is the same as that for
@@ -185,7 +185,7 @@
       node-average (log-)likelihood (\code{pnal-cg}).
 
       Bodewes T, Scutari M (2021). "Learning Bayesian Networks from Incomplete
-        Data with the Node-Averaged Likelihood". \emph{International Journal of
+        Data with the Node-Averaged Likelihood." \emph{International Journal of
         Approximate Reasoning}, \strong{138}:145--160.
 
   }

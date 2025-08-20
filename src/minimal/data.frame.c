@@ -48,8 +48,9 @@ SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop, SEXP keep_names) {
 
 SEXP c_dataframe_column(SEXP dataframe, SEXP name, bool drop, bool keep_names) {
 
-SEXP try, result, colnames = getAttrib(dataframe, R_NamesSymbol);
-int *idx = NULL, nnames = length(name), name_type = TYPEOF(name);
+SEXP try, result, rownames, colnames = getAttrib(dataframe, R_NamesSymbol);
+int *idx = NULL, *row = NULL, nrows = 0;
+int nnames = length(name), name_type = TYPEOF(name);
 
   if (dataframe == R_NilValue)
     return R_NilValue;
@@ -82,17 +83,40 @@ int *idx = NULL, nnames = length(name), name_type = TYPEOF(name);
 
   }/*SWITCH*/
 
-  if ((nnames > 1) || (drop == 0)) {
+  if ((nnames > 1) || !drop) {
 
     PROTECT(result = allocVector(VECSXP, nnames));
 
     for (int i = 0; i < nnames; i++)
       SET_VECTOR_ELT(result, i, VECTOR_ELT(dataframe, idx[i] - 1));
 
+    /* set the row names. */
+    nrows = length(VECTOR_ELT(dataframe, 0));
+
+    if (nrows > 0) {
+
+      PROTECT(rownames = allocVector(INTSXP, 2));
+      row = INTEGER(rownames);
+
+      row[0] = NA_INTEGER;
+      row[1] = -nrows;
+
+    }/*THEN*/
+    else {
+
+      PROTECT(rownames = allocVector(INTSXP, 0));
+
+    }/*ELSE*/
+
+    setAttrib(result, R_RowNamesSymbol, rownames);
+
+    /* set the class name. */
+    setAttrib(result, R_ClassSymbol, mkString("data.frame"));
+
     if (keep_names)
       setAttrib(result, R_NamesSymbol, name);
 
-    UNPROTECT(1);
+    UNPROTECT(2);
 
   }/*THEN*/
   else {

@@ -11,11 +11,11 @@ void bysample_clgaussian_loglikelihood(fitted_bn bn, cgdata dt, double *loglik,
     bool robust, bool debugging);
 
 double data_discrete_loglikelihood(fitted_bn bn, ddata dt, bool propagate,
-    bool loss, bool debugging);
+    bool debugging);
 double data_gaussian_loglikelihood(fitted_bn bn, gdata dt, double *scratch,
-    bool loss, bool propagate, bool debugging);
+    bool propagate, bool debugging);
 double data_clgaussian_loglikelihood(fitted_bn bn, cgdata dt, double *scratch,
-    bool loss, bool propagate, bool debugging);
+    bool propagate, bool debugging);
 
 #endif
 

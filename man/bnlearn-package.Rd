@@ -96,14 +96,14 @@
   \bold{from the author:}
 
   Nagarajan R, Scutari M, Lebre S (2013). "Bayesian Networks in R with
-    Applications in Systems Biology". Springer.
+    Applications in Systems Biology." Springer.
 
-  Scutari M (2010). "Learning Bayesian Networks with the bnlearn R Package".
+  Scutari M (2010). "Learning Bayesian Networks with the bnlearn R Package."
     \emph{Journal of Statistical Software}, \strong{35}(3):1--22.
 
   Scutari M (20107). "Bayesian Network Constraint-Based Structure Learning
     Algorithms: Parallel and Optimized Implementations in the bnlearn R
-    Package". \emph{Journal of Statistical Software}, \strong{77}(2):1--20.
+    Package." \emph{Journal of Statistical Software}, \strong{77}(2):1--20.
 
 }
 \examples{

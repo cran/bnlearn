@@ -87,7 +87,7 @@ SEXP temp;
   gp = Calloc1D(ngp, sizeof(double *));
   gp2 = Calloc1D(ngp, sizeof(double *));
   config = Calloc1D(nobs, sizeof(int));
-  config2 = Calloc1D(nobs, sizeof(int));
+  config2 = Calloc1D(nobs2, sizeof(int));
   nlevels = Calloc1D(ndp, sizeof(int));
   for (i = 0, j = 0, k = 0; i < np; i++)
     if (type[i] == INTSXP) {

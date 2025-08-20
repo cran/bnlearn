@@ -67,7 +67,7 @@ SEXP wl, bl;
         for (j = 0; j < nnodes; j++) {
 
           /* if a directed arc is in the whitelist, fix its direction. */
-          if ((a[CMC(i, j, nnodes)] == PRESENT) && (a[CMC(j, i, nnodes)] == ABSENT) &&
+          if ((a[CMC(i, j, nnodes)] >= PRESENT) && (a[CMC(j, i, nnodes)] == ABSENT) &&
               (w[CMC(i, j, nnodes)] == PRESENT)) {
 
             if (debugging)
@@ -93,8 +93,8 @@ SEXP wl, bl;
         for (j = 0; j < nnodes; j++) {
 
           /* if a directed arc is in the blacklist, and the opposite is in
-           * the graph, fix the direction of the arc in the graph  */
-          if ((a[CMC(i, j, nnodes)] == PRESENT) && (b[CMC(j, i, nnodes)] == PRESENT) &&
+           * the graph, fix the direction of the arc in the graph. */
+          if ((a[CMC(i, j, nnodes)] >= PRESENT) && (b[CMC(j, i, nnodes)] == PRESENT) &&
               (b[CMC(i, j, nnodes)] == ABSENT)) {
 
             if (debugging)
@@ -346,7 +346,8 @@ int i = 0, j = 0;
 static void unmark_shielded(int *a, SEXP nodes, int nnodes, short int *collider,
     bool debugging) {
 
-int i = 0, j = 0, k = 0, check = FALSE;
+int i = 0, j = 0, k = 0;
+bool marked = FALSE;
 
   if (debugging)
     Rprintf("* removing moral v-structures aka shielded colliders.\n");
@@ -367,7 +368,7 @@ int i = 0, j = 0, k = 0, check = FALSE;
         Rprintf("  > considering arc %s -> %s.\n", NODE(j), NODE(i));
 
       /* this is set to TRUE is the arc is part of an unshielded collider. */
-      check = FALSE;
+      marked = FALSE;
 
       for (k = 0; k < nnodes; k++) {
 
@@ -383,7 +384,7 @@ int i = 0, j = 0, k = 0, check = FALSE;
         if (((a[CMC(j, k, nnodes)] == ABSENT) && (a[CMC(k, j, nnodes)] == ABSENT)) ||
             ((a[CMC(j, i, nnodes)] == IMMUTABLE) && (a[CMC(k, i, nnodes)] == IMMUTABLE))) {
 
-          check = TRUE;
+          marked = TRUE;
 
           break;
 
@@ -391,10 +392,16 @@ int i = 0, j = 0, k = 0, check = FALSE;
 
       }/*FOR*/
 
-      if (check) {
+      if (marked) {
 
-        if (debugging)
-          Rprintf("  @ arc %s -> %s is part of an unshielded collider.\n", NODE(j), NODE(i));
+        if (debugging) {
+
+          if ((a[CMC(j, i, nnodes)] == IMMUTABLE) && (a[CMC(k, i, nnodes)] == IMMUTABLE))
+            Rprintf("  @ arc %s -> %s is part of a forced collider.\n", NODE(j), NODE(i));
+          else
+            Rprintf("  @ arc %s -> %s is part of an unshielded collider.\n", NODE(j), NODE(i));
+
+        }/*THEN*/
 
       }/*THEN*/
       else {

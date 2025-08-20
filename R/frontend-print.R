@@ -14,7 +14,9 @@ print.bn = function(x, ...) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  if (x$learning$algo %in% graph.generation.algorithms)
+  if (x$learning$algo %in% averaging.generation.algorithms)
+    cat("\n  Consensus Bayesian network\n\n")
+  else if (x$learning$algo %in% graph.generation.algorithms)
     cat("\n  Random/Generated Bayesian network\n\n")
   else if (x$learning$algo %in% constraint.based.algorithms)
     cat("\n  Bayesian network learned via Constraint-based methods\n\n")
@@ -28,6 +30,8 @@ print.bn = function(x, ...) {
     cat("\n  Bayesian network Classifier\n\n")
   else if (x$learning$algo %in% em.algorithms)
     cat("\n  Bayesian network learned from Missing Data\n\n")
+  else if (x$learning$algo %in% causal.network.types)
+    cat("\n  Causal network\n\n")
   else
     cat("\n  Bayesian network learned via [unknown] methods\n\n")
 
@@ -67,6 +71,11 @@ print.bn = function(x, ...) {
       wcat("maximum degree", format(x$learning$args$max.degree))
     if ("threshold" %in% params)
       wcat("significance threshold", format(x$learning$args$threshold))
+
+  }#THEN
+  else if (x$learning$algo %in% causal.network.types) {
+
+    wcat("inference type", causal.network.labels[x$learning$algo])
 
   }#THEN
   else {

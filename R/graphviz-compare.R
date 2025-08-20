@@ -35,6 +35,9 @@ graphviz.compare.backend = function(netlist, nodes, groups, layout, shape,
     # keep the original and modify a copy.
     gr.temp = gr
     edges.temp = graph::edgeRenderInfo(gr.temp)
+    nodes.temp = graph::nodeRenderInfo(gr.temp)
+    # indentify which nodes are not present in the current graph.
+    nodes.to.hide = setdiff(.nodes(merged), .nodes(netlist[[i]]))
     # extract the labels of the arcs of the current network.
     cur.arcs = arcs2grlabels(arclist[[i]])
 
@@ -175,6 +178,25 @@ graphviz.compare.backend = function(netlist, nodes, groups, layout, shape,
 
     }#THEN
 
+    if (length(nodes.to.hide) > 0) {
+
+      # hide nodes that are not present in the graph.
+      nodes.temp[["fill"]][nodes.to.hide] = "transparent"
+      nodes.temp[["col"]][nodes.to.hide] = "transparent"
+      nodes.temp[["textCol"]][nodes.to.hide] = "transparent"
+
+      # hide arcs that are incident on nodes that are not in the graph.
+      arcs.to.hide = (edges.temp[["enamesFrom"]] %in% nodes.to.hide) |
+                     (edges.temp[["enamesTo"]] %in% nodes.to.hide)
+
+      # edges.temp[["arrowhead"]][arcs.to.hide] = "none"
+      # edges.temp[["arrowtail"]][arcs.to.hide] = "none"
+      edges.temp[["col"]][arcs.to.hide] = "transparent"
+
+    }#THEN
+
+    # apply formatting to both nodes and arcs.
+    graph::nodeRenderInfo(gr.temp) = nodes.temp
     graph::edgeRenderInfo(gr.temp) = edges.temp
 
     # add the title and subtitle, to label the panels.

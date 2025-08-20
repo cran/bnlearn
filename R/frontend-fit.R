@@ -3,7 +3,6 @@
 bn.fit = function(x, data, cluster, method, ..., keep.fitted = TRUE,
     debug = FALSE) {
 
-  # check x's class.
   check.bn(x)
   # check the data.
   if (is(x, available.classifiers)) {
@@ -22,7 +21,7 @@ bn.fit = function(x, data, cluster, method, ..., keep.fitted = TRUE,
   # check whether the data agree with the bayesian network.
   data = check.bn.vs.data(x, data, reorder = grepl("hard-em", method))
   # no parameters if the network structure is only partially directed.
-  if (is.pdag(x$arcs, names(x$nodes)))
+  if (!is.completely.directed(x))
     stop("the graph is only partially directed.")
   # also check that the network is acyclic.
   if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
@@ -31,7 +30,7 @@ bn.fit = function(x, data, cluster, method, ..., keep.fitted = TRUE,
   check.arcs.against.assumptions(x$arcs, data, method)
   # check the extra arguments.
   extra.args = check.fitting.args(method, x, data, list(...))
-  # check debug and keep.fitted.
+
   check.logical(debug)
   check.logical(keep.fitted)
 
@@ -60,7 +59,6 @@ bn.fit = function(x, data, cluster, method, ..., keep.fitted = TRUE,
 # get back the network structure from the fitted object.
 bn.net = function(x) {
 
-  # check x's class.
   check.fit(x)
 
   # extract the arcs from the fitted network.
@@ -332,7 +330,6 @@ BIC.bn.fit = function(object, data, ...) {
 # replace one conditional probability distribution in a bn.fit object.
 "[[<-.bn.fit" = function(x, name, value) {
 
-  # check x's class.
   check.fit(x)
   # check the label of the node to replace.
   check.nodes(name, x)
@@ -353,16 +350,14 @@ BIC.bn.fit = function(object, data, ...) {
 # create a bn.fit object for user-specified local distributions.
 custom.fit = function(x, dist, ordinal, debug = FALSE) {
 
-  # check x's class.
   check.bn(x)
-  # check debug.
   check.logical(debug)
-  # cache node labels.
+  # cache the node labels.
   nodes = names(x$nodes)
   nnodes = length(nodes)
 
   # no parameters if the network structure is only partially directed.
-  if (is.pdag(x$arcs, nodes))
+  if (!is.completely.directed(x))
     stop("the graph is only partially directed.")
   # also check that the network is acyclic.
   if (!is.acyclic(x$arcs, nodes, directed = TRUE))

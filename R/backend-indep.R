@@ -10,9 +10,9 @@ learn.arc.directions = function(x, cluster = NULL, local.structure, whitelist,
   # build a list of the undirected arcs in the graph.
   arcs = mb2arcs(local.structure, nodes)
 
-  # apply blacklist to the arc set.
-  to.drop = !apply(arcs, 1, function(x){ is.blacklisted(blacklist, x) })
-  arcs = arcs[to.drop, , drop = FALSE]
+  # drop blacklisted arcs from the arc set.
+  to.keep = apply(arcs, 1, function(x){ !is.blacklisted(blacklist, x) })
+  arcs = arcs[to.keep, , drop = FALSE]
 
   # 3. [Orient Edges]
   # 3.1 detect v-structures.

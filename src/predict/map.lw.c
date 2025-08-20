@@ -146,10 +146,10 @@ bool debugging = isTRUE(debug), include_prob = isTRUE(prob);
   PROTECT(result = fitnode2df(fitted, STRING_ELT(node, 0), nobs));
   res = DATAPTR(result);
 
-  /* in the case of discrete variables, allocate scratch space for levels'
-   * frequencies. */
   if (TYPEOF(result) == INTSXP) {
 
+    /* for discrete variables, allocate scratch space for levels' frequencies
+     * and for the prediction probabilities (if needed). */
     lvls = getAttrib(result, R_LevelsSymbol);
     nlvls = length(lvls);
     lvls_counts = Calloc1D(nlvls, sizeof(long double));
@@ -163,6 +163,12 @@ bool debugging = isTRUE(debug), include_prob = isTRUE(prob);
     }/*THEN*/
 
   }/*THEN*/
+  else {
+
+    /* for continuous variables, there are no prediction probabilities. */
+    include_prob = FALSE;
+
+  }/*ELSE*/
 
   /* allocate the weights. */
   wgt = Calloc1D(nsims, sizeof(double));

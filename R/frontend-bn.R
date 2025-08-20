@@ -7,15 +7,10 @@ residuals.bn = sigma.bn = fitted.bn = coef.bn = function(object, ...) {
 }#RESIDUALS.BN
 
 # get the number of parameters of the bayesian network.
-nparams = function(x, data, effective = FALSE, debug = FALSE) {
+nparams = function(x, data, debug = FALSE) {
 
-  # check x's class.
   check.bn.or.fit(x)
-  # check debug and  effective.
   check.logical(debug)
-  check.logical(effective)
-
-  warning("the effective argument is deprecated and will be removed in 2025.")
 
   if (is(x, "bn")) {
 
@@ -24,25 +19,14 @@ nparams = function(x, data, effective = FALSE, debug = FALSE) {
     # check the network against the data.
     check.bn.vs.data(x, data)
     # the number of parameters is unknown for partially directed graphs.
-    if (is.pdag(x$arcs, names(x$nodes)))
+    if (!is.completely.directed(x))
       stop("the graph is only partially directed.")
 
     # check whether the network is valid.
     estimator = check.fitting.method(NULL, data)
     check.arcs.against.assumptions(x$arcs, data, estimator)
 
-    if (effective) {
-
-      # fit the network to compute the number of non-zero parameters.
-      x = bn.fit(x, data)
-      return(nparams.fitted(x, effective = TRUE, debug = debug))
-
-    }#THEN
-    else {
-
-      return(nparams.backend(x, data = data, debug = debug))
-
-    }#ELSE
+    return(nparams.backend(x, data = data, debug = debug))
 
   }#THEN
   else {
@@ -50,7 +34,7 @@ nparams = function(x, data, effective = FALSE, debug = FALSE) {
     if (!missing(data))
       warning("unused argument data.")
 
-    return(nparams.fitted(x, effective = effective, debug = debug))
+    return(nparams.fitted(x, debug = debug))
 
   }#ELSE
 
@@ -59,37 +43,33 @@ nparams = function(x, data, effective = FALSE, debug = FALSE) {
 # get the number of tests/scores used in structure learning.
 ntests = function(x) {
 
-  # check x's class.
   check.bn(x)
 
   x$learning$ntests
 
 }#NTESTS
 
-# structural hamming distance.
-shd = function(learned, true, wlbl = FALSE, debug = FALSE) {
+# compute the Structural Hamming Distance (HD).
+shd = function(learned, true, wlbl = FALSE, cpdag = TRUE, debug = FALSE) {
 
-  # check x's class.
   check.bn(learned)
   check.bn(true)
-  # check debug and wlbl.
   check.logical(debug)
   check.logical(wlbl)
+  check.logical(cpdag)
   # the two networks must have the same node set.
   match.bn(learned, true)
 
   structural.hamming.distance(learned = learned, true = true, wlbl = wlbl,
-    debug = debug)
+    cpdag = cpdag, debug = debug)
 
 }#SHD
 
-# Hamming distance.
+# compute the Hamming distance.
 hamming = function(learned, true, debug = FALSE) {
 
-  # check learned's and true's class.
   check.bn(learned)
   check.bn(true)
-  # check debug.
   check.logical(debug)
   # the two networks must have the same node set.
   match.bn(learned, true)
@@ -98,10 +78,76 @@ hamming = function(learned, true, debug = FALSE) {
 
 }#HAMMING
 
+# compute the Structural Interventional Distance (SID).
+sid = function(learned, true, debug = FALSE) {
+
+  check.bn(learned)
+  check.bn(true)
+  check.logical(debug)
+  # the two networks must have the same node set.
+  match.bn(learned, true)
+
+  # check whether true and learned are DAGs or CPDAGs.
+  true.is.dag = directed(true) && acyclic(true)
+  if (true.is.dag)
+    true.is.cpdag = FALSE
+  else
+    true.is.cpdag = valid.cpdag.backend(true)
+
+  learned.is.dag = directed(learned) && acyclic(learned)
+  if (learned.is.dag)
+    learned.is.cpdag = FALSE
+  else
+    learned.is.cpdag = valid.cpdag.backend(learned)
+
+  if (!true.is.dag && !true.is.cpdag)
+    stop("'true' is neither a DAG nor a valid CPDAG.")
+  if (!learned.is.dag && !learned.is.cpdag)
+    stop("'learned' is neither a DAG nor a valid CPDAG.")
+
+  # the nodes must be stored in the same order to ensure consistency.
+  learned$nodes = learned$nodes[names(true$nodes)]
+
+  if (true.is.dag && learned.is.dag) {
+
+    value = sid.dag.vs.dag(learned, true, debug = debug)
+
+  }#THEN
+  else if (true.is.dag && learned.is.cpdag) {
+
+    eq.dags = cextend.all.backend(learned)
+    value = sapply(eq.dags, sid.dag.vs.dag, true = true, debug = debug)
+
+  }#THEN
+  else if (true.is.cpdag && learned.is.dag) {
+
+    eq.dags = cextend.all.backend(true)
+    value = sapply(eq.dags, sid.dag.vs.dag, learned = learned, debug = debug)
+
+  }#THEN
+  else {
+
+    eq.true = cextend.all.backend(true)
+    eq.learned = cextend.all.backend(learned)
+
+    value = vector(length(eq.true), mode = "list")
+    for (i in seq_along(eq.true))
+      value[[i]] = sapply(eq.learned, sid.dag.vs.dag, true = eq.true[[i]])
+
+    value = unlist(value)
+
+  }#ELSE
+
+  # store the range of SID values for compatibility.
+  attr(value, "bounds") = range(value)
+
+  return(value)
+
+}#SID
+
 # get the whitelist used by the learning algorithm.
 whitelist = function(x) {
 
-  # check x's class.
   check.bn(x)
 
   if (is.null(x$learning$whitelist))
@@ -115,7 +161,6 @@ whitelist = function(x) {
 # get the blacklist used by the learning algorithm.
 blacklist = function(x) {
 
-  # check x's class.
   check.bn(x)
 
   if (is.null(x$learning$blacklist))
@@ -129,9 +174,7 @@ blacklist = function(x) {
 # reconstruct the equivalence class of a network.
 cpdag = function(x, wlbl = FALSE, debug = FALSE) {
 
-  # check x's class.
   check.bn.or.fit(x)
-  # check debug and wlbl.
   check.logical(debug)
   check.logical(wlbl)
 
@@ -158,11 +201,8 @@ cpdag = function(x, wlbl = FALSE, debug = FALSE) {
 # contruct a consistent DAG extension of a PDAG.
 cextend = function(x, strict = TRUE, debug = FALSE) {
 
-  # check x's class.
   check.bn(x)
-  # check debug.
   check.logical(debug)
-  # check strict.
   check.logical(strict)
   # check whether the graph is acyclic, to be sure to return a DAG.
   if (!is.acyclic(x$arcs, names(x$nodes), directed = TRUE))
@@ -177,7 +217,7 @@ cextend = function(x, strict = TRUE, debug = FALSE) {
   cpdag = cpdag.extension(x = x, debug = debug)
 
   # if the graph is not completely directed, the extension was not successful.
-  if (is.pdag(cpdag$arcs, names(cpdag$nodes)))
+  if (!is.completely.directed(cpdag))
     if (strict)
       stop("no consistent extension of ", deparse(substitute(x)), " is possible.")
     else
@@ -187,10 +227,23 @@ cextend = function(x, strict = TRUE, debug = FALSE) {
 
 }#CEXTEND
 
+# produce all possible extensions of a CPDAG.
+cextend.all = function(x, debug = FALSE) {
+
+  check.bn(x)
+  check.logical(debug)
+
+  # only allow valid CPDAGs to ensure correctness.
+  if (!valid.cpdag.backend(x))
+    stop("'x' is not a valid CPDAG.")
+
+  cextend.all.backend(x = x, debug = debug)
+
+}#CEXTEND.ALL
+
 # return the colliders (both shielded and unshielded) in a network.
 colliders = function(x, arcs = FALSE, debug = FALSE) {
 
-  # check x's class.
   check.bn.or.fit(x)
   check.logical(arcs)
 
@@ -206,7 +259,6 @@ colliders = function(x, arcs = FALSE, debug = FALSE) {
 # return the unshielded colliders in a network.
 unshielded.colliders = function(x, arcs = FALSE, debug = FALSE) {
 
-  # check x's class.
   check.bn.or.fit(x)
   check.logical(arcs)
 
@@ -222,7 +274,6 @@ unshielded.colliders = function(x, arcs = FALSE, debug = FALSE) {
 # return the shielded colliders in a network.
 shielded.colliders = function(x, arcs = FALSE, debug = FALSE) {
 
-  # check x's class.
   check.bn.or.fit(x)
   check.logical(arcs)
 
@@ -238,9 +289,7 @@ shielded.colliders = function(x, arcs = FALSE, debug = FALSE) {
 # return the v-structures in a network.
 vstructs = function(x, arcs = FALSE, debug = FALSE) {
 
-  # check x's class.
   check.bn.or.fit(x)
-  # check debug and arcs.
   check.logical(arcs)
   check.logical(debug)
 
@@ -251,9 +300,7 @@ vstructs = function(x, arcs = FALSE, debug = FALSE) {
 # reconstruct the equivalence class of a network.
 moral = function(x, debug = FALSE) {
 
-  # check x's class.
   check.bn.or.fit(x)
-  # check debug.
   check.logical(debug)
 
   # go back to the network structure if needed.
@@ -264,26 +311,9 @@ moral = function(x, debug = FALSE) {
 
 }#MORAL
 
-# mutilated network used in likelihood weighting.
-mutilated = function(x, evidence) {
-
-  # check x's class.
-  check.bn.or.fit(x)
-  # check the evidence, disallowing non-ideal interventions if needed.
-  evidence = check.evidence(evidence, graph = x,
-                ideal.only = is(x, "bn.fit.gnet"))
-
-  if (is(x, "bn"))
-    return(mutilated.backend.bn(x, evidence))
-  else
-    return(mutilated.backend.fitted(x, evidence))
-
-}#MUTILATED
-
 # test d-separation.
 dsep = function(bn, x, y, z) {
 
-  # check x's class.
   check.bn.or.fit(bn)
   # check the sets of nodes.
   check.nodes(x, graph = bn, max.nodes = 1)
@@ -297,7 +327,7 @@ dsep = function(bn, x, y, z) {
   if (is(bn, "bn.fit"))
     bn = bn.net(bn)
   # if the graph is not directed, take it as a CPDAG and extend it.
-  if (!is.dag(bn$arcs, names(bn$nodes))) {
+  if (!is.completely.directed(bn)) {
 
     # trying to extend a skeleton (instead of a CPDAG) is probably not
     # meaningful.
@@ -317,7 +347,6 @@ dsep = function(bn, x, y, z) {
 all.equal.bn.fit = function(target, current, ...,
     tolerance = sqrt(.Machine$double.eps)) {
 
-  # check the class of target and current.
   check.fit(target)
   check.fit(current)
   # warn about unused arguments, but silently ignore those set by

@@ -63,7 +63,7 @@ bn.net(x)
 
   }
 
-  Available methods for \emph{hybrid Bayesian networks} are:
+  Available methods for \emph{Gaussian Bayesian networks} are:
 
   \itemize{
 
@@ -74,7 +74,7 @@ bn.net(x)
 
   }
 
-  Available methods for \emph{discrete Bayesian networks} are:
+  Available methods for \emph{conditional Gaussian Bayesian networks} are:
 
   \itemize{
 
@@ -160,19 +160,20 @@ bn.net(x)
 
   An in-place replacement method is available to change the parameters of each
   node in a \code{bn.fit} object; see the examples for discrete, continuous and
-  hybrid networks below. For a discrete node (class \code{bn.fit.dnode} or
-  \code{bn.fit.onode}), the new parameters must be in a \code{table} object.
-  For a Gaussian node (class \code{bn.fit.gnode}), the new parameters can be
-  defined either by an \code{lm}, \code{glm} or \code{pensim} object (the
-  latter is from the \code{penalized} package) or in a list with elements named
-  \code{coef}, \code{sd} and optionally \code{fitted} and \code{resid}. For
-  a conditional Gaussian node (class \code{bn.fit.cgnode}), the new parameters
-  can be defined by a list with elements named \code{coef}, \code{sd} and
-  optionally \code{fitted}, \code{resid} and \code{configs}. In both cases
-  \code{coef} should contain the new regression coefficients, \code{sd} the
-  standard deviation of the residuals, \code{fitted} the fitted values and
-  \code{resid} the residuals. \code{configs} should contain the configurations
-  if the discrete parents of the conditional Gaussian node, stored as a factor.
+  conditional Gaussian networks below. For a discrete node (class
+  \code{bn.fit.dnode} or \code{bn.fit.onode}), the new parameters must be in a
+  \code{table} object. For a Gaussian node (class \code{bn.fit.gnode}), the new
+  parameters can be defined either by an \code{lm}, \code{glm} or \code{pensim}
+  object (the latter is from the \code{penalized} package) or in a list with
+  elements named \code{coef}, \code{sd} and optionally \code{fitted} and
+  \code{resid}. For a conditional Gaussian node (class \code{bn.fit.cgnode}),
+  the new parameters can be defined by a list with elements named \code{coef},
+  \code{sd} and optionally \code{fitted}, \code{resid} and \code{configs}. In
+  both cases \code{coef} should contain the new regression coefficients,
+  \code{sd} the standard deviation of the residuals, \code{fitted} the fitted
+  values and \code{resid} the residuals. \code{configs} should contain the
+  configurations if the discrete parents of the conditional Gaussian node,
+  stored as a factor.
 
   \code{custom.fit()} takes a set of user-specified distributions and their
   parameters and uses them to build a \code{bn.fit} object. Its purpose is to
@@ -211,7 +212,7 @@ bn.net(x)
 \references{
 
   Azzimonti L, Corani G, Zaffalon M (2019). "Hierarchical Estimation of
-    Parameters in Bayesian Networks".  \emph{Computational Statistics & Data
+    Parameters in Bayesian Networks."  \emph{Computational Statistics & Data
     Analysis}, \strong{137}:67--91.
 
 }

@@ -16,7 +16,7 @@
       first practical constraint-based structure learning algorithm.
 
       Colombo D, Maathuis MH (2014). "Order-Independent Constraint-Based Causal
-        Structure Learning". \emph{Journal of Machine Learning Research},
+        Structure Learning." \emph{Journal of Machine Learning Research},
         \strong{15}:3921--3962.
 
     \item \emph{Grow-Shrink} (\code{\link{gs}}): based on the \emph{Grow-Shrink
@@ -33,9 +33,9 @@
       to remove false positives).
 
       Tsamardinos I, Aliferis CF, Statnikov A (2003). "Algorithms for Large
-		Scale Markov Blanket Discovery". \emph{Proceedings of the Sixteenth
-		International Florida Artificial Intelligence Research Society
-		Conference}, 376--381.
+		    Scale Markov Blanket Discovery." \emph{Proceedings of the Sixteenth
+        International Florida Artificial Intelligence Research Society
+        Conference}, 376--381.
 
     \item \emph{Fast Incremental Association} (\code{\link{fast.iamb}}): a
       variant of IAMB which uses speculative stepwise forward selection to
@@ -45,19 +45,19 @@
       false positives in the Markov blanket detection phase.
 
       Yaramakala S, Margaritis D (2005). "Speculative Markov Blanket Discovery
-		for Optimal Feature Selection". \emph{Proceedings of the Fifth IEEE
-		International Conference on Data Mining}, 809--812.
+        for Optimal Feature Selection." \emph{Proceedings of the Fifth IEEE
+        International Conference on Data Mining}, 809--812.
 
     \item \emph{Incremental Association with FDR} (\code{\link{iamb.fdr}}): a
       variant of IAMB which adjusts the tests significance threshold with FDR.
 
       Pena JM (2008). "Learning Gaussian Graphical Models of Gene Networks with
-        False Discovery Rate Control". \emph{Proceedings of the Sixth European
+        False Discovery Rate Control." \emph{Proceedings of the Sixth European
         Conference on Evolutionary Computation, Machine Learning and Data Mining
         in Bioinformatics}, 165--176.
 
       Gasse M, Aussem A, Elghazel H (2014). "A Hybrid Algorithm for Bayesian
-        Network Structure Learning with Application to Multi-Label Learning".
+        Network Structure Learning with Application to Multi-Label Learning."
         \emph{Expert Systems with Applications}, \strong{41}(15):6755--6772.
 
   }
@@ -97,7 +97,7 @@
       structure in the restricted space).
 
       Tsamardinos I, Brown LE, Aliferis CF (2006). "The Max-Min Hill-Climbing
-        Bayesian Network Structure Learning Algorithm". \emph{Machine Learning},
+        Bayesian Network Structure Learning Algorithm." \emph{Machine Learning},
         \strong{65}(1):31--78.
 
     \item \emph{Restricted Maximization} (\code{\link{rsmax2}}): a general
@@ -113,7 +113,7 @@
       HPC and hill-climbing.
 
       Gasse M, Aussem A, Elghazel H (2014). "A Hybrid Algorithm for Bayesian
-		Network Structure Learning with Application to Multi-Label Learning".
+		Network Structure Learning with Application to Multi-Label Learning."
 		\emph{Expert Systems with Applications}, \strong{41}(15):6755--6772.
 
   }
@@ -134,9 +134,9 @@
       selected in the previous iterations.
 
       Tsamardinos I, Aliferis CF, Statnikov A (2003). "Time and Sample Efficient
-		Discovery of Markov Blankets and Direct Causal Relations".
-		\emph{Proceedings of the Ninth ACM SIGKDD International Conference on
-		Knowledge Discovery and Data Mining}, 673--678.
+        Discovery of Markov Blankets and Direct Causal Relations."
+        \emph{Proceedings of the Ninth ACM SIGKDD International Conference on
+        Knowledge Discovery and Data Mining}, 673--678.
 
     \item \emph{Hiton Parents and Children} (\code{\link{si.hiton.pc}}): a fast
       forward selection technique for neighbourhood detection designed to
@@ -144,10 +144,10 @@
       follows the Semi-Interleaved variant of the algorithm.
 
       Aliferis FC, Statnikov A, Tsamardinos I, Subramani M, Koutsoukos XD (2010).
-		"Local Causal and Markov Blanket Induction for Causal Discovery and
-		Feature Selection for Classification Part I: Algorithms and Empirical
-		Evaluation".  \emph{Journal of Machine Learning Research},
-		\strong{11}:171--234.
+        "Local Causal and Markov Blanket Induction for Causal Discovery and
+        Feature Selection for Classification Part I: Algorithms and Empirical
+        Evaluation."  \emph{Journal of Machine Learning Research},
+        \strong{11}:171--234.
 
     \item \emph{Hybrid Parents and Children} (\code{\link{hpc}}): an algorithm
       building on \code{iamb.fdr} to learn the parents and children of each node
@@ -169,16 +169,16 @@
       the tree structure closest to the true one in the probability space.
 
       Chow CK, Liu CN (1968). "Approximating Discrete Probability Distributions
-        with Dependence Trees", IEEE Transactions on Information Theory, IT-14
+        with Dependence Trees." IEEE Transactions on Information Theory, IT-14
         \strong{3}:462--467.
 
     \item \emph{ARACNE} (\code{\link{aracne}}): an improved version of the
       Chow-Liu algorithm that is able to learn polytrees.
 
       Margolin AA, Nemenman I, Basso K, Wiggins C, Stolovitzky G, Dalla Favera R,
-		Califano A (2006). "ARACNE: An Algorithm for the Reconstruction of Gene
-		Regulatory Networks in a Mammalian Cellular Context". \emph{BMC
-		Bioinformatics}, \strong{7}(Suppl 1):S7.
+        Califano A (2006). "ARACNE: An Algorithm for the Reconstruction of Gene
+        Regulatory Networks in a Mammalian Cellular Context." \emph{BMC
+        Bioinformatics}, \strong{7}(Suppl 1):S7.
 
   }
 

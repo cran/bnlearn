@@ -164,7 +164,7 @@ SEXP dpar = R_NilValue, gpar = R_NilValue;
 
       }/*THEN*/
 
-      PROTECT(parent_vars = dataframe_column(result, parents, FALSESEXP, FALSESEXP));
+      PROTECT(parent_vars = c_dataframe_column(result, parents, FALSE, FALSE));
 
       switch(cur_node_type) {
 

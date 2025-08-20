@@ -3,10 +3,8 @@
 #include <Rinternals.h>
 #include <Rmath.h>
 #include <R_ext/Applic.h>
-#include <R_ext/Arith.h>
 #include <R_ext/Lapack.h>
 #include <R_ext/Linpack.h>
-#include <R_ext/Utils.h>
 #include <stdbool.h>
 
 /* for backwards compatibility with older R versions. */

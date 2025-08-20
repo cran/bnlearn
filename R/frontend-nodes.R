@@ -2,7 +2,6 @@
 # return the markov blanket of a node.
 mb = function(x, node) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
@@ -15,24 +14,58 @@ mb = function(x, node) {
 }#MB
 
 # return the neighbourhood of a node.
-nbr = function(x, node) {
+nbr = function(x, node, max.dist = 1) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
+  # a maximum distance between 1 (at least) and the number of nodes (at most).
+  if (!is.positive.integer(max.dist))
+    stop("the maximum distance must be a positive integer.")
+  nnodes = length(.nodes(x))
+  if (max.dist > nnodes) {
+
+    warning("the maximum distance has been reduced to the number of nodes.")
+    max.dist = nnodes
+
+  }#THEN
 
   if (is(x, "bn"))
-    x$nodes[[node]]$nbr
+    get = function(node) x$nodes[[node]]$nbr
   else
-    unique(c(x[[node]]$parents, x[[node]]$children))
+    get = function(node) c(x[[node]]$parents, x[[node]]$children)
+
+  node.set = get(node)
+
+  # expand the neighbourhood if needed.
+  if (max.dist >= 2) {
+
+    new.nodes = node.set
+
+    for (dist in seq(2, max.dist)) {
+
+      # expand the neighbourhood...
+      new.nodes = sapply(new.nodes, get, USE.NAMES = FALSE)
+      # ... remove already-visited nodes...
+      new.nodes = setdiff(unlist(new.nodes), c(node.set, node))
+      # ... and update the return value.
+      node.set = unique(c(node.set, new.nodes))
+
+      # we have already included all the nodes, nothing more to do.
+      if (length(node.set) == nnodes)
+        break
+
+    }#FOR
+
+  }#THEN
+
+  return(node.set)
 
 }#NBR
 
 # get the parents of a node.
 parents = function(x, node) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
@@ -47,8 +80,8 @@ parents = function(x, node) {
 # add one or more parents to a node.
 "parents<-" = function(x, node, debug = FALSE, value) {
 
-  # check x's class.
   check.bn(x)
+  check.logical(debug)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
   # at least one parent node is needed.
@@ -57,8 +90,6 @@ parents = function(x, node) {
   # node must be a valid node label.
   if (!any(value %in% names(x$nodes)))
     stop("node not present in the graph.")
-  # check debug.
-  check.logical(debug)
 
   # remove duplicate labels from value.
   value = unique(value)
@@ -105,7 +136,6 @@ parents = function(x, node) {
 # get the children of a node.
 children = function(x, node) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
@@ -120,8 +150,8 @@ children = function(x, node) {
 # add one or more children to a node.
 "children<-" = function(x, node, debug = FALSE, value) {
 
-  # check x's class.
   check.bn(x)
+  check.logical(debug)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
   # a node is needed.
@@ -130,8 +160,6 @@ children = function(x, node) {
   # node must be a valid node label.
   if (!any(value %in% names(x$nodes)))
     stop("node not present in the graph.")
-  # check debug.
-  check.logical(debug)
 
   # remove duplicate labels from value.
   value = unique(value)
@@ -178,7 +206,6 @@ children = function(x, node) {
 # get the spouses of a node.
 spouses = function(x, node) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
@@ -193,7 +220,6 @@ spouses = function(x, node) {
 # get the ancestors of a node.
 ancestors = function(x, node) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
@@ -206,7 +232,6 @@ ancestors = function(x, node) {
 # get the descendants of a node.
 descendants = function(x, node) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
@@ -219,7 +244,6 @@ descendants = function(x, node) {
 # get the isolated nodes in the network.
 isolated.nodes = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   # isolated nodes have degree equal to zero.
@@ -232,7 +256,6 @@ isolated.nodes = function(x) {
 # get the in-degree of a node.
 in.degree = function(x, node) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
@@ -247,7 +270,6 @@ in.degree = function(x, node) {
 # get the out-degree of a node.
 out.degree = function(x, node) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)
@@ -262,7 +284,6 @@ out.degree = function(x, node) {
 # add a node to a network structure.
 add.node = function(x, node) {
 
-  # check x's class.
   check.bn(x)
   # a valid node (that is not already in the graph) is needed.
   if (!is.string(node))
@@ -281,7 +302,6 @@ add.node = function(x, node) {
 # remove a node from a network structure.
 remove.node = function(x, node) {
 
-  # check x's class.
   check.bn(x)
   # the resulting graphs should have at least one node.
   if (length(x$nodes) == 1)

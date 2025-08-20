@@ -45,7 +45,7 @@ SEXP res;
 
 /* implementation based on the proof of proposition 1.4.2 in "Digraphs Theory,
  * Algorithms and Applications" by Bang-Jensen and Gutin, page 13. */
-SEXP is_pdag_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes,
+SEXP is_acyclic(SEXP arcs, SEXP nodes, SEXP return_nodes,
     SEXP directed, SEXP debug) {
 
 int i = 0, j = 0, z = 0;
@@ -252,5 +252,5 @@ end:
 
   return res;
 
-}/*IS_PDAG_ACYCLIC*/
+}/*IS_ACYCLIC*/
 

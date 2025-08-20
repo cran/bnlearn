@@ -60,60 +60,53 @@ check.evidence = function(evidence, graph, ideal.only = FALSE) {
   # check the node labels in evidence.
   check.nodes(names(evidence), graph = graph)
 
-  if (is(graph, "bn")) {
+  # nothing else to check without a fitted network.
+  if (is(graph, "bn"))
+    return(evidence)
 
-    # check the network is completely directed.
-    if (!is.dag(graph$arcs, names(graph$nodes)))
-      stop("the graph is only partially directed.")
+  # check the evidence is appropriate for the nodes.
+  for (fixed in names(evidence)) {
 
-  }#THEN
-  else if (is(graph, "bn.fit")) {
+    # extract the node and the evidence.
+    cur = graph[[fixed]]
+    ev = evidence[[fixed]]
 
-     # check the evidence is appropriate for the nodes.
-     for (fixed in names(evidence)) {
+    # if only ideal interventions are allowed, the evidence for each node
+    # will have length equal to 1.
+    if (ideal.only)
+      if (length(ev) > 1)
+        stop("only ideal interventions are allowed for node '", fixed,
+             "', but multiple values are provided.")
 
-       # extract the node and the evidence.
-       cur = graph[[fixed]]
-       ev = evidence[[fixed]]
+    # duplicated values do not make sense in most situations.
+    if (any(duplicated(ev))) {
 
-       # if only ideal interventions are allowed, the evidence for each node
-       # will have length equal to 1.
-       if (ideal.only)
-         if (length(ev) > 1)
-           stop("only ideal interventions are allowed for node '", fixed,
-                "', but multiple values are provided.")
+      ev = unique(ev)
+      warning("duplicated values in the evidence for node '", fixed, "'.")
 
-       # duplicated values do not make sense in most situations.
-       if (any(duplicated(ev))) {
+    }#THEN
 
-         ev = unique(ev)
-         warning("duplicated values in the evidence for node '", fixed, "'.")
+    if (is(cur, c("bn.fit.dnode", "bn.fit.onode"))) {
 
-       }#THEN
+      if (is.factor(ev))
+        evidence[[fixed]] = ev = as.character(ev)
 
-       if (is(cur, c("bn.fit.dnode", "bn.fit.onode"))) {
+      if (!is.string.vector(ev) || any(ev %!in% dimnames(cur$prob)[[1]]))
+        stop("the evidence for node '", fixed, "' must be valid levels.")
 
-         if (is.factor(ev))
-           evidence[[fixed]] = ev = as.character(ev)
+    }#THEN
+    else if (is(cur, "bn.fit.gnode")) {
 
-         if (!is.string.vector(ev) || any(ev %!in% dimnames(cur$prob)[[1]]))
-           stop("the evidence for node '", fixed, "' must be valid levels.")
+      # for continuous nodes evidence must be real numbers.
+      if (!is.real.vector(ev) || (length(ev) %!in% 1:2))
+        stop("the evidence for node '", fixed, "' must be a real number or a finite interval.")
+      storage.mode(ev) = "double"
+      # make sure interval boundaries are in the right order.
+      evidence[[fixed]] = sort(ev)
 
-       }#THEN
-       else if (is(cur, "bn.fit.gnode")) {
+    }#THEN
 
-         # for continuous nodes evidence must be real numbers.
-         if (!is.real.vector(ev) || (length(ev) %!in% 1:2))
-           stop("the evidence for node '", fixed, "' must be a real number or a finite interval.")
-         storage.mode(ev) = "double"
-         # make sure interval boundaries are in the right order.
-         evidence[[fixed]] = sort(ev)
-
-       }#THEN
-
-     }#FOR
-
-  }#THEN
+  }#FOR
 
   return(evidence)
 

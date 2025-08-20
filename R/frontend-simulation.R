@@ -3,11 +3,10 @@
 rbn = function(x, n = 1, ..., debug = FALSE) {
 
   check.fit(x)
+  check.logical(debug)
   # check the size of the sample to be generated.
   if (!is.positive.integer(n))
     stop("the number of observations to be generated must be a positive integer number.")
-  # check debug.
-  check.logical(debug)
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
@@ -28,7 +27,7 @@ random.graph = function(nodes, num = 1, method = "ordered", ..., debug = FALSE) 
   # check the number of graph to generate.
   if (!is.positive.integer(num))
     stop(" the number of graphs to generate must be a positive integer number.")
-  # check debug.
+
   check.logical(debug)
 
   # expand and sanitize method-specific arguments.
@@ -82,12 +81,10 @@ complete.graph = function(nodes, num = 1) {
 cpdist = function(fitted, nodes, evidence, cluster, method = "ls", ...,
     debug = FALSE) {
 
-  # check fitted's class.
   check.fit(fitted)
+  check.logical(debug)
   # check the node labels.
   check.nodes(nodes, graph = fitted)
-  # check debug.
-  check.logical(debug)
   # check the generation method.
   check.label(method, choices = cpq.algorithms, labels = cpq.labels,
     argname = "sampling method", see = "cpdist")

@@ -46,10 +46,9 @@ ci.test = function(x, y, z, data, test, ..., debug = FALSE) {
 # do a single conditional independence test (nodes as character strings).
 ci.test.character = function(x, y, z, data, test, extra.args, debug = FALSE) {
 
+  check.logical(debug)
   # the original data set is needed.
   data = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
-  # check debug.
-  check.logical(debug)
   # check the variables involved in the test.
   if (missing(x) || missing(y))
     stop("one or both of the variables to test are missing.")
@@ -93,7 +92,6 @@ ci.test.character = function(x, y, z, data, test, extra.args, debug = FALSE) {
 ci.test.vector = function(x, y, z, xlab, ylab, zlab, test, extra.args,
     debug = FALSE) {
 
-  # check debug.
   check.logical(debug)
   # check the variables involved in the test.
   if (!is.vector(x))

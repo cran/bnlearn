@@ -8,7 +8,7 @@
  * negatives. */
 
 /* determine whether a graph is DAG or a PDAG/UG. */
-SEXP is_dag(SEXP arcs, SEXP nodes) {
+SEXP completely_directed(SEXP arcs, SEXP nodes) {
 
 int i = 0, nrow = length(arcs)/2, n = LENGTH(nodes);
 int *a = NULL;
@@ -50,5 +50,5 @@ SEXP try;
 
   return ScalarLogical(TRUE);
 
-}/*IS_DAG*/
+}/*COMPLETELY_DIRECTED*/
 

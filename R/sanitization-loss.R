@@ -2,9 +2,6 @@
 # check loss functions' labels.
 check.loss = function(loss, data, bn) {
 
-  # check which type of data we are dealing with.
-  type = data.type(data)
-
   if (!is.null(loss)) {
 
     # check the loss function.
@@ -19,22 +16,6 @@ check.loss = function(loss, data, bn) {
 
     }#THEN
 
-    if ((type %!in% discrete.data.types) && (loss %in% discrete.loss.functions))
-      stop("loss function '", loss, "' may only be used with discrete data.")
-    if ((type != "continuous") && (loss %in% continuous.loss.functions))
-      stop("loss function '", loss, "' may only be used with continuous data.")
-    if ((type != "mixed-cg") && (loss %in% mixedcg.loss.functions))
-      stop("loss function '", loss, "' may only be used with a mixture of continuous and discrete data.")
-
-    if (loss %in% c("logl-g", "logl-cg"))
-      warning("this loss function is deprecated in favour of 'logl' and will be removed in 2025.")
-    if (loss %in% c("pred-lw", "pred-lw-cg"))
-      warning("this loss function is deprecated in favour of 'pred' and will be removed in 2025.")
-    if (loss %in% c("cor-lw", "cor-lw-cg"))
-      warning("this loss function is deprecated in favour of 'cor' and will be removed in 2025.")
-    if (loss %in% c("mse-lw", "mse-lw-cg"))
-      warning("this loss function is deprecated in favour of 'mse' and will be removed in 2025.")
-
     return(loss)
 
   }#THEN
@@ -43,12 +24,8 @@ check.loss = function(loss, data, bn) {
     if ((is.character(bn) && (bn %in% classification.algorithms)) ||
          is(bn, available.classifiers))
       return("pred-exact")
-    if (type %in% discrete.data.types)
-      return("logl")
-    else if (type == "continuous")
-      return("logl-g")
-    else if (type == "mixed-cg")
-      return("logl-cg")
+
+    return("logl")
 
   }#ELSE
 
@@ -67,11 +44,17 @@ check.loss.args = function(loss, bn, nodes, data, extra.args) {
   if (has.argument(loss, "predict", loss.extra.args))
     extra.args[["predict"]] =
       check.prediction.method(method = extra.args[["predict"]])
-  if (has.argument(loss, "predict.args", loss.extra.args))
+  if (has.argument(loss, "predict.args", loss.extra.args)) {
+
+    dummy.bn = structure(vector(ncol(data), mode = "list"),
+                 names = colnames(data), class = "bn.fit")
+
     extra.args[["predict.args"]] =
       check.prediction.extra.args(method = extra.args[["predict"]],
         extra.args = extra.args[["predict.args"]],
-        node = extra.args[["target"]], fitted = bn, data = data)
+        node = extra.args[["target"]], fitted = dummy.bn, data = data)
+
+  }#THEN
 
   # prior distribution for the target variable of a classifier.
   if (has.argument(loss, "prior", loss.extra.args))
@@ -121,11 +104,11 @@ check.loss.target = function(target, loss, data, bn, nodes) {
     if (!is.string(target) || (target %!in% nodes))
       stop("target node must be a single, valid node label for the network.")
 
-    # in hybrid networks, check the target has the right data type.
-    if (loss %in% c("cor", "mse", "cor-lw-cg", "mse-lw-cg"))
+    # check the target has the right data type.
+    if (loss %in% c("cor", "mse"))
       if (!is(data[, target], "numeric"))
         stop("the target node must be a continuous variable.")
-    if (loss %in% c("pred", "pred-lw-cg"))
+    if (loss %in% c("pred", "pred-exact", "f1"))
       if (!is(data[, target], "factor"))
         stop("the target node must be a factor.")
 

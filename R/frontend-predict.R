@@ -9,7 +9,7 @@ predict.bn.fit = function(object, node, data, cluster, method = "parents", ...,
   check.nodes(nodes = node, graph = object, max.nodes = 1)
   # check the prediction method.
   check.prediction.method(method)
-  # check debug and prob.
+
   check.logical(debug)
   check.logical(prob)
 
@@ -99,7 +99,6 @@ predict.bn.naive = function(object, data, prior, ..., prob = FALSE,
   else
     check.bn.tan(object)
 
-  # check debug and prob.
   check.logical(debug)
   check.logical(prob)
 

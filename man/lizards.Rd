@@ -37,7 +37,7 @@ data(lizards)
     Springer, 2nd edition.
 
   Schoener TW (1968). "The Anolis Lizards of Bimini: Resource Partitioning in a
-    Complex Fauna". \emph{Ecology}, \strong{49}(4):704--726.
+    Complex Fauna." \emph{Ecology}, \strong{49}(4):704--726.
 
 }
 \examples{

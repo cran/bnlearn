@@ -211,8 +211,18 @@ likelihood.weighting.prediction = function(node, fitted, data, extra.args,
   # target variable while averaging over the predictors we do not observe.
   if (!all(complete.predictors)) {
 
+    # if the predictors include the target variable, erase its values; if it
+    # does not, introduce it as a vector of NAs to be imputed.
     if (node %in% names(data))
       data[, node][] = NA
+    else {
+
+      data[, node] = rep(NA_real_, nrow(data))
+      if (is(fitted[[node]], c("bn.fit.dnode", "bn.fit.onode")))
+        data[, node] = factor(data[, node],
+                              levels = dimnames(fitted[[node]]$prob)[[1]])
+
+    }#ELSE
 
     impute.backend.likelihood.weighting(fitted = fitted, data = data,
       extra.args = extra.args, restrict.from = extra.args$from,
@@ -246,8 +256,17 @@ exact.discrete.prediction = function(node, fitted, data, extra.args,
   # target variable while averaging over the predictors we do not observe.
   if (!all(complete.predictors)) {
 
+    # if the predictors include the target variable, erase its values; if it
+    # does not, introduce it as a vector of NAs to be imputed.
     if (node %in% names(data))
       data[, node][] = NA
+    else {
+
+      data[, node] = rep(NA_real_, nrow(data))
+      data[, node] = factor(data[, node],
+                            levels = dimnames(fitted[[node]]$prob)[[1]])
+
+    }#ELSE
 
     return(impute.backend.exact(fitted = fitted, data = data, extra.args =
       extra.args, restrict.to = node, restrict.from = extra.args$from,
@@ -405,8 +424,12 @@ exact.gaussian.prediction = function(node, fitted, data, extra.args,
   # target variable while averaging over the predictors we do not observe.
   if (!all(complete.predictors)) {
 
+    # if the predictors include the target variable, erase its values; if it
+    # does not, introduce it as a vector of NAs to be imputed.
     if (node %in% names(data))
       data[, node][] = NA
+    else
+      data[, node] = rep(NA_real_, nrow(data))
 
     return(impute.backend.exact(fitted = fitted, data = data, extra.args =
       extra.args, restrict.to = node, restrict.from = extra.args$from,

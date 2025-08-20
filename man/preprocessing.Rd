@@ -12,7 +12,7 @@
   # discretize continuous data into factors.
   discretize(data, method, breaks = 3, ordered = FALSE, ..., debug = FALSE)
   # screen continuous data for highly correlated pairs of variables.
-  dedup(data, threshold, debug = FALSE)
+  dedup(data, method, threshold, debug = FALSE)
 }
 \arguments{
   \item{data}{a data frame containing numeric columns (for \code{dedup()}) or a
@@ -68,7 +68,9 @@
 
   \code{discretize()} returns a data frame with the same structure (number of
   columns, column names, etc.) as \code{data}, containing the discretized
-  variables.
+  variables. The data frame has an attribute \code{"cutpoints"} containing the
+  cutpoints used internally by \code{discretize()}, which are made available to
+  discretize another data set into the same set of factors.
 
   \code{dedup()} returns a data frame with a subset of the columns of \code{data}.
 

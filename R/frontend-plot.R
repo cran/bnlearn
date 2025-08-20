@@ -6,7 +6,6 @@ graphviz.plot = function(x, highlight = NULL, groups, layout = "dot",
 
   # check whether graphviz is loaded.
   check.and.load.package("Rgraphviz")
-  # check x's class.
   check.bn.or.fit(x)
   # check render.
   check.logical(render)
@@ -38,11 +37,10 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
 
   # check whether graphviz is loaded.
   check.and.load.package("Rgraphviz")
-  # check x's class.
   check.bn(x)
   # check the strength argument.
   check.bn.strength(strength)
-  check.bn.strength.vs.bn(strength, x)
+  check.bn.strength.vs.bn(strength, x, exact.match = FALSE)
   # check the strength threshold.
   threshold = check.threshold(threshold, strength)
 
@@ -88,7 +86,6 @@ graphviz.chart = function(x, type = "barchart", layout = "dot",
   check.and.load.package("Rgraphviz")
   # check whether gRain is loaded.
   check.and.load.package("gRain")
-  # check x's class.
   check.fit(x)
 
   # check the plot type.
@@ -118,7 +115,6 @@ graphviz.chart = function(x, type = "barchart", layout = "dot",
 plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
   highlight = NULL, color = "red", ...) {
 
-  # check x's class.
   check.bn(x)
 
   if (!is.null(highlight)) {
@@ -255,7 +251,6 @@ plot.bn.strength = function(x, draw.threshold = TRUE, main = NULL,
 # boxplot for cross-validation losses (single run).
 plot.bn.kcv = function(x, ..., main, xlab, ylab, connect = FALSE) {
 
-  # check x's class.
   if (!is(x, "bn.kcv"))
     stop("x must be an object of class 'bn.kcv'.")
 
@@ -269,7 +264,6 @@ plot.bn.kcv = function(x, ..., main, xlab, ylab, connect = FALSE) {
 # boxplot for cross-validation losses (multiple runs).
 plot.bn.kcv.list = function(x, ..., main, xlab, ylab, connect = FALSE) {
 
-  # check x's class.
   if (!is(x, "bn.kcv.list"))
     stop("x must be an object of class 'bn.kcv.list'.")
   # check the connect flag.
@@ -317,7 +311,6 @@ graphviz.compare = function(x, ..., groups, layout = "dot", shape = "rectangle",
   check.and.load.package("Rgraphviz")
   # check the first network structure.
   check.bn.or.fit(x)
-  nodes = .nodes(x)
   # collect all the networks in a single list.
   netlist = c(list(x), list(...))
   # transform fitted networks back into network structures.
@@ -325,7 +318,7 @@ graphviz.compare = function(x, ..., groups, layout = "dot", shape = "rectangle",
     if (is(netlist[[i]], "bn.fit"))
       netlist[[i]] = bn.net(netlist[[i]])
   # check that the networks in the list are valid and agree with each other.
-  check.customlist(netlist, nodes = nodes)
+  nodes = check.overlapping.customlist(netlist)
   # check the titles and the subtitles for the networks.
   if (!is.null(main))
     if (!is.string.vector(main) || (length(main) != length(netlist)))
@@ -391,6 +384,9 @@ graphviz.compare = function(x, ..., groups, layout = "dot", shape = "rectangle",
       diff.args$show.first = TRUE
 
   }#THEN
+
+  # gather all the node labels.
+
 
   # the sanitization of "layout" and "shape" is left to the backend.
 

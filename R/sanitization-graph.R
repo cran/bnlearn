@@ -118,30 +118,66 @@ check.node.groups = function(groups, graph = NULL) {
 }#CHECK.NODE.GROUPS
 
 # check whether a graph is completely directed (has no undirected arcs).
-is.dag = function(arcs, nodes) {
+is.completely.directed = function(x) {
 
-  if (nrow(arcs) == 0)
+  if (nrow(x$arcs) == 0)
     return(TRUE)
 
-  .Call(call_is_dag,
-        arcs = arcs,
-        nnodes = nodes)
+  .Call(call_completely_directed,
+        arcs = x$arcs,
+        nnodes = names(x$nodes))
 
-}#IS.DAG
-
-# alias of is.dag for readable code.
-is.pdag = function(arcs, nodes) !is.dag(arcs, nodes)
+}#IS.COMPLETELY.DIRECTED
 
 # generic is.acyclic backend (calls the right one for the graph at hand).
 is.acyclic = function(arcs, nodes, return.nodes = FALSE, directed = FALSE,
     debug = FALSE) {
 
-  .Call(call_is_pdag_acyclic,
+  .Call(call_is_acyclic,
         arcs = arcs,
         nodes = nodes,
         return_nodes = return.nodes,
         directed = directed,
         debug = debug)
 
-}#IS.ACYCLIC.BACKEND
+}#IS.ACYCLIC
+
+# check whether a graph is a CPDAG.
+valid.cpdag.backend = function(x, debug = FALSE) {
+
+  # a CPDAG should be acyclic.
+  if (!is.acyclic(arcs = x$arcs, nodes = names(x$nodes), directed = TRUE)) {
+
+    if (debug)
+      cat("@ the graph contains cycles.\n")
+
+    return(FALSE)
+
+  }#THEN
+
+  ## all connected components should be chordal.
+  if (!all(connected.components(x, debug = debug)$chordal)) {
+
+    if (debug)
+      cat("@ not all connected components are chordal.\n")
+
+    return(FALSE)
+
+  }#THEN
+
+  # the v-structures and the compelled arcs must be the same as those
+  # identified by cpdag.backend(); the skeleton will always be the same since
+  # cpdag.backend() only changes arc directions.
+  if (!isTRUE(equal.backend.bn(x, cpdag.backend(x = x)))) {
+
+    if (debug)
+      cat("@ the v-structures and/or the compelled arcs are different.\n")
+
+    return(FALSE)
+
+  }#THEN
+
+  return(TRUE)
+
+}#VALID.CPDAG.BACKEND
 

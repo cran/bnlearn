@@ -2,7 +2,6 @@
 # build an adjacency matrix from a graph.
 amat = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   if (is(x, "bn"))
@@ -16,7 +15,6 @@ amat = function(x) {
 "amat<-" = function(x, check.cycles = TRUE, check.illegal = TRUE, debug = FALSE,
     value) {
 
-  # check x's class.
   check.bn(x)
   # a node is needed.
   if (missing(value))

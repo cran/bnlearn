@@ -1,149 +1,277 @@
 
 loss.function = function(fitted, data, loss, extra.args, debug = FALSE) {
 
-  if (loss %in% c("logl", "logl-g", "logl-cg")) {
+  if (loss == "logl") {
 
-    result = entropy.loss(fitted = fitted, data = data, debug = debug)
+    result = entropy.loss(fitted = fitted, data = data)
 
   }#THEN
-  else if (loss %in% c("pred", "pred-exact", "pred-lw", "pred-lw-cg")) {
+  else {
 
-    result = classification.error(node = extra.args$target, fitted = fitted,
+    result = predictive.loss(node = extra.args$target, fitted = fitted,
                prior = extra.args$prior, extra.args = extra.args,
-               data = data, loss = loss, debug = debug)
+               data = data, loss = loss)
 
-  }#THEN
-  else if (loss %in% c("cor", "cor-lw", "cor-lw-cg")) {
-
-    result = predictive.correlation(node = extra.args$target, fitted = fitted,
-               extra.args = extra.args, data = data, loss = loss, debug = debug)
-
-  }#THEN
-  else if (loss %in% c("mse", "mse-lw", "mse-lw-cg")) {
-
-    result = mse.loss(node = extra.args$target, fitted = fitted,
-               extra.args = extra.args, data = data, loss = loss, debug = debug)
-
-  }#THEN
+  }#ELSE
 
   if (debug)
-    cat("  @ total loss is", result$loss, ".\n")
+    cat("  @ effetive sample size is", result$effective.size, ".\n")
 
   return(result)
 
 }#LOSS.FUNCTION
 
-# how to aggregate loss functions across the folds of cross-validation.
-kfold.loss.postprocess = function(kcv, kcv.length, loss, extra.args, data) {
+# compute the classification error.
+clerr.loss = function(observed, predicted) {
 
-  if (loss %in% c("cor", "cor-lw")) {
+  complete = !is.na(predicted) & !is.na(observed)
+  how.many(predicted[complete] != observed[complete]) / how.many(complete)
 
-    if (all(is.na(unlist(sapply(kcv, "[", "loss"))))) {
+}#CLERR.LOSS
 
-      # this happens for root nodes, whose predictions are just the mean of
-      # the response over the test set; propagate the NAs to the CV estimate.
-      mean = NA
+# compute the (multiclass) F1 score.
+f1.loss = function(observed, predicted) {
 
-    }#THEN
-    else {
+  # construct the confusion matrix...
+  confusion.matrix = as.matrix(table(observed, predicted))
+  # ... compute precision and recall...
+  precision = diag(confusion.matrix) / colSums(confusion.matrix)
+  recall = diag(confusion.matrix) / rowSums(confusion.matrix)
+  # ... and combine them into the F1 or multiclass F1 score.
+  f1 = 2 * precision * recall / (precision + recall)
+  f1[is.na(f1)] = 0
 
-      # match predicted and observed values.
-      pred = unlist(lapply(kcv, "[[", "predicted"))
-      obs = unlist(lapply(kcv, "[[", "observed"))
-      # compute the predictive correlation.
-      mean = cor(obs, pred, use = "complete.obs")
+  if (nlevels(observed) == 2)
+    return(f1[1])
+  else
+    return(mean(f1))
 
-    }#ELSE
+}#F1.LOSS
+
+# compute the area under the ROC curve.
+auroc.loss = function(observed, probabilities) {
+
+  auc = function(labels, probabilities) {
+
+    # use the complete pairs like in the other losses.
+    complete = !is.na(labels) & !is.na(probabilities)
+    labels = labels[complete]
+    probabilities = probabilities[complete]
+
+    # identify the negative and positive classes...
+    neg.class = levels(labels)[1]
+    pos.class = levels(labels)[2]
+    # ... the points at which FPR and TPR change...
+    cutoffs = unique(c(sort(probabilities, decreasing = TRUE), 0))
+    # ... and compute all the (FPR, TPR) points in the ROC curve.
+    fast.pred = function(c) levels(labels)[(probabilities > c) + 1L]
+    fp = sapply(cutoffs, function(c)
+           sum((fast.pred(c) == pos.class) & (labels == neg.class)) )
+    tp = sapply(cutoffs, function(c)
+           sum((fast.pred(c) == pos.class) & (labels == pos.class)) )
+
+    fpr = fp / sum(labels == neg.class)
+    tpr = tp / sum(labels == pos.class)
+
+    # keep those that are usable...
+    complete = is.finite(fpr) & is.finite(tpr)
+    fpr = fpr[complete]
+    tpr = tpr[complete]
+    # ... and give up if there are too few of them.
+    if (sum(complete) < 2)
+      return(NA)
+
+    # compute the AUC.
+    auc = 0
+    for (i in 2:length(fpr))
+      auc = auc + 0.5 * (fpr[i] - fpr[i - 1]) * (tpr[i] + tpr[i - 1])
+
+    return(auc)
+
+  }#AUC
+
+  # if the prediction probabilties are not available, the loss is undefined.
+  if (is.null(probabilities))
+    return(NA)
+
+  else if (nlevels(observed) == 2) {
+
+    # return the AUROC of the positive class.
+    auc(observed, probabilities[2, ])
 
   }#THEN
   else {
 
-    # compute the mean of the observed values of the loss function, weighted
-    # to account for unequal-length splits and for missing values within splits.
-    mean = weighted.mean(x = unlist(sapply(kcv, '[', 'loss')),
-                         w = unlist(sapply(kcv, '[', 'effective.size')))
+    # compute the one-vs-rest AUROCs...
+    class.aucs = sapply(levels(observed), function(l) {
+
+      adjusted.levels = levels(observed)
+      adjusted.levels[adjusted.levels != l] = paste0("not", l)
+      collapsed = factor(observed, labels = adjusted.levels)
+      collapsed = relevel(collapsed, paste0("not", l))
+
+      auc(collapsed, probabilities[l, ])
+
+    })
+    # ... and return the average.
+    mean(class.aucs)
 
   }#ELSE
 
-  return(mean)
+}#AUROC.LOSS
 
-}#LOSS.POSTPROCESS
+# compute the predictive correlation.
+predcor.loss = function(observed, predicted) {
 
-# predictive mean square error for gaussian networks.
-mse.loss = function(node, fitted, data, loss, extra.args, debug = FALSE) {
+  complete = !is.na(predicted) & !is.na(observed)
 
-  if (loss == "mse")
-    pred = predict.backend(fitted = fitted, node = node, data = data,
-             method = extra.args$predict, extra.args = extra.args$predict.args)
-  else if (loss %in% c("mse-lw", "mse-lw-cg"))
-    pred = predict.backend(fitted = fitted, node = node, data = data,
-             method = "bayes-lw", extra.args = extra.args)
+  if ((cgsd(predicted[complete]) == 0) || (cgsd(observed[complete]) == 0))
+    return(NA)
+  else
+    cor(observed, predicted, use = "complete.obs")
 
-  effective.size = how.many(!is.na(pred) & !is.na(data[, node]))
+}#PREDCOR.LOSS
 
-  return(list(loss = mean((data[, node] - pred)^2, na.rm = TRUE),
-              predicted = pred, observed = data[, node],
-              effective.size = effective.size))
+# compute the predictive mean square error.
+mse.loss = function(observed, predicted) {
+
+  mean((observed - predicted)^2, na.rm = TRUE)
 
 }#MSE.LOSS
 
-# predictive correlation for gaussian networks.
-predictive.correlation = function(node, fitted, extra.args, data, loss,
-    debug = FALSE) {
+# how to aggregate loss functions across the folds of cross-validation.
+kfold.loss.postprocess = function(kcv, kcv.length, loss, extra.args, data) {
 
-  if (loss == "cor")
-    pred = predict.backend(fitted = fitted, node = node, data = data,
-             method = extra.args$predict, extra.args = extra.args$predict.args)
-  else if (loss %in% c("cor-lw", "cor-lw-cg"))
-    pred = predict.backend(fitted = fitted, node = node, data = data,
-             method = "bayes-lw", extra.args = extra.args)
+  if (loss %in% c("pred", "pred-exact")) {
 
-  effective.size = how.many(!is.na(pred) & !is.na(data[, node]))
+    clerr.loss(unlist(lapply(kcv, "[[", "observed")),
+               unlist(lapply(kcv, "[[", "predicted")))
 
-  if (((loss == "cor") && length(fitted[[node]]$parents) == 0))
-    return(list(loss = NA, predicted = pred, observed = data[, node]))
-  else
-    return(list(loss = cor(data[, node], pred, use = "complete.obs"),
-                predicted = pred, observed = data[, node],
-                effective.size = effective.size))
+  }#THEN
+  else if (loss == "f1") {
 
-}#PREDICTIVE.CORRELATION
+    f1.loss(unlist(lapply(kcv, "[[", "observed")),
+            unlist(lapply(kcv, "[[", "predicted")))
 
-# log-likelihood loss function for gaussian and discrete networks.
-entropy.loss = function(fitted, data, debug = FALSE) {
+  }#THEN
+  else if (loss == "auroc") {
+
+    auroc.loss(unlist(lapply(kcv, "[[", "observed")),
+               do.call("cbind", lapply(kcv, "[[", "probabilities")))
+
+  }#THEN
+  else if (loss == "cor") {
+
+    predcor.loss(unlist(lapply(kcv, "[[", "observed")),
+                 unlist(lapply(kcv, "[[", "predicted")))
+
+  }#THEN
+  else if (loss == "mse") {
+
+    mse.loss(unlist(lapply(kcv, "[[", "observed")),
+             unlist(lapply(kcv, "[[", "predicted")))
+
+  }#THEN
+  else if (loss == "logl") {
+
+    # compute the mean of the observed values of the loss function, weighted
+    # to account for unequal-length splits and for missing values within splits.
+    weighted.mean(x = unlist(sapply(kcv, '[', 'loss')),
+                  w = unlist(sapply(kcv, '[', 'effective.size')))
+
+  }#THEN
+
+}#KFOLD.LOSS.POSTPROCESS
+
+# how to aggregate the loss in hold-out cross-validation.
+holdout.loss.postprocess = function(kcv, kcv.length, loss, extra.args, data) {
+
+  if (loss %in% c("pred", "pred-exact")) {
+
+    values = sapply(kcv, function(fold) {
+      clerr.loss(fold$observed, fold$predicted)
+    })
+
+  }#THEN
+  else if (loss == "f1") {
+
+    values = sapply(kcv, function(fold) {
+      f1.loss(fold$observed, fold$predicted)
+    })
+
+  }#THEN
+  else if (loss == "auroc") {
+
+    values = sapply(kcv, function(fold) {
+      auroc.loss(fold$probabilities, fold$probabilities)
+    })
+
+  }#THEN
+  else if (loss == "cor") {
+
+    values = sapply(kcv, function(fold) {
+      predcor.loss(fold$observed, fold$predicted)
+    })
+
+  }#THEN
+  else if (loss == "mse") {
+
+    values = sapply(kcv, function(fold) {
+      mse.loss(fold$observed, fold$predicted)
+    })
+
+  }#THEN
+  else if (loss == "logl") {
+
+    values = sapply(kcv, '[[', 'loss')
+
+  }#THEN
+
+  if (loss == "logl") {
+
+    # compute the mean of the observed values of the loss function, weighted
+    # to account for unequal-length splits and for missing values within splits.
+    mean = weighted.mean(x = values, w = sapply(kcv, '[[', 'effective.size'))
+  }#THEN
+  else {
+
+    mean = mean(values)
+
+  }#ELSE
+
+  return(list(values = values, mean = mean))
+
+}#HOLDOUT.LOSS.POSTPROCESS
+
+# log-likelihood loss function.
+entropy.loss = function(fitted, data) {
 
   attr(data, "metadata") = collect.metadata(data)
-  l = loglikelihood(fitted, data = data, as.loss = TRUE, debug = debug)
+  l = loglikelihood(fitted, data = data)
 
   return(list(loss = - as.numeric(l) / attr(l, "nobs"),
               effective.size = attr(l, "nobs")))
 
 }#ENTROPY.LOSS
 
-# classification error as a loss function.
-classification.error = function(node, fitted, prior = NULL, data, loss,
-    extra.args, debug = FALSE) {
+# prepare predictions to compute the loss.
+predictive.loss = function(node, fitted, prior = NULL, data, loss,
+    extra.args) {
 
+  # compute the predictions...
   if (loss == "pred-exact")
-    pred = naive.classifier(node, fitted, prior, data)
-  else if (loss == "pred")
+    pred = naive.classifier(node, fitted, prior, data, prob = TRUE)
+  else
     pred = predict.backend(fitted = fitted, node = node, data = data,
-             method = extra.args$predict, extra.args = extra.args$predict.args)
-  else if (loss %in% c("pred-lw", "pred-lw-cg"))
-    pred = predict.backend(fitted = fitted, node = node, data = data,
-             method = "bayes-lw", extra.args = extra.args)
+             prob = TRUE, method = extra.args$predict,
+             extra.args = extra.args$predict.args)
+  # ... and extract the prediction probabilites, if available.
+  prob = attr(pred, "prob")
+  attr(pred, "prob") = NULL
 
-  l = .Call(call_class_err,
-            reference = .data.frame.column(data, node),
-            predicted = pred)
+  return(list(loss = NA, predicted = pred, observed = data[, node],
+              probabilities = prob,
+              effective.size = how.many(!is.na(pred) & !is.na(data[, node]))))
 
-  if (debug)
-    cat("  > classification error for node", node, "is", l, ".\n")
-
-  effective.size = how.many(!is.na(pred) & !is.na(data[, node]))
-
-  return(list(loss = l, predicted = pred, observed = data[, node],
-              effective.size = effective.size))
-
-}#CLASSIFICATION.ERROR
+}#PREDICTIVE.LOSS
 

@@ -9,7 +9,7 @@ SEXP classic_discrete_parameters(SEXP data, SEXP node, SEXP parents, SEXP iss,
 
 double *cpt = 0, alpha = 0;
 bool replace = isTRUE(replace_unidentifiable);
-SEXP nodes_in_order, relevant_data, relevant_df, counts, cptable;
+SEXP nodes_in_order, relevant_data, counts, cptable;
 
   /* subset the data with the node labels in the right order. */
   PROTECT(nodes_in_order = allocVector(STRSXP, length(parents) + 1));
@@ -18,7 +18,6 @@ SEXP nodes_in_order, relevant_data, relevant_df, counts, cptable;
     SET_STRING_ELT(nodes_in_order, i + 1, STRING_ELT(parents, i));
 
   PROTECT(relevant_data = c_dataframe_column(data, nodes_in_order, FALSE, TRUE));
-  PROTECT(relevant_df = minimal_data_frame(relevant_data));
 
   /* implement the maximum likelihood estimator as a particular case of the
    * posterior estimator with prior mass equal to zero. */
@@ -28,7 +27,7 @@ SEXP nodes_in_order, relevant_data, relevant_df, counts, cptable;
     alpha = NUM(iss);
 
   /* compute the counts that are the sufficient statistic. */
-  PROTECT(counts = minimal_table(relevant_df, missing));
+  PROTECT(counts = minimal_table(relevant_data, missing));
 
   /* prepare the conditional probability table... */
   PROTECT(cptable = allocVector(REALSXP, length(counts)));
@@ -41,7 +40,7 @@ SEXP nodes_in_order, relevant_data, relevant_df, counts, cptable;
   c_classic_discrete_parameters(INTEGER(counts), cpt, nrows(cptable),
       length(cptable) / nrows(cptable), alpha, replace);
 
-  UNPROTECT(5);
+  UNPROTECT(4);
 
   return cptable;
 

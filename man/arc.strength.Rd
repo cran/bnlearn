@@ -62,7 +62,7 @@ inclusion.threshold(strength)
     when averaging arc strengths (in \code{mean()}) or network structures (in
     \code{custom.strength()}) to compute strength coefficients. If \code{NULL},
     weights are assumed to be uniform.}
-  \item{cpdag}{a boolean value. If \code{TRUE} the (PDAG of) the equivalence
+  \item{cpdag}{a boolean value. If \code{TRUE} the (CPDAG of) the equivalence
     class is used instead of the network structure itself. It should make it
     easier to identify score-equivalent arcs.}
   \item{shuffle}{a boolean value. If \code{TRUE} the columns in the data are
@@ -151,14 +151,14 @@ inclusion.threshold(strength)
   \bold{for model averaging and boostrap strength (confidence):}
 
   Friedman N, Goldszmidt M, Wyner A (1999). "Data Analysis with Bayesian
-	  Networks: A Bootstrap Approach". \emph{Proceedings of the 15th Annual
+	  Networks: A Bootstrap Approach." \emph{Proceedings of the 15th Annual
 	  Conference on Uncertainty in Artificial Intelligence}, 196--201.
 
   \bold{for the computation of the bootstrap strength (confidence) significance
     threshold:}
 
   Scutari M, Nagarajan R (2013). "On Identifying Significant Edges in Graphical
-    Models of Molecular Networks". \emph{Artificial Intelligence in Medicine},
+    Models of Molecular Networks." \emph{Artificial Intelligence in Medicine},
     \strong{57}(3):207--217.
 
 }

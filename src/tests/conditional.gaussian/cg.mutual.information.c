@@ -107,7 +107,7 @@ int *z1 = NULL, nz1 = 0;
    * so it should always be rejected. */
   return (R_FINITE(logden) && R_FINITE(lognum)) ? (lognum - logden) / num : 0;
 
-}/*C_CMIGG*/
+}/*C_CMICG*/
 
 /* conditional mutual information between two discrete variables, conditional
  * on both discrete and continuous variables. */
@@ -120,7 +120,7 @@ double logden = 0, lognum = 0;
 
   if (!zz) {
 
-    /* no discrete conditioning variables, reuse yy.n the denominator. */
+    /* no discrete conditioning variables, reuse yy the denominator. */
     zz2 = yy;
     llz2 = lly;
 
@@ -144,7 +144,7 @@ double logden = 0, lognum = 0;
   }/*ELSE*/
 
   /* iterate over the continuous variables using the chain rule; using only the
-   * first variable xx for the numerator and both xx and yy for the denomiator. */
+   * first variable xx for the numerator and both xx and yy for the denominator. */
   for (i = 0; i < ngp; i++)
     lognum += c_cmicg(gp[i], gp + i + 1, ngp - i - 1, &xx , 1, zz, llz, &llx, num, NULL);
 

@@ -80,6 +80,6 @@ fitted_bn fitted_network_from_SEXP(SEXP fitted);
 void print_fitted_network(fitted_bn);
 void FreeFittedBN(fitted_bn bn);
 
-double nparams_fitted_node(ldist ld, fitted_node_e type, bool effective);
+double nparams_fitted_node(ldist ld, fitted_node_e type);
 
 #endif

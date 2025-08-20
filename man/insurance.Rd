@@ -85,7 +85,7 @@ data(insurance)
 \source{
 
   Binder J, Koller D, Russell S, Kanazawa K (1997). "Adaptive Probabilistic
-    Networks with Hidden Variables". \emph{Machine Learning},
+    Networks with Hidden Variables." \emph{Machine Learning},
     \strong{29}(2--3):213--244.
 
 }

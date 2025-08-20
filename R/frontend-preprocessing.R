@@ -48,7 +48,6 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ...,
 
   }#THEN
 
-  # check debug.
   check.logical(debug)
   # check the extra arguments.
   extra.args = check.discretization.args(method, data, breaks, list(...))
@@ -58,18 +57,16 @@ discretize = function(data, method, breaks = 3, ordered = FALSE, ...,
 
 }#DISCRETIZE
 
-# screen the data for highly correlated variables.
-dedup = function(data, threshold = 0.90, debug = FALSE) {
+# screen the data for nearly identical correlated variables.
+dedup = function(data, method, threshold, debug = FALSE) {
 
   # check the data (only continuous data are supported).
-  data = check.data(data, allowed.types = continuous.data.types,
-           allow.missing = TRUE)
+  data = check.data(data, allow.missing = TRUE)
+  # check the deduplication method.
+  method = check.deduplication.method(method, data)
   # check the correlation threshold.
-  if (missing(threshold))
-    threshold = 0.90
-  else if (!is.probability(threshold))
-    stop("the correlation threshold must be a number between 0 and 1.")
-  # check debug.
+  threshold = check.deduplication.threshold(method, threshold)
+
   check.logical(debug)
 
   dedup.backend(data = data, threshold = threshold, debug = debug)

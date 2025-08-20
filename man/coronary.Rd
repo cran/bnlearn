@@ -38,7 +38,7 @@ data(coronary)
 
   Reinis Z, Pokorny J, Basika V, Tiserova J, Gorican K, Horakova D, Stuchlikova
     E, Havranek T, Hrabovsky F (1981). "Prognostic Significance of the Risk
-    Profile in the Prevention of Coronary Heart Disease". \emph{Bratisl Lek
+    Profile in the Prevention of Coronary Heart Disease." \emph{Bratisl Lek
     Listy}, \strong{76}:137--150. Published on Bratislava Medical Journal,
     in Czech.
 

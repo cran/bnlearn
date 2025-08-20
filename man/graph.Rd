@@ -2,6 +2,9 @@
 \alias{graph utilities}
 \alias{acyclic}
 \alias{directed}
+\alias{valid.dag}
+\alias{valid.cpdag}
+\alias{valid.ug}
 \alias{path.exists}
 \alias{path}
 \alias{path,bn-method}
@@ -21,6 +24,9 @@
 # check whether the graph is acyclic/completely directed.
 acyclic(x, directed = FALSE, debug = FALSE)
 directed(x)
+valid.dag(x, debug = FALSE)
+valid.cpdag(x, debug = FALSE)
+valid.ug(x, debug = FALSE)
 # check whether there is a path between two nodes.
 path.exists(x, from, to, direct = TRUE, underlying.graph = FALSE, debug = FALSE)
 # build the skeleton or a complete orientation of the graph.
@@ -55,6 +61,9 @@ subgraph(x, nodes)
   \code{acyclic()}, \code{path()} and \code{directed()} return a boolean value. \cr
   \code{skeleton()}, \code{pdag2dag()} and \code{subgraph()} return an object of
   class \code{bn}.
+
+  \code{valid.dag()}, \code{valid.cpdag()} and \code{valid.ug()} return a
+  logical value.
 
 }
 \references{

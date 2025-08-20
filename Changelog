@@ -1,6 +1,56 @@
+bnlearn (5.1)
+
+  * the "bdla" score is now deprecated and will be removed in 2026.
+  * removed the cross-validation loss functions "pred-lw", "cor-lw", "mse-lw",
+     "logl-g", "logl-cg", "cor-lw-cg", "mse-lw-cg" and "pred-lw-cg".
+  * removed the "effective" argument of nparams().
+  * added the F1 and AUROC loss functions to bn.cv().
+  * added the valid.cpdag(), valid.dag() and valid.ug() functions.
+  * stop printing incorrect alternative hypotheses for custom test functions in
+     ci.test().
+  * logLik() now consistently returns NA if there are no complete observations
+     to score a local distribution (including but not only in the presence of
+     latent variables).
+  * the direction of blacklisted arcs is again preserved correctly in
+     constraint-based algorithms (thanks Marco Catanuso).
+  * implemented the Structural Interventional Distance (SID) between any
+     combination of DAGs and CPDAGs.
+  * bn.cv() saves the per-fold loss values for hold-out cross-validation but
+     not for k-fold cross-validation, because the former are informative when
+     compared to the overall loss but the latter are not.
+  * shd() now has a "cpdag" argument to control whether SHD is computed with
+     or without calling cpdag() on its arguments, like custom.strength() and
+     boot.strength().
+  * added intervention() and counterfactual() to enable causal inference.
+  * added twin() to create twin networks, complementing mutilated().
+  * fixed quantile discretization, which sometimes picked NAs as cutpoints
+     from incomplete data (thanks Michal Bechny).
+  * fixed buffer overflow in the "pred-cg-loglik" score (thanks Marco 
+     Grzegorczyk).
+  * fixed hc() with random restarts and singular models, which could get stuck
+     in a loop adding and removing the same arc (thanks Marco Grzegorczyk).
+  * nbr() now has a "max.dist" argument that controls the range of the
+     neighbourhood (how many arcs from the center node).
+  * strength.plot() can now plot subnetworks of that the strengths were
+     computed for, or any network spanning a subset of its nodes for bootstrap
+     weights.
+  * graphviz.compare() can now compare networks with different node sets, as
+     long as they overlap.
+  * fixed predict(), which would fail when method = "bayes-lw" or "exact", the
+     data contained missing values and the target node was missing from them
+     (thanks Laura D'Acunto).
+  * added cextend.all(), which returns all possible consistent extensions of
+     a CPDAG using Wienobst, Luttermann, Bannach and Liskiewicz (2023).
+  * count.graph(type = "dags-in-equivalence-class") now computes the size of
+     a Markov equivalence class using Wienobst, Luttermann, Bannach and
+     Liskiewicz (2023).
+  * discretize() now attaches the cutpoints it uses internally to its return
+     value, making it possible to discretize other data into compatible factors
+     using cut().
+
 bnlearn (5.0.2)
 
-  * updated C code make qsort work with zero-length arrays.
+  * updated C code to make qsort work with zero-length arrays.
 
 bnlearn (5.0.1)
 
@@ -42,7 +92,7 @@ bnlearn (5.0)
   * added an identifiable() function to tell whether a bn.fit object contains NA
      parameter values; and a singular() function to tell whether it is
      singular (with 0-1 probability distributions, zero standard errors).
-  * the entropy loss in bn.cv() is now estimated now uses the node-average 
+  * the entropy loss in bn.cv() is now estimated with the node-average 
      (log-)likelihood; it does not produce warnings for incomplete data and
      may occasionally return +Inf instead of NA in some corner cases (for
      instance, when the model learning from training has NA parameters or

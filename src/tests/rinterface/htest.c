@@ -34,7 +34,9 @@ SEXP result, s, n, B, params;
   SET_VECTOR_ELT(result, 3, n);
 
   /* set the alternative hypothesis. */
-  if (IS_TWO_SIDED(test_type))
+  if (test_type == CUSTOM_T)
+    SET_VECTOR_ELT(result, 4, R_NilValue);
+  else if (IS_TWO_SIDED(test_type))
     SET_VECTOR_ELT(result, 4, mkString("two.sided"));
   else
     SET_VECTOR_ELT(result, 4, mkString("greater"));

@@ -248,7 +248,7 @@ cgdata local_data = { 0 };
 
 /* log-likelihood of a whole sample for a Gaussian network. */
 double data_clgaussian_loglikelihood(fitted_bn bn, cgdata dt, double *scratch,
-    bool propagate, bool loss, bool debugging) {
+    bool propagate, bool debugging) {
 
 int max_nlvls = 0, cumdim = 0, max_cfgs = 0, ncomplete = 0;
 int *pars = NULL, *parcfgs = NULL, ncoefs = 0;
@@ -325,7 +325,7 @@ unidentifiable_model:
     if (!dt.m.flag[i].fixed)
       continue;
 
-    if (debugging && !loss)
+    if (debugging)
       Rprintf("* processing node %s.\n", bn.labels[i]);
 
     /* ... reset the log-likelihood accumulator... */
@@ -346,7 +346,7 @@ unidentifiable_model:
           refill_1d_table(dt.dcol[dt.map[i]], &freq, dt.m.nobs);
           /* ... if there are usable locally-complete observations... */
           if (freq.nobs == 0)
-            node_loglik = R_NegInf;
+            node_loglik = NA_REAL;
           else {
 
             /* ... combine them with the probabilities to compute the
@@ -375,7 +375,7 @@ unidentifiable_model:
           refill_2d_table(dt.dcol[dt.map[i]], parcfgs, &freq2, dt.m.nobs);
           /* ... if there are usable locally-complete observations... */
           if (freq2.nobs == 0)
-            node_loglik = R_NegInf;
+            node_loglik = NA_REAL;
           else {
 
             /* ... combine them with the probabilities to compute the
@@ -431,7 +431,7 @@ unidentifiable_model:
          * not be propagated as a result), or return -Inf if there are no
          * locally-complete observations. */
         if (ncomplete == 0)
-          node_loglik = R_NegInf;
+          node_loglik = NA_REAL;
         else if (ncomplete < dt.m.nobs)
           node_loglik = node_loglik / ncomplete * dt.m.nobs;
 
@@ -518,7 +518,7 @@ unidentifiable_model:
          * not be propagated as a result), or return -Inf if there are no
          * locally-complete observations. */
         if (ncomplete == 0)
-          node_loglik = R_NegInf;
+          node_loglik = NA_REAL;
         else if (ncomplete < dt.m.nobs)
           node_loglik = node_loglik / ncomplete * dt.m.nobs;
 
@@ -530,19 +530,9 @@ unidentifiable_model:
 
     if (debugging) {
 
-      if (loss) {
-
-        Rprintf("  > log-likelihood loss for node %s is %lf.\n",
-          bn.labels[i], - node_loglik / dt.m.nobs);
-
-      }/*THEN*/
-      else {
-
-        Rprintf("  > %d locally-complete observations out of %d.\n",
-          ncomplete, dt.m.nobs);
-        Rprintf("  > log-likelihood is %lf.\n", node_loglik);
-
-      }/*ELSE*/
+      Rprintf("  > %d locally-complete observations out of %d.\n",
+        ncomplete, dt.m.nobs);
+      Rprintf("  > log-likelihood is %lf.\n", node_loglik);
 
     }/*THEN*/
 

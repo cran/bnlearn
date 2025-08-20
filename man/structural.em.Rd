@@ -65,7 +65,7 @@ structural.em(x, maximize = "hc", maximize.args = list(), fit,
 \references{
 
   Friedman N (1997). "Learning Belief Networks in the Presence of Missing Values
-    and Hidden Variables". \emph{Proceedings of the 14th International
+    and Hidden Variables." \emph{Proceedings of the 14th International
     Conference on Machine Learning}, 125--133.
 
 }

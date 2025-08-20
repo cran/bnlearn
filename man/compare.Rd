@@ -2,6 +2,7 @@
 \alias{compare}
 \alias{all.equal.bn}
 \alias{shd}
+\alias{sid}
 \alias{hamming}
 \alias{graphviz.compare}
 \title{Compare two or more different Bayesian networks}
@@ -16,7 +17,8 @@
 compare(target, current, arcs = FALSE)
 \method{all.equal}{bn}(target, current, ...)
 
-shd(learned, true, wlbl = FALSE, debug = FALSE)
+sid(learned, true, debug = FALSE)
+shd(learned, true, wlbl = FALSE, cpdag = TRUE, debug = FALSE)
 hamming(learned, true, debug = FALSE)
 
 graphviz.compare(x, ..., groups, layout = "dot", shape = "rectangle",
@@ -32,6 +34,9 @@ graphviz.compare(x, ..., groups, layout = "dot", shape = "rectangle",
   \item{wlbl}{a boolean value. If \code{TRUE} arcs whose directions have been
     fixed by a whitelist or a by blacklist are preserved when constructing
     the CPDAGs of \code{learned} and \code{true}.}
+  \item{cpdag}{a boolean value. If \code{TRUE} the (CPDAG of) the equivalence
+    class is used instead of the network structures themselves, which is
+    more appropriate if either was learned from data.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
   \item{arcs}{a boolean value. See below.}
@@ -78,12 +83,13 @@ graphviz.compare(x, ..., groups, layout = "dot", shape = "rectangle",
   Regardless of the visualization, the nodes are arranged to be in the same
   position for all the networks to make it easier to compare them.
 
-}
-\note{
+  \code{shd()} computes the Structural Hamming Distance (SHD). Note that SHD, as
+  defined in the reference, is defined on CPDAGs; therefore \code{cpdag()} is
+  called on both \code{learned} and \code{true} before computing the distance.
 
-  Note that SHD, as defined in the reference, is defined on CPDAGs; therefore
-  \code{cpdag()} is called on both \code{learned} and \code{true} before computing
-  the distance.
+  \code{sid()} computes the Structural Interventional Distance (SID) between
+  two DAGs, between a CPDAG and a DAG, between a DAG and a CPDAG, or between
+  two CPDAGs.
 
 }
 \value{
@@ -101,10 +107,16 @@ graphviz.compare(x, ..., groups, layout = "dot", shape = "rectangle",
 
   \code{shd()} and \code{hamming()} return a non-negative integer number.
 
+  \code{sid()} returns a vector of non-negative integer numbers, with additional
+  attributes describing the distribution over all the evaluated graphs.
+
   \code{graphviz.compare()} plots one or more figures and returns invisibly a
   list containing the \code{graph} objects generated from the networks that were
   passed as arguments (in the same order). They can be further modified using
-  the \pkg{graph} and \pkg{Rgraphviz} packages.
+  the \pkg{graph} and \pkg{Rgraphviz} packages. Unlike the other functions,
+  \code{graphviz.compare()} accepts networks with different node sets as long
+  as they overlap.
+
 }
 \examples{
 data(learning.test)
@@ -112,6 +124,7 @@ data(learning.test)
 e1 = model2network("[A][B][C|A:B][D|B][E|C][F|A:E]")
 e2 = model2network("[A][B][C|A:B][D|B][E|C:F][F|A]")
 shd(e2, e1, debug = TRUE)
+sid(e2, e1, debug = TRUE)
 unlist(compare(e1,e2))
 compare(target = e1, current = e2, arcs = TRUE)
 \dontrun{graphviz.compare(e1, e2, diff = "none")}
@@ -119,8 +132,11 @@ compare(target = e1, current = e2, arcs = TRUE)
 \references{
 
   Tsamardinos I, Brown LE, Aliferis CF (2006). "The Max-Min Hill-Climbing
-    Bayesian Network Structure Learning Algorithm". \emph{Machine Learning},
+    Bayesian Network Structure Learning Algorithm." \emph{Machine Learning},
     \strong{65}(1):31--78.
+
+  Peters J, Buhlmann P (2015). "Structural Intervention Distance for Evaluating
+    Causal Graphs." \emph{Neural Computation}, \strong{27}(3):771--779.
 
 }
 \author{Marco Scutari}

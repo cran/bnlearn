@@ -179,7 +179,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   check.learning.algorithm(heuristic, class = "score")
   # check the score label.
   score = check.score(score, data = x)
-  # check debug.
+
   check.logical(debug)
 
   # check unused arguments in misc.args.
@@ -220,7 +220,6 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
     start = empty.graph(nodes = names(x))
   else {
 
-    # check start's class.
     check.bn(start)
     # check the preseeded network against the data set.
     check.bn.vs.data(start, x)
@@ -257,7 +256,7 @@ greedy.search = function(x, start = NULL, whitelist = NULL, blacklist = NULL,
   # be sure the graph structure is up to date.
   start$nodes = cache.structure(names(start$nodes), arcs = start$arcs)
   # no party if the graph is partially directed.
-  if (is.pdag(start$arcs, names(start$nodes)))
+  if (!is.completely.directed(start))
     stop("the graph is only partially directed.")
   # check whether the graph is acyclic.
   if (!is.acyclic(arcs = start$arcs, nodes = names(start$nodes)))
@@ -407,7 +406,7 @@ mi.matrix = function(x, whitelist = NULL, blacklist = NULL, method, mi = NULL,
         allowed.types = c(discrete.data.types, continuous.data.types))
   # check the algorithm.
   check.learning.algorithm(method, class = "mim")
-  # check debug.
+
   check.logical(debug)
   # check the label of the mutual information estimator.
   estimator = check.mi.estimator(mi, x)
@@ -472,7 +471,7 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   check.learning.algorithm(method, class = "markov.blanket")
   # check test labels.
   test = check.test(test, data = x)
-  # check debug.
+
   check.logical(debug)
   # check alpha.
   alpha = check.alpha(alpha)
@@ -528,9 +527,7 @@ mb.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
     check.nodes(nodes = blacklist, graph = nodes[nodes != target])
 
     nodes = nodes[nodes %!in% blacklist]
-    x = .data.frame.column(x, nodes, drop = FALSE)
-    x = .data.frame(x)
-    names(x) = nodes
+    x = .data.frame.column(x, nodes, drop = FALSE, keep.names = TRUE)
 
     # re-validate the data.
     x = check.data(x, allow.missing = TRUE)
@@ -602,7 +599,7 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
   check.learning.algorithm(method, class = "neighbours")
   # check test labels.
   test = check.test(test, data = x)
-  # check debug.
+
   check.logical(debug)
   # check alpha.
   alpha = check.alpha(alpha)
@@ -645,8 +642,7 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
     check.nodes(nodes = blacklist, graph = nodes[nodes != target])
 
     nodes = nodes[nodes %!in% blacklist]
-    x = .data.frame.column(x, nodes, drop = FALSE)
-    x = .data.frame(x)
+    x = .data.frame.column(x, nodes, drop = FALSE, keep.names = TRUE)
     names(x) = nodes
 
   }#THEN
@@ -711,7 +707,6 @@ nbr.backend = function(x, target, method, whitelist = NULL, blacklist = NULL,
 bayesian.classifier = function(data, method, training, explanatory, whitelist,
     blacklist, expand, debug = FALSE) {
 
-  # check debug.
   check.logical(debug)
   # check the learning algorithm.
   check.learning.algorithm(method, class = "classifier")

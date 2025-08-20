@@ -31,6 +31,11 @@ shannon.entropy.discrete = function(P) {
 
   entropy = structure(numeric(length(P)), names = names(P))
 
+  # if any node is not completely representable, we cannot compute the entropy.
+  unidentifiable = sapply(P, function(x) anyNA(x$prob))
+  if (any(unidentifiable))
+    return(NA)
+
   # we only need exact inference for non-root nodes, so there is not point in
   # constructing the junction tree for empty networks.
   if (narcs.backend(P) > 0)
@@ -41,13 +46,7 @@ shannon.entropy.discrete = function(P) {
     parents = P[[node]]$parents
     cpt = P[[node]]$prob
 
-    if (anyNA(cpt)) {
-
-      # the node is not completely representable, we cannot compute its entropy.
-      entropy[node] = NA
-
-    }#THEN
-    else if (length(parents) == 0) {
+    if (length(parents) == 0) {
 
       # the entropy of a root node follows the textbook formula.
       entropy[node] = - sum(cpt[cpt != 0] * log(cpt[cpt != 0]))
@@ -120,7 +119,7 @@ shannon.entropy.conditional.gaussian = function(P) {
         entropy[node] = NA
 
       }#THEN
-      if (length(parents) == 0) {
+      else if (length(parents) == 0) {
 
         # the entropy of a root node follows the textbook formula.
         entropy[node] = - sum(cpt[cpt != 0] * log(cpt[cpt != 0]))
@@ -189,6 +188,12 @@ kullback.leibler = function(P, Q) {
 
 # Kullback-Leibler divergence for discrete networks.
 kullback.leibler.discrete = function(P, Q) {
+
+  # if any node in either network is not completely representable, we cannot
+  # compute the divergence.
+  unidentifiable = sapply(c(P, Q), function(x) anyNA(x$prob))
+  if (any(unidentifiable))
+    return(NA)
 
   # the Kullback-Leibler divergence is computed as the combination of two terms:
   # LL(P, P), which is essentially the entropy of P, and LL(P, Q), which is

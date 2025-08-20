@@ -1,14 +1,26 @@
 
 # sanitize the extra arguments passed to the graph enumerations.
-check.enumeration.args = function(type, N, extra) {
+check.enumeration.args = function(type, extra) {
+
+  # check the number of nodes.
+  if (has.argument(type, "nodes", enumerations.extra.args)) {
+
+    if (!is.positive.vector(extra[["nodes"]]))
+      stop("'nodes' must be positive integers, the number(s) of nodes in the graph.")
+
+  }#THEN
 
   # check the number of root nodes.
   if (has.argument(type, "k", enumerations.extra.args))
-    check.graph.root.nodes(extra[["k"]], N)
+    check.graph.root.nodes(extra[["k"]], N = extra[["nodes"]])
 
   # check the number of arcs.
   if (has.argument(type, "r", enumerations.extra.args))
-    check.graph.narcs(extra[["r"]], N)
+    check.graph.narcs(extra[["r"]], N = extra[["nodes"]])
+
+  # check the markov equivalence class.
+  if (has.argument(type, "eqclass", enumerations.extra.args))
+    valid.cpdag.backend(extra[["eqclass"]])
 
   # warn about and remove unused arguments.
   extra = check.unused.args(extra, enumerations.extra.args[[type]])

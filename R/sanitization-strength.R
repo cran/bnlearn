@@ -8,28 +8,52 @@ check.customlist = function(custom, nodes) {
   if (!is(custom, "list"))
     stop(objname, " must be a list of objects of class 'bn', 'bn.fit' or of arc sets.")
 
+  # all networks must have the same nodes.
   for (i in seq_along(custom)) {
 
-    if (is(custom[[i]], c("bn", "bn.fit"))) {
-
+    if (is(custom[[i]], c("bn", "bn.fit")))
       check.nodes(.nodes(custom[[i]]), graph = nodes,
         min.nodes = length(nodes), max.nodes = length(nodes))
-
-    }#THEN
-    else if (is(custom[[i]], "matrix")) {
-
+    else if (is(custom[[i]], "matrix"))
       check.arcs(arcs = custom[[i]], nodes = nodes)
-
-    }#THEN
-    else {
-
+    else
       stop(objname, "[[", i, "]] is not an object of class 'bn', 'bn.fit' or an arc set.")
-
-    }#ELSE
 
   }#FOR
 
 }#CHECK.CUSTOMLIST
+
+# check the list of networks passed to graphviz.compare().
+check.overlapping.customlist = function(custom) {
+
+  objname = deparse(substitute(custom))
+
+  # check that input is a list.
+  if (!is(custom, "list"))
+    stop(objname, " must be a list of objects of class 'bn', 'bn.fit' or of arc sets.")
+
+  # networks are only required to be overlapping.
+  all.nodes = vector(length(custom), mode = "list")
+
+  for (i in seq_along(custom)) {
+
+    if (is(custom[[i]], c("bn", "bn.fit")))
+      all.nodes[[i]] = .nodes(custom[[i]])
+    else if (is(custom[[i]], "matrix"))
+      all.nodes[[i]] = unique(custom[[i]])
+    else
+      stop(objname, "[[", i, "]] is not an object of class 'bn', 'bn.fit' or an arc set.")
+
+  }#FOR
+
+  counts = table(unlist(all.nodes))
+
+  if (all(counts < 2))
+    stop(objname, " contains non-overlapping networks.")
+
+  return(names(counts))
+
+}#CHECK.OVERLAPPING.CUSTOMLIST
 
 # check an object of class bn.strength.
 check.bn.strength = function(strength, nodes, valid = available.strength.methods) {
@@ -57,7 +81,7 @@ check.bn.strength = function(strength, nodes, valid = available.strength.methods
 }#CHECK.BN.STRENGTH
 
 # check that a bn.strength object is consistent with a bn object or node set.
-check.bn.strength.vs.bn = function(strength, reference) {
+check.bn.strength.vs.bn = function(strength, reference, exact.match = TRUE) {
 
   strength.nodes = attr(strength, "nodes")
   if (is(reference, "bn"))
@@ -66,7 +90,19 @@ check.bn.strength.vs.bn = function(strength, reference) {
     reference.nodes = reference
 
   # check the consistency with the network's node set.
-  check.nodes(strength.nodes, graph = reference.nodes)
+  if (exact.match) {
+
+    # exact match between nodes in the arc strengths and in the network.
+    check.nodes(strength.nodes, graph = reference.nodes,
+      min.nodes = length(reference.nodes), max.nodes = length(reference.nodes))
+
+  }#THEN
+  else {
+
+    # all nodes in the network must appear in the arc strength.
+    check.nodes(reference.nodes, graph = strength.nodes)
+
+  }#ELSE
 
 }#CHECK.BN.STRENGTH.VS.BN
 

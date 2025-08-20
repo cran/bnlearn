@@ -49,7 +49,7 @@
 \usage{
 ## nodes
 mb(x, node)
-nbr(x, node)
+nbr(x, node, max.dist = 1)
 parents(x, node)
 parents(x, node, debug = FALSE) <- value
 children(x, node)
@@ -81,7 +81,7 @@ amat(x)
 amat(x, check.cycles = TRUE, check.illegal = TRUE, debug = FALSE) <- value
 
 ## graphs
-nparams(x, data, effective = FALSE, debug = FALSE)
+nparams(x, data, debug = FALSE)
 ntests(x)
 
 ## shared with the graph package.
@@ -97,6 +97,8 @@ ntests(x)
     form of \code{parents}, \code{children}, \code{arcs} and \code{amat}
     requires an object of class \code{bn}.}
   \item{node,Nodes}{a character string, the label of a node.}
+  \item{max.dist}{a positive integer, the maximum number of arcs (distance) from
+    the node at the center of the neighbourhood.}
   \item{value}{either a vector of character strings (for \code{parents} and
     \code{children}), an adjacency matrix (for \code{amat}) or a data frame with
     two columns (optionally labeled "from" and "to", for \code{arcs}).}
@@ -107,9 +109,6 @@ ntests(x)
   \item{check.illegal}{a boolean value. If \code{TRUE} arcs that break the
     parametric assumptions of \code{x}, such as those from continuous to
     discrete nodes in conditional Gaussian networks, cause an error.}
-  \item{effective}{a boolean value. If \code{TRUE} the number of non-zero free
-    parameters is returned, that is, the effective degrees of freedom of the
-    network; otherwise the theoretical number of parameters is returned.}
   \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
     printed; otherwise the function is completely silent.}
 }
@@ -152,8 +151,8 @@ ntests(x)
 \references{
 
   Chickering DM (1995). "A Transformational Characterization of Equivalent
-	Bayesian Network Structures". \emph{Proceedings of the Eleventh Annual
-	Conference on Uncertainty in Artificial Intelligence}, 87--98.
+    Bayesian Network Structures." \emph{Proceedings of the Eleventh Annual
+    Conference on Uncertainty in Artificial Intelligence}, 87--98.
 
   Neapolitan RE (2003). \emph{Learning Bayesian Networks}. Prentice Hall.
 

@@ -12,7 +12,6 @@ read.bif = function(file, debug = FALSE) {
 # dump a bn.fit object into a BIF file.
 write.bif = function(file, fitted) {
 
-  # check fitted's class.
   check.fit(fitted)
   # only discrete bayesian networks are supported.
   if (!is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
@@ -42,7 +41,6 @@ read.dsc = function(file, debug = FALSE) {
 # dump a bn.fit object into a DSC file.
 write.dsc = function(file, fitted) {
 
-  # check fitted's class.
   check.fit(fitted)
   # only discrete bayesian networks are supported.
   if (!is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
@@ -72,7 +70,6 @@ read.net = function(file, debug = FALSE) {
 # dump a bn.fit object into a NET file.
 write.net = function(file, fitted) {
 
-  # check fitted's class.
   check.fit(fitted)
   # only discrete bayesian networks are supported.
   if (!is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
@@ -91,7 +88,6 @@ write.net = function(file, fitted) {
 
 write.dot = function(file, graph) {
 
-  # check graph's class.
   check.bn.or.fit(graph)
 
   # open the file for writing.

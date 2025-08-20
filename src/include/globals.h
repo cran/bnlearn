@@ -12,6 +12,7 @@ extern SEXP BN_DsepsetSymbol;
 extern SEXP BN_MetaDataSymbol;
 extern SEXP BN_NobsSymbol;
 extern SEXP BN_DfSymbol;
+extern SEXP BN_CutpointsSymbol;
 
 /* shortcuts to boolean SEXPs. */
 extern SEXP TRUESEXP, FALSESEXP;

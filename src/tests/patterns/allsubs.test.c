@@ -759,8 +759,15 @@ exit:
         PROTECT(retval = ast_prepare_retval(pvalue, min_pvalue, max_pvalue,
                            a, sub_complete.m.names + 2, sub_complete.m.ncols - 2));
 
+        /* restore the dimensions of sub/sub_complete to avoid memory leaks.*/
         Free1D(subset);
+        sub.ndcols = dtz.ndcols;
+        sub.ngcols = dtz.ngcols;
+        sub.m.ncols = dtz.m.ncols;
         FreeCGDT(sub);
+        sub_complete.ndcols = dtz.ndcols;
+        sub_complete.ngcols = dtz.ngcols;
+        sub_complete.m.ncols = dtz.m.ncols;
         FreeCGDT(sub_complete);
         FreeCGDT(dtx_complete);
         FreeCGDT(dty_complete);
@@ -778,7 +785,14 @@ exit:
 
   }/*FOR*/
 
+  /* restore the dimensions of sub/sub_complete to avoid memory leaks.*/
+  sub.ndcols = dtz.ndcols;
+  sub.ngcols = dtz.ngcols;
+  sub.m.ncols = dtz.m.ncols;
   FreeCGDT(sub);
+  sub_complete.ndcols = dtz.ndcols;
+  sub_complete.ngcols = dtz.ngcols;
+  sub_complete.m.ncols = dtz.m.ncols;
   FreeCGDT(sub_complete);
   FreeCGDT(dtx_complete);
   FreeCGDT(dty_complete);

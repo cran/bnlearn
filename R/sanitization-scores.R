@@ -24,6 +24,9 @@ check.score = function(score, data, allowed = available.scores) {
          (score %!in% scores.for.incomplete.data))
       stop("score '", score, "' cannot be used with incomplete data.")
 
+    if (score == "bdla")
+      warning("the \"bdla\" score is deprecated and will be removed in 2026.")
+
     return(score)
 
   }#THEN
@@ -59,7 +62,7 @@ check.score = function(score, data, allowed = available.scores) {
 }#CHECK.SCORE
 
 # check whether a score is score equivalent.
-is.score.equivalent = function(score, nodes, extra) {
+is.score.equivalent = function(score, data, extra) {
 
   # log-likelihood for discrete and Gaussian data is always score equivalent.
   if (score %in% c("loglik", "loglik-g", "pred-loglik", "pred-loglik-g"))
@@ -75,7 +78,8 @@ is.score.equivalent = function(score, nodes, extra) {
       (extra$prior %in% c("uniform", "marginal", "vsp")))
     return(TRUE)
   # all the node-average likelihood scores are score equivalent.
-  if (score %in% c("nal", "nal-g", "pnal", "pnal-g"))
+  if ((score %in% c("nal", "nal-g", "pnal", "pnal-g")) &&
+      all(attr(data, "metadata")$complete.nodes))
     return(TRUE)
 
   # a conservative default (BDla, BDs, BDj, all *-cg scores).
@@ -542,7 +546,8 @@ check.newdata = function(newdata, network, data, required = TRUE,
   }#THEN
 
   # reorder the columns of newdata to match data.
-  newdata = .data.frame.column(newdata, names.data, drop = FALSE)
+  newdata = .data.frame.column(newdata, names.data, drop = FALSE,
+              keep.names = TRUE)
 
   # check whether data and newdata have the same data types.
   types.data = lapply(data, class)
@@ -566,10 +571,6 @@ check.newdata = function(newdata, network, data, required = TRUE,
           stop("variable ", names.data[i], " has a different levels in newdata.")
 
       }#THEN
-
-  # make sure to return a data frame with column names.
-  newdata = .data.frame(newdata)
-  names(newdata) = names.data
 
   # sanitize the reworked data frame and add the metadata.
   newdata = check.data(newdata, label = "newdata", allow.levels = TRUE,

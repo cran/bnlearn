@@ -2,7 +2,6 @@
 # return the nodes in the graph.
 .nodes = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   if (is(x, "bn"))
@@ -15,7 +14,6 @@
 # relabel the nodes of a graph.
 .relabel = function(x, value) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid replacement node set is needed.
   nodes = .nodes(x)
@@ -117,7 +115,6 @@
 # get the degree of a node.
 .degree = function(x, node) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = node, graph = x, max.nodes = 1)

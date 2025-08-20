@@ -23,8 +23,8 @@
       improvement over naive Bayes, this algorithms uses Chow-Liu to approximate
       the dependence structure of the classifiers.
 
-     Friedman N, Geiger D, Goldszmit M (1997). "Bayesian Network Classifiers".
-     \emph{Machine Learning}, \strong{29}:131--163.
+     Friedman N, Geiger D, Goldszmit M (1997). "Bayesian Network Classifiers."
+       \emph{Machine Learning}, \strong{29}:131--163.
 
   }
 

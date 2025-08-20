@@ -31,7 +31,7 @@ mvnorm2gbn(dag, mu, sigma)
 \references{
 
   Pourahmadi M (2011). "Covariance Estimation: The GLM and Regularization
-    Perspectives". \emph{Statistical Science}, 26(3), 369--387.
+    Perspectives." \emph{Statistical Science}, 26(3), 369--387.
 
 }
 \examples{

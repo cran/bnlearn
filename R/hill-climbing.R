@@ -10,11 +10,11 @@ hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
   # set the iteration counter.
   iter = 1
   # check whether the score is score-equivalent.
-  score.equivalence = is.score.equivalent(score, nodes, extra.args)
+  score.equivalence = is.score.equivalent(score, x, extra.args)
   # check whether the score is decomposable.
   score.decomposability = is.score.decomposable(score, extra.args)
   # allocate the cache matrix.
-  cache = matrix(0, nrow = n.nodes, ncol = n.nodes)
+  cache = matrix(0, nrow = n.nodes, ncol = n.nodes, dimnames = list(nodes, nodes))
   # nodes to be updated (all of them in the first iteration).
   updated = seq_len(n.nodes) - 1L
   # set the number of random restarts.
@@ -226,6 +226,34 @@ hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
       updated = which(nodes %in% c(bestop$from, bestop$to)) - 1L
     else
       updated = which(nodes %in% bestop$to) - 1L
+
+    # reset the reference score values of singular nodes: the score delta in
+    # the cache is not representative of the difference from the baseline.
+    if (bestop$op == "reverse") {
+
+      if ((reference.score[bestop$to] == -Inf) &&
+          is.finite(cache[bestop$from, bestop$to]))
+        reference.score[bestop$to] =
+          per.node.score(network = start, score = score, targets = bestop$to,
+            extra.args = extra.args, data = x)
+
+      if ((reference.score[bestop$from] == -Inf) &&
+          is.finite(cache[bestop$to, bestop$from]))
+        reference.score[bestop$from] =
+          per.node.score(network = start, score = score, targets = bestop$from,
+            extra.args = extra.args, data = x)
+
+    }#THEN
+    else {
+
+      if ((reference.score[bestop$to] == -Inf) &&
+          is.finite(cache[bestop$from, bestop$to]))
+        reference.score[bestop$to] =
+          per.node.score(network = start, score = score, targets = bestop$to,
+            extra.args = extra.args, data = x)
+
+    }#ELSE
+
 
     if (debug) {
 

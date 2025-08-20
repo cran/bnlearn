@@ -59,13 +59,6 @@ configurations = function(data, factor = TRUE, all = TRUE) {
 
 }#.TABLE
 
-.data.frame = function(lst) {
-
-  .Call(call_minimal_data_frame,
-        obj = lst)
-
-}#.DATA.FRAME
-
 .data.frame.column = function(dataframe, column, drop = TRUE,
   keep.names = FALSE) {
 

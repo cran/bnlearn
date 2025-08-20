@@ -697,12 +697,12 @@ void cgdata_subsample_by_logical(cgdata *dt, cgdata *copy, bool *indicators,
 
 int j = 0, k = 0, l = 0;
 
-  for (j = doffset; j < (*dt).ngcols; j++)
+  for (j = goffset; j < (*dt).ngcols; j++)
     for (l = 0, k = 0; l < (*dt).m.nobs; l++)
       if (!indicators[l])
         (*copy).gcol[j][k++] = (*dt).gcol[j][l];
 
-  for (j = goffset; j < (*dt).ndcols; j++)
+  for (j = doffset; j < (*dt).ndcols; j++)
     for (l = 0, k = 0; l < (*dt).m.nobs; l++)
       if (!indicators[l])
         (*copy).dcol[j][k++] = (*dt).dcol[j][l];

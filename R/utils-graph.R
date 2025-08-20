@@ -86,87 +86,6 @@ pdag2dag.backend = function(arcs, ordering) {
 
 }#PDAG2DAG.BACKEND
 
-# mutilated network graph used in likelihood weighting.
-mutilated.backend.bn = function(x, evidence) {
-
-  # this is basically a NOP.
-  if (identical(evidence, TRUE))
-    return(x)
-
-  # only the node names are used here.
-  fixed = names(evidence)
-  nodes = names(x$nodes)
-  # remove all parents of nodes in the evidence.
-  x$arcs = x$arcs[x$arcs[, "to"] %!in% fixed, ]
-  # update the cached information for the fixed nodes.
-  amat = arcs2amat(x$arcs, nodes)
-  for (node in fixed)
-    x$nodes[[node]] = cache.partial.structure(nodes, target = node,
-                        amat = amat, debug = FALSE)
-
-  return(x)
-
-}#MUTILATED.BACKEND.BN
-
-# mutilated fitted network used in likelihood sampling.
-mutilated.backend.fitted = function(x, evidence) {
-
-  # this is basically a NOP.
-  if (identical(evidence, TRUE))
-    return(x)
-
-  # extract the names of the nodes.
-  fixed = names(evidence)
-  nodes = names(x)
-
-  for (node in fixed) {
-
-    # cache the node information.
-    cur = x[[node]]
-    fix = evidence[[node]]
-
-    if (is(cur, "bn.fit.gnode")) {
-
-      # reset the conditional distribution.
-      cur$coefficients = c("(Intercept)" = as.numeric(fix))
-      cur$sd = 0
-      # reset fitted values and residuals.
-      if (!is.null(cur$fitted.values))
-        cur$residuals = rep(fix, length(cur$fitted.values))
-      if (!is.null(cur$residuals))
-        cur$residuals = rep(0, length(cur$residuals))
-
-    }#THEN
-    else if (is(cur, c("bn.fit.dnode", "bn.fit.onode"))) {
-
-      # reset the conditional distribution.
-      levels = dimnames(cur$prob)[[1]]
-      values = (levels %in% fix) + 0
-
-      cur$prob = as.table(structure(values / sum(values), names = levels))
-
-    }#THEN
-
-    # update parents and children.
-    parents = cur$parents
-    cur$parents = character(0)
-
-    for (p in parents) {
-
-      temp = x[[p]]
-      temp$children = temp$children[temp$children != node]
-      x[p] = list(temp)
-
-    }#FOR
-
-    x[node] = list(cur)
-
-  }#FOR
-
-  return(x)
-
-}#MUTILATED.BACKEND.FITTED
-
 # apply random arc operators to the graph.
 perturb.backend = function(network, iter, nodes, amat, whitelist,
     maxp = Inf, blacklist, debug = FALSE) {
@@ -257,11 +176,18 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
 
 # structural hamming distance backend.
 structural.hamming.distance = function(learned, true, wlbl = FALSE,
-    debug = FALSE) {
+    cpdag = TRUE, debug = FALSE) {
+
+  if (cpdag) {
+
+    learned = cpdag.backend(learned, wlbl = wlbl)
+    true = cpdag.backend(true, wlbl = wlbl)
+
+  }#THEN
 
   .Call(call_shd,
-        learned = cpdag.backend(learned, wlbl = wlbl),
-        golden = cpdag.backend(true, wlbl = wlbl),
+        learned = learned,
+        golden = true,
         debug = debug)
 
 }#STRUCTURAL.HAMMING.DISTANCE
@@ -498,4 +424,35 @@ compare.backend = function(target.arcs, current.arcs, nodes, arcs = FALSE) {
   return(list(tp = tp, fp = fp, fn = fn))
 
 }#COMPARE.BACKEND
+
+# check whether connected components are chordal.
+connected.components = function(x, debug = FALSE) {
+
+  # check whether igraph is loaded.
+  check.and.load.package("igraph")
+
+  # get the undirected arcs.
+  x$arcs = undirected.arcs(x)
+  x$nodes = cache.structure(names(x$nodes), arcs = x$arcs)
+
+  # find the connected components...
+  connected.components =
+    .Call(call_connected_components,
+          x = x,
+          debug = debug)
+
+  # ... exclude those with just one node, which are automatically chordal...
+  relevant.connected.components =
+    connected.components[sapply(connected.components, length) > 1]
+  # ... and check the rest.
+  chordal = sapply(relevant.connected.components, function(nodes) {
+
+    individual.component = subgraph.backend(x, nodes)
+    igraph::is_chordal(as.igraph(individual.component))$chordal
+
+  })
+
+  return(list(components = connected.components, chordal = chordal))
+
+}#CONNECTED.COMPONENTS
 

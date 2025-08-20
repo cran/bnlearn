@@ -10,7 +10,7 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
   # set the iteration counter.
   iter = 1
   # check whether the score is score-equivalent.
-  score.equivalence = is.score.equivalent(score, nodes, extra.args)
+  score.equivalence = is.score.equivalent(score, x, extra.args)
   # check whether the score is decomposable.
   score.decomposability = is.score.decomposable(score, extra.args)
   # allocate the cache matrix.

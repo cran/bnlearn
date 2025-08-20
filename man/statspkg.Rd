@@ -9,7 +9,7 @@
 
   Take a \code{bn} object or \code{bn.fit} object encoding a Gaussian network
   and refit all the local distributions using \code{lm()}. This makes it
-  possible to use all the functions provided by R for \code{lm} objects 
+  possible to use all the functions provided by R for \code{lm} objects
   (\code{summary}, \code{anova}, etc.) to investigate the network.
 
 }

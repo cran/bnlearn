@@ -49,7 +49,6 @@ as.grain.bn.fit = function(x) {
   # check whether gRain is loaded.
   check.and.load.package("gRain")
 
-  # check x's class.
   check.fit(x)
   # check whether x is a discrete fitted network.
   if (is(x, c("bn.fit.onet", "bn.fit.donet")))
@@ -102,7 +101,6 @@ as.graphNEL.bn = function(x) {
   # check whether graph is loaded.
   check.and.load.package("graph")
 
-  # check x's class.
   check.bn.or.fit(x)
 
   if (is(x, "bn")) {
@@ -132,7 +130,6 @@ as.graphAM.bn = function(x) {
   if (!requireNamespace("graph"))
     stop("this function requires the graph package.")
 
-  # check x's class.
   check.bn.or.fit(x)
 
   if (is(x, "bn")) {
@@ -270,7 +267,6 @@ as.bn.igraph = function(x, ..., check.cycles = TRUE) {
 # fit the local distributions of a (Gaussian) network using lm().
 as.lm.bn = function(x, data, ...) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # check the data.
   data = check.data(data, allow.missing = TRUE, stop.if.all.missing = TRUE)
@@ -280,7 +276,7 @@ as.lm.bn = function(x, data, ...) {
     # check whether the data agree with the bayesian network.
     check.bn.vs.data(x, data)
     # no parameters if the network structure is only partially directed.
-    if (is.pdag(x$arcs, names(x$nodes)))
+    if (!is.completely.directed(x))
       stop("the graph is only partially directed.")
 
     nodes = names(x$nodes)

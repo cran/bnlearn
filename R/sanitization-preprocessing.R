@@ -75,7 +75,8 @@ check.ibreaks = function(ibreaks, breaks, data) {
     if (!is.positive.vector(ibreaks))
       stop("the number of initial breaks must be a (vector of) positive integer number(s).")
     if (any(ibreaks < breaks))
-      stop("insufficient number of initial breaks, need at least ", breaks + 1, ".")
+      stop("insufficient number of initial breaks for variables ",
+           paste0(names(data)[ibreaks < breaks], collapse = ", "), ".")
     else if (any(ibreaks == breaks))
       warning("the initial number of breaks is identical to the final number of breaks.")
 
@@ -102,3 +103,43 @@ check.ibreaks = function(ibreaks, breaks, data) {
   return(ibreaks)
 
 }#CHECK.IBREAKS
+
+# check the method used to deduplicate the data.
+check.deduplication.method = function(method, data) {
+
+  metadata = attr(data, "metadata")
+
+  if (!missing(method) && !is.null(method)) {
+
+    check.label(method, choices = available.deduplication.methods,
+      labels = deduplication.labels, argname = "deduplication method",
+      see = "dedup")
+
+    if ((method == "cor") && (metadata$type != "continuous"))
+      stop("method 'cor' may only be used with continuous data.")
+
+    return(method)
+
+  }#THEN
+  else {
+
+    return("cor")
+
+  }#ELSE
+
+}#CHECK.DEDUPLICATION.METHOD
+
+check.deduplication.threshold = function(method, threshold) {
+
+  if (method == "cor") {
+
+    if (missing(threshold))
+      threshold = 0.90
+    else if (!is.probability(threshold))
+      stop("the correlation threshold must be a number between 0 and 1.")
+
+  }#THEN
+
+  return(threshold)
+
+}#CHECK.DEDUPLICATION.THRESHOLD

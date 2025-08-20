@@ -2,11 +2,10 @@
 # describe the network with a "model string".
 modelstring = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # no model string if the graph is partially directed.
   if (is(x, "bn"))
-    if (is.pdag(x$arcs, names(x$nodes)))
+    if (!is.completely.directed(x))
       stop("the graph is only partially directed.")
 
   modelstring.backend(x)
@@ -16,9 +15,7 @@ modelstring = function(x) {
 # set a specific network structure with the model string.
 "modelstring<-" = function(x, debug = FALSE, value) {
 
-  # check value's class and format.
   check.modelstring(value)
-  # check debug.
   check.logical(debug)
 
   model2network.backend(value, node.order = names(x$nodes), debug = debug)
@@ -44,7 +41,7 @@ model2network = function(string, ordering = NULL, debug = FALSE) {
   # check the node ordering; NULL is ok this time, it lets the backend decide.
   if (!is.null(ordering))
     check.nodes(ordering)
-  # check debug.
+
   check.logical(debug)
 
   result = model2network.backend(string, node.order = ordering, debug = debug)

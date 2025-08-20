@@ -2,18 +2,18 @@
 # measure the strength of the arcs in a directed graph.
 arc.strength = function(x, data, criterion = NULL, ..., debug = FALSE) {
 
-  # check x's class and get the node labels.
   check.bn(x)
+  check.logical(debug)
+
+  # get the node labels.
   nodes = names(x$nodes)
   # arc strength is undefined in partially directed graphs.
-  if (is.pdag(x$arcs, nodes))
+  if (!is.completely.directed(x))
     stop("the graph is only partially directed.")
   # check the data are there.
   data = check.data(data, allow.missing = TRUE)
   # check the network against the data.
   check.bn.vs.data(x, data)
-  # check debug.
-  check.logical(debug)
   # check the score or the test or whatever is used to measure strength.
   if (is.null(criterion)) {
 
@@ -90,13 +90,13 @@ bf.strength = function(x, data, score, ..., debug = FALSE) {
   check.bn(x)
   nodes = names(x$nodes)
   # arc strength is undefined in partially directed graphs.
-  if (is.pdag(x$arcs, nodes))
+  if (!is.completely.directed(x))
     stop("the graph is only partially directed.")
   # check the data are there.
   data = check.data(data, allow.missing = TRUE)
   # check the network against the data.
   check.bn.vs.data(x, data)
-  # check debug.
+
   check.logical(debug)
 
   # make sure the score function is suitable for computing a Bayes factor.
@@ -149,9 +149,7 @@ custom.strength = function(networks, nodes, weights = NULL, cpdag = TRUE,
 
   illegal = NULL
 
-  # check debug.
   check.logical(debug)
-  # check cpdag.
   check.logical(cpdag)
   # check networks.
   if (is(networks, c("bn.kcv", "bn.kcv.list"))) {

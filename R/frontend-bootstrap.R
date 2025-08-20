@@ -9,7 +9,7 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), algorithm,
   R = check.replicates(R)
   # check the size of each bootstrap sample.
   m = check.bootsize(m, data)
-  # check debug.
+
   check.logical(debug)
   # check the learning algorithm.
   check.learning.algorithm(algorithm)
@@ -58,16 +58,14 @@ boot.strength = function(data, cluster, R = 200, m = nrow(data), algorithm,
   R = check.replicates(R)
   # check the size of each bootstrap sample.
   m = check.bootsize(m, data)
-  # check debug.
-  check.logical(debug)
-  # check cpdag.
-  check.logical(cpdag)
-  # check shuffle.
-  check.logical(shuffle)
   # check the learning algorithm.
   check.learning.algorithm(algorithm)
   # check the extra arguments for the learning algorithm.
   algorithm.args = check.learning.algorithm.args(algorithm.args)
+
+  check.logical(debug)
+  check.logical(cpdag)
+  check.logical(shuffle)
 
   # check the cluster.
   cluster = check.cluster(cluster)
@@ -101,9 +99,9 @@ boot.strength = function(data, cluster, R = 200, m = nrow(data), algorithm,
 }#BOOT.STRENGTH
 
 # perform cross-validation.
-bn.cv = function(data, bn, loss = NULL, ...,
-    algorithm.args = list(), loss.args = list(), fit,
-    fit.args = list(), method = "k-fold", cluster, debug = FALSE) {
+bn.cv = function(data, bn, loss = NULL, ..., algorithm.args = list(),
+    loss.args = list(), fit, fit.args = list(), method = "k-fold", cluster,
+    debug = FALSE) {
 
   # check the data are there and get the node lables from the variables.
   data = check.data(data, allow.missing = TRUE)
@@ -156,9 +154,13 @@ bn.cv = function(data, bn, loss = NULL, ...,
     check.arcs.against.assumptions(bn$arcs, data, fit)
     # check the loss function.
     loss = check.loss(loss, data, bn)
+    # it is impossible to transform a network that contains directed cycles into
+    # a DAG in a programmatic, sensible way.
+    if (!is.acyclic(arcs = bn$arcs, nodes = names(bn$nodes), directed = TRUE))
+      stop(deparse(substitute(bn)), " contains directed cycles.")
     # it is impossible to learn the parameters if the network structure is only
     # partially directed and cannot be extended to a completely directed graph.
-    if (!is.dag(arcs = bn$arcs, nodes = nodes)) {
+    if (!is.completely.directed(bn)) {
 
       # trying to extend a skeleton (instead of a CPDAG) is probably not
       # meaningful.
@@ -170,7 +172,7 @@ bn.cv = function(data, bn, loss = NULL, ...,
       # many of the original arc directions are possible.
       bn = cpdag.extension(cpdag.backend(bn, moral = TRUE, wlbl = TRUE))
 
-      if (!is.dag(arcs = bn$arcs, nodes = nodes))
+      if (!is.completely.directed(bn))
         stop("the network from the 'bn' argument has no consistent extension.")
 
     }#THEN

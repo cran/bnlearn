@@ -186,7 +186,6 @@ check.start.fitted = function(start, network, data) {
   # having no custom starting model is fine, one will be fitted by EM later.
   if (!is.null(start)) {
 
-    # check the class.
     check.fit(start)
     # check the starting network against the data.
     check.fit.vs.data(start, data)

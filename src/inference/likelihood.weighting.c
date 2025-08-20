@@ -31,6 +31,8 @@ SEXP metadata, complete_nodes, nodes_in_fitted, keep2;
 
     bysample_discrete_loglikelihood(bn, dt, w, debugging);
 
+    FreeDDT(dt);
+
   }/*THEN*/
   else if (bn.type == GNET) {
 
@@ -40,6 +42,8 @@ SEXP metadata, complete_nodes, nodes_in_fitted, keep2;
 
     bysample_gaussian_loglikelihood(bn, dt, w, TRUE, debugging);
 
+    FreeGDT(dt);
+
   }/*THEN*/
   else if (bn.type == CGNET) {
 
@@ -48,6 +52,8 @@ SEXP metadata, complete_nodes, nodes_in_fitted, keep2;
     meta_init_flags(&(dt.m), 0, complete_nodes, keep2);
 
     bysample_clgaussian_loglikelihood(bn, dt, w, TRUE, debugging);
+
+    FreeCGDT(dt);
 
   }/*THEN*/
 

@@ -554,9 +554,17 @@ uppertriangular mimatrix = { 0 };
     UNPROTECT(1);
 
   /* sanity check for blacklist-related madnes. */
-  if (narcs != ncol - 1)
+  if (narcs != ncol - 1) {
+
+    Free1D(depth);
+    FreeUPPERTRIANGULAR(mimatrix);
+    Free1D(include);
+    Free1D(poset);
+
     error("learned %d arcs instead of %d, this is not a tree spanning all the nodes.",
       narcs, ncol - 1);
+
+  }/*THEN*/
 
   PROTECT(arcs = allocMatrix(STRSXP, (2 * (ncol - 1)), 2));
   for (i = 0, k = 0; i < ncol; i++) {

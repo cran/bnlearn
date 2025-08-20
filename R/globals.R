@@ -234,8 +234,10 @@ learning.extra.args = list(
 
 #-- random graph generation algorithms ----------------------------------------#
 random.graph.generation.algorithms = c("ordered", "ic-dag", "melancon")
+averaging.generation.algorithms = c("averaged")
 graph.generation.algorithms =
-  c(random.graph.generation.algorithms, "empty", "complete", "averaged")
+  c(random.graph.generation.algorithms, "empty", "complete",
+    averaging.generation.algorithms)
 
 graph.generation.labels = c(
   "ordered" = "Full Ordering",
@@ -255,6 +257,13 @@ graph.generation.extra.args = list(
   "averaged" = "threshold"
 )
 
+#-- random graph generation algorithms ----------------------------------------#
+causal.network.types = c("twin")
+
+causal.network.labels = c(
+  "twin" = "Twin Network"
+)
+
 #-- conditional probability query algorithms ----------------------------------#
 cpq.algorithms = c("ls", "lw")
 
@@ -269,43 +278,28 @@ cpq.extra.args = list(
 )
 
 #-- cross-validation loss functions -------------------------------------------#
-discrete.loss.functions = c("logl", "pred", "pred-lw")
-continuous.loss.functions = c("logl-g", "cor", "cor-lw", "mse", "mse-lw")
-mixedcg.loss.functions = c("logl-cg", "cor-lw-cg", "mse-lw-cg", "pred-lw-cg")
+general.loss.functions = c("logl", "pred", "cor", "mse", "f1", "auroc")
 classifiers.loss.functions = c("pred-exact")
-loss.functions = c(discrete.loss.functions, continuous.loss.functions,
-  mixedcg.loss.functions, classifiers.loss.functions)
+loss.functions = c(general.loss.functions, classifiers.loss.functions)
 
 loss.labels = c(
-  "logl" = "Log-Likelihood Loss (disc.)",
+  "logl" = "Log-Likelihood Loss",
   "pred-exact" = "Classification Error (Posterior, exact)",
   "pred" = "Classification Error",
-  "pred-lw" = "Classification Error (Posterior, disc.)",
-  "pred-lw-cg" = "Classification Error (Posterior, cond. Gauss.)",
-  "logl-g" = "Log-Likelihood Loss (Gauss.)",
   "cor" = "Predictive Correlation",
-  "cor-lw" = "Predictive Correlation (Posterior, Gauss.)",
-  "cor-lw-cg" = "Predictive Correlation (Posterior, cond. Gauss.)",
   "mse" = "Mean Squared Error",
-  "mse-lw" = "Mean Squared Error (Posterior, Gauss.)",
-  "mse-lw-cg" = "Mean Squared Error (Posterior, cond. Gauss.)",
-  "logl-cg" = "Log-Likelihood Loss (cond. Gauss.)"
+  "f1" = "F1 Score",
+  "auroc" = "Area under the ROC Curve"
 )
 
 loss.extra.args = list(
   "logl" = character(0),
   "pred" = c("predict", "target", "predict.args"),
   "pred-exact" = c("target", "prior"),
-  "pred-lw" = c("target", "n", "from"),
-  "pred-lw-cg" = c("target", "n", "from"),
-  "logl-g" = character(0),
   "cor" = c("predict", "target", "predict.args"),
-  "cor-lw" = c("target", "n", "from"),
-  "cor-lw-cg" = c("target", "n", "from"),
   "mse" = c("predict", "target", "predict.args"),
-  "mse-lw" = c("target", "n", "from"),
-  "mse-lw-cg" = c("target", "n", "from"),
-  "logl-cg" = character(0)
+  "f1" = c("predict", "target", "predict.args"),
+  "auroc" = c("predict", "target", "predict.args")
 )
 
 #-- parameter estimators ------------------------------------------------------#
@@ -414,19 +408,32 @@ discretization.extra.args = list(
   "hartemink" = c("ibreaks", "idisc")
 )
 
+#-- deduplication methods -----------------------------------------------------#
+available.deduplication.methods = c("cor")
+
+deduplication.labels = c(
+  "cor" = "Linear Correlation"
+)
+
+deduplication.extra.args = list(
+  "cor" = character(0)
+)
+
 #-- arc strength estimators ---------------------------------------------------#
 available.strength.methods = c("test", "score", "bootstrap", "bayes-factor")
 
 #-- graph enumeration formulas ------------------------------------------------#
 available.enumerations = c("all-dags", "dags-disregarding-one-arc",
-  "dags-given-ordering", "dags-with-k-roots", "dags-with-r-arcs")
+  "dags-given-ordering", "dags-with-k-roots", "dags-with-r-arcs",
+  "dags-in-equivalence-class")
 
 enumerations.extra.args = list(
-  "all-dags" = character(0),
-  "dags-disregarding-one-arc" = character(0),
-  "dags-given-ordering" = character(0),
-  "dags-with-k-roots" = "k",
-  "dags-with-r-arcs" = "r"
+  "all-dags" = "nodes",
+  "dags-disregarding-one-arc" = "nodes",
+  "dags-given-ordering" = "nodes",
+  "dags-with-k-roots" = c("nodes", "k"),
+  "dags-with-r-arcs" = c("nodes", "r"),
+  "dags-in-equivalence-class" = "eqclass"
 )
 
 #-- data, network and node types ----------------------------------------------#

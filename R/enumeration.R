@@ -1,61 +1,70 @@
 
 # frontend for formulas that count various types of graphs.
-count.graphs = function(type = "all.dags", nodes, ..., debug = FALSE) {
+count.graphs = function(type = "all.dags", ..., debug = FALSE) {
 
   # check whether gmp is loaded, and try to load if it is not.
   check.and.load.package("gmp")
   # check the label describing which graphs to count.
   check.label(type, choices = available.enumerations, argname = "graph types",
     see = "count.graphs")
-  # check the number of nodes.
-  if (!is.positive.vector(nodes))
-    stop("'nodes' must be positive integers, the number(s) of nodes in the graph.")
-  largest.graph.size = max(nodes)
-  # check debug.
+
   check.logical(debug)
 
   # extract the additional arguments.
-  extra.args = check.enumeration.args(type, N = nodes, extra = list(...))
+  extra.args = check.enumeration.args(type, extra = list(...))
 
   if (type == "all-dags") {
 
     # count all directed acyclic graphs with N nodes.
-    how.many = count.all.dags(N = largest.graph.size, debug = debug)
+    how.many = count.all.dags(all.N = extra.args[["nodes"]], debug = debug)
 
   }#THEN
   else if (type == "dags-disregarding-one-arc") {
 
     # count the number of directed acyclic graphs that are identical but for
     # the state of one possible arc between a set of labelled nodes.
-    how.many = count.disregarding.one.arc(N = largest.graph.size, debug = debug)
+    how.many = count.disregarding.one.arc(all.N = extra.args[["nodes"]],
+                 debug = debug)
 
   }#THEN
   else if (type == "dags-given-ordering") {
 
     # count the number of directed acyclic graphs that satisfy a given
     # topological ordering.
-    how.many = count.by.topological.ordering(N = largest.graph.size, debug = debug)
+    how.many = count.by.topological.ordering(all.N = extra.args[["nodes"]],
+                 debug = debug)
 
   }#THEN
   else if (type == "dags-with-k-roots") {
 
     # count the number of directed acyclic graphs that have k roots.
-    how.many = count.by.roots(N = largest.graph.size, k = extra.args$k, debug = debug)
+    how.many = count.by.roots(all.N = extra.args[["nodes"]],
+                 k = extra.args[["k"]], debug = debug)
 
   }#THEN
   else if (type == "dags-with-r-arcs") {
 
     # count the number of directed acyclic graphs that have r arcs.
-    how.many = count.by.arcs(N = largest.graph.size, r = extra.args$r, debug = debug)
+    how.many = count.by.arcs(all.N = extra.args[["nodes"]],
+                 r = extra.args[["r"]], debug = debug)
+
+  }#THEN
+  else if (type == "dags-in-equivalence-class") {
+
+    # count the number of directed acyclic graphs in the equivalence class.
+    how.many = count.by.equivalence.class(eqclass = extra.args[["eqclass"]],
+                 debug = debug)
 
   }#THEN
 
-  return(how.many[nodes + 1])
+  return(how.many)
 
 }#COUNT.GRAPHS
 
 # count the number of directed acyclic graphs that have r arcs.
-count.by.arcs = function(N, r, debug = FALSE) {
+count.by.arcs = function(all.N, r, debug = FALSE) {
+
+  N = max(all.N)
 
   # helper for the maximum possible number of arcs.
   max.arcs = function(nodes) choose(nodes, 2)
@@ -132,12 +141,14 @@ count.by.arcs = function(N, r, debug = FALSE) {
     if (length(a[[i]]) >= r + 1)
       counts[i + 1] = a[[i]][r + 1]
 
-  return(counts)
+  return(counts[all.N + 1])
 
 }#COUNT.BY.ARCS
 
 # count the number of directed acyclic graphs that have k roots.
-count.by.roots = function(N, k, debug = FALSE) {
+count.by.roots = function(all.N, k, debug = FALSE) {
+
+  N = max(all.N)
 
   # nothing to do if the number of roots is too large.
   if (k > N)
@@ -200,12 +211,14 @@ count.by.roots = function(N, k, debug = FALSE) {
   for (i in seq(from = k, to = N))
     counts[i + 1] = a[[i]][k]
 
-  return(counts)
+  return(counts[all.N + 1])
 
 }#COUNT.BY.ROOTS
 
 # count all directed acyclic graphs with N nodes.
-count.all.dags = function(N, debug = FALSE) {
+count.all.dags = function(all.N, debug = FALSE) {
+
+  N = max(all.N)
 
   # allocate the return value, using extended precision.
   a = gmp::as.bigz(rep(NA, N + 1))
@@ -240,16 +253,18 @@ count.all.dags = function(N, debug = FALSE) {
 
   }#FOR
 
-  return(a)
+  return(a[all.N + 1])
 
 }#COUNT.ALL.DAGS
 
 # count the number of directed acyclic graphs that are identical but for
 # the state of one possible arc between a set of labelled nodes.
-count.disregarding.one.arc = function(N, debug = FALSE) {
+count.disregarding.one.arc = function(all.N, debug = FALSE) {
+
+  N = max(all.N)
 
   # first, we need to compute all the a[i + 1].
-  a = count.all.dags(N - 1, debug = debug)
+  a = count.all.dags(seq(from = 0, to = N - 1), debug = debug)
   # then, allocate the return value and initialize the sequence.
   b = gmp::as.bigz(rep(NA, N + 1))
   b[1:2] = 1
@@ -283,13 +298,15 @@ count.disregarding.one.arc = function(N, debug = FALSE) {
 
   }#FOR
 
-  return(b)
+  return(b[all.N + 1])
 
 }#COUNT.DISREGARDING.ONE.ARC
 
 # count the number of directed acyclic graphs that satisfy a given
 # topological ordering.
-count.by.topological.ordering = function(N, debug = FALSE) {
+count.by.topological.ordering = function(all.N, debug = FALSE) {
+
+  N = max(all.N)
 
   # allocate the return value and initialize the sequence.
   a = gmp::as.bigz(rep(NA, N + 1))
@@ -305,6 +322,37 @@ count.by.topological.ordering = function(N, debug = FALSE) {
 
   }#FOR
 
-  return(a)
+  return(a[all.N + 1])
 
 }#COUNT.BY.TOPOLOGICAL.ORDERING
+
+# compute the size of the equivalence class.
+count.by.equivalence.class = function(eqclass, debug = FALSE) {
+
+  # if all arcs are directed, there is nothing to extend.
+  nodes = names(eqclass$nodes)
+  undirected = which.undirected(eqclass$arcs, nodes)
+
+  if (!any(undirected))
+    return(1)
+
+  # drop all directed arcs.
+  ug = empty.graph.backend(nodes)
+  ug$arcs = eqclass$arcs[undirected, , drop = FALSE]
+  ug$nodes = cache.structure(nodes, arcs = ug$arcs)
+
+  # reset the recursion depth limit to allow the expansion.
+  recursion.depth.limit = options("expressions")
+  if (recursion.depth.limit < length(nodes)) {
+
+    options("expressions" = length(nodes) * 2)
+    on.exit(options("expressions" = recursion.depth.limit))
+
+  }#THEN
+
+  # count the graphs without generating them.
+  a = uccg.all.extensions(ug, generate = FALSE, debug = debug)
+
+  return(gmp::as.bigz(a))
+
+}#COUNT.BY.EQUIVALENCE.CLASS

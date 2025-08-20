@@ -84,7 +84,22 @@ crossvalidation = function(data, bn, loss = NULL, k = 10,
   }#THEN
 
   # aggregate the loss functions computed over the k folds.
-  mean = kfold.loss.postprocess(kcv, kcv.length, loss, loss.args, data)
+  if (method %in% c("k-fold", "custom-folds")) {
+
+    mean = kfold.loss.postprocess(kcv, kcv.length, loss, loss.args, data)
+
+  }#THEN
+  else if (method == "hold-out") {
+
+    l = holdout.loss.postprocess(kcv, kcv.length, loss, loss.args, data)
+    mean = l$mean
+
+    # save the loss values for the individual folds because they are all on the
+    # same scale and make semantic sense.
+    for (fold in seq_along(kcv))
+      kcv[[fold]]$loss = l$values[fold]
+
+  }#THEN
 
   # reset the names of the elements of the return value.
   names(kcv) = NULL
@@ -122,7 +137,7 @@ bn.cv.structure = function(test, data, net, loss, loss.args, fit, fit.args,
 
   # if the network is not completely directed, try to extend it before moving on
   # and performing parameter learning.
-  if (!is.dag(arcs = net$arcs, nodes = names(net$nodes))) {
+  if (!is.completely.directed(net)) {
 
     # trying to extend a skeleton (instead of a CPDAG) is probably not
     # meaningful.

@@ -14,7 +14,7 @@ double *cpt = 0;
 long double colsum = 0;
 hdstatus err = { 0 };
 cmcmap cc = { 0 };
-SEXP nodes_in_order, relevant_data, relevant_df, counts, cptable;
+SEXP nodes_in_order, relevant_data, counts, cptable;
 
   /* subset the data with the node labels in the right order. */
   PROTECT(nodes_in_order = allocVector(STRSXP, length(parents) + 2));
@@ -24,14 +24,13 @@ SEXP nodes_in_order, relevant_data, relevant_df, counts, cptable;
   SET_STRING_ELT(nodes_in_order, length(parents) + 1, STRING_ELT(group, 0));
 
   PROTECT(relevant_data = c_dataframe_column(data, nodes_in_order, FALSE, TRUE));
-  PROTECT(relevant_df = minimal_data_frame(relevant_data));
 
   /* compute the counts that are the sufficient statistic. */
-  PROTECT(counts = minimal_table(relevant_df, missing));
+  PROTECT(counts = minimal_table(relevant_data, missing));
 
   /* create a contingency table that is convenient to use: one row per
    * configuration of the node and the parents, one column per group. */
-  ngroups = NLEVELS(VECTOR_ELT(relevant_df, length(relevant_df) - 1));
+  ngroups = NLEVELS(VECTOR_ELT(relevant_data, length(relevant_data) - 1));
   cc.el = INTEGER(counts);
   cc.nrows = length(counts) / ngroups;
   cc.ncols = ngroups;
@@ -78,7 +77,7 @@ SEXP nodes_in_order, relevant_data, relevant_df, counts, cptable;
     warning("tau is zero, restarting the Newton updates for node %s.",
       CHAR(STRING_ELT(node, 0)));
 
-  UNPROTECT(5);
+  UNPROTECT(4);
 
   return cptable;
 

@@ -2,7 +2,6 @@
 path.exists = function(x, from, to, direct = TRUE, underlying.graph = FALSE,
     debug = FALSE) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # a valid node is needed.
   check.nodes(nodes = from, graph = x, max.nodes = 1)
@@ -11,9 +10,8 @@ path.exists = function(x, from, to, direct = TRUE, underlying.graph = FALSE,
   # 'from' must be different from 'to'.
   if (identical(from, to))
     stop("'from' and 'to' must be different from each other.")
-  # check underlying.path.
+
   check.logical(underlying.graph)
-  # check debug.
   check.logical(debug)
 
   if (is(x, "bn")) {
@@ -37,7 +35,6 @@ path.exists = function(x, from, to, direct = TRUE, underlying.graph = FALSE,
 # get the number of nodes of a graph.
 nnodes = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   if (is(x, "bn"))
@@ -50,7 +47,6 @@ nnodes = function(x) {
 # get the root nodes of a graph.
 root.nodes = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   root.leaf.nodes(x, leaf = FALSE)
@@ -60,19 +56,16 @@ root.nodes = function(x) {
 # get the leaf nodes of a graph.
 leaf.nodes = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   root.leaf.nodes(x, leaf = TRUE)
 
 }#LEAF.NODES
 
-# check if a graph is acyclic.
+# check whether a graph is acyclic.
 acyclic = function(x, directed = FALSE, debug = FALSE) {
 
-  # check x's class.
   check.bn.or.fit(x)
-  # check debug and directed.
   check.logical(debug)
   check.logical(directed)
 
@@ -85,30 +78,105 @@ acyclic = function(x, directed = FALSE, debug = FALSE) {
 
 }#ACYCLIC
 
-# check if a graph is directed.
+# check whether a graph is directed.
 directed = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   # fitted bayesian networks are always directed.
   if (is(x, "bn.fit"))
     return(TRUE)
 
-  is.dag(x$arcs, names(x$nodes))
+  is.completely.directed(x)
 
 }#DIRECTED
+
+# check whether a graph is a CPDAG.
+valid.cpdag = function(x, debug = FALSE) {
+
+  check.bn.or.fit(x)
+  check.logical(debug)
+
+  valid.cpdag.backend(x = x, debug = debug)
+
+}#VALID.CPDAG
+
+# check whether a graph is a directed acyclic graph.
+valid.dag = function(x, debug = FALSE) {
+
+  check.bn.or.fit(x)
+  check.logical(debug)
+
+  # it is impossible to estimate the parameters if the network is not a DAG.
+  if (is(x, "bn.fit"))
+    return(TRUE)
+
+  # if the network is not completely directed, it is not a DAG.
+  if (!is.completely.directed(x)) {
+
+    if (debug)
+      cat("@ the graph contains undirected arcs.\n")
+
+    return(FALSE)
+
+  }#THEN
+
+  # if the network is not acyclic, it is not a DAG.
+  if (!is.acyclic(arcs = x$arcs, nodes = names(x$nodes))) {
+
+    if (debug)
+      cat("@ the graph contains cycles.\n")
+
+    return(FALSE)
+
+  }#THEN
+
+  return(TRUE)
+
+}#VALID.DAG
+
+# check whether a graph is an undirected graph.
+valid.ug = function(x, debug = FALSE) {
+
+  check.bn.or.fit(x)
+  check.logical(debug)
+
+  # the empty graph is technically undirected and directed at the same time.
+  if (narcs.backend(x) == 0)
+    return(TRUE)
+
+  # it is impossible to estimate the parameters if the network is undirected.
+  if (is(x, "bn.fit")) {
+
+    if (debug)
+      cat("@ all the arcs in the graph are directed.\n")
+
+    return(FALSE)
+
+  }#THEN
+
+  # if any arc is directed, it is not an UG.
+  if (any(which.directed(x$arcs, names(x$nodes)))) {
+
+    if (debug)
+      cat("@ the graph contains directed arcs.\n")
+
+    return(FALSE)
+
+  }#THEN
+
+  return(TRUE)
+
+}#VALID.UG
 
 # return the partial node ordering implied by the graph structure.
 node.ordering = function(x, debug = FALSE) {
 
-  # check x's class.
   check.bn.or.fit(x)
-  # check debug.
   check.logical(debug)
   # no model string if the graph is partially directed.
   if (is(x, "bn"))
-    if (is.pdag(x$arcs, names(x$nodes)))
+    if (!is.completely.directed(x))
       stop("the graph is only partially directed.")
 
   topological.ordering(x, debug = debug)
@@ -157,7 +225,6 @@ set2blacklist = function(set) {
 # return the skeleton of a (partially) directed graph.
 skeleton = function(x) {
 
-  # check x's class.
   check.bn.or.fit(x)
 
   # go back to the network structure if needed.
@@ -171,7 +238,6 @@ skeleton = function(x) {
 # return a complete orientation of a graph given a topological ordering.
 pdag2dag = function(x, ordering) {
 
-  # check x's class.
   check.bn(x)
   # check the node ordering.
   check.nodes(ordering, graph = x, min.nodes = length(x$nodes),
@@ -220,7 +286,6 @@ compare = function(target, current, arcs = FALSE) {
 # create a subgraph spanning a subset of nodes.
 subgraph = function(x, nodes) {
 
-  # check x's class.
   check.bn.or.fit(x)
   # get the network structure out of a bn.fit object.
   if (is(x, "bn.fit"))

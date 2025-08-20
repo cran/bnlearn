@@ -1,6 +1,7 @@
 \name{cpdag}
 \alias{cpdag}
 \alias{cextend}
+\alias{cextend.all}
 \alias{moral}
 \alias{colliders}
 \alias{shielded.colliders}
@@ -19,6 +20,8 @@ cpdag(x, wlbl = FALSE, debug = FALSE)
 cextend(x, strict = TRUE, debug = FALSE)
 moral(x, debug = FALSE)
 
+cextend.all(x, debug = FALSE)
+
 colliders(x, arcs = FALSE, debug = FALSE)
 shielded.colliders(x, arcs = FALSE, debug = FALSE)
 unshielded.colliders(x, arcs = FALSE, debug = FALSE)
@@ -26,7 +29,7 @@ vstructs(x, arcs = FALSE, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn} or \code{bn.fit} (with the exception of
-    \code{cextend}, which only accepts objects of class \code{bn}).}
+    \code{cextend()}, which only accepts objects of class \code{bn}).}
   \item{arcs}{a boolean value. If \code{TRUE} the arcs that are part of at least
     one v-structure are returned instead of the v-structures themselves.}
   \item{wlbl}{a boolean value. If \code{TRUE} arcs whose directions have been
@@ -45,6 +48,9 @@ vstructs(x, arcs = FALSE, debug = FALSE)
   that, in a conditional Gaussian network, arcs from discrete nodes to
   continuous nodes will be treated as whitelisted in their only valid direction.
 
+  \code{cextend.all()} returns all possible consistent extensions of a CPDAG,
+  whereas \code{cextend()} returns only one.
+
 }
 \value{
 
@@ -55,8 +61,12 @@ vstructs(x, arcs = FALSE, debug = FALSE)
   \code{cextend()} returns an object of class \code{bn}, representing a DAG that
   is the consistent extension of \code{x}.
 
-  \code{vstructs()} returns a matrix with either 2 or 3 columns, according to the
-  value of the \code{arcs} argument.
+  \code{cextend.all()} returns an object of class \code{bn} or a list of objects
+  of class \code{bn}.
+
+  \code{vstructs()}, \code{colliders()}, \code{shielded.colliders()} and
+  \code{unshielded.colliders()} return a matrix with either 2 or 3 columns,
+  according to the value of the \code{arcs} argument.
 
 }
 \references{
@@ -69,6 +79,14 @@ vstructs(x, arcs = FALSE, debug = FALSE)
 
   Pearl J (2009). \emph{Causality: Models, Reasoning and Inference}. Cambridge
     University Press, 2nd edition.
+
+  Andersson SA, Madigan D, Perlman MD (1997). "A Characterization of Markov
+    Equivalence Classes for Acyclic Digraphs." \emph{The Annals of Statistics},
+    \strong{25}(2):505--541.
+
+  Wienobst M, Luttermann M, Bannach M, Liskiewicz M (2023). "Efficient
+    Enumeration of Markov Equivalent DAGs." \emph{Proceedings of the
+    Thirty-Seventh AAAI Conference on Artificial Intelligence}, 12313--12320.
 
 }
 \examples{
