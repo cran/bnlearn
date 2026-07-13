@@ -433,7 +433,7 @@ weighting.sampling = function(fitted, event, evidence, n, batch, debug = FALSE) 
     # filter out the samples not matching the event we are looking for.
     matching = r & !is.na(r)
 
-    # compute the probabilities and use them as weigths.
+    # compute the probabilities and use them as weights.
     attr(generated.data, "metadata") = collect.metadata(generated.data)
     w = weights(generated.data)
     cpe = cpe + sum(w[!is.na(r)])

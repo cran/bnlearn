@@ -1,7 +1,10 @@
 #include "../include/rcore.h"
 #include "scores.h"
 
-#define ENTRY(key, value) if (strcmp(label, key) == 0) return value;
+#define ENTRY(key, value) \
+  do { \
+    if (strcmp(label, key) == 0) return value; \
+  } while (0)
 
 score_e score_to_enum(const char *label) {
 
@@ -14,7 +17,6 @@ score_e score_to_enum(const char *label) {
   ENTRY("bdj", BDJ);
   ENTRY("k2", K2);
   ENTRY("mbde", MBDE);
-  ENTRY("bdla", BDLA);
   ENTRY("pred-loglik", PRED_LOGLIK);
   ENTRY("fnml", FNML);
   ENTRY("qnml", QNML);
@@ -35,6 +37,16 @@ score_e score_to_enum(const char *label) {
   ENTRY("pred-loglik-cg", PRED_LOGLIK_CG);
   ENTRY("nal-cg", NAL_CG);
   ENTRY("pnal-cg", PNAL_CG);
+  ENTRY("loglik-zihp", LOGLIK_ZIHP);
+  ENTRY("loglik-zinb", LOGLIK_ZINB);
+  ENTRY("aic-zihp", AIC_ZIHP);
+  ENTRY("bic-zihp", BIC_ZIHP);
+  ENTRY("aic-zinb", AIC_ZINB);
+  ENTRY("bic-zinb", BIC_ZINB);
+  ENTRY("nal-zihp", NAL_ZIHP);
+  ENTRY("pnal-zihp", PNAL_ZIHP);
+  ENTRY("nal-zinb", NAL_ZINB);
+  ENTRY("pnal-zinb", PNAL_ZINB);
   ENTRY("custom-score", CUSTOM);
 
   return ENOSCORE;

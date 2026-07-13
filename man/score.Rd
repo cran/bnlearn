@@ -30,10 +30,10 @@
     for both discrete and continuous data sets. See \code{\link{network scores}}
     for details.}
   \item{by.node}{a boolean value. If \code{TRUE} and the score is decomposable,
-    the function returns the score terms corresponding to each node; otherwise
+    the function returns the score terms corresponding to each node. Otherwise,
     it returns their sum (the overall score of \code{x}).}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
   \item{\dots}{extra arguments from the generic method (for the \code{AIC} and
     \code{logLik} functions, currently ignored) or additional tuning parameters
     (for the \code{score} function).}
@@ -48,70 +48,83 @@
   \itemize{
 
     \item \code{iss}: the imaginary sample size used by the Bayesian Dirichlet
-      scores (\code{bde}, \code{mbde}, \code{bds}, \code{bdj}). It is also known
+      scores (\code{"bde"}, \code{"mbde"}, \code{"bds"}). It is also known
       as \dQuote{equivalent sample size}. The default value is equal to \code{1}.
     \item \code{iss.mu}: the imaginary sample size for the normal component of
-      the normal-Wishart prior in the Bayesian Gaussian score (\code{bge}). The
+      the normal-Wishart prior in the Bayesian Gaussian score (\code{"bge"}). The
       default value is \code{1}.
     \item \code{iss.w}: the imaginary sample size for the Wishart component of
-      the normal-Wishart prior in the Bayesian Gaussian score (\code{bge}). The
+      the normal-Wishart prior in the Bayesian Gaussian score (\code{"bge"}). The
       default value is \code{ncol(data) + 2}.
     \item \code{nu}: the mean vector of the normal component of the
-      normal-Wishart prior in the Bayesian Gaussian score (\code{bge}). The
+      normal-Wishart prior in the Bayesian Gaussian score (\code{"bge"}). The
       default value is equal to \code{colMeans(data)}.
-    \item \code{l}: the number of scores to average in the locally averaged
-      Bayesian Dirichlet score (\code{bdla}). The default value is \code{5}.
     \item \code{exp}: a list of indexes of experimental observations (those that
       have been artificially manipulated). Each element of the list must be
-      named after one of the nodes, and must contain a numeric vector with
-      indexes of the observations whose value has been manipulated for that node.
+      named after one of the nodes and contain a numeric vector with the indexes
+      of the observations whose values have been manipulated for that node.
     \item \code{k}: the penalty coefficient to be used by the AIC, BIC and
-      penalized node-average log-likelihood scores. The default value is
+      penalised node-average log-likelihood scores. The default value is
       \code{1} for AIC, \code{log(nrow(data)) / 2} for BIC and
       \code{1 / nnnodes(x) * nrow(data) ^ -0.25} for the node-average
       log-likelihood scores.
     \item \code{gamma}: the additional penalty in the extended BIC scores. The
       default value is \code{0.5}.
     \item \code{prior}: the prior distribution to be used with the various
-      Bayesian Dirichlet scores (\code{bde}, \code{mbde}, \code{bds},
-      \code{bdj}, \code{bdla}) and the Bayesian Gaussian score (\code{bge}).
-      Possible values are:
+      Bayesian Dirichlet scores (\code{"bde"}, \code{"mbde"}, \code{"bds"},
+      \code{"bdj"} and the Bayesian Gaussian score (\code{"bge"}). Possible values
+      are:
       \itemize{
 
-        \item \code{uniform} (the default).
-        \item \code{vsp}: the Bayesian variable selection prior, which puts a
+        \item \code{"uniform"} (the default).
+        \item \code{"vsp"}: the Bayesian variable selection prior, which puts a
           probability of inclusion on parents.
-        \item \code{marginal}: an independent marginal uniform for each arc.
-        \item \code{cs}: the Castelo & Siebes prior, which puts an independent
-          prior probability on each arc and direction).
+        \item \code{"marginal"}: an independent marginal uniform for each arc.
+        \item \code{"cs"}: the Castelo & Siebes prior, which puts an independent
+          prior probability on each arc and direction.
 
       }
     \item \code{beta}: the parameter associated with \code{prior}.
 
       \itemize{
 
-        \item If \code{prior} is \code{uniform}, \code{beta} is ignored.
-        \item If \code{prior} is \code{vsp}, \code{beta} is the probability of
+        \item If \code{prior} is \code{"uniform"}, \code{beta} is ignored.
+        \item If \code{prior} is \code{"vsp"}, \code{beta} is the probability of
           inclusion of an additional parent. The default is \code{1/ncol(data)}.
-        \item If \code{prior} is \code{marginal}, \code{beta} is the probability
+        \item If \code{prior} is \code{"marginal"}, \code{beta} is the probability
           of inclusion of an arc. Each direction has a probability of inclusion
           of \code{beta / 2} and the probability that the arc is not included is
-          therefore  \code{1 - beta}. The default value is \code{0.5}, so that
+          therefore \code{1 - beta}. The default value is \code{0.5}, so that
           arc inclusion and arc exclusion have the same probability.
-        \item If \code{prior} is \code{cs}, \code{beta} is a data frame with
+        \item If \code{prior} is \code{"cs"}, \code{beta} is a data frame with
           columns \code{from}, \code{to} and \code{prob} specifying the prior
           probability for a set of arcs. A uniform probability distribution is
           assumed for the remaining arcs.
 
       }
+    \item \code{em.max.iter}: the maximum number of expectation-maximization
+      iterations used to fit the local distributions of the zero-inflated count
+      scores (\code{"loglik-zihp"}, \code{"loglik-zinb"}, \code{"aic-zihp"},
+      \code{"aic-zinb"}, \code{"bic-zihp"}, \code{"bic-zinb"}, \code{"nal-zihp"},
+      \code{"nal-zinb"}, \code{"pnal-zihp"} and \code{"pnal-zinb"}). The default
+      value is \code{100}.
+    \item \code{em.tol}: the relative convergence tolerance (on both the
+      log-likelihood and the parameters) of the expectation-maximization
+      iteration used by the zero-inflated count scores. The default value is
+      \code{1e-8}.
+    \item \code{m.step}: the type of maximisation step in that
+      expectation-maximization, either \code{"full"} (the default) to re-fit each
+      generalised linear model component to convergence at every iteration or
+      \code{"one-step"} to take a single iteratively reweighted least squares step
+      per iteration (a cheaper generalized-EM update).
     \item \code{newdata}: the test set whose predictive likelihood will be
-      computed by \code{pred-loglik}, \code{pred-loglik-g} or
-      \code{pred-loglik-cg}. It should be a data frame with the same variables
+      computed by \code{"pred-loglik"}, \code{"pred-loglik-g"} or
+      \code{"pred-loglik-cg"}. It should be a data frame with the same variables
       as \code{data}.
     \item \code{fun}: the function that computes the score component for a
       single node in the \code{custom} score. \code{fun} must have arguments
-      \code{node}, \code{parents}, \code{data} and \code{args}, in this order;
-      in other words, it must have signature \code{function(node, parents, data,
+      \code{node}, \code{parents}, \code{data} and \code{args}, in this order.
+      In other words, it must have signature \code{function(node, parents, data,
       args)}. \code{node} will contain the label of the node to be scored (a
       character string); \code{parents} will contain the labels of its parents
       (a character vector); \code{data} will contain the complete data set,
@@ -126,8 +139,8 @@
 \note{
 
   AIC and BIC are computed as \code{logLik(x) - k * nparams(x)}, that is, the
-  classic definition rescaled by -2. Therefore higher values are better, and
-  for large sample sizes BIC converges to log(BDe).
+  classic definition rescaled by -2. Therefore, higher values are better, and
+  for large sample sizes, BIC converges to log(BDe).
 
   When using the Castelo & Siebes prior in structure learning, the prior
   probabilities associated with an arc are bound away from zero and one by

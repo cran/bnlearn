@@ -1,9 +1,9 @@
 #include "../../include/rcore.h"
+#include "../../include/globals.h"
 #include "../../include/graph.h"
+#include "../../math/linear.algebra.h"
 #include "../../minimal/data.frame.h"
 #include "../../minimal/strings.h"
-#include "../../include/globals.h"
-#include "../../math/linear.algebra.h"
 
 /* adjusted arc counting for boot.strength(). */
 SEXP bootstrap_strength_counters(SEXP prob, SEXP weight, SEXP arcs, SEXP nodes) {
@@ -43,7 +43,7 @@ SEXP amat;
   UNPROTECT(1);
   return prob;
 
-}/*BOOTSTRAP_STRENGTH*/
+}/*BOOTSTRAP_STRENGTH_COUNTERS*/
 
 /* arc strength (confidence) and direction coefficients. */
 SEXP bootstrap_arc_coefficients(SEXP prob, SEXP nodes) {
@@ -177,7 +177,7 @@ SEXP result, df, strength, direction;
   SET_VECTOR_ELT(result, 2, strength);
   SET_VECTOR_ELT(result, 3, direction);
   /* make the return value a real data frame. */
-  minimal_data_frame(result);
+  minimal_data_frame(result, nrow);
 
   UNPROTECT(3);
 

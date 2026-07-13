@@ -1,9 +1,9 @@
 #include "../../include/rcore.h"
 #include "../../core/allocations.h"
+#include "../../math/linear.algebra.h"
+#include "../../minimal/common.h"
 #include "../../minimal/data.frame.h"
 #include "../../minimal/strings.h"
-#include "../../minimal/common.h"
-#include "../../math/linear.algebra.h"
 
 SEXP mixture_gaussian_ols_parameters(SEXP data, SEXP node, SEXP parents,
     SEXP configs, SEXP keep, SEXP replace_unidentifiable, SEXP missing) {
@@ -101,5 +101,5 @@ SEXP data_x, result, confnames, dummy_configs;
 
   return result;
 
-}/*FAST_CGLM*/
+}/*MIXTURE_GAUSSIAN_OLS_PARAMETERS*/
 

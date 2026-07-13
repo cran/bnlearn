@@ -13,8 +13,8 @@ count.graphs(type = "all.dags", ..., debug = FALSE)
   \item{type}{a character string, the label describing the types of graphs to
     be counted (see below).}
   \item{\dots}{additional parameters (see below).}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent. Ignored in some
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent. Ignored in some
     generation methods.}
 }
 \details{

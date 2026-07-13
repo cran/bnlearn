@@ -6,11 +6,12 @@ graphviz.plot = function(x, highlight = NULL, groups, layout = "dot",
 
   # check whether graphviz is loaded.
   check.and.load.package("Rgraphviz")
-  check.bn.or.fit(x)
+  if (missing(x) || !is(x, c("bn", "scm", "bn.fit")))
+    stop("an object of class 'bn', 'scm' or 'bn.fit' is required.")
   # check render.
   check.logical(render)
 
-  if (is(x, "bn")) {
+  if (is(x, c("bn", "scm"))) {
 
     nodes = names(x$nodes)
     arcs = x$arcs
@@ -42,7 +43,7 @@ strength.plot = function(x, strength, threshold, cutpoints, highlight = NULL,
   check.bn.strength(strength)
   check.bn.strength.vs.bn(strength, x, exact.match = FALSE)
   # check the strength threshold.
-  threshold = check.threshold(threshold, strength)
+  threshold = check.threshold(threshold, network = x, strength = strength)
 
   # check and match the strength coefficients.
   str = match.arcs.and.strengths(arcs = x$arcs, nodes = names(x$nodes),
@@ -87,6 +88,9 @@ graphviz.chart = function(x, type = "barchart", layout = "dot",
   # check whether gRain is loaded.
   check.and.load.package("gRain")
   check.fit(x)
+
+  if (is(x, "bn.fit.zinet"))
+    stop("zero inflated networks are not supported.")
 
   # check the plot type.
   check.label(type, choices = c("barchart", "dotplot", "barprob"),
@@ -194,7 +198,7 @@ plot.bn = function(x, ylim = c(0, 600), xlim = ylim, radius = 250, arrow = 35,
   for (i in 1:length(x$nodes)) {
 
     # if there's something to highlight, set the color according to
-    # the nature of the "highlight" paramter.
+    # the nature of the "highlight" parameter.
     if (!is.null(highlight)) {
 
       if (names(x$nodes)[i] %in% highlight)
@@ -310,15 +314,21 @@ graphviz.compare = function(x, ..., groups, layout = "dot", shape = "rectangle",
   # check whether graphviz is loaded.
   check.and.load.package("Rgraphviz")
   # check the first network structure.
-  check.bn.or.fit(x)
+  if (missing(x) || !is(x, c("bn", "scm", "bn.fit")))
+    stop("an object of class 'bn', 'scm' or 'bn.fit' is required.")
   # collect all the networks in a single list.
   netlist = c(list(x), list(...))
   # transform fitted networks back into network structures.
-  for (i in seq_along(netlist))
+  for (i in seq_along(netlist)) {
+
     if (is(netlist[[i]], "bn.fit"))
       netlist[[i]] = bn.net(netlist[[i]])
+    else if (is(netlist[[i]], "scm"))
+      netlist[[i]] = from.scm.to.bn(netlist[[i]])
+
+  }#FOR
   # check that the networks in the list are valid and agree with each other.
-  nodes = check.overlapping.customlist(netlist)
+  nodes = check.overlapping.to.compare(netlist)
   # check the titles and the subtitles for the networks.
   if (!is.null(main))
     if (!is.string.vector(main) || (length(main) != length(netlist)))
@@ -343,15 +353,15 @@ graphviz.compare = function(x, ..., groups, layout = "dot", shape = "rectangle",
 
     # check the line type of the different classes of arcs.
     if ("tp.lty" %in% names(diff.args))
-      check.lty(diff.args$tp.lty)
+      diff.args$tp.lty = check.lty(diff.args$tp.lty)
     else
       diff.args$tp.lty = "solid"
     if ("fp.lty" %in% names(diff.args))
-      check.lty(diff.args$fp.lty)
+      diff.args$fp.lty = check.lty(diff.args$fp.lty)
     else
       diff.args$fp.lty = "solid"
     if ("fn.lty" %in% names(diff.args))
-      check.lty(diff.args$fn.lty)
+      diff.args$fn.lty = check.lty(diff.args$fn.lty)
     else
       diff.args$fn.lty = "dashed"
 

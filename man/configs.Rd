@@ -3,7 +3,7 @@
 \title{Construct configurations of discrete variables}
 \description{
 
-  Create configurations of discrete variables, which can be used in modelling
+  Create configurations of discrete variables, which are used in modelling
   conditional probability tables.
 
 }
@@ -12,8 +12,8 @@
 }
 \arguments{
   \item{data}{a data frame containing factor columns.}
-  \item{all}{a boolean value. If \code{TRUE} all configuration are included as
-   levels in the return value;  otherwise only configurations which are actually
+  \item{all}{a boolean value. If \code{TRUE}, all configurations are included as
+   levels in the return value. Otherwise, only configurations that are actually
    observed are considered.}
 }
 \value{

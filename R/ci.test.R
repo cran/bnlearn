@@ -72,10 +72,10 @@ ci.test.character = function(x, y, z, data, test, extra.args, debug = FALSE) {
 
   }#ELSE
   # check the test label.
-  test = check.test(test, data = .data.frame.column(data, c(x, y, z)))
+  test = check.test(test, data = data[, c(x, y, z), drop = TRUE])
   # check the optional arguments to the test.
   extra.args = check.test.args(test = test, extra.args = extra.args,
-                 data = .data.frame.column(data, c(x, y, z)))
+                 data = data[, c(x, y, z), drop = TRUE])
 
   # create the htest object.
   htest = indep.test(x = x, y = y, sx = z, data = data, test = test,

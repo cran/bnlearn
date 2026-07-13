@@ -1,5 +1,4 @@
 #include "../../include/rcore.h"
-#include "../../core/contingency.tables.h"
 #include "../../math/linear.algebra.h"
 
 void c_classic_discrete_parameters(int *counts, double *cpt, int nrows,

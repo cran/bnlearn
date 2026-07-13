@@ -1,67 +1,27 @@
 #include "../include/rcore.h"
-#include "../include/globals.h"
+#include "../core/data.table.h"
 #include "../core/math.functions.h"
 #include "../fitted/fitted.h"
-#include "../core/data.table.h"
 #include "loglikelihood/loglikelihood.h"
-#include "../minimal/common.h"
 
-void c_lw_weights(SEXP fitted, SEXP data, int n, double *w, SEXP keep,
-    bool debugging) {
+void c_lw_weights(fitted_bn bn, tabular dt, double *w, bool debugging) {
 
-int i = 0, max_el = 0;
+int i = 0, max_el = 0, n = dt.m.nobs;
 double maxw = 0;
-fitted_bn bn = fitted_network_from_SEXP(fitted);
-SEXP metadata, complete_nodes, nodes_in_fitted, keep2;
 
   memset(w, '\0', n * sizeof(double));
-  /* find out which nodes to compute the log-likelihood for, zero-indexed. */
-  PROTECT(nodes_in_fitted = getAttrib(fitted, R_NamesSymbol));
-  PROTECT(keep2 = match(keep, nodes_in_fitted, 0));
 
-  /* extract the metadata from the data. */
-  PROTECT(metadata = getAttrib(data, BN_MetaDataSymbol));
-  PROTECT(complete_nodes = getListElement(metadata, "complete.nodes"));
-
-  if (bn.type == DNET || bn.type == ONET || bn.type == DONET) {
-
-    ddata dt = ddata_from_SEXP(data, 0);
-    meta_copy_names(&(dt.m), 0, data);
-    meta_init_flags(&(dt.m), 0, complete_nodes, keep2);
-
+  /* compute the log-likelihood of each sample under the fitted network. */
+  if (bn.type == DNET || bn.type == ONET || bn.type == DONET)
     bysample_discrete_loglikelihood(bn, dt, w, debugging);
-
-    FreeDDT(dt);
-
-  }/*THEN*/
-  else if (bn.type == GNET) {
-
-    gdata dt = gdata_from_SEXP(data, 0);
-    meta_copy_names(&(dt.m), 0, data);
-    meta_init_flags(&(dt.m), 0, complete_nodes, keep2);
-
+  else if (bn.type == GNET)
     bysample_gaussian_loglikelihood(bn, dt, w, TRUE, debugging);
-
-    FreeGDT(dt);
-
-  }/*THEN*/
-  else if (bn.type == CGNET) {
-
-    cgdata dt = cgdata_from_SEXP(data, 0, 0);
-    meta_copy_names(&(dt.m), 0, data);
-    meta_init_flags(&(dt.m), 0, complete_nodes, keep2);
-
+  else if (bn.type == CGNET)
     bysample_clgaussian_loglikelihood(bn, dt, w, TRUE, debugging);
+  else if (bn.type == ZINET)
+    bysample_zeroinflated_loglikelihood(bn, dt, w, TRUE, debugging);
 
-    FreeCGDT(dt);
-
-  }/*THEN*/
-
-  FreeFittedBN(bn);
-
-  UNPROTECT(4);
-
-  /* rescale before exponentiating them into probabilities (if possible). */
+  /* rescale before exponentiating into probabilities (if possible). */
   max_el = d_which_max(w, n);
 
   if (max_el == NA_INTEGER)
@@ -77,4 +37,3 @@ SEXP metadata, complete_nodes, nodes_in_fitted, keep2;
   }/*ELSE*/
 
 }/*C_LW_WEIGHTS*/
-

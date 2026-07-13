@@ -116,7 +116,7 @@ as.graphNEL.bn = function(x) {
 
   }#ELSE
 
-  new("graphNEL", nodes = nodes, edgeL = arcs2elist(arcs, nodes),
+  new("graphNEL", nodes = nodes, edgeL = arcs2alist(arcs, nodes),
                   edgemode = 'directed')
 
 }#AS.GRAPHNEL.BN
@@ -165,7 +165,7 @@ as.bn.graphAM = function(x, ..., check.cycles = TRUE) {
   nodes = colnames(adjMat)
   arcs = amat2arcs(adjMat, nodes)
 
-  # check whether the the graph contains directed cycles.
+  # check whether the graph contains directed cycles.
   if (check.cycles)
     if (!is.acyclic(nodes = nodes, arcs = arcs, debug = FALSE, directed = TRUE))
       stop("the graphAM object contains directed cycles.")
@@ -187,9 +187,9 @@ as.bn.graphNEL = function(x, ..., check.cycles = TRUE) {
   check.unused.args(list(...), character(0))
 
   nodes = x@nodes
-  arcs = elist2arcs(graph::edges(x))
+  arcs = alist2arcs(graph::edges(x))
 
-  # check whether the the graph contains directed cycles.
+  # check whether the graph contains directed cycles.
   if (check.cycles)
     if (!is.acyclic(nodes = nodes, arcs = arcs, debug = FALSE, directed = TRUE))
       stop("the graphNEL object contains directed cycles.")
@@ -251,7 +251,7 @@ as.bn.igraph = function(x, ..., check.cycles = TRUE) {
   nodes = attr(igraph::V(x), "names")
   arcs = igraph::as_edgelist(x, names = TRUE)
 
-  # check whether the the graph contains directed cycles.
+  # check whether the graph contains directed cycles.
   if (check.cycles)
     if (!is.acyclic(nodes = nodes, arcs = arcs, debug = FALSE, directed = TRUE))
       stop("the igraph object contains directed cycles.")

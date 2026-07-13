@@ -34,7 +34,7 @@ slaves.setup = function(cluster) {
   parallel::clusterEvalQ(cluster, library(bnlearn))
   parallel::clusterEvalQ(cluster, reset.test.counter())
 
-}#SLAVE.SETUP
+}#SLAVES.SETUP
 
 # smart parSapply() that falls back to standard sapply(), but with defaults to
 # simplify = FALSE.

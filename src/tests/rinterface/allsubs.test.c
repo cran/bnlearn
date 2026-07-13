@@ -1,15 +1,11 @@
 #include "../../include/rcore.h"
-#include "../../core/allocations.h"
-#include "../../core/sets.h"
-#include "../../minimal/data.frame.h"
-#include "../../minimal/common.h"
-#include "../../include/globals.h"
 #include "../../core/covariance.matrix.h"
-#include "../../core/correlation.h"
 #include "../../core/data.table.h"
-#include "../../math/linear.algebra.h"
-#include "../tests.h"
+#include "../../include/globals.h"
+#include "../../minimal/common.h"
+#include "../../minimal/data.frame.h"
 #include "../patterns.h"
+#include "../tests.h"
 
 SEXP allsubs_test(SEXP x, SEXP y, SEXP sx, SEXP fixed, SEXP data, SEXP test,
     SEXP alpha, SEXP extra_args, SEXP min, SEXP max, SEXP complete, SEXP debug) {
@@ -78,8 +74,8 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
   if (IS_DISCRETE_ASYMPTOTIC_TEST(test_type)) {
 
     /* parametric tests for discrete variables. */
-    ddata dtx = ddata_from_SEXP(xx, 0), dty = ddata_from_SEXP(yy, 0);
-    ddata dtz = ddata_from_SEXP(zz, 0);
+    tabular dtx = tabular_from_SEXP(xx, 0, 0), dty = tabular_from_SEXP(yy, 0, 0);
+    tabular dtz = tabular_from_SEXP(zz, 0, 0);
     meta_copy_names(&(dtx.m), 0, xx);
     meta_copy_names(&(dty.m), 0, yy);
     meta_copy_names(&(dtz.m), 0, zz);
@@ -87,25 +83,25 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
     res = ast_discrete(dtx, dty, dtz, nf, minsize, maxsize, test_type, a,
             debugging);
 
-    FreeDDT(dtx);
-    FreeDDT(dty);
-    FreeDDT(dtz);
+    FreeTAB(dtx);
+    FreeTAB(dty);
+    FreeTAB(dtz);
 
   }/*THEN*/
   else if ((test_type == COR) || (test_type == ZF) || (test_type == MI_G) ||
            (test_type == MI_G_SH)) {
 
     /* parametric tests for Gaussian variables. */
-    gdata dt = gdata_from_SEXP(zz, 2);
+    tabular dt = tabular_from_SEXP(zz, 0, 2);
     meta_copy_names(&(dt.m), 2, zz);
-    dt.col[0] = REAL(VECTOR_ELT(xx, 0));
-    dt.col[1] = REAL(VECTOR_ELT(yy, 0));
+    dt.ccol[0] = REAL(VECTOR_ELT(xx, 0));
+    dt.ccol[1] = REAL(VECTOR_ELT(yy, 0));
     dt.m.names[0] = CHAR(STRING_ELT(x, 0));
     dt.m.names[1] = CHAR(STRING_ELT(y, 0));
 
     if (all_equal(cc, TRUESEXP)) {
 
-      gdata_cache_means(&dt, 0);
+      tabular_cache_means(&dt, 0);
       res = ast_gaustests_complete(dt, nf, minsize, maxsize, a, debugging,
               test_type);
 
@@ -117,14 +113,14 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
 
     }/*ELSE*/
 
-    FreeGDT(dt);
+    FreeTAB(dt);
 
   }/*THEN*/
   else if (test_type == MI_CG) {
 
     /* conditional linear Gaussian test. */
-    cgdata dtx = cgdata_from_SEXP(xx, 0, 0), dty = cgdata_from_SEXP(yy, 0, 0);
-    cgdata dtz = cgdata_from_SEXP(zz, 1, 1);
+    tabular dtx = tabular_from_SEXP(xx, 0, 0), dty = tabular_from_SEXP(yy, 0, 0);
+    tabular dtz = tabular_from_SEXP(zz, 1, 1);
     meta_copy_names(&(dtx.m), 0, xx);
     meta_copy_names(&(dty.m), 0, yy);
     meta_copy_names(&(dtz.m), 2, zz);
@@ -142,16 +138,16 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
 
     }/*ELSE*/
 
-    FreeCGDT(dtx);
-    FreeCGDT(dty);
-    FreeCGDT(dtz);
+    FreeTAB(dtx);
+    FreeTAB(dty);
+    FreeTAB(dtz);
 
   }/*THEN*/
   else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
 
     /* discrete permutation tests. */
-    ddata dtx = ddata_from_SEXP(xx, 0), dty = ddata_from_SEXP(yy, 0);
-    ddata dtz = ddata_from_SEXP(zz, 0);
+    tabular dtx = tabular_from_SEXP(xx, 0, 0), dty = tabular_from_SEXP(yy, 0, 0);
+    tabular dtz = tabular_from_SEXP(zz, 0, 0);
     meta_copy_names(&(dtx.m), 0, xx);
     meta_copy_names(&(dty.m), 0, yy);
     meta_copy_names(&(dtz.m), 0, zz);
@@ -160,27 +156,27 @@ SEXP xx, yy, zz, cc, res = R_NilValue;
     res = ast_dperm(dtx, dty, dtz, nf, minsize, maxsize, a, test_type, B,
             IS_SMC(test_type) ? a : 1, debugging);
 
-    FreeDDT(dtx);
-    FreeDDT(dty);
-    FreeDDT(dtz);
+    FreeTAB(dtx);
+    FreeTAB(dty);
+    FreeTAB(dtz);
 
   }/*THEN*/
   else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
 
     /* continuous permutation tests. */
-    gdata dt = gdata_from_SEXP(zz, 2);
+    tabular dt = tabular_from_SEXP(zz, 0, 2);
     meta_copy_names(&(dt.m), 2, zz);
-    dt.col[0] = REAL(VECTOR_ELT(xx, 0));
-    dt.col[1] = REAL(VECTOR_ELT(yy, 0));
+    dt.ccol[0] = REAL(VECTOR_ELT(xx, 0));
+    dt.ccol[1] = REAL(VECTOR_ELT(yy, 0));
     dt.m.names[0] = CHAR(STRING_ELT(x, 0));
     dt.m.names[1] = CHAR(STRING_ELT(y, 0));
-    gdata_cache_means(&dt, 0);
+    tabular_cache_means(&dt, 0);
     int B = INT(getListElement(extra_args, "B"));
 
     res = ast_gperm(dt, nf, minsize, maxsize, a, test_type, B,
             IS_SMC(test_type) ? a : 1, all_equal(cc, TRUESEXP), debugging);
 
-    FreeGDT(dt);
+    FreeTAB(dt);
 
   }/*THEN*/
   else if (test_type == CUSTOM_T) {

@@ -97,34 +97,6 @@ check.cgnode.vs.cgnode = function(new, old, keep.fitted = FALSE) {
 
 }#CHECK.CGNODE.VS.CGNODE
 
-# does the network has any NA parameters?
-is.bn.fit.ill.defined = function(fitted) {
-
-  for (node in names(fitted)) {
-
-    fit = fitted[[node]]
-
-    if (is(fit, c("bn.fit.dnode", "bn.fit.onode"))) {
-
-      if (anyNA(fit$prob))
-        return(TRUE)
-
-    }#THEN
-    else if (is(fit, c("bn.fit.gnode", "bn.fit.cgnode"))) {
-
-      if (anyNA(fit$coefficients))
-        return(TRUE)
-      if (anyNA(fit$sd))
-        return(TRUE)
-
-    }#THEN
-
-  }#FOR
-
-  return(FALSE)
-
-}#IS.BN.FIT.ILL.DEFINED
-
 # check one bn.fit object against another.
 check.fitted.vs.fitted = function(new, old, local = TRUE) {
 
@@ -195,9 +167,9 @@ check.fitted.vs.fitted = function(new, old, local = TRUE) {
       discrete.old = is(node.old, c("bn.fit.dnode", "bn.fit.onode"))
 
       if (discrete.new && !discrete.old)
-        stop("node ", node, " is discrete in fhe first bn.fit object but not in the second.")
+        stop("node ", node, " is discrete in the first bn.fit object but not in the second.")
       if (!discrete.new && discrete.old)
-        stop("node ", node, " is discrete in fhe second bn.fit object but not in the first.")
+        stop("node ", node, " is discrete in the second bn.fit object but not in the first.")
 
       # ... and if they are both discrete they should have the same levels.
       if (discrete.new && discrete.old) {

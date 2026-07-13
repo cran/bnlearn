@@ -1,7 +1,7 @@
 #include "../include/rcore.h"
+#include "../core/sort.h"
 #include "../core/uppertriangular.h"
 #include "../math/linear.algebra.h"
-#include "../core/sort.h"
 
 SEXP arc_hash_matrix(SEXP arcs, SEXP nodes, bool uptri, bool sort);
 SEXP arc_hash_dataframe(SEXP arcs, SEXP nodes, bool uptri, bool sort);

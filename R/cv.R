@@ -161,7 +161,7 @@ bn.cv.structure = function(test, data, net, loss, loss.args, fit, fit.args,
     else {
 
       # other loss functions require the network to be completely directed, so
-      # so that all local distributions can be estimated.
+      # that all local distributions can be estimated.
       if (any(which.undirected(net$arcs, names(net$nodes))))
         stop("no consistent extension for the network in one of the folds.")
 

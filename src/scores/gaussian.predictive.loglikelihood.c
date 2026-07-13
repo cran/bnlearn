@@ -1,10 +1,9 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
-#include "../minimal/data.frame.h"
-#include "../minimal/common.h"
 #include "../include/globals.h"
-#include "../core/moments.h"
 #include "../math/linear.algebra.h"
+#include "../minimal/common.h"
+#include "../minimal/data.frame.h"
 
 double pgnode(SEXP x, SEXP new_x, double *nparams) {
 

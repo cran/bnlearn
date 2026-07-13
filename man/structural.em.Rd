@@ -16,13 +16,13 @@ structural.em(x, maximize = "hc", maximize.args = list(), fit,
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
   \item{maximize}{a character string, the score-based algorithm to be used in
-    the \dQuote{maximization} step. See \code{\link{structure learning}} for
+    the \dQuote{maximisation} step. See \code{\link{structure learning}} for
     details.}
   \item{maximize.args}{a list of arguments to be passed to the algorithm
     specified by \code{maximize}, such as \code{restart} for hill-climbing or
     \code{tabu} for tabu search.}
   \item{fit}{a character string, the parameter learning method to be used in
-    the \dQuote{maximization} step. See \code{\link{bn.fit}} for details.}
+    the \dQuote{maximisation} step. See \code{\link{bn.fit}} for details.}
   \item{fit.args}{a list of arguments to be passed to the parameter learning
     method specified by \code{fit}.}
   \item{impute}{a character string, the imputation method to be used in the
@@ -34,18 +34,18 @@ structural.em(x, maximize = "hc", maximize.args = list(), fit,
     the first imputation and as a starting point for the score-based
     algorithm specified by \code{maximize}.}
   \item{max.iter}{an integer, the maximum number of iterations.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
 }
 \note{
 
   If at least one of the variables in the data \code{x} does not contain any
-  observed value, the \code{start} network must be specified and it must be a
+  observed value, the \code{start} network must be specified, and it must be a
   \code{bn.fit} object. Otherwise, \code{structural.em()} is unable to complete
-  the first \emph{maximization} step because it cannot fit the corresponding
+  the first \emph{maximisation} step because it cannot fit the corresponding
   local distribution(s).
 
-  Note that if \code{impute} is set to \code{bayes-lw}, each call to
+  Note that if \code{impute} is set to \code{"bayes-lw"}, each call to
   \code{structural.em} may produce a different model since the imputation is
   based on a stochastic simulation.
 

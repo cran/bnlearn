@@ -1,13 +1,13 @@
 #include "../../include/rcore.h"
-#include "../../fitted/fitted.h"
-#include "../../core/data.table.h"
 #include "../../core/allocations.h"
-#include "loglikelihood.h"
+#include "../../core/data.table.h"
+#include "../../fitted/fitted.h"
 #include "../../include/globals.h"
+#include "loglikelihood.h"
 
 
 /* log-likelihood of individual observations for a Gaussian network. */
-void bysample_gaussian_loglikelihood(fitted_bn bn, gdata dt, double *loglik,
+void bysample_gaussian_loglikelihood(fitted_bn bn, tabular dt, double *loglik,
     bool robust, bool debugging) {
 
 int *pars = NULL;
@@ -28,7 +28,7 @@ double *obs = NULL, *coefs = NULL, sd = 0, *scratch = NULL;
       Rprintf("* processing node %s.\n", bn.labels[i]);
 
     /* ... extract the relevant quantities from the data and the network... */
-    obs = dt.col[i];
+    obs = dt.ccol[i];
     coefs = bn.ldists[i].g.coefs;
     pars = bn.ldists[i].parents;
     sd = bn.ldists[i].g.sd;
@@ -46,7 +46,7 @@ double *obs = NULL, *coefs = NULL, sd = 0, *scratch = NULL;
      * correctly)... */
     for (int k = 0; k < bn.ldists[i].nparents; k++)
       for (int j = 0; j < dt.m.nobs; j++)
-        scratch[j] += dt.col[pars[k]][j] * coefs[k + 1];
+        scratch[j] += dt.ccol[pars[k]][j] * coefs[k + 1];
 
     /* ... and use them together with the standard error to compute the
      * log-likelihood. */
@@ -60,7 +60,7 @@ double *obs = NULL, *coefs = NULL, sd = 0, *scratch = NULL;
 }/*BYSAMPLE_GAUSSIAN_LOGLIKELIHOOD*/
 
 /* log-likelihood of a whole sample for a Gaussian network. */
-double data_gaussian_loglikelihood(fitted_bn bn, gdata dt, double *scratch,
+double data_gaussian_loglikelihood(fitted_bn bn, tabular dt, double *scratch,
     bool propagate, bool debugging) {
 
 int ncomplete = 0, *pars = NULL;
@@ -122,7 +122,7 @@ unidentifiable_model:
     ncomplete = 0;
 
     /* ... extract the relevant quantities from the data and the network...*/
-    obs = dt.col[i];
+    obs = dt.ccol[i];
     coefs = bn.ldists[i].g.coefs;
     pars = bn.ldists[i].parents;
     sd = bn.ldists[i].g.sd;
@@ -136,7 +136,7 @@ unidentifiable_model:
      * correctly)... */
     for (int k = 0; k < bn.ldists[i].nparents; k++)
       for (int j = 0; j < dt.m.nobs; j++)
-        scratch[j] += dt.col[pars[k]][j] * coefs[k + 1];
+        scratch[j] += dt.ccol[pars[k]][j] * coefs[k + 1];
 
     /* ... and use them together with the standard error to compute the
      * log-likelihood. */

@@ -103,6 +103,77 @@ bn.fit.assignment.backend = function(x, name, value) {
       new$fitted.values = noattr(value$fitted)
 
   }#THEN
+  else if (is(to.replace, "bn.fit.zihpnode")) {
+
+    # check the consistency of the new conditional distribution.
+    value = check.zihpnode.rvalue(value, node = name)
+    # sanity check the new object by comparing it to the old one.
+    value = check.rvalue.vs.zihpnode(value, to.replace)
+
+    # replace the regression coefficients, keeping the names and the ordering.
+    if (is.null(names(value$inflation)))
+      new$inflation = structure(value$inflation, names = names(new$inflation))
+    else
+      new$inflation = noattr(value$inflation[names(new$inflation)], ok = "names")
+    if (is.null(names(value$intensity)))
+      new$intensity = structure(value$intensity, names = names(new$intensity))
+    else
+      new$intensity = noattr(value$intensity[names(new$intensity)], ok = "names")
+
+    # replace the dispersion.
+    new$dispersion = noattr(value$dispersion)
+
+    # replace the residuals, padding with NAs if needed.
+    if (is.null(value$resid))
+      new$residuals = rep(as.numeric(NA), length(new$resid))
+    else
+      new$residuals = noattr(value$resid)
+
+    # replace the fitted values, padding with NAs if needed.
+    if (is.null(value$fitted))
+      new$fitted.values = rep(as.numeric(NA), length(new$fitted))
+    else
+      new$fitted.values = noattr(value$fitted)
+
+  }#THEN
+  else if (is(to.replace, "bn.fit.zinbnode")) {
+
+    # check the consistency of the new conditional distribution.
+    value = check.zinbnode.rvalue(value, node = name)
+    # sanity check the new object by comparing it to the old one.
+    value = check.rvalue.vs.zinbnode(value, to.replace)
+
+    # replace the regression coefficients, keeping the names and the ordering.
+    if (is.null(names(value$inflation)))
+      new$inflation = structure(value$inflation, names = names(new$inflation))
+    else
+      new$inflation = noattr(value$inflation[names(new$inflation)], ok = "names")
+    if (is.null(names(value$prsucc)))
+      new$prsucc = structure(value$prsucc, names = names(new$prsucc))
+    else
+      new$prsucc = noattr(value$prsucc[names(new$prsucc)], ok = "names")
+
+    # replace the intensity.
+    new$failures = noattr(value$failures)
+
+    # replace the residuals, padding with NAs if needed.
+    if (is.null(value$resid))
+      new$residuals = rep(as.numeric(NA), length(new$resid))
+    else
+      new$residuals = noattr(value$resid)
+
+    # replace the fitted values, padding with NAs if needed.
+    if (is.null(value$fitted))
+      new$fitted.values = rep(as.numeric(NA), length(new$fitted))
+    else
+      new$fitted.values = noattr(value$fitted)
+
+  }#THEN
+  else {
+
+     stop("unknown node type '", class(to.replace), "'.")
+
+  }#ELSE
 
   return(new)
 

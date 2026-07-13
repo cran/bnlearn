@@ -1,8 +1,8 @@
 
-pc.stable.backend = function(x, cluster = NULL, whitelist, blacklist, test,
-    alpha, extra.args = list(), max.sx = ncol(x), debug = FALSE) {
+pc.stable.backend = function(data, cluster = NULL, whitelist, blacklist, test,
+    alpha, extra.args = list(), max.sx = ncol(data), debug = FALSE) {
 
-  nodes = names(x)
+  nodes = names(data)
   nnodes = length(nodes)
   mb = structure(vector(length(nodes), mode = "list"), names = nodes)
   skeleton = subsets(nodes, 2)
@@ -23,7 +23,7 @@ pc.stable.backend = function(x, cluster = NULL, whitelist, blacklist, test,
     # perform the conditional independence tests.
     node.pairs[dsep.size <= nbr.size] =
       smartSapply(cluster, node.pairs[dsep.size <= nbr.size], pc.heuristic,
-        data = x, alpha = alpha, extra.args = extra.args, whitelist = whitelist,
+        data = data, alpha = alpha, extra.args = extra.args, whitelist = whitelist,
         blacklist = blacklist, test = test, skeleton = skeleton,
         dsep.size = dsep.size, debug = debug)
 

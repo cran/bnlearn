@@ -2,6 +2,8 @@
 #define NETWORK_SCORES_HEADER
 
 #include "../core/contingency.tables.h"
+#include "../core/data.table.h"
+#include "../math/reweighted.least.squares.h"
 
 /* enum for scores, to be matched from the label string passed down from R. */
 typedef enum {
@@ -18,11 +20,10 @@ typedef enum {
   BDJ            =   8, /* Bayesian Dirichlet with Jeffrey's prior. */
   K2             =   9, /* K2 score. */
   MBDE           =  10, /* Bayesian Dirichlet equivalent score, interventional data .*/
-  BDLA           =  11, /* Bayesian Dirichlet score, locally averaged. */
-  FNML           =  12, /* Factorized Normalized Maximum Likelihood. */
-  QNML           =  13, /* Quotient Normalized Maximum Likelihood. */
-  NAL            =  14, /* Node-average likelihood, discrete data. */
-  PNAL           =  15, /* Penalized node-average likelihood. */
+  FNML           =  11, /* Factorized Normalized Maximum Likelihood. */
+  QNML           =  12, /* Quotient Normalized Maximum Likelihood. */
+  NAL            =  13, /* Node-average likelihood. */
+  PNAL           =  14, /* Penalized node-average likelihood. */
 
   /* scores for Gaussian data. */
   LOGLIK_G       = 100, /* log-likelihood. */
@@ -33,6 +34,18 @@ typedef enum {
   BGE            = 105, /* Bayesian Gaussian equivalent score. */
   NAL_G          = 106, /* Node-average likelihood. */
   PNAL_G         = 107, /* Penalized node-average likelihood. */
+
+  /* scores for zero-inflated count data. */
+  LOGLIK_ZIHP    = 108, /* hyper-Poisson log-likelihood. */
+  LOGLIK_ZINB    = 109, /* negative Binomial log-likelihood. */
+  AIC_ZIHP       = 110, /* hyper-Poisson AIC. */
+  BIC_ZIHP       = 111, /* hyper-Poisson BIC. */
+  AIC_ZINB       = 112, /* negative Binomial AIC. */
+  BIC_ZINB       = 113, /* negative Binomial BIC. */
+  NAL_ZIHP       = 114, /* Node average likelihood, zero-inflated hyper-Poisson. */
+  PNAL_ZIHP      = 115, /* Penalized node-average likelihood. */
+  NAL_ZINB       = 116, /* Node average likelihood, zero-inflated negative binomial. */
+  PNAL_ZINB      = 117, /* enalized node-average likelihood. */
 
   /* scores for conditional Gaussian data. */
   LOGLIK_CG      = 200, /* log-likelihood. */
@@ -101,8 +114,6 @@ double predictive_loglik_cgnode(SEXP target, SEXP x, SEXP data, SEXP newdata,
     double *nparams, bool debugging);
 double dirichlet_node(SEXP target, SEXP x, SEXP data, SEXP iss, int per_node,
     SEXP prior, SEXP beta, SEXP experimental, int sparse, bool debugging);
-double dirichlet_averaged_node(SEXP target, SEXP x, SEXP data, SEXP l,
-    SEXP prior, SEXP beta, int sparse, bool debugging);
 double wishart_node(SEXP target, SEXP x, SEXP data, SEXP iss, SEXP nu,
     SEXP iss_w, SEXP prior, SEXP beta, bool debugging);
 double custom_score_function(SEXP target, SEXP x, SEXP data, SEXP custom_fn,
@@ -116,6 +127,9 @@ double glik_incomplete(SEXP x, double k);
 double cglik_incomplete(SEXP x, SEXP data, SEXP parents, double k);
 double nal_gnode(SEXP target, SEXP x, SEXP data, double k, bool debugging);
 double nal_cgnode(SEXP target, SEXP x, SEXP data, double k, bool debugging);
+double em_irls_node(SEXP target, SEXP x, SEXP data, double *estimates,
+    double *nparams, bool pnal, double k, bool debugging, int em_max_iter,
+    double em_tol, bool one_step, glm_family_e family);
 
 /* exports for the regret table of normalized maximum likelihood scores. */
 #define MAX_REGRET_TABLE_N 1000
@@ -124,5 +138,11 @@ extern double *regret_table;
 
 double nml_regret(double n, double k);
 double *get_regret_table(int N, int K);
+
+/* reparameteriazation functions for zero-inflated scores. */
+void zihp_coefs_to_params(double *zinf_prob, double *zinf_coefs,
+    double *intensity, double *inten_coefs, tabular data);
+void zinb_coefs_to_params(double *zinf_prob, double *zinf_coefs,
+    double *succ_prob, double *succ_coefs, tabular data);
 
 #endif

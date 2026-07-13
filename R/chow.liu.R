@@ -1,5 +1,5 @@
 
-chow.liu.backend = function(x, nodes, estimator, whitelist, blacklist,
+chow.liu.backend = function(data, nodes, estimator, whitelist, blacklist,
     conditional = NULL, debug = FALSE) {
 
   # fix the whitelist and the blacklist to keep the C side simple.
@@ -26,12 +26,12 @@ chow.liu.backend = function(x, nodes, estimator, whitelist, blacklist,
   }#THEN
 
   .Call(call_chow_liu,
-        data = x,
+        data = data,
         nodes = nodes,
         estimator = estimator,
         whitelist = whitelist,
         blacklist = blacklist,
-        complete = attr(x, "metadata")$complete.nodes,
+        complete = attr(data, "metadata")$complete.nodes,
         conditional = conditional,
         debug = debug)
 

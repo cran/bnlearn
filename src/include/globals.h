@@ -17,6 +17,6 @@ extern SEXP BN_CutpointsSymbol;
 /* shortcuts to boolean SEXPs. */
 extern SEXP TRUESEXP, FALSESEXP;
 
-/* numerical constants */
+/* numerical constants. */
 #define MACHINE_TOL sqrt(DBL_EPSILON)
-
+#define MACHINE_XMAX DBL_MAX

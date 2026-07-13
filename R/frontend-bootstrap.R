@@ -17,7 +17,7 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), algorithm,
   algorithm.args = check.learning.algorithm.args(algorithm.args)
   # check the custom statistic function.
   statistic = match.fun(statistic)
-  # if the statistic fuction is I(), replace it with a NOP to avoid troubles
+  # if the statistic function is I(), replace it with a NOP to avoid troubles
   # with class dispatch.
   if (isTRUE(all.equal(statistic, base::I, check.environment = FALSE)))
     statistic = function(x) x
@@ -41,17 +41,20 @@ bn.boot = function(data, statistic, R = 200, m = nrow(data), algorithm,
 
   }#THEN
 
+  if (algorithm == "fast.iamb")
+    warning("fast.iamb() is deprecated and will be removed in 2027.")
+
   bootstrap.backend(data = data, statistic = statistic, R = R, m = m,
     algorithm = algorithm, algorithm.args = algorithm.args,
     statistic.args = statistic.args, cluster = cluster, debug = debug)
 
-}#BNBOOT
+}#BN.BOOT
 
 # compute arcs' strength via nonparametric bootstrap.
 boot.strength = function(data, cluster, R = 200, m = nrow(data), algorithm,
     algorithm.args = list(), cpdag = TRUE, shuffle = TRUE, debug = FALSE) {
 
-  # check the data are there and get the node lables from the variables.
+  # check the data are there and get the node labels from the variables.
   data = check.data(data, allow.missing = TRUE)
   nodes = names(data)
   # check the number of bootstrap replicates.
@@ -84,6 +87,9 @@ boot.strength = function(data, cluster, R = 200, m = nrow(data), algorithm,
 
   }#THEN
 
+  if (algorithm == "fast.iamb")
+    warning("fast.iamb() is deprecated and will be removed in 2027.")
+
   res = arc.strength.boot(data = data, cluster = cluster, R = R, m = m,
           algorithm = algorithm, algorithm.args = algorithm.args, arcs = NULL,
           cpdag = cpdag, shuffle = shuffle, debug = debug)
@@ -103,7 +109,7 @@ bn.cv = function(data, bn, loss = NULL, ..., algorithm.args = list(),
     loss.args = list(), fit, fit.args = list(), method = "k-fold", cluster,
     debug = FALSE) {
 
-  # check the data are there and get the node lables from the variables.
+  # check the data are there and get the node labels from the variables.
   data = check.data(data, allow.missing = TRUE)
   nodes = names(data)
   # check the cross-validation method.
@@ -142,6 +148,9 @@ bn.cv = function(data, bn, loss = NULL, ..., algorithm.args = list(),
       loss.args$target = algorithm.args$training
     # check the extra arguments passed down to the loss function.
     loss.args = check.loss.args(loss, bn, nodes, data, loss.args)
+
+    if (bn == "fast.iamb")
+      warning("fast.iamb() is deprecated and will be removed in 2027.")
 
   }#THEN
   else if (is(bn, "bn")) {

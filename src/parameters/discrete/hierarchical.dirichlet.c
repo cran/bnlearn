@@ -1,7 +1,7 @@
 #include "../../include/rcore.h"
-#include "../../include/globals.h"
 #include "../../core/allocations.h"
 #include "../../core/contingency.tables.h"
+#include "../../include/globals.h"
 #include "../../math/linear.algebra.h"
 #include "../parameters.h"
 

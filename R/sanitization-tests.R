@@ -43,10 +43,10 @@ check.test = function(test, data) {
 
 }#CHECK.TEST
 
-# check the the target nominal type I error rate.
+# check the target nominal type I error rate.
 check.alpha = function(alpha, network = NULL) {
 
-  # check the the target nominal type I error rate
+  # check the target nominal type I error rate
   if (!missing(alpha) && !is.null(alpha)) {
 
     # validate alpha.

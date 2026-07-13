@@ -54,7 +54,7 @@ check.fit = function(bn) {
   }#THEN
 
   # all bn.fit objects have a secondary class that encodes the distributional
-  # assumptions (and may have mode optional ones, say, for classifiers).
+  # assumptions (and may have more optional ones, say, for classifiers).
   if (!is(bn, available.fitted)) {
 
     stop(sprintf("%s must be an object of class '%s'.",
@@ -138,4 +138,18 @@ check.bn.tan = function(bn) {
     stop("the explanatory variables must form a tree.")
 
 }#CHECK.BN.TAN
+
+# check an object of class scm.
+check.scm = function(scm) {
+
+  if (missing(scm))
+    stop("an object of class 'scm' is required.")
+  if (!is(scm, "scm")) {
+
+    stop(sprintf("%s must be an object of class 'scm'.",
+           deparse(substitute(scm))))
+
+  }#THEN
+
+}#CHECK.SCM
 

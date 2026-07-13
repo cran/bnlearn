@@ -1,6 +1,6 @@
 
 # perform conditional probability queries.
-cpquery = function(fitted, event, evidence, cluster = NULL, method = "ls", ...,
+cpquery = function(fitted, event, evidence, cluster, method = "ls", ...,
     debug = FALSE) {
 
   check.fit(fitted)

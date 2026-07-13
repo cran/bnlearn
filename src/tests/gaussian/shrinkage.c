@@ -1,15 +1,16 @@
 #include "../../include/rcore.h"
-#include "../../core/allocations.h"
-#include "../tests.h"
-#include "../../include/globals.h"
 #include "../../core/covariance.matrix.h"
+#include "../../include/globals.h"
 #include "../../math/linear.algebra.h"
+#include "../tests.h"
 
 #define TRUNCATE_LAMBDA(lambda) \
+  do { \
   if (lambda > 1) \
     lambda = 1; \
   if (lambda < 0) \
-    lambda = 0;
+    lambda = 0; \
+  } while (0)
 
 /* compute the shrinkage intensity lambda for marginal correlation. */
 double cor_lambda(double *xx, double *yy, int nobs, int ncomplete, double xm,

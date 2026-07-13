@@ -13,7 +13,7 @@ graphviz.chart.backend = function(fitted, type = "barchart", layout = "dot",
   nnodes = length(nodes)
   arcs = fit2arcs(fitted)
 
-  graph.obj = new("graphNEL", nodes = nodes, edgeL = arcs2elist(arcs, nodes),
+  graph.obj = new("graphNEL", nodes = nodes, edgeL = arcs2alist(arcs, nodes),
                 edgemode = 'directed')
 
   if (is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet"))) {

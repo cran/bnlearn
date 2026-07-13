@@ -4,7 +4,7 @@
 \title{Synthetic (discrete) data set to test learning algorithms}
 \description{
 
-  This a synthetic data set used as a test case in the \pkg{bnlearn} package.
+  This is a synthetic data set used as a test case in the \pkg{bnlearn} package.
 
 }
 \usage{

@@ -1,8 +1,8 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
-#include "../include/graph.h"
-#include "../include/globals.h"
 #include "../fitted/fitted.h"
+#include "../include/globals.h"
+#include "../include/graph.h"
 #include "../minimal/common.h"
 
 /* sanitize an arc set using the conditional Gaussian assumptions. */

@@ -1,8 +1,7 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
-#include "../include/bn.h"
-#include "strings.h"
 #include "common.h"
+#include "strings.h"
 
 SEXP tiers(SEXP nodes, SEXP debug) {
 

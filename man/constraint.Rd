@@ -20,31 +20,31 @@
   constraint-based algorithms.
 }
 \usage{
-pc.stable(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+pc.stable(x, cluster, whitelist, blacklist, test = NULL,
   alpha = 0.05, ..., max.sx = NULL, debug = FALSE, undirected = FALSE)
-gs(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+gs(x, cluster, whitelist, blacklist, test = NULL,
   alpha = 0.05, ..., max.sx = NULL, debug = FALSE, undirected = FALSE)
-iamb(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+iamb(x, cluster, whitelist, blacklist, test = NULL,
   alpha = 0.05, ..., max.sx = NULL, debug = FALSE, undirected = FALSE)
-fast.iamb(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+fast.iamb(x, cluster, whitelist, blacklist, test = NULL,
   alpha = 0.05, ..., max.sx = NULL, debug = FALSE, undirected = FALSE)
-inter.iamb(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+inter.iamb(x, cluster, whitelist, blacklist, test = NULL,
   alpha = 0.05, ..., max.sx = NULL, debug = FALSE, undirected = FALSE)
-iamb.fdr(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+iamb.fdr(x, cluster, whitelist, blacklist, test = NULL,
   alpha = 0.05, ..., max.sx = NULL, debug = FALSE, undirected = FALSE)
-mmpc(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+mmpc(x, cluster, whitelist, blacklist, test = NULL,
   alpha = 0.05, ..., max.sx = NULL, debug = FALSE, undirected = TRUE)
-si.hiton.pc(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+si.hiton.pc(x, cluster, whitelist, blacklist, test = NULL,
   alpha = 0.05, ..., max.sx = NULL, debug = FALSE, undirected = TRUE)
-hpc(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
+hpc(x, cluster, whitelist, blacklist, test = NULL,
   alpha = 0.05, ..., max.sx = NULL, debug = FALSE, undirected = TRUE)
 }
 \arguments{
   \item{x}{a data frame containing the variables in the model.}
   \item{cluster}{an optional cluster object from package \pkg{parallel}.}
-  \item{whitelist}{a data frame with two columns (optionally labeled "from"
+  \item{whitelist}{a data frame with two columns (optionally labelled "from"
     and "to"), containing a set of arcs to be included in the graph.}
-  \item{blacklist}{a data frame with two columns (optionally labeled "from"
+  \item{blacklist}{a data frame with two columns (optionally labelled "from"
     and "to"), containing a set of arcs not to be included in the graph.}
   \item{test}{a character string, the label of the conditional independence
     test to be used in the algorithm. If none is specified, the default test
@@ -57,16 +57,16 @@ hpc(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
     \code{test}. See \code{\link{ci.test}} for details.}
   \item{max.sx}{a positive integer, the maximum allowed size of the conditioning
     sets used in conditional independence tests. The default is that there is
-    no limit on size.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
-  \item{undirected}{a boolean value. If \code{TRUE} no attempt will be made to
+    no size limit.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
+  \item{undirected}{a boolean value. If \code{TRUE}, no attempt will be made to
     determine the orientation of the arcs; the returned (undirected) graph
     will represent the underlying structure of the Bayesian network.}
 }
 \note{
 
-  Note that even when \code{undirected} is set to \code{FALSE} there is no
+  Note that even when \code{undirected} is set to \code{FALSE}, there is no
   guarantee that all arcs in the returned network will be directed; some arc
   directions are impossible to learn just from data due to score equivalence.
   \code{cextend()} provides a consistent extension of partially directed
@@ -75,7 +75,7 @@ hpc(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
 
   See \code{\link{structure learning}} for a complete list of structure learning
   algorithms with the respective references. All algorithms accept incomplete
-  data, which they handle by computing individual conditional independence tests
+  data and handle it by computing individual conditional independence tests
   on locally complete observations.
 
 }
@@ -87,5 +87,6 @@ hpc(x, cluster, whitelist = NULL, blacklist = NULL, test = NULL,
 }
 \author{Marco Scutari}
 \seealso{\code{\link{independence tests}}, \link{local discovery algorithms},
-  \link{score-based algorithms}, \link{hybrid algorithms}, \link{cextend}.}
+  \link{score-based algorithms}, \link{hybrid algorithms},
+  \link{causal discovery algorithms}, \link{cextend}.}
 \keyword{structure learning}

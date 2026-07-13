@@ -26,7 +26,7 @@ gbn2mvnorm.backend = function(fitted){
 
   return(list(mu = mu, sigma = sigma))
 
-}#GBN2MVNORM
+}#GBN2MVNORM.BACKEND
 
 # factorize a multivariate normal distribution into the local distributions that
 # make up a Gaussian BN into the multivariate.

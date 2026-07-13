@@ -12,10 +12,10 @@ rbn(x, n = 1, \dots, debug = FALSE)
 \arguments{
   \item{x}{an object of class \code{bn.fit}.}
   \item{n}{a positive integer giving the number of observations to generate.}
-  \item{...}{additional arguments for the parameter estimation prcoedure, see
+  \item{...}{additional arguments for the parameter estimation procedure, see
     again \code{\link{bn.fit}} for details.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
 }
 \details{
 
@@ -25,8 +25,8 @@ rbn(x, n = 1, \dots, debug = FALSE)
   values have been sampled for all nodes.
 
   If \code{x} contains \code{NA} parameter estimates (because of unobserved
-  discrete parents configurations in the data the parameters were learned from),
-  \code{rbn} will produce samples that contain \code{NA}s when those parents
+  discrete parent configurations in the data the parameters were learned from),
+  \code{rbn()} will produce samples that contain \code{NA}s when those parent
   configurations appear in the simulated samples. See \code{\link{bn.fit}} for
   details on how to make sure \code{bn.fit} objects contain no \code{NA}
   parameter estimates.
@@ -34,7 +34,7 @@ rbn(x, n = 1, \dots, debug = FALSE)
 }
 \value{
 
-  A data frame with the same structure as the data originally used to to fit the
+  A data frame with the same structure as the data originally used to fit the
   parameters of the Bayesian network.
 
 }

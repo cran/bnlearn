@@ -9,12 +9,12 @@ check.score = function(score, data, allowed = available.scores) {
     # check the score label.
     check.label(score, choices = allowed, labels = score.labels,
       argname = "score", see = "bnlearn-package")
-    # check if it's the right score for the data (discrete, continuous, mixed).
+    # check whether the score applies to the data.
     if ((metadata$type %!in% discrete.data.types) &&
          (score %in% available.discrete.scores))
       stop("score '", score, "' may only be used with discrete data.")
     if ((metadata$type != "continuous") &&
-         (score %in% available.continuous.scores))
+         (score %in% c(available.continuous.scores, available.counts.scores)))
       stop("score '", score, "' may only be used with continuous data.")
     if ((metadata$type != "mixed-cg") &&
          (score %in% available.mixedcg.scores))
@@ -24,8 +24,17 @@ check.score = function(score, data, allowed = available.scores) {
          (score %!in% scores.for.incomplete.data))
       stop("score '", score, "' cannot be used with incomplete data.")
 
-    if (score == "bdla")
-      warning("the \"bdla\" score is deprecated and will be removed in 2026.")
+    # count data should contain only round numbers, and it must be non-negative.
+    if (score %in% available.counts.scores) {
+
+      all.nonnegative = sapply(data, function(x) all(x >= 0))
+      if (any(!all.nonnegative))
+        stop("score '", score, "' cannot be used with negative data.")
+      all.counts = sapply(data, function(x) all(x == floor(x)))
+      if (any(!all.counts))
+        warning("score '", score, "' is used with non-round count data.")
+
+    }#THEN
 
     return(score)
 
@@ -82,7 +91,7 @@ is.score.equivalent = function(score, data, extra) {
       all(attr(data, "metadata")$complete.nodes))
     return(TRUE)
 
-  # a conservative default (BDla, BDs, BDj, all *-cg scores).
+  # a conservative default (BDs, BDj, all *-cg and custom scores).
   return(FALSE)
 
 }#IS.SCORE.EQUIVALENT
@@ -91,7 +100,7 @@ is.score.equivalent = function(score, data, extra) {
 is.score.decomposable = function(score, extra) {
 
   # Castelo & Siebes prior is not decomposable.
-  if ((score %in% c("bde", "bds", "bdj", "mbde", "bdla", "bge")) &&
+  if ((score %in% c("bde", "bds", "bdj", "mbde", "bge")) &&
       (extra$prior %in% c("cs", "marginal")))
     return(FALSE)
 
@@ -137,10 +146,6 @@ check.score.args = function(score, network, data, extra.args, learning = FALSE) 
     extra.args[["gamma"]] =
       check.extended.penalty(gamma = extra.args[["gamma"]], network = network)
 
-  # check the number of scores to average.
-  if (has.argument(score, "l", score.extra.args))
-    extra.args[["l"]] = check.l(l = extra.args[["l"]], network = network)
-
   # check the normal-Wishart prior arguments.
   if (has.argument(score, "nu", score.extra.args))
     extra.args$nu =
@@ -167,6 +172,9 @@ check.score.args = function(score, network, data, extra.args, learning = FALSE) 
   if (has.argument(score, "args", score.extra.args))
     extra.args[["args"]] =
       check.custom.score.arguments(args = extra.args[["args"]], network = network)
+
+  # check the EM controls of the zero-inflated count scores (zihp, zinb).
+  extra.args = check.em.args(extra.args, score.extra.args[[score]])
 
   # warn about and remove unused arguments.
   extra.args = check.unused.args(extra.args, score.extra.args[[score]])
@@ -292,7 +300,7 @@ check.experimental = function(exp, network, data) {
     if (!is.list(exp))
       stop("experimental data must be specified via a list of indexes.")
     if (any(names(exp) %!in% names(data)) || (length(names(exp)) == 0))
-      stop("unkown variables specified in the experimental data list.")
+      stop("unknown variables specified in the experimental data list.")
     for (var in names(exp)) {
 
       if (!is.positive.vector(exp[[var]]))
@@ -461,8 +469,8 @@ check.graph.hyperparameters = function(beta, prior, network, data,
       # arcs' prior probabilities should be provided in a data frame.
       if (!is.data.frame(beta) || (ncol(beta) != 3) ||
           !identical(colnames(beta), c("from", "to", "prob")))
-        stop("beta must be a data frame with three colums: 'from', 'to' and 'prob'.")
-      # the probs cloumns must contain only probabilities.
+        stop("beta must be a data frame with three columns: 'from', 'to' and 'prob'.")
+      # the probs columns must contain only probabilities.
       if (!is.probability.vector(beta$prob, zero = TRUE))
         stop("arcs prior must contain only probabilities.")
       # check that the first two columns contain only valid arcs.
@@ -477,29 +485,7 @@ check.graph.hyperparameters = function(beta, prior, network, data,
 
   return(beta)
 
-}#CHECK.GRAPH.SPARSITY
-
-# check the number of scores to average.
-check.l = function(l, network) {
-
-  if (is.null(l)) {
-
-    if (!is.null(network$learning$args$l))
-      l = network$learning$args$l
-    else
-      l = 5
-
-  }#THEN
-  else {
-
-    if (!is.positive.integer(l))
-      stop("l must be a positive integer, the number of scores to average.")
-
-  }#ELSE
-
-  return(as.numeric(l))
-
-}#CHECK.L
+}#CHECK.GRAPH.HYPERPARAMETERS
 
 # check the test data for predictive scores.
 check.newdata = function(newdata, network, data, required = TRUE,
@@ -529,7 +515,7 @@ check.newdata = function(newdata, network, data, required = TRUE,
     if (all(names.newdata %in% names(data))) {
 
        warning("extra variables in newdata will be ignored.")
-       newdata = .data.frame.column(newdata, names.data, drop = FALSE)
+       newdata = newdata[, names.data, drop = FALSE]
 
     }#THEN
     else {
@@ -546,8 +532,7 @@ check.newdata = function(newdata, network, data, required = TRUE,
   }#THEN
 
   # reorder the columns of newdata to match data.
-  newdata = .data.frame.column(newdata, names.data, drop = FALSE,
-              keep.names = TRUE)
+  newdata = newdata[, names.data, drop = FALSE]
 
   # check whether data and newdata have the same data types.
   types.data = lapply(data, class)

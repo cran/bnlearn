@@ -1,7 +1,7 @@
-#include "../include/rcore.h"
-#include "../core/allocations.h"
-#include "../include/graph.h"
-#include "../math/linear.algebra.h"
+#include "../../include/rcore.h"
+#include "../../core/allocations.h"
+#include "../../include/graph.h"
+#include "../../math/linear.algebra.h"
 
 static void is_a_sink(int *a, int node, int *k, int nnodes, int *nbr,
     short int *matched) {

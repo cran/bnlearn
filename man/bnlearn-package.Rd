@@ -16,49 +16,50 @@
   network modelling: data preprocessing, structure learning combining data and
   expert/prior knowledge, parameter learning, and inference (including causal
   inference via do-calculus). \pkg{bnlearn} aims to be a one-stop shop for
-  Bayesian networks in R, providing the tools needed for learning and working
-  with discrete Bayesian networks, Gaussian Bayesian networks and conditional
-  linear Gaussian Bayesian networks on real-world data. Incomplete data with
-  missing values are also supported. Furthermore the modular nature of
-  \pkg{bnlearn} makes it easy to use it for simulation studies.
+  Bayesian networks in R. It provides tools for discrete, Gaussian and
+  conditional linear Gaussian, and zero-inflated count Bayesian networks on
+  real-world data. It also supportsd incomplete data with missing values.
+  Furthermore, the modular nature of \pkg{bnlearn} makes it easy to use it for
+  simulation studies.
 
   Implemented structure learning algorithms include:
   \itemize{
 
     \item \emph{Constraint-based algorithms}, which use conditional independence
       tests to learn conditional independence constraints from data. The
-      constraints in turn are used to learn the structure of the Bayesian
+      constraints, in turn, are used to learn the structure of the Bayesian
       network under the assumption that conditional independence implies
       graphical separation (so, two variables that are independent cannot be
       connected by an arc).
 
 
-    \item \emph{Score-based algorithms}, which are general-purpose optimization
+    \item \emph{Score-based algorithms}, which are general-purpose optimisation
       algorithms that rank network structures with respect to a goodness-of-fit
       score.
 
     \item \emph{Hybrid algorithms} combine aspects of both constraint-based and
-	  score-based algorithms, as they use conditional independence tests
-	  (usually to reduce the search space) and network scores (to find the
+	  score-based algorithms. They use conditional independence tests
+	  (to reduce the search space) and network scores (to find the
 	  optimal network in the reduced space) at the same time.
 
   }
 
-  For more details about structure learning algorithms see
-  \link{structure learning}; available conditional independence tests are
+  For more details about structure learning algorithms, see
+  \link{structure learning}. Available conditional independence tests are
   described in \link{independence tests} and available network scores are
-  described in \link{network scores}. Specialized algorithms to learn the
+  described in \link{network scores}. Specialized algorithms for learning the
   structure of Bayesian network classifiers are described in
   \link{network classifiers}. All algorithms support the use of whitelists and
-  blacklists to include and exclude arcs from the networks (see
-  \link{whitelists and blacklists}); and many have parallel implementation
-  built on the \pkg{parallel} package. Bayesian network scores support the use
-  of graphical priors.
+  blacklists to include or exclude arcs from the networks (see
+  \link{whitelists and blacklists}). Many have parallel implementation
+  built on the \pkg{parallel} package. Bayesian network scores also support
+  graphical priors.
 
   Parameter learning approaches include both frequentist and Bayesian
-  estimators. Inference is implemented using approximate algorithms via particle
-  filters approaches such as likelihood weighting, and covers conditional
-  probability queries, prediction and imputation.
+  estimators. Approximate inference is implemented particle
+  filters approaches, such as likelihood weighting, and covers conditional
+  probability queries, prediction and imputation. Exact inference is
+  implemented for discrete and Gaussian networks.
 
   Additional facilities include support for bootstrap and cross-validation;
   advanced plotting capabilities implemented on top of \pkg{Rgraphviz} and

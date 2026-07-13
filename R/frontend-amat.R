@@ -16,7 +16,7 @@ amat = function(x) {
     value) {
 
   check.bn(x)
-  # a node is needed.
+  # an adjacency matrix is needed.
   if (missing(value))
     stop("no adjacency matrix specified.")
   # check logical arguments.
@@ -29,7 +29,7 @@ amat = function(x) {
   # update the arcs of the network.
   x$arcs = amat2arcs(value, names(x$nodes))
 
-  # check whether the the graph contains directed cycles.
+  # check whether the graph contains directed cycles.
   if (check.cycles)
     if (!is.acyclic(nodes = names(x$nodes), arcs = x$arcs, debug = debug,
            directed = TRUE))
@@ -58,4 +58,64 @@ amat = function(x) {
   return(x)
 
 }#AMAT<-
+
+# build an arc list from a graph.
+alst = function(x) {
+
+  check.bn.or.fit(x)
+
+  if (is(x, "bn"))
+    arcs2alist(x$arcs, names(x$nodes), sublist = FALSE, nid = FALSE)
+  else
+    arcs2alist(fit2arcs(x), names(x), sublist = FALSE, nid = FALSE)
+
+}#ALST
+
+# rebuild the network structure using a new arc list.
+"alst<-" = function(x, check.cycles = TRUE, check.illegal = TRUE, debug = FALSE,
+    value) {
+
+  check.bn(x)
+  nodes = names(x$nodes)
+  # an arc list is needed.
+  if (missing(value))
+    stop("no arc list specified.")
+  # check logical arguments.
+  check.logical(check.cycles)
+  check.logical(check.illegal)
+  check.logical(debug)
+
+  # check the adjacency list.
+  value = check.alist(alist = value, nodes = nodes)
+
+  # update the arcs of the network.
+  x$arcs = alist2arcs(value)
+
+  # check whether the graph contains directed cycles.
+  if (check.cycles)
+    if (!is.acyclic(nodes = nodes, arcs = x$arcs, debug = debug, directed = TRUE))
+      stop("the specified network contains cycles.")
+  # check whether any arc is illegal.
+  if (check.illegal) {
+
+    illegal = which.listed(x$arcs, x$learning$illegal)
+
+    if (any(illegal)) {
+
+      illegal = apply(x$arcs[illegal, , drop = FALSE], 1,
+                  function(x) { paste(" (", x[1], ", ", x[2], ")", sep = "")  })
+
+      stop("the following arcs are not valid due to the parametric assumptions of the network:",
+        illegal, ".")
+
+    }#THEN
+
+  }#THEN
+
+  # update the network structure.
+  x$nodes = cache.structure(nodes, arcs = x$arcs, debug = debug)
+
+  return(x)
+
+}#ALST<-
 

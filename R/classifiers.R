@@ -31,14 +31,13 @@ tan.backend = function(data, training, explanatory, whitelist, blacklist, mi,
                  ncol = 2, byrow = FALSE)
 
   # separate features and target class variable in data and metadata.
-  features.data =
-    .data.frame.column(data, explanatory, drop = FALSE, keep.names = TRUE)
+  features.data = data[, explanatory, drop = FALSE]
   attr(features.data, "metadata") = collect.metadata(features.data)
-  class.data = .data.frame.column(data, training, drop = TRUE)
+  class.data = data[, training, drop = TRUE]
 
   # call chow-liu to build the rest of the network.
   chow.liu.arcs =
-    chow.liu.backend(x = features.data, nodes = explanatory, estimator = mi,
+    chow.liu.backend(data = features.data, nodes = explanatory, estimator = mi,
       whitelist = whitelist, blacklist = blacklist, conditional = class.data,
       debug = debug)
 

@@ -24,7 +24,7 @@ bool debugging = isTRUE(debug), notdirect = isTRUE(exclude_direct),
 
   return ScalarLogical(res);
 
-}/*HAS_DAG_PATH*/
+}/*HAS_PDAG_PATH*/
 
 int c_has_path(int start, int stop, int *amat, int n, SEXP nodes,
     bool ugraph, bool notdirect, int *path, int *counter, bool debugging) {

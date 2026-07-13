@@ -18,7 +18,7 @@ topological.ordering = function(x, start = NULL, reverse = FALSE,
   else
     return(names(sort(to.do[to.do > 0])))
 
-}#SCHEDULE
+}#TOPOLOGICAL.ORDERING
 
 # use the Logic Sampling (LS) algorithm as described in "Bayesian Artificial
 # Intelligence", Korb & Nicholson, chap 3.6.1.

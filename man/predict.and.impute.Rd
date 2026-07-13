@@ -22,17 +22,23 @@ impute(object, data, cluster, method, ..., strict = TRUE, debug = FALSE)
   \item{node}{a character string, the label of a node.}
   \item{cluster}{an optional cluster object from package \pkg{parallel}.}
   \item{method}{a character string, the method used to impute the missing
-    values or predict new ones. The default value is \code{parents}.}
+    values or predict new ones. The default value is \code{"parents"} for
+    \code{predict()} and \code{"bayes-lw"} for \code{impute()}.}
   \item{\dots}{additional arguments for the imputation method. See below.}
-  \item{prob}{a boolean value. If \code{TRUE} and \code{object} is a discrete
-    network, the probabilities used for prediction are attached to the
-    predicted values as an attribute called \code{prob}.}
+  \item{prob}{a boolean value, used only by \code{predict()}. If \code{TRUE} and
+    the node being predicted is discrete (including a discrete node in a
+    conditional Gaussian network), the probabilities used for prediction are
+    attached to the predicted values as an attribute called \code{prob}, a matrix
+    with one row per level of the target variable and one column per observation.
+    This includes the observations predicted from incomplete predictors with the
+    \code{"bayes-lw"} and \code{"exact"} methods, which are handled by imputing
+    the target variable.}
   \item{strict}{a boolean value. If \code{TRUE}, \code{impute()} will produce an
     error if the data were not imputed successfully, that is, if they still
     contain missing values. If \code{FALSE}, it will return the partially
     imputed data with a warning.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
 }
 \details{
 
@@ -40,50 +46,50 @@ impute(object, data, cluster, method, ..., strict = TRUE, debug = FALSE)
   specified by \code{data} and the fitted network. Depending on the value of
   \code{method}, the predicted values are computed as follows.
   \itemize{
-    \item \code{parents}: the predicted values are computed by plugging in
+    \item \code{"parents"}: the predicted values are computed by plugging in
       the new values for the parents of \code{node} in the local probability
       distribution of \code{node} extracted from \code{fitted}.
-    \item \code{bayes-lw}: the predicted values are computed by averaging
+    \item \code{"bayes-lw"}: the predicted values are computed by averaging
       likelihood weighting simulations performed using all the available nodes
-      as evidence (obviously, with the exception of the node whose values we
-      are predicting). The number of random samples which are averaged for each
-      new observation is controlled by the \code{n} optional argument; the
-      default is \code{500}. If the variable being predicted is discrete, the
-      predicted level is that with the highest conditional probability. If the
-      variable is continuous, the predicted value is the expected value of the
-      conditional distribution. The variables that are used to compute the
-      predicted values can be specified with the \code{from} optional argument;
-      the default is to use all the relevant variables from the data. Note that
-      the predicted values will differ in each call to \code{predict()} since
-      this method is based on a stochastic simulation.
-    \item \code{exact}: the predicted values are computed using exact inference.
+      as evidence (obviously, with the exception of the node whose values we are
+      predicting). The number of random samples which are averaged for each new
+      observation is controlled by the \code{n} optional argument; the default
+      is \code{500}. If the variable being predicted is discrete, the predicted
+      level is that with the highest conditional probability. If the variable is
+      continuous, the predicted value is the expected value of the conditional
+      distribution. The variables used to compute the predicted values can be
+      specified with the \code{from} optional argument; the default is to use
+      all relevant variables from the data. Note that the predicted values will
+      differ in each call to \code{predict()} since this method is based on a
+      stochastic simulation.
+    \item \code{"exact"}: the predicted values are computed using exact inference.
       They are maximum a posteriori estimates obtained using junction trees and
-      belief propagation in the case of discrete networks, or posterior
-      expectations computed using closed-form results for the multivariate
-      normal distribution for Gaussian networks. Conditional Gaussian networks
-      are not supported. The variables that are used to compute the predicted
-      values can be specified with the \code{from} optional argument; the
-      default is to use those in the Markov blanket of \code{node}.
+      belief propagation for discrete networks, or posterior expectations
+      computed using closed-form expressions for the multivariate normal
+      distribution for Gaussian networks. Other networks are not supported. The
+      variables that are used to compute the predicted values can be specified
+      with the \code{from} optional argument; the default is to use those in the
+      Markov blanket of \code{node}.
+
   }
 
   \code{impute()} is based on \code{predict()}, and can impute missing values
-  with the same \code{methods} (\code{parents}, \code{bayes-lw} and
-  \code{exact}). The method \code{bayes-lw} can take an additional argument
-  \code{n} with the number of random samples which are averaged for each
-  observation. As in \code{predict()}, imputed values will differ in each call
-  to \code{impute()} when \code{method} is set to \code{bayes-lw}.
+  with the same \code{methods} (\code{"parents"}, \code{"bayes-lw"} and
+  \code{"exact"}). The method \code{"bayes-lw"} can take an additional argument
+  \code{n}, the number of random samples averaged for each observation. As in
+  \code{predict()}, imputed values will differ in each call to \code{impute()}
+  when \code{method} is set to \code{"bayes-lw"}.
 
-  If \code{object} contains \code{NA} parameter estimates (because of
-  unobserved discrete parents configurations in the data the parameters were
-  learned from), \code{predict} will predict \code{NA}s when those parents
-  configurations appear in \code{data}. See \code{\link{bn.fit}} for details on
-  how to make sure \code{bn.fit} objects contain no \code{NA} parameter
-  estimates.
+  If \code{object} contains \code{NA} parameter estimates (because parameters
+  were learned from data with unobserved discrete parent configurations),
+  \code{predict} will predict \code{NA}s when those parent configurations appear
+  in \code{data}. See \code{\link{bn.fit}} for details on how to make sure
+  \code{bn.fit} objects contain no \code{NA} parameter estimates.
 
 }
 \note{
 
-  Ties in prediction are broken using \emph{Bayesian tie breaking}, i.e.
+  Ties in prediction are broken using \emph{Bayesian tie breaking}, that is,
   sampling at random from the tied values. Therefore, setting the random seed
   is required to get reproducible results.
 
@@ -92,11 +98,11 @@ impute(object, data, cluster, method, ..., strict = TRUE, debug = FALSE)
 }
 \value{
 
-  \code{predict()} returns a numeric vector (for Gaussian and conditional
-  Gaussian nodes), a factor (for categorical nodes) or an ordered factor (for
-  ordinal nodes). If \code{prob = TRUE} and the network is discrete, the
-  probabilities used for prediction are attached to the predicted values as
-  an attribute called \code{prob}.
+  \code{predict()} returns a numeric vector (for Gaussian, conditional Gaussian
+  and zero-inflated nodes), a factor (for categorical nodes) or an ordered
+  factor (for ordinal nodes). If \code{prob = TRUE} and the predicted node is
+  discrete, the probabilities used for prediction are attached to the predicted
+  values as an attribute called \code{prob}.
 
   \code{impute()} returns a data frame with the same structure as \code{data}.
 

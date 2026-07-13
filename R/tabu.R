@@ -22,7 +22,7 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
   # maximum number of iteration the algorithm can go on without
   # improving the best network score.
   max.loss.iter = tabu
-  # set the counter for suc iterations.
+  # set the counter for successful iterations.
   loss.iter = 0
   # keep track of the best score value.
   best.score = -Inf
@@ -54,7 +54,7 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
     cat("* blacklisted arcs are:\n")
     if (!is.null(blacklist)) print(blacklist)
 
-    # set the metadata of the network; othewise the debugging output is
+    # set the metadata of the network; otherwise the debugging output is
     # confusing and not nearly as informative.
     start$learning$algo = "tabu"
     start$learning$ntests = 0
@@ -97,7 +97,7 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
       }#THEN
       else if (sum(singular.new.nodes) < sum(singular.old.nodes)) {
 
-        # if the new network ha fewer singular nodes than the old network, the
+        # if the new network has fewer singular nodes than the old network, the
         # new one is better.
         delta = +Inf
 
@@ -179,7 +179,7 @@ tabu.search = function(x, start, whitelist, blacklist, score, extra.args,
                    debug = debug)
 
     # the value FALSE is the canary value in bestop$op meaning "no operation
-    # improved the network score"; reconsider prevously discarded solutions
+    # improved the network score"; reconsider previously discarded solutions
     # and find the one that causes the minimum decrease in the network score.
     if (bestop$op == FALSE) {
 

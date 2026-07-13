@@ -15,7 +15,7 @@ SEXP arcs, nodes, amat, temp, components;
   /* extract the relevant information from the network. */
   arcs = getListElement(x, "arcs");
   nodes = getListElement(x, "nodes");
-  nodes = getAttrib(nodes, R_NamesSymbol);
+  PROTECT(nodes = getAttrib(nodes, R_NamesSymbol));
   nnodes = length(nodes);
 
   /* contruct the adjacency matrix. */
@@ -47,7 +47,7 @@ SEXP arcs, nodes, amat, temp, components;
 
   }/*FOR*/
 
-  UNPROTECT(2);
+  UNPROTECT(3);
 
   Free2D(buffer, nnodes);
   Free1D(buflen);

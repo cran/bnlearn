@@ -1,7 +1,9 @@
 #include "../include/rcore.h"
 #include "../fitted/fitted.h"
-#include "../minimal/strings.h"
+#include "../include/globals.h"
 #include "../minimal/common.h"
+#include "../minimal/strings.h"
+#include "../sanitization/data.h"
 
 SEXP data_frame_finite(SEXP data) {
 
@@ -81,6 +83,39 @@ SEXP counts, rows, cols, temp;
   return counts;
 
 }/*COUNT_OBSERVED_VALUES*/
+
+/* attach the metadata to a data frame of simulated observations. */
+void add_simulation_metadata(SEXP result, int num) {
+
+int nnodes = length(result), *columns = NULL;
+SEXP metadata, counts, complete, latent;
+
+  PROTECT(metadata = allocVector(VECSXP, 3));
+  setAttrib(metadata, R_NamesSymbol,
+      mkStringVec(3, "type", "complete.nodes", "latent.nodes"));
+
+  /* the data type... */
+  SET_VECTOR_ELT(metadata, 0, data_type(result));
+
+  /* ... and the complete/latent variables. */
+  PROTECT(counts = count_observed_values(result));
+  columns = INTEGER(VECTOR_ELT(counts, 1));
+
+  PROTECT(complete = allocVector(LGLSXP, nnodes));
+  for (int i = 0; i < nnodes; i++)
+    LOGICAL(complete)[i] = (columns[i] == num);
+  SET_VECTOR_ELT(metadata, 1, complete);
+
+  PROTECT(latent = allocVector(LGLSXP, nnodes));
+  for (int i = 0; i < nnodes; i++)
+    LOGICAL(latent)[i] = (columns[i] == 0);
+  SET_VECTOR_ELT(metadata, 2, latent);
+
+  setAttrib(result, BN_MetaDataSymbol, metadata);
+
+  UNPROTECT(4);
+
+}/*ADD_SIMULATION_METADATA*/
 
 SEXP data_type(SEXP data) {
 
@@ -194,10 +229,14 @@ SEXP cur_var, cur_var_levels, cur_var_class;
     cur_node = VECTOR_ELT(fitted, tn[i] - 1);
     cur_node_type = fitted_node_to_enum(cur_node);
 
+    if (cur_node_type == ENOFIT)
+      error("unknown type for node %s.", NODE(i));
+
     switch(TYPEOF(cur_var)) {
 
       case REALSXP:
-        if ((cur_node_type != GNODE) && (cur_node_type != CGNODE))
+        if ((cur_node_type != GNODE) && (cur_node_type != CGNODE) &&
+            (cur_node_type != ZIHPNODE) && (cur_node_type != ZINBNODE))
           error("node %s is discrete but variable %s in the data is continuous.",
             NODE(i), NODE(i));
         break;

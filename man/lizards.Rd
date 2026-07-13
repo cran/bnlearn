@@ -4,7 +4,7 @@
 \title{Lizards' perching behaviour data set}
 \description{
 
-  Real-world data set about the perching behaviour of two species of lizards in
+  Real-world data set on the perching behaviour of two species of lizards in
   the South Bimini island, from Shoener (1968).
 
 }

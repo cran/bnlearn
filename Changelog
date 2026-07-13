@@ -1,3 +1,33 @@
+bnlearn (5.2)
+
+  * assorted fixes to the C code to pass the CRAN tests.
+  * removed the BDLA score.
+  * fast.iamb() is now deprecated and will be removed in 2027.
+  * predict() no longer accepts objects of class "bn.naive" and "bn.tan" that
+     are not also "bn.fit" objects.
+  * implemented zoer-inflated hyper-Poisson and negative binomial networks using
+     EM + IRLS, as an alternative to ZiG-DAG from Choi and Ni (2023) and its
+     really poor numerical stability.
+  * implemented DirectLiNGAM with the adaptive LASSO, using Shimizu's Python
+     implementation as a reference.
+  * added arc list functions alst() and `alst()<-`.
+  * bn.net() no longer produces an error when passed a "bn" object, it just 
+     returns it as is.
+  * added a new S3 class "scm" for structural causal models, mostly for
+     internal use in causal inference functions.
+  * class "scm" has methods as.bn(), nodes(), arcs(), print(), graphviz.plot(),
+     graphviz.compare().
+  * graphviz.compare(..., diff = "from-first") now highlights false positive
+     nodes in the same way as it does for false positive arcs.
+  * rsmax2() now correctly passes tests' optional arguments via "restrict.args".
+  * implemented a perturb() function that applies a set number of random arc
+     operations to a given bn object.
+  * performance and correctness fixes to sid(), which sometimes undercounted
+     errors and sometimes performed redundant path traversals.
+  * predict() now returns the prediction probabilities via the "prob" attribute
+     also from incomplete predictors with the "bayes-lw" and "exact" method
+     (thanks Laura D'Acunto).
+
 bnlearn (5.1)
 
   * the "bdla" score is now deprecated and will be removed in 2026.
@@ -41,7 +71,7 @@ bnlearn (5.1)
      (thanks Laura D'Acunto).
   * added cextend.all(), which returns all possible consistent extensions of
      a CPDAG using Wienobst, Luttermann, Bannach and Liskiewicz (2023).
-  * count.graph(type = "dags-in-equivalence-class") now computes the size of
+  * count.graphs(type = "dags-in-equivalence-class") now computes the size of
      a Markov equivalence class using Wienobst, Luttermann, Bannach and
      Liskiewicz (2023).
   * discretize() now attaches the cutpoints it uses internally to its return
@@ -81,7 +111,7 @@ bnlearn (5.0)
      the log-likelihood threshold to "loglik.threshold".
   * the log-likelihood stopping rule in hard EM now uses the log-likelihood of
      the completed data, which works better in the presence of latent
-     variables and is more appropriate accoridng to Koller & Friedman (thanks
+     variables and is more appropriate according to Koller & Friedman (thanks
      Laura Azzimonti).
   * coefficients(), sigma(), fitted() and residuals() return an error when
      called on bn objects instead of failing silently and returning NULL.
@@ -229,7 +259,7 @@ bnlearn (4.7)
 
 bnlearn (4.6.1)
 
-  * Fixed out-of-bounds memory access in discretize() (thanks Brian Ripley).
+  * fixed out-of-bounds memory access in discretize() (thanks Brian Ripley).
 
 bnlearn (4.6)
 
@@ -394,7 +424,7 @@ bnlearn (4.3)
   * improved sanitization in mutilated(), and updated its documentation.
   * removed the bibTeX file with references, available at www.bnlearn.com.
   * implemented the stable version of the PC algorithm.
-  * added a count.graph() function that implements a number of graph enumeration
+  * added a count.graphs() function that implements a number of graph enumeration
      results useful for studying graphical priors.
   * fixed loss estimation in bn.cv() for non-extendable partially directed
      graphs, now errors are produced instead of returning meaningless results
@@ -425,7 +455,7 @@ bnlearn (4.2)
   * added a BF() function to compute Bayes factors.
   * added a graphviz.compare() function to visually compare network structures.
   * implemented the locally averaged Bayesian Dirichlet score.
-  * custom.strength() now accepts bn.kcv and bn.kcv objects and computes arc
+  * custom.strength() now accepts bn.kcv and bn.kcv.list objects and computes arc
      strengths from the networks learned by bn.cv() in the context of
      cross-validation.
   * fixed multiple bugs in cextend() and cpdag() that could result in the
@@ -462,7 +492,7 @@ bnlearn (4.1)
      Behjati Shahab).
   * added warning about partially direct graphs in choose.direction() and
      improved its debugging output (thanks Wei Kong).
-  * added spouses(), ancestors() and descendats().
+  * added spouses(), ancestors() and descendants().
   * fixed a segfault in predict(..., method = "lw") with discrete BNs and
      sparse CPTs that included NaNs.
 
@@ -481,7 +511,7 @@ bnlearn (4.0)
      numeric tolerance for prior probabilities.
   * allow non-uniform priors for the "mbde" score (thanks Robert Ness)
      and for "bdes".
-  * the "mode" attribute in bn.strength objects it now named "method".
+  * the "mode" attribute in bn.strength objects is now named "method".
   * added posterior probabilities to the predictions for all discrete
      networks (thanks ShangKun Deng).
   * added the Steck's optimal ISS estimator for the BDe(u) score.
@@ -606,7 +636,7 @@ bnlearn (3.6)
   * discretize() returns unordered factors for backward compatibility.
   * added write.dot() to export network structures as DOT files.
   * added mutual information and X^2 tests with adjusted degrees of freedom.
-  * default vstruct() and cpdag() to moral = FALSE (thanks Jean-Baptiste
+  * default vstructs() and cpdag() to moral = FALSE (thanks Jean-Baptiste
      Denis).
   * implemented posterior predictions in predict() using likelihood weighting.
   * prevent silent reuse of AIC penalization coefficient when computing BIC
@@ -639,7 +669,7 @@ bnlearn (3.5)
      and vstructs() to ensure sensible results in model averaging.
   * added more sanity checks in cp{query,dist}() expression parsing
      (thanks Ofer Mendelevitch).
-  * added 'nodes' and 'by.sample' arguments to logLik() for bn.fit objects.
+  * added "nodes" and "by.sample" arguments to logLik() for bn.fit objects.
   * support {naive,tree}.bayes() in bn.cv() (thanks Xin Zhou).
   * fixed predict() for ordinal networks (thanks Vitalie Spinu).
   * fixed zero variance handling in unconditional Jonckheere-Terpstra
@@ -777,10 +807,10 @@ bnlearn (2.9)
      require a .test.counter and should create it as needed.
   * added as.bn() and as.bn.fit() for "grain" objects (from the
      the gRain package) and as.grain() for "bn.fit" objects.
-  * fixed infinte loop in choose.direction().
+  * fixed infinite loop in choose.direction().
   * make choose.direction(..., criterion = "bootstrap") work again.
-  * added an 'every' argument to random.graph() for the 'ic-dag'
-     and 'melancon' algorithms.
+  * added an "every" argument to random.graph() for the "ic-dag"
+     and "melancon" algorithms.
   * shortened the optional arguments for random.graph(...,
      method = "hartemink") to "idisc" and "ibreaks".
 
@@ -789,7 +819,7 @@ bnlearn (2.8)
   * switched "cpdag" to TRUE in {boot,custom}.strength().
   * added a "weights" argument to custom.strength().
   * implemented the modified BDe score handling mixtures of
-      experimental and observational data (mbde).
+      experimental and observational data ("mbde").
   * reimplemented the BGe score for speed (about 20x faster).
   * fixed a buffer overflow in predict() for discrete networks.
   * fixed sanitization in predict() for bn.fit.{d,g}node objects.
@@ -875,7 +905,7 @@ bnlearn (2.2)
       which previously generated an error in Rgraphviz.
   * added a CITATION file.
   * added the narcs() function.
-  * print.bn()'s now supports small(er) line widths.
+  * print.bn() now supports small(er) line widths.
   * added support for "bn.fit" objects in graphviz.plot().
   * added support for changing the line type of arcs in
       graphviz.plot().
@@ -910,7 +940,7 @@ bnlearn (2.0)
   * added support for "bn.fit" objects in rbn().
   * added vstructs() and moral().
   * added the coronary data set.
-  * improved partial correlation resillience to floating point
+  * improved partial correlation resilience to floating point
       errors when dealing with ill-behaved covariance matrices.
   * miscellaneous (small) optimizations in both R and C code.
 
@@ -980,8 +1010,8 @@ bnlearn (1.5)
   * fixed a bug in acyclic() causing false negatives.
   * added bn.fit() for estimating the parameters of a Bayesian
       network conditional on its structure.
-  * mapped some S3 methods (print, fitted, fitted.values,
-      residuals, resid, coefs, coefficients) to objects of
+  * mapped some S3 methods (print(), fitted(), fitted.values(),
+      residuals(), resid(), coefs(), coefficients()) to objects of
       class "bn.fit", "bn.fit.gnode" and "bn.fit.dnode".
   * added some plots for the fitted models based on the
       lattice package.
@@ -1017,7 +1047,7 @@ bnlearn (1.3)
 bnlearn (1.2)
   * added cache.partial.structure() to selectively
       update nodes' cached information stored in
-      'bn' objects.
+      "bn" objects.
   * fixed a bug in cache.structure().
   * reimplemented is.acyclic() in C to fix a bug
       causing false negatives.

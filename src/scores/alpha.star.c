@@ -1,9 +1,9 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
-#include "../minimal/data.frame.h"
-#include "../minimal/common.h"
-#include "../core/sets.h"
 #include "../core/contingency.tables.h"
+#include "../core/sets.h"
+#include "../minimal/common.h"
+#include "../minimal/data.frame.h"
 
 static int deff_node_root(int *n, int llx) {
 
@@ -14,7 +14,7 @@ int i = 0, nonzero = 0;
 
   return nonzero;
 
-}/*DEFF_NODE*/
+}/*DEFF_NODE_ROOT*/
 
 static int deff_node(int **n, int *nj, int llx, int lly) {
 

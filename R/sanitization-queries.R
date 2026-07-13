@@ -11,7 +11,7 @@ check.cpq.args = function(fitted, event, extra.args, method, action) {
         (action == "cpdist") && (method == "lw")) {
 
       extra.args[["batch"]] = NULL
-      warning(" 'batch' will be ignored for speed and memory efficience.")
+      warning(" 'batch' will be ignored for speed and memory efficiency.")
 
     }#THEN
     else {
@@ -46,7 +46,8 @@ check.cpq.args = function(fitted, event, extra.args, method, action) {
 }#CHECK.CPQ.ARGS
 
 # check evidence in list format.
-check.evidence = function(evidence, graph, ideal.only = FALSE) {
+check.evidence = function(evidence, graph, ideal.only = FALSE,
+    counterfactual = FALSE) {
 
   # check whether evidence is there.
   if (missing(evidence))
@@ -57,11 +58,50 @@ check.evidence = function(evidence, graph, ideal.only = FALSE) {
   # check whether evidence is a named list.
   if (!is(evidence, "list"))
     stop("evidence must be a list with elements named after the nodes in the graph.")
-  # check the node labels in evidence.
+  # check the node labels in evidence (disallowing exogenous nodes).
   check.nodes(names(evidence), graph = graph)
+  if (is(graph, "scm"))
+    roles = graph$roles
+  else if (is(graph, "bn"))
+    roles = graph$learning$roles
+  else if (is(graph, "bn.fit"))
+    roles = attr(graph, "roles")
+  else
+    roles = NULL
+
+  if (!is.null(roles))
+    if (any(names(evidence) %in% roles$exogenous))
+      stop("evidence cannot include exogenous nodes.")
+
+  # for counterfactual queries, switch from factual to counterfactual nodes with
+  # a warning (and some manual label switching when lacking better options).
+  if (counterfactual) {
+
+    factual.evidence = intersect(names(evidence), roles$factual)
+    if (length(factual.evidence) > 0) {
+
+      warning("evidence contains factual nodes ",
+              paste(factual.evidence, collapse = " "), ".")
+
+      if (is(graph, "scm")) {
+
+        for (f in factual.evidence)
+          names(evidence)[names(evidence) == f] = graph$nodes[[f]]$counterfactual
+
+      }#THEN
+      else {
+
+        for (f in factual.evidence)
+          names(evidence)[names(evidence) == f] = .ctf(f)
+
+      }#ELSE
+
+    }#THEN
+
+  }#THEN
 
   # nothing else to check without a fitted network.
-  if (is(graph, "bn"))
+  if (is(graph, c("bn", "scm")))
     return(evidence)
 
   # check the evidence is appropriate for the nodes.

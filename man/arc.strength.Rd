@@ -37,8 +37,8 @@ inclusion.threshold(strength)
 \arguments{
   \item{x}{an object of class \code{bn.strength} (for \code{mean()}) or of
     class \code{bn} (for all other functions).}
-  \item{networks}{a list, containing either object of class \code{bn} or arc
-    sets (matrices or data frames with two columns, optionally labeled "from"
+  \item{networks}{a list, containing either objects of class \code{bn} or arc
+    sets (matrices or data frames with two columns, optionally labelled "from"
     and "to"); or an object of class \code{bn.kcv} or \code{bn.kcv.list}
     from \code{bn.cv()}.}
   \item{data}{a data frame containing the data the Bayesian network was
@@ -62,10 +62,10 @@ inclusion.threshold(strength)
     when averaging arc strengths (in \code{mean()}) or network structures (in
     \code{custom.strength()}) to compute strength coefficients. If \code{NULL},
     weights are assumed to be uniform.}
-  \item{cpdag}{a boolean value. If \code{TRUE} the (CPDAG of) the equivalence
+  \item{cpdag}{a boolean value. If \code{TRUE}, the (CPDAG of) the equivalence
     class is used instead of the network structure itself. It should make it
     easier to identify score-equivalent arcs.}
-  \item{shuffle}{a boolean value. If \code{TRUE} the columns in the data are
+  \item{shuffle}{a boolean value. If \code{TRUE}, the columns in the data are
     permuted in each bootstrap sample to enforce the fact that the ordering of
     the variables in the data should be an invariant.}
   \item{algorithm}{a character string, the structure learning algorithm to be
@@ -78,8 +78,8 @@ inclusion.threshold(strength)
     see \code{\link{score}} for details), the conditional independence test
     (currently the only one is \code{B}, the number of permutations). In
     \code{mean()}, additional objects of class \code{bn.strength} to average.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise the function is completely silent.}
 }
 \details{
 
@@ -88,20 +88,21 @@ inclusion.threshold(strength)
 
   If \code{criterion} is a conditional independence test, the strength is a
   p-value (so the lower the value, the stronger the relationship). The
-  conditional independence test would be that to drop the arc from the network.
-  The only two possible additional arguments are \code{alpha}, which sets the
-  significance threshold that is used in \code{strength.plot()}; and \code{B},
-  the number of permutations to be generated for each permutation test.
+  conditional independence test would be that used to drop the arc from the
+  network. The only two possible additional arguments are \code{alpha}, which
+  sets the significance threshold that is used in \code{strength.plot()}; and
+  \code{B}, the number of permutations to be generated for each permutation
+  test.
 
   If \code{criterion} is the label of a score function, the strength is
   measured by the score gain/loss which would be caused by the arc's removal.
   In other words, it is the difference between the score of the network
   in which the arc is not present and the score of the network in which the arc
-  is present. Negative values correspond to decreases in the network score
+  is present. Negative values correspond to decreases in the network score,
   and positive values correspond to increases in the network score (the stronger
   the relationship, the more negative the difference). There may be additional
-  arguments depending on the choice of the score, see \code{\link{score}} for
-  details. The significance threshold is set to \code{0}.
+  arguments depending on choen score, see \code{\link{score}} for details. The
+  significance threshold is set to \code{0}.
 
   \code{boot.strength()} estimates the strength of each arc as its empirical
   frequency over a set of networks learned from bootstrap samples. It computes
@@ -148,7 +149,7 @@ inclusion.threshold(strength)
 }
 \references{
 
-  \bold{for model averaging and boostrap strength (confidence):}
+  \bold{for model averaging and bootstrap strength (confidence):}
 
   Friedman N, Goldszmidt M, Wyner A (1999). "Data Analysis with Bayesian
 	  Networks: A Bootstrap Approach." \emph{Proceedings of the 15th Annual

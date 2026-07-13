@@ -1,6 +1,6 @@
 #include "../../include/rcore.h"
-#include "../../fitted/fitted.h"
 #include "../../core/data.table.h"
+#include "../../fitted/fitted.h"
 
 /* check whether the data are complete for all the local distributions of
  * interest. */

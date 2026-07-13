@@ -32,7 +32,7 @@ match.arcs.and.strengths = function(arcs, nodes, strengths, keep = FALSE) {
 
   return(s)
 
-}#MATCH.ARCS.AND.STRENGTH
+}#MATCH.ARCS.AND.STRENGTHS
 
 # convert an arc strength object to the corresponding line widths for plotting.
 strength2lwd = function(strength, threshold, cutpoints, method, arcs = NULL,

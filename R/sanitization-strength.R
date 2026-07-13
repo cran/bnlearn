@@ -24,36 +24,34 @@ check.customlist = function(custom, nodes) {
 }#CHECK.CUSTOMLIST
 
 # check the list of networks passed to graphviz.compare().
-check.overlapping.customlist = function(custom) {
+check.overlapping.to.compare = function(netlist) {
 
-  objname = deparse(substitute(custom))
-
-  # check that input is a list.
-  if (!is(custom, "list"))
-    stop(objname, " must be a list of objects of class 'bn', 'bn.fit' or of arc sets.")
+  # check out the list contains at least two networks (including the baseline).
+  if (length(netlist) < 2)
+    stop("there should be at least two networks to compare.")
 
   # networks are only required to be overlapping.
-  all.nodes = vector(length(custom), mode = "list")
+  all.nodes = vector(length(netlist), mode = "list")
 
-  for (i in seq_along(custom)) {
+  for (i in seq_along(netlist)) {
 
-    if (is(custom[[i]], c("bn", "bn.fit")))
-      all.nodes[[i]] = .nodes(custom[[i]])
-    else if (is(custom[[i]], "matrix"))
-      all.nodes[[i]] = unique(custom[[i]])
+    if (is(netlist[[i]], c("bn", "bn.fit")))
+      all.nodes[[i]] = .nodes(netlist[[i]])
+    else if (is(netlist[[i]], "matrix"))
+      all.nodes[[i]] = unique(netlist[[i]])
     else
-      stop(objname, "[[", i, "]] is not an object of class 'bn', 'bn.fit' or an arc set.")
+      stop("network ", i, " is not an object of class 'bn', 'bn.fit' or an arc set.")
 
   }#FOR
 
   counts = table(unlist(all.nodes))
 
   if (all(counts < 2))
-    stop(objname, " contains non-overlapping networks.")
+    stop("Some networks have node sets that do not overlap.")
 
   return(names(counts))
 
-}#CHECK.OVERLAPPING.CUSTOMLIST
+}#CHECK.OVERLAPPING.TO.COMPARE
 
 # check an object of class bn.strength.
 check.bn.strength = function(strength, nodes, valid = available.strength.methods) {
@@ -107,7 +105,18 @@ check.bn.strength.vs.bn = function(strength, reference, exact.match = TRUE) {
 }#CHECK.BN.STRENGTH.VS.BN
 
 # sanitize the threshold value.
-check.threshold = function(threshold, strength) {
+check.threshold = function(threshold, network, strength) {
+
+  if (missing(threshold)) {
+
+    if (!missing(network) && network$learning$algo == "averaged")
+      return(network$learning$args$threshold)
+    else if (!missing(strength))
+      return(attr(strength, "threshold"))
+    else
+      stop("either a 'bn' or 'bn.strength' object are required to set the threshold.")
+
+  }#THEN
 
   if (missing(threshold))
     return(attr(strength, "threshold"))

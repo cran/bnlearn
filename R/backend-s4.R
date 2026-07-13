@@ -2,9 +2,10 @@
 # return the nodes in the graph.
 .nodes = function(x) {
 
-  check.bn.or.fit(x)
+  if (missing(x) || !is(x, c("bn", "scm", "bn.fit")))
+    stop("an object of class 'bn', 'scm' or 'bn.fit' is required.")
 
-  if (is(x, "bn"))
+  if (is(x, c("bn", "scm")))
     names(x$nodes)
   else
     names(x)

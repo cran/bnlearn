@@ -31,24 +31,24 @@ graphviz.compare(x, ..., groups, layout = "dot", shape = "rectangle",
   \item{\dots}{extra arguments from the generic method (for \code{all.equal()},
     currently ignored); or a set of one or more objects of class \code{bn}
     (for \code{graphviz.compare}).}
-  \item{wlbl}{a boolean value. If \code{TRUE} arcs whose directions have been
-    fixed by a whitelist or a by blacklist are preserved when constructing
-    the CPDAGs of \code{learned} and \code{true}.}
-  \item{cpdag}{a boolean value. If \code{TRUE} the (CPDAG of) the equivalence
+  \item{wlbl}{a boolean value. If \code{TRUE}, arcs whose directions have been
+    fixed by a whitelist or a blacklist are preserved when constructing the
+    CPDAGs of \code{learned} and \code{true}.}
+  \item{cpdag}{a boolean value. If \code{TRUE}, the (CPDAG of) the equivalence
     class is used instead of the network structures themselves, which is
     more appropriate if either was learned from data.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
   \item{arcs}{a boolean value. See below.}
   \item{x}{an object of class \code{bn}.}
   \item{groups}{a list of character vectors, representing groups of node labels
     of nodes that should be plotted close to each other.}
   \item{layout}{a character string, the layout argument that will be passed to
-    \pkg{Rgraphviz}. Possible values are \code{dots}, \code{neato},
-    \code{twopi}, \code{circo} and \code{fdp}. See \pkg{Rgraphviz}
+    \pkg{Rgraphviz}. Possible values are \code{"dot"}, \code{"neato"},
+    \code{"twopi"}, \code{"circo"} and \code{"fdp"}. See \pkg{Rgraphviz}
     documentation for details.}
-  \item{shape}{a character string, the shape of the nodes. Can be \code{circle},
-    \code{ellipse} or \code{rectangle}.}
+  \item{shape}{a character string, the shape of the nodes. Can be \code{"circle"},
+    \code{"ellipse"} or \code{"rectangle"}.}
   \item{fontsize}{a positive number, the font size for the node labels.}
   \item{main}{a vector of character strings, one for each network. They
     are plotted at the top of the corresponding figure(s).}
@@ -56,32 +56,32 @@ graphviz.compare(x, ..., groups, layout = "dot", shape = "rectangle",
     the bottom of the corresponding figure(s).}
   \item{diff}{a character string, the label of the method used to compare and
     format the figure(s) created by \code{graphviz.compare()}. The default value
-    is \code{from-first}, se below for details.}
+    is \code{"from-first"}, see below for details.}
   \item{diff.args}{a list of optional arguments to control the formatting of
     the figure(s) created by \code{graphviz.compare()}. See below for details.}
 }
 \details{
 
-  \code{graphviz.compare()} can visualize differences between graphs in various
-  way depending on the value of the \code{diff} and \code{diff.args} arguments:
+  \code{graphviz.compare()} can visualise differences between graphs in various
+  ways depending on the value of the \code{diff} and \code{diff.args} arguments:
   \itemize{
 
-    \item \code{none}: differences are not highlighted.
-    \item \code{from-first}: the first \code{bn} object, \code{x}, is taken as
-      the reference network. All the other networks, passed via the \code{\dots}
-      argument, are compared to that first network and their true positive,
-      false positive, false negative arcs relative to that first network are
-      highlighted. Colours, line types and line widths for each category of
-      arcs can be specified as the elements of a list via the \code{diff.args}
-      argument, with names \code{tp.col}, \code{tp.lty}, \code{tp.lwd},
-      \code{fp.col}, \code{fp.lty}, \code{fp.lwd}, \code{fn.col}, \code{fn.lty},
-      \code{tp.lwd}. In addition, it is possible not to plot the reference
-      network at all by setting \code{show.first} to \code{FALSE}.
+    \item \code{"none"}: differences are not highlighted.
+    \item \code{"from-first"}: the first \code{bn} object, \code{x}, is taken as
+    the reference network. All the other networks passed via the \code{\dots}
+    argument are compared to that first network and their true positive, false
+    positive and false negative arcs are highlighted. Colours, line types and
+    line widths for each category of arcs can be specified as the elements of a
+    list via the \code{diff.args} argument, with names \code{tp.col},
+    \code{tp.lty}, \code{tp.lwd}, \code{fp.col}, \code{fp.lty}, \code{fp.lwd},
+    \code{fn.col}, \code{fn.lty}, \code{fn.lwd}. In addition, it is possible not
+    to plot the reference network at all by setting \code{show.first} to
+    \code{FALSE}.
 
   }
 
-  Regardless of the visualization, the nodes are arranged to be in the same
-  position for all the networks to make it easier to compare them.
+  Regardless of the visualisation, the nodes are arranged in the same positions
+  across all networks to make comparison easier.
 
   \code{shd()} computes the Structural Hamming Distance (SHD). Note that SHD, as
   defined in the reference, is defined on CPDAGs; therefore \code{cpdag()} is
@@ -110,7 +110,7 @@ graphviz.compare(x, ..., groups, layout = "dot", shape = "rectangle",
   \code{sid()} returns a vector of non-negative integer numbers, with additional
   attributes describing the distribution over all the evaluated graphs.
 
-  \code{graphviz.compare()} plots one or more figures and returns invisibly a
+  \code{graphviz.compare()} plots one or more figures and invisibly returns a
   list containing the \code{graph} objects generated from the networks that were
   passed as arguments (in the same order). They can be further modified using
   the \pkg{graph} and \pkg{Rgraphviz} packages. Unlike the other functions,

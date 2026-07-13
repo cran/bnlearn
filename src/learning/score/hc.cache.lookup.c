@@ -2,10 +2,10 @@
 #include "../../core/allocations.h"
 #include "../../include/globals.h"
 #include "../../include/graph.h"
-#include "../../scores/scores.h"
 #include "../../include/learning.h"
-#include "../../minimal/strings.h"
 #include "../../math/linear.algebra.h"
+#include "../../minimal/strings.h"
+#include "../../scores/scores.h"
 
 SEXP score_cache_fill(SEXP nodes, SEXP data, SEXP network, SEXP score,
     SEXP extra, SEXP reference, SEXP equivalence, SEXP decomposability,
@@ -125,7 +125,7 @@ there:
 
   return cache;
 
-}/*HC_CACHE_FILL*/
+}/*SCORE_CACHE_FILL*/
 
 /* a single step of the optimized hill climbing (one arc addition/removal/reversal). */
 SEXP hc_opt_step(SEXP amat, SEXP nodes, SEXP added, SEXP cache, SEXP reference,
@@ -439,12 +439,13 @@ SEXP try, result = R_NilValue, result2;
       memset(a + j * dims, '\0', dims * sizeof(int));
 
 #define FLIP_FROM_LIST(list, value) \
+  do { \
   if (!isNull(list)) { \
     if (!isInteger(list)) { \
       PROTECT(try = match(nodes, list, 0)); \
       coords = INTEGER(try); \
       narcs = length(try)/2; \
-      for (i = 0; i < narcs; i++)  \
+      for (i = 0; i < narcs; i++) \
         a[CMC(coords[i] - 1, coords[i + narcs] - 1, dims)] = value; \
       UNPROTECT(1); \
     }/*THEN*/ \
@@ -454,7 +455,8 @@ SEXP try, result = R_NilValue, result2;
         if (coords[i] == 1) \
           a[i] = value; \
     }/*ELSE*/ \
-  }/*THEN*/
+  }/*THEN*/ \
+  } while (0)
 
   /* now the blacklist gets involved. */
   FLIP_FROM_LIST(blacklist, 0);

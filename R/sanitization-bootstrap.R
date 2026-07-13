@@ -49,7 +49,7 @@ check.replicates = function(R, default = 200) {
 
   return(R)
 
-}#CHECK.REiPLICATES
+}#CHECK.REPLICATES
 
 # check the size of bootstrap replicates.
 check.bootsize = function(m, data) {

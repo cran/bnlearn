@@ -16,7 +16,7 @@
   Edwards DI (2000). \emph{Introduction to Graphical Modelling}. Springer, 2nd
     edition.
 
-  Additionally for continuous permutation tests:
+  Additionally, for continuous permutation tests:
 
   Legendre P (2000). "Comparison of Permutation Methods for the Partial
     Correlation and Partial Mantel Tests." \emph{Journal of Statistical
@@ -33,19 +33,18 @@
 
   \itemize{
 
-    \item \emph{mutual information}: an information-theoretic distance measure.
-      It's proportional to the log-likelihood ratio (they differ by a
-      \eqn{2n}{2n} factor) and is related to the deviance of the tested models.
-      The asymptotic \eqn{\chi^2}{chi-square} test (\code{mi} and
-      \code{mi-adf}), the Monte Carlo permutation test (\code{mc-mi}), the
-      sequential Monte Carlo permutation test (\code{smc-mi}), and the
-      semiparametric test (\code{sp-mi}) are implemented. Compared to \code{mi},
-      \code{mi-adf} adjusts the degrees of freedom for structural zeroes and
-      automatically favours independence if there are fewer than 5 observations
-      per parameter.
+    \item \emph{Mutual information}: an information-theoretic distance measure.
+      It's proportional to the log-likelihood ratio (they differ by a factor of
+      \eqn{2n}{2n}) and is related to the deviance of the tested models. The
+      asymptotic \eqn{\chi^2}{chi-square} test (\code{"mi"} and \code{"mi-adf"}),
+      the Monte Carlo permutation test (\code{"mc-mi"}), the sequential Monte
+      Carlo permutation test (\code{"smc-mi"}), and the semiparametric test
+      (\code{"sp-mi"}) are implemented. Compared to \code{"mi"}, \code{"mi-adf"}
+      adjusts the degrees of freedom for structural zeroes and automatically
+      favours independence if there are fewer than 5 observations per parameter.
 
-    \item \emph{shrinkage estimator} for the \emph{mutual information}
-      (\code{mi-sh}): an improved asymptotic \eqn{\chi^2}{chi-square} test
+    \item \emph{Shrinkage estimator} for the \emph{mutual information}
+      (\code{"mi-sh"}): an improved asymptotic \eqn{\chi^2}{chi-square} test
       based on the James-Stein estimator for the mutual information.
 
       Hausser J, Strimmer K (2009). "Entropy Inference and the James-Stein
@@ -55,10 +54,10 @@
 
     \item \emph{Pearson's \eqn{X^2}{X^2}}: the classical Pearson's
       \eqn{X^2}{X^2} test for contingency tables. The asymptotic
-      \eqn{\chi^2}{chi-square} test (\code{x2} and \code{x2-adf}, with adjusted
-      degrees of freedom), the Monte Carlo permutation test (\code{mc-x2}), the
-      sequential Monte Carlo permutation test (\code{smc-x2}) and semiparametric
-      test (\code{sp-x2}) are implemented.
+      \eqn{\chi^2}{chi-square} test (\code{"x2"} and \code{"x2-adf"}, with adjusted
+      degrees of freedom), the Monte Carlo permutation test (\code{"mc-x2"}), the
+      sequential Monte Carlo permutation test (\code{"smc-x2"}) and semiparametric
+      test (\code{"sp-x2"}) are implemented.
 
   }
 
@@ -68,9 +67,9 @@
   \itemize{
 
     \item \emph{Jonckheere-Terpstra}: a trend test for ordinal variables. The
-      asymptotic normal test (\code{jt}), the Monte Carlo permutation test
-      (\code{mc-jt}) and the sequential Monte Carlo permutation test
-      (\code{smc-jt}) are implemented.
+      asymptotic normal test (\code{"jt"}), the Monte Carlo permutation test
+      (\code{"mc-jt"}) and the sequential Monte Carlo permutation test
+      (\code{"smc-jt"}) are implemented.
 
   }
 
@@ -79,28 +78,28 @@
 
   \itemize{
 
-    \item \emph{linear correlation}: Pearson's linear correlation. The exact
-      Student's t test (\code{cor}), the Monte Carlo permutation test
-      (\code{mc-cor}) and the sequential Monte Carlo permutation test
-      (\code{smc-cor}) are implemented.
+    \item \emph{Linear correlation}: Pearson's linear correlation. The exact
+      Student's t test (\code{"cor"}), the Monte Carlo permutation test
+      (\code{"mc-cor"}) and the sequential Monte Carlo permutation test
+      (\code{"smc-cor"}) are implemented.
 
     Hotelling H (1953). "New Light on the Correlation Coefficient and its
       Transforms." \emph{Journal of the Royal Statistical Society: Series B},
       \strong{15}(2):193--225.
 
     \item \emph{Fisher's Z}: a transformation of the linear correlation with
-      asymptotic normal distribution. The asymptotic normal test (\code{zf}),
-      the Monte Carlo permutation test (\code{mc-zf}) and the sequential Monte
-      Carlo permutation test (\code{smc-zf}) are implemented.
+      asymptotic normal distribution. The asymptotic normal test (\code{"zf"}),
+      the Monte Carlo permutation test (\code{"mc-zf"}) and the sequential Monte
+      Carlo permutation test (\code{"smc-zf"}) are implemented.
 
-    \item \emph{mutual information}: an information-theoretic distance measure.
-      Again it is proportional to the log-likelihood ratio (they differ by a
-      \eqn{2n}{2n} factor). The asymptotic \eqn{\chi^2}{chi-square} test
-      (\code{mi-g}), the Monte Carlo permutation test (\code{mc-mi-g}) and the
-      sequential Monte Carlo permutation test (\code{smc-mi-g}) are implemented.
+    \item \emph{Mutual information}: an information-theoretic distance measure.
+      Again, it is proportional to the log-likelihood ratio (they differ by a
+      factor of \eqn{2n}{2n}). The asymptotic \eqn{\chi^2}{chi-square} test
+      (\code{"mi-g"}), the Monte Carlo permutation test (\code{"mc-mi-g"}) and the
+      sequential Monte Carlo permutation test (\code{"smc-mi-g"}) are implemented.
 
-    \item \emph{shrinkage estimator} for the \emph{mutual information}
-      (\code{mi-g-sh}): an improved asymptotic \eqn{\chi^2}{chi-square} test
+    \item \emph{Shrinkage estimator} for the \emph{mutual information}
+      (\code{"mi-g-sh"}): an improved asymptotic \eqn{\chi^2}{chi-square} test
       based on the James-Stein estimator for the mutual information.
 
       Ledoit O, Wolf M (2003). "Improved Estimation of the Covariance Matrix
@@ -109,16 +108,19 @@
 
   }
 
+  No conditional independence tests are available for \emph{zero-inflated
+  Bayesian networks}.
+
   Available conditional independence tests (and the respective labels) for
   \emph{conditional Gaussian Bayesian networks} (mixed discrete and normal
   variables) are:
 
   \itemize{
 
-    \item \emph{mutual information}: an information-theoretic distance measure.
-	  Again it is proportional to the log-likelihood ratio (they differ by a
-	  \eqn{2n}{2n} factor). Only the asymptotic \eqn{\chi^2}{chi-square} test
-	  (\code{mi-cg}) is implemented.
+    \item \emph{Mutual information}: an information-theoretic distance measure.
+	  Again, it is proportional to the log-likelihood ratio (they differ by a
+	  factor of \eqn{2n}{2n}). Only the asymptotic \eqn{\chi^2}{chi-square} test
+	  (\code{"mi-cg"}) is implemented.
 
   }
 

@@ -1,8 +1,8 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
 #include "../core/sets.h"
-#include "../minimal/data.frame.h"
 #include "../minimal/common.h"
+#include "../minimal/data.frame.h"
 #include "scores.h"
 
 /* posterior Dirichlet probability (covers BD and K2 scores). */

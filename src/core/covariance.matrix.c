@@ -1,6 +1,6 @@
 #include "../include/rcore.h"
-#include "allocations.h"
 #include "../math/linear.algebra.h"
+#include "allocations.h"
 #include "covariance.matrix.h"
 
 covariance new_covariance(int dim, bool decomp) {
@@ -50,7 +50,7 @@ void covariance_drop_variable(covariance *full, covariance *sub, int to_drop) {
 
   (*sub).dim = (*full).dim - 1;
 
-}/*COVARIANCE_DROP_COLUMN*/
+}/*COVARIANCE_DROP_VARIABLE*/
 
 void FreeCOV(covariance cov) {
 

@@ -37,12 +37,15 @@ tryMethod = function(f, signature, definition, generic) {
 
       }#FOR
 
+      setMethod("nodes", "scm", where = .GlobalEnv,
+        function(object) .nodes(object))
+
   })
 
   setHook(packageEvent("gRbase", "attach"), action = "append",
     function(...) {
 
-      for (cl in bnlearn.classes) {
+      for (cl in c(bnlearn.classes, "scm")) {
 
         setMethod("nodes", cl, where = .GlobalEnv,
           function(object) .nodes(object))
@@ -80,8 +83,9 @@ tryMethod = function(f, signature, definition, generic) {
   setClass("bn.fit")
   setClass("bn.naive")
   setClass("bn.tan")
+  setClass("scm")
 
-  # add the methods (if no generic is present, create it) .
+  # add the methods (if no generic is present, create it).
   for (cl in bnlearn.classes) {
 
     tryMethod("nodes", cl,
@@ -102,6 +106,11 @@ tryMethod = function(f, signature, definition, generic) {
 
   }#FOR
 
+  # additionally, add the nodes() method for scm objects.
+  tryMethod("nodes", "scm",
+    definition = function(object) .nodes(object),
+    generic = function(object, ...) standardGeneric("nodes"))
+
   # load the shared library.
   library.dynam("bnlearn", package = pkg, lib.loc = lib)
   # initialize stuff at the C level.
@@ -117,5 +126,5 @@ tryMethod = function(f, signature, definition, generic) {
   # unload the shared library.
   library.dynam.unload("bnlearn", libpath = libpath)
 
-}#ON.UNLOAD
+}#.ONUNLOAD
 

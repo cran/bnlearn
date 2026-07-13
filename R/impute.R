@@ -1,7 +1,7 @@
 
 # missing data imputation backend.
 impute.backend = function(fitted, data, cluster = NULL, method, extra.args,
-    debug = FALSE) {
+    restrict.to = NULL, prob = FALSE, debug = FALSE) {
 
   # nothing to do if there are no observations.
   if (nrow(data) == 0)
@@ -23,15 +23,23 @@ impute.backend = function(fitted, data, cluster = NULL, method, extra.args,
 
   imputed = smartSapply(cluster, splits, function(ids) {
     fun(fitted, data = data[ids, , drop = FALSE], extra.args = extra.args,
-        debug = debug)
+        restrict.to = restrict.to, prob = prob, debug = debug)
   })
 
-  if (!is.null(cluster))
+  if (!is.null(cluster)) {
+
+    # rbind() drops attributes; rebuild the prob matrix from the splits first.
+    if (prob)
+      probabilities = do.call("cbind", lapply(imputed, attr, "prob"))
     imputed = do.call("rbind", imputed)
+    if (prob)
+      attr(imputed, "prob") = probabilities
+
+  }#THEN
   else
     imputed = imputed[[1]]
 
-  # ensure that the metadata are upt-to-date.
+  # ensure the metadata are up-to-date (this keeps the "prob" attribute).
   attr(imputed, "metadata") = collect.metadata(imputed)
 
   return(imputed)
@@ -39,7 +47,8 @@ impute.backend = function(fitted, data, cluster = NULL, method, extra.args,
 }#IMPUTE.BACKEND
 
 # missing data imputation with maximum likelihood predictions.
-impute.backend.parents = function(fitted, data, extra.args, debug = FALSE) {
+impute.backend.parents = function(fitted, data, extra.args, restrict.to = NULL,
+    prob = FALSE, debug = FALSE) {
 
   # check the variables in topological order, to ensure parents are complete.
   for (i in topological.ordering(fitted)) {
@@ -70,15 +79,39 @@ impute.backend.parents = function(fitted, data, extra.args, debug = FALSE) {
 
 }#IMPUTE.BACKEND.PARENTS
 
+# collapse the per-observation posteriors into a "prob" matrix.
+collapse.imputation.probabilities = function(probs, node.levels) {
+
+  k = length(node.levels)
+
+  columns = lapply(probs, function(p) {
+
+    column = structure(rep(NA_real_, k), names = node.levels)
+    if (!is.null(p))
+      column[names(p)] = p
+
+    return(column)
+
+  })
+
+  matrix(unlist(columns), nrow = k, ncol = length(probs),
+    dimnames = list(node.levels, NULL))
+
+}#COLLAPSE.IMPUTATION.PROBABILITIES
+
 # missing data imputation with maximum likelihood predictions.
 impute.backend.likelihood.weighting = function(fitted, data, extra.args,
-    restrict.from = NULL, restrict.to = NULL, debug = FALSE) {
+    restrict.from = NULL, restrict.to = NULL, prob = FALSE, debug = FALSE) {
 
   nodes = names(data)
   n = extra.args$n
 
   # if there is no missing value, nothing to do.
   missing = !complete.cases(data)
+
+  # posterior probabilities of the imputed values, one vector per observation.
+  if (prob)
+    probs = vector("list", nrow(data))
 
   for (j in which(missing)) {
 
@@ -98,7 +131,7 @@ impute.backend.likelihood.weighting = function(fitted, data, extra.args,
 
     }#THEN
 
-    # use the obseved part of the observation as the evidence.
+    # use the observed part of the observation as the evidence.
     if (length(from) == 0)
       evidence = TRUE
     else
@@ -136,6 +169,16 @@ impute.backend.likelihood.weighting = function(fitted, data, extra.args,
     if (any(failures))
       estimates[failures] = NA
 
+    # posterior of the single discrete target, from its weighted level counts.
+    if (prob && (length(to) == 1) && is.factor(particles[[to]]) &&
+        !failures[[to]]) {
+
+      counts = tapply(w, particles[[to]], sum)[levels(particles[[to]])]
+      counts[is.na(counts)] = 0
+      probs[[j]] = counts / sum(counts)
+
+    }#THEN
+
     if (debug) {
 
       cat("  > imputed value:", "\n")
@@ -147,24 +190,35 @@ impute.backend.likelihood.weighting = function(fitted, data, extra.args,
 
   }#FOR
 
+  # collapse the per-observation probabilities into the "prob" matrix.
+  if (prob) {
+
+    target.levels = dimnames(fitted[[restrict.to]]$prob)[[1]]
+    attr(data, "prob") =
+      collapse.imputation.probabilities(probs, target.levels)
+
+  }#THEN
+
   return(data)
 
 }#IMPUTE.BACKEND.LIKELIHOOD.WEIGHTING
 
 # missing data imputation with exact inference.
 impute.backend.exact = function(fitted, data, extra.args, restrict.from = NULL,
-    restrict.to = NULL, debug = FALSE) {
+    restrict.to = NULL, prob = FALSE, debug = FALSE) {
 
   if (is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet"))) {
 
     exact.discrete.imputation(fitted = fitted, data = data,
-      restrict.from = restrict.from, restrict.to = restrict.to, debug = debug)
+      restrict.from = restrict.from, restrict.to = restrict.to, prob = prob,
+      debug = debug)
 
   }#THEN
   else if (is(fitted, "bn.fit.gnet")) {
 
     exact.gaussian.imputation(fitted = fitted, data = data,
-      restrict.from = restrict.from, restrict.to = restrict.to, debug = debug)
+      restrict.from = restrict.from, restrict.to = restrict.to, prob = prob,
+      debug = debug)
 
   }#THEN
   else if (is(fitted, "bn.fit.cgnet")) {
@@ -177,7 +231,7 @@ impute.backend.exact = function(fitted, data, extra.args, restrict.from = NULL,
 
 # missing data imputation with junction trees and belief propagation.
 exact.discrete.imputation = function(fitted, data, restrict.from = NULL,
-    restrict.to = NULL, debug = FALSE) {
+    restrict.to = NULL, prob = FALSE, debug = FALSE) {
 
   nodes = names(data)
 
@@ -188,6 +242,10 @@ exact.discrete.imputation = function(fitted, data, restrict.from = NULL,
 
   # for each incomplete observation...
   missing = !complete.cases(data)
+
+  # posterior probabilities of the imputed values, one vector per observation.
+  if (prob)
+    probs = vector("list", nrow(data))
 
   for (j in which(missing)) {
 
@@ -227,8 +285,21 @@ exact.discrete.imputation = function(fitted, data, restrict.from = NULL,
 
       # ... and save the imputed observation back into the data set, if it was
       # possible to compute them at all.
-      if (!is.null(imputed))
+      if (!is.null(imputed)) {
+
         data[j, q$event] = imputed
+
+        # posterior of the single target, reusing the MPE's joint table.
+        if (prob && !is.null(restrict.to) && (length(q$event) == 1) &&
+            (q$event == restrict.to)) {
+
+          posterior = attr(imputed, "prob")
+          probs[[j]] = structure(as.numeric(posterior),
+                         names = dimnames(posterior)[[restrict.to]])
+
+        }#THEN
+
+      }#THEN
 
     }#FOR
 
@@ -241,13 +312,22 @@ exact.discrete.imputation = function(fitted, data, restrict.from = NULL,
 
   }#FOR
 
+  # collapse the per-observation probabilities into the "prob" matrix.
+  if (prob) {
+
+    target.levels = dimnames(fitted[[restrict.to]]$prob)[[1]]
+    attr(data, "prob") =
+      collapse.imputation.probabilities(probs, target.levels)
+
+  }#THEN
+
   return(data)
 
 }#EXACT.DISCRETE.IMPUTATION
 
 # missing data imputation with closed-form Gaussian results.
 exact.gaussian.imputation = function(fitted, data, restrict.from = NULL,
-    restrict.to = NULL, debug = FALSE) {
+    restrict.to = NULL, prob = FALSE, debug = FALSE) {
 
   nodes = names(data)
 

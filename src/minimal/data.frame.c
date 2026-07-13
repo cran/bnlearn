@@ -1,24 +1,23 @@
 #include "../include/rcore.h"
 #include "../fitted/fitted.h"
+#include "common.h"
 #include "data.frame.h"
 #include "strings.h"
-#include "common.h"
 
 /* in-place conversion of a list into a data frame. */
-SEXP minimal_data_frame(SEXP obj) {
+SEXP minimal_data_frame(SEXP obj, int nrows) {
 
-int n = length(VECTOR_ELT(obj, 0));
 int *row = NULL;
 SEXP rownames;
 
   /* generate and set the row names. */
-  if (n > 0) {
+  if (nrows > 0) {
 
     PROTECT(rownames = allocVector(INTSXP, 2));
     row = INTEGER(rownames);
 
     row[0] = NA_INTEGER;
-    row[1] = -n;
+    row[1] = -nrows;
 
   }/*THEN*/
   else {
@@ -39,13 +38,6 @@ SEXP rownames;
 }/*MINIMAL_DATA_FRAME*/
 
 /* efficient column extraction from data frames. */
-SEXP dataframe_column(SEXP dataframe, SEXP name, SEXP drop, SEXP keep_names) {
-
-  return c_dataframe_column(dataframe, name, LOGICAL(drop)[0],
-           LOGICAL(keep_names)[0]);
-
-}/*DATAFRAME_COLUMN*/
-
 SEXP c_dataframe_column(SEXP dataframe, SEXP name, bool drop, bool keep_names) {
 
 SEXP try, result, rownames, colnames = getAttrib(dataframe, R_NamesSymbol);
@@ -79,7 +71,7 @@ int nnames = length(name), name_type = TYPEOF(name);
 
     default:
 
-      error("this SEXP type is not handled in minimal.data.frame.column().");
+      error("this SEXP type is not handled in c_dataframe_column().");
 
   }/*SWITCH*/
 
@@ -91,7 +83,17 @@ int nnames = length(name), name_type = TYPEOF(name);
       SET_VECTOR_ELT(result, i, VECTOR_ELT(dataframe, idx[i] - 1));
 
     /* set the row names. */
-    nrows = length(VECTOR_ELT(dataframe, 0));
+    if (nnames >= 1)
+      nrows = length(VECTOR_ELT(dataframe, 0));
+    else {
+
+      SEXP dim = getAttrib(dataframe, R_RowNamesSymbol);
+      if (isInteger(dim) && length(dim) == 2 && INTEGER(dim)[0] == NA_INTEGER)
+        nrows = abs(INTEGER(dim)[1]);
+      else
+        nrows = length(dim);
+
+    }/*ELSE*/
 
     if (nrows > 0) {
 
@@ -145,6 +147,8 @@ SEXP result, res_levels;
 
     case GNODE:
     case CGNODE:
+    case ZIHPNODE:
+    case ZINBNODE:
 
       return allocVector(REALSXP, n);
 
@@ -196,7 +200,7 @@ SEXP df, nodes;
   /* set the column names. */
   setAttrib(df, R_NamesSymbol, nodes);
   /* add the labels to the return value. */
-  minimal_data_frame(df);
+  minimal_data_frame(df, n);
 
   UNPROTECT(2);
 

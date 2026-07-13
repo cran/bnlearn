@@ -16,20 +16,21 @@ has.path = function(from, to, nodes, amat, exclude.direct = FALSE,
 
 }#HAS.PATH
 
-# convert a set of neighbourhoods into the corresponding arc set.
-mb2arcs = function(mb, nodes) {
+# convert a set of neighbourhoods (markov blankets, neighbours, ...) into the
+# corresponding arc set.
+sets2arcs = function(sets, nodes) {
 
-  empty.mb = sapply(mb, function(x) {(length(x$nbr) == 0) || is.null(x$nbr) || identical(x$nbr, "")})
-  result = do.call(rbind, lapply(nodes[!empty.mb],
-               function(x) { cbind(from = x, to = mb[[x]][['nbr']]) }))
+  empty = sapply(sets, function(x) {(length(x$nbr) == 0) || is.null(x$nbr) || identical(x$nbr, "")})
+  result = do.call(rbind, lapply(nodes[!empty],
+               function(x) { cbind(from = x, to = sets[[x]][['nbr']]) }))
 
-  # return an empty matrix if all markov blankets are empty.
+  # return an empty matrix if all the neighbourhoods are empty.
   if (is.null(result))
     matrix(character(0), ncol = 2, dimnames = list(c(), c("from", "to")))
   else
     result
 
-}#MB2ARCS
+}#SETS2ARCS
 
 # get the root/leaf nodes of a graph.
 root.leaf.nodes = function(x, leaf = FALSE) {
@@ -38,7 +39,7 @@ root.leaf.nodes = function(x, leaf = FALSE) {
         bn = x,
         check = leaf)
 
-}#ROOT.NODES.BACKEND
+}#ROOT.LEAF.NODES
 
 # backend of mb() for bn.fit objects.
 mb.fitted = function(x, node) {
@@ -87,16 +88,26 @@ pdag2dag.backend = function(arcs, ordering) {
 }#PDAG2DAG.BACKEND
 
 # apply random arc operators to the graph.
-perturb.backend = function(network, iter, nodes, amat, whitelist,
-    maxp = Inf, blacklist, debug = FALSE) {
+perturb.backend = function(network, iter, ops = c("set", "drop", "reverse"),
+    nodes, amat, maxp = Inf, whitelist = NULL, blacklist = NULL,
+    debug = FALSE) {
 
   # use a safety copy of the graph.
   new = network
   # remember the nodes whose score has to be recomputed.
   updates = character(0)
 
-  # use a 'for' loop instead of a 'repeat' to avoid the threat of
-  # infinite loops (due to the lack of legal operations).
+  if (debug) {
+
+    if (!is.null(whitelist))
+      cat("  > taking the whitelist into account.\n")
+    if (!is.null(blacklist))
+      cat("  > taking the blacklist into account.\n")
+
+  }#THEN
+
+  # use a 'for' loop instead of a 'repeat' to avoid infinite loops due to the
+  # lack of legal operations.
   for (i in seq_len(3 * iter)) {
 
     # count the parents of each node.
@@ -104,14 +115,15 @@ perturb.backend = function(network, iter, nodes, amat, whitelist,
 
     to.be.added = arcs.to.be.added(amat, nodes, blacklist = blacklist,
                     nparents = nparents, maxp = maxp)
-    to.be.dropped = arcs.to.be.dropped(new$arcs, whitelist)
-    to.be.reversed = arcs.to.be.reversed(new$arcs, blacklist, nparents, maxp)
+    to.be.dropped = arcs.to.be.dropped(new$arcs, whitelist = whitelist)
+    to.be.reversed = arcs.to.be.reversed(new$arcs, blacklist = blacklist,
+                       nparents = nparents, maxp = maxp)
 
     # no more operation to do.
     if (iter == 0) break
 
     # choose which arc operator to use.
-    op = sample(c("set", "drop", "reverse"), 1, replace = TRUE)
+    op = sample(ops, 1, replace = TRUE)
     # choose the arc we apply the operator to.
     if ((op == "set") && (nrow(to.be.added) > 0)) {
 
@@ -226,78 +238,6 @@ colliders.backend = function(x, return.arcs = FALSE, including.shielded = TRUE,
   return(coll)
 
 }#COLLIDERS.BACKEND
-
-# test equality of two graphs (nodes and arcs).
-equal.backend.bn = function(target, current) {
-
-  .Call(call_all_equal_bn,
-        target = target,
-        current = current)
-
-}#EQUAL.BACKEND.BN
-
-# test equality of two fitted networks (structure and parameters).
-equal.backend.fit = function(target, current, tolerance) {
-
-  # check whether the networks have the same structure.
-  same.structure = all.equal(bn.net(target), bn.net(current))
-
-  if (!isTRUE(same.structure))
-    return(same.structure)
-
-  for (node in nodes(target)) {
-
-    # extract the nodes from the structure.
-    tnode = target[[node]]
-    cnode = current[[node]]
-    # check whether the nodes follow the same distribution.
-    target.type = class(tnode)
-    current.type = class(cnode)
-
-    # check whether the parameters of the local distribution are the same.
-    if (target.type != current.type)
-      return(paste("Different distributions for node", node))
-
-    if (target.type %in% c("bn.fit.dnode", "bn.fit.onode")) {
-
-      tprob = tnode$prob
-      cprob = cnode$prob
-
-      # sanity check the target distribution by comparing it to the old one.
-      tprob = check.rvalue.vs.dnode(tprob, cnode)
-
-      # checking that the conditional probability tables are identical.
-      if (!isTRUE(all.equal(tprob, cprob, tolerance = tolerance)))
-        return(paste("Different probabilities for node", node))
-
-    }#THEN
-    else if (target.type %in% c("bn.fit.gnode", "bn.fit.cgnode")) {
-
-      tparams = list(coef = tnode$coefficients, sd = tnode$sd,
-                  dlevels = tnode$dlevels)
-
-      if (target.type == "bn.fit.gnode")
-        tparams = check.rvalue.vs.gnode(tparams, cnode)
-      if (target.type == "bn.fit.cgnode")
-        tparams = check.rvalue.vs.cgnode(tparams, cnode)
-
-      # checking that the regression coefficients are identical.
-      if (!isTRUE(all.equal(tparams$coef, cnode$coefficients, tolerance = tolerance)))
-        return(paste("Different regression coefficients for node", node))
-      # checking that the standard deviations are identical.
-      if (!isTRUE(all.equal(tparams$sd, cnode$sd, tolerance = tolerance)))
-        return(paste("Different standard errors for node", node))
-
-      # do not check fitted values, residuals and configurations, or networks
-      # fitted from different data sets will never be considered equal.
-
-    }#THEN
-
-  }#FOR
-
-  return(TRUE)
-
-}#EQUAL.BACKEND.FIT
 
 # blacklists based on tiers and orderings.
 tiers.backend = function(nodes, debug = FALSE) {

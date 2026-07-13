@@ -90,7 +90,7 @@ auroc.loss = function(observed, probabilities) {
 
   }#AUC
 
-  # if the prediction probabilties are not available, the loss is undefined.
+  # if the prediction probabilities are not available, the loss is undefined.
   if (is.null(probabilities))
     return(NA)
 
@@ -265,7 +265,7 @@ predictive.loss = function(node, fitted, prior = NULL, data, loss,
     pred = predict.backend(fitted = fitted, node = node, data = data,
              prob = TRUE, method = extra.args$predict,
              extra.args = extra.args$predict.args)
-  # ... and extract the prediction probabilites, if available.
+  # ... and extract the prediction probabilities, if available.
   prob = attr(pred, "prob")
   attr(pred, "prob") = NULL
 

@@ -15,7 +15,7 @@ is.real.number = function(x) {
   (length(x) == 1) &&
   is.finite(x)
 
-}#IS.REAL
+}#IS.REAL.NUMBER
 
 # is x a vector of real number?
 is.real.vector = function(x) {
@@ -131,7 +131,7 @@ is.ndmatrix = function(x) {
 
 }#IS.NDMATRIX
 
-# are all numeric values in the data frame fimite?
+# are all numeric values in the data frame finite?
 check.data.frame.finite = function(x) {
 
   .Call(call_data_frame_finite,

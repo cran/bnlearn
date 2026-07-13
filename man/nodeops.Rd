@@ -31,7 +31,7 @@ rename.nodes(x, names)
   \item{object}{an object of class \code{bn} or \code{bn.fit}.}
   \item{node}{a character string, the label of a node.}
   \item{value, names}{a vector of character strings, the new set of labels
-    that wll be used as to rename the nodes.}
+    that will be used to rename the nodes.}
 }
 \details{
 

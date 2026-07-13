@@ -4,10 +4,28 @@
 #include "scores.h"
 
 #define DEBUG_BEFORE() \
+  do { \
   if (debugging) { \
     Rprintf("----------------------------------------------------------------\n"); \
     Rprintf("* processing node %s.\n", CHAR(STRING_ELT(cur, 0))); \
-  }/*THEN*/
+  }/*THEN*/ \
+  } while (0)
+
+/* read the EM controls (maximum iterations, convergence tolerance, M-step type)
+ * for the EM count scores from the extra arguments, falling back to the same
+ * defaults as bn.fit() when an argument is absent. */
+static void get_em_controls(SEXP extra_args, int *em_max_iter, double *em_tol,
+    bool *one_step) {
+
+SEXP mi = getListElement(extra_args, "em.max.iter");
+SEXP tol = getListElement(extra_args, "em.tol");
+SEXP ms = getListElement(extra_args, "m.step");
+
+  *em_max_iter = isNull(mi) ? 100 : asInteger(mi);
+  *em_tol = isNull(tol) ? 1e-8 : asReal(tol);
+  *one_step = !isNull(ms) && (strcmp(CHAR(STRING_ELT(ms, 0)), "one-step") == 0);
+
+}/*GET_EM_CONTROLS*/
 
 /* R frontend: compute the score component for each target node. */
 SEXP per_node_score(SEXP network, SEXP data, SEXP score, SEXP targets,
@@ -36,7 +54,7 @@ void c_per_node_score(SEXP network, SEXP data, SEXP score, SEXP targets,
 int i = 0, ntargets = length(targets), nparents = 0;
 score_e s = score_to_enum(CHAR(STRING_ELT(score, 0)));
 double nparams = 0, k = 0, *gamma = NULL;
-SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
+SEXP cur, iss, prior, beta, exp, nu, iss_w, newdata, custom_fn, custom_args;
 
   /* allocate dummy variable for the current node's label. */
   PROTECT(cur = allocVector(STRSXP, 1));
@@ -265,23 +283,6 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
       }/*FOR*/
       break;
 
-    /* Bayesian Dirichlet equivalent score, locally averaged. */
-    case BDLA:
-
-      prior = getListElement(extra_args, "prior");
-      beta = getListElement(extra_args, "beta");
-      l = getListElement(extra_args, "l");
-
-      for (i = 0; i < ntargets; i++) {
-
-        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
-        DEBUG_BEFORE();
-        res[i] = dirichlet_averaged_node(cur, network, data, l, prior,
-                   beta, FALSE, debugging);
-
-      }/*FOR*/
-      break;
-
     /* discrete predictive log-likelihood. */
     case PRED_LOGLIK:
 
@@ -419,6 +420,95 @@ SEXP cur, iss, prior, beta, exp, l, nu, iss_w, newdata, custom_fn, custom_args;
 
       break;
 
+    /* zero-inflated hyper-Poisson / negative binomial likelihood, estimated by
+     * EM with the GLM components fitted by IRLS. */
+    case LOGLIK_ZIHP:
+    case LOGLIK_ZINB: {
+
+      int em_max_iter = 0;
+      double em_tol = 0;
+      bool one_step = FALSE;
+      glm_family_e family = (s == LOGLIK_ZIHP) ? GLM_HYPERPOISSON : GLM_NEGBIN;
+      get_em_controls(extra_args, &em_max_iter, &em_tol, &one_step);
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = em_irls_node(cur, network, data, NULL, NULL, FALSE, 0,
+                   debugging, em_max_iter, em_tol, one_step, family);
+
+      }/*FOR*/
+
+      break;
+
+    }/*CASE*/
+
+    /* zero-inflated hyper-Poisson / negative binomial penalised likelihood. */
+    case AIC_ZIHP:
+    case BIC_ZIHP:
+    case AIC_ZINB:
+    case BIC_ZINB: {
+
+      int em_max_iter = 0;
+      double em_tol = 0;
+      bool one_step = FALSE;
+      glm_family_e family = (s == AIC_ZIHP || s == BIC_ZIHP) ? GLM_HYPERPOISSON : GLM_NEGBIN;
+      get_em_controls(extra_args, &em_max_iter, &em_tol, &one_step);
+      k = NUM(getListElement(extra_args, "k"));
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = em_irls_node(cur, network, data, NULL, &nparams, FALSE, 0,
+                   debugging, em_max_iter, em_tol, one_step, family);
+        res[i] -= k * nparams;
+
+        if (debugging)
+          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", k, nparams, k * nparams);
+
+      }/*FOR*/
+
+      break;
+
+    }/*CASE*/
+
+    /* zero-inflated hyper-Poisson / negative binomial (node average) likelihood,
+     * penalised or not. */
+    case NAL_ZIHP:
+    case PNAL_ZIHP:
+    case NAL_ZINB:
+    case PNAL_ZINB: {
+
+      int em_max_iter = 0;
+      double em_tol = 0;
+      bool one_step = FALSE;
+      glm_family_e family = (s == NAL_ZIHP || s == PNAL_ZIHP) ? GLM_HYPERPOISSON : GLM_NEGBIN;
+      get_em_controls(extra_args, &em_max_iter, &em_tol, &one_step);
+
+      if (s == PNAL_ZIHP || s == PNAL_ZINB)
+        k = NUM(getListElement(extra_args, "k"));
+      else
+        k = 0;
+
+      for (i = 0; i < ntargets; i++) {
+
+        SET_STRING_ELT(cur, 0, STRING_ELT(targets, i));
+        DEBUG_BEFORE();
+        res[i] = em_irls_node(cur, network, data, NULL, &nparams, TRUE, k,
+                   debugging, em_max_iter, em_tol, one_step, family);
+
+        if (debugging)
+          Rprintf("  > penalty is %lf x %.0lf = %lf.\n", k, nparams, k * nparams);
+
+      }/*FOR*/
+
+      break;
+
+    }/*CASE*/
+
+    /* custom, user-defined score. */
     case CUSTOM:
 
       custom_fn = getListElement(extra_args, "fun");

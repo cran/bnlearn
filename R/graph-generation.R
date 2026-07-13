@@ -61,7 +61,7 @@ ordered.graph = function(num, nodes, prob) {
 
 }#ORDERED.GRAPH
 
-# generate a random directed acyclic graph accordin to a uniform
+# generate a random directed acyclic graph according to a uniform
 # probability distribution over the space of connected graphs (if
 # connected = TRUE) or the space of graphs (if connected = FALSE).
 ide.cozman.graph = function(num, nodes, burn.in, max.in.degree,

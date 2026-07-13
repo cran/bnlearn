@@ -1,23 +1,21 @@
 #include "../../include/rcore.h"
 #include "../../core/allocations.h"
-#include "../../core/sets.h"
-#include "../tests.h"
-#include "../../minimal/data.frame.h"
-#include "../../minimal/strings.h"
-#include "../../minimal/common.h"
-#include "../../include/globals.h"
-#include "../../core/covariance.matrix.h"
 #include "../../core/correlation.h"
+#include "../../core/covariance.matrix.h"
 #include "../../core/data.table.h"
 #include "../../core/math.functions.h"
-#include "../../math/linear.algebra.h"
+#include "../../core/sets.h"
+#include "../../include/globals.h"
+#include "../../minimal/common.h"
+#include "../../minimal/strings.h"
+#include "../tests.h"
 
 void update_pvalue_range(double pvalue, double *min, double *max) {
 
   *min = pvalue < *min ? pvalue : *min;
   *max = pvalue > *max ? pvalue : *max;
 
-}/*UPDATE_PVALUES*/
+}/*UPDATE_PVALUE_RANGE*/
 
 SEXP ast_prepare_retval(double pvalue, double min_pvalue, double max_pvalue,
     double alpha, const char **nodes, int nnodes) {
@@ -51,17 +49,17 @@ SEXP retval, dsep_set;
 }/*AST_PREPARE_RETVAL*/
 
 /* parametric tests for discrete variables. */
-SEXP ast_discrete(ddata dtx, ddata dty, ddata dtz, int nf, int minsize,
+SEXP ast_discrete(tabular dtx, tabular dty, tabular dtz, int nf, int minsize,
     int maxsize, test_e test, double a, bool debugging) {
 
-int *xptr = dtx.col[0], *yptr = dty.col[0], *zptr = NULL, *subset = NULL;
+int *xptr = dtx.dcol[0], *yptr = dty.dcol[0], *zptr = NULL, *subset = NULL;
 int i = 0, cursize = 0, llx = dtx.nlvl[0], lly = dty.nlvl[0], llz = 0;
 double statistic = 0, pvalue = 0, df = 0, min_pvalue = 1, max_pvalue = 0;
 SEXP retval;
-ddata sub = { 0 };
+tabular sub = { 0 };
 
   /* allocate a second data table to hold the conditioning variables. */
-  sub = empty_ddata(dtz.m.nobs, dtz.m.ncols);
+  sub = empty_tabular(dtz.m.nobs, dtz.m.ncols, 0);
   /* allocate the parents' configurations. */
   zptr = Calloc1D(dtz.m.nobs, sizeof(int));
 
@@ -78,9 +76,9 @@ ddata sub = { 0 };
     do {
 
       /* prepare the current subset. */
-      ddata_subset_columns(&dtz, &sub, subset, cursize + nf);
+      tabular_subset_columns(&dtz, &sub, subset, cursize + nf);
       /* construct the parents' configurations. */
-      c_fast_config(sub.col, sub.m.nobs, cursize + nf, sub.nlvl, zptr, &llz, 1);
+      c_fast_config(sub.dcol, sub.m.nobs, cursize + nf, sub.nlvl, zptr, &llz, 1);
 
       if (test == MI || test == MI_ADF || test == X2 || test == X2_ADF) {
 
@@ -128,7 +126,7 @@ ddata sub = { 0 };
 
         Free1D(subset);
         Free1D(zptr);
-        FreeDDT(sub);
+        FreeTAB(sub);
 
         UNPROTECT(1);
         return retval;
@@ -142,25 +140,25 @@ ddata sub = { 0 };
   }/*FOR*/
 
   Free1D(zptr);
-  FreeDDT(sub);
+  FreeTAB(sub);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
 }/*AST_DISCRETE*/
 
 /* parametric tests for Gaussian variables (for complete data). */
-SEXP ast_gaustests_complete(gdata dt, int nf, int minsize, int maxsize,
+SEXP ast_gaustests_complete(tabular dt, int nf, int minsize, int maxsize,
     double a, bool debugging, test_e test) {
 
 int i = 0, cursize = 0, *subset = NULL;
 double statistic = 0, lambda = 0, df = 0;
 double pvalue = 0, min_pvalue = 1, max_pvalue = 0;
 SEXP retval;
-gdata sub = { 0 };
+tabular sub = { 0 };
 covariance cov = { 0 };
 
   /* allocate a second data table to hold the conditioning variables. */
-  sub = empty_gdata(dt.m.nobs, dt.m.ncols);
+  sub = empty_tabular(dt.m.nobs, 0, dt.m.ncols);
   sub.mean = Calloc1D(dt.m.ncols, sizeof(double));
 
   for (cursize = imax(1, minsize); cursize <= maxsize; cursize++) {
@@ -188,7 +186,7 @@ covariance cov = { 0 };
       PROTECT(retval = ast_prepare_retval(pvalue, min_pvalue, max_pvalue,
                          a, dt.m.names + 2, cursize + nf));
 
-      FreeGDT(sub);
+      FreeTAB(sub);
 
       UNPROTECT(1);
       return retval;
@@ -207,9 +205,9 @@ covariance cov = { 0 };
     do {
 
       /* prepare the current subset. */
-      gdata_subset_columns(&dt, &sub, subset, cursize + nf + 2);
+      tabular_subset_columns(&dt, &sub, subset, cursize + nf + 2);
       /* compute the covariance matrix. */
-      c_covmat(sub.col, sub.mean, sub.m.nobs, sub.m.ncols, cov, 0);
+      c_covmat(sub.ccol, sub.mean, sub.m.nobs, sub.m.ncols, cov, 0);
 
       if (test == COR) {
 
@@ -229,7 +227,7 @@ covariance cov = { 0 };
       }/*THEN*/
       else if (test == MI_G_SH) {
 
-        lambda = covmat_lambda(sub.col, sub.mean, cov, sub.m.nobs, NULL,
+        lambda = covmat_lambda(sub.ccol, sub.mean, cov, sub.m.nobs, NULL,
                    sub.m.nobs);
         covmat_shrink(cov, lambda);
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
@@ -268,7 +266,7 @@ covariance cov = { 0 };
 
         Free1D(subset);
         FreeCOV(cov);
-        FreeGDT(sub);
+        FreeTAB(sub);
 
         UNPROTECT(1);
         return retval;
@@ -282,14 +280,14 @@ covariance cov = { 0 };
 
   }/*FOR*/
 
-  FreeGDT(sub);
+  FreeTAB(sub);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
 }/*AST_GAUSTESTS_COMPLETE*/
 
 /* parametric tests for Gaussian variables (for incomplete data). */
-SEXP ast_gaustests_with_missing(gdata dt, int nf, int minsize, int maxsize,
+SEXP ast_gaustests_with_missing(tabular dt, int nf, int minsize, int maxsize,
     double a, bool debugging, test_e test) {
 
 int i = 0, cursize = 0, *subset = NULL, ncomplete = 0;
@@ -298,15 +296,15 @@ double pvalue = 0, min_pvalue = 1, max_pvalue = 0;
 double *mean = NULL;
 bool *missing_xy = NULL, *missing_all = NULL;
 SEXP retval;
-gdata sub = { 0 };
+tabular sub = { 0 };
 covariance cov = { 0 };
 
   /* allocate a second data table to hold the conditioning variables. */
-  sub = empty_gdata(dt.m.nobs, dt.m.ncols);
+  sub = empty_tabular(dt.m.nobs, 0, dt.m.ncols);
   sub.mean = Calloc1D(dt.m.ncols, sizeof(double));
   /* allocate the missingness indicators. */
   missing_xy = Calloc1D(dt.m.nobs, sizeof(bool));
-  gdata_incomplete_cases_range(&dt, missing_xy, 0, 1);
+  tabular_incomplete_cases_range(&dt, missing_xy, 0, -1, 0, 1);
 
   for (cursize = imax(1, minsize); cursize <= maxsize; cursize++) {
 
@@ -326,9 +324,9 @@ covariance cov = { 0 };
     do {
 
       /* prepare the current subset. */
-      gdata_subset_columns(&dt, &sub, subset, cursize + nf + 2);
+      tabular_subset_columns(&dt, &sub, subset, cursize + nf + 2);
       /* compute the covariance matrix. */
-      c_covmat_with_missing(sub.col, sub.m.nobs, sub.m.ncols, missing_xy,
+      c_covmat_with_missing(sub.ccol, sub.m.nobs, sub.m.ncols, missing_xy,
         missing_all, mean, cov.mat, &ncomplete);
 
       /* compute the degrees of freedom for correlation and mutual information. */
@@ -354,7 +352,7 @@ covariance cov = { 0 };
         PROTECT(retval = ast_prepare_retval(pvalue, min_pvalue, max_pvalue,
                            a, dt.m.names + 2, cursize + nf));
 
-        FreeGDT(sub);
+        FreeTAB(sub);
         Free1D(missing_xy);
         Free1D(missing_all);
         Free1D(subset);
@@ -384,7 +382,7 @@ covariance cov = { 0 };
       }/*THEN*/
       else if (test == MI_G_SH) {
 
-        lambda = covmat_lambda(sub.col, mean, cov, sub.m.nobs, missing_all,
+        lambda = covmat_lambda(sub.ccol, mean, cov, sub.m.nobs, missing_all,
                    ncomplete);
         covmat_shrink(cov, lambda);
         statistic = c_fast_pcor(cov, 0, 1, NULL, TRUE);
@@ -423,7 +421,7 @@ covariance cov = { 0 };
 
         Free1D(subset);
         FreeCOV(cov);
-        FreeGDT(sub);
+        FreeTAB(sub);
         Free1D(mean);
         Free1D(missing_xy);
         Free1D(missing_all);
@@ -443,14 +441,14 @@ covariance cov = { 0 };
   }/*FOR*/
 
   Free1D(missing_xy);
-  FreeGDT(sub);
+  FreeTAB(sub);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
 }/*AST_GAUSTESTS_WITH_MISSING*/
 
 /* conditional linear Gaussian test (for complete data). */
-SEXP ast_micg_complete(cgdata dtx, cgdata dty, cgdata dtz, int nf, int minsize,
+SEXP ast_micg_complete(tabular dtx, tabular dty, tabular dtz, int nf, int minsize,
    int maxsize, double a, bool debugging) {
 
 int i = 0, *subset = NULL, cursize = 0;
@@ -458,10 +456,10 @@ int *zptr = NULL, llx = 0, lly = 0, llz = 0;
 double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0, df = 0;
 void *xptr = 0, *yptr = 0;
 SEXP retval;
-cgdata sub = { 0 };
+tabular sub = { 0 };
 
   /* allocate a second data table to hold the conditioning variables. */
-  sub = empty_cgdata(dtz.m.nobs, dtz.ndcols, dtz.ngcols);
+  sub = empty_tabular(dtz.m.nobs, dtz.ndcols, dtz.nccols);
 
   /* if both variables are continuous and all conditioning variables are
    * continuous, the test reverts back to a Gaussian mutual information test. */
@@ -473,24 +471,24 @@ cgdata sub = { 0 };
     lly = dty.nlvl[0];
 
   }/*THEN*/
-  else if (dtx.m.flag[0].gaussian && dty.m.flag[0].gaussian) {
+  else if (dtx.m.flag[0].continuous && dty.m.flag[0].continuous) {
 
-    xptr = dtx.gcol[0];
-    yptr = dty.gcol[0];
+    xptr = dtx.ccol[0];
+    yptr = dty.ccol[0];
 
   }/*THEN*/
-  else if (dtx.m.flag[0].gaussian && dty.m.flag[0].discrete) {
+  else if (dtx.m.flag[0].continuous && dty.m.flag[0].discrete) {
 
-    xptr = dtx.gcol[0];
+    xptr = dtx.ccol[0];
     yptr = dty.dcol[0];
     lly = dty.nlvl[0];
 
   }/*THEN*/
-  else if (dtx.m.flag[0].discrete && dty.m.flag[0].gaussian) {
+  else if (dtx.m.flag[0].discrete && dty.m.flag[0].continuous) {
 
     yptr = dtx.dcol[0];
     lly = dtx.nlvl[0];
-    xptr = dty.gcol[0];
+    xptr = dty.ccol[0];
 
   }/*THEN*/
 
@@ -506,7 +504,7 @@ cgdata sub = { 0 };
     do {
 
       /* prepare the current subset. */
-      cgdata_subset_columns(&dtz, &sub, subset, cursize + nf + 2);
+      tabular_subset_columns(&dtz, &sub, subset, cursize + nf + 2);
 
       /* if there are discrete conditioning variables, compute their
        * configurations. */
@@ -527,12 +525,12 @@ cgdata sub = { 0 };
       if (dtx.m.flag[0].discrete && dty.m.flag[0].discrete) {
 
         /* check whether the conditioning set is valid. */
-        if (sub.ngcols - 1 > 0) {
+        if (sub.nccols - 1 > 0) {
 
           /* need to reverse conditioning to actually compute the test. */
           statistic = 2 * sub.m.nobs * sub.m.nobs *
                         c_cmicg_unroll(xptr, llx, yptr, lly, zptr, llz,
-                          sub.gcol + 1, sub.ngcols - 1, &df, sub.m.nobs);
+                          sub.ccol + 1, sub.nccols - 1, &df, sub.m.nobs);
 
         }/*THEN*/
         else {
@@ -545,11 +543,11 @@ cgdata sub = { 0 };
         }/*ELSE*/
 
       }/*THEN*/
-      else if (dtx.m.flag[0].gaussian && dty.m.flag[0].gaussian) {
+      else if (dtx.m.flag[0].continuous && dty.m.flag[0].continuous) {
 
-        sub.gcol[0] = xptr;
+        sub.ccol[0] = xptr;
         statistic = 2 * sub.m.nobs *
-                      c_cmicg(yptr, sub.gcol, sub.ngcols, NULL, 0, zptr, llz,
+                      c_cmicg(yptr, sub.ccol, sub.nccols, NULL, 0, zptr, llz,
                         sub.nlvl, sub.m.nobs, &df);
 
       }/*THEN*/
@@ -558,7 +556,7 @@ cgdata sub = { 0 };
         sub.dcol[0] = yptr;
         sub.nlvl[0] = lly;
         statistic = 2 * sub.m.nobs *
-          c_cmicg(xptr, sub.gcol + 1, sub.ngcols - 1, sub.dcol, sub.ndcols,
+          c_cmicg(xptr, sub.ccol + 1, sub.nccols - 1, sub.dcol, sub.ndcols,
             zptr, llz, sub.nlvl, sub.m.nobs, &df);
 
       }/*ELSE*/
@@ -587,7 +585,7 @@ cgdata sub = { 0 };
                            a, sub.m.names + 2, sub.m.ncols - 2));
 
         Free1D(subset);
-        FreeCGDT(sub);
+        FreeTAB(sub);
 
         UNPROTECT(1);
         return retval;
@@ -600,37 +598,46 @@ cgdata sub = { 0 };
 
   }/*FOR*/
 
-  FreeCGDT(sub);
+  FreeTAB(sub);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
 }/*AST_MICG_COMPLETE*/
 
 /* conditional linear Gaussian test (for incomplete data). */
-SEXP ast_micg_with_missing(cgdata dtx, cgdata dty, cgdata dtz, int nf,
+SEXP ast_micg_with_missing(tabular dtx, tabular dty, tabular dtz, int nf,
     int minsize, int maxsize, double a, bool debugging) {
 
 int i = 0, *subset = NULL, cursize = 0;
-int *zptr = NULL, llz = 0;
+int *zptr = NULL, llz = 0, *backup_map = NULL;
 double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0, df = 0;
 bool *missing_xy = NULL, *missing_all = NULL;
+flags *backup_flag = NULL;
 SEXP retval;
-cgdata sub = { 0 }, sub_complete = { 0 };
-cgdata dtx_complete = { 0 }, dty_complete = { 0 };
+tabular sub = { 0 }, sub_complete = { 0 };
+tabular dtx_complete = { 0 }, dty_complete = { 0 };
 
   /* allocate a second data table to hold the conditioning variables. */
-  sub = empty_cgdata(dtz.m.nobs, dtz.ndcols, dtz.ngcols);
-  sub_complete = new_cgdata(dtz.m.nobs, dtz.ndcols, dtz.ngcols);
+  sub = empty_tabular(dtz.m.nobs, dtz.ndcols, dtz.nccols);
+  sub_complete = new_tabular(dtz.m.nobs, dtz.ndcols, dtz.nccols);
   sub_complete.m.names = Calloc1D(sub_complete.m.ncols, sizeof(char *));
-  dtx_complete = new_cgdata(dtx.m.nobs, dtx.ndcols, dtx.ngcols);
-  dty_complete = new_cgdata(dty.m.nobs, dty.ndcols, dty.ngcols);
+  /* the subset/subsample operations below overwrite the type flags and the
+   * column map of sub_complete, but FreeTAB() relies on them to free the owned
+   * column buffers allocated by new_tabular(); back them up here so that they
+   * can be restored before each FreeTAB(sub_complete) call. */
+  backup_flag = Calloc1D(sub_complete.m.ncols, sizeof(flags));
+  backup_map = Calloc1D(sub_complete.m.ncols, sizeof(int));
+  memcpy(backup_flag, sub_complete.m.flag, sub_complete.m.ncols * sizeof(flags));
+  memcpy(backup_map, sub_complete.map, sub_complete.m.ncols * sizeof(int));
+  dtx_complete = new_tabular(dtx.m.nobs, dtx.ndcols, dtx.nccols);
+  dty_complete = new_tabular(dty.m.nobs, dty.ndcols, dty.nccols);
 
   /* allocate missingness indicators. */
   missing_xy = Calloc1D(dtz.m.nobs, sizeof(bool));
   missing_all = Calloc1D(dtz.m.nobs, sizeof(bool));
 
-  cgdata_incomplete_cases(&dtx, missing_xy, 0, 0);
-  cgdata_incomplete_cases(&dty, missing_xy, 0, 0);
+  tabular_incomplete_cases(&dtx, missing_xy, 0, 0);
+  tabular_incomplete_cases(&dty, missing_xy, 0, 0);
 
   for (cursize = imax(1, minsize); cursize <= maxsize; cursize++) {
 
@@ -644,14 +651,14 @@ cgdata dtx_complete = { 0 }, dty_complete = { 0 };
     do {
 
       /* extract the variables in the conditioning set ... */
-      cgdata_subset_columns(&dtz, &sub, subset, cursize + nf + 2);
+      tabular_subset_columns(&dtz, &sub, subset, cursize + nf + 2);
       /* ... find out which observations are missing ... */
       memcpy(missing_all, missing_xy, dtz.m.nobs * sizeof(bool));
-      cgdata_incomplete_cases(&sub, missing_all, 1, 1);
+      tabular_incomplete_cases(&sub, missing_all, 1, 1);
       /*  ... and subset the complete data. */
-      cgdata_subsample_by_logical(&sub, &sub_complete, missing_all, 1, 1);
-      cgdata_subsample_by_logical(&dtx, &dtx_complete, missing_all, 0, 0);
-      cgdata_subsample_by_logical(&dty, &dty_complete, missing_all, 0, 0);
+      tabular_subsample_by_logical(&sub, &sub_complete, missing_all, 1, 1);
+      tabular_subsample_by_logical(&dtx, &dtx_complete, missing_all, 0, 0);
+      tabular_subsample_by_logical(&dty, &dty_complete, missing_all, 0, 0);
 
       /* assume independence and return if there are no complete observations. */
       if (sub_complete.m.nobs <= 1) {
@@ -680,14 +687,14 @@ cgdata dtx_complete = { 0 }, dty_complete = { 0 };
       if (dtx.m.flag[0].discrete && dty.m.flag[0].discrete) {
 
         /* check whether the conditioning set is valid. */
-        if (sub_complete.ngcols - 1 > 0) {
+        if (sub_complete.nccols - 1 > 0) {
 
           /* need to reverse conditioning to actually compute the test. */
           statistic = 2 * sub_complete.m.nobs * sub_complete.m.nobs *
                         c_cmicg_unroll(dtx_complete.dcol[0],
                           dtx_complete.nlvl[0], dty_complete.dcol[0],
-                          dty_complete.nlvl[0], zptr, llz, sub_complete.gcol + 1,
-                          sub_complete.ngcols - 1, &df, sub_complete.m.nobs);
+                          dty_complete.nlvl[0], zptr, llz, sub_complete.ccol + 1,
+                          sub_complete.nccols - 1, &df, sub_complete.m.nobs);
 
         }/*THEN*/
         else {
@@ -701,35 +708,35 @@ cgdata dtx_complete = { 0 }, dty_complete = { 0 };
         }/*ELSE*/
 
       }/*THEN*/
-      else if (dtx.m.flag[0].gaussian && dty.m.flag[0].gaussian) {
+      else if (dtx.m.flag[0].continuous && dty.m.flag[0].continuous) {
 
-        memcpy(sub_complete.gcol[0], dtx_complete.gcol[0],
+        memcpy(sub_complete.ccol[0], dtx_complete.ccol[0],
           sub_complete.m.nobs * sizeof(double));
         statistic = 2 * sub_complete.m.nobs *
-                      c_cmicg(dty_complete.gcol[0], sub_complete.gcol,
-                        sub_complete.ngcols, NULL, 0, zptr, llz,
+                      c_cmicg(dty_complete.ccol[0], sub_complete.ccol,
+                        sub_complete.nccols, NULL, 0, zptr, llz,
                         sub_complete.nlvl, sub_complete.m.nobs, &df);
 
       }/*THEN*/
-      else if (dtx.m.flag[0].gaussian && dty.m.flag[0].discrete) {
+      else if (dtx.m.flag[0].continuous && dty.m.flag[0].discrete) {
 
         memcpy(sub_complete.dcol[0], dty_complete.dcol[0],
           sub_complete.m.nobs * sizeof(int));
         sub_complete.nlvl[0] = dty_complete.nlvl[0];
         statistic = 2 * sub_complete.m.nobs *
-          c_cmicg(dtx_complete.gcol[0], sub_complete.gcol + 1,
-            sub_complete.ngcols - 1, sub_complete.dcol, sub_complete.ndcols,
+          c_cmicg(dtx_complete.ccol[0], sub_complete.ccol + 1,
+            sub_complete.nccols - 1, sub_complete.dcol, sub_complete.ndcols,
             zptr, llz, sub_complete.nlvl, sub_complete.m.nobs, &df);
 
       }/*THEN*/
-      else if (dtx.m.flag[0].discrete && dty.m.flag[0].gaussian) {
+      else if (dtx.m.flag[0].discrete && dty.m.flag[0].continuous) {
 
         memcpy(sub_complete.dcol[0], dtx_complete.dcol[0],
           sub_complete.m.nobs * sizeof(int));
         sub_complete.nlvl[0] = dtx_complete.nlvl[0];
         statistic = 2 * sub_complete.m.nobs *
-          c_cmicg(dty_complete.gcol[0], sub_complete.gcol + 1,
-            sub_complete.ngcols - 1, sub_complete.dcol, sub_complete.ndcols,
+          c_cmicg(dty_complete.ccol[0], sub_complete.ccol + 1,
+            sub_complete.nccols - 1, sub_complete.dcol, sub_complete.ndcols,
             zptr, llz, sub_complete.nlvl, sub_complete.m.nobs, &df);
 
       }/*ELSE*/
@@ -762,15 +769,21 @@ exit:
         /* restore the dimensions of sub/sub_complete to avoid memory leaks.*/
         Free1D(subset);
         sub.ndcols = dtz.ndcols;
-        sub.ngcols = dtz.ngcols;
+        sub.nccols = dtz.nccols;
         sub.m.ncols = dtz.m.ncols;
-        FreeCGDT(sub);
+        FreeTAB(sub);
         sub_complete.ndcols = dtz.ndcols;
-        sub_complete.ngcols = dtz.ngcols;
+        sub_complete.nccols = dtz.nccols;
         sub_complete.m.ncols = dtz.m.ncols;
-        FreeCGDT(sub_complete);
-        FreeCGDT(dtx_complete);
-        FreeCGDT(dty_complete);
+        memcpy(sub_complete.m.flag, backup_flag,
+          sub_complete.m.ncols * sizeof(flags));
+        memcpy(sub_complete.map, backup_map,
+          sub_complete.m.ncols * sizeof(int));
+        FreeTAB(sub_complete);
+        FreeTAB(dtx_complete);
+        FreeTAB(dty_complete);
+        Free1D(backup_flag);
+        Free1D(backup_map);
         Free1D(missing_xy);
         Free1D(missing_all);
 
@@ -787,15 +800,20 @@ exit:
 
   /* restore the dimensions of sub/sub_complete to avoid memory leaks.*/
   sub.ndcols = dtz.ndcols;
-  sub.ngcols = dtz.ngcols;
+  sub.nccols = dtz.nccols;
   sub.m.ncols = dtz.m.ncols;
-  FreeCGDT(sub);
+  FreeTAB(sub);
   sub_complete.ndcols = dtz.ndcols;
-  sub_complete.ngcols = dtz.ngcols;
+  sub_complete.nccols = dtz.nccols;
   sub_complete.m.ncols = dtz.m.ncols;
-  FreeCGDT(sub_complete);
-  FreeCGDT(dtx_complete);
-  FreeCGDT(dty_complete);
+  memcpy(sub_complete.m.flag, backup_flag,
+    sub_complete.m.ncols * sizeof(flags));
+  memcpy(sub_complete.map, backup_map, sub_complete.m.ncols * sizeof(int));
+  FreeTAB(sub_complete);
+  FreeTAB(dtx_complete);
+  FreeTAB(dty_complete);
+  Free1D(backup_flag);
+  Free1D(backup_map);
   Free1D(missing_xy);
   Free1D(missing_all);
 
@@ -804,18 +822,18 @@ exit:
 }/*AST_MICG_WITH_MISSING*/
 
 /* discrete permutation tests. */
-SEXP ast_dperm(ddata dtx, ddata dty, ddata dtz, int nf, int minsize,
+SEXP ast_dperm(tabular dtx, tabular dty, tabular dtz, int nf, int minsize,
     int maxsize, double a, test_e type, int nperms, double threshold,
     bool debugging) {
 
-int *xptr = dtx.col[0], *yptr = dty.col[0], *zptr = NULL, *subset = NULL;
+int *xptr = dtx.dcol[0], *yptr = dty.dcol[0], *zptr = NULL, *subset = NULL;
 int i = 0, cursize = 0, llx = dtx.nlvl[0], lly = dty.nlvl[0], llz = 0;
 double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0, df = 0;
 SEXP retval;
-ddata sub = { 0 };
+tabular sub = { 0 };
 
   /* allocate a second data table to hold the conditioning variables. */
-  sub = empty_ddata(dtz.m.nobs, dtz.m.ncols);
+  sub = empty_tabular(dtz.m.nobs, dtz.m.ncols, 0);
   /* allocate the parents' configurations. */
   zptr = Calloc1D(dtz.m.nobs, sizeof(int));
 
@@ -832,9 +850,9 @@ ddata sub = { 0 };
     do {
 
       /* prepare the current subset. */
-      ddata_subset_columns(&dtz, &sub, subset, cursize + nf);
+      tabular_subset_columns(&dtz, &sub, subset, cursize + nf);
       /* construct the parents' configurations. */
-      c_fast_config(sub.col, sub.m.nobs, cursize + nf, sub.nlvl, zptr, &llz, 1);
+      c_fast_config(sub.dcol, sub.m.nobs, cursize + nf, sub.nlvl, zptr, &llz, 1);
 
       c_cmcarlo(xptr, llx, yptr, lly, zptr, llz, sub.m.nobs, nperms, &statistic,
         &pvalue, threshold, type, &df);
@@ -860,7 +878,7 @@ ddata sub = { 0 };
 
         Free1D(subset);
         Free1D(zptr);
-        FreeDDT(sub);
+        FreeTAB(sub);
 
         UNPROTECT(1);
         return retval;
@@ -874,14 +892,14 @@ ddata sub = { 0 };
   }/*FOR*/
 
   Free1D(zptr);
-  FreeDDT(sub);
+  FreeTAB(sub);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 
 }/*AST_DPERM*/
 
 /* continuous permutation tests. */
-SEXP ast_gperm(gdata dt, int nf, int minsize, int maxsize, double a,
+SEXP ast_gperm(tabular dt, int nf, int minsize, int maxsize, double a,
     test_e type, int nperms, double threshold, bool complete, bool debugging) {
 
 int i = 0, j = 0, k = 0, cursize = 0, nc = 0, *subset = NULL;
@@ -889,10 +907,10 @@ double statistic = 0, pvalue = 0, min_pvalue = 1, max_pvalue = 0;
 double **complete_column = NULL;
 bool *missing_xy = NULL, *missing_z = NULL;
 SEXP retval;
-gdata sub = { 0 }, sub_complete = { 0 };
+tabular sub = { 0 }, sub_complete = { 0 };
 
   /* allocate a second data table to hold the conditioning variables. */
-  sub = empty_gdata(dt.m.nobs, dt.m.ncols);
+  sub = empty_tabular(dt.m.nobs, 0, dt.m.ncols);
   sub.mean = Calloc1D(dt.m.ncols, sizeof(double));
 
   if (!complete) {
@@ -900,7 +918,7 @@ gdata sub = { 0 }, sub_complete = { 0 };
     missing_xy = Calloc1D(dt.m.nobs, sizeof(bool));
     missing_z = Calloc1D(dt.m.nobs, sizeof(bool));
 
-    gdata_incomplete_cases_range(&dt, missing_xy, 0, 1);
+    tabular_incomplete_cases_range(&dt, missing_xy, 0, -1, 0, 1);
 
   }/*THEN*/
 
@@ -914,19 +932,19 @@ gdata sub = { 0 }, sub_complete = { 0 };
       subset[i] = i;
 
     if (!complete)
-      sub_complete = new_gdata(dt.m.nobs, cursize + nf + 2);
+      sub_complete = new_tabular(dt.m.nobs, 0, cursize + nf + 2);
 
     /* iterate over subsets. */
     do {
 
       /* prepare the current subset. */
-      gdata_subset_columns(&dt, &sub, subset, cursize + nf + 2);
+      tabular_subset_columns(&dt, &sub, subset, cursize + nf + 2);
 
       if (!complete) {
 
         memset(missing_z, '\0', sizeof(bool) * sub.m.nobs);
-        gdata_incomplete_cases(&sub, missing_z, 2);
-        complete_column = sub_complete.col;
+        tabular_incomplete_cases(&sub, missing_z, 0, 2);
+        complete_column = sub_complete.ccol;
 
         for (k = 0, nc = 0; k < sub.m.nobs; k++) {
 
@@ -934,7 +952,7 @@ gdata sub = { 0 }, sub_complete = { 0 };
             continue;
 
           for (j = 0; j < sub.m.ncols; j++)
-            complete_column[j][nc] = sub.col[j][k];
+            complete_column[j][nc] = sub.ccol[j][k];
           nc++;
 
         }/*FOR*/
@@ -942,7 +960,7 @@ gdata sub = { 0 }, sub_complete = { 0 };
       }/*THEN*/
       else {
 
-        complete_column = sub.col;
+        complete_column = sub.ccol;
         nc = sub.m.nobs;
 
       }/*ELSE*/
@@ -978,8 +996,8 @@ gdata sub = { 0 }, sub_complete = { 0 };
         }/*THEN*/
 
         Free1D(subset);
-        FreeGDT(sub);
-        FreeGDT(sub_complete);
+        FreeTAB(sub);
+        FreeTAB(sub_complete);
 
         UNPROTECT(1);
         return retval;
@@ -988,7 +1006,7 @@ gdata sub = { 0 }, sub_complete = { 0 };
 
     } while (next_subset(subset + nf + 2, cursize, dt.m.ncols - nf - 2, nf + 2));
 
-    FreeGDT(sub_complete);
+    FreeTAB(sub_complete);
     Free1D(subset);
 
   }/*FOR*/
@@ -1000,7 +1018,7 @@ gdata sub = { 0 }, sub_complete = { 0 };
 
   }/*THEN*/
 
-  FreeGDT(sub);
+  FreeTAB(sub);
 
   return ast_prepare_retval(pvalue, min_pvalue, max_pvalue, a, NULL, 0);
 

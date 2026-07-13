@@ -8,7 +8,7 @@ check.label = function(arg, choices, labels, argname, see) {
   if (arg %in% choices)
     return(invisible(NULL))
 
-  # concatenate valid values, optinally with labels.
+  # concatenate valid values, optionally with labels.
   if (missing(labels)) {
 
     choices = paste(paste('"', choices, '"', sep = ""), collapse = ", ")

@@ -1,6 +1,6 @@
 #include "../../include/rcore.h"
-#include "../../include/globals.h"
 #include "../../core/contingency.tables.h"
+#include "../../include/globals.h"
 #include "../tests.h"
 
 static double c_jt_mean(int num, int *ni, int llx);

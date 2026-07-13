@@ -1,12 +1,12 @@
 #include "../../include/rcore.h"
 #include "../../core/allocations.h"
-#include "../../include/graph.h"
-#include "../../include/globals.h"
 #include "../../core/sampling.h"
 #include "../../include/bn.h"
-#include "../../minimal/strings.h"
-#include "../../minimal/common.h"
+#include "../../include/globals.h"
+#include "../../include/graph.h"
 #include "../../math/linear.algebra.h"
+#include "../../minimal/common.h"
+#include "../../minimal/strings.h"
 
 static SEXP bn_base_structure(SEXP nodes, SEXP args, SEXP arcs, SEXP cached,
     double ntests, char *test, char *algo);
@@ -92,13 +92,14 @@ SEXP list, res, args, amat, arcs, cached, null, temp;
   GetRNGstate();
 
 #define ORDERED_AMAT(prob) \
+  do { \
       for (i = 0; i < nnodes; i++) \
         for (j = i + 1; j < nnodes; j++) \
           if (unif_rand() < prob) \
             a[CMC(i, j, nnodes)] = 1; \
           else \
             a[CMC(i, j, nnodes)] = 0; \
-
+  } while (0)
   /* return a list if more than one network is generated. */
   if (*n > 1) {
 
@@ -403,12 +404,14 @@ char *label = (cozman > 0) ? "ic-dag" : "melancon";
   }/*FOR*/
 
 #define UPDATE_NODE_CACHE(cur) \
+  do { \
           if (debugging) \
             Rprintf("  > updating cached information about node %s.\n", NODE(cur)); \
           memset(work, '\0', nnodes * sizeof(int)); \
           PROTECT(temp = cache_node_structure(cur, nodes, a, nnodes, work, FALSE)); \
           SET_VECTOR_ELT(cached, cur, temp); \
-          UNPROTECT(1);
+          UNPROTECT(1); \
+  } while (0)
 
   /* return a list if more than one bn is generated. */
   if (*n > 1) {

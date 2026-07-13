@@ -1,25 +1,25 @@
 #include "../../include/rcore.h"
-#include "../../fitted/fitted.h"
-#include "../../core/data.table.h"
 #include "../../core/allocations.h"
 #include "../../core/contingency.tables.h"
+#include "../../core/data.table.h"
 #include "../../core/math.functions.h"
 #include "../../core/sets.h"
+#include "../../fitted/fitted.h"
 #include "../../math/linear.algebra.h"
 #include "loglikelihood.h"
 
 /* log-likelihood of individual observations for a discrete network. */
-void bysample_discrete_loglikelihood(fitted_bn bn, ddata dt, double *loglik,
+void bysample_discrete_loglikelihood(fitted_bn bn, tabular dt, double *loglik,
     bool debugging) {
 
 int *obs = NULL, *parcfgs = NULL;
 double *cpt = NULL;
 bool locally_complete = FALSE;
-ddata local_data = { 0 };
+tabular local_data = { 0 };
 
   /* allocate a second data table to hold the data that are local to the node's
    * parents. */
-  local_data = empty_ddata(dt.m.nobs, dt.m.ncols);
+  local_data = empty_tabular(dt.m.nobs, dt.m.ncols, 0);
   /* parent configurations to index the parameters in the probability tables. */
   parcfgs = Calloc1D(dt.m.nobs, sizeof(int));
 
@@ -35,7 +35,7 @@ ddata local_data = { 0 };
 
     /* ... get its values from the data and the (conditional) probability table
      * from the network... */
-    obs = dt.col[i];
+    obs = dt.dcol[i];
     cpt = bn.ldists[i].d.cpt;
     locally_complete = dt.m.flag[i].complete;
 
@@ -66,10 +66,10 @@ ddata local_data = { 0 };
     else {
 
       /* ... if the node has parents, extract them from the data... */
-      ddata_subset_columns(&dt, &local_data, bn.ldists[i].parents,
+      tabular_subset_columns(&dt, &local_data, bn.ldists[i].parents,
          bn.ldists[i].nparents);
       /* ... compute their configurations... */
-      c_fast_config(local_data.col, local_data.m.nobs, local_data.m.ncols,
+      c_fast_config(local_data.dcol, local_data.m.nobs, local_data.m.ncols,
           local_data.nlvl, parcfgs, NULL, 0);
 
       for (int k = 0; k < local_data.m.ncols; k++)
@@ -102,19 +102,19 @@ ddata local_data = { 0 };
   }/*FOR*/
 
   Free1D(parcfgs);
-  FreeDDT(local_data);
+  FreeTAB(local_data);
 
 }/*BYSAMPLE_DISCRETE_LOGLIKELIHOOD*/
 
 /* log-likelihood of a whole sample for a discrete network. */
-double data_discrete_loglikelihood(fitted_bn bn, ddata dt, bool propagate,
+double data_discrete_loglikelihood(fitted_bn bn, tabular dt, bool propagate,
     bool debugging) {
 
 int max_nlvls = 0, cumdim = 0, max_cfgs = 0, *parcfgs = NULL;
 double loglik = 0, node_loglik = 0;
 counts1d freq = { 0 };
 counts2d freq2 = { 0 };
-ddata local_data = { 0 };
+tabular local_data = { 0 };
 
   /* if the data contain missing values for the nodes we are considering, and
    * we propagate them, the log-likelihood is necessarily NA. */
@@ -123,7 +123,7 @@ ddata local_data = { 0 };
 
   /* allocate a second data table to hold the data that are local to the node's
    * parents. */
-  local_data = empty_ddata(dt.m.nobs, dt.m.ncols);
+  local_data = empty_tabular(dt.m.nobs, dt.m.ncols, 0);
   /* parent configurations to index the parameters in the probability tables. */
   parcfgs = Calloc1D(dt.m.nobs, sizeof(int));
   /* find out the largest number of levels that a variable can take to bound the
@@ -153,7 +153,7 @@ ddata local_data = { 0 };
 
       /* ... compute the frequencies... */
       resize_1d_table(dt.nlvl[i], &freq);
-      refill_1d_table(dt.col[i], &freq, dt.m.nobs);
+      refill_1d_table(dt.dcol[i], &freq, dt.m.nobs);
 
       /* ... if there are frequencies... */
       if (freq.nobs == 0) {
@@ -178,13 +178,13 @@ ddata local_data = { 0 };
 
       /* ... construct the parent configurations (with a 1-offset to make
        * fill_2d_table() happy)... */
-      ddata_subset_columns(&dt, &local_data, bn.ldists[i].parents,
+      tabular_subset_columns(&dt, &local_data, bn.ldists[i].parents,
          bn.ldists[i].nparents);
-      c_fast_config(local_data.col, local_data.m.nobs, local_data.m.ncols,
+      c_fast_config(local_data.dcol, local_data.m.nobs, local_data.m.ncols,
           local_data.nlvl, parcfgs, &cumdim, 1);
       /* ... compute the frequencies... */
       resize_2d_table(dt.nlvl[i], cumdim, &freq2);
-      refill_2d_table(dt.col[i], parcfgs, &freq2, dt.m.nobs);
+      refill_2d_table(dt.dcol[i], parcfgs, &freq2, dt.m.nobs);
       /* ... if there are usable locally-complete observations... */
       if (freq2.nobs == 0) {
 
@@ -230,7 +230,7 @@ tail_of_the_loop:
   Free1DTAB(freq);
   resize_2d_table(max_nlvls, max_cfgs, &freq2);
   Free2DTAB(freq2);
-  FreeDDT(local_data);
+  FreeTAB(local_data);
 
   return loglik;
 

@@ -1,8 +1,7 @@
 #include "../include/rcore.h"
-#include "../include/bn.h"
-#include "../minimal/strings.h"
-#include "../minimal/common.h"
 #include "../math/linear.algebra.h"
+#include "../minimal/common.h"
+#include "../minimal/strings.h"
 
 /* convert an arc set to an adjacency matrix. */
 SEXP arcs2amat(SEXP arcs, SEXP nodes) {

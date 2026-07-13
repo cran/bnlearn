@@ -18,11 +18,11 @@ graphviz.plot(x, highlight = NULL, groups, layout = "dot",
   \item{groups}{a list of character vectors, representing groups of node labels
     of nodes that should be plotted close to each other.}
   \item{layout}{a character string, the layout argument that will be passed to
-    \pkg{Rgraphviz}. Possible values are \code{dots}, \code{neato},
-    \code{twopi}, \code{circo} and \code{fdp}. See \pkg{Rgraphviz}
+    \pkg{Rgraphviz}. Possible values are \code{"dot"}, \code{"neato"},
+    \code{"twopi"}, \code{"circo"} and \code{"fdp"}. See \pkg{Rgraphviz}
     documentation for details.}
-  \item{shape}{a character string, the shape of the nodes. Can be \code{circle},
-    \code{ellipse} or \code{rectangle}.}
+  \item{shape}{a character string, the shape of the nodes. Can be \code{"circle"},
+    \code{"ellipse"} or \code{"rectangle"}.}
   \item{fontsize}{a positive number, the font size for the node labels.}
   \item{main}{a character string, the main title of the graph. It's plotted at
     the top of the graph.}
@@ -42,7 +42,7 @@ graphviz.plot(x, highlight = NULL, groups, layout = "dot",
     \item \code{nodes}: a character vector, the labels of the nodes to be
       highlighted.
     \item \code{arcs}: the arcs to be highlighted (a two-column matrix, whose
-      columns are labeled \code{from} and \code{to}).
+      columns are labelled \code{from} and \code{to}).
 
   }
 
@@ -66,8 +66,8 @@ graphviz.plot(x, highlight = NULL, groups, layout = "dot",
 
   }
 
-  Note that all these parameters take a single value that is then applied to all
-  nodes and arcs that will be highlighted.
+  Note that all these parameters take a single value, which is then applied to
+  all highlighted nodes and arcs.
 
 }
 \value{

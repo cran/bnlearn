@@ -47,7 +47,7 @@ hill.climbing = function(x, start, whitelist, blacklist, score, extra.args,
     cat("* blacklisted arcs are:\n")
     if (!is.null(blacklist)) print(blacklist)
 
-    # set the metadata of the network; othewise the debugging output is
+    # set the metadata of the network; otherwise the debugging output is
     # confusing and not nearly as informative.
     start$learning$algo = "hc"
     start$learning$ntests = 0

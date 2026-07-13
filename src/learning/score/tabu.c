@@ -3,8 +3,8 @@
 #include "../../include/globals.h"
 #include "../../include/graph.h"
 #include "../../include/learning.h"
-#include "../../minimal/strings.h"
 #include "../../math/linear.algebra.h"
+#include "../../minimal/strings.h"
 
 void tabu_add(double *cache_value, int *ad, int *am, SEXP bestop, SEXP nodes,
     int *nnodes, int *from, int *to, double *max, SEXP tabu_list, int *cur,

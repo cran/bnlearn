@@ -16,7 +16,7 @@ ci.test(x, y, z, data, test, ..., debug = FALSE)
     or a factor object.}
   \item{z}{a vector of character strings (the names of the conditioning
     variables), a numeric vector, a factor object or a data frame. If
-    \code{NULL} an independence test will be executed.}
+    \code{NULL}, an independence test will be executed.}
   \item{data}{a data frame containing the variables to be tested.}
   \item{test}{a character string, the label of the conditional independence
     test to be used in the algorithm. If none is specified, the default test
@@ -26,8 +26,8 @@ ci.test(x, y, z, data, test, ..., debug = FALSE)
     for details.}
   \item{\dots}{optional arguments to be passed to the test specified by
     \code{test}. See below for details.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
 }
 \details{
 
@@ -40,7 +40,7 @@ ci.test(x, y, z, data, test, ..., debug = FALSE)
       for nonparametric permutation tests and \code{100} for semiparametric
       permutation tests.
     \item \code{fun}: the function that computes the conditional independence
-      test in the \code{custom-test} test. \code{fun} must have arguments
+      test in the \code{"custom-test"} test. \code{fun} must have arguments
       \code{x}, \code{y}, \code{z}, \code{data} and \code{args}, in this order;
       in other words, it must have signature \code{function(x, y, z, data,
       args)}. \code{x} and \code{y} will be the labels of the nodes to test for
@@ -50,7 +50,7 @@ ci.test(x, y, z, data, test, ..., debug = FALSE)
       complete data set, with all the variables (a data frame); and \code{args}
       will be a list containing any additional arguments to the test.
     \item \code{args}: a list containing the optional arguments to \code{fun},
-      for tuning \code{custom-test} test functions.
+      for tuning \code{"custom-test"} test functions.
 
   }
 
@@ -59,7 +59,7 @@ ci.test(x, y, z, data, test, ..., debug = FALSE)
 
   An object of class \code{htest} containing the following components:
 
-  \item{statistic}{the value the test statistic.}
+  \item{statistic}{the value of the test statistic.}
   \item{parameter}{the degrees of freedom of the approximate chi-squared or t
     distribution of the test statistic; the number of permutations computed by
     Monte Carlo tests. Semiparametric tests have both.}

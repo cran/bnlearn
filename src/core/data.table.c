@@ -1,8 +1,8 @@
 #include "../include/rcore.h"
+#include "../minimal/common.h"
 #include "allocations.h"
 #include "data.table.h"
 #include "moments.h"
-#include "../minimal/common.h"
 
 /* -------------------- metadata ----------------------------------------- */
 
@@ -123,7 +123,7 @@ void print_meta(meta *m, int i) {
   Rprintf(" [%s%s%s%s%s%s]",
     ((*m).flag[i].own ? "O" : "P"),
     ((*m).flag[i].discrete ? "D" : " "),
-    ((*m).flag[i].gaussian ? "G" : " "),
+    ((*m).flag[i].continuous ? "C" : " "),
     ((*m).flag[i].complete ? "C" : " "),
     ((*m).flag[i].fixed ? "F" : " "),
     ((*m).flag[i].drop ? "D" : " "));
@@ -137,310 +137,14 @@ void FreeMETA(meta *m) {
 
 }/*FREEMETA*/
 
-/* -------------------- discrete data ------------------------------------ */
+/* -------------------- tabular data structure --------------------------- */
 
-ddata ddata_from_SEXP(SEXP df, int offset) {
+/* create a unified data table from an R data frame. */
+tabular tabular_from_SEXP(SEXP df, int doffset, int coffset) {
 
-int i = 0, ncols = length(df);
-SEXP col;
-ddata dt = { 0 };
-
-  /* initialize the object, taking care of the corner case of zero-columns data
-   * frames. */
-  if (ncols == 0)
-    dt = empty_ddata(0, ncols + offset);
-  else
-    dt = empty_ddata(length(VECTOR_ELT(df, 0)), ncols + offset);
-
-  for (i = 0; i < ncols; i++) {
-
-    col = VECTOR_ELT(df, i);
-    dt.col[i + offset] = INTEGER(col);
-    dt.nlvl[i + offset] = NLEVELS(col);
-
-  }/*FOR*/
-
-  return dt;
-
-}/*DDATA_FROM_SEXP*/
-
-ddata empty_ddata(int nobs, int ncols) {
-
-int i = 0;
-ddata dt = { 0 };
-
-  dt.m.nobs = nobs;
-  dt.m.ncols = ncols;
-  dt.col = Calloc1D(ncols, sizeof(int *));
-  dt.nlvl = Calloc1D(ncols, sizeof(int));
-
-  dt.m.flag = Calloc1D(ncols, sizeof(flags));
-  for (i = 0; i < ncols; i++)
-    dt.m.flag[i] = (flags){ .discrete = TRUE, .complete = TRUE, .own = FALSE };
-
-  return dt;
-
-}/*EMPTY_DDATA*/
-
-void print_ddata(ddata dt) {
-
-int i = 0;
-
-  Rprintf("ddata: %dx%d\n", dt.m.nobs, dt.m.ncols);
-
-  for (i = 0; i < dt.m.ncols; i++) {
-
-    print_meta(&(dt.m), i);
-    Rprintf("@%p", (void *)dt.col[i]);
-      Rprintf(" levels: %d", dt.nlvl[i]);
-
-    Rprintf("\n");
-
-  }/*FOR*/
-
-}/*PRINT_DDATA*/
-
-void ddata_drop_flagged(ddata *dt, ddata *copy) {
-
-int i = 0, j = 0;
-
-  /* subset the data. */
-  for (i = 0; i < (*dt).m.ncols; i++) {
-
-    /* do not copy columns marked as to be dropped. */
-    if ((*dt).m.flag[i].drop)
-      continue;
-
-    (*copy).col[j] = (*dt).col[i];
-    (*copy).nlvl[j] = (*dt).nlvl[i];
-    j++;
-
-  }/*FOR*/
-
-  /* subset the metadata. */
-  meta_drop_flagged(&((*dt).m), &((*copy).m));
-
-}/*DDATA_DROP_FLAGGED*/
-
-void ddata_subset_columns(ddata *dt, ddata *copy, int *ids, int nids) {
-
-int i = 0;
-
-  /* subset the data. */
-  for (i = 0; i < nids; i++) {
-
-    (*copy).col[i] = (*dt).col[ids[i]];
-    (*copy).nlvl[i] = (*dt).nlvl[ids[i]];
-
-  }/*FOR*/
-
-  /* subset the metadata. */
-  meta_subset_columns(&((*dt).m), &((*copy).m), ids, nids);
-
-}/*DDATA_SUBSET_COLUMNS*/
-
-/* free a discrete data table. */
-void FreeDDT(ddata dt) {
-
-int i = 0;
-
-  /* free the columns that belong with the struct, and leave the rest alone. */
-  for (i = 0; i < dt.m.ncols; i++)
-    if (dt.m.flag[i].own)
-      Free1D(dt.col[i]);
-  /* free the column pointers, unconditionally. */
-  Free1D(dt.col);
-
-  /* free the numbers of levels and, finally, the meta data. */
-  Free1D(dt.nlvl);
-  FreeMETA(&(dt.m));
-
-}/*FREEDDT*/
-
-/* -------------------- Gaussian data ------------------------------------ */
-
-/* create a data table from Gaussian data. */
-gdata gdata_from_SEXP(SEXP df, int offset) {
-
-int i = 0, ncols = length(df);
-gdata dt = { 0 };
-
-  /* initialize the object, taking care of the corner case of zero-columns data
-   * frames. */
-  if (ncols == 0)
-    dt = empty_gdata(0, ncols + offset);
-  else
-    dt = empty_gdata(length(VECTOR_ELT(df, 0)), ncols + offset);
-
-  for (i = 0; i < ncols; i++)
-    dt.col[i + offset] = REAL(VECTOR_ELT(df, i));
-
-  return dt;
-
-}/*GDATA_FROM_SEXP*/
-
-gdata new_gdata(int nobs, int ncols) {
-
-gdata dt = empty_gdata(nobs, ncols);
-
-  for (int j = 0; j < ncols; j++) {
-
-    dt.col[j] = Calloc1D(nobs, sizeof(double));
-    /* the columns belong with the struct, flag them so that they are freed. */
-    dt.m.flag[j].own = TRUE;
-
-  }/*FOR*/
-
-  return dt;
-
-}/*NEW_GDATA*/
-
-gdata empty_gdata(int nobs, int ncols) {
-
-int i = 0;
-gdata dt = { 0 };
-
-  dt.m.nobs = nobs;
-  dt.m.ncols = ncols;
-  dt.col = Calloc1D(ncols, sizeof(double *));
-
-  dt.m.flag = Calloc1D(ncols, sizeof(flags));
-  for (i = 0; i < ncols; i++)
-    dt.m.flag[i] = (flags){ .gaussian = TRUE, .complete = TRUE, .own = FALSE };
-
-  return dt;
-
-}/*EMPTY_GDATA*/
-
-/* cache the means of the continuous columns. */
-void gdata_cache_means(gdata *dt, int offset) {
-
-  (*dt).mean = Calloc1D((*dt).m.ncols, sizeof(double));
-  c_meanvec((*dt).col, (*dt).mean, (*dt).m.nobs, (*dt).m.ncols, offset);
-
-}/*CACHE_MEANS*/
-
-void print_gdata(gdata dt) {
-
-int i = 0;
-
-  Rprintf("gdata: %dx%d\n", dt.m.nobs, dt.m.ncols);
-
-  for (i = 0; i < dt.m.ncols; i++) {
-
-    print_meta(&(dt.m), i);
-    Rprintf("@%p", (void *)dt.col[i]);
-    if (dt.mean)
-      Rprintf(" mean: %lf", dt.mean[i]);
-
-    Rprintf("\n");
-
-  }/*FOR*/
-
-}/*PRINT_GDATA*/
-
-void gdata_drop_flagged(gdata *dt, gdata *copy) {
-
-int i = 0, k = 0;
-
-  /* subset the data. */
-  for (i = 0; i < (*dt).m.ncols; i++) {
-
-    /* do not copy columns marked as to be dropped. */
-    if ((*dt).m.flag[i].drop)
-      continue;
-
-    (*copy).col[k] = (*dt).col[i];
-    if ((*dt).mean && (*copy).mean)
-      (*copy).mean[k] = (*dt).mean[i];
-    k++;
-
-  }/*FOR*/
-
-  /* subset the metadata. */
-  meta_drop_flagged(&((*dt).m), &((*copy).m));
-
-}/*GDATA_DROP_FLAGGED*/
-
-void gdata_subset_columns(gdata *dt, gdata *copy, int *ids, int nids) {
-
-int i = 0;
-
-  /* subset the data. */
-  for (i = 0; i < nids; i++) {
-
-    (*copy).col[i] = (*dt).col[ids[i]];
-    if ((*dt).mean && (*copy).mean)
-      (*copy).mean[i] = (*dt).mean[ids[i]];
-
-  }/*FOR*/
-
-  /* subset the metadata. */
-  meta_subset_columns(&((*dt).m), &((*copy).m), ids, nids);
-
-}/*GDATA_SUBSET_COLUMNS*/
-
-void gdata_incomplete_cases_range(gdata *dt, bool *indicator, int col_start,
-    int col_end) {
-
-int i = 0, j = 0;
-
-  for (i = 0; i < (*dt).m.nobs; i++)
-    for (j = col_start; j <= col_end; j++)
-      if (ISNAN((*dt).col[j][i])) {
-
-        indicator[i] = TRUE;
-        break;
-
-      }/*THEN*/
-
-}/*GDATA_INCOMPLETE_CASES*/
-
-void gdata_subsample_by_logical(gdata *dt, gdata *copy, bool *indicators,
-    int offset) {
-
-int i = 0, j = 0, k = 0;
-
-  for (j = offset; j < (*dt).m.ncols; j++)
-    for (i = 0, k = 0; i < (*dt).m.nobs; i++)
-      if (!indicators[i])
-        (*copy).col[j][k++] = (*dt).col[j][i];
-
-  meta_copy(&((*dt).m), &((*copy).m));
-  (*copy).m.nobs = k;
-
-  if ((*dt).m.names && (*copy).m.names)
-    for (j = 0; j < (*dt).m.ncols; j++)
-      (*copy).m.names[j] = (*dt).m.names[j];
-
-}/*GDATA_SUBSAMPLE_BY_LOGICAL*/
-
-/* free a Gaussian data table. */
-void FreeGDT(gdata dt) {
-
-int i = 0;
-
-  /* free the columns that belong with the struct, and leave the rest alone. */
-  for (i = 0; i < dt.m.ncols; i++)
-    if (dt.m.flag[i].own)
-      Free1D(dt.col[i]);
-  /* free the column pointers, unconditionally. */
-  Free1D(dt.col);
-
-  /* free the cached means and, finally, the meta data. */
-  Free1D(dt.mean);
-  FreeMETA(&(dt.m));
-
-}/*FREEGDT*/
-
-/* -------------------- conditional Gaussian data ------------------------ */
-
-/* create a data table from conditional Gaussian data. */
-cgdata cgdata_from_SEXP(SEXP df, int doffset, int goffset) {
-
-int i = 0, j = 0, k = 0, nc = 0, nd = 0, ncols = length(df);
+int i = 0, j = 0, k = 0, nc = 0, nd = 0, nrows = 0, ncols = length(df);
 SEXP *vec = NULL;
-cgdata dt = { 0 };
+tabular dt = { 0 };
 
   vec = Calloc1D(ncols, sizeof(SEXP));
 
@@ -456,35 +160,44 @@ cgdata dt = { 0 };
 
   }/*FOR*/
 
-  /* initialize the object, taking care of the corner case of zero-columns data
-   * frames. */
-  if (ncols == 0)
-    dt = empty_cgdata(0, nd + doffset, nc + goffset);
-  else
-    dt = empty_cgdata(length(vec[0]), nd + doffset, nc + goffset);
+  /* initialize, taking care of the corner case of zero-columns data frames. */
+  if (ncols > 0)
+    nrows = length(VECTOR_ELT(df, 0));
+  else {
 
-  for (i = 0; i < goffset; i++) {
+    SEXP dim = getAttrib(df, R_RowNamesSymbol);
+    if (isInteger(dim) && length(dim) == 2 && INTEGER(dim)[0] == NA_INTEGER)
+      nrows = abs(INTEGER(dim)[1]);
+    else
+      nrows = length(dim);
+
+  }/*ELSE*/
+
+  dt = empty_tabular(nrows, nd + doffset, nc + coffset);
+
+  /* reserve the leading continuous and discrete slots (the offsets). */
+  for (i = 0; i < coffset; i++) {
 
     dt.map[i] = i;
-    dt.m.flag[i].gaussian = TRUE;
+    dt.m.flag[i].continuous = TRUE;
 
   }/*FOR*/
 
   for (i = 0; i < doffset; i++) {
 
-    dt.map[i + goffset] = i;
-    dt.m.flag[i + goffset].discrete = TRUE;
+    dt.map[i + coffset] = i;
+    dt.m.flag[i + coffset].discrete = TRUE;
 
   }/*FOR*/
 
-  for (i = 0, j = goffset, k = doffset; i < ncols; i++) {
+  for (i = 0, j = coffset, k = doffset; i < ncols; i++) {
 
     switch(TYPEOF(vec[i])) {
 
       case REALSXP:
-        dt.gcol[j] = REAL(vec[i]);
-        dt.map[i + goffset + doffset] = j;
-        dt.m.flag[i + goffset + doffset].gaussian = TRUE;
+        dt.ccol[j] = REAL(vec[i]);
+        dt.map[i + coffset + doffset] = j;
+        dt.m.flag[i + coffset + doffset].continuous = TRUE;
         j++;
         break;
 
@@ -493,13 +206,13 @@ cgdata dt = { 0 };
         /* save the numbers of levels as well for factors, to iterate over
          * contingency tables, compute configurations and degrees of freedom. */
         dt.nlvl[k] = NLEVELS(vec[i]);
-        dt.map[i + goffset + doffset] = k;
-        dt.m.flag[i + goffset + doffset].discrete = TRUE;
+        dt.map[i + coffset + doffset] = k;
+        dt.m.flag[i + coffset + doffset].discrete = TRUE;
         k++;
         break;
 
       default:
-        error("this SEXP type is not handled in data_table_from_SEXP().");
+        error("this SEXP type is not handled in tabular_from_SEXP().");
 
     }/*SWITCH*/
 
@@ -509,75 +222,86 @@ cgdata dt = { 0 };
 
   return dt;
 
-}/*CGDATA_FROM_SEXP*/
+}/*TABULAR_FROM_SEXP*/
 
-cgdata new_cgdata(int nobs, int dcols, int gcols) {
+/* barebones tabular object (no data or allocated memory, minimal metadata). */
+tabular empty_tabular(int nobs, int dcols, int ccols) {
+
+int i = 0;
+tabular dt = { 0 };
+
+  dt.m.nobs = nobs;
+  dt.m.ncols = dcols + ccols;
+  dt.nccols = ccols;
+  dt.ccol = Calloc1D(ccols, sizeof(double *));
+  dt.ndcols = dcols;
+  dt.dcol = Calloc1D(dcols, sizeof(int *));
+  dt.nlvl = Calloc1D(dcols, sizeof(int));
+  dt.map = Calloc1D(dcols + ccols, sizeof(int));
+
+  dt.m.flag = Calloc1D(dcols + ccols, sizeof(flags));
+  for (i = 0; i < dcols + ccols; i++)
+    dt.m.flag[i] = (flags){ .complete = TRUE, .own = FALSE };
+
+  return dt;
+
+}/*EMPTY_TABULAR*/
+
+/* empty tabular object (with memory allocated to hold data). */
+tabular new_tabular(int nobs, int dcols, int ccols) {
 
 int j = 0;
-cgdata dt = empty_cgdata(nobs, dcols, gcols);
+tabular dt = empty_tabular(nobs, dcols, ccols);
 
   for (j = 0; j < dcols; j++)
     dt.dcol[j] = Calloc1D(nobs, sizeof(int));
-  for (j = 0; j < gcols; j++)
-    dt.gcol[j] = Calloc1D(nobs, sizeof(double));
+  for (j = 0; j < ccols; j++)
+    dt.ccol[j] = Calloc1D(nobs, sizeof(double));
 
   /* the columns belong with the struct, flag them so that they are freed. */
-  for (j = 0; j < dcols + gcols; j++)
+  for (j = 0; j < dcols + ccols; j++)
     dt.m.flag[j].own = TRUE;
 
-  /* map the columns to the pointes, sequentially, starting from the discrete
+  /* map the columns to the pointers, sequentially, starting from the discrete
    * variables. */
   for (j = 0; j < dcols; j++)
     dt.map[j] = j;
-  for (j = 0; j < gcols; j++)
+  for (j = 0; j < ccols; j++)
     dt.map[dcols + j] = j;
 
   /* set the flags for the data types to match the map. */
   for (j = 0; j < dcols; j++) {
 
     dt.m.flag[j].discrete = TRUE;
-    dt.m.flag[j].gaussian = FALSE;
+    dt.m.flag[j].continuous = FALSE;
 
   }/*FOR*/
-  for (j = 0; j < gcols; j++) {
+  for (j = 0; j < ccols; j++) {
 
     dt.m.flag[dcols + j].discrete = FALSE;
-    dt.m.flag[dcols + j].gaussian = TRUE;
+    dt.m.flag[dcols + j].continuous = TRUE;
 
   }/*FOR*/
 
   return dt;
 
-}/*NEW_CGDATA*/
+}/*NEW_TABULAR*/
 
-cgdata empty_cgdata(int nobs, int dcols, int gcols) {
+/* cache the means of the continuous columns. */
+void tabular_cache_means(tabular *dt, int offset) {
 
-int i = 0;
-cgdata dt = { 0 };
+  (*dt).mean = Calloc1D((*dt).nccols, sizeof(double));
+  c_meanvec((*dt).ccol, (*dt).mean, (*dt).m.nobs, (*dt).nccols, offset);
 
-  dt.m.nobs = nobs;
-  dt.m.ncols = dcols + gcols;
-  dt.ngcols = gcols;
-  dt.gcol = Calloc1D(gcols, sizeof(double *));
-  dt.ndcols = dcols;
-  dt.dcol = Calloc1D(dcols, sizeof(int *));
-  dt.nlvl = Calloc1D(dcols, sizeof(int));
-  dt.map = Calloc1D(dcols + gcols, sizeof(int));
+}/*TABULAR_CACHE_MEANS*/
 
-  dt.m.flag = Calloc1D(dcols + gcols, sizeof(flags));
-  for (i = 0; i < dcols + gcols; i++)
-    dt.m.flag[i] = (flags){ .complete = TRUE, .own = FALSE };
-
-  return dt;
-
-}/*EMPTY_CGDATA*/
-
-void print_cgdata(cgdata dt) {
+/* print tabular objects in C code. */
+void print_tabular(tabular dt) {
 
 int i = 0;
 
-  Rprintf("cgdata: %dx%d (%d discrete, %d continuous) \n",
-    dt.m.nobs, dt.m.ncols, dt.ndcols, dt.ngcols);
+  Rprintf("tabular: %dx%d (%d discrete, %d continuous) \n",
+    dt.m.nobs, dt.m.ncols, dt.ndcols, dt.nccols);
 
   for (i = 0; i < dt.m.ncols; i++) {
 
@@ -585,16 +309,22 @@ int i = 0;
 
     if (dt.m.flag[i].discrete)
       Rprintf(" levels: %d", dt.nlvl[dt.map[i]]);
-    else
-      Rprintf("@%p", (void *)dt.gcol[dt.map[i]]);
+    else if (dt.m.flag[i].continuous) {
+
+      Rprintf("@%p", (void *)dt.ccol[dt.map[i]]);
+      if (dt.mean)
+        Rprintf(" mean: %lf", dt.mean[dt.map[i]]);
+
+    }/*THEN*/
 
     Rprintf("\n");
 
   }/*FOR*/
 
-}/*PRINT_CGDATA*/
+}/*PRINT_TABULAR*/
 
-void cgdata_drop_flagged(cgdata *dt, cgdata *copy) {
+/* remove flagged columns from a tabular object. */
+void tabular_drop_flagged(tabular *dt, tabular *copy) {
 
 int i = 0, j = 0, k = 0;
 
@@ -613,9 +343,11 @@ int i = 0, j = 0, k = 0;
       j++;
 
     }/*THEN*/
-    else if ((*dt).m.flag[i].gaussian) {
+    else if ((*dt).m.flag[i].continuous) {
 
-      (*copy).gcol[k] = (*dt).gcol[(*dt).map[i]];
+      (*copy).ccol[k] = (*dt).ccol[(*dt).map[i]];
+      if ((*dt).mean && (*copy).mean)
+        (*copy).mean[k] = (*dt).mean[(*dt).map[i]];
       (*copy).map[j + k] = k;
       k++;
 
@@ -625,14 +357,15 @@ int i = 0, j = 0, k = 0;
 
   /* update the columns counts. */
   (*copy).ndcols = j;
-  (*copy).ngcols = k;
+  (*copy).nccols = k;
 
   /* subset the metadata. */
   meta_drop_flagged(&((*dt).m), &((*copy).m));
 
-}/*CGDATA_DROP_FLAGGED*/
+}/*TABULAR_DROP_FLAGGED*/
 
-void cgdata_subset_columns(cgdata *dt, cgdata *copy, int *ids, int nids) {
+/* copy a subset of columns to a second tabular object. */
+void tabular_subset_columns(tabular *dt, tabular *copy, int *ids, int nids) {
 
 int i = 0, j = 0, k = 0;
 
@@ -647,9 +380,11 @@ int i = 0, j = 0, k = 0;
       j++;
 
     }/*THEN*/
-    else if ((*dt).m.flag[ids[i]].gaussian) {
+    else if ((*dt).m.flag[ids[i]].continuous) {
 
-      (*copy).gcol[k] = (*dt).gcol[(*dt).map[ids[i]]];
+      (*copy).ccol[k] = (*dt).ccol[(*dt).map[ids[i]]];
+      if ((*dt).mean && (*copy).mean)
+        (*copy).mean[k] = (*dt).mean[(*dt).map[ids[i]]];
       (*copy).map[j + k] = k;
       k++;
 
@@ -659,58 +394,71 @@ int i = 0, j = 0, k = 0;
 
   /* update the columns counts. */
   (*copy).ndcols = j;
-  (*copy).ngcols = k;
+  (*copy).nccols = k;
 
   /* subset the metadata. */
   meta_subset_columns(&((*dt).m), &((*copy).m), ids, nids);
 
-}/*CGDATA_SUBSET_COLUMNS*/
+}/*TABULAR_SUBSET_COLUMNS*/
 
-void cgdata_incomplete_cases(cgdata *dt, bool *indicator, int doffset, int goffset) {
+/* flag incomplete cases looking at a subset of columns. */
+void tabular_incomplete_cases_range(tabular *dt, bool *indicator, int dcol_start,
+    int dcol_end, int ccol_start, int ccol_end) {
 
 int i = 0, j = 0;
 
-  for (i = 0; i < (*dt).m.nobs; i++) {
-
-    for (j = doffset; j < (*dt).ndcols; j++)
-      if ((*dt).dcol[j][i] == NA_INTEGER) {
-
+  for (j = dcol_start; j <= dcol_end; j++)
+    for (i = 0; i < (*dt).m.nobs; i++)
+      if ((*dt).dcol[j][i] == NA_INTEGER)
         indicator[i] = TRUE;
-        continue;
 
-      }/*THEN*/
-
-    for (j = goffset; j < (*dt).ngcols; j++)
-      if (ISNAN((*dt).gcol[j][i])) {
-
+  for (j = ccol_start; j <= ccol_end; j++)
+    for (i = 0; i < (*dt).m.nobs; i++)
+      if (ISNAN((*dt).ccol[j][i]))
         indicator[i] = TRUE;
-        continue;
 
-      }/*THEN*/
+}/*TABULAR_INCOMPLETE_CASES_RANGE*/
 
-  }/*FOR*/
+/* flag incomplete cases looking at all columns. */
+void tabular_incomplete_cases(tabular *dt, bool *indicator, int doffset,
+    int coffset) {
 
-}/*CGDATA_INCOMPLETE_CASES*/
+  tabular_incomplete_cases_range(dt, indicator, doffset, (*dt).ndcols - 1,
+    coffset, (*dt).nccols - 1);
 
-void cgdata_subsample_by_logical(cgdata *dt, cgdata *copy, bool *indicators,
-    int doffset, int goffset) {
+}/*TABULAR_INCOMPLETE_CASES*/
+
+/* copy a subset of observations to a second tabular object. */
+void tabular_subsample_by_logical(tabular *dt, tabular *copy, bool *indicators,
+    int doffset, int coffset) {
 
 int j = 0, k = 0, l = 0;
 
-  for (j = goffset; j < (*dt).ngcols; j++)
-    for (l = 0, k = 0; l < (*dt).m.nobs; l++)
-      if (!indicators[l])
-        (*copy).gcol[j][k++] = (*dt).gcol[j][l];
+  if ((*dt).m.ncols == 0) {
 
-  for (j = doffset; j < (*dt).ndcols; j++)
     for (l = 0, k = 0; l < (*dt).m.nobs; l++)
       if (!indicators[l])
-        (*copy).dcol[j][k++] = (*dt).dcol[j][l];
+        k++;
+
+  }/*THEN*/
+  else {
+
+    for (j = coffset; j < (*dt).nccols; j++)
+      for (l = 0, k = 0; l < (*dt).m.nobs; l++)
+        if (!indicators[l])
+          (*copy).ccol[j][k++] = (*dt).ccol[j][l];
+
+    for (j = doffset; j < (*dt).ndcols; j++)
+      for (l = 0, k = 0; l < (*dt).m.nobs; l++)
+        if (!indicators[l])
+          (*copy).dcol[j][k++] = (*dt).dcol[j][l];
+
+  }/*ELSE*/
 
   meta_copy(&((*dt).m), &((*copy).m));
   (*copy).m.nobs = k;
   (*copy).ndcols = (*dt).ndcols;
-  (*copy).ngcols = (*dt).ngcols;
+  (*copy).nccols = (*dt).nccols;
 
   for (j = 0; j < (*dt).ndcols; j++)
     (*copy).nlvl[j] = (*dt).nlvl[j];
@@ -718,13 +466,18 @@ int j = 0, k = 0, l = 0;
   for (j = 0; j < (*dt).m.ncols; j++)
     (*copy).map[j] = (*dt).map[j];
 
+  if ((*dt).mean && (*copy).mean)
+    for (j = 0; j < (*dt).nccols; j++)
+      (*copy).mean[j] = (*dt).mean[j];
+
   if ((*dt).m.names && (*copy).m.names)
     for (j = 0; j < (*dt).m.ncols; j++)
       (*copy).m.names[j] = (*dt).m.names[j];
 
-}/*CGDATA_SUBSAMPLE_BY_LOGICAL*/
+}/*TABULAR_SUBSAMPLE_BY_LOGICAL*/
 
-void FreeCGDT(cgdata dt) {
+/* free all memory used by a tabular object. */
+void FreeTAB(tabular dt) {
 
 int j = 0;
 
@@ -736,19 +489,21 @@ int j = 0;
 
     if (dt.m.flag[j].discrete)
       Free1D(dt.dcol[dt.map[j]]);
-    else if (dt.m.flag[j].gaussian)
-      Free1D(dt.gcol[dt.map[j]]);
+    else if (dt.m.flag[j].continuous)
+      Free1D(dt.ccol[dt.map[j]]);
 
   }/*FOR*/
 
   /* free the column pointers, unconditionally. */
-  Free1D(dt.gcol);
+  Free1D(dt.ccol);
   Free1D(dt.dcol);
 
-  /* free the numbers of levels, the column map and, finally, the meta data. */
+  /* free the cached means, the numbers of levels, the column map and, finally,
+   * the meta data. */
+  Free1D(dt.mean);
   Free1D(dt.nlvl);
   Free1D(dt.map);
   FreeMETA(&(dt.m));
 
-}/*FREECGDT*/
+}/*FREETAB*/
 

@@ -1,10 +1,9 @@
 #include "../include/rcore.h"
-#include "../include/graph.h"
 #include "../core/uppertriangular.h"
-#include "../include/bn.h"
+#include "../include/graph.h"
+#include "../minimal/common.h"
 #include "../minimal/strings.h"
 #include "../minimal/unique.h"
-#include "../minimal/common.h"
 
 /* remove duplicate arcs from the arc set. */
 SEXP unique_arcs(SEXP arcs, SEXP nodes, SEXP warn) {

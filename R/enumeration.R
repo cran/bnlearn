@@ -205,7 +205,7 @@ count.by.roots = function(all.N, k, debug = FALSE) {
   }#FOR
 
   # now create an array containing all the counts for k roots; the counts are
-  # automatically zero if the number of roots is larger than the numnber of
+  # automatically zero if the number of roots is larger than the number of
   # nodes.
   counts = gmp::as.bigz(rep(0, N + 1))
   for (i in seq(from = k, to = N))
@@ -234,7 +234,7 @@ count.all.dags = function(all.N, debug = FALSE) {
     # reset the summation accumulator.
     cumsum = gmp::as.bigz(0)
 
-    # summation in the recusrive formula.
+    # summation in the recursive formula.
     for (k in i:1) {
 
       sign = ifelse((k - 1) %% 2 == 0, +1, -1)
@@ -278,7 +278,7 @@ count.disregarding.one.arc = function(all.N, debug = FALSE) {
     # reset the summation accumulator.
     cumsum = gmp::as.bigz(0)
 
-    # summation in the recusrive formula.
+    # summation in the recursive formula.
     for (k in i:1) {
 
       sign = ifelse((k - 1) %% 2 == 0, +1, -1)

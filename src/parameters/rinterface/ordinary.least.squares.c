@@ -1,9 +1,9 @@
 #include "../../include/rcore.h"
 #include "../../core/allocations.h"
 #include "../../math/linear.algebra.h"
+#include "../../minimal/common.h"
 #include "../../minimal/data.frame.h"
 #include "../../minimal/strings.h"
-#include "../../minimal/common.h"
 
 SEXP gaussian_ols_parameters(SEXP data, SEXP node, SEXP parents, SEXP keep,
     SEXP replace_unidentifiable, SEXP missing) {

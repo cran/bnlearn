@@ -25,11 +25,25 @@ custom.fit.backend = function(x, dist, discrete, ordinal, debug = FALSE) {
 
     }#THEN
 
-    if (is.ndmatrix(dist[[node]])) {
+    # auto-detect the node class from the shape of its parameters:
+    if (is.ndmatrix(dist[[node]]))
+      param.type = "conditional.probability.table"
+    else if (is(dist[[node]], c("lm", "glm", "penfit")))
+      param.type = "gaussian.regression"
+    else if (is.matrix(dist[[node]]$coef))
+      param.type = "conditional.gaussian.regression"
+    else if (all(c("inflation", "intensity", "dispersion") %in% names(dist[[node]])))
+      param.type = "zero.inflated.hyper.poisson"
+    else if (all(c("inflation", "prsucc", "failures") %in% names(dist[[node]])))
+      param.type = "zero.inflated.negative.binomial"
+    else
+      param.type = "gaussian.regression"
 
-      # first self-check the local distribution.
+    if (param.type == "conditional.probability.table") {
+
+      # sanity check the components of the assignment.
       dist[[node]] = check.dnode.rvalue(dist[[node]], node = node)
-      # check thee distribution against that of the parents.
+      # check the distribution against that of the parents.
       dist[[node]] = check.dnode.rvalue.vs.parents(node, new = dist[[node]],
                        parents = fitted[node.parents])
       # store the new CPT in the bn.fit object.
@@ -39,12 +53,39 @@ custom.fit.backend = function(x, dist, discrete, ordinal, debug = FALSE) {
         ifelse(node %in% ordinal, "bn.fit.onode", "bn.fit.dnode")
 
     }#THEN
-    else {
+    else if (param.type == "conditional.gaussian.regression") {
 
       if (node %in% ordinal)
-        stop("node", node, " is set to be ordinal but are not discrete.")
+        stop("node ", node, " is set to be ordinal but is not discrete.")
 
-      # transparently convert regression models' objects.
+      # sanity check the components of the assignment.
+      dist[[node]] = check.cgnode.rvalue(dist[[node]], node = node)
+      # check the assignment against the network structure.
+      dist[[node]] =
+        check.cgnode.rvalue.vs.parents(node, new = dist[[node]],
+          parents = fitted[node.parents])
+
+      # identify discrete and continuous parents and configurations.
+      configs = as.character(seq(from = 0, to = ncol(dist[[node]]$coef) - 1))
+      # identify discrete and continuous parents.
+      fitted[[node]]$dparents = dist[[node]]$dparents
+      fitted[[node]]$gparents = dist[[node]]$gparents
+      # include the levels of the discrete parents.
+      fitted[[node]]$dlevels = dist[[node]]$dlevels
+      # store the new coefficients and standard deviations.
+      fitted[[node]]$coefficients = noattr(dist[[node]]$coef)
+      fitted[[node]]$sd = noattr(dist[[node]]$sd, ok = "names")
+
+      # set the correct class for method dispatch.
+      class(fitted[[node]]) = "bn.fit.cgnode"
+
+    }#THEN
+    else if (param.type == "gaussian.regression") {
+
+      if (node %in% ordinal)
+        stop("node ", node, " is set to be ordinal but is not discrete.")
+
+      # transparently convert regression model objects.
       if (is(dist[[node]], c("lm", "glm", "penfit"))) {
 
         # ordinary least squares, ridge, lasso, and elastic net.
@@ -57,46 +98,54 @@ custom.fit.backend = function(x, dist, discrete, ordinal, debug = FALSE) {
 
       }#THEN
 
-      if (is(dist[[node]]$coef, "matrix")) {
+      # sanity check the components of the assignment.
+      dist[[node]] = check.gnode.rvalue(dist[[node]], node = node)
+      # check the assignment against the network structure.
+      dist[[node]] = check.gnode.rvalue.vs.parents(node, new = dist[[node]],
+                       parents = fitted[node.parents])
+      # store the new coefficients and standard deviations.
+      fitted[[node]]$coefficients = noattr(dist[[node]]$coef, ok = "names")
+      fitted[[node]]$sd = noattr(dist[[node]]$sd)
+      # set the correct class for method dispatch.
+      class(fitted[[node]]) = "bn.fit.gnode"
 
-        # sanity check the components of the assignment.
-        dist[[node]] = check.cgnode.rvalue(dist[[node]], node = node)
-        # sanity check the assignment against the network structure.
-        dist[[node]] =
-          check.cgnode.rvalue.vs.parents(node, new = dist[[node]],
-            parents = fitted[node.parents])
+    }#THEN
+    else if (param.type == "zero.inflated.hyper.poisson") {
 
-        # identify discrete and continuous parents and configurations.
-        configs = as.character(seq(from = 0, to = ncol(dist[[node]]$coef) - 1))
-        # identify discrete and continuous parents.
-        fitted[[node]]$dparents = dist[[node]]$dparents
-        fitted[[node]]$gparents = dist[[node]]$gparents
-        # include the levels of the discrete parents.
-        fitted[[node]]$dlevels = dist[[node]]$dlevels
-        # store the new coefficients and standard deviations.
-        fitted[[node]]$coefficients = noattr(dist[[node]]$coef)
-        fitted[[node]]$sd = noattr(dist[[node]]$sd, ok = "names")
+      if (node %in% ordinal)
+        stop("node ", node, " is set to be ordinal but is not discrete.")
 
-        # set the correct class for method dispatch.
-        class(fitted[[node]]) = "bn.fit.cgnode"
+      # sanity check the components of the assignment.
+      dist[[node]] = check.zihpnode.rvalue(dist[[node]], node = node)
+      # check the assignment against the network structure.
+      dist[[node]] = check.zihpnode.rvalue.vs.parents(node, new = dist[[node]],
+                       parents = fitted[node.parents])
+      # store the new coefficients and standard deviations.
+      fitted[[node]]$inflation = noattr(dist[[node]]$inflation, ok = "names")
+      fitted[[node]]$intensity = noattr(dist[[node]]$intensity, ok = "names")
+      fitted[[node]]$dispersion = noattr(dist[[node]]$dispersion)
+      # set the correct class for method dispatch.
+      class(fitted[[node]]) = "bn.fit.zihpnode"
 
-      }#THEN
-      else {
+    }#THEN
+    else if (param.type == "zero.inflated.negative.binomial") {
 
-        # sanity check the components of the assignment.
-        dist[[node]] = check.gnode.rvalue(dist[[node]], node = node)
-        # sanity check the assignment against the network structure.
-        dist[[node]] = check.gnode.rvalue.vs.parents(node, new = dist[[node]],
-                         parents = fitted[node.parents])
-        # store the new coefficients and standard deviations.
-        fitted[[node]]$coefficients = noattr(dist[[node]]$coef, ok = "names")
-        fitted[[node]]$sd = noattr(dist[[node]]$sd)
-        # set the correct class for method dispatch.
-        class(fitted[[node]]) = "bn.fit.gnode"
+      if (node %in% ordinal)
+        stop("node ", node, " is set to be ordinal but is not discrete.")
 
-      }#ELSE
+      # sanity check the components of the assignment.
+      dist[[node]] = check.zinbnode.rvalue(dist[[node]], node = node)
+      # check the assignment against the network structure.
+      dist[[node]] = check.zinbnode.rvalue.vs.parents(node, new = dist[[node]],
+                       parents = fitted[node.parents])
+      # store the new coefficients and standard deviations.
+      fitted[[node]]$inflation = noattr(dist[[node]]$inflation, ok = "names")
+      fitted[[node]]$prsucc = noattr(dist[[node]]$prsucc, ok = "names")
+      fitted[[node]]$failures = noattr(dist[[node]]$failures)
+      # set the correct class for method dispatch.
+      class(fitted[[node]]) = "bn.fit.zinbnode"
 
-    }#ELSE
+    }#THEN
 
    if (debug)
      cat("  > the node has class", class(fitted[[node]]), ".\n")
@@ -104,25 +153,27 @@ custom.fit.backend = function(x, dist, discrete, ordinal, debug = FALSE) {
   }#FOR
 
   # include fitted values, residuals and configurations if appropriate.
-  fitted = full.spec.backend(fitted, dist)
+  fitted = bn.fitted.data.values(fitted, dist)
   # guess the correct secondary class ("bn.fit.*net") and return.
   return(structure(fitted, class = c("bn.fit", determine.fitted.class(fitted))))
 
 }#CUSTOM.FIT.BACKEND
 
 # check whether to include fitted values, residuals and configurations.
-full.spec.backend = function(fitted, dist) {
+bn.fitted.data.values = function(fitted, dist) {
 
   nodes.class = sapply(fitted, class)
-  gnodes = names(nodes.class[nodes.class == "bn.fit.gnode"])
-  cgnodes = names(nodes.class[nodes.class == "bn.fit.cgnode"])
-  both = c(gnodes, cgnodes)
+  gnodes = names(which(nodes.class == "bn.fit.gnode"))
+  cgnodes = names(which(nodes.class == "bn.fit.cgnode"))
+  zihpnodes = names(which(nodes.class == "bn.fit.zihpnode"))
+  zinbnodes = names(which(nodes.class == "bn.fit.zinbnode"))
+  has.values = c(gnodes, cgnodes, zihpnodes, zinbnodes)
 
-  if (length(both) > 0) {
+  if (length(has.values) > 0) {
 
     # check whether there is a coherent set of fitted values and residuals.
-    nresid = unique(sapply(dist[both], function(n) length(n$resid)))
-    nfitted = unique(sapply(dist[both], function(n) length(n$fitted)))
+    nresid = unique(sapply(dist[has.values], function(n) length(n$resid)))
+    nfitted = unique(sapply(dist[has.values], function(n) length(n$fitted)))
     nconfig = unique(sapply(dist[cgnodes], function(n) length(n$configs)))
 
     # all nodes must have residuals and fitted values of the same length.
@@ -140,7 +191,7 @@ full.spec.backend = function(fitted, dist) {
   }#THEN
 
   # cross-check distributions for consistency and populate the bn.fit object.
-  for (node in both) {
+  for (node in has.values) {
 
     if (node %in% cgnodes) {
 
@@ -172,28 +223,33 @@ full.spec.backend = function(fitted, dist) {
 
   return(fitted)
 
-}#FULL.SPEC.BACKEND
+}#BN.FITTED.DATA.VALUES
 
-# return the corect class based on the node classes.
+# determining the network class from the node classes.
 determine.fitted.class = function(fitted) {
 
   nnodes = length(fitted)
 
-  # retrieve and classify node classes.
+  # retrieve and categorize node classes.
   node.classes = factor(sapply(fitted, class), levels = fitted.node.types)
   # count occurrences of each class.
   nct = table(node.classes)
-
+  # scan through valid node class combinations.
   if (nct["bn.fit.dnode"] == nnodes)
     return("bn.fit.dnet")
   else if (nct["bn.fit.onode"] == nnodes)
     return("bn.fit.onet")
+  else if (sum(nct[c("bn.fit.dnode", "bn.fit.onode")]) == nnodes)
+    return("bn.fit.donet")
   else if (nct["bn.fit.gnode"] == nnodes)
     return("bn.fit.gnet")
-  else if ((nct["bn.fit.gnode"] == 0) && (nct["bn.fit.cgnode"] == 0))
-    return("bn.fit.donet")
-  else
+  else if (sum(nct[c("bn.fit.gnode", "bn.fit.dnode", "bn.fit.onode",
+                     "bn.fit.cgnode")]) == nnodes)
     return("bn.fit.cgnet")
+  else if ((nct["bn.fit.zihpnode"] + nct["bn.fit.zinbnode"]) == nnodes)
+    return("bn.fit.zinet")
+  else
+    stop("unsupported combination of node types.")
 
-}#GUESS.FITTED.CLASS
+}#DETERMINE.FITTED.CLASS
 

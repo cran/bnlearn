@@ -1,7 +1,7 @@
 #include "../include/rcore.h"
 #include "../core/covariance.matrix.h"
-#include "../math/linear.algebra.h"
 #include "../include/globals.h"
+#include "../math/linear.algebra.h"
 
 /* check that a matrix is symmetric and satisfies Cauchy-Schwarz. */
 SEXP check_covariance(SEXP covmat) {

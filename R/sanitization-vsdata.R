@@ -81,7 +81,7 @@ reorder.data.and.metadata = function(data, network) {
   metadata$complete.nodes = metadata$complete.nodes[nodes]
   metadata$latent.nodes = metadata$latent.nodes[nodes]
 
-  # reorder the columns and reattache the metadata.
+  # reorder the columns and reattach the metadata.
   data = data[, nodes]
   attr(data, "metadata") = metadata
 

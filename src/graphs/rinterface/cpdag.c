@@ -1,7 +1,7 @@
-#include "../include/rcore.h"
-#include "../core/allocations.h"
-#include "../include/graph.h"
-#include "../math/linear.algebra.h"
+#include "../../include/rcore.h"
+#include "../../core/allocations.h"
+#include "../../include/graph.h"
+#include "../../math/linear.algebra.h"
 
 #define ABSENT     0
 #define PRESENT    1
@@ -442,7 +442,7 @@ int k = 0;
 
   return FALSE;
 
-}/*VSTRUCTURES_VS_CYCLES*/
+}/*VSTRUCTURES_AND_CYCLES*/
 
 static int prevent_cycles(int *a, SEXP nodes, int nnodes, bool debugging) {
 

@@ -1,10 +1,10 @@
 
-hybrid.pc.backend = function(x, cluster = NULL, whitelist, blacklist,
-    test, alpha, extra.args = list(), max.sx = ncol(x), debug = FALSE) {
+hybrid.pc.backend = function(data, cluster = NULL, whitelist, blacklist,
+    test, alpha, extra.args = list(), max.sx = ncol(data), debug = FALSE) {
 
-  nodes = names(x)
+  nodes = names(data)
 
-  mb = smartSapply(cluster, as.list(nodes), hybrid.pc.heuristic, data = x,
+  mb = smartSapply(cluster, as.list(nodes), hybrid.pc.heuristic, data = data,
          nodes = nodes, alpha = alpha, extra.args = extra.args,
          whitelist = whitelist, blacklist = blacklist, test = test,
          max.sx = max.sx, debug = debug)
@@ -175,7 +175,7 @@ hybrid.pc.de.pcs = function(x, data, nodes, alpha, extra.args = list(),
   if (length(to.check) == 1)
     return(structure(pvalues, dsep.set = dsep.set))
 
-  # exlcude nodes that are independent given a single conditioning node.
+  # exclude nodes that are independent given a single conditioning node.
   for (node in to.check) {
 
     # sort the candidates in order of decreasing association, so that nodes with

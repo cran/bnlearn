@@ -3,6 +3,32 @@
 
 #include "../math/linear.algebra.h"
 
+/* enum for the parameter estimators, to be matched from the label string passed
+ * down from R (the available.fits vector in R/globals.R). */
+typedef enum {
+  ENOEST      =  0, /* error code, no such estimator. */
+
+  /* estimators for discrete data. */
+  MLE         =  1, /* maximum likelihood. */
+  BAYES       =  2, /* Bayesian (posterior) Dirichlet. */
+  HDIR        =  3, /* hierarchical Dirichlet. */
+  HARD_EM     =  4, /* hard expectation-maximization. */
+
+  /* estimators for Gaussian data. */
+  MLE_G       =  5, /* maximum likelihood. */
+  HARD_EM_G   =  6, /* hard expectation-maximization. */
+
+  /* estimators for conditional Gaussian (mixed) data. */
+  MLE_CG      =  7, /* maximum likelihood. */
+  HARD_EM_CG  =  8, /* hard expectation-maximization. */
+
+  /* estimators for zero-inflated count data. */
+  MLE_ZIHP    =  9, /* zero-inflated hyper-Poisson. */
+  MLE_ZINB    = 10  /* zero-inflated negative binomial. */
+} estimator_e;
+
+estimator_e estimator_to_enum(const char *label);
+
 /* bit-field tracking all possible errors in the hierarchical Dirichlet
  * parameter estimation. */
 typedef struct {

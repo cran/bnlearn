@@ -1,5 +1,4 @@
 #include "../include/rcore.h"
-#include "../minimal/data.frame.h"
 #include "../minimal/common.h"
 
 /* evaluate a user-provided, custom decomposable score function. */

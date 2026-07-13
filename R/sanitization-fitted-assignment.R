@@ -176,7 +176,7 @@ check.dnode.rvalue.vs.parents = function(node, new, parents) {
 
   }#ELSE
 
-  # check the levels in the CPT against those of the parents, and reoder them
+  # check the levels in the CPT against those of the parents, and reorder them
   # if needed.
   for (p in names(parents))
     if (!setequal(parents.levels[[p]], cpt.levels[[p]]))
@@ -209,7 +209,7 @@ check.gnode.rvalue = function(x, node) {
       stop("coef must be a vector of numeric values, the ",
         "regression coefficients for node ", node, " given its parents.")
 
-  # check that the coefficients are stored as numeric values, not integers.
+  # ensure that the coefficients are stored as numeric values, not integers.
   x$coef[] = as.numeric(x$coef)
 
   for (comp in c("fitted", "resid"))
@@ -244,7 +244,7 @@ check.gnode.rvalue = function(x, node) {
   }#THEN
 
   # make sure that the standard error is not an integer variable.
-  storage.mode(x$sd) = "double"
+  x$sd = as.numeric(x$sd)
 
   # one residual for each fitted value.
   if (!is.null(x$resid) && !is.null(x$fitted))
@@ -356,7 +356,7 @@ check.cgnode.rvalue = function(x, node) {
       stop("coef must be a matrix of numeric values, the ",
         "regression coefficients for node ", node, " given its parents.")
 
-  # check that the coefficients are stored as numeric values, not integers.
+  # ensure that the coefficients are stored as numeric values, not integers.
   x$coef[] = as.numeric(x$coef)
 
   for (comp in c("fitted", "resid"))
@@ -409,7 +409,7 @@ check.cgnode.rvalue = function(x, node) {
 
 
   # make sure that the standard error is not an integer variable.
-  storage.mode(x$sd) = "double"
+  x$sd[] = as.numeric(x$sd)
 
   # one residual for each fitted value.
   if (!is.null(x$resid) && !is.null(x$fitted))
@@ -525,6 +525,10 @@ check.cgnode.rvalue.vs.parents = function(node, new, parents) {
   # both continuous and discrete parents are legal, but treated differently.
   discrete.id = sapply(parents, class) %in% c("bn.fit.dnode", "bn.fit.onode")
   discrete.parents = names(parents)[discrete.id]
+
+  if (length(discrete.parents) == 0)
+    stop("node ", node, " has no discrete parents, but it should.")
+
   continuous.id = sapply(parents, class) %in% c("bn.fit.gnode", "bn.fit.cgnode")
   continuous.parents = names(parents)[continuous.id]
   parent.configurations =
@@ -537,7 +541,7 @@ check.cgnode.rvalue.vs.parents = function(node, new, parents) {
 
   # the node should have at least one discrete parent, or it would not be CLG.
   if (length(discrete.parents) == 0)
-    stop("node ", node, " is a conditioanl Gaussian node but has no discrete parent.")
+    stop("node ", node, " is a conditional Gaussian node but has no discrete parent.")
 
   # check the dimensions of the regression coefficients matrix.
   if (!isTRUE(all.equal(dim(new$coef), c(length(continuous.parents) + 1L,
@@ -666,4 +670,326 @@ check.discrete.parents.configuration = function(config, node,
   return(config)
 
 }#CHECK.DISCRETE.PARENTS.CONFIGURATION
+
+# check the consistency of an assignment to a bn.fit.zihpnode.
+check.zihpnode.rvalue = function(x, node) {
+
+  components = c("inflation", "intensity", "dispersion", "fitted", "resid")
+  labels = c(fitted = "fitted values", resid = "residuals")
+
+  # custom list of components.
+  if (!is.list(x) || any(names(x) %!in% components))
+    stop("the conditional probability distribution for node ", node,
+         " must be a list with at least one of the following elements:",
+         paste0(" '", components, "'"), ".")
+  if (any(c("inflation", "intensity", "dispersion") %!in% names(x)))
+    stop("all of 'inflation', 'intensity' and 'dispersion' are required",
+      " for node ", node, ".")
+
+  if (!is.real.vector(x$inflation))
+    stop("'inflation' must a vector of numeric values, the regression ",
+         "coefficients for node ", node, ".")
+  if (!is.real.vector(x$intensity))
+    stop("'intensity' must a vector of numeric values, the regression ",
+         "coefficients for node ", node, ".")
+
+  # ensure that the coefficients are stored as numeric values, not integers.
+  x$inflation[] = as.numeric(x$inflation)
+  x$intensity[] = as.numeric(x$intensity)
+
+  # all sets of coefficients must have the same length.
+  if (length(x$inflation) != length(x$intensity))
+    stop("'inflation' and 'intensity' contain different numbers of ",
+         "coefficients in node ", node, ".")
+
+  # check the dispersion.
+  if (!is.non.negative(x$dispersion))
+    stop("the dispersion must be a single, non-negative number.")
+  # ensure that the intensity is stored as a numeric value, not an integer.
+  x$dispersion = as.numeric(x$dispersion)
+
+  # check the fitted values and the residuals.
+  for (comp in c("fitted", "resid"))
+    if (!is.null(x[[comp]]))
+      if ((length(x[[comp]]) == 0) || !is.real.vector(x[[comp]]))
+        stop(comp, " must be a vector of numeric values, the ",
+          labels[comp], " for node ", node, " given its parents.")
+
+  # one residual for each fitted value.
+  if (!is.null(x$resid) && !is.null(x$fitted))
+    if (length(x$resid) != length(x$fitted))
+      stop("the residuals and the fitted values of node ", node,
+        " have different lengths.")
+
+  return(x)
+
+}#CHECK.ZIHPNODE.RVALUE
+
+# check an assignment against the bn.fit.zihpnode it will be assigned to.
+check.rvalue.vs.zihpnode = function(new, old) {
+
+  if (!is(old, "bn.fit.zihpnode"))
+    stop("both nodes should be zero-inflated hyper-Poisson nodes.")
+
+  # same number of coefficients for both inflation and intensity.
+  if (length(new$inflation) != length(old$inflation))
+    stop("wrong number of inflation coefficients for node ", old$node, ".")
+  if (length(new$intensity) != length(old$intensity))
+    stop("wrong number of intensity coefficients for node ", old$node, ".")
+
+  # same regression coefficients for both inflation and intensity.
+  if (!is.null(names(new$inflation))) {
+
+    # if the new coefficients have labels, they must match.
+    check.nodes(names(new$inflation), graph = names(old$inflation),
+      min.nodes = length(names(old$inflation)))
+    # reorder the coefficients to match.
+    new$inflation = new$inflation[names(old$inflation)]
+
+  }#THEN
+  else {
+
+    # copy the names from the spec.
+    names(new$inflation) = names(old$inflation)
+
+  }#ELSE
+
+  if (!is.null(names(new$intensity))) {
+
+    # if the new coefficients have labels, they must match.
+    check.nodes(names(new$intensity), graph = names(old$intensity),
+      min.nodes = length(names(old$intensity)))
+    # reorder the coefficients to match.
+    new$intensity = new$intensity[names(old$intensity)]
+
+  }#THEN
+  else {
+
+    # copy the names from the spec.
+    names(new$intensity) = names(old$intensity)
+
+  }#ELSE
+
+  # a single dispersion parameter.
+  if (length(new$dispersion) != 1)
+    stop("wrong number of dispersion parameters for node ", old$node, ".")
+  # same number of residuals.
+  if (!is.null(new$resid))
+    if (length(new$resid) != length(old$residuals))
+      stop("wrong number of residuals for node ", old$node, ".")
+  # same number of fitted values.
+  if (!is.null(new$fitted))
+    if (length(new$fitted) != length(old$fitted.values))
+      stop("wrong number of fitted values for node ", old$node, ".")
+
+  return(new)
+
+}#CHECK.RVALUE.VS.ZIHPNODE
+
+# check an assignment to a bn.fit.zihpnode using only the names of its parents.
+check.zihpnode.rvalue.vs.parents = function(node, new, parents) {
+
+  # add the intercept, which is obviously not among the parents of the node.
+  parent.names = c("(Intercept)", names(parents))
+
+  # same number of inflation coefficients.
+  if (length(new$inflation) != length(parent.names))
+    stop("wrong number of inflation coefficients for node ", node, ".")
+  # if the new coefficients have labels, they must match.
+  if (!is.null(names(new$inflation))) {
+
+    if (!setequal(names(new$inflation), parent.names))
+      stop("wrong inflation coefficients for node ", node, " (",
+        paste(setdiff(parent.names, names(new$inflation)), collapse = " "), ").")
+    new$inflation = new$inflation[parent.names]
+
+  }#THEN
+  else {
+
+    names(new$inflation) = parent.names
+
+  }#ELSE
+
+  # same number of intensity coefficients.
+  if (length(new$intensity) != length(parent.names))
+    stop("wrong number of intensity coefficients for node ", node, ".")
+  # if the new coefficients have labels, they must match.
+  if (!is.null(names(new$intensity))) {
+
+    if (!setequal(names(new$intensity), parent.names))
+      stop("wrong intensity coefficients for node ", node, " (",
+        paste(setdiff(parent.names, names(new$intensity)), collapse = " "), ").")
+    new$intensity = new$intensity[parent.names]
+
+  }#THEN
+  else {
+
+    names(new$intensity) = parent.names
+
+  }#ELSE
+
+  return(new)
+
+}#CHECK.ZIHPNODE.RVALUE.VS.PARENTS
+
+# check the consistency of an assignment to a bn.fit.zinbnode.
+check.zinbnode.rvalue = function(x, node) {
+
+  components = c("inflation", "prsucc", "failures", "fitted", "resid")
+  labels = c(fitted = "fitted values", resid = "residuals")
+
+  # custom list of components.
+  if (!is.list(x) || any(names(x) %!in% components))
+    stop("the conditional probability distribution for node ", node,
+         " must be a list with at least one of the following elements:",
+         paste0(" '", components, "'"), ".")
+  if (any(c("inflation", "prsucc", "failures") %!in% names(x)))
+    stop("all of 'inflation', 'prsucc' and 'failures' are required",
+      " for node ", node, ".")
+
+  if (!is.real.vector(x$inflation))
+    stop("'inflation' must a vector of numeric values, the regression ",
+         "coefficients for node ", node, ".")
+  if (!is.real.vector(x$prsucc))
+    stop("'prsucc' must a vector of numeric values, the regression coefficients ",
+         "for node ", node, ".")
+
+  # ensure that the coefficients are stored as numeric values, not integers.
+  x$inflation[] = as.numeric(x$inflation)
+  x$prsucc[] = as.numeric(x$prsucc)
+
+  # all sets of coefficients must have the same length.
+  if (length(x$inflation) != length(x$prsucc))
+    stop("'inflation' and 'prsucc' contain different numbers of coefficients ",
+         "in node ", node, ".")
+
+  # check the number of failures.
+  if (!is.non.negative(x$failures))
+    stop("the number of failures must be a single, non-negative number.")
+  # ensure that it is stored as a numeric value, not an integer.
+  x$failures = as.numeric(x$failures)
+
+  # check the fitted values and the residuals.
+  for (comp in c("fitted", "resid"))
+    if (!is.null(x[[comp]]))
+      if ((length(x[[comp]]) == 0) || !is.real.vector(x[[comp]]))
+        stop(comp, " must be a vector of numeric values, the ",
+          labels[comp], " for node ", node, " given its parents.")
+
+  # one residual for each fitted value.
+  if (!is.null(x$resid) && !is.null(x$fitted))
+    if (length(x$resid) != length(x$fitted))
+      stop("the residuals and the fitted values of node ", node,
+        " have different lengths.")
+
+  return(x)
+
+}#CHECK.ZINBNODE.RVALUE
+
+# check an assignment against the bn.fit.zinbnode it will be assigned to.
+check.rvalue.vs.zinbnode = function(new, old) {
+
+  if (!is(old, "bn.fit.zinbnode"))
+    stop("both nodes should be zero-inflated negative binomial nodes.")
+
+  # same number of coefficients for both inflation and success probability.
+  if (length(new$inflation) != length(old$inflation))
+    stop("wrong number of inflation coefficients for node ", old$node, ".")
+  if (length(new$prsucc) != length(old$prsucc))
+    stop("wrong number of 'prsucc' coefficients for node ", old$node, ".")
+
+  # same regression coefficients for both inflation and success probability.
+  if (!is.null(names(new$inflation))) {
+
+    # if the new coefficients have labels, they must match.
+    check.nodes(names(new$inflation), graph = names(old$inflation),
+      min.nodes = length(names(old$inflation)))
+    # reorder the coefficients to match.
+    new$inflation = new$inflation[names(old$inflation)]
+
+  }#THEN
+  else {
+
+    # copy the names from the spec.
+    names(new$inflation) = names(old$inflation)
+
+  }#ELSE
+
+  if (!is.null(names(new$prsucc))) {
+
+    # if the new coefficients have labels, they must match.
+    check.nodes(names(new$prsucc), graph = names(old$prsucc),
+      min.nodes = length(names(old$prsucc)))
+    # reorder the coefficients to match.
+    new$prsucc = new$prsucc[names(old$prsucc)]
+
+  }#THEN
+  else {
+
+    # copy the names from the spec.
+    names(new$prsucc) = names(old$prsucc)
+
+  }#ELSE
+
+  # a single number of failures.
+  if (length(new$failures) != 1)
+    stop("wrong number of standard errors for node ", old$node, ".")
+  # same number of residuals.
+  if (!is.null(new$resid))
+    if (length(new$resid) != length(old$residuals))
+      stop("wrong number of residuals for node ", old$node, ".")
+  # same number of fitted values.
+  if (!is.null(new$fitted))
+    if (length(new$fitted) != length(old$fitted.values))
+      stop("wrong number of fitted values for node ", old$node, ".")
+
+  return(new)
+
+}#CHECK.RVALUE.VS.ZINBNODE
+
+# check an assignment to a bn.fit.zinbnode using only the names of its parents.
+check.zinbnode.rvalue.vs.parents = function(node, new, parents) {
+
+  # add the intercept, which is obviously not among the parents of the node.
+  parent.names = c("(Intercept)", names(parents))
+
+  # same number of inflation coefficients.
+  if (length(new$inflation) != length(parent.names))
+    stop("wrong number of inflation coefficients for node ", node, ".")
+  # if the new coefficients have labels, they must match.
+  if (!is.null(names(new$inflation))) {
+
+    if (!setequal(names(new$inflation), parent.names))
+      stop("wrong inflation coefficients for node ", node, " (",
+        paste(setdiff(parent.names, names(new$inflation)), collapse = " "), ").")
+    new$inflation = new$inflation[parent.names]
+
+  }#THEN
+  else {
+
+    names(new$inflation) = parent.names
+
+  }#ELSE
+
+  # same number of success probability coefficients.
+  if (length(new$prsucc) != length(parent.names))
+    stop("wrong number of 'prsucc' coefficients for node ", node, ".")
+  # if the new coefficients have labels, they must match.
+  if (!is.null(names(new$prsucc))) {
+
+    if (!setequal(names(new$prsucc), parent.names))
+      stop("wrong 'prsucc' coefficients for node ", node, " (",
+        paste(setdiff(parent.names, names(new$prsucc)), collapse = " "), ").")
+    new$prsucc = new$prsucc[parent.names]
+
+  }#THEN
+  else {
+
+    names(new$prsucc) = parent.names
+
+  }#ELSE
+
+  return(new)
+
+}#CHECK.ZINBNODE.RVALUE.VS.PARENTS
 

@@ -1,28 +1,28 @@
 #include "../../include/rcore.h"
-#include "../../include/globals.h"
-#include "../../fitted/fitted.h"
-#include "../../core/data.table.h"
 #include "../../core/allocations.h"
 #include "../../core/contingency.tables.h"
+#include "../../core/data.table.h"
 #include "../../core/math.functions.h"
 #include "../../core/sets.h"
+#include "../../fitted/fitted.h"
+#include "../../include/globals.h"
 #include "../../math/linear.algebra.h"
 #include "loglikelihood.h"
 
 /* log-likelihood of individual observations for a conditional Gaussian
  * network. */
-void bysample_clgaussian_loglikelihood(fitted_bn bn, cgdata dt, double *loglik,
+void bysample_clgaussian_loglikelihood(fitted_bn bn, tabular dt, double *loglik,
     bool robust, bool debugging) {
 
 int *pars = NULL, *dobs = NULL, *parcfgs = NULL, ncoefs = 0;
 double *gobs = NULL, *coefs = NULL, sd = 0, *sds = NULL, *scratch = NULL;
 double *cpt = NULL;
 bool locally_complete = FALSE;
-cgdata local_data = { 0 };
+tabular local_data = { 0 };
 
   /* allocate a second data table to hold the data that are local to the node's
    * parents. */
-  local_data = empty_cgdata(dt.m.nobs, dt.ndcols, dt.ngcols);
+  local_data = empty_tabular(dt.m.nobs, dt.ndcols, dt.nccols);
   /* allocate the scratch space used to compute the expected value of the
    * distribution of continuous observations. */
   scratch = Calloc1D(dt.m.nobs, sizeof(double));
@@ -80,7 +80,7 @@ cgdata local_data = { 0 };
         else {
 
           /* ... if the node has parents, extract them from the data... */
-          cgdata_subset_columns(&dt, &local_data, bn.ldists[i].parents,
+          tabular_subset_columns(&dt, &local_data, bn.ldists[i].parents,
              bn.ldists[i].nparents);
           /* ... compute their configurations... */
           c_fast_config(local_data.dcol, local_data.m.nobs, local_data.m.ncols,
@@ -119,7 +119,7 @@ cgdata local_data = { 0 };
       case GNODE:
 
         /* ... extract the relevant quantities from the data and the network...*/
-        gobs = dt.gcol[dt.map[i]];
+        gobs = dt.ccol[dt.map[i]];
         coefs = bn.ldists[i].g.coefs;
         pars = bn.ldists[i].parents;
         sd = bn.ldists[i].g.sd;
@@ -136,7 +136,7 @@ cgdata local_data = { 0 };
          * expected values... */
         for (int k = 0; k < bn.ldists[i].nparents; k++)
           for (int j = 0; j < dt.m.nobs; j++)
-            scratch[j] += dt.gcol[dt.map[pars[k]]][j] * coefs[k + 1];
+            scratch[j] += dt.ccol[dt.map[pars[k]]][j] * coefs[k + 1];
 
         /* ... and use them together with the standard error to compute the
          * log-likelihood. */
@@ -149,14 +149,14 @@ cgdata local_data = { 0 };
       case CGNODE:
 
         /* ... extract the relevant quantities from the data and the network...*/
-        gobs = dt.gcol[dt.map[i]];
+        gobs = dt.ccol[dt.map[i]];
         coefs = bn.ldists[i].cg.coefs;
         ncoefs = bn.ldists[i].cg.ncoefs;
         pars = bn.ldists[i].cg.gparents;
         sds = bn.ldists[i].cg.sd;
 
         /* ... extract the discrete parents ... */
-        cgdata_subset_columns(&dt, &local_data, bn.ldists[i].cg.dparents,
+        tabular_subset_columns(&dt, &local_data, bn.ldists[i].cg.dparents,
            bn.ldists[i].cg.ndparents);
         /* ... compute their configurations... */
         c_fast_config(local_data.dcol, local_data.m.nobs, local_data.m.ncols,
@@ -178,7 +178,7 @@ cgdata local_data = { 0 };
            * configuration of the discrete parents ... */
           for (int k = 0; k < bn.ldists[i].cg.ngparents; k++)
             for (int j = 0; j < dt.m.nobs; j++)
-              scratch[j] += dt.gcol[dt.map[pars[k]]][j] *
+              scratch[j] += dt.ccol[dt.map[pars[k]]][j] *
                               coefs[CMC(k + 1, parcfgs[j], ncoefs)];
 
           /* ... and use them together with the standard error to compute the
@@ -210,7 +210,7 @@ cgdata local_data = { 0 };
           for (int k = 0; k < bn.ldists[i].cg.ngparents; k++)
             for (int j = 0; j < dt.m.nobs; j++)
               if (!ISNAN(scratch[j]))
-                scratch[j] += dt.gcol[dt.map[pars[k]]][j] *
+                scratch[j] += dt.ccol[dt.map[pars[k]]][j] *
                                 coefs[CMC(k + 1, parcfgs[j], ncoefs)];
 
           /* ... and use them together with the standard error to compute the
@@ -242,12 +242,12 @@ cgdata local_data = { 0 };
 
   Free1D(scratch);
   Free1D(parcfgs);
-  FreeCGDT(local_data);
+  FreeTAB(local_data);
 
 }/*BYSAMPLE_CLGAUSSIAN_LOGLIKELIHOOD*/
 
 /* log-likelihood of a whole sample for a Gaussian network. */
-double data_clgaussian_loglikelihood(fitted_bn bn, cgdata dt, double *scratch,
+double data_clgaussian_loglikelihood(fitted_bn bn, tabular dt, double *scratch,
     bool propagate, bool debugging) {
 
 int max_nlvls = 0, cumdim = 0, max_cfgs = 0, ncomplete = 0;
@@ -257,7 +257,7 @@ double loglik = 0, node_loglik = 0;
 bool locally_complete = FALSE, early_return = FALSE;
 counts1d freq = { 0 };
 counts2d freq2 = { 0 };
-cgdata local_data = { 0 };
+tabular local_data = { 0 };
 
   /* if the data contain missing values for the nodes we are considering, and
    * we propagate them, the log-likelihood is necessarily NA. */
@@ -302,7 +302,7 @@ unidentifiable_model:
 
   /* allocate a second data table to hold the data that are local to the node's
    * parents. */
-  local_data = empty_cgdata(dt.m.nobs, dt.ndcols, dt.ngcols);
+  local_data = empty_tabular(dt.m.nobs, dt.ndcols, dt.nccols);
   /* parent configurations to index the parameters in the probability tables and
    * in the coefficient tables. */
   parcfgs = Calloc1D(dt.m.nobs, sizeof(int));
@@ -366,7 +366,7 @@ unidentifiable_model:
 
           /* ... construct the parent configurations (with a 1-offset to make
            * fill_2d_table() happy)... */
-          cgdata_subset_columns(&dt, &local_data, bn.ldists[i].parents,
+          tabular_subset_columns(&dt, &local_data, bn.ldists[i].parents,
              bn.ldists[i].nparents);
           c_fast_config(local_data.dcol, local_data.m.nobs, local_data.m.ncols,
               local_data.nlvl, parcfgs, &cumdim, 1);
@@ -399,7 +399,7 @@ unidentifiable_model:
       case GNODE:
 
         /* ... extract the relevant quantities from the data and the network...*/
-        gobs = dt.gcol[dt.map[i]];
+        gobs = dt.ccol[dt.map[i]];
         coefs = bn.ldists[i].g.coefs;
         pars = bn.ldists[i].parents;
         sd = bn.ldists[i].g.sd;
@@ -413,7 +413,7 @@ unidentifiable_model:
          * correctly)... */
         for (int k = 0; k < bn.ldists[i].nparents; k++)
           for (int j = 0; j < dt.m.nobs; j++)
-            scratch[j] += dt.gcol[dt.map[pars[k]]][j] * coefs[k + 1];
+            scratch[j] += dt.ccol[dt.map[pars[k]]][j] * coefs[k + 1];
 
         /* ... and use them together with the standard error to compute the
          * log-likelihood. */
@@ -440,14 +440,14 @@ unidentifiable_model:
       case CGNODE:
 
         /* ... extract the relevant quantities from the data and the network...*/
-        gobs = dt.gcol[dt.map[i]];
+        gobs = dt.ccol[dt.map[i]];
         coefs = bn.ldists[i].cg.coefs;
         ncoefs = bn.ldists[i].cg.ncoefs;
         pars = bn.ldists[i].cg.gparents;
         sds = bn.ldists[i].cg.sd;
 
         /* ... extract the discrete parents ... */
-        cgdata_subset_columns(&dt, &local_data, bn.ldists[i].cg.dparents,
+        tabular_subset_columns(&dt, &local_data, bn.ldists[i].cg.dparents,
            bn.ldists[i].cg.ndparents);
         /* ... compute their configurations... */
         c_fast_config(local_data.dcol, local_data.m.nobs, local_data.m.ncols,
@@ -469,7 +469,7 @@ unidentifiable_model:
            * configuration of the discrete parents ... */
           for (int k = 0; k < bn.ldists[i].cg.ngparents; k++)
             for (int j = 0; j < dt.m.nobs; j++)
-              scratch[j] += dt.gcol[dt.map[pars[k]]][j] *
+              scratch[j] += dt.ccol[dt.map[pars[k]]][j] *
                           coefs[CMC(k + 1, parcfgs[j], ncoefs)];
 
           /* ... and use them together with the standard error to compute the
@@ -497,7 +497,7 @@ unidentifiable_model:
           for (int k = 0; k < bn.ldists[i].cg.ngparents; k++)
             for (int j = 0; j < dt.m.nobs; j++)
               if (!ISNAN(scratch[j]))
-                scratch[j] += dt.gcol[dt.map[pars[k]]][j] *
+                scratch[j] += dt.ccol[dt.map[pars[k]]][j] *
                           coefs[CMC(k + 1, parcfgs[j], ncoefs)];
 
           /* ... and use them together with the standard error to compute the
@@ -549,7 +549,7 @@ unidentifiable_model:
   Free1DTAB(freq);
   resize_2d_table(max_nlvls, max_cfgs, &freq2);
   Free2DTAB(freq2);
-  FreeCGDT(local_data);
+  FreeTAB(local_data);
 
   return loglik;
 

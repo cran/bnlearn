@@ -1,5 +1,4 @@
 #include "../../include/rcore.h"
-#include "../../core/contingency.tables.h"
 #include "../../minimal/data.frame.h"
 #include "../../minimal/table.h"
 #include "../parameters.h"

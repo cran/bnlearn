@@ -14,7 +14,7 @@ void BN_Free3D(void ***p, size_t R, size_t C);
   do { \
     BN_Free1D((void *)p); \
     p = NULL; \
-  } while(0)
+  } while (0)
 #define Free2D(p, R) \
   do { \
     BN_Free2D((void **)p, R); \

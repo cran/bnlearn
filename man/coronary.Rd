@@ -39,7 +39,7 @@ data(coronary)
   Reinis Z, Pokorny J, Basika V, Tiserova J, Gorican K, Horakova D, Stuchlikova
     E, Havranek T, Hrabovsky F (1981). "Prognostic Significance of the Risk
     Profile in the Prevention of Coronary Heart Disease." \emph{Bratisl Lek
-    Listy}, \strong{76}:137--150. Published on Bratislava Medical Journal,
+    Listy}, \strong{76}:137--150. Published in Bratislava Medical Journal,
     in Czech.
 
   Whittaker J (1990). \emph{Graphical Models in Applied Multivariate

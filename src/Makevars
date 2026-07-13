@@ -1,22 +1,13 @@
 PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
-# PKG_CFLAGS = -Wall -pedantic -march=native -flto=10 -Wabsolute-value -Wstrict-prototypes
+# PKG_CFLAGS = -std=c23 -Wall -pedantic -march=native -flto=10 -Wabsolute-value -Wstrict-prototypes
 
 SOURCES = \
+  arcs/alist.c \
   arcs/arcs2amat.c \
-  arcs/arcs2elist.c \
   arcs/bind.c \
   arcs/filter.arcs.c \
   arcs/hash.c \
   arcs/is.row.equal.c \
-  bnlearn/bayesian.network.c \
-  bnlearn/bn.recovery.c \
-  bnlearn/cache.structure.c \
-  bnlearn/cextend.c \
-  bnlearn/colliders.c \
-  bnlearn/cpdag.c \
-  bnlearn/fitted.c \
-  bnlearn/nparams.c \
-  bnlearn/shd.c \
   core/allocations.c \
   core/contingency.tables.c \
   core/correlation.c \
@@ -31,26 +22,35 @@ SOURCES = \
   fitted/enums.c \
   fitted/fitted.c \
   fitted/nparams.c \
+  fitted/topological.sort.c \
+  fitted/rinterface/nodes.and.arcs.c \
   fitted/rinterface/nparams.c \
   foreign/parse.c \
   globals.c \
   graphs/acyclic.c \
   graphs/completely.directed.c \
   graphs/connected.components.c \
+  graphs/nparams.c \
   graphs/path.c \
-  graphs/path.matrix.c \
   graphs/pdag2dag.c \
   graphs/random/graph.generation.c \
   graphs/topological.ordering.c \
+  graphs/rinterface/all.equal.c \
+  graphs/rinterface/cache.structure.c \
+  graphs/rinterface/cextend.c \
+  graphs/rinterface/colliders.c \
   graphs/rinterface/connected.components.c \
-  graphs/rinterface/path.matrix.c \
+  graphs/rinterface/cpdag.c \
+  graphs/rinterface/nodes.and.arcs.c \
+  graphs/rinterface/nparams.c \
+  graphs/rinterface/shd.c \
   graphs/rinterface/sid.c \
-  graphs/sid.c \
   inference/likelihood.weighting.c \
   inference/loglikelihood/common.c \
   inference/loglikelihood/discrete.c \
   inference/loglikelihood/gaussian.c \
   inference/loglikelihood/conditional.gaussian.c \
+  inference/loglikelihood/zero.inflated.c \
   inference/rbn.c \
   inference/rinterface/loglikelihood.c \
   inference/rinterface/cpdist.c \
@@ -59,26 +59,38 @@ SOURCES = \
   learning/averaging/averaging.c \
   learning/averaging/bootstrap.c \
   learning/local/mi.matrix.c \
+  learning/rinterface/bn.recovery.c \
   learning/score/hc.cache.lookup.c \
   learning/score/score.delta.c \
   learning/score/tabu.c \
   math/conditional.least.squares.c \
+  math/hypergeometric.c \
+  math/hyperpoisson.c \
+  math/reweighted.least.squares.c \
   math/least.squares.c \
   math/linear.algebra.c \
+  math/sparse.amat.c \
+  math/xnegbin.c \
   minimal/common.c \
   minimal/data.frame.c \
   minimal/strings.c \
   minimal/table.c \
   minimal/tiers.c \
   minimal/unique.c \
+  parameters/enums.c \
   parameters/discrete/classic.discrete.c \
   parameters/discrete/hierarchical.dirichlet.c \
   parameters/rinterface/classic.discrete.c \
   parameters/rinterface/hierarchical.dirichlet.c \
   parameters/rinterface/mixture.ordinary.least.squares.c \
   parameters/rinterface/ordinary.least.squares.c \
+  parameters/rinterface/zero.inflated.c \
   predict/map.lw.c \
-  predict/predict.c \
+  predict/naivebayes.c \
+  predict/parents.c \
+  predict/rinterface/map.lw.c \
+  predict/rinterface/naivebayes.c \
+  predict/rinterface/parents.c \
   preprocessing/dedup.c \
   preprocessing/discretize.c \
   preprocessing/enums.c \
@@ -91,7 +103,6 @@ SOURCES = \
   scores/cg.predictive.loglikelihood.c \
   scores/cg.nal.c \
   scores/custom.score.c \
-  scores/dirichlet.averaged.posterior.c \
   scores/dirichlet.posterior.c \
   scores/discrete.loglikelihood.c \
   scores/discrete.nal.c \
@@ -106,6 +117,8 @@ SOURCES = \
   scores/normalized.maximum.likelihood.c \
   scores/per.node.score.c \
   scores/wishart.posterior.c \
+  scores/zero.inflated.coefs.c \
+  scores/zero.inflated.em.c \
   test.counter.c \
   tests/conditional.gaussian/cg.mutual.information.c \
   tests/discrete/df.adjust.c \

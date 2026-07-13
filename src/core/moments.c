@@ -1,7 +1,7 @@
 #include "../include/rcore.h"
+#include "../minimal/common.h"
 #include "allocations.h"
 #include "moments.h"
-#include "../minimal/common.h"
 
 /* compute the sum of the squared errors. */
 double c_sse(double *data, double mean, int nrow) {

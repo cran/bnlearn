@@ -1,10 +1,9 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
 #include "../include/graph.h"
-#include "../include/bn.h"
-#include "../minimal/strings.h"
-#include "../minimal/common.h"
 #include "../math/linear.algebra.h"
+#include "../minimal/common.h"
+#include "../minimal/strings.h"
 
 /* return the complete orientation of a graph (the nodes argument gives
   * the node ordering). */

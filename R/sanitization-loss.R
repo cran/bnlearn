@@ -34,7 +34,7 @@ check.loss = function(loss, data, bn) {
 # sanitize the extra arguments passed to loss functions.
 check.loss.args = function(loss, bn, nodes, data, extra.args) {
 
-  # target node that that the loss is computed for.
+  # target node that the loss is computed for.
   if (has.argument(loss, "target", loss.extra.args))
     extra.args[["target"]] =
       check.loss.target(target = extra.args[["target"]], loss = loss,

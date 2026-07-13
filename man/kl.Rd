@@ -17,12 +17,14 @@ KL(P, Q)
 }
 \note{
 
-  Note that in the case of Gaussian and conditional Gaussian netwoks the
+  Note that in the case of Gaussian and conditional Gaussian netwoks, the
   divergence can be negative. Regardless of the type of network, if at least one
-  of the two networks is singular the divergence can be infinite.
+  of the two networks is singular, the divergence can be infinite.
 
   If any of the parameters of the two networks are \code{NA}s, the divergence
   will also be \code{NA}.
+
+  Zero-inflated networks are not supported at the moment.
 
 }
 \value{

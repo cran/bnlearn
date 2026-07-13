@@ -7,7 +7,9 @@ typedef enum {
   DNODE     =  1, /* categorical node. */
   ONODE     =  2, /* ordinal node. */
   GNODE     =  3, /* Gaussian node. */
-  CGNODE    =  4  /* conditional Gaussian node. */
+  CGNODE    =  4, /* conditional Gaussian node. */
+  ZIHPNODE  =  5, /* zero-inflated hyper-Poisson node. */
+  ZINBNODE  =  6  /* zero-inflated negative binomial node. */
 } fitted_node_e;
 
 /* enum for fitted network types, to match the class in the R objects. */
@@ -17,7 +19,8 @@ typedef enum {
   ONET      =  2, /* ordinal Bayesian networks. */
   DONET     =  3, /* mixed categorical and ordinal nodes. */
   GNET      =  4, /* Gaussian Bayesian networks. */
-  CGNET     =  5  /* conditional Gaussian networks. */
+  CGNET     =  5, /* conditional Gaussian networks. */
+  ZINET     =  6  /* zero-inflated networks. */
 } fitted_net_e;
 
 fitted_node_e fitted_node_to_enum(SEXP object);
@@ -26,8 +29,8 @@ fitted_net_e fitted_net_to_enum(SEXP object);
 /* a local distribution, meant to be embedded in the fitted_bn struct below. */
 typedef struct {
 
-  int nparents;      /* number of parents. */
-  int *parents;      /* indexes of the parent nodes. */
+  int nparents;        /* number of parents. */
+  int *parents;        /* indexes of the parent nodes. */
 
   union {
 
@@ -36,6 +39,7 @@ typedef struct {
       int ndims;       /* number of dimensions of the CPT. */
       int *dims;       /* dimensions of the CPT. */
       int nconfigs;    /* number of parents configurations. */
+      char **levels;   /* labels of the levels. */
       double *cpt;     /* conditional probability table. */
 
     } d;
@@ -61,6 +65,24 @@ typedef struct {
 
     } cg;
 
+    struct {
+
+      int ncoefs;            /* number of coefficients for both. */
+      double *inflation;     /* zero-inflation regression coefficients. */
+      double *intensity;     /* Poisson intensity regression coefficients. */
+      double dispersion;     /* dispersion parameter. */
+
+    } zihp;
+
+    struct {
+
+      double *inflation;     /* zero-inflation regression coefficients. */
+      double *prsucc;        /* success probability coefficients. */
+      int ncoefs;            /* number of coefficients for both. */
+      double failures;       /* number of failures. */
+
+    } zinb;
+
   };
 
 } ldist;
@@ -80,6 +102,7 @@ fitted_bn fitted_network_from_SEXP(SEXP fitted);
 void print_fitted_network(fitted_bn);
 void FreeFittedBN(fitted_bn bn);
 
+void topological_sort_bn(fitted_bn fitted, int *poset);
 double nparams_fitted_node(ldist ld, fitted_node_e type);
 
 #endif

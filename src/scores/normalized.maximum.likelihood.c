@@ -1,8 +1,8 @@
 #include "../include/rcore.h"
-#include "../core/sets.h"
-#include "../minimal/data.frame.h"
-#include "../minimal/common.h"
 #include "../core/contingency.tables.h"
+#include "../core/sets.h"
+#include "../minimal/common.h"
+#include "../minimal/data.frame.h"
 #include "scores.h"
 
 static double cdlik_diff(counts2d joint) {

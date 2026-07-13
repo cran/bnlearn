@@ -24,7 +24,7 @@ int uppertriangular_size(uppertriangular sym) {
 
   return sym.dim * (sym.dim - 1) / 2;
 
-}/*UPPTERTRIANGULAR_SIZE*/
+}/*UPPERTRIANGULAR_SIZE*/
 
 void uppertriangular_copy_names(uppertriangular *sym, const char **names) {
 

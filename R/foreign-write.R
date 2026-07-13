@@ -17,8 +17,8 @@ write.foreign.backend = function(fd, fitted, format = "bif") {
 
   parents = lapply(fitted, "[[", "parents")
 
-  # print the variable decalarations, describing the number and the labels of
-  # the levels of eah node.
+  # print the variable declarations, describing the number and the labels of
+  # the levels of each node.
   for (node in names(fitted)) {
 
     if (format == "dsc")
@@ -30,7 +30,7 @@ write.foreign.backend = function(fd, fitted, format = "bif") {
 
   }#FOR
 
-  # print the (conditional) probbability table of each node.
+  # print the (conditional) probability table of each node.
   for (node in names(fitted)) {
 
     cpt = fitted[[node]]$prob
@@ -48,7 +48,7 @@ write.foreign.backend = function(fd, fitted, format = "bif") {
 
   }#FOR
 
-}#WRITE.BIF.BACKEND
+}#WRITE.FOREIGN.BACKEND
 
 sanitize.levels = function(levels) {
 

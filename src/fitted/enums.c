@@ -12,6 +12,10 @@ fitted_node_e fitted_node_to_enum(SEXP object) {
     return GNODE;
   else if (c_is(object, "bn.fit.cgnode"))
     return CGNODE;
+  else if (c_is(object, "bn.fit.zihpnode"))
+    return ZIHPNODE;
+  else if (c_is(object, "bn.fit.zinbnode"))
+    return ZINBNODE;
 
   return ENOFIT;
 
@@ -29,6 +33,8 @@ fitted_net_e fitted_net_to_enum(SEXP object) {
     return GNET;
   else if (c_is(object, "bn.fit.cgnet"))
     return CGNET;
+  else if (c_is(object, "bn.fit.zinet"))
+    return ZINET;
 
   return ENONET;
 

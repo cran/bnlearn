@@ -1,5 +1,5 @@
 
-# fit the parameters of the bayesian network for a given network stucture.
+# fit the parameters of the bayesian network for a given network structure.
 bn.fit = function(x, data, cluster, method, ..., keep.fitted = TRUE,
     debug = FALSE) {
 
@@ -59,7 +59,11 @@ bn.fit = function(x, data, cluster, method, ..., keep.fitted = TRUE,
 # get back the network structure from the fitted object.
 bn.net = function(x) {
 
-  check.fit(x)
+  check.bn.or.fit(x)
+
+  # nothing to do, the input is already a network structure().
+  if (is(x, "bn"))
+    return(x)
 
   # extract the arcs from the fitted network.
   net = empty.graph.backend(names(x))
@@ -67,6 +71,17 @@ bn.net = function(x) {
   # re-create the set of illegal arcs.
   type = class(x)
   net$learning$illegal = list.illegal.arcs(names(x), x, type[length(type)])
+  # preserve node causal roles, if present.
+  attrs = attributes(x)
+  if ("roles" %in% names(attrs))
+    net$learning$roles = attrs$roles
+  # also preserve the training node label set by classifiers.
+  if ("training" %in% names(attrs))
+    net$learning$args$training = attrs$training
+  # also preserve auxiliary classes related to causal inference and classifiers.
+  all.classes = setdiff(attrs$class, available.fitted)
+  all.classes[all.classes == "bn.fit"] = "bn"
+  class(net) = all.classes
 
   return(net)
 
@@ -78,15 +93,16 @@ residuals.bn.fit = function(object, ...) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  if (!is(object, c("bn.fit.gnet", "bn.fit.cgnet")))
+  if (is(object, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
     stop("residuals are not defined for discrete bayesian networks.")
 
   lapply(object, "[[", "residuals")
 
 }#RESIDUALS.BN.FIT
 
-# extract residuals from continuous nodes.
-residuals.bn.fit.cgnode = residuals.bn.fit.gnode = function(object, ...) {
+# extract residuals from continuous and zero-inflated nodes.
+residuals.bn.fit.cgnode = residuals.bn.fit.gnode = residuals.bn.fit.zihpnode =
+  residuals.bn.fit.zinbnode = function(object, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -111,7 +127,7 @@ sigma.bn.fit = function(object, ...) {
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
-  if (!is(object, c("bn.fit.gnet", "bn.fit.cgnet")))
+  if (is(object, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
     stop("standard errors are not defined for discrete bayesian networks.")
 
   ll = lapply(object, "[[", "sd")
@@ -172,10 +188,20 @@ sigma.bn.fit.onode = sigma.bn.fit.dnode = function(object, ...) {
 
 }#SIGMA.BN.FIT.DNODE
 
+# no sigma here, move along ...
+sigma.bn.fit.zihpnode = sigma.bn.fit.zinbnode = function(object, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  stop("standard errors are not defined for zero-inflated nodes.")
+
+}#SIGMA.BN.FIT.ZIHPNODE
+
 # extract fitted values from continuous bayesian networks.
 fitted.bn.fit = function(object, ...) {
 
-  if (!is(object, c("bn.fit.gnet", "bn.fit.cgnet")))
+  if (is(object, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
     stop("fitted values are not defined for discrete bayesian networks.")
 
   # warn about unused arguments.
@@ -185,8 +211,9 @@ fitted.bn.fit = function(object, ...) {
 
 }#FITTED.BN.FIT
 
-# extract fitted values from continuous nodes.
-fitted.bn.fit.cgnode = fitted.bn.fit.gnode = function(object, ...) {
+# extract fitted values from continuous and zero-inflated nodes.
+fitted.bn.fit.cgnode = fitted.bn.fit.gnode = fitted.bn.fit.zihpnode =
+  fitted.bn.fit.zinbnode = function(object, ...) {
 
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
@@ -277,6 +304,19 @@ coef.bn.fit.onode = coef.bn.fit.dnode = function(object, for.parents, ...) {
   return(coefficients)
 
 }#COEF.BN.FIT.DNODE
+
+# extract the parameters of the zero-inflated nodes.
+coef.bn.fit.zihpnode = coef.bn.fit.zinbnode = function(object, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  if (is(object, "bn.fit.zihpnode"))
+    object[c("inflation", "intensity", "dispersion")]
+  else
+    object[c("inflation", "prsucc", "failures")]
+
+}#COEF.BN.FIT.ZIHPNODE
 
 # logLik method for class 'bn.fit'.
 logLik.bn.fit = function(object, data, nodes, by.sample = FALSE,
@@ -386,6 +426,9 @@ H = function(P) {
   # check the bn.fit object.
   check.fit(P)
 
+  if (is(P, "bn.fit.zinet"))
+    stop("zero inflated networks are not supported.")
+
   shannon.entropy(P)
 
 }#H
@@ -396,28 +439,16 @@ KL = function(P, Q) {
   # both should be fitted networks...
   check.fit(P)
   check.fit(Q)
+
+  if (is(P, "bn.fit.zinet") || is(Q, "bn.fit.zinet"))
+    stop("zero inflated networks are not supported.")
+
   # ... and they should have compatible distributions.
   P = check.fitted.vs.fitted(P, Q, local = FALSE)
 
   kullback.leibler(P, Q)
 
 }#KL
-
-# average (the parameters of) multiple bn.fit objects with identical structures.
-mean.bn.fit = function(x, ..., weights = NULL) {
-
-  # check the bn.fit objects.
-  fitted = c(list(x), list(...))
-  # check the nodes are the same, and that the object has the right structure.
-  for (s in seq_along(fitted))
-    check.fitted.vs.fitted(fitted[[1]], fitted[[s]])
-  # check the weights.
-  weights = check.weights(weights, length(fitted))
-
-  # average the objects.
-  average.fitted(fitted, weights)
-
-}#MEAN.BN.FIT
 
 # does the bn.fit object contain any NA parameter values?
 identifiable = function(x, by.node = FALSE) {
@@ -431,6 +462,12 @@ identifiable = function(x, by.node = FALSE) {
       return(!anyNA(ld$prob))
     else if (is(ld, c("bn.fit.gnode", "bn.fit.cgnode")))
       !anyNA(ld$coefficients) && !anyNA(ld$sd)
+    else if (is(ld, "bn.fit.zihpnode"))
+      !anyNA(ld$inflation) && !anyNA(ld$intensity) && !is.na(ld$dispersion)
+    else if (is(ld, "bn.fit.zinbnode"))
+      !anyNA(ld$inflation) && !anyNA(ld$prsucc) && !is.na(ld$failures)
+    else
+      stop("unknown node type '", class(ld), "'.")
 
   })
 
@@ -447,6 +484,8 @@ singular = function(x, by.node = FALSE) {
 
   # check the bn.fit object.
   check.fit(x)
+  if (is(x, "bn.fit.zinet"))
+    stop("zero inflated networks are not supported.")
 
   per.node = sapply(x, function(ld) {
 

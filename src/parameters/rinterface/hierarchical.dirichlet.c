@@ -1,9 +1,8 @@
 #include "../../include/rcore.h"
-#include "../../core/allocations.h"
+#include "../../math/linear.algebra.h"
+#include "../../minimal/common.h"
 #include "../../minimal/data.frame.h"
 #include "../../minimal/table.h"
-#include "../../minimal/common.h"
-#include "../../math/linear.algebra.h"
 #include "../parameters.h"
 
 SEXP hierarchical_dirichlet_parameters(SEXP data, SEXP node, SEXP parents, SEXP

@@ -1,8 +1,8 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
 #include "../core/moments.h"
-#include "linear.algebra.h"
 #include "../include/globals.h"
+#include "linear.algebra.h"
 
 /* conditional least squares with just the intercept and complete data. */
 static void c_cls0(double *y, int *z, int nrow, int ncond, double *fitted,

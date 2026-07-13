@@ -134,6 +134,9 @@ mpe.discrete.query = function(jtree, event, evidence, value) {
   for (node in colnames(mpe))
    mpe[1, node] = dimnames(ppp)[[node]][id[1, node]]
 
+  # attach the posterior the MPE was chosen from, for callers that want it.
+  attr(mpe, "prob") = ppp
+
   return(mpe)
 
 }#MPE.DISCRETE.QUERY
@@ -150,7 +153,7 @@ mpe.gaussian.query = function(mvn, event, evidence, value) {
   }#THEN
   else {
 
-    # if there is evidence, use the exectation of the conditional distribution
+    # if there is evidence, use the expectation of the conditional distribution
     # of the event nodes given the evidence nodes.
     mpe = conditional.mvnorm(mu = mvn$mu, sigma = mvn$sigma, to = event,
             from = evidence, value = value[, evidence])

@@ -17,10 +17,10 @@
   \itemize{
 
     \item \emph{Naive Bayes} (\code{\link{naive.bayes}}): a very simple
-      algorithm assuming that all classifiers are independent and using the
-      posterior probability of the target variable for classification.
-    \item \emph{Tree-Augmented Naive Bayes} (\code{\link{tree.bayes}}): an
-      improvement over naive Bayes, this algorithms uses Chow-Liu to approximate
+      algorithm that assumes all classifiers are independent and uses the target
+      variable's posterior probability for classification.
+    \item \emph{Tree-Augmented Naive Bayes} (\code{\link{tree.bayes}}):
+      improves over Naive Bayes by using the Chow-Liu algorithm to approximate
       the dependence structure of the classifiers.
 
      Friedman N, Geiger D, Goldszmit M (1997). "Bayesian Network Classifiers."

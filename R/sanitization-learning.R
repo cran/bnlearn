@@ -17,6 +17,8 @@ check.learning.algorithm = function(algorithm, class = "all", bn) {
     ok = c(ok, mim.based.algorithms)
   if ("classifier" %in% class)
     ok = c(ok, classification.algorithms)
+  if ("lingam" %in% class)
+    ok = c(ok, lingam.algorithms)
   if ("all" %in% class)
     ok = available.learning.algorithms
 
@@ -62,7 +64,7 @@ check.largest.sx.set = function(max.sx, data) {
 }#CHECK.LARGEST.SX.SET
 
 # check the threshold on the maximum number of parents.
-check.maxp = function(maxp, data) {
+check.maxp = function(maxp, nnodes) {
 
   if (missing(maxp) || is.null(maxp)) {
 
@@ -73,7 +75,7 @@ check.maxp = function(maxp, data) {
 
     if (!is.positive.integer(maxp))
       stop("maxp must be a positive integer number.")
-    if (maxp >= ncol(data))
+    if (maxp >= nnodes)
       warning("maximum number of parents should be lower than the number of nodes, the limit will be ignored.")
 
   }#ELSE
@@ -103,7 +105,7 @@ check.perturb = function(perturb) {
       return(1)
 
   if (!is.positive.integer(perturb))
-    stop("the number of changes at each radom restart must be a non-negative numeric value.")
+    stop("the number of changes at each random restart must be a non-negative numeric value.")
   else
     return(perturb)
 
@@ -154,7 +156,7 @@ check.max.tabu = function(max, tabu) {
   # U-turn and return to the local maximum it left before (thus creating an
   # endless loop).
   if (max > tabu)
-    stop("the maximum number of iterations without any score improvement must not be grater than the length of the tabu list.")
+    stop("the maximum number of iterations without any score improvement must not be greater than the length of the tabu list.")
 
   return(max)
 
@@ -168,7 +170,7 @@ check.learning.algorithm.args = function(args, algorithm, bn) {
       args = as.list(args)
 
   # if a reference bn is available, inherit the values of as many arguments as
-  # possbile.
+  # possible.
   if (!(missing(algorithm) || missing(bn))) {
 
     # use the same score/conditional independence test.
@@ -204,7 +206,7 @@ check.learning.algorithm.args = function(args, algorithm, bn) {
         args[["optimized"]] = bn$learning$optimized
 
       # pass along the relevant arguments in bn$learning$args if the score
-      # function is the same (different scores have paramenters with the same
+      # function is the same (different scores have parameters with the same
       # name but different meanings).
       if (("score" %in% names(args)) && (args[["score"]] == bn$learning$test))
         for (arg in names(bn$learning$args))

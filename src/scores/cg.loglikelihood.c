@@ -1,11 +1,11 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
 #include "../core/sets.h"
-#include "scores.h"
-#include "../minimal/data.frame.h"
-#include "../minimal/common.h"
 #include "../include/globals.h"
 #include "../math/linear.algebra.h"
+#include "../minimal/common.h"
+#include "../minimal/data.frame.h"
+#include "scores.h"
 
 double ccgloglik(SEXP x, SEXP parents, int *type, int np, int ndp,
     double *nparams) {
@@ -107,7 +107,7 @@ end:
 
   return res;
 
-}/*CCGLOGLIK*/
+}/*C_FAST_CCGLOGLIK*/
 
 double loglik_cgnode(SEXP target, SEXP x, SEXP data, double *nparams,
     int *np, bool debugging) {

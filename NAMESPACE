@@ -12,6 +12,8 @@ export(
   "learn.mb", "learn.nbr",
   # Bayesian network classifiers.
   "naive.bayes", "tree.bayes",
+  # causal discovery algorithms.
+  "direct.lingam",
   # whitelists and blacklists.
   "whitelist", "blacklist", "ordering2blacklist", "tiers2blacklist",
   "set2blacklist",
@@ -27,8 +29,8 @@ export(
   # get, set and count sets of nodes: parents, children, etc.
   "parents", "parents<-", "children", "children<-", "spouses", "ancestors",
   "descendants", "root.nodes", "leaf.nodes", "isolated.nodes", "nnodes",
-  # get and set adjacency matrices.
-  "amat", "amat<-",
+  # get and set adjacency matrices and arc lists.
+  "amat", "amat<-", "alst", "alst<-",
   # model string formulas.
   "modelstring", "modelstring<-", "model2network",
   # arc strength and model averaging.
@@ -64,14 +66,14 @@ export(
   "test.counter", "increment.test.counter", "reset.test.counter",
   # assorted functions involving network structures.
   "acyclic", "directed", "valid.cpdag", "valid.dag", "valid.ug", "path.exists",
-  "node.ordering", "subgraph",
+  "node.ordering", "subgraph", "perturb",
   # assorted functions involving fitted networks.
   "identifiable", "singular", 
   # assorted functions to extract information.
   "configs", "nparams", "ntests",
   # assorted conversion functions.
-  "as.bn", "as.bn.fit", "as.grain", "as.graphNEL", "as.graphAM", "as.igraph",
-  "as.lm",
+  "as.bn", "as.bn.fit", "as.scm", "as.grain", "as.graphNEL", "as.graphAM", 
+  "as.igraph", "as.lm",
   # graph enumeration.
   "count.graphs", "cextend.all"
 )
@@ -80,15 +82,16 @@ useDynLib(bnlearn, .registration = TRUE)
 
 importFrom("methods", "new", "setClass", "setGeneric", "setMethod")
 importFrom("stats", "logLik", "AIC", "BIC", "coefficients", "complete.cases",
-  "cor", "dnorm", "ecdf", "fitted", "formula", "knots", "lm", "optimize",
-  "quantile", "residuals", "sd", "weighted.mean", "median", "qunif", "sigma",
-  "relevel")
+  "cor", "dnorm", "ecdf", "fitted", "formula", "knots", "lm", 
+  "optimize", "quantile", "residuals", "sd", "weighted.mean", "median", "qunif",
+  "sigma", "relevel")
 importFrom("grDevices", "col2rgb", "colors", "dev.cur")
 importFrom("graphics", "abline", "arrows", "lines", "plot", "points",
   "strheight", "strwidth", "text", "plot.new", "title", "rect", "symbols")
 importFrom("parallel", "parLapplyLB", "parSapplyLB", "clusterEvalQ")
 
 S3method(as.bn, "fit")
+S3method(as.bn, "scm")
 
 S3method(all.equal, "bn")
 S3method(all.equal, "bn.fit")
@@ -116,39 +119,51 @@ S3method(as.graphAM, "bn.fit")
 S3method(as.igraph, "bn")
 S3method(as.igraph, "bn.fit")
 S3method(as.bn, "igraph")
+S3method(as.scm, "bn")
 S3method(as.lm, "bn")
 S3method(as.lm, "bn.fit")
 S3method(as.lm, "bn.fit.gnode")
+S3method(print, "scm")
 S3method(print, "bn.tan")
 S3method(print, "bn.fit")
 S3method(print, "bn.fit.dnode")
 S3method(print, "bn.fit.onode")
 S3method(print, "bn.fit.gnode")
 S3method(print, "bn.fit.cgnode")
+S3method(print, "bn.fit.zihpnode")
+S3method(print, "bn.fit.zinbnode")
 S3method(residuals, "bn")
 S3method(residuals, "bn.fit")
 S3method(residuals, "bn.fit.dnode")
 S3method(residuals, "bn.fit.onode")
 S3method(residuals, "bn.fit.gnode")
 S3method(residuals, "bn.fit.cgnode")
+S3method(residuals, "bn.fit.zihpnode")
+S3method(residuals, "bn.fit.zinbnode")
 S3method(fitted, "bn")
 S3method(fitted, "bn.fit")
 S3method(fitted, "bn.fit.dnode")
 S3method(fitted, "bn.fit.onode")
 S3method(fitted, "bn.fit.gnode")
 S3method(fitted, "bn.fit.cgnode")
+S3method(fitted, "bn.fit.zihpnode")
+S3method(fitted, "bn.fit.zinbnode")
 S3method(sigma, "bn")
 S3method(sigma, "bn.fit")
 S3method(sigma, "bn.fit.dnode")
 S3method(sigma, "bn.fit.onode")
 S3method(sigma, "bn.fit.gnode")
 S3method(sigma, "bn.fit.cgnode")
+S3method(sigma, "bn.fit.zihpnode")
+S3method(sigma, "bn.fit.zinbnode")
 S3method(coef, "bn")
 S3method(coef, "bn.fit")
 S3method(coef, "bn.fit.dnode")
 S3method(coef, "bn.fit.onode")
 S3method(coef, "bn.fit.gnode")
 S3method(coef, "bn.fit.cgnode")
+S3method(coef, "bn.fit.zihpnode")
+S3method(coef, "bn.fit.zinbnode")
 S3method(print, "bn.kcv")
 S3method(plot, "bn.kcv")
 S3method(print, "bn.kcv.list")
@@ -162,5 +177,5 @@ S3method("[[<-", "bn.fit")
 S3method(mean, "bn.strength")
 S3method(mean, "bn.fit")
 
-exportClasses("bn", "bn.fit")
+exportClasses("bn", "scm", "bn.fit")
 exportMethods("nodes", "nodes<-", "degree", "score")

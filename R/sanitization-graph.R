@@ -20,7 +20,7 @@ check.nodes = function(nodes, graph = NULL, min.nodes = 1, max.nodes = Inf) {
   # node must be a valid node label.
   if (!is.null(graph)) {
 
-    if (is(graph, "bn"))
+    if (is(graph, c("bn", "scm")))
       invalid.nodes = nodes %!in% names(graph$nodes)
     else if (is(graph, "bn.fit"))
       invalid.nodes = nodes %!in% names(graph)
@@ -181,3 +181,17 @@ valid.cpdag.backend = function(x, debug = FALSE) {
 
 }#VALID.CPDAG.BACKEND
 
+# check the label of arc operations used to perturb graphs.
+check.perturb.ops = function(ops) {
+
+  if (missing(ops) || !is.string.vector(ops))
+    stop("'ops' must be a vector of strings, one or more of 'set', 'drop', 'reverse'.")
+  if (any(ops %!in% c("set", "drop", "reverse")))
+    stop("'ops' must be a subset of c('set', 'drop', 'reverse').")
+
+  # deduplicate op labels, to avoid biasing their sampling.
+  ops = unique(ops)
+
+  return(ops)
+
+}#CHECK.PERTURB.OPS

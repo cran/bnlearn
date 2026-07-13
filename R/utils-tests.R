@@ -8,7 +8,7 @@ obs.per.cell = function(x, y, z = NULL, data) {
   nly = nlevels(data[, y])
 
   # return +Inf for continuous data to bypass countermeasures
-  # thought for sparce discrete data.
+  # thought for sparse discrete data.
   if (data.type(data) == "continuous")
     return(Inf)
 

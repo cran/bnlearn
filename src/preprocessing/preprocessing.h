@@ -18,7 +18,7 @@ int interval_discretization(double *orig, int *factor, int nbreaks,
     double *cutpoints, int nobs, bool debugging);
 int quantile_discretization(double *orig, int *factor, int nbreaks,
     double *cutpoints, int nobs, bool complete, bool debugging);
-void hartemink_discretization(ddata work, int *nbreaks, double **cutpoints,
+void hartemink_discretization(tabular work, int *nbreaks, double **cutpoints,
     bool debugging);
 
 #endif

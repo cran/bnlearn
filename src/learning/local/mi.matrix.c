@@ -1,33 +1,35 @@
 #include "../../include/rcore.h"
 #include "../../core/allocations.h"
+#include "../../core/contingency.tables.h"
+#include "../../core/correlation.h"
+#include "../../core/data.table.h"
+#include "../../core/moments.h"
 #include "../../core/sort.h"
 #include "../../core/uppertriangular.h"
 #include "../../include/graph.h"
-#include "../../tests/tests.h"
-#include "../../include/bn.h"
-#include "../../core/moments.h"
-#include "../../core/correlation.h"
-#include "../../core/data.table.h"
-#include "../../core/contingency.tables.h"
-#include "../../minimal/strings.h"
 #include "../../minimal/common.h"
+#include "../../minimal/strings.h"
+#include "../../tests/tests.h"
 
 /* enum for the mutual information estimators, to be matched from the label
  * string passed down from R. */
 typedef enum {
   ENOMI        =  0, /* error code, no such estimator. */
 
-  MLE          =  1, /* maximum likelihood, discrete data. */
+  MI_MLE       =  1, /* maximum likelihood, discrete data. */
 
-  MLE_G        = 10, /* maximum likelihood, Gaussian data. */
+  MI_MLE_G     = 10, /* maximum likelihood, Gaussian data. */
 } mi_estimator_e;
 
-#define ENTRY(key, value) if (strcmp(label, key) == 0) return value;
+#define ENTRY(key, value) \
+  do { \
+    if (strcmp(label, key) == 0) return value; \
+  } while (0)
 
 mi_estimator_e mi_to_enum(const char *label) {
 
-  ENTRY("mi", MLE);
-  ENTRY("mi-g", MLE_G);
+  ENTRY("mi", MI_MLE);
+  ENTRY("mi-g", MI_MLE_G);
 
   return ENOMI;
 
@@ -35,14 +37,14 @@ mi_estimator_e mi_to_enum(const char *label) {
 
 /* compute all the pairwise mutual information coefficients between discrete
  * variables. */
-static void mi_matrix_discrete(uppertriangular mim, ddata data, int *cond,
+static void mi_matrix_discrete(uppertriangular mim, tabular data, int *cond,
     int clevels, mi_estimator_e est, bool debugging) {
 
 int i = 0, j = 0;
 
   switch (est) {
 
-    case MLE:
+    case MI_MLE:
 
       if (!cond) {
 
@@ -63,7 +65,7 @@ int i = 0, j = 0;
 
             /* resize the contigency table and fill it with the new counts. */
             resize_2d_table(data.nlvl[i], data.nlvl[j], &counts);
-            refill_2d_table(data.col[i], data.col[j], &counts, data.m.nobs);
+            refill_2d_table(data.dcol[i], data.dcol[j], &counts, data.m.nobs);
 
             /* compute and save the mutual information. */
             if (counts.nobs == 0)
@@ -102,7 +104,7 @@ int i = 0, j = 0;
 
             /* resize the contigency table and fill it with the new counts. */
             resize_3d_table(data.nlvl[i], data.nlvl[j], clevels, &counts);
-            refill_3d_table(data.col[i], data.col[j], cond, &counts, data.m.nobs);
+            refill_3d_table(data.dcol[i], data.dcol[j], cond, &counts, data.m.nobs);
 
             /* compute and save the mutual information. */
 
@@ -134,7 +136,7 @@ int i = 0, j = 0;
 
 /* compute all the pairwise mutual information coefficients between Gaussian
  * variables. */
-static void mi_matrix_gaussian(uppertriangular mim, gdata data, double *sse,
+static void mi_matrix_gaussian(uppertriangular mim, tabular data, double *sse,
     mi_estimator_e est, bool debugging) {
 
 int i = 0, j = 0;
@@ -142,7 +144,7 @@ double cor = 0;
 
   switch (est) {
 
-    case MLE_G:
+    case MI_MLE_G:
 
       for (i = 0; i < mim.dim; i++) {
 
@@ -150,13 +152,13 @@ double cor = 0;
 
           if (data.m.flag[i].complete && data.m.flag[j].complete) {
 
-            cor = c_fast_cor(data.col[i], data.col[j], data.m.nobs,
+            cor = c_fast_cor(data.ccol[i], data.ccol[j], data.m.nobs,
                     data.mean[i], data.mean[j], sse[i], sse[j]);
 
           }/*THEN*/
           else {
 
-            cor = c_cor_with_missing(data.col[i], data.col[j], data.m.nobs,
+            cor = c_cor_with_missing(data.ccol[i], data.ccol[j], data.m.nobs,
                     NULL, NULL, NULL, NULL, NULL);
 
           }/*ELSE*/
@@ -192,12 +194,12 @@ uppertriangular mimatrix = { 0 };
   if (debugging)
     Rprintf("* computing pairwise mutual information coefficients.\n");
 
-  if (est == MLE) {
+  if (est == MI_MLE) {
 
     int clevels = 0, *cond = NULL;
 
     /* extract the data. */
-    ddata dt = ddata_from_SEXP(data, 0);
+    tabular dt = tabular_from_SEXP(data, 0, 0);
     meta_copy_names(&(dt.m), 0, data);
     meta_init_flags(&(dt.m), 0, complete, R_NilValue);
     /* the variable names are the dimension names of the mutual information
@@ -215,19 +217,19 @@ uppertriangular mimatrix = { 0 };
     /* compute the pairwise mutual information coefficients. */
     mi_matrix_discrete(mimatrix, dt, cond, clevels, est, debugging);
 
-    FreeDDT(dt);
+    FreeTAB(dt);
 
   }/*THEN*/
-  else if (est == MLE_G) {
+  else if (est == MI_MLE_G) {
 
     /* extract the data, cache means and variances . */
     double *sse = NULL;
-    gdata dt = gdata_from_SEXP(data, 0);
+    tabular dt = tabular_from_SEXP(data, 0, 0);
     meta_copy_names(&(dt.m), 0, data);
     meta_init_flags(&(dt.m), 0, complete, R_NilValue);
-    gdata_cache_means(&dt, 0);
+    tabular_cache_means(&dt, 0);
     sse = Calloc1D(ncol, sizeof(double));
-    c_ssevec(dt.col, sse, dt.mean, dt.m.nobs, dt.m.ncols, 0);
+    c_ssevec(dt.ccol, sse, dt.mean, dt.m.nobs, dt.m.ncols, 0);
     /* the variable names are the dimension names of the mutual information
      * matrix. */
     uppertriangular_copy_names(&mimatrix, dt.m.names);
@@ -236,7 +238,7 @@ uppertriangular mimatrix = { 0 };
     mi_matrix_gaussian(mimatrix, dt, sse, est, debugging);
 
     Free1D(sse);
-    FreeGDT(dt);
+    FreeTAB(dt);
 
   }/*THEN*/
   else {

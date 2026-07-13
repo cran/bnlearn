@@ -33,15 +33,15 @@
 
   }
 
-  If the loss function requires to predict values from the test sets, each
+  If the loss function requires predicting values from the test sets, each
   element also contains:
 
   \itemize{
 
     \item \code{predicted}: a factor or a numeric vector, the predicted values
-      for the target node in the test set.
+      for the target node for the observations in the test set.
     \item \code{observed}: a factor or a numeric vector, the observed values
-      for the target node in the test set.
+      for the target node for the observations in the test set.
 
   }
 
@@ -50,9 +50,10 @@
   \itemize{
 
     \item \code{loss}: a character string, the label of the loss function.
-    \item \code{mean}: the mean of the values of the loss function computed in
-      the \code{k} iterations of the cross-validation, which is printed as the
-      "expected loss" or averaged to compute the "average loss over the runs".
+    \item \code{mean}: the mean of the values of the loss function computed
+      across all \code{k} iterations of the cross-validation, which is printed
+      as the "expected loss" or averaged to compute the "average loss over the
+      runs".
     \item \code{bn}: either a character string (the label of the learning
       algorithm to be applied to the training data in each iteration) or an
       object of class \code{bn} (a fixed network structure).

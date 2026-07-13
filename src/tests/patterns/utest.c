@@ -1,19 +1,23 @@
 #include "../../include/rcore.h"
 #include "../../core/allocations.h"
-#include "../../core/moments.h"
 #include "../../core/correlation.h"
+#include "../../core/moments.h"
 #include "../../minimal/common.h"
 #include "../tests.h"
 
 #define DISCRETE_SWAP_X() \
+  do { \
       xdata = VECTOR_ELT(xx, i); \
       xptr = INTEGER(xdata); \
-      llx = NLEVELS(xdata);
+      llx = NLEVELS(xdata); \
+  } while (0)
 
 #define GAUSSIAN_SWAP_X() \
+  do { \
       xptr = REAL(VECTOR_ELT(xx, i)); \
       xm = c_mean(xptr, nobs); \
-      xsd = c_sse(xptr, xm, nobs);
+      xsd = c_sse(xptr, xm, nobs); \
+  } while (0)
 
 /* parametric tests for discrete variables. */
 double ut_discrete(SEXP xx, SEXP yy, int nobs, int ntests, double *pvalue,

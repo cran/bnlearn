@@ -2,9 +2,10 @@
 # return the arcs in the graph.
 arcs = function(x) {
 
-  check.bn.or.fit(x)
+  if (missing(x) || !is(x, c("bn", "scm", "bn.fit")))
+    stop("an object of class 'bn', 'scm' or 'bn.fit' is required.")
 
-  if (is(x, "bn"))
+  if (is(x, c("bn", "scm")))
     x$arcs
   else
     fit2arcs(x)
@@ -25,7 +26,7 @@ arcs = function(x) {
   check.logical(debug)
   # sanitize the set of arcs.
   value = check.arcs(value, nodes = names(x$nodes))
-  # check whether the the graph contains directed cycles.
+  # check whether the graph contains directed cycles.
   if (check.cycles)
     if (!is.acyclic(nodes = names(x$nodes), arcs = value, debug = debug,
            directed = TRUE))

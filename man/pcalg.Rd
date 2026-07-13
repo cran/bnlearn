@@ -13,8 +13,8 @@
 \arguments{
   \item{x}{an object of class \code{pcAlgo}.}
   \item{\dots}{extra arguments from the generic method (currently ignored).}
-  \item{check.cycles}{a boolean value. If \code{FALSE} the returned network will
-    not be checked for cycles.}
+  \item{check.cycles}{a boolean value. If \code{FALSE}, the returned network
+    will not be checked for cycles.}
 }
 \value{
 

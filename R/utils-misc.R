@@ -59,17 +59,6 @@ configurations = function(data, factor = TRUE, all = TRUE) {
 
 }#.TABLE
 
-.data.frame.column = function(dataframe, column, drop = TRUE,
-  keep.names = FALSE) {
-
-  .Call(call_dataframe_column,
-        dataframe = dataframe,
-        column = column,
-        drop = drop,
-        keep.names = keep.names)
-
-}#.DATA.FRAME.COLUMN
-
 # explode an unevaluated expression into a character vector.
 explode = function(x) {
 
@@ -210,7 +199,7 @@ ndsubset = function(x, indices) {
 
 }#NDSUBSET
 
-# make sure rounded probabilites sum up to one (largest remainder method).
+# make sure rounded probabilities sum up to one (largest remainder method).
 lrm.round = function(prob, digits = 3) {
 
   # scale the probabilities so that the last significant digit is at 10^0.
@@ -218,7 +207,7 @@ lrm.round = function(prob, digits = 3) {
   # separate integer and fractional parts, and the lost probability mass
   integer.part = floor(scaled)
   fractional.part = scaled - integer.part
-  # if the resulting number are round, the probabilities are alreay rounded.
+  # if the resulting number are round, the probabilities are already rounded.
   if (isTRUE(all.equal(scaled, integer.part)))
     return(prob)
   # compute the lost probability mass, and where to add it back.
@@ -252,3 +241,14 @@ robust.score.difference = function(new, old) {
 
 }#ROBUST.SCORE.DIFFERENCE
 
+# center and standardize a vector, even when all elements are equal.
+.scale = function(x) {
+
+  centered = x - mean(x, na.rm = TRUE)
+  sd = cgsd(x)
+  if (sd == 0)
+    return(centered)
+  else
+    return(centered / sd)
+
+}#.SCALE

@@ -7,7 +7,7 @@ residuals.bn = sigma.bn = fitted.bn = coef.bn = function(object, ...) {
 }#RESIDUALS.BN
 
 # get the number of parameters of the bayesian network.
-nparams = function(x, data, debug = FALSE) {
+nparams = function(x, data, estimator = NULL, debug = FALSE) {
 
   check.bn.or.fit(x)
   check.logical(debug)
@@ -17,16 +17,17 @@ nparams = function(x, data, debug = FALSE) {
     # check the data are there.
     data = check.data(data, allow.missing = TRUE)
     # check the network against the data.
-    check.bn.vs.data(x, data)
+    data = check.bn.vs.data(x, data, reorder = TRUE)
     # the number of parameters is unknown for partially directed graphs.
     if (!is.completely.directed(x))
       stop("the graph is only partially directed.")
 
-    # check whether the network is valid.
-    estimator = check.fitting.method(NULL, data)
+    # sanitize the estimator.
+    estimator = check.fitting.method(estimator, data)
     check.arcs.against.assumptions(x$arcs, data, estimator)
 
-    return(nparams.backend(x, data = data, debug = debug))
+    return(nparams.backend(x, data = data, estimator = estimator,
+             debug = debug))
 
   }#THEN
   else {
@@ -198,7 +199,7 @@ cpdag = function(x, wlbl = FALSE, debug = FALSE) {
 
 }#CPDAG
 
-# contruct a consistent DAG extension of a PDAG.
+# construct a consistent DAG extension of a PDAG.
 cextend = function(x, strict = TRUE, debug = FALSE) {
 
   check.bn(x)
@@ -227,17 +228,23 @@ cextend = function(x, strict = TRUE, debug = FALSE) {
 
 }#CEXTEND
 
-# produce all possible extensions of a CPDAG.
+# produce all possible extensions of a CPDAG, PDAG or MPDAG.
 cextend.all = function(x, debug = FALSE) {
 
   check.bn(x)
   check.logical(debug)
 
-  # only allow valid CPDAGs to ensure correctness.
-  if (!valid.cpdag.backend(x))
-    stop("'x' is not a valid CPDAG.")
+  # the graph must be acyclic to have any consistent extension.
+  if (!is.acyclic(arcs = x$arcs, nodes = names(x$nodes), directed = TRUE))
+    stop("the graph 'x' contains directed cycles.")
 
-  cextend.all.backend(x = x, debug = debug)
+  # a valid CPDAG uses the dedicated enumerator; a PDAG or MPDAG (a graph that
+  # carries background knowledge, that is, directed arcs which are not all
+  # compelled) uses the bucket enumerator, which checks its own extendability.
+  if (valid.cpdag.backend(x))
+    cextend.all.backend(x = x, debug = debug)
+  else
+    cextend.all.pdag.backend(x = x, debug = debug)
 
 }#CEXTEND.ALL
 
@@ -284,7 +291,7 @@ shielded.colliders = function(x, arcs = FALSE, debug = FALSE) {
   colliders.backend(x = x, return.arcs = arcs, including.shielded = TRUE,
     including.unshielded = FALSE, debug = debug)
 
-}#UNSHIELDED.COLLIDERS
+}#SHIELDED.COLLIDERS
 
 # return the v-structures in a network.
 vstructs = function(x, arcs = FALSE, debug = FALSE) {

@@ -42,6 +42,57 @@ average.fitted.cgnode = function(node, fitted, weights) {
 
 }#AVERAGE.FITTED.CGNODE
 
+# average of zero-inflated hyper-Poisson nodes.
+average.fitted.zihpnode = function(node, fitted, weights) {
+
+  # allocate the vectors of both sets of regression coefficients, zeroed...
+  inflation = intensity = fitted[[1]][[node]]$inflation
+  inflation[] = intensity[] = 0
+  # ... and the dispersion parameter.
+  dispersion = 0
+  # add up all parameters, with the respective weights...
+  for (i in seq_along(fitted)) {
+
+    inflation = inflation + fitted[[i]][[node]]$inflation * weights[i]
+    intensity = intensity + fitted[[i]][[node]]$intensity * weights[i]
+    dispersion = dispersion + fitted[[i]][[node]]$dispersion * weights[i]
+
+  }#FOR
+  # ... and normalize the result.
+  inflation = inflation / sum(weights)
+  intensity = intensity / sum(weights)
+  dispersion = dispersion / sum(weights)
+
+  return(list(inflation = inflation, intensity = intensity,
+              dispersion = dispersion))
+
+}#AVERAGE.FITTED.ZIHPNODE
+
+# average of zero-inflated negative binomial nodes.
+average.fitted.zinbnode = function(node, fitted, weights) {
+
+  # allocate the vectors of both sets of regression coefficients, zeroed...
+  inflation = succprob = fitted[[1]][[node]]$inflation
+  inflation[] = succprob[] = 0
+  # ... and the number of failures.
+  failures = 0
+  # add up all parameters, with the respective weights...
+  for (i in seq_along(fitted)) {
+
+    inflation = inflation + fitted[[i]][[node]]$inflation * weights[i]
+    succprob = succprob + fitted[[i]][[node]]$succprob * weights[i]
+    failures = failures + fitted[[i]][[node]]$failures * weights[i]
+
+  }#FOR
+  # ... and normalize the result.
+  inflation = inflation / sum(weights)
+  succprob = succprob / sum(weights)
+  failures = failures / sum(weights)
+
+  return(list(inflation = inflation, succprob = succprob, failures = failures))
+
+}#AVERAGE.FITTED.ZINBNODE
+
 # average several bn.fit objects with the same structure.
 average.fitted = function(fitted, weights) {
 
@@ -73,6 +124,28 @@ average.fitted = function(fitted, weights) {
       if ("configs" %in% names(averaged[[node]]))
         averaged[[node]]$configs =
           factor(NA, levels = levels(averaged[[node]]$configs))
+
+    }#THEN
+    else if (is(averaged[[node]], "bn.fit.zihpnode")) {
+
+      averaged[[node]][c("inflation", "intensity", "dispersion")] =
+        average.fitted.zihpnode(node = node, fitted = fitted, weights = weights)
+
+      # in addition to averaging the parameters, remove the fitted values and
+      # the residuals if present.
+      averaged[[node]]$fitted.values = as.numeric(NA)
+      averaged[[node]]$residuals = as.numeric(NA)
+
+    }#THEN
+    else if (is(averaged[[node]], "bn.fit.zinbnode")) {
+
+      averaged[[node]][c("inflation", "succprob", "failures")] =
+        average.fitted.zinbnode(node = node, fitted = fitted, weights = weights)
+
+      # in addition to averaging the parameters, remove the fitted values and
+      # the residuals if present.
+      averaged[[node]]$fitted.values = as.numeric(NA)
+      averaged[[node]]$residuals = as.numeric(NA)
 
     }#THEN
 

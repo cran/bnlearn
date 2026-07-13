@@ -1,8 +1,8 @@
 #include "../include/rcore.h"
-#include "../core/sets.h"
-#include "../minimal/data.frame.h"
-#include "../minimal/common.h"
 #include "../core/contingency.tables.h"
+#include "../core/sets.h"
+#include "../minimal/common.h"
+#include "../minimal/data.frame.h"
 
 double dlik(counts1d marginal) {
 

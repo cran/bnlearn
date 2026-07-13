@@ -1,6 +1,6 @@
 #include "../include/rcore.h"
-#include "../minimal/unique.h"
 #include "../math/linear.algebra.h"
+#include "../minimal/unique.h"
 
 /* class check to match that in the R code. */
 bool c_is(SEXP obj, const char *str) {

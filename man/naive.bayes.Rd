@@ -14,7 +14,7 @@
 naive.bayes(x, training, explanatory)
 \method{predict}{bn.naive}(object, data, prior, ..., prob = FALSE, debug = FALSE)
 
-tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
+tree.bayes(x, training, explanatory, whitelist, blacklist,
   mi = NULL, root = NULL, debug = FALSE)
 \method{predict}{bn.tan}(object, data, prior, ..., prob = FALSE, debug = FALSE)
 }
@@ -22,29 +22,29 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   \item{training}{a character string, the label of the training variable.}
   \item{explanatory}{a vector of character strings, the labels of the
     explanatory variables.}
-  \item{object}{an object of class \code{bn.naive}, either fitted or not.}
+  \item{object}{an object of class \code{bn.fit} and \code{bn.naive}.}
   \item{x, data}{a data frame containing the variables in the model, which
     must all be factors.}
   \item{prior}{a numeric vector, the prior distribution for the training
-    variable. It is automatically normalized if not already so. The default
+    variable. It is automatically normalised if not already so. The default
     prior is the probability distribution of the training variable in
     \code{object}.}
-  \item{whitelist}{a data frame with two columns (optionally labeled "from"
+  \item{whitelist}{a data frame with two columns (optionally labelled "from"
     and "to"), containing a set of arcs to be included in the graph.}
-  \item{blacklist}{a data frame with two columns (optionally labeled "from"
+  \item{blacklist}{a data frame with two columns (optionally labelled "from"
     and "to"), containing a set of arcs not to be included in the graph.}
   \item{mi}{a character string, the estimator used for the mutual information
     coefficients for the Chow-Liu algorithm in TAN. Possible values are
-    \code{mi} (discrete mutual information) and \code{mi-g} (Gaussian mutual
+    \code{"mi"} (discrete mutual information) and \code{"mi-g"} (Gaussian mutual
     information).}
   \item{root}{a character string, the label of the explanatory variable to be
     used as the root of the tree in the TAN classifier.}
   \item{\dots}{extra arguments from the generic method (currently ignored).}
-  \item{prob}{a boolean value. If \code{TRUE} the posterior probabilities used
+  \item{prob}{a boolean value. If \code{TRUE}, the posterior probabilities used
     for prediction are attached to the predicted values as an attribute called
     \code{prob}.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
 }
 \details{
 
@@ -53,7 +53,7 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   group each observation belongs to) is at the center of the star, and it has
   an outgoing arc for each explanatory variable.
 
-  If \code{data} is specified, \code{explanatory} will be ignored and the
+  If \code{data} is specified, \code{explanatory} will be ignored, and the
   labels of the explanatory variables will be extracted from the data.
 
   \code{predict()} performs a supervised classification of the observations by
@@ -65,18 +65,13 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
   Since \pkg{bnlearn} does not support networks containing both continuous and
   discrete variables, all variables in \code{data} must be discrete.
 
-  Ties in prediction are broken using \emph{Bayesian tie breaking}, i.e.
+  Ties in prediction are broken using \emph{Bayesian tie breaking}, that is,
   sampling at random from the tied values. Therefore, setting the random seed
   is required to get reproducible results.
 
   \code{tan.tree()} supports whitelisting and blacklisting arcs but not their
-  directions. Morevoer it is not possible to whitelist or blacklist arcs
+  directions. Moreover, it is not possible to whitelist or blacklist arcs
   incident on \code{training}.
-
-  \code{predict()} accepts either a \code{bn} or a \code{bn.fit} object as its
-  first argument. For the former, the parameters of the network are fitted on
-  \code{data}, that is, the observations whose class labels the function is
-  trying to predict.
 
 }
 \value{
@@ -107,14 +102,7 @@ tree.bayes(x, training, explanatory, whitelist = NULL, blacklist = NULL,
 }
 \examples{
 data(learning.test)
-# this is an in-sample prediction with naive Bayes (parameter learning
-# is performed implicitly during the prediction).
-bn = naive.bayes(learning.test, "A")
-pred = predict(bn, learning.test)
-table(pred, learning.test[, "A"])
 
-# this is an in-sample prediction with TAN (parameter learning is
-# performed explicitly with bn.fit).
 tan = tree.bayes(learning.test, "A")
 fitted = bn.fit(tan, learning.test, method = "bayes")
 pred = predict(fitted, learning.test)

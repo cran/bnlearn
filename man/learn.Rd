@@ -5,13 +5,13 @@
 \title{Discover the structure around a single node}
 \description{
 
-  Learn the Markov blanket or the neighbourhood centered on a node.
+  Learn the Markov blanket or the neighbourhood centred on a node.
 
 }
 \usage{
-learn.mb(x, node, method, whitelist = NULL, blacklist = NULL, start = NULL,
+learn.mb(x, node, method, whitelist, blacklist, start = NULL,
   test = NULL, alpha = 0.05, ..., max.sx = NULL, debug = FALSE)
-learn.nbr(x, node, method, whitelist = NULL, blacklist = NULL,
+learn.nbr(x, node, method, whitelist, blacklist,
   test = NULL, alpha = 0.05, ..., max.sx = NULL, debug = FALSE)
 }
 \arguments{
@@ -41,8 +41,8 @@ learn.nbr(x, node, method, whitelist = NULL, blacklist = NULL,
   \item{max.sx}{a positive integer, the maximum allowed size of the conditioning
     sets used in conditional independence tests. The default is that there is
     no limit on size.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
 }
 \note{
 

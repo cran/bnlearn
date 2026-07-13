@@ -33,8 +33,8 @@ write.dot(file, graph)
   \item{file}{a connection object or a character string.}
   \item{fitted}{an object of class \code{bn.fit}.}
   \item{graph}{an object of class \code{bn} or \code{bn.fit}.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
 }
 \note{
 
@@ -47,9 +47,9 @@ write.dot(file, graph)
 
   DOT files can be read by Graphviz, Gephi and a variety of other programs.
 
-  Please note that these functions work on a "best effort" basis, as the parsing
-  of these formats have been implemented by reverse engineering the file format
-  from publicly available examples.
+  Please note that these functions operate on a "best effort" basis, as the
+  parsing of these formats was implemented by reverse-engineering the file
+  formats from publicly available examples.
 
 }
 \value{

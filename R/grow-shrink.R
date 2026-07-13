@@ -1,11 +1,11 @@
 
-grow.shrink = function(x, cluster = NULL, whitelist, blacklist, test, alpha,
-    extra.args = list(), max.sx = ncol(x), complete, debug = FALSE) {
+grow.shrink = function(data, cluster = NULL, whitelist, blacklist, test, alpha,
+    extra.args = list(), max.sx = ncol(data), complete, debug = FALSE) {
 
-  nodes = names(x)
+  nodes = names(data)
 
   # 1. [Compute Markov Blankets]
-  mb = smartSapply(cluster, as.list(nodes), gs.markov.blanket, data = x,
+  mb = smartSapply(cluster, as.list(nodes), gs.markov.blanket, data = data,
          nodes = nodes, alpha = alpha, extra.args = extra.args,
          whitelist = whitelist, blacklist = blacklist, test = test,
          max.sx = max.sx, debug = debug)
@@ -15,7 +15,7 @@ grow.shrink = function(x, cluster = NULL, whitelist, blacklist, test, alpha,
   mb = bn.recovery(mb, nodes = nodes, mb = TRUE, debug = debug)
 
   # 2. [Compute Graph Structure]
-  mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+  mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = data,
          alpha = alpha, extra.args = extra.args, whitelist = whitelist,
          blacklist = blacklist, test = test, max.sx = max.sx, debug = debug)
   names(mb) = nodes
@@ -27,20 +27,20 @@ grow.shrink = function(x, cluster = NULL, whitelist, blacklist, test, alpha,
 
 }#GROW.SHRINK
 
-gs.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
-    whitelist, blacklist, start = character(0), test, max.sx = ncol(x),
+gs.markov.blanket = function(target, data, nodes, alpha, extra.args = list(),
+    whitelist, blacklist, start = character(0), test, max.sx = ncol(data),
     debug = FALSE) {
 
-  nodes = nodes[nodes != x]
+  nodes = nodes[nodes != target]
   whitelisted = nodes[sapply(nodes,
-          function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
+        function(y) { is.whitelisted(whitelist, c(target, y), either = TRUE) })]
   mb = start
 
   # growing phase
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
-    cat("* learning the markov blanket of", x, ".\n")
+    cat("* learning the markov blanket of", target, ".\n")
 
     if (length(start) > 0)
       cat("* initial set includes '", mb, "'.\n")
@@ -79,7 +79,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
         cat("  * checking node", y, "for inclusion.\n")
 
 
-      a = indep.test(x, y, mb, data = data, test = test,
+      a = indep.test(target, y, mb, data = data, test = test,
             extra.args = extra.args, alpha = alpha)
 
       if (a <= alpha) {
@@ -102,7 +102,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
       }#THEN
       else if (debug) {
 
-        cat("    >", x, "indep.", y, "given '", mb, "' ( p-value:", a, ").\n")
+        cat("    >", target, "indep.", y, "given '", mb, "' ( p-value:", a, ").\n")
 
       }#THEN
 
@@ -128,7 +128,7 @@ gs.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
       if (debug)
         cat("  * checking node", y, "for exclusion (shrinking phase).\n")
 
-      a = indep.test(x, y, mb[mb != y], data = data, test = test,
+      a = indep.test(target, y, mb[mb != y], data = data, test = test,
             extra.args = extra.args, alpha = alpha)
 
       if (a > alpha) {

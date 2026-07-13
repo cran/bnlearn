@@ -30,6 +30,8 @@ print.bn = function(x, ...) {
     cat("\n  Bayesian network Classifier\n\n")
   else if (x$learning$algo %in% em.algorithms)
     cat("\n  Bayesian network learned from Missing Data\n\n")
+  else if (x$learning$algo %in% lingam.algorithms)
+    cat("\n  Bayesian network learned via LiNGAM\n\n")
   else if (x$learning$algo %in% causal.network.types)
     cat("\n  Causal network\n\n")
   else
@@ -305,6 +307,60 @@ print.bn.fit.cgnode = function(x, ...) {
 
 }#PRINT.BN.FIT.CGNODE
 
+# print method for classes bn.fit.zihpnode.
+print.bn.fit.zihpnode = function(x, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  cat("\n  Parameters of node", x$node,
+      "(zero-inflated hyper-Poisson distribution)\n")
+
+  cat("\nConditional density: ")
+  if (length(x$parents) > 0)
+    cat(paste(x$node, "|", paste(x$parents, sep = "", collapse = " + ")))
+  else
+    cat(x$node)
+
+  cat("\nZero-inflation coefficients:\n")
+  print.default(format(x$inflation), print.gap = 2, right = TRUE, quote = FALSE)
+
+  cat("Intensity coefficients:\n")
+  print.default(format(x$intensity), print.gap = 2, right = TRUE, quote = FALSE)
+
+  cat("Dispersion:", x$dispersion, "\n")
+
+  invisible(x)
+
+}#PRINT.BN.FIT.ZIHPNODE
+
+# print method for classes bn.fit.zinbnode.
+print.bn.fit.zinbnode = function(x, ...) {
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  cat("\n  Parameters of node", x$node,
+      "(negative binomial distribution)\n")
+
+  cat("\nConditional density: ")
+  if (length(x$parents) > 0)
+    cat(paste(x$node, "|", paste(x$parents, sep = "", collapse = " + ")))
+  else
+    cat(x$node)
+
+  cat("\nZero-inflation coefficients:\n")
+  print.default(format(x$inflation), print.gap = 2, right = TRUE, quote = FALSE)
+
+  cat("Success probability coefficients:\n")
+  print.default(format(x$prsucc), print.gap = 2, right = TRUE, quote = FALSE)
+
+  cat("Failures:", x$failures, "\n")
+
+  invisible(x)
+
+}#PRINT.BN.FIT.ZINBNODE
+
 # print method for a single cross-validation run.
 print.bn.kcv = function(x, print.loss = TRUE, ...) {
 
@@ -372,3 +428,44 @@ print.bn.kcv.list = function(x, ...) {
   invisible(x)
 
 }#PRINT.BN.KCV.LIST
+
+# print method for structural causal models.
+print.scm = function(x, ...) {
+
+  factual.nodes = x$roles$factual
+  exogenous.nodes = x$roles$exogenous
+  counterfactual.nodes = x$roles$counterfactual
+
+  # warn about unused arguments.
+  check.unused.args(list(...), character(0))
+
+  cat("\n  Structural Causal Model\n\n")
+
+  # print the structural causal model in subsection, by role.
+  metadata = lapply(x$nodes, function(node)
+               list(parents = c(node$parents, node$exogenous)))
+
+  cat("  factual model:\n")
+  fcat(modelstring.backend(metadata[factual.nodes]), indent = 2)
+  cat("  exogenous model:\n")
+  fcat(modelstring.backend(metadata[exogenous.nodes]), indent = 2)
+  if (length(counterfactual.nodes) > 0) {
+
+    cat("  counterfactual model:\n")
+    fcat(modelstring.backend(metadata[counterfactual.nodes]), indent = 2)
+
+  }#THEN
+
+  wcat("nodes", length(x$nodes))
+  wcat("factual nodes", length(factual.nodes), indent = 4)
+  wcat("exogenous nodes", length(exogenous.nodes), indent = 4)
+  wcat("counterfactual nodes", length(counterfactual.nodes), indent = 4)
+  wcat("arcs", nrow(x$arcs))
+
+  cat("\n")
+
+  wcat("twin network", is(x, "scm.twin"))
+
+  invisible(x)
+
+}#PRINT.SCM

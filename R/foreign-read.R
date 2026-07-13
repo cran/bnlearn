@@ -510,7 +510,7 @@ foreign.get.children = function(node, parents) {
   else
     names(which(sapply(parents, function(x, node) { node %in% x  }, node = node)))
 
-}#BIF.GET.CHILDREN
+}#FOREIGN.GET.CHILDREN
 
 # get the levels of each node in a BIF file.
 bif.get.levels = function(node, start, lines) {
@@ -680,7 +680,7 @@ bif.get.probabilities = function(node, start, lines, nodes.levels, parents,
     if (any(not.prob)) {
 
       # if more than 1% of probability mass, let's assume that the conditional
-      # probability distribution is misspecied.
+      # probability distribution is misspecified.
       not.prob = paste(which(not.prob), collapse = ", ")
       stop("conditional probability ditribution(s) ", not.prob, " of node ",
         node, " does not sum to one.")
@@ -780,7 +780,7 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents,
 
     # DSC files use numeric coordinates instead of levels; Genie does not write
     # them down, it fills them up with zeroes. Use my best guess of the right
-    # ordering (most significant corrdinate is the right-most, indexes start
+    # ordering (most significant coordinate is the right-most, indexes start
     # from zero) and hope for the best.
     if (all(sapply(cfg, function(x) all(x == 0)))) {
 
@@ -821,7 +821,7 @@ dsc.get.probabilities = function(node, start, lines, nodes.levels, parents,
     if (any(not.prob)) {
 
       # if more than 1% of probability mass, let's assume that the conditional
-      # probability distribution is misspecied.
+      # probability distribution is misspecified.
       not.prob = paste(which(not.prob), collapse = ", ")
       stop("conditional probability ditribution(s) ", not.prob, " of node ",
         node, " does not sum to one.")
@@ -933,7 +933,7 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents,
     if (any(not.prob)) {
 
       # if more than 1% of probability mass, let's assume that the conditional
-      # probability distribution is misspecied.
+      # probability distribution is misspecified.
       not.prob = paste(which(not.prob), collapse = ", ")
       stop("conditional probability ditribution(s) ", not.prob, " of node ",
         node, " does not sum to one.")
@@ -952,7 +952,7 @@ net.get.probabilities = function(node, start, lines, nodes.levels, parents,
 
     # NET files list conditional probability distributions without mentioning
     # their coordinates in the CPT. Use my best guess of the right ordering
-    # (most significant corrdinate is the right-most, indexes start from zero)
+    # (most significant coordinate is the right-most, indexes start from zero)
     # and hope for the best.
     cfg = lapply(dims, function(x) seq(length(x)))
     cfg = expand.grid(cfg[1+rev(1:length(parents[[node]]))])

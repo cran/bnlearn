@@ -1,9 +1,8 @@
 #include "../include/rcore.h"
-#include "../core/sets.h"
 #include "../core/contingency.tables.h"
-#include "../minimal/data.frame.h"
+#include "../core/sets.h"
 #include "../minimal/common.h"
-#include "../core/data.table.h"
+#include "../minimal/data.frame.h"
 
 double pdnode(SEXP x, SEXP new_x, double *nparams) {
 

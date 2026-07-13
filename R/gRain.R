@@ -28,7 +28,7 @@ grain.query = function(jtree, nodes, type = "marginal") {
 
 }#GRAIN.QUERY
 
-# helper function to extract the childern of a node in a "grain" object.
+# helper function to extract the children of a node in a "grain" object.
 grain.get.children = function(fitted, node) {
 
   names(which(sapply(fitted, function(x) { node %in% x$parents } )))
@@ -104,7 +104,7 @@ from.grain.to.bn.fit = function(x) {
 
 }#FROM.GRAIN.TO.BN.FIT
 
-# convert a "grain" object into a "bn.fit" object after propagaing the evidence.
+# convert a "grain" object into a "bn.fit" object after propagating the evidence.
 from.grain.to.bn.fit.with.evidence = function(x) {
 
   # gather the evidence that was incorporated into the network.

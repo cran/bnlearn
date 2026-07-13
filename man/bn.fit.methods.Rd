@@ -25,7 +25,7 @@
 \title{Utilities to manipulate fitted Bayesian networks}
 \description{
 
- Assign, extract or compute various quantities of interest from an object of
+ Assign, extract or compute various quantities of interest from objects of
  class \code{bn.fit}, \code{bn.fit.dnode}, \code{bn.fit.gnode},
  \code{bn.fit.cgnode} or \code{bn.fit.onode}.
 
@@ -66,27 +66,27 @@ singular(x, by.node = FALSE)
   \item{object}{an object of class \code{bn.fit}, \code{bn.fit.dnode},
     \code{bn.fit.gnode}, \code{bn.fit.cgnode} or \code{bn.fit.onode}.}
   \item{x}{an object of class \code{bn.fit}.}
-  \item{nodes}{a vector of character strings, the label of a nodes whose
+  \item{nodes}{a vector of character strings, the labels of the nodes whose
     log-likelihood components are to be computed.}
   \item{data}{a data frame containing the variables in the model.}
   \item{\dots}{additional arguments, currently ignored.}
   \item{k}{a numeric value, the penalty coefficient to be used; the default
     \code{k = 1} gives the expression used to compute AIC.}
   \item{by.sample}{a boolean value. If \code{TRUE}, \code{logLik()} returns
-    a vector containing the log-likelihood of each observations in the sample.
+    a vector containing the log-likelihood of each observation in the sample.
     If \code{FALSE}, \code{logLik()} returns a single value, the log-likelihood
     of the whole sample.}
-  \item{by.node}{a boolean value. if \code{TRUE}, \code{identifiable()} and
+  \item{by.node}{a boolean value. If \code{TRUE}, \code{identifiable()} and
     \code{singular()} return a vector containing one value for each local
-    distributions. If \code{FALSE}, \code{identifiable()} and \code{singular()}
+    distribution. If \code{FALSE}, \code{identifiable()} and \code{singular()}
     return a single value for the whole model.}
   \item{na.rm}{a boolean value, whether missing values should be used in
     computing the log-likelihood. See below for details. The default value is
     \code{FALSE}, and it only has an effect if \code{by.sample = FALSE}.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise the function is completely silent.}
   \item{for.parents}{a named list in which each element contains a set of values
-    for the discrete parents of the nodes. \code{codef()} and \code{sigma()}
+    for the discrete parents of the nodes. \code{coef()} and \code{sigma()}
     will only return the parameters associated with those parent configurations.
     (Only relevant for conditional Gaussian nodes.)}
 
@@ -94,14 +94,16 @@ singular(x, by.node = FALSE)
 \details{
 
   \code{coef()} (and its alias \code{coefficients()}) extracts model
-  coefficients (which are conditional probabilities for discrete nodes and
-  linear regression coefficients for Gaussian and conditional Gaussian nodes).
+  coefficients (that is, conditional probabilities for discrete nodes; linear
+  regression coefficients for Gaussian and conditional Gaussian nodes;
+  regression coefficients of the count and zero-inflation components for
+  zero-inflated nodes).
 
-  \code{residuals()} (and its alias \code{resid()}) extracts model residuals and
-  \code{fitted()} (and its alias \cr \code{fitted.values()}) extracts fitted
-  values from Gaussian and conditional Gaussian nodes. If the \code{bn.fit}
-  object does not include the residuals or the fitted values for the node of
-  interest both functions return \code{NULL}.
+  \code{residuals()} (and its alias \code{resid()}) extracts model residuals,
+  and \code{fitted()} (and its alias \cr \code{fitted.values()}) extracts fitted
+  values from nodes other than discrete ones. If the \code{bn.fit} object does
+  not include the residuals or the fitted values for the node of interest, both
+  functions return \code{NULL}.
 
   \code{sigma()} extracts the standard deviations of the residuals from Gaussian
   and conditional Gaussian networks and nodes.
@@ -109,7 +111,7 @@ singular(x, by.node = FALSE)
   \code{logLik()} returns the log-likelihood for the observations in
   \code{data}. If \code{na.rm} is set to \code{TRUE}, the log-likelihood will be
   \code{NA} if the data contain missing values. If \code{na.rm} is set to
-  \code{FALSE}, missing values will be dropped and the log-likelihood will be
+  \code{FALSE}, missing values will be dropped, and the log-likelihood will be
   computed using only locally-complete observations (effectively returning the
   node-average log-likelihood times the sample size). Note that the
   log-likelihood may be \code{NA} even if \code{na.rm = TRUE} if the network
@@ -130,7 +132,8 @@ singular(x, by.node = FALSE)
   All the other functions return a list with an element for each node in the
   network (if \code{object} has class \code{bn.fit}) or a numeric vector or
   matrix (if \code{object} has class \code{bn.fit.dnode}, \code{bn.fit.gnode},
-  \code{bn.fit.cgnode} or \code{bn.fit.onode}).
+  \code{bn.fit.cgnode}, \code{bn.fit.onode}, \code{bn.fit.zihpnode},
+  \code{bn.fit.zinbnode}.).
 
 }
 \seealso{

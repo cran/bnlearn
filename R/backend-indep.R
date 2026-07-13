@@ -1,14 +1,14 @@
 
 # common steps in constraint-based structure learning: infer arc orientation
 # from the skeleton and the data.
-learn.arc.directions = function(x, cluster = NULL, local.structure, whitelist,
-    blacklist, test, alpha, extra.args = list(), data, max.sx = ncol(data),
+learn.arc.directions = function(data, cluster = NULL, local.structure,
+    whitelist, blacklist, test, alpha, extra.args = list(), max.sx = ncol(data),
     debug = FALSE) {
 
-  nodes = names(x)
+  nodes = names(data)
 
   # build a list of the undirected arcs in the graph.
-  arcs = mb2arcs(local.structure, nodes)
+  arcs = sets2arcs(local.structure, nodes)
 
   # drop blacklisted arcs from the arc set.
   to.keep = apply(arcs, 1, function(x){ !is.blacklisted(blacklist, x) })
@@ -18,7 +18,7 @@ learn.arc.directions = function(x, cluster = NULL, local.structure, whitelist,
   # 3.1 detect v-structures.
   vs = do.call("rbind",
          vstruct.detect(nodes = nodes, arcs = arcs, mb = local.structure,
-           data = x, alpha = alpha, extra.args = extra.args, test = test,
+           data = data, alpha = alpha, extra.args = extra.args, test = test,
            blacklist = blacklist, max.sx = max.sx, debug = debug))
   rownames(vs) = NULL
 
@@ -52,12 +52,12 @@ fake.markov.blanket = function(learn, target) {
 }#FAKE.MARKOV.BLANKET
 
 # build the neighbourhood of a node from the markov blanket.
-neighbour = function(x, mb, data, alpha, extra.args = list(),
+neighbour = function(target, mb, data, alpha, extra.args = list(),
     whitelist, blacklist, test, empty.dsep = TRUE, markov = TRUE,
-    max.sx = ncol(x), debug = FALSE) {
+    max.sx = ncol(data), debug = FALSE) {
 
   # initialize the neighbourhood using the markov blanket.
-  candidate.neighbours = mb[[x]]
+  candidate.neighbours = mb[[target]]
 
   # if the markov blanket is empty there's nothing to do.
   if (length(candidate.neighbours) == 0) {
@@ -65,7 +65,7 @@ neighbour = function(x, mb, data, alpha, extra.args = list(),
     if (debug) {
 
       cat("----------------------------------------------------------------\n")
-      cat("* markov blanket of", x, "is empty; the neighbourhood as well.\n")
+      cat("* markov blanket of", target, "is empty; the neighbourhood as well.\n")
 
     }#THEN
 
@@ -77,9 +77,9 @@ neighbour = function(x, mb, data, alpha, extra.args = list(),
   # blacklisted nodes are removed if both directed arcs are banned and both
   # are not in the whitelist.
   blacklisted = candidate.neighbours[sapply(candidate.neighbours,
-          function(y) { is.blacklisted(blacklist, c(x, y), both = TRUE) })]
+        function(y) { is.blacklisted(blacklist, c(target, y), both = TRUE) })]
   whitelisted = candidate.neighbours[sapply(candidate.neighbours,
-          function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
+        function(y) { is.whitelisted(whitelist, c(target, y), either = TRUE) })]
 
   candidate.neighbours = setdiff(candidate.neighbours, blacklisted)
   candidate.neighbours = union(candidate.neighbours, whitelisted)
@@ -87,7 +87,7 @@ neighbour = function(x, mb, data, alpha, extra.args = list(),
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
-    cat("* learning neighbourhood of", x, ".\n")
+    cat("* learning neighbourhood of", target, ".\n")
     cat("  * blacklisted nodes: '", blacklisted, "'\n")
     cat("  * whitelisted nodes: '", whitelisted, "'\n")
     cat("  * starting with neighbourhood: '", candidate.neighbours, "'\n")
@@ -96,7 +96,7 @@ neighbour = function(x, mb, data, alpha, extra.args = list(),
 
   # nothing much to do, just return.
   if (length(candidate.neighbours) <= 1)
-    return(list(mb = mb[[x]], nbr = candidate.neighbours))
+    return(list(mb = mb[[target]], nbr = candidate.neighbours))
 
   # do not even try to remove whitelisted nodes; on the other hand.
   for (y in setdiff(candidate.neighbours, whitelisted)) {
@@ -106,14 +106,14 @@ neighbour = function(x, mb, data, alpha, extra.args = list(),
 
     # choose the smaller set of possible d-separating nodes.
     if (markov)
-      dsep.set = smaller(setdiff(mb[[x]], y), setdiff(mb[[y]], x))
+      dsep.set = smaller(setdiff(mb[[target]], y), setdiff(mb[[y]], target))
     else
-      dsep.set = setdiff(mb[[x]], y)
+      dsep.set = setdiff(mb[[target]], y)
 
     if (debug)
       cat("    > dsep.set = '", dsep.set, "'\n")
 
-    a = allsubs.test(x = x, y = y, sx = dsep.set,
+    a = allsubs.test(x = target, y = y, sx = dsep.set,
           min = ifelse(empty.dsep, 0, 1), max = min(length(dsep.set), max.sx),
           data = data, test = test, alpha = alpha, extra.args = extra.args,
           debug = debug)
@@ -124,11 +124,11 @@ neighbour = function(x, mb, data, alpha, extra.args = list(),
 
     if (debug)
       cat("    > node", y, "is", ifelse(a["p.value"] > alpha, "not", "still"),
-        "a neighbour of", x, ". ( p-value:", a["p.value"], ")\n")
+        "a neighbour of", target, ". ( p-value:", a["p.value"], ")\n")
 
   }#FOR
 
-  return(list(mb = mb[[x]], nbr = candidate.neighbours))
+  return(list(mb = mb[[target]], nbr = candidate.neighbours))
 
 }#NEIGHBOUR
 
@@ -150,7 +150,7 @@ vstruct.detect = function(nodes, arcs, mb, data, alpha, extra.args = list(),
     if (length(tos) < 2)
       return(NULL)
 
-    # build a list of possibile parents for the node x, i.e. all the subsets
+    # build a list of possible parents for the node x, i.e. all the subsets
     # of size 2 of the nodes connected to x by incoming arcs.
     tos.combs = subsets(tos, 2)
     vs = NULL

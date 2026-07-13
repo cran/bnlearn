@@ -2,14 +2,15 @@
 #include "../../core/allocations.h"
 #include "../../core/contingency.tables.h"
 #include "../tests.h"
-#include "../../math/linear.algebra.h"
 
 /* initialize the table of log-factorials. */
 #define allocfact(n) \
+  do { \
   fact = Calloc1D(n + 1, sizeof(double)); \
   fact[0] = 0.; \
   for(k = 1; k <= n; k++) \
-    fact[k] = lgammafn((double) (k + 1));
+    fact[k] = lgammafn((double) (k + 1)); \
+  } while (0)
 
 /* unconditional Monte Carlo and semiparametric discrete tests. */
 void c_mcarlo(int *xx, int nr, int *yy, int nc, int num, int B,

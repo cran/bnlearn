@@ -1,9 +1,9 @@
-#include "../include/rcore.h"
-#include "../core/allocations.h"
-#include "../include/graph.h"
-#include "../minimal/strings.h"
-#include "../minimal/common.h"
-#include "../math/linear.algebra.h"
+#include "../../include/rcore.h"
+#include "../../core/allocations.h"
+#include "../../include/graph.h"
+#include "../../math/linear.algebra.h"
+#include "../../minimal/common.h"
+#include "../../minimal/strings.h"
 
 /* return the colliders present in the graph. */
 int c_colliders(int *a, int nnodes, int **colliders, bool want_shielded,

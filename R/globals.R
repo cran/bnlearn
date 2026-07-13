@@ -77,7 +77,7 @@ test.extra.args = list(
 
 #-- network scores ------------------------------------------------------------#
 available.discrete.bayesian.scores =
-  c("bde", "bds", "bdj", "k2", "mbde", "bdla")
+  c("bde", "bds", "bdj", "k2", "mbde")
 available.discrete.scores =
   c("loglik", "aic", "bic", "ebic", "pred-loglik", "fnml", "qnml", "nal",
     "pnal", available.discrete.bayesian.scores)
@@ -88,9 +88,12 @@ available.continuous.scores =
 available.mixedcg.scores =
   c("loglik-cg", "aic-cg", "bic-cg", "ebic-cg", "pred-loglik-cg", "nal-cg",
     "pnal-cg")
+available.counts.scores =
+  c("loglik-zihp", "loglik-zinb", "aic-zihp", "bic-zihp", "aic-zinb",
+    "bic-zinb", "nal-zihp", "nal-zinb", "pnal-zihp", "pnal-zinb")
 available.omnibus.scores = c("custom-score")
 available.scores = c(available.discrete.scores, available.continuous.scores,
-  available.mixedcg.scores, available.omnibus.scores)
+  available.mixedcg.scores, available.counts.scores, available.omnibus.scores)
 
 scores.for.incomplete.data =
   c("custom-score", "nal", "pnal", "nal-g", "pnal-g", "nal-cg", "pnal-cg")
@@ -101,7 +104,6 @@ score.labels = c(
   "bds" = "Bayesian Dirichlet Sparse (BDs)",
   "bdj" = "Bayesian Dirichlet, Jeffrey's prior",
   "mbde" = "Bayesian Dirichlet (interventional data)",
-  "bdla" = "Bayesian Dirichlet, Locally Averaged",
   "aic" = "AIC (disc.)",
   "bic" = "BIC (disc.)",
   "ebic" = "eBIC (disc.)",
@@ -126,6 +128,16 @@ score.labels = c(
   "ebic-cg" = "eBIC (cond. Gauss.)",
   "nal-cg" = "Node-Average Likelihood (cond. Gauss.)",
   "pnal-cg" = "Penalized Node-Average Likelihood (cond. Gauss.)",
+  "loglik-zihp" = "Hyper-Poisson Likelihood",
+  "loglik-zinb" = "Negative Binomial Likelihood",
+  "aic-zihp" = "AIC (Hyper-Poisson)",
+  "bic-zihp" = "BIC (Hyper-Poisson)",
+  "aic-zinb" = "AIC (Neg. Bin.)",
+  "bic-zinb" = "BIC (Neg. Bin.)",
+  "nal-zihp" = "Node-Average Likelihood (Hyper-Poisson)",
+  "nal-zinb" = "Node-Average Likelihood (Neg. Bin.)",
+  "pnal-zihp" = "Penalized Node-Average Likelihood (Hyper-Poisson)",
+  "pnal-zinb" = "Penalized Node-Average Likelihood (Neg. Bin.)",
   "custom-score" = "User-Provided Score Function"
 )
 
@@ -135,7 +147,6 @@ score.extra.args = list(
   "bds" = c("prior", "beta", "iss"),
   "bdj" = c("prior", "beta"),
   "mbde" = c("prior", "beta", "iss", "exp"),
-  "bdla" = c("prior", "beta", "l"),
   "aic" = c("k"),
   "bic" = c("k"),
   "ebic" = c("k", "gamma"),
@@ -160,6 +171,16 @@ score.extra.args = list(
   "ebic-cg" = c("k", "gamma"),
   "nal-cg" = character(0),
   "pnal-cg" = c("k"),
+  "loglik-zihp" = c("em.max.iter", "em.tol", "m.step"),
+  "loglik-zinb" = c("em.max.iter", "em.tol", "m.step"),
+  "aic-zihp" = c("k", "em.max.iter", "em.tol", "m.step"),
+  "bic-zihp" = c("k", "em.max.iter", "em.tol", "m.step"),
+  "aic-zinb" = c("k", "em.max.iter", "em.tol", "m.step"),
+  "bic-zinb" = c("k", "em.max.iter", "em.tol", "m.step"),
+  "nal-zihp" = c("em.max.iter", "em.tol", "m.step"),
+  "nal-zinb" = c("em.max.iter", "em.tol", "m.step"),
+  "pnal-zihp" = c("k", "em.max.iter", "em.tol", "m.step"),
+  "pnal-zinb" = c("k", "em.max.iter", "em.tol", "m.step"),
   "custom-score" = c("fun", "args")
 )
 
@@ -198,9 +219,10 @@ em.algorithms = c("structural.em")
 hybrid.algorithms = c("rsmax2", "mmhc", "h2pc")
 mim.based.algorithms = c("chow.liu", "aracne")
 classification.algorithms = c("naive.bayes", "tree.bayes")
+lingam.algorithms = c("direct.lingam")
 available.learning.algorithms = c(constraint.based.algorithms,
   score.based.algorithms, hybrid.algorithms, mim.based.algorithms,
-  classification.algorithms, em.algorithms)
+  classification.algorithms, em.algorithms, lingam.algorithms)
 
 learning.labels = c(
   "pc.stable" = "PC (Stable)",
@@ -222,7 +244,8 @@ learning.labels = c(
   "aracne" = "ARACNE",
   "chow.liu" = "Chow-Liu",
   "naive.bayes" = "Naive Bayes Classifier",
-  "tree.bayes"   = "TAN Bayes Classifier"
+  "tree.bayes" = "TAN Bayes Classifier",
+  "direct.lingam" = "Direct LiNGAM"
 )
 
 learning.extra.args = list(
@@ -257,7 +280,7 @@ graph.generation.extra.args = list(
   "averaged" = "threshold"
 )
 
-#-- random graph generation algorithms ----------------------------------------#
+#-- causal network types ------------------------------------------------------#
 causal.network.types = c("twin")
 
 causal.network.labels = c(
@@ -306,8 +329,11 @@ loss.extra.args = list(
 available.dbn.fits = c("mle", "bayes", "hdir", "hard-em")
 available.gbn.fits = c("mle-g", "hard-em-g")
 available.cgbn.fits = c("mle-cg", "hard-em-cg")
-available.fits = c(available.dbn.fits, available.gbn.fits, available.cgbn.fits)
-complete.data.fits = c("mle", "bayes", "hdir", "mle-g", "mle-cg")
+available.zibn.fits = c("mle-zihp", "mle-zinb")
+available.fits = c(available.dbn.fits, available.gbn.fits, available.cgbn.fits,
+                   available.zibn.fits)
+complete.data.fits = c("mle", "bayes", "hdir", "mle-g", "mle-cg", "mle-zihp",
+                       "mle-zinb")
 
 fits.labels = c(
   "mle" = "Maximum Likelihood (disc.)",
@@ -317,7 +343,9 @@ fits.labels = c(
   "hdir" = "Bayesian Hierarchical Dirichlet",
   "hard-em" = "Hard Expectation-Maximization (disc.)",
   "hard-em-g" = "Hard Expectation-Maximization (Gauss.)",
-  "hard-em-cg" = "Hard Expectation-Maximization (cond. Gauss.)"
+  "hard-em-cg" = "Hard Expectation-Maximization (cond. Gauss.)",
+  "mle-zihp" = "Maximum Likelihood (Hyper-Poisson)",
+  "mle-zinb" = "Maximum Likelihood (Neg. Bin.)"
 )
 
 fits.extra.args = list(
@@ -334,18 +362,9 @@ fits.extra.args = list(
                   "newdata", "start"),
   "hard-em-cg" = c("impute", "impute.args", "fit", "fit.args",
                    "loglik.threshold", "params.threshold", "max.iter",
-                   "newdata", "start")
-)
-
-fitted.from.method = c(
-  "mle" = "bn.fit.dnet",
-  "mle-g" = "bn.fit.gnet",
-  "mle-cg" = "bn.fit.cgnet",
-  "bayes" = "bn.fit.dnet",
-  "hdir" = "bn.fit.dnet",
-  "hard-em" = "bn.fit.dnet",
-  "hard-em-g" = "bn.fit.gnet",
-  "hard-em-cg" = "bn.fit.cgnet"
+                   "newdata", "start"),
+  "mle-zihp" = c("replace.unidentifiable", "em.max.iter", "em.tol", "m.step"),
+  "mle-zinb" = c("replace.unidentifiable", "em.max.iter", "em.tol", "m.step")
 )
 
 #-- cross-validation fold schemes ---------------------------------------------#
@@ -438,7 +457,7 @@ enumerations.extra.args = list(
 
 #-- data, network and node types ----------------------------------------------#
 available.fitted = c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet",
-  "bn.fit.gnet", "bn.fit.cgnet")
+  "bn.fit.gnet", "bn.fit.cgnet", "bn.fit.zinet")
 available.classifiers = c("bn.naive", "bn.tan")
 
 discrete.data.types = c("factor", "ordered", "mixed-do")
@@ -456,7 +475,7 @@ data.type.labels = c(
 )
 
 fitted.node.types = c("bn.fit.dnode", "bn.fit.onode", "bn.fit.gnode",
-  "bn.fit.cgnode")
+  "bn.fit.cgnode", "bn.fit.zihpnode", "bn.fit.zinbnode")
 
 #-- graphviz plots option lists -----------------------------------------------#
 graphviz.layouts = c("dot", "neato", "twopi", "circo", "fdp")

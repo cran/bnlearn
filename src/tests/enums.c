@@ -1,7 +1,10 @@
 #include "../include/rcore.h"
 #include "tests.h"
 
-#define ENTRY(key, value) if (strcmp(label, key) == 0) return value;
+#define ENTRY(key, value) \
+  do { \
+    if (strcmp(label, key) == 0) return value; \
+  } while (0)
 
 test_e test_to_enum(const char *label) {
 

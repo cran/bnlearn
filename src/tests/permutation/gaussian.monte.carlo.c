@@ -1,11 +1,10 @@
 #include "../../include/rcore.h"
 #include "../../core/allocations.h"
-#include "../../core/sampling.h"
-#include "../../include/globals.h"
-#include "../../core/moments.h"
 #include "../../core/correlation.h"
-#include "../tests.h"
+#include "../../core/moments.h"
+#include "../../core/sampling.h"
 #include "../../math/linear.algebra.h"
+#include "../tests.h"
 
 /* unconditional Monte Carlo simulation for correlation-based tests. */
 static double mc_cov(double *xx, double *yy, double xm, double ym, int n) {

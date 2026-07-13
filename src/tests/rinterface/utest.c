@@ -1,9 +1,9 @@
 #include "../../include/rcore.h"
 #include "../../include/globals.h"
-#include "../../minimal/data.frame.h"
 #include "../../minimal/common.h"
-#include "../tests.h"
+#include "../../minimal/data.frame.h"
 #include "../patterns.h"
+#include "../tests.h"
 
 /* unconditional independence tests. */
 SEXP utest(SEXP x, SEXP y, SEXP data, SEXP test, SEXP alpha, SEXP extra_args,

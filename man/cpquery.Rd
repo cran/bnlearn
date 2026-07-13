@@ -21,11 +21,11 @@ cpdist(fitted, nodes, evidence, cluster, method = "ls", ...,
     conditional distribution we are interested in.}
   \item{cluster}{an optional cluster object from package \pkg{parallel}.}
   \item{method}{a character string, the method used to perform the conditional
-    probability query. Currently only \emph{logic sampling} (\code{ls}, the
-    default) and \emph{likelihood weighting} (\code{lw}) are implemented.}
+    probability query. Currently, only \emph{logic sampling} (\code{"ls"}, the
+    default) and \emph{likelihood weighting} (\code{"lw"}) are implemented.}
   \item{\dots}{additional tuning parameters.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
 }
 \details{
 
@@ -36,8 +36,8 @@ cpdist(fitted, nodes, evidence, cluster, method = "ls", ...,
   using the method specified in the \code{method} argument.
 
   Both \code{cpquery()} and \code{cpdist()} are based on Monte Carlo particle
-  filters, and therefore they may return slightly different values on different
-  runs due to simulation noise.
+  filters, so they may return slightly different values on different runs due to
+  simulation noise.
 
 }
 \section{Logic Sampling}{
@@ -48,7 +48,7 @@ cpdist(fitted, nodes, evidence, cluster, method = "ls", ...,
   describing the event of interest and the conditioning evidence in a format
   such that, if we denote with \code{data} the data set the network was learned
   from, \code{data[evidence, ]} and \code{data[event, ]} return the correct
-  observations. If either \code{event} or \code{evidence} is set to \code{TRUE}
+  observations. If either \code{event} or \code{evidence} is set to \code{TRUE},
   an unconditional probability query is performed with respect to that argument.
 
   Three tuning parameters are available:
@@ -62,18 +62,18 @@ cpdist(fitted, nodes, evidence, cluster, method = "ls", ...,
 
     \item \code{batch}: a positive integer number, the number of random samples
       that are generated at one time. Defaults to \code{10^4}. If the \code{n}
-      is very large (e.g. \code{10^12}), R would run out of memory if it tried
-      to generate them all at once. Instead random samples are generated in
-      batches of size \code{batch}, discarding each batch before generating the
-      next.
+      is very large (say, \code{10^12}), R would run out of memory if it tried
+      to generate them all at once. Instead, random samples are generated in
+      batches of size \code{batch}, and each batch is discarded before
+      generating the next.
 
     \item \code{query.nodes}: a vector of character strings, the labels of
       the nodes involved in \code{event} and \code{evidence}. Simple queries do
-      not require to generate samples from all the nodes in the network,
-      so \code{cpquery()} and \code{cpdist()} try to identify which nodes are
-      used in \code{event} and \code{evidence} and reduce the network to their
-      upper closure. \code{query.nodes} may be used to manually specify these
-      nodes when automatic identification fails; there is no reason to use it
+      not require generating samples from all the nodes in the network, so
+      \code{cpquery()} and \code{cpdist()} try to identify which nodes are used
+      in \code{event} and \code{evidence} and reduce the network to their upper
+      closure. \code{query.nodes} may be used to manually specify these nodes
+      when automatic identification fails; there is no reason to use it
       otherwise.
 
   }
@@ -83,7 +83,7 @@ cpdist(fitted, nodes, evidence, cluster, method = "ls", ...,
   Therefore, only the observations matching \code{evidence} (out of the \code{n}
   that are generated) are returned, and their number depends on the probability
   of \code{evidence}. Furthermore, the probabilities returned by
-  \code{cpquery()} are approximate estimates and they will not sum up to 1 even
+  \code{cpquery()} are approximate estimates, and they will not sum up to 1 even
   when the corresponding underlying values do if they are computed in separate
   calls to \code{cpquery()}.
 
@@ -109,19 +109,19 @@ cpdist(fitted, nodes, evidence, cluster, method = "ls", ...,
 
   }
 
-  If either \code{event} or \code{evidence} is set to \code{TRUE} an
+  If either \code{event} or \code{evidence} is set to \code{TRUE}, an
   unconditional probability query is performed with respect to that argument.
 
   Tuning parameters are the same as for logic sampling: \code{n}, \code{batch}
   and \code{query.nodes}.
 
   Note that the samples returned by \code{cpdist()} are generated from the
-  mutilated network, and need to be weighted appropriately when computing
+  mutilated network and need to be appropriately weighted when computing
   summary statistics (for more details, see the references below).
   \code{cpquery()} does that automatically when computing the final conditional
   probability. Also note that the \code{batch} argument is ignored in
   \code{cpdist()} for speed and memory efficiency. Furthermore, the
-  probabilities returned by \code{cpquery()} are approximate estimates and they
+  probabilities returned by \code{cpquery()} are approximate estimates, and they
   will not sum up to 1 even when the corresponding underlying values do if they
   are computed in separate calls to \code{cpquery()}.
 
@@ -131,12 +131,12 @@ cpdist(fitted, nodes, evidence, cluster, method = "ls", ...,
   \code{cpquery()} returns a numeric value, the conditional probability of
   \code{event} conditional on \code{evidence}.
 
-  \code{cpdist()} returns a data frame containing the samples generated from
-  the conditional distribution of the \code{nodes} conditional on
-  \code{evidence}. The data frame has class \code{c("bn.cpdist", "data.frame")},
-  and a \code{meth, -8od} attribute storing the value of the \code{method}
-  argument. In the case of likelihood weighting, the weights are also attached
-  as an attribute called \code{weights}.
+  \code{cpdist()} returns a data frame containing the samples generated from the
+  conditional distribution of the \code{nodes} conditional on \code{evidence}.
+  The data frame has class \code{c("bn.cpdist", "data.frame")}, and a
+  \code{method} attribute storing the value of the \code{method} argument. In
+  likelihood weighting, the weights are also attached as an attribute named
+  \code{weights}.
 
 }
 \references{

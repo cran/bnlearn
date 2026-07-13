@@ -1,5 +1,5 @@
 
-# fit the parameters of the bayesian network for a given network stucture.
+# fit the parameters of the bayesian network for a given network structure.
 bn.fit.backend = function(x, data, cluster = NULL, method, extra.args,
     keep.fitted = TRUE, debug = FALSE) {
 
@@ -21,6 +21,10 @@ bn.fit.backend = function(x, data, cluster = NULL, method, extra.args,
       fit = bn.fit.backend.mixedcg
     else if (method == "hdir")
       fit = bn.fit.backend.hierarchical
+    else if (method == "mle-zihp")
+      fit = bn.fit.backend.zihpoisson
+    else if (method == "mle-zinb")
+      fit = bn.fit.backend.zinegbin
 
     # fit the parameters of each node.
     fitted = smartSapply(cluster, names(x$nodes), fit, dag = x, data = data,
@@ -31,8 +35,7 @@ bn.fit.backend = function(x, data, cluster = NULL, method, extra.args,
 
   # preserve any additional class of the original bn object.
   orig.class = class(x)
-  class = c(orig.class[orig.class != "bn"], "bn.fit",
-            fitted.from.method[[method]])
+  class = c(setdiff(orig.class, "bn"), "bn.fit", determine.fitted.class(fitted))
   # preserve the training node label from Bayesian network classifiers.
   if (x$learning$algo %in% classification.algorithms)
     fitted = structure(fitted, class = class, training = x$learning$args$training)
@@ -407,3 +410,81 @@ bn.fit.backend.hard.em = function(x, data, cluster, extra.args, keep.fitted,
   return(current.fitted)
 
 }#BN.FIT.BACKEND.HARD.EM
+
+# maximum likelihood parameter estimation for zero-inflated hyper-Poisson
+# networks, by expectation-maximization with IRLS-fitted GLM components.
+bn.fit.backend.zihpoisson = function(dag, node, data, method, extra.args,
+    keep.fitted = TRUE, debug = FALSE) {
+
+  # which nodes do not have missing values?
+  complete.nodes = attr(data, "metadata")$complete.nodes
+  # store the labels of the parents and the children to get them only once.
+  parents = dag$nodes[[node]]$parents
+  children = dag$nodes[[node]]$children
+
+  if (debug) {
+
+    cat("* fitting parameters of node", node,
+        "(zero-inflated hyper-Poisson).\n")
+    if (length(parents) > 0)
+      cat("  > found parents:", parents, "\n")
+
+  }#THEN
+
+  estimates =
+    .Call("call_zero_inflated_hyperpoisson_parameters",
+        node = node,
+        parents = parents,
+        dag = dag,
+        data = data,
+        keep.fitted = keep.fitted,
+        replace.unidentifiable = isTRUE(extra.args$replace.unidentifiable),
+        missing = !all(complete.nodes[c(node, parents)]),
+        em.max.iter = as.integer(extra.args$em.max.iter),
+        em.tol = as.numeric(extra.args$em.tol),
+        one.step = isTRUE(extra.args$m.step == "one-step")
+    )
+
+  structure(c(list(node = node, parents = parents, children = children),
+    estimates), class = "bn.fit.zihpnode")
+
+}#BN.FIT.BACKEND.ZIHPOISSON
+
+# maximum likelihood parameter estimation for zero-inflated negative binomial
+# networks, by expectation-maximization with IRLS-fitted GLM components.
+bn.fit.backend.zinegbin = function(dag, node, data, method, extra.args,
+    keep.fitted = TRUE, debug = FALSE) {
+
+  # which nodes do not have missing values?
+  complete.nodes = attr(data, "metadata")$complete.nodes
+  # store the labels of the parents and the children to get them only once.
+  parents = dag$nodes[[node]]$parents
+  children = dag$nodes[[node]]$children
+
+  if (debug) {
+
+    cat("* fitting parameters of node", node,
+        "(zero-inflated negative binomial).\n")
+    if (length(parents) > 0)
+      cat("  > found parents:", parents, "\n")
+
+  }#THEN
+
+  estimates =
+    .Call("call_zero_inflated_negative_binomial_parameters",
+        node = node,
+        parents = parents,
+        dag = dag,
+        data = data,
+        keep.fitted = keep.fitted,
+        replace.unidentifiable = isTRUE(extra.args$replace.unidentifiable),
+        missing = !all(complete.nodes[c(node, parents)]),
+        em.max.iter = as.integer(extra.args$em.max.iter),
+        em.tol = as.numeric(extra.args$em.tol),
+        one.step = isTRUE(extra.args$m.step == "one-step")
+    )
+
+  structure(c(list(node = node, parents = parents, children = children),
+    estimates), class = "bn.fit.zinbnode")
+
+}#BN.FIT.BACKEND.ZINEGBIN

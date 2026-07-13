@@ -28,8 +28,8 @@ bn.fit.dotplot(fitted, xlab = "Probabilities", ylab = "Levels", main, ...)
     \code{bn.fit.gnode}.}
   \item{xlab, ylab, main}{the label of the x axis, of the y axis, and the plot
     title.}
-  \item{density}{a boolean value. If \code{TRUE} the histogram is plotted using
-    relative frequencies, and the matching normal density is added to the plot.}
+  \item{density}{a boolean value. If \code{TRUE}, the histogram uses relative
+    frequencies and shows the matching normal density.}
   \item{\dots}{additional arguments to be passed to \pkg{lattice} functions.}
 }
 \details{
@@ -48,7 +48,7 @@ bn.fit.dotplot(fitted, xlab = "Probabilities", ylab = "Levels", main, ...)
 \value{
 
   The \pkg{lattice} plot objects. Note that if auto-printing is turned off (for
-  example when the code is loaded with the \code{source} function), the return
+  example, when the code is loaded with the \code{source} function), the return
   value must be printed explicitly for the plot to be displayed.
 
 }

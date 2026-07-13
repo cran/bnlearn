@@ -80,7 +80,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, groups,
       if ("arcs" %!in% names(highlight))
         warning("no arc to apply the 'lty' setting to, ignoring.")
 
-      check.lty(highlight$lty)
+      highlight$lty = check.lty(highlight$lty)
 
     }#THEN
 
@@ -98,7 +98,7 @@ graphviz.backend = function(nodes, arcs, highlight = NULL, groups,
   }#THEN
 
   # create the graphNEL object from the bn object.
-  graph.obj = new("graphNEL", nodes = nodes, edgeL = arcs2elist(arcs, nodes),
+  graph.obj = new("graphNEL", nodes = nodes, edgeL = arcs2alist(arcs, nodes),
                 edgemode = 'directed')
 
   # set the title and the subtitle.

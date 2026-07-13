@@ -1,8 +1,8 @@
 #include "../../include/rcore.h"
 #include "../../include/globals.h"
-#include "../../scores/scores.h"
-#include "../../minimal/strings.h"
 #include "../../minimal/common.h"
+#include "../../minimal/strings.h"
+#include "../../scores/scores.h"
 
 static SEXP score_delta_helper(SEXP net, SEXP arc, SEXP operator, int children,
     int both) {
@@ -255,7 +255,7 @@ double delta = 0, new_sum = 0, old_sum = 0;
 
   return delta;
 
-}/*ROBUST_DIFFERENCE*/
+}/*ROBUST_SCORE_DIFFERENCE*/
 
 SEXP score_delta_decomposable(SEXP arc, SEXP network, SEXP data, SEXP score,
     SEXP score_delta, SEXP reference_score, SEXP op, SEXP extra, int chld) {
@@ -409,7 +409,6 @@ SEXP score_delta_monolithic(SEXP arc, SEXP network, SEXP data, SEXP score,
     case BDS:
     case BDJ:
     case MBDE:
-    case BDLA:
     case BGE:
 
       switch(gprior_to_enum(CHAR(STRING_ELT(getListElement(extra, "prior"), 0)))) {

@@ -1,10 +1,10 @@
 #include "../include/rcore.h"
 #include "../include/globals.h"
 #include "../math/linear.algebra.h"
-#include "moments.h"
 #include "correlation.h"
 
 #define COR_BOUNDS(x) \
+  do { \
   if (x > 1) { \
     warning("fixed correlation coefficient greater than 1, probably due to floating point errors."); \
     x = 1; \
@@ -12,7 +12,8 @@
   else if (x < -1) { \
     warning("fixed correlation coefficient lesser than -1, probably due to floating point errors."); \
     x = -1; \
-  }/*THEN*/
+  }/*THEN*/ \
+  } while (0)
 
 #define SAFE_COR(cov, xvar, yvar) \
   ((xvar < tol) || (yvar < tol)) ? 0 :  cov / sqrt(xvar * yvar);

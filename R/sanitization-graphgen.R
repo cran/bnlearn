@@ -36,11 +36,11 @@ check.graph.generation.args = function(method, nodes, extra.args) {
 
     if (is.finite(extra.args[["max.in.degree"]]) &&
         extra.args[["max.in.degree"]] > extra.args[["max.degree"]])
-      stop("the maximun in-degree must be lesser or equal to the maximum degree.")
+      stop("the maximum in-degree must be lesser or equal to the maximum degree.")
 
     if (is.finite(extra.args[["max.out.degree"]]) &&
         extra.args[["max.out.degree"]] > extra.args[["max.degree"]])
-      stop("the maximun out-degree must be lesser or equal to the maximum degree.")
+      stop("the maximum out-degree must be lesser or equal to the maximum degree.")
 
   }#THEN
 

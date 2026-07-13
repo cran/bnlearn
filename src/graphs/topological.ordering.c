@@ -1,8 +1,6 @@
 #include "../include/rcore.h"
 #include "../include/graph.h"
-#include "../include/globals.h"
 #include "../minimal/common.h"
-#include "../core/sort.h"
 
 /* find out the partial ordering of the nodes of a DAG. */
 SEXP topological_ordering(SEXP bn, SEXP root_nodes, SEXP reverse, SEXP debug) {
@@ -109,19 +107,3 @@ SEXP nodes_data, nodes, try, children, ordering;
   return ordering;
 
 }/*TOPOLOGICAL_ORDERING*/
-
-/* sort the nodes in topological order. */
-void topological_sort(SEXP fitted, int *poset, int nnodes) {
-
-int i = 0;
-SEXP roots, node_depth;
-
-  PROTECT(roots = root_nodes(fitted, FALSESEXP));
-  PROTECT(node_depth = topological_ordering(fitted, roots, FALSESEXP, FALSESEXP));
-  for (i = 0; i < nnodes; i++)
-    poset[i] = i;
-  i_sort(INTEGER(node_depth), poset, nnodes);
-
-  UNPROTECT(2);
-
-}/*TOPOLOGICAL_SORT*/

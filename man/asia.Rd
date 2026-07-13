@@ -4,8 +4,8 @@
 \title{Asia (synthetic) data set by Lauritzen and Spiegelhalter}
 \description{
 
-  Small synthetic data set from Lauritzen and Spiegelhalter (1988) about lung
-  diseases (tuberculosis, lung cancer or bronchitis) and visits to Asia.
+  Synthetic data set on lung diseases and Asia travel from Lauritzen and
+  Spiegelhalter (1988).
 
 }
 \usage{
@@ -49,7 +49,7 @@ data(asia)
 
   Standard learning algorithms are not able to recover the true structure of
   the network because of the presence of a node (\code{E}) with conditional
-  probabilities equal to both 0 and 1. Monte Carlo tests seems to behave
+  probabilities equal to both 0 and 1. Monte Carlo tests seem to behave
   better than their parametric counterparts.
 
   The complete BN can be downloaded from

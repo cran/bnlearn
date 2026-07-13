@@ -49,7 +49,7 @@
         International Conference on Data Mining}, 809--812.
 
     \item \emph{Incremental Association with FDR} (\code{\link{iamb.fdr}}): a
-      variant of IAMB which adjusts the tests significance threshold with FDR.
+      variant of IAMB which adjusts the tests' significance threshold with FDR.
 
       Pena JM (2008). "Learning Gaussian Graphical Models of Gene Networks with
         False Discovery Rate Control." \emph{Proceedings of the Sixth European
@@ -74,7 +74,7 @@
     \item \emph{Hill-Climbing} (\code{\link{hc}}): a \emph{hill climbing}
 	  greedy search that explores the space of the directed acyclic graphs by
 	  single-arc addition, removal and reversals; with random restarts to avoid
-	  local optima. The optimized implementation uses score caching, score
+	  local optima. The optimised implementation uses score caching, score
 	  decomposability and score equivalence to reduce the number of duplicated
 	  tests.
     \item \emph{Tabu Search} (\code{\link{tabu}}): a modified hill-climbing
@@ -100,7 +100,7 @@
         Bayesian Network Structure Learning Algorithm." \emph{Machine Learning},
         \strong{65}(1):31--78.
 
-    \item \emph{Restricted Maximization} (\code{\link{rsmax2}}): a general
+    \item \emph{Restricted Maximisation} (\code{\link{rsmax2}}): a general
       implementation of the Sparse Candidate algorithms, which can use any
       combination of constraint-based and score-based algorithms.
 
@@ -113,8 +113,8 @@
       HPC and hill-climbing.
 
       Gasse M, Aussem A, Elghazel H (2014). "A Hybrid Algorithm for Bayesian
-		Network Structure Learning with Application to Multi-Label Learning."
-		\emph{Expert Systems with Applications}, \strong{41}(15):6755--6772.
+        Network Structure Learning with Application to Multi-Label Learning."
+		    \emph{Expert Systems with Applications}, \strong{41}(15):6755--6772.
 
   }
 
@@ -123,13 +123,13 @@
 
   These algorithms learn the structure of the undirected graph underlying the
   Bayesian network, which is known as the \emph{skeleton} of the network.
-  Therefore by default all arcs are undirected, and no attempt is made to
+  Therefore, by default, all arcs are undirected, and no attempt is made to
   detect their orientation. They are often used in hybrid learning algorithms.
 
   \itemize{
 
     \item \emph{Max-Min Parents and Children} (\code{\link{mmpc}}): a forward
-      selection technique for neighbourhood detection based on the maximization
+      selection technique for neighbourhood detection based on the maximisation
       of the minimum association measure observed with any subset of the nodes
       selected in the previous iterations.
 
@@ -182,8 +182,29 @@
 
   }
 
-  All these algorithms have two implementations (vanilla and parallel) like
+  All these algorithms have two implementations (vanilla and parallel), like
   other constraint-based algorithms.
+
+}
+\section{Modern Causal Discovery Algorithms}{
+
+  These algorithms are based on assumptions that ensure the complete
+  identifiability of arc direction, which is standard for causal discovery.
+
+  \itemize{
+
+    \item \emph{DirectLiNGAM} (\code{\link{direct.lingam}}): a causal discovery
+      algorithm to learn linear causal networks from non-Gaussian data, based on
+      the LiNGAM principle.
+
+      Shimizu S, Inazumi T, Sogawa Y, Hyvarinen A, Kawahara Y, Washio T,
+        Hoyer PO, Bollen K (2011). "DirectLiNGAM: A Direct Method for Learning a
+        Linear Non-Gaussian Structural Equation Model." \emph{Journal of Machine
+        Learning Research}, \strong{12}:1225--1248.
+
+  }
+
+  They also have two implementations (vanilla and parallel).
 
 }
 \keyword{package}

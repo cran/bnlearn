@@ -48,3 +48,57 @@ check.amat = function(amat, nodes) {
 
 }#CHECK.AMAT
 
+# sanity check arc lists.
+check.alist = function(alist, nodes) {
+
+  # the adjacency list must be a list, with one element for each node.
+  if (!is.list(alist))
+    stop("the arc list must be a list.")
+  if (length(alist) != length(nodes))
+    stop("the arc list must have one element for each node in the network.")
+  # if the elements are named, the names must match the node labels.
+  if (is.null(names(alist))) {
+
+    names(alist) = nodes
+
+  }#THEN
+  else {
+
+    if (!setequal(names(alist), nodes))
+      stop("the arc list element names and the network node labels do not match.")
+
+    # reorder the elements of the arc list to match the nodes.
+    alist = alist[nodes]
+
+  }#ELSE
+
+  # replace NULLS with character(0), to allow shorthand notation.
+  are.null = sapply(alist, is.null)
+  if (any(are.null))
+    alist[are.null] = list(character(0))
+
+  # the elements of the arc list must be character vectors.
+  are.strings = sapply(alist, is.string.vector)
+  if (any(!are.strings))
+    stop("the following elements of the arc list are not character vectors: ",
+      paste(names(which(!are.strings)), collapse = " "), ".")
+  # the character vectors can only contain node labels.
+  are.labels = sapply(alist, function(x) all(x %in% nodes))
+  if (any(!are.labels))
+    stop("the following elements of the arc list contain invalid node labels: ",
+      paste(names(which(!are.labels)), collapse = " "), ".")
+  # the elements of the arc list must not contain duplicate strings.
+  have.dupes = sapply(alist, anyDuplicated)
+  if (any(have.dupes))
+    stop("the following elements of the arc list contain duplicated labels: ",
+      paste(names(which(have.dupes)), collapse = " "), ".")
+  # no arcs from a node to itself.
+  loops = sapply(nodes, function(x) x %in% alist[[x]])
+  if (any(loops))
+    stop("the following nodes have loops:",
+      paste(names(which(loops)), collapse = " "), ".")
+
+  return(alist)
+
+}#CHECK.ALIST
+

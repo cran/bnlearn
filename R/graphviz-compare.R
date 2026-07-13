@@ -3,6 +3,16 @@
 graphviz.compare.backend = function(netlist, nodes, groups, layout, shape,
     fontsize, main, sub, diff, diff.args) {
 
+  # track which nodes appear in each network.
+  nodesets = lapply(netlist, function(net) {
+
+    if (is(net, "bn"))
+      .nodes(net)
+    else
+      return(as.vector(unique(net)))
+
+  })
+
   # merge and deduplicate all the arcs.
   arclist = lapply(netlist, function(net) {
 
@@ -25,6 +35,8 @@ graphviz.compare.backend = function(netlist, nodes, groups, layout, shape,
   # extract the labels of the arcs of the merged network.
   grlabels = names(graph::edgeRenderInfo(gr)[["splines"]])
   graph::edgeRenderInfo(gr)[["lty"]] = "solid"
+  # initialize the node line type, to be able to modify them later.
+  graph::nodeRenderInfo(gr)[["lty"]] = "solid"
 
   # allocate the return value.
   graphlist = vector(length(arclist), mode = "list")
@@ -36,8 +48,8 @@ graphviz.compare.backend = function(netlist, nodes, groups, layout, shape,
     gr.temp = gr
     edges.temp = graph::edgeRenderInfo(gr.temp)
     nodes.temp = graph::nodeRenderInfo(gr.temp)
-    # indentify which nodes are not present in the current graph.
-    nodes.to.hide = setdiff(.nodes(merged), .nodes(netlist[[i]]))
+    # identify which nodes are not present in the current graph.
+    nodes.to.hide = setdiff(.nodes(merged), nodesets[[i]])
     # extract the labels of the arcs of the current network.
     cur.arcs = arcs2grlabels(arclist[[i]])
 
@@ -69,7 +81,7 @@ graphviz.compare.backend = function(netlist, nodes, groups, layout, shape,
         edges.temp[["arrowtail"]][arc] = "open"
 
         # this complicated dance with the order of the spline segments is
-        # needed to work around a bug in Rgraphviz, which implictly assumes
+        # needed to work around a bug in Rgraphviz, which implicitly assumes
         # that all the points are in a single spline segment and thus botches
         # the placement of the arrow when the direction is "back".
         splines = edges.temp[["splines"]][[arc]]
@@ -174,6 +186,17 @@ graphviz.compare.backend = function(netlist, nodes, groups, layout, shape,
 
         }#FOR
 
+        # highlight nodes that are present in the current graph but are not in
+        # the reference graph, reusing the style of false positive arcs.
+        fp.node.labels = setdiff(nodesets[[i]], nodesets[[1]])
+
+        if (length(fp.node.labels) > 0) {
+
+          nodes.temp[["lty"]][fp.node.labels] = diff.args$fp.lty
+          nodes.temp[["col"]][fp.node.labels] = diff.args$fp.col
+
+        }#THEN
+
       }#ELSE
 
     }#THEN
@@ -217,7 +240,7 @@ graphviz.compare.backend = function(netlist, nodes, groups, layout, shape,
 
 }#GRAPHVIZ.COMPARE.BACKEND
 
-# utility function to paster graphviz labels together.
+# utility function to paste graphviz labels together.
 arcs2grlabels = function(arcset, both = FALSE) {
 
   if (both)
@@ -225,4 +248,4 @@ arcs2grlabels = function(arcset, both = FALSE) {
   else
     apply(arcset, 1, paste, collapse = "~")
 
-}#ARCS2GRLABEL
+}#ARCS2GRLABELS

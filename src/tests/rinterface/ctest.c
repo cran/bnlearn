@@ -1,10 +1,10 @@
 #include "../../include/rcore.h"
-#include "../../minimal/data.frame.h"
-#include "../../minimal/common.h"
-#include "../../include/globals.h"
 #include "../../core/data.table.h"
-#include "../tests.h"
+#include "../../include/globals.h"
+#include "../../minimal/common.h"
+#include "../../minimal/data.frame.h"
 #include "../patterns.h"
+#include "../tests.h"
 
 /* conditional independence tests. */
 SEXP ctest(SEXP x, SEXP y, SEXP sx, SEXP data, SEXP test, SEXP alpha,
@@ -34,26 +34,26 @@ SEXP xx2, yy2, zz, cc, result;
   if (IS_DISCRETE_ASYMPTOTIC_TEST(test_type)) {
 
     /* parametric tests for discrete variables. */
-    ddata dtx = ddata_from_SEXP(xx2, 0), dty = ddata_from_SEXP(yy2, 0);
-    ddata dtz = ddata_from_SEXP(zz, 0);
+    tabular dtx = tabular_from_SEXP(xx2, 0, 0), dty = tabular_from_SEXP(yy2, 0, 0);
+    tabular dtz = tabular_from_SEXP(zz, 0, 0);
 
     statistic = ct_discrete(dtx, dty, dtz, pvalue, &df, test_type);
 
-    FreeDDT(dtx);
-    FreeDDT(dty);
-    FreeDDT(dtz);
+    FreeTAB(dtx);
+    FreeTAB(dty);
+    FreeTAB(dtz);
 
   }/*THEN*/
   else if ((test_type == COR) || (test_type == ZF) || (test_type == MI_G) ||
            (test_type == MI_G_SH)) {
 
     /* parametric tests for Gaussian variables. */
-    gdata dtx = gdata_from_SEXP(xx2, 0), dt = gdata_from_SEXP(zz, 2);
-    dt.col[1] = REAL(VECTOR_ELT(yy2, 0));
+    tabular dtx = tabular_from_SEXP(xx2, 0, 0), dt = tabular_from_SEXP(zz, 0, 2);
+    dt.ccol[1] = REAL(VECTOR_ELT(yy2, 0));
 
     if (all_equal(cc, TRUESEXP)) {
 
-      gdata_cache_means(&dt, 1);
+      tabular_cache_means(&dt, 1);
       statistic = ct_gaustests_complete(dtx, dt, pvalue, &df, test_type);
 
     }/*THEN*/
@@ -63,55 +63,55 @@ SEXP xx2, yy2, zz, cc, result;
 
     }/*ELSE*/
 
-    FreeGDT(dtx);
-    FreeGDT(dt);
+    FreeTAB(dtx);
+    FreeTAB(dt);
 
   }/*THEN*/
   else if (test_type == MI_CG) {
 
     /* conditional linear Gaussian mutual information test. */
-    cgdata dtx = cgdata_from_SEXP(xx2, 0, 0), dty = cgdata_from_SEXP(yy2, 0, 0);
-    cgdata dtz = cgdata_from_SEXP(zz, 1, 1);
+    tabular dtx = tabular_from_SEXP(xx2, 0, 0), dty = tabular_from_SEXP(yy2, 0, 0);
+    tabular dtz = tabular_from_SEXP(zz, 1, 1);
 
     if (all_equal(cc, TRUESEXP))
       statistic = ct_micg_complete(dtx, dty, dtz, pvalue, &df);
     else
       statistic = ct_micg_with_missing(dtx, dty, dtz, pvalue, &df);
 
-    FreeCGDT(dtx);
-    FreeCGDT(dty);
-    FreeCGDT(dtz);
+    FreeTAB(dtx);
+    FreeTAB(dty);
+    FreeTAB(dtz);
 
   }/*THEN*/
   else if (IS_DISCRETE_PERMUTATION_TEST(test_type)) {
 
     /* discrete permutation tests. */
-    ddata dtx = ddata_from_SEXP(xx2, 0), dty = ddata_from_SEXP(yy2, 0);
-    ddata dtz = ddata_from_SEXP(zz, 0);
+    tabular dtx = tabular_from_SEXP(xx2, 0, 0), dty = tabular_from_SEXP(yy2, 0, 0);
+    tabular dtz = tabular_from_SEXP(zz, 0, 0);
 
     int B = INT(getListElement(extra_args, "B"));
 
     statistic = ct_dperm(dtx, dty, dtz, pvalue, &df, test_type, B,
                   IS_SMC(test_type) ? NUM(alpha) : 1);
 
-    FreeDDT(dtx);
-    FreeDDT(dty);
-    FreeDDT(dtz);
+    FreeTAB(dtx);
+    FreeTAB(dty);
+    FreeTAB(dtz);
 
   }/*THEN*/
   else if (IS_CONTINUOUS_PERMUTATION_TEST(test_type)) {
 
     /* continuous permutation tests. */
-    gdata dtx = gdata_from_SEXP(xx2, 0), dt = gdata_from_SEXP(zz, 2);
-    dt.col[1] = REAL(VECTOR_ELT(yy2, 0));
+    tabular dtx = tabular_from_SEXP(xx2, 0, 0), dt = tabular_from_SEXP(zz, 0, 2);
+    dt.ccol[1] = REAL(VECTOR_ELT(yy2, 0));
 
     int B = INT(getListElement(extra_args, "B"));
 
     statistic = ct_gperm(dtx, dt, pvalue, &df, test_type, B,
                   IS_SMC(test_type) ? NUM(alpha) : 1, all_equal(cc, TRUESEXP));
 
-    FreeGDT(dtx);
-    FreeGDT(dt);
+    FreeTAB(dtx);
+    FreeTAB(dt);
 
   }/*THEN*/
   else if (test_type == CUSTOM_T) {

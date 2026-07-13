@@ -2,12 +2,9 @@
 # build a valid whitelist.
 build.whitelist = function(whitelist, nodes, data, algo, criterion) {
 
-  if (is.null(whitelist)) {
-
-    # no whitelist, nothing to do.
+  # no whitelist, nothing to do.
+  if (missing(whitelist) || is.null(whitelist))
     return(NULL)
-
-  }#THEN
 
   if (is(whitelist, c("matrix", "data.frame"))) {
 
@@ -105,6 +102,9 @@ list.illegal.arcs = function(nodes, data, criterion) {
 
 # build a valid blacklist.
 build.blacklist = function(blacklist, whitelist, nodes, algo) {
+
+  if (missing(blacklist))
+    blacklist = NULL
 
   if (!is.null(blacklist)) {
 

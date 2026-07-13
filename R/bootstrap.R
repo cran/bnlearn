@@ -1,12 +1,10 @@
 
-# simple nonparametric bootstrap implementation.
+# simple nonparametric bootstrap implementation for structure learning.
 bootstrap.backend = function(data, statistic, R, m, algorithm,
     algorithm.args = list(), statistic.args = list(), cluster = NULL,
     debug = FALSE) {
 
-  # allocate the result list.
-  res = as.list(seq(R))
-
+  # individual boostrap estimate after structure learning.
   bootstrap.replicate = function(r, data, m, algorithm, algorithm.args,
       statistic, statistic.args, debug) {
 
@@ -53,37 +51,37 @@ bootstrap.backend = function(data, statistic, R, m, algorithm,
     # apply the user-defined function to the newly-learned bayesian network;
     # the bayesian network is passed as the first argument hoping it will end
     # at the right place thanks to the positional matching.
-    res = do.call(statistic, c(list(bn), statistic.args))
+    estimate = do.call(statistic, c(list(bn), statistic.args))
 
     if (debug) {
 
       cat("  > the function returned:\n")
-      print(res)
+      print(estimate)
 
     }#THEN
 
-    return(res)
+    return(estimate)
 
   }#BOOTSTRAP.REPLICATE
 
   if (!is.null(cluster)) {
 
-    res = parallel::parLapplyLB(cluster, res, bootstrap.replicate, data = data,
-            m = m, algorithm = algorithm,
-            algorithm.args = algorithm.args, statistic = statistic,
-            statistic.args = statistic.args, debug = debug)
+    estimates = parallel::parLapplyLB(cluster, seq(R), bootstrap.replicate,
+                  data = data, m = m, algorithm = algorithm,
+                  algorithm.args = algorithm.args, statistic = statistic,
+                  statistic.args = statistic.args, debug = debug)
 
   }#THEN
   else {
 
-    res = lapply(res, bootstrap.replicate, data = data, m = m,
-            algorithm = algorithm, algorithm.args = algorithm.args,
-            statistic = statistic, statistic.args = statistic.args,
-            debug = debug)
+    estimates = lapply(seq(R), bootstrap.replicate, data = data, m = m,
+                  algorithm = algorithm, algorithm.args = algorithm.args,
+                  statistic = statistic, statistic.args = statistic.args,
+                  debug = debug)
 
   }#ELSE
 
-  return(res)
+  return(estimates)
 
 }#BOOTSTRAP.BACKEND
 

@@ -1,11 +1,11 @@
 #include "../include/rcore.h"
-#include "../core/allocations.h"
+#include "../core/data.table.h"
 #include "../core/math.functions.h"
-#include "../minimal/data.frame.h"
-#include "../minimal/common.h"
+#include "../fitted/fitted.h"
 #include "../include/sampling.h"
-#include "../include/globals.h"
 #include "../math/linear.algebra.h"
+#include "../sanitization/data.h"
+#include "predict.h"
 
 static double posterior_mean(double *x, double *wgt, int n, int *drop,
     bool debugging) {
@@ -51,7 +51,7 @@ long double wsum = 0, wtot = 0;
 }/*POSTERIOR_MEAN*/
 
 static int posterior_mode(int *x, double *wgt, int n, long double *counts,
-    SEXP levels, int nlvls, int *drop, bool debugging) {
+    char **levels, int nlvls, int *drop, bool debugging) {
 
 int k = 0, max_prob = 0;
 
@@ -77,7 +77,7 @@ int k = 0, max_prob = 0;
   if (debugging) {
 
     Rprintf("  > prediction is '%s' with weight sums:\n",
-      max_prob == NA_INTEGER ? "NA" : CHAR(STRING_ELT(levels, max_prob - 1)));
+      max_prob == NA_INTEGER ? "NA" : levels[max_prob - 1]);
     for (k = 0; k < nlvls; k++)
       Rprintf("%lf ", (double)(counts[k]));
     Rprintf("\n");
@@ -89,195 +89,90 @@ int k = 0, max_prob = 0;
 }/*POSTERIOR_MODE*/
 
 /* predict the values of one or more variables given one or more variables by
- * maximum a posteriori (MAP). */
-SEXP mappred(SEXP node, SEXP fitted, SEXP data, SEXP n, SEXP from, SEXP prob,
-    SEXP debug) {
+ * likelihood weighting. */
+void c_mappred(tabular dt, fitted_bn bn, int node_id, bool target_discrete,
+    int nlvls, int nev, bool *ev_discrete, void **varptrs, void **evptrs,
+    double *wgt, int nsims, long double *lvls_counts, void *pred, void *res,
+    double *pt, bool include_prob, int *drop, bool debugging, SEXP fitted,
+    SEXP cpdist, SEXP from, fixed_node *fixed) {
 
-int i = 0, j = 0, nobs = 0, nev = 0, nlvls = 0, drop = 0;
-int *vartypes = NULL, nsims = INT(n);
-void **varptrs = NULL, **evptrs = NULL, *pred = NULL, *res = NULL;
-SEXP result, colnames, evidence, evmatch, temp = R_NilValue;
-SEXP cpdist, predicted, lvls = R_NilValue, probtab = R_NilValue;
-double *wgt = NULL, *pt = NULL;
-long double *lvls_counts = NULL, lvls_tot = 0;
-bool debugging = isTRUE(debug), include_prob = isTRUE(prob);
-
-  /* extract the names of the variables in the data. */
-  colnames = getAttrib(data, R_NamesSymbol);
-
-  /* remove the name of the variable to predict. */
-  nev = length(from);
-  PROTECT(evmatch = match(colnames, from, 0));
-
-  /* cache variable types and pointers. */
-  vartypes = Calloc1D(nev, sizeof(int));
-  varptrs = (void **) Calloc1D(nev, sizeof(void *));
-  for (j = 0; j < nev; j++) {
-
-    temp = VECTOR_ELT(data, INTEGER(evmatch)[j] - 1);
-    vartypes[j] = TYPEOF(temp);
-    varptrs[j] = DATAPTR(temp);
-
-  }/*FOR*/
-
-  /* cache the sample size. */
-  nobs = length(VECTOR_ELT(data, 0));
-
-  /* allocate a list to hold the evidence. */
-  PROTECT(evidence = allocVector(VECSXP, nev));
-  setAttrib(evidence, R_NamesSymbol, from);
-
-  /* cache pointers to the elements of the evidence .*/
-  evptrs = (void **) Calloc1D(nev, sizeof(void *));
-
-  for (j = 0; j < nev; j++) {
-
-    PROTECT(temp = allocVector(vartypes[j], 1));
-    evptrs[j] = DATAPTR(temp);
-    SET_VECTOR_ELT(evidence, j, temp);
-    UNPROTECT(1);
-
-  }/*FOR*/
-
-  /* make the evidence a data frame to compact debugging output. */
-  minimal_data_frame(evidence);
-
-  /* allocate the return value. */
-  PROTECT(result = fitnode2df(fitted, STRING_ELT(node, 0), nobs));
-  res = DATAPTR(result);
-
-  if (TYPEOF(result) == INTSXP) {
-
-    /* for discrete variables, allocate scratch space for levels' frequencies
-     * and for the prediction probabilities (if needed). */
-    lvls = getAttrib(result, R_LevelsSymbol);
-    nlvls = length(lvls);
-    lvls_counts = Calloc1D(nlvls, sizeof(long double));
-
-    if (include_prob) {
-
-      PROTECT(probtab = allocMatrix(REALSXP, nlvls, nobs));
-      pt = REAL(probtab);
-      memset(pt, '\0', nobs * nlvls * sizeof(double));
-
-    }/*THEN*/
-
-  }/*THEN*/
-  else {
-
-    /* for continuous variables, there are no prediction probabilities. */
-    include_prob = FALSE;
-
-  }/*ELSE*/
-
-  /* allocate the weights. */
-  wgt = Calloc1D(nsims, sizeof(double));
-
-  /* allocate sratch space for the random samplings. */
-  PROTECT(cpdist = fit2df(fitted, nsims));
-  predicted = getListElement(cpdist, (char *)CHAR(STRING_ELT(node, 0)));
-  pred = DATAPTR(predicted);
+int i = 0, j = 0;
+long double lvls_tot = 0;
+tabular cpdist_tab = tabular_from_SEXP(cpdist, 0, 0);
 
   /* iterate over the observations. */
-  for (i = 0; i < nobs; i++) {
+  for (i = 0; i < dt.m.nobs; i++) {
 
-    /* copy the values into the list. */
+    /* copy the values of the current observation into the evidence: evptrs[]
+     * point into the fixed_node structure that conditions the generation. */
     for (j = 0; j < nev; j++) {
 
-      switch(vartypes[j]) {
-
-        case REALSXP:
-
-          *((double *)evptrs[j]) = ((double *)varptrs[j])[i];
-          break;
-
-        case INTSXP:
-
-          *((int *)evptrs[j]) = ((int *)varptrs[j])[i];
-          break;
-
-      }/*SWITCH*/
+      if (ev_discrete[j])
+        *((int *)evptrs[j]) = ((int *)varptrs[j])[i];
+      else
+        *((double *)evptrs[j]) = ((double *)varptrs[j])[i];
 
     }/*FOR*/
 
     if (debugging) {
 
       Rprintf("* predicting observation %d conditional on:\n", i + 1);
-      PrintValue(evidence);
+      for (j = 0; j < nev; j++) {
+
+        if (ev_discrete[j])
+          Rprintf("  %s = %d", CHAR(STRING_ELT(from, j)), *((int *)evptrs[j]));
+        else
+          Rprintf("  %s = %lf", CHAR(STRING_ELT(from, j)),
+            *((double *)evptrs[j]));
+
+      }/*FOR*/
+      Rprintf("\n");
 
     }/*THEN*/
 
-    /* generate samples from the conditional posterior distribution. */
-    c_rbn_master(fitted, cpdist, n, evidence, TRUE, FALSE);
+    /* generate samples from the conditional posterior distributions. */
+    c_rbn_master(bn, cpdist_tab, fixed, FALSE);
+    /* attach the metadata that c_lw_weights() relies on. */
+    add_simulation_metadata(cpdist, nsims);
     /* compute the weights. */
-    c_lw_weights(fitted, cpdist, nsims, wgt, from, FALSE);
+    tabular lw_dt = lw_data_from_SEXP(cpdist, fitted, from);
+    c_lw_weights(bn, lw_dt, wgt, FALSE);
+    FreeTAB(lw_dt);
 
     /* compute the posterior estimate. */
-    switch(TYPEOF(predicted)) {
+    if (target_discrete) {
 
-      case REALSXP:
+      /* pick the most frequent value. */
+      ((int *)res)[i] = posterior_mode((int *)pred, wgt, nsims, lvls_counts,
+                          bn.ldists[node_id].d.levels, nlvls, drop, debugging);
 
-        /* average the predicted values. */
-        ((double *)res)[i] = posterior_mean((double *)pred, wgt, nsims,
-                               &drop, debugging);
-        break;
+      /* compute the posterior probabilities on the right scale, to attach
+       * them to the return value. */
+      if (include_prob) {
 
-      case INTSXP:
+        for (j = 0, lvls_tot = 0; j < nlvls; j++) {
 
-        /* pick the most frequent value. */
-        ((int *)res)[i] = posterior_mode((int *)pred, wgt, nsims, lvls_counts,
-                            lvls, nlvls, &drop, debugging);
+          pt[CMC(j, i, nlvls)] = lvls_counts[j];
+          lvls_tot += lvls_counts[j];
 
-        /* compute the posterior probabilities on the right scale, to attach
-         * them to the return value. */
-        if (include_prob) {
+        }/*FOR*/
 
-          for (j = 0, lvls_tot = 0; j < nlvls; j++) {
+        for (j = 0; j < nlvls; j++)
+          pt[CMC(j, i, nlvls)] /= lvls_tot;
 
-            pt[CMC(j, i, nlvls)] = lvls_counts[j];
-            lvls_tot += lvls_counts[j];
+      }/*THEN*/
 
-          }/*FOR*/
+    }/*THEN*/
+    else {
 
-          for (j = 0; j < nlvls; j++)
-            pt[CMC(j, i, nlvls)] /= lvls_tot;
+      /* average the predicted values. */
+      ((double *)res)[i] = posterior_mean((double *)pred, wgt, nsims,
+                             drop, debugging);
 
-        }/*THEN*/
-
-        break;
-
-    }/*SWITCH*/
+    }/*ELSE*/
 
   }/*FOR*/
 
-  /* deallocate here to avoid leaking memory if warnings are errors. */
-  Free1D(vartypes);
-  Free1D(varptrs);
-  Free1D(evptrs);
-  Free1D(wgt);
-  if (TYPEOF(result) == INTSXP)
-    Free1D(lvls_counts);
+  FreeTAB(cpdist_tab);
 
-  if (drop > 0)
-    warning("dropping %d observations because generated samples are NAs.", drop);
-
-  if (include_prob) {
-
-    /* set the levels of the taregt variable as rownames. */
-    setDimNames(probtab, lvls, R_NilValue);
-    /* add the posterior probabilities to the return value. */
-    setAttrib(result, BN_ProbSymbol, probtab);
-
-    UNPROTECT(5);
-
-  }/*THEN*/
-  else {
-
-    UNPROTECT(4);
-
-  }/*ELSE*/
-
-  return result;
-
-}/*MAPPRED*/
-
+}/*C_MAPPRED*/

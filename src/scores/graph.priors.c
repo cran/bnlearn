@@ -1,13 +1,13 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
-#include "../core/uppertriangular.h"
 #include "../core/sort.h"
+#include "../core/uppertriangular.h"
+#include "../include/globals.h"
+#include "../include/graph.h"
+#include "../minimal/common.h"
 #include "../minimal/data.frame.h"
 #include "../minimal/strings.h"
 #include "../minimal/unique.h"
-#include "../minimal/common.h"
-#include "../include/globals.h"
-#include "../include/graph.h"
 #include "scores.h"
 
 double castelo_prior(SEXP beta, SEXP target, SEXP parents, SEXP children,
@@ -234,6 +234,7 @@ SEXP result, from, to, nid, dir1, dir2;
     cur = poset[i];
 
 #define ASSIGN(A1, A2, D1, D2) \
+  do { \
   SET_STRING_ELT(from,  k, STRING_ELT(A1, cur)); \
   SET_STRING_ELT(to,  k, STRING_ELT(A2, cur)); \
   id[k] = aid[i]; \
@@ -241,7 +242,8 @@ SEXP result, from, to, nid, dir1, dir2;
   if ((und[cur] == TRUE) && (i < narcs1 - 1)) \
     D2[k] = p[poset[++i]]; \
   else \
-    D2[k] = (1 - D1[k])/2;
+    D2[k] = (1 - D1[k])/2; \
+  } while (0)
 
     /* copy the node labels. */
     if (m1[cur] < m2[cur]) {
@@ -306,7 +308,7 @@ SEXP result, from, to, nid, dir1, dir2;
   SET_VECTOR_ELT(result, 4, dir2);
   setAttrib(result, R_NamesSymbol,
     mkStringVec(5, "from", "to", "aid", "fwd", "bkwd"));
-  PROTECT(df = minimal_data_frame(result));
+  PROTECT(df = minimal_data_frame(result, narcs2));
 
   Free1D(poset);
 

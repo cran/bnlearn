@@ -1,7 +1,7 @@
-#include "../include/rcore.h"
-#include "../core/allocations.h"
-#include "../minimal/strings.h"
-#include "../math/linear.algebra.h"
+#include "../../include/rcore.h"
+#include "../../core/allocations.h"
+#include "../../math/linear.algebra.h"
+#include "../../minimal/strings.h"
 
 #define BLANKET		 1
 #define NEIGHBOUR	 2
@@ -17,8 +17,7 @@ SEXP cache_structure(SEXP nodes, SEXP amat, SEXP debug) {
 int i = 0, length_nodes = length(nodes);
 int *status = NULL, *a = INTEGER(amat);
 bool debugging = isTRUE(debug);
-
-  SEXP bn, temp;
+SEXP bn, temp;
 
   /* allocate the list and set its attributes.*/
   PROTECT(bn = allocVector(VECSXP, length_nodes));

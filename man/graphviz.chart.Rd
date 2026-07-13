@@ -1,11 +1,11 @@
 \name{graphviz.chart}
 \alias{graphviz.chart}
-\title{Plotting networks with probability bars}
+\title{Plotting networks with parameter summaries}
 \description{
 
   Plot a Bayesian network as a graph whose nodes are barplots representing
-  the marginal distributions of the corresponding variables.
-  Requires the \pkg{Rgraphviz} and \pkg{gRain} packages.
+  the distributions of the corresponding variables. Requires the \pkg{Rgraphviz}
+  package and, for discrete networks, also the \pkg{gRain} package.
 
 }
 \usage{
@@ -17,11 +17,12 @@ graphviz.chart(x, type = "barchart", layout = "dot", draw.labels = TRUE,
 \arguments{
   \item{x}{an object of class \code{bn.fit}.}
   \item{type}{a character string, the type of graph used to plot the probability
-    distributions in the nodes. Possible values are \code{barchart}, \code{dotplot}
-    and \code{barprob} (a barchart with parameter values printed over the bars).}
+    distributions in the nodes. Possible values are \code{"barchart"},
+    \code{"dotplot"} and \code{"barprob"} (a barchart with parameter values printed
+    over the bars).}
   \item{layout}{a character string, the layout argument that will be passed to
-    \pkg{Rgraphviz}. Possible values are \code{dots}, \code{neato},
-    \code{twopi}, \code{circo} and \code{fdp}. See \pkg{Rgraphviz} documentation
+    \pkg{Rgraphviz}. Possible values are \code{"dot"}, \code{"neato"},
+    \code{"twopi"}, \code{"circo"} and \code{"fdp"}. See \pkg{Rgraphviz} documentation
     for details.}
   \item{draw.labels}{a boolean value, whether to print the labels of the
     parameters of each variable.}
@@ -29,9 +30,9 @@ graphviz.chart(x, type = "barchart", layout = "dot", draw.labels = TRUE,
     probability distributions. If \code{grid} is \code{TRUE}, a vertical grid is
     drawn at probabilities \code{c(0, 0.25,} \code{0.50, 0.75)} for discrete
     nodes, and at the quartiles of the regression coefficients range for
-    continuous nodes. If \code{grid} is a numeric vector, a verical grid is
-    drawn at the specified values. If grid is a named list, each element is
-    a set of grid points can be specificed for the corresponding node.}
+    continuous nodes. If \code{grid} is a numeric vector, a vertical grid is
+    drawn at the specified values. If \code{grid} is a named list, each element
+    is a set of grid points for the corresponding node.}
   \item{scale}{a vector of two positive numbers, used by \pkg{Rgraphviz} to
     determine the size and the aspect ratio of the nodes.}
   \item{col, bg, text.col, bar.col, strip.bg}{the colours of the node border,

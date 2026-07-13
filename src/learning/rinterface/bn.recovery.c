@@ -1,8 +1,8 @@
-#include "../include/rcore.h"
-#include "../core/allocations.h"
-#include "../core/uppertriangular.h"
-#include "../minimal/strings.h"
-#include "../minimal/common.h"
+#include "../../include/rcore.h"
+#include "../../core/allocations.h"
+#include "../../core/uppertriangular.h"
+#include "../../minimal/common.h"
+#include "../../minimal/strings.h"
 
 /* check neighbourhood sets and markov blanets for consistency.. */
 SEXP bn_recovery(SEXP bn, SEXP mb, SEXP filter, SEXP debug) {

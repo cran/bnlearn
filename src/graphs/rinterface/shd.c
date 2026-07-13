@@ -1,7 +1,7 @@
-#include "../include/rcore.h"
-#include "../include/graph.h"
-#include "../minimal/common.h"
-#include "../math/linear.algebra.h"
+#include "../../include/rcore.h"
+#include "../../include/graph.h"
+#include "../../math/linear.algebra.h"
+#include "../../minimal/common.h"
 
 SEXP shd(SEXP learned, SEXP golden, SEXP debug) {
 

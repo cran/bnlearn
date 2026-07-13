@@ -1,9 +1,9 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
-#include "../minimal/data.frame.h"
-#include "../include/globals.h"
-#include "../core/moments.h"
 #include "../core/data.table.h"
+#include "../core/moments.h"
+#include "../include/globals.h"
+#include "../minimal/data.frame.h"
 
 /* remove one variable in each highly-correlated pair. */
 SEXP dedup (SEXP data, SEXP threshold, SEXP complete, SEXP debug) {
@@ -15,10 +15,10 @@ double tol = MACHINE_TOL, t = NUM(threshold);
 long double sum = 0;
 bool debugging = isTRUE(debug);
 SEXP result, colnames;
-gdata dt = { 0 };
+tabular dt = { 0 };
 
   /* extract the columns from the data frame. */
-  dt = gdata_from_SEXP(data, 0);
+  dt = tabular_from_SEXP(data, 0, 0);
   meta_init_flags(&(dt.m), 0, complete, R_NilValue);
   meta_copy_names(&(dt.m), 0, data);
   /* set up the vectors for the pairwise complete observations. */
@@ -37,8 +37,8 @@ gdata dt = { 0 };
     if (!dt.m.flag[j].complete)
       continue;
 
-    mean[j] = c_mean(dt.col[j], dt.m.nobs);
-    sse[j] = c_sse(dt.col[j], mean[j], dt.m.nobs);
+    mean[j] = c_mean(dt.ccol[j], dt.m.nobs);
+    sse[j] = c_sse(dt.ccol[j], mean[j], dt.m.nobs);
 
   }/*FOR*/
 
@@ -69,18 +69,18 @@ gdata dt = { 0 };
 
         /* compute the covariance. */
         for (i = 0, sum = 0; i < dt.m.nobs; i++)
-          sum += (dt.col[j][i] - cur_mean[0]) * (dt.col[k][i] - cur_mean[1]);
+          sum += (dt.ccol[j][i] - cur_mean[0]) * (dt.ccol[k][i] - cur_mean[1]);
 
       }/*THEN*/
       else {
 
         for (i = 0, nc = 0; i < dt.m.nobs; i++) {
 
-          if (ISNAN(dt.col[j][i]) || ISNAN(dt.col[k][i]))
+          if (ISNAN(dt.ccol[j][i]) || ISNAN(dt.ccol[k][i]))
             continue;
 
-          xx[nc] = dt.col[j][i];
-          yy[nc++] = dt.col[k][i];
+          xx[nc] = dt.ccol[j][i];
+          yy[nc++] = dt.ccol[k][i];
 
         }/*FOR*/
 
@@ -139,13 +139,13 @@ gdata dt = { 0 };
   setAttrib(result, R_NamesSymbol, colnames);
 
   /* make it a data frame. */
-  minimal_data_frame(result);
+  minimal_data_frame(result, dt.m.nobs);
 
   Free1D(mean);
   Free1D(sse);
   Free1D(xx);
   Free1D(yy);
-  FreeGDT(dt);
+  FreeTAB(dt);
 
   UNPROTECT(2);
 

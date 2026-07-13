@@ -1,6 +1,6 @@
 #include "../../include/rcore.h"
-#include "../../minimal/strings.h"
 #include "../../minimal/common.h"
+#include "../../minimal/strings.h"
 #include "../tests.h"
 
 SEXP c_create_htest(double stat, SEXP test, double pvalue, double df,

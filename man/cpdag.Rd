@@ -30,26 +30,30 @@ vstructs(x, arcs = FALSE, debug = FALSE)
 \arguments{
   \item{x}{an object of class \code{bn} or \code{bn.fit} (with the exception of
     \code{cextend()}, which only accepts objects of class \code{bn}).}
-  \item{arcs}{a boolean value. If \code{TRUE} the arcs that are part of at least
-    one v-structure are returned instead of the v-structures themselves.}
-  \item{wlbl}{a boolean value. If \code{TRUE} arcs whose directions have been
-    fixed by a whitelist or a by blacklist are preserved when constructing
-    the CPDAG.}
+  \item{arcs}{a boolean value. If \code{TRUE}, the arcs that are part of at
+    least one v-structure are returned instead of the v-structures themselves.}
+  \item{wlbl}{a boolean value. If \code{TRUE}, arcs whose directions have been
+    fixed by a whitelist or a blacklist are preserved when constructing the
+    CPDAG.}
   \item{strict}{a boolean value. If no consistent extension is possible and
-    \code{strict} is \code{TRUE}, an error is generated; otherwise a partially
+    \code{strict} is \code{TRUE}, an error is generated. Otherwise, a partially
     extended graph is returned with a warning.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
 }
 \details{
 
   Note that arcs whose directions are dictated by the parametric assumptions of
-  the network are preserved as directed arcs in  \code{cpdag()}. This means
-  that, in a conditional Gaussian network, arcs from discrete nodes to
-  continuous nodes will be treated as whitelisted in their only valid direction.
+  the network are preserved as directed arcs in \code{cpdag()}. This means that,
+  in a conditional Gaussian network, arcs from discrete nodes to continuous
+  nodes will be treated as whitelisted in their only valid direction.
 
   \code{cextend.all()} returns all possible consistent extensions of a CPDAG,
-  whereas \code{cextend()} returns only one.
+  whereas \code{cextend()} returns only one. \code{cextend.all()} also accepts a
+  PDAG or an MPDAG (a partially directed graph carrying background knowledge, in
+  which some directed arcs are not compelled), in which case it enumerates the
+  consistent extensions that agree with the given arc directions; it stops with
+  an error if no such extension exists.
 
 }
 \value{

@@ -26,15 +26,15 @@ bn.boot(data, statistic, R = 200, m = nrow(data), algorithm,
   \item{statistic.args}{a list of extra arguments to be passed to the function
     specified by \code{statistic}.}
   \item{cluster}{an optional cluster object from package \pkg{parallel}.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
 }
 \details{
 
   The first argument of \code{statistic} is the \code{bn} object encoding the
-  network structure learned from the bootstrap sample; the arguments specified
-  in \code{statistics.args} are extracted from the list and passed to
-  \code{statistics} as the 2nd, 3rd, etc. arguments.
+  network structure learned from the bootstrap sample. The arguments specified
+  in \code{statistic.args} are extracted from the list and passed to
+  \code{statistic} as subsequent arguments.
 
 }
 \value{

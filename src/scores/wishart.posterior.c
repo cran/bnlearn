@@ -1,10 +1,10 @@
 #include "../include/rcore.h"
 #include "../core/covariance.matrix.h"
-#include "../core/moments.h"
-#include "../minimal/data.frame.h"
-#include "../minimal/common.h"
 #include "../core/data.table.h"
+#include "../core/moments.h"
 #include "../math/linear.algebra.h"
+#include "../minimal/common.h"
+#include "../minimal/data.frame.h"
 #include "scores.h"
 
 double wpost(double *xx, int data_ncols, int nobs, double alpha_mu, double *nu,
@@ -45,6 +45,8 @@ double cwpost(double *xx, SEXP z, int data_ncols, int nobs, double alpha_mu,
 int i = 0, j = 0, p = length(z);
 double t = 0;
 long double logprob = 0;
+tabular dtx = { 0 };
+covariance R = { 0 }, Rtilde = { 0 };
 
   /* first term. */
   logprob = 0.5 * (log(alpha_mu) - log(nobs + alpha_mu));
@@ -63,14 +65,14 @@ long double logprob = 0;
              0.5 * (alpha_w - data_ncols + p) * (p) * log(t);
 
   /* third term, ratio of the determinants of the posterior R matrices. */
-  gdata dtx = gdata_from_SEXP(z, 1);
-  dtx.col[0] = xx;
-  gdata_cache_means(&dtx, 0);
-  covariance R = new_covariance(dtx.m.ncols, FALSE);
-  covariance Rtilde = new_covariance(dtx.m.ncols - 1, FALSE);
+  dtx = tabular_from_SEXP(z, 0, 1);
+  dtx.ccol[0] = xx;
+  tabular_cache_means(&dtx, 0);
+  R = new_covariance(dtx.m.ncols, FALSE);
+  Rtilde = new_covariance(dtx.m.ncols - 1, FALSE);
 
   /* compute the rescaled covariance matrix. */
-  c_covmat(dtx.col, dtx.mean, dtx.m.nobs, dtx.m.ncols, R, 0);
+  c_covmat(dtx.ccol, dtx.mean, dtx.m.nobs, dtx.m.ncols, R, 0);
   for (i = 0; i < R.dim * R.dim; i++)
     R.mat[i] *= nobs - 1;
 
@@ -96,7 +98,7 @@ long double logprob = 0;
   logprob -= 0.5 * (nobs + alpha_w - data_ncols + p + 1) *
                c_logdet(R.mat, R.dim);
 
-  FreeGDT(dtx);
+  FreeTAB(dtx);
   FreeCOV(R);
   FreeCOV(Rtilde);
 

@@ -1,18 +1,18 @@
 
-maxmin.pc = function(x, cluster = NULL, whitelist, blacklist, test, alpha,
-    extra.args = list(), max.sx = ncol(x), debug = FALSE) {
+maxmin.pc = function(data, cluster = NULL, whitelist, blacklist, test, alpha,
+    extra.args = list(), max.sx = ncol(data), debug = FALSE) {
 
-  nodes = names(x)
+  nodes = names(data)
 
   # 1. [Forward Phase (I)]
-  mb = smartSapply(cluster, as.list(nodes), maxmin.pc.forward.phase, data = x,
-         nodes = nodes, alpha = alpha, extra.args = extra.args,
+  mb = smartSapply(cluster, as.list(nodes), maxmin.pc.forward.phase,
+         data = data, nodes = nodes, alpha = alpha, extra.args = extra.args,
          whitelist = whitelist, blacklist = blacklist, test = test,
          max.sx = max.sx, debug = debug)
   names(mb) = nodes
 
   # 2. [Backward Phase (II)]
-  mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+  mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = data,
          alpha = alpha, extra.args = extra.args, whitelist = whitelist,
          blacklist = blacklist, test = test, max.sx = max.sx, markov = FALSE,
          debug = debug)
@@ -30,14 +30,15 @@ maxmin.pc = function(x, cluster = NULL, whitelist, blacklist, test, alpha,
 
 }#MAXMIN.PC
 
-maxmin.pc.forward.phase = function(x, data, nodes, alpha, extra.args = list(),
-    whitelist, blacklist, test, max.sx = ncol(x), debug = FALSE) {
+maxmin.pc.forward.phase = function(target, data, nodes, alpha,
+    extra.args = list(), whitelist, blacklist, test, max.sx = ncol(data),
+    debug = FALSE) {
 
-  nodes = nodes[nodes != x]
+  nodes = nodes[nodes != target]
   whitelisted = nodes[sapply(nodes,
-          function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
+      function(y) { is.whitelisted(whitelist, c(target, y), either = TRUE) })]
   blacklisted = nodes[sapply(nodes,
-          function(y) { is.blacklisted(blacklist, c(x, y), both = TRUE) })]
+      function(y) { is.blacklisted(blacklist, c(target, y), both = TRUE) })]
   cpc = c()
   association = structure(numeric(length(nodes)), names = nodes)
   to.add = ""
@@ -46,7 +47,7 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, extra.args = list(),
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
-    cat("* forward phase for node", x, ".\n")
+    cat("* forward phase for node", target, ".\n")
 
   }#THEN
 
@@ -66,10 +67,10 @@ maxmin.pc.forward.phase = function(x, data, nodes, alpha, extra.args = list(),
     to.be.checked = setdiff(names(which(association < alpha)), cpc)
 
     # get an association measure for each of the available nodes.
-    association = sapply(to.be.checked, maxmin.pc.heuristic.optimized, y = x,
-                    sx = cpc, data = data, test = test, alpha = alpha,
-                    extra.args = extra.args, association = association,
-                    debug = debug)
+    association = sapply(to.be.checked, maxmin.pc.heuristic.optimized,
+                    y = target, sx = cpc, data = data, test = test,
+                    alpha = alpha, extra.args = extra.args,
+                    association = association, debug = debug)
 
     # stop if there are no candidates for inclusion.
     if (all(association > alpha) || length(nodes) == 0 || is.null(nodes)) break

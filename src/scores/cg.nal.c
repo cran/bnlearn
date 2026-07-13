@@ -1,11 +1,11 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
 #include "../core/sets.h"
-#include "scores.h"
-#include "../minimal/data.frame.h"
-#include "../minimal/common.h"
 #include "../include/globals.h"
 #include "../math/linear.algebra.h"
+#include "../minimal/common.h"
+#include "../minimal/data.frame.h"
+#include "scores.h"
 
 double c_fast_ccgnal(double *xx, double **gp, int ngp, int nobs,
     int *config, int nconfig, double k) {

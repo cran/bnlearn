@@ -3,8 +3,8 @@
 \title{Estimate the optimal imaginary sample size for BDe(u)}
 \description{
 
-  Estimate the optimal value of the imaginary sample size for the BDe score,
-  assuming a uniform prior and given a network structure and a data set.
+  Estimate the optimal imaginary sample size for the BDe score, given a network
+  structure and a data set, assuming a uniform prior.
 
 }
 \usage{
@@ -14,8 +14,8 @@
   \item{x}{an object of class \code{bn} (for \code{bn.fit} and \code{custom.fit})
     or an object of class \code{bn.fit} (for \code{bn.net}).}
   \item{data}{a data frame containing the variables in the model.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise the function is completely silent.}
 }
 \value{
 

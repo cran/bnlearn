@@ -1,75 +1,7 @@
-#include "../include/rcore.h"
-#include "../include/graph.h"
-#include "../minimal/strings.h"
-#include "../minimal/common.h"
-#include "../core/sort.h"
-
-/* convert a set of neighbourhoods into an arc set. */
-SEXP nbr2arcs(SEXP nbr) {
-
-int i = 0, j = 0, k = 0, narcs = 0;
-int length_names = 0;
-SEXP arcs, temp, names;
-
-  /* get the names of the nodes. */
-  PROTECT(names = getAttrib(nbr, R_NamesSymbol));
-  length_names = length(names);
-
-  /* scan the structure to determine the number of arcs.  */
-  for (i = 0; i < length_names; i++) {
-
-    /* get the entry for the neighbours of the node.*/
-    temp = getListElement(nbr, (char *)CHAR(STRING_ELT(names, i)));
-    temp = getListElement(temp, "nbr");
-
-    narcs += length(temp);
-
-  }/*FOR*/
-
-  /* if there are no arcs, return an empty arc set. */
-  if (narcs == 0) {
-
-    /* allocate an empty arc set. */
-    PROTECT(arcs = allocMatrix(STRSXP, 0, 2));
-    /* set the column names. */
-    setDimNames(arcs, R_NilValue, mkStringVec(2, "from", "to"));
-
-    UNPROTECT(2);
-
-    return arcs;
-
-  }/*THEN*/
-  else {
-
-    /* allocate the arc set. */
-    PROTECT(arcs = allocMatrix(STRSXP, narcs, 2));
-    /* set the column names. */
-    setDimNames(arcs, R_NilValue, mkStringVec(2, "from", "to"));
-
-  }/*ELSE*/
-
-  /* rescan the structure to build the arc set. */
-  for (i = 0; i < length_names; i++) {
-
-    /* get the entry for the neighbours of the node.*/
-    temp = getListElement(nbr, (char *)CHAR(STRING_ELT(names, i)));
-    temp = getListElement(temp, "nbr");
-
-    for (j = 0; j < length(temp); j++) {
-
-      SET_STRING_ELT(arcs, k, STRING_ELT(names, i));
-      SET_STRING_ELT(arcs, k + 1 * narcs , STRING_ELT(temp, j));
-      k++;
-
-    }/*FOR*/
-
-  }/*FOR*/
-
-  UNPROTECT(2);
-
-  return arcs;
-
-}/*NBR2ARCS*/
+#include "../../include/rcore.h"
+#include "../../core/sort.h"
+#include "../../include/graph.h"
+#include "../../minimal/common.h"
 
 /* backend for the all.equal() function for bn objects. */
 SEXP all_equal_bn(SEXP target, SEXP current) {

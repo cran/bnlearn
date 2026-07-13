@@ -1,9 +1,8 @@
 #include "../../include/rcore.h"
 #include "../../core/allocations.h"
-#include "../../scores/scores.h"
 #include "../../core/sets.h"
+#include "../../scores/scores.h"
 #include "../../tests/tests.h"
-#include "../../core/correlation.h"
 
 /* unconditional mutual information, to be used in C code. */
 double c_micg(double *yy, double ym, double ysd, int *xx, int llx, int num,

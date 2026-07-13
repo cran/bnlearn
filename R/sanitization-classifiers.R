@@ -1,16 +1,16 @@
 
 # sanitize the extra arguments passed to Bayesian classifiers.
-check.classifier.args = function(method, data, training, explanatory,
+check.classifier.args = function(algorithm, data, training, explanatory,
     extra.args) {
 
   # check the label of the mutual information estimator.
-  if (has.argument(method, "estimator", learning.extra.args))
+  if (has.argument(algorithm, "estimator", learning.extra.args))
     extra.args[["estimator"]] =
       check.mi.estimator(extra.args[["estimator"]], data = data)
 
   # check the node to use the root of the tree (if not specified pick the first
   # explanatory variable assuming natural ordering).
-  if (has.argument(method, "root", learning.extra.args)) {
+  if (has.argument(algorithm, "root", learning.extra.args)) {
 
     if (!is.null(extra.args[["root"]]))
       check.nodes(extra.args[["root"]], graph = explanatory, max.nodes = 1)
@@ -20,7 +20,7 @@ check.classifier.args = function(method, data, training, explanatory,
   }#THEN
 
   # warn about and remove unused arguments.
-  extra.args = check.unused.args(extra.args, learning.extra.args[[method]])
+  extra.args = check.unused.args(extra.args, learning.extra.args[[algorithm]])
 
   return(extra.args)
 

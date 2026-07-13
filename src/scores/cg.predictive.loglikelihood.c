@@ -1,11 +1,11 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
 #include "../core/sets.h"
-#include "scores.h"
-#include "../minimal/data.frame.h"
-#include "../minimal/common.h"
 #include "../include/globals.h"
 #include "../math/linear.algebra.h"
+#include "../minimal/common.h"
+#include "../minimal/data.frame.h"
+#include "scores.h"
 
 static double c_pcgnode(double *xx, double *xx2, double **gp, double **gp2,
     int ngp, int nobs, int nobs2, int *config, int *config2, int nconfig) {

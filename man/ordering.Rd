@@ -12,8 +12,8 @@ node.ordering(x, debug = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{bn} or \code{bn.fit}.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
 }
 \value{
 

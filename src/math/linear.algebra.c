@@ -1,14 +1,11 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
-#include "../include/globals.h"
 #include "../core/covariance.matrix.h"
 #include "../core/moments.h"
+#include "../include/globals.h"
 #include "linear.algebra.h"
 
-/* -------------------- C level interfaces to LAPACK -------------------- */
-
-/* C-level function to compute the log-determinant of a symmetric real matrix,
-   which can be either positive or NaN. */
+/* Compute the log-determinant of a symmetric matrix, either positive or NaN. */
 double c_logdet(double *matrix, int rows) {
 
 int sign = 1, i = 0, info = 0, *jpvt = NULL;
@@ -56,9 +53,8 @@ long double logdet = 0;
 
 }/*C_LOGDET*/
 
-/* C-level wrapper around the dgesdd() F77 routine. Note that the input
- * matrix A is overwritten by dgesdd(), so it's sensible to have a
- * backup copy in case it's needed later. */
+/* C-level wrapper around the dgesdd() F77 routine. Note that the input matrix
+ * A is overwritten by dgesdd(), so it's sensible to have a backup copy. */
 void c_svd(double *A, double *U, double *D, double *V, int *nrow,
     int *ncol, int *mindim, bool strict, int *errcode) {
 
@@ -87,7 +83,7 @@ double tmp = 0, *work = NULL;
 
 }/*C_SVD*/
 
-/* C-level function to compute Moore-Penrose Generalized Inverse of a square matrix. */
+/* Compute Moore-Penrose Generalized Inverse of a square matrix. */
 void c_ginv(covariance cov, covariance mpinv) {
 
 int i = 0, j = 0, errcode = 0;
@@ -136,7 +132,7 @@ covariance backup = (covariance){ 0 };
 
 }/*C_GINV*/
 
-/* C-level function to perform OLS via QR decomposition. */
+/* Perform OLS via QR decomposition. */
 void c_qr(double *qr, double *y, int nrow, int ncol, double *fitted,
     double *resid, double *beta, double *sd) {
 
@@ -204,14 +200,11 @@ double *bb = NULL, *rsd = NULL, *ftt = NULL;
   memcpy(ftt, y, nrow * sizeof(double));
 
   /* compute the fitted values, residuals, coefficients and standard errors. */
-  /*       dqrsl( x,  ldx,   n,     k,     qraux, y,   qy,     qty, */
-  F77_CALL(dqrsl)(qr, &nrow, &nrow, &rank, qraux, ftt, NULL,   ftt,
-  /*  b,      rsd,    xb,  job,  info) */
-      bb,   rsd,    ftt, &job, &info);
+  F77_CALL(dqrsl)(qr, &nrow, &nrow, &rank, qraux, ftt, NULL, ftt, bb, rsd, ftt,
+      &job, &info);
 
-  /* 'info' is the error code, if it is different from zero something went
-   * wrong and the model is perfectly singular to the point the QR
-   * decomposition cannot be computed at all. */
+  /* 'info' is the error code, if different from zero something went wrong: the
+   * model is singular and the QR decomposition cannot be computed at all. */
   if (info != 0) {
 
     /* set all coefficients to NA. */

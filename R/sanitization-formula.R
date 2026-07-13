@@ -6,7 +6,7 @@ check.modelstring = function(string) {
   if (!is.string(string))
     stop("string must be a character string.")
 
-  # check the syntax (separate regexps for root nodes and non-root ndoes).
+  # check the syntax (separate regexps for root nodes and non-root nodes).
   correct.format = paste("^(",
     "\\[[^\\[\\]\\|:]+?\\]",
     "|",

@@ -48,6 +48,13 @@ SEXP temp, nodes_in_fitted_bn, cur_node, parents;
       bn.ldists[i].d.dims = INTEGER(temp);
       /* for root nodes, the number of parent configurations will be 1. */
       bn.ldists[i].d.nconfigs /= bn.ldists[i].d.dims[0];
+      /* the labels of the factor levels. */
+      bn.ldists[i].d.levels = Calloc1D(bn.ldists[i].d.dims[0], sizeof(char *));
+      temp = getListElement(cur_node, "prob");
+      temp = getAttrib(temp, R_DimNamesSymbol);;
+      temp = VECTOR_ELT(temp, 0);
+      for (int j = 0; j < bn.ldists[i].d.dims[0]; j++)
+        bn.ldists[i].d.levels[j] = (char *) CHAR(STRING_ELT(temp, j));
 
     }/*THEN*/
     else if (bn.node_types[i] == GNODE) {
@@ -79,6 +86,30 @@ SEXP temp, nodes_in_fitted_bn, cur_node, parents;
       bn.ldists[i].cg.coefs = REAL(temp);
       temp = getListElement(cur_node, "sd");
       bn.ldists[i].cg.sd = REAL(temp);
+
+    }/*THEN*/
+    else if (bn.node_types[i] == ZIHPNODE) {
+
+      /* zero-inflated hyper-Poisson nodes. */
+      temp = getListElement(cur_node, "inflation");
+      bn.ldists[i].zihp.inflation = REAL(temp);
+      bn.ldists[i].zihp.ncoefs = length(temp);
+      temp = getListElement(cur_node, "intensity");
+      bn.ldists[i].zihp.intensity = REAL(temp);
+      temp = getListElement(cur_node, "dispersion");
+      bn.ldists[i].zihp.dispersion = NUM(temp);
+
+    }/*THEN*/
+    else if (bn.node_types[i] == ZINBNODE) {
+
+      /* zero-inflated negative binomial nodes. */
+      temp = getListElement(cur_node, "inflation");
+      bn.ldists[i].zinb.inflation = REAL(temp);
+      bn.ldists[i].zinb.ncoefs = length(temp);
+      temp = getListElement(cur_node, "prsucc");
+      bn.ldists[i].zinb.prsucc = REAL(temp);
+      temp = getListElement(cur_node, "failures");
+      bn.ldists[i].zinb.failures = NUM(temp);
 
     }/*THEN*/
 
@@ -191,7 +222,12 @@ void FreeFittedBN(fitted_bn bn) {
     Free1D(bn.ldists[i].parents);
   for (int i = 0; i < bn.nnodes; i++) {
 
-    if (bn.node_types[i] == CGNODE) {
+    if ((bn.node_types[i] == DNODE) || (bn.node_types[i] == ONODE)) {
+
+      Free1D(bn.ldists[i].d.levels);
+
+    }/*THEN*/
+    else if (bn.node_types[i] == CGNODE) {
 
       Free1D(bn.ldists[i].cg.dparents);
       Free1D(bn.ldists[i].cg.gparents);

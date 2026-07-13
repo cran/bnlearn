@@ -29,16 +29,16 @@ set2blacklist(set)
 
   \code{ordering2blacklist()} takes a vector of character strings (the labels
   of the nodes), which specifies a complete node ordering. An object of class
-  \code{bn} or \code{bn.fit}; in that case, the node ordering is derived by the
-  graph. In both cases, the blacklist returned by \code{ordering2blacklist()}
-  contains all the possible arcs that violate the specified node ordering.
+  \code{bn} or \code{bn.fit}; in that case, the node ordering is derived from
+  the graph. In both cases, \code{ordering2blacklist()} returns a blacklist
+  containing all the possible arcs that violate the specified node ordering.
 
   \code{tiers2blacklist()} takes (again) a vector of character strings (the
   labels of the nodes), which specifies a complete node ordering, or a list of
   character vectors, which specifies a partial node ordering. In the latter
-  case, all arcs going from a node in a particular element of the list
-  (sometimes known as \emph{tier}) to a node in one of the previous elements
-  are blacklisted. Arcs between nodes in the same element are not blacklisted.
+  case, all arcs going from a node in one list element (sometimes known as
+  \emph{tier}) to a node in previous elements are blacklisted. Arcs between
+  nodes in the same element are not blacklisted.
 
   \code{set2blacklist()} creates a blacklist containing all the arcs between any
   two of the nodes whose labels are passed as the argument \code{set}.
@@ -46,13 +46,14 @@ set2blacklist(set)
 }
 \value{
 
-  \code{whitelist()} and \code{blacklist()} return a matrix of character string
-  with two columns, named \code{from} and \code{to}, if whitelist or a blacklist
-  have been used to learn the \code{bn} object passed as their argument.
+  \code{whitelist()} and \code{blacklist()} return a matrix of character strings
+  with two columns, named \code{from} and \code{to}, if a whitelist or a
+  blacklist has been used to learn the \code{bn} object passed as their
+  argument.
 
   \code{ordering2blacklist()}, \code{tiers2blacklist()} and
   \code{set2blacklist()} return a sanitized \code{blacklist} (a two-column
-  matrix, whose columns are labeled \code{from} and \code{to}).
+  matrix, whose columns are labelled \code{from} and \code{to}).
 
 }
 \examples{

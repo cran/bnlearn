@@ -22,18 +22,18 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL, groups,
   \item{groups}{a list of character vectors, representing groups of node labels
     of nodes that should be plotted close to each other.}
   \item{layout}{a character string, the layout argument that will be passed to
-    \pkg{Rgraphviz}. Possible values are \code{dots}, \code{neato},
-    \code{twopi}, \code{circo} and \code{fdp}. See \pkg{Rgraphviz} documentation
+    \pkg{Rgraphviz}. Possible values are \code{"dot"}, \code{"neato"},
+    \code{"twopi"}, \code{"circo"} and \code{"fdp"}. See \pkg{Rgraphviz} documentation
     for details.}
-  \item{shape}{a character string, the shape of the nodes. Can be \code{circle},
-    \code{ellipse} or \code{rectangle}.}
+  \item{shape}{a character string, the shape of the nodes. Can be \code{"circle"},
+    \code{"ellipse"} or \code{"rectangle"}.}
   \item{fontsize}{a positive number, the font size for the node labels.}
   \item{main}{a character string, the main title of the graph. It's plotted at
     the top of the graph.}
   \item{sub}{a character string, a subtitle which is plotted at the bottom of
     the graph.}
-  \item{debug}{a boolean value. If \code{TRUE} a lot of debugging output is
-    printed; otherwise the function is completely silent.}
+  \item{debug}{a boolean value. If \code{TRUE}, a lot of debugging output is
+    printed. Otherwise, the function is completely silent.}
   \item{render}{a logical value. If \code{TRUE}, \code{strength.plot()} actually
     draws the figure in addition to returning the corresponding \code{graph}
     object. If \code{FALSE}, no figure is produced.}
@@ -43,16 +43,16 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL, groups,
   The \code{threshold} argument is used to determine which arcs are supported
   strongly enough by the data to be deemed significant:
   \itemize{
-    \item if arc strengths have been computed using conditional independence
-      tests, any strength coefficient (which is the p-value of the test) lesser
+    \item If arc strengths have been computed using conditional independence
+      tests, any strength coefficient (which is the p-value of the test) less
       than or equal to the threshold is considered significant.
-    \item if arc strengths have been computed using network scores, any strength
+    \item If arc strengths have been computed using network scores, any strength
       coefficient (which is the increase/decrease of the network score caused by
-      the removal of the arc) lesser than the threshold is considered
+      the removal of the arc) less than the threshold is considered
       significant.
-    \item if arc strengths have been computed using bootstrap or using Bayes
+    \item If arc strengths have been computed using bootstrap or using Bayes
       factors, any strength coefficient (which can be interpreted as a
-      probability for inclusion) greater or equal than the threshold is
+      probability for inclusion) greater than or equal to the threshold is
       considered significant.
   }
   The default value is the value of the \code{strength} attribute of the
@@ -61,9 +61,9 @@ strength.plot(x, strength, threshold, cutpoints, highlight = NULL, groups,
   Non-significant arcs are plotted as dashed lines.
 
   The \code{cutpoints} argument is an array of numeric values used to divide
-  the range of the strength coefficients into intervals. The interval each
-  strength coefficient falls into determines the line width of the corresponding
-  arc in the plot. The default intervals are delimited by
+  the range of strength coefficients into intervals. The interval each strength
+  coefficient falls into determines the line width of the corresponding arc in
+  the plot. The default intervals are delimited by
 
     \code{  unique(c(0, threshold/c(10, 5, 2, 1.5, 1), 1))}
 

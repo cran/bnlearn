@@ -1,12 +1,12 @@
 
-incremental.association.fdr = function(x, cluster = NULL, whitelist,
-    blacklist, test, alpha, extra.args = list(), max.sx = ncol(x),
+incremental.association.fdr = function(data, cluster = NULL, whitelist,
+    blacklist, test, alpha, extra.args = list(), max.sx = ncol(data),
     debug = FALSE) {
 
-  nodes = names(x)
+  nodes = names(data)
 
   # 1. [Compute Markov Blankets]
-  mb = smartSapply(cluster, as.list(nodes), ia.fdr.markov.blanket, data = x,
+  mb = smartSapply(cluster, as.list(nodes), ia.fdr.markov.blanket, data = data,
          nodes = nodes, alpha = alpha, extra.args = extra.args,
          whitelist = whitelist, blacklist = blacklist, test = test,
          max.sx = max.sx, debug = debug)
@@ -16,7 +16,7 @@ incremental.association.fdr = function(x, cluster = NULL, whitelist,
   mb = bn.recovery(mb, nodes = nodes, mb = TRUE, debug = debug)
 
   # 2. [Compute Graph Structure]
-  mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+  mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = data,
          alpha = alpha, extra.args = extra.args, whitelist = whitelist,
          blacklist = blacklist, test = test, max.sx = max.sx, debug = debug)
   names(mb) = nodes
@@ -28,15 +28,15 @@ incremental.association.fdr = function(x, cluster = NULL, whitelist,
 
 }#INCREMENTAL.ASSOCIATION.FDR
 
-ia.fdr.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
-    whitelist, blacklist, start = character(0), test, max.sx = ncol(x),
-    debug = FALSE) {
+ia.fdr.markov.blanket = function(target, data, nodes, alpha,
+    extra.args = list(), whitelist, blacklist, start = character(0), test,
+    max.sx = ncol(data), debug = FALSE) {
 
-  nodes = nodes[nodes != x]
+  nodes = nodes[nodes != target]
   fdr.threshold = length(nodes) / seq_along(nodes) * sum(1 / seq_along(nodes))
   culprit = character(0)
   whitelisted = nodes[sapply(nodes,
-          function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
+        function(y) { is.whitelisted(whitelist, c(target, y), either = TRUE) })]
   mb = start
   loop.counter = 0
   state = vector(5 * length(nodes), mode = "list")
@@ -45,7 +45,7 @@ ia.fdr.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
-    cat("* learning the markov blanket of", x, ".\n")
+    cat("* learning the markov blanket of", target, ".\n")
 
     if (length(start) > 0)
      cat("* initial set includes '", mb, "'.\n")
@@ -94,7 +94,8 @@ ia.fdr.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
       # reset the loop counter to match.
       loop.counter = loop.counter - 1
 
-      warning("prevented infinite loop in Markov blanket learning (node '", x, "').")
+      warning("prevented infinite loop in Markov blanket learning (node '",
+              target, "').")
 
     }#THEN
 
@@ -106,8 +107,8 @@ ia.fdr.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
 
     # get an association measure for each of the available nodes.
     association = sapply(nodes, function(node) {
-       indep.test(x, node, sx = setdiff(mb, node), data = data, test = test,
-         extra.args = extra.args, alpha = alpha)
+       indep.test(target, node, sx = setdiff(mb, node), data = data,
+         test = test, extra.args = extra.args, alpha = alpha)
     })
     names(association) = nodes
 
@@ -222,5 +223,5 @@ ia.detect.infinite.loop = function(mb, state, loop.counter, debug) {
 
   return(FALSE)
 
-}#IA.FDR.DETECT.INFINITE.LOOP
+}#IA.DETECT.INFINITE.LOOP
 

@@ -1,11 +1,11 @@
 
-incremental.association = function(x, cluster = NULL, whitelist, blacklist,
-    test, alpha, extra.args = list(), max.sx = ncol(x), debug = FALSE) {
+incremental.association = function(data, cluster = NULL, whitelist, blacklist,
+    test, alpha, extra.args = list(), max.sx = ncol(data), debug = FALSE) {
 
-  nodes = names(x)
+  nodes = names(data)
 
   # 1. [Compute Markov Blankets]
-  mb = smartSapply(cluster, as.list(nodes), ia.markov.blanket, data = x,
+  mb = smartSapply(cluster, as.list(nodes), ia.markov.blanket, data = data,
          nodes = nodes, alpha = alpha, extra.args = extra.args,
          whitelist = whitelist, blacklist = blacklist, test = test,
          max.sx = max.sx, debug = debug)
@@ -15,7 +15,7 @@ incremental.association = function(x, cluster = NULL, whitelist, blacklist,
   mb = bn.recovery(mb, nodes = nodes, mb = TRUE, debug = debug)
 
   # 2. [Compute Graph Structure]
-  mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = x,
+  mb = smartSapply(cluster, as.list(nodes), neighbour, mb = mb, data = data,
          alpha = alpha, extra.args = extra.args, whitelist = whitelist,
          blacklist = blacklist, test = test, max.sx = max.sx,  debug = debug)
   names(mb) = nodes
@@ -27,13 +27,13 @@ incremental.association = function(x, cluster = NULL, whitelist, blacklist,
 
 }#INCREMENTAL.ASSOCIATION
 
-ia.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
-    whitelist, blacklist, start = character(0), test, max.sx = ncol(x),
+ia.markov.blanket = function(target, data, nodes, alpha, extra.args = list(),
+    whitelist, blacklist, start = character(0), test, max.sx = ncol(data),
     debug = FALSE) {
 
-  nodes = nodes[nodes != x]
+  nodes = nodes[nodes != target]
   whitelisted = nodes[sapply(nodes,
-          function(y) { is.whitelisted(whitelist, c(x, y), either = TRUE) })]
+          function(y) { is.whitelisted(whitelist, c(target, y), either = TRUE) })]
   mb = start
   to.add = ""
 
@@ -41,7 +41,7 @@ ia.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
   if (debug) {
 
     cat("----------------------------------------------------------------\n")
-    cat("* learning the markov blanket of", x, ".\n")
+    cat("* learning the markov blanket of", target, ".\n")
 
     if (length(start) > 0)
       cat("* initial set includes '", mb, "'.\n")
@@ -74,7 +74,7 @@ ia.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
     }#THEN
 
     # get an association measure for each of the available nodes.
-    association = indep.test(nodes, x, sx = mb, test = test, data = data,
+    association = indep.test(nodes, target, sx = mb, test = test, data = data,
                     extra.args = extra.args, alpha = alpha)
 
     if (debug) {
@@ -119,8 +119,8 @@ ia.markov.blanket = function(x, data, nodes, alpha, extra.args = list(),
   fixed = c(to.add, whitelisted)
   fixed = fixed[fixed != ""]
 
-  pv = roundrobin.test(x = x, z = mb, fixed = fixed, data = data, test = test,
-         extra.args = extra.args, alpha = alpha, debug = debug)
+  pv = roundrobin.test(x = target, z = mb, fixed = fixed, data = data,
+         test = test, extra.args = extra.args, alpha = alpha, debug = debug)
 
   return(intersect(mb, c(names(pv[pv < alpha]), fixed)))
 

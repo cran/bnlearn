@@ -13,12 +13,7 @@ predict.backend = function(fitted, node, data, cluster = NULL, method,
   # choose the right function for the prediction method.
   if (method == "parents") {
 
-    if (is(fitted, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
-      fun = discrete.prediction
-    else if (is(fitted, "bn.fit.gnet"))
-      fun = gaussian.prediction
-    else if (is(fitted, "bn.fit.cgnet"))
-      fun = mixedcg.prediction
+    fun = parents.prediction
 
   }#THEN
   else if (method == "bayes-lw") {
@@ -41,11 +36,8 @@ predict.backend = function(fitted, node, data, cluster = NULL, method,
       fun = exact.gaussian.prediction
 
     }#THEN
-    else if (is(fitted, "bn.fit.cgnet")) {
-
+    else
       stop("'bn.fit.cgnet' networks are not supported.")
-
-    }#ELSE
 
   }#THEN
 
@@ -78,126 +70,71 @@ predict.backend = function(fitted, node, data, cluster = NULL, method,
 
 }#PREDICT.BACKEND
 
-# predicted values for gaussian variables.
-gaussian.prediction = function(node, fitted, data, extra.args, prob = FALSE,
+# predicted values from the parents of a node; the underlying C code handles
+# discrete, Gaussian, conditional Gaussian and zero-inflated nodes.
+parents.prediction = function(node, fitted, data, extra.args, prob = FALSE,
     debug = FALSE) {
-
-  parents = fitted[[node]]$parents
 
   if (debug)
     cat("* predicting values for node ", node, ".\n", sep = "")
 
-  if (length(parents) == 0) {
+  .Call(call_predict_from_parents,
+        fitted = fitted,
+        node = node,
+        data = data,
+        prob = prob,
+        debug = debug)
 
-    .Call(call_gpred,
-          fitted = fitted[[node]],
-          ndata = nrow(data),
-          debug = debug)
-
-  }#THEN
-  else {
-
-    .Call(call_cgpred,
-          fitted = fitted[[node]],
-          parents = .data.frame.column(data, parents, drop = FALSE),
-          debug = debug)
-
-  }#ELSE
-
-}#GAUSSIAN.PREDICTION
-
-# predicted values for discrete networks.
-discrete.prediction = function(node, fitted, data, extra.args, prob = FALSE,
-    debug = FALSE) {
-
-  parents = fitted[[node]]$parents
-
-  if (debug)
-    cat("* predicting values for node ", node, ".\n", sep = "")
-
-  if (length(parents) == 0) {
-
-    .Call(call_dpred,
-          fitted = fitted[[node]],
-          ndata = nrow(data),
-          prob = prob,
-          debug = debug)
-
-  }#THEN
-  else {
-
-    # if there is only one parent, get it easy.
-    if (length(parents) == 1)
-      config = .data.frame.column(data, parents)
-    else
-      config = configurations(.data.frame.column(data, parents), factor = FALSE)
-
-    .Call(call_cdpred,
-          fitted = fitted[[node]],
-          parents = config,
-          prob = prob,
-          debug = debug)
-
-  }#ELSE
-
-}#DISCRETE.PREDICTION
-
-# predicted values for conditional Gaussian networks.
-mixedcg.prediction = function(node, fitted, data, extra.args, prob = FALSE,
-    debug = FALSE) {
-
-  type = class(fitted[[node]])
-
-  if (type == "bn.fit.dnode")
-    discrete.prediction(node = node, fitted = fitted, data = data, debug = debug)
-  else if (type == "bn.fit.gnode")
-    gaussian.prediction(node = node, fitted = fitted, data = data, debug = debug)
-  else {
-
-    parents = fitted[[node]]$parents
-    continuous.parents = names(which(sapply(parents, function(x) is.numeric(data[, x]))))
-    discrete.parents = setdiff(parents, continuous.parents)
-
-    # if there is only one parent, get it easy.
-    if (length(discrete.parents) == 1)
-      config = .data.frame.column(data, discrete.parents)
-    else
-      config = configurations(.data.frame.column(data, discrete.parents), factor = FALSE)
-
-    .Call(call_ccgpred,
-          fitted = fitted[[node]],
-          configurations = config,
-          parents = .data.frame.column(data, continuous.parents, drop = FALSE),
-          debug = debug)
-
-  }#ELSE
-
-}#MIXEDCG.PREDICTION
+}#PARENTS.PREDICTION
 
 # Naive Bayes and Tree-Augmented naive Bayes classifiers for discrete networks.
 naive.classifier = function(training, fitted, prior, data, prob = FALSE,
     debug = FALSE) {
-
-  # get the labels of the explanatory variables.
-  nodes = names(fitted)
-  # get the parents of each node, disregarding the training node.
-  parents = sapply(fitted, function(x) {
-    p = x$parents; return(p[p != training])
-  })
 
   if (debug)
     cat("* predicting values for node ", training, ".\n", sep = "")
 
   .Call(call_naivepred,
         fitted = fitted,
-        data = .data.frame.column(data, nodes, drop = FALSE),
-        parents = match(parents, nodes),
-        training = which(nodes == training),
+        data = data,
+        training = which(names(fitted) == training),
         prior = prior,
         prob = prob,
         debug = debug)
 
 }#NAIVE.CLASSIFIER
+
+# predict a node from an incomplete set of predictors by imputing it while
+# averaging over the unobserved predictors, using the given imputation backend;
+# the backend also returns the prediction probabilities, if requested.
+predict.by.imputing = function(node, fitted, data, extra.args, impute.fun,
+    prob = FALSE, debug = FALSE) {
+
+  # if the predictors include the target variable, erase its values; otherwise
+  # introduce it as a column of NAs (a factor for discrete targets) to be imputed.
+  if (node %in% names(data))
+    data[, node][] = NA
+  else {
+
+    data[, node] = rep(NA_real_, nrow(data))
+    if (is(fitted[[node]], c("bn.fit.dnode", "bn.fit.onode")))
+      data[, node] = factor(data[, node],
+                            levels = dimnames(fitted[[node]]$prob)[[1]])
+
+  }#ELSE
+
+  imputed = impute.fun(fitted = fitted, data = data, extra.args = extra.args,
+              restrict.from = extra.args$from, restrict.to = node, prob = prob,
+              debug = debug)
+
+  # subsetting drops attributes: carry over the posterior probabilities.
+  predicted = imputed[, node]
+  if (prob)
+    attr(predicted, "prob") = attr(imputed, "prob")
+
+  return(predicted)
+
+}#PREDICT.BY.IMPUTING
 
 # maximum a posteriori predictions.
 likelihood.weighting.prediction = function(node, fitted, data, extra.args,
@@ -207,40 +144,21 @@ likelihood.weighting.prediction = function(node, fitted, data, extra.args,
   complete.predictors = complete.nodes[extra.args$from]
 
   # if the data are incomplete, the set of predictors may differ between
-  # observations: predicting from such a set is essentially like imputing the
-  # target variable while averaging over the predictors we do not observe.
-  if (!all(complete.predictors)) {
+  # observations, so predict by imputing the target instead.
+  if (!all(complete.predictors))
+    return(predict.by.imputing(node = node, fitted = fitted, data = data,
+             extra.args = extra.args,
+             impute.fun = impute.backend.likelihood.weighting, prob = prob,
+             debug = debug))
 
-    # if the predictors include the target variable, erase its values; if it
-    # does not, introduce it as a vector of NAs to be imputed.
-    if (node %in% names(data))
-      data[, node][] = NA
-    else {
-
-      data[, node] = rep(NA_real_, nrow(data))
-      if (is(fitted[[node]], c("bn.fit.dnode", "bn.fit.onode")))
-        data[, node] = factor(data[, node],
-                              levels = dimnames(fitted[[node]]$prob)[[1]])
-
-    }#ELSE
-
-    impute.backend.likelihood.weighting(fitted = fitted, data = data,
-      extra.args = extra.args, restrict.from = extra.args$from,
-      restrict.to = node, debug = debug)[, node]
-
-  }#THEN
-  else {
-
-    .Call(call_mappred,
-          node = node,
-          fitted = fitted,
-          data = data,
-          n = as.integer(extra.args$n),
-          from = extra.args$from,
-          prob = prob,
-          debug = debug)
-
-  }#ELSE
+  .Call(call_predict_map_lw,
+        node = node,
+        fitted = fitted,
+        data = data,
+        n = as.integer(extra.args$n),
+        from = extra.args$from,
+        prob = prob,
+        debug = debug)
 
 }#LIKELIHOOD.WEIGHTING.PREDICTION
 
@@ -252,27 +170,11 @@ exact.discrete.prediction = function(node, fitted, data, extra.args,
   complete.predictors = complete.nodes[extra.args$from]
 
   # if the data are incomplete, the set of predictors may differ between
-  # observations: predicting from such a set is essentially like imputing the
-  # target variable while averaging over the predictors we do not observe.
-  if (!all(complete.predictors)) {
-
-    # if the predictors include the target variable, erase its values; if it
-    # does not, introduce it as a vector of NAs to be imputed.
-    if (node %in% names(data))
-      data[, node][] = NA
-    else {
-
-      data[, node] = rep(NA_real_, nrow(data))
-      data[, node] = factor(data[, node],
-                            levels = dimnames(fitted[[node]]$prob)[[1]])
-
-    }#ELSE
-
-    return(impute.backend.exact(fitted = fitted, data = data, extra.args =
-      extra.args, restrict.to = node, restrict.from = extra.args$from,
-      debug = debug)[, node])
-
-  }#THEN
+  # observations, so predict by imputing the target instead.
+  if (!all(complete.predictors))
+    return(predict.by.imputing(node = node, fitted = fitted, data = data,
+             extra.args = extra.args, impute.fun = impute.backend.exact,
+             prob = prob, debug = debug))
 
   # check whether gRain is loaded.
   check.and.load.package("gRain")
@@ -316,7 +218,7 @@ exact.discrete.prediction = function(node, fitted, data, extra.args,
   }#THEN
   else {
 
-    # if the conditional probability table is too large, use use the compact
+    # if the conditional probability table is too large, use the compact
     # tree iterate over the observations.
     predval = compact.exact.discrete.prediction(jtree = compact.jtree,
                 node = node, data = data, from = from, prob = prob,
@@ -341,7 +243,7 @@ targeted.exact.discrete.prediction = function(jtree, node, data, from,
                           class = "bn.fit.dnode")
   fitted.network = structure(list(fitted.node), names = node)
   # ... and perform prediction treating predictors as parents.
-  predval = discrete.prediction(node = node, fitted = fitted.network,
+  predval = parents.prediction(node = node, fitted = fitted.network,
               data = data, prob = prob, debug = debug)
 
   return(predval)
@@ -420,22 +322,11 @@ exact.gaussian.prediction = function(node, fitted, data, extra.args,
   complete.predictors = complete.nodes[extra.args$from]
 
   # if the data are incomplete, the set of predictors may differ between
-  # observations: predicting from such a set is essentially like imputing the
-  # target variable while averaging over the predictors we do not observe.
-  if (!all(complete.predictors)) {
-
-    # if the predictors include the target variable, erase its values; if it
-    # does not, introduce it as a vector of NAs to be imputed.
-    if (node %in% names(data))
-      data[, node][] = NA
-    else
-      data[, node] = rep(NA_real_, nrow(data))
-
-    return(impute.backend.exact(fitted = fitted, data = data, extra.args =
-      extra.args, restrict.to = node, restrict.from = extra.args$from,
-      debug = debug)[, node])
-
-  }#THEN
+  # observations, so predict by imputing the target instead.
+  if (!all(complete.predictors))
+    return(predict.by.imputing(node = node, fitted = fitted, data = data,
+             extra.args = extra.args, impute.fun = impute.backend.exact,
+             prob = prob, debug = debug))
 
   # get the global distribution...
   mvn = gbn2mvnorm.backend(fitted)
@@ -462,7 +353,7 @@ exact.gaussian.prediction = function(node, fitted, data, extra.args,
   }#ELSE
   distribution = mvnorm2gbn.backend(prediction.network, mu = mu, sigma = sigma)
   # ... and predict.
-  gaussian.prediction(node = node, fitted = distribution, data = data,
+  parents.prediction(node = node, fitted = distribution, data = data,
     debug = debug)
 
 }#EXACT.GAUSSIAN.PREDICTION

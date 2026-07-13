@@ -83,6 +83,12 @@ check.lty = function(lty) {
     stop(sprintf("%s is not a valid line type identifier.",
            deparse(substitute(lty))))
 
+  # Rgraphviz does not support mixing numeric and string values, remap them.
+  if (is.positive.integer(lty))
+    lty = lty.strings[lty + 1]
+
+  return(lty)
+
 }#CHECK.LTY
 
 # check the grid used to make probability bar/line plots easier to read.
@@ -116,7 +122,7 @@ check.chart.grid = function(grid, fitted, range) {
       if (any(grid[grid != 0] < range[1]) || any(grid[grid != 0] > range[2]))
         warning("discarding out-of-range grid values in node ", node, ".")
 
-      # make speciall allowances for zero, even if it is out of range.
+      # make special allowances for zero, even if it is out of range.
       grid =
         union(grid[grid >= range[1] & grid <= range[2]], intersect(grid, 0))
 

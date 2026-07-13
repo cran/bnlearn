@@ -1,6 +1,6 @@
 #include "../include/rcore.h"
-#include "../include/globals.h"
 #include "../core/sort.h"
+#include "../include/globals.h"
 
 /* a rudimental function like fmax() but for integer variables. */
 int imax(int x, int y) {

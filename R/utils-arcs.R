@@ -136,7 +136,7 @@ set.edge.backend = function(from, to, arcs, debug = FALSE) {
 
   }#ELSE
 
-}#SET.EDGE
+}#SET.EDGE.BACKEND
 
 # drop an arc.
 drop.arc.backend = function(arcs, dropped, debug = FALSE) {
@@ -210,14 +210,6 @@ which.listed = function(arcs, list, either = FALSE, both = FALSE) {
   apply(arcs, 1, function(arc) { is.listed(list, arc, either, both) })
 
 }#WHICH.LISTED
-
-# convert a set of neighbourhoods to an arc set.
-nbr2arcs = function(nbr) {
-
-  .Call(call_nbr2arcs,
-        nbr = nbr)
-
-}#NBR2ARCS
 
 # remove duplicate arcs and re-orient them according to the node ordering
 # specified by the labels.

@@ -9,14 +9,27 @@ check.fitting.method = function(method, data, allowed = available.fits) {
 
     # check the fitting method.
     check.label(method, choices = allowed, labels = fits.labels,
-      argname = "fitting method", see = "bn.fit")
+      argname = "parameter estimator", see = "bn.fit")
     # check that the method is applicable to the data.
     if ((method %in% available.dbn.fits) && (type %!in% discrete.data.types))
       stop("parameter estimator '", method, "' may only be used with discrete data.")
-    if ((method %in% available.gbn.fits) && (type != "continuous"))
+    if ((method %in% c(available.gbn.fits, available.zibn.fits)) &&
+        (type != "continuous"))
       stop("parameter estimator '", method, "' may only be used with continuous data.")
     if ((method %in% available.cgbn.fits) && (type != "mixed-cg"))
-      stop("paramter estimator '", method, "' may only be used with a mixture of continuous and discrete data.")
+      stop("parameter estimator '", method, "' may only be used with a mixture of continuous and discrete data.")
+
+    # count data must contain only round numbers.
+    if (method %in% available.zibn.fits) {
+
+      all.nonnegative = sapply(data, function(x) all(x >= 0, na.rm = TRUE))
+      if (any(!all.nonnegative))
+        stop("parameter estimator '", method, "' cannot be used with negative data.")
+      all.counts = sapply(data, function(x) all(x == floor(x), na.rm = TRUE))
+      if (any(!all.counts))
+        warning("parameter estimator '", method, "' is used with non-round count data.")
+
+    }#THEN
 
     return(method)
 
@@ -133,12 +146,53 @@ check.fitting.args = function(method, network, data, extra.args) {
 
   }#THEN
 
+  # check the controls of the EM estimator for zero-inflated count nodes.
+  extra.args = check.em.args(extra.args, fits.extra.args[[method]])
+
   # warn about and remove unused arguments.
   extra.args = check.unused.args(extra.args, fits.extra.args[[method]])
 
   return(extra.args)
 
 }#CHECK.FITTING.ARGS
+
+# check the controls of the EM estimator for zero-inflated count nodes: the
+# maximum number of EM iterations, the relative convergence tolerance, and the
+# M-step type. shared by the bn.fit() methods (mle-zihp, mle-zinb) and by the
+# corresponding structure-learning scores; `allowed` is the vector of argument
+# names admitted by the method or score, so only relevant controls are checked.
+check.em.args = function(extra.args, allowed) {
+
+  # the maximum number of EM iterations and the relative convergence tolerance.
+  if ("em.max.iter" %in% allowed)
+    extra.args[["em.max.iter"]] =
+      check.max.iter(extra.args[["em.max.iter"]], default = 100,
+        max = .Machine$integer.max)
+  if ("em.tol" %in% allowed) {
+
+    if (is.null(extra.args[["em.tol"]]))
+      extra.args[["em.tol"]] = 1e-8
+    else if (!is.non.negative(extra.args[["em.tol"]]))
+      stop("'em.tol' must be a non-negative numeric value.")
+
+  }#THEN
+
+  # the EM M-step: re-fit each GLM to convergence ("full", the default and the
+  # paper-faithful choice) or take a single IRLS step per iteration ("one-step",
+  # a cheaper generalized-EM update).
+  if ("m.step" %in% allowed) {
+
+    if (is.null(extra.args[["m.step"]]))
+      extra.args[["m.step"]] = "full"
+    else if (!identical(extra.args[["m.step"]], "full") &&
+             !identical(extra.args[["m.step"]], "one-step"))
+      stop("'m.step' must be one of \"full\" or \"one-step\".")
+
+  }#THEN
+
+  return(extra.args)
+
+}#CHECK.EM.ARGS
 
 # check the relative log-likelihood threshold for improvement.
 check.loglik.threshold = function(threshold) {

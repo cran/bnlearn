@@ -1,8 +1,8 @@
 #include "../../include/rcore.h"
-#include "../../include/globals.h"
-#include "../../fitted/fitted.h"
-#include "../../core/data.table.h"
 #include "../../core/allocations.h"
+#include "../../core/data.table.h"
+#include "../../fitted/fitted.h"
+#include "../../include/globals.h"
 #include "../../minimal/common.h"
 #include "../loglikelihood/loglikelihood.h"
 
@@ -47,7 +47,7 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
     if (debugging)
       Rprintf("> computing the log-likelihood of a discrete network.\n");
 
-    ddata dt = ddata_from_SEXP(data, 0);
+    tabular dt = tabular_from_SEXP(data, 0, 0);
     meta_copy_names(&(dt.m), 0, data);
     meta_init_flags(&(dt.m), 0, complete_nodes, keep);
 
@@ -63,7 +63,7 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
 
     }/*ELSE*/
 
-    FreeDDT(dt);
+    FreeTAB(dt);
 
   }/*THEN*/
   else if (bn.type == GNET) {
@@ -71,7 +71,7 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
     if (debugging)
       Rprintf("> computing the log-likelihood of a Gaussian network.\n");
 
-    gdata dt = gdata_from_SEXP(data, 0);
+    tabular dt = tabular_from_SEXP(data, 0, 0);
     meta_copy_names(&(dt.m), 0, data);
     meta_init_flags(&(dt.m), 0, complete_nodes, keep);
 
@@ -87,7 +87,7 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
 
     }/*ELSE*/
 
-    FreeGDT(dt);
+    FreeTAB(dt);
 
   }/*THEN*/
   else if (bn.type == CGNET) {
@@ -95,7 +95,7 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
     if (debugging)
       Rprintf("> computing the log-likelihood of a conditional Gaussian network.\n");
 
-    cgdata dt = cgdata_from_SEXP(data, 0, 0);
+    tabular dt = tabular_from_SEXP(data, 0, 0);
     meta_copy_names(&(dt.m), 0, data);
     meta_init_flags(&(dt.m), 0, complete_nodes, keep);
 
@@ -111,7 +111,31 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
 
     }/*ELSE*/
 
-    FreeCGDT(dt);
+    FreeTAB(dt);
+
+  }/*THEN*/
+  else if (bn.type == ZINET) {
+
+    if (debugging)
+      Rprintf("> computing the log-likelihood of a zero-inflated network.\n");
+
+    tabular dt = tabular_from_SEXP(data, 0, 0);
+    meta_copy_names(&(dt.m), 0, data);
+    meta_init_flags(&(dt.m), 0, complete_nodes, keep);
+
+    if (by) {
+
+      bysample_zeroinflated_loglikelihood(bn, dt, loglik, FALSE, debugging);
+
+    }/*THEN*/
+    else {
+
+      NUM(loglikelihood) =
+        data_zeroinflated_loglikelihood(bn, dt, loglik, propagate, debugging);
+
+    }/*ELSE*/
+
+    FreeTAB(dt);
 
   }/*THEN*/
   else {
@@ -136,5 +160,5 @@ SEXP keep, loglikelihood, metadata, complete_nodes, nodes_in_fitted;
 
   return loglikelihood;
 
-}/*DATA_LOGLIKELIHOOD2*/
+}/*LOGLIKELIHOOD_FUNCTION*/
 

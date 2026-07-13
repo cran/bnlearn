@@ -1,6 +1,5 @@
 #include "../include/rcore.h"
 #include "../fitted/fitted.h"
-#include "../math/linear.algebra.h"
 
 /* compute the number of parameters of a fitted model. */
 double nparams_fitted_node(ldist ld, fitted_node_e type) {
@@ -42,6 +41,17 @@ double node_params = 0;
        * configuration of the discrete parents (of which there should be at
        * least one). */
       node_params += nconfigs * (nrows + 1);
+
+      break;
+
+    /* ... if it's a zero-inflated hyper-Poisson or negative binomial node: */
+    case ZIHPNODE:
+    case ZINBNODE:
+
+      /* the number of parameters is (2 * number of parents + 3), comprising
+       * the regression coefficients fro zero inflation, those for the position
+       * parameter, and a single scale/shape parameter. */
+      node_params += 2 * ld.nparents + 3;
 
       break;
 

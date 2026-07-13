@@ -1,14 +1,10 @@
 #include "../../include/rcore.h"
-#include "../../include/globals.h"
 #include "../../core/allocations.h"
-#include "../../core/contingency.tables.h"
-#include "../../core/sort.h"
-#include "../../include/globals.h"
 #include "../../core/data.table.h"
+#include "../../include/globals.h"
+#include "../../minimal/common.h"
 #include "../../minimal/data.frame.h"
 #include "../../minimal/strings.h"
-#include "../../minimal/common.h"
-#include "../../tests/tests.h"
 #include "../preprocessing.h"
 
 /* transform an array of cutpoints into label strings that resemble those
@@ -54,7 +50,8 @@ int i = 0, j = 0, max_nbreaks = 0, errcode = 0;
 int *nbreaks = INTEGER(breaks), *create_ordered = LOGICAL(ordered);
 bool debugging = isTRUE(debug);
 const char *cur_node = NULL;
-cgdata orig = { 0 };
+double *cutpoints = NULL;
+tabular orig = { 0 };
 discretization_e m = discretization_to_enum(CHAR(STRING_ELT(method, 0)));
 SEXP discretized, new_factor, new_levels, metadata, complete_nodes;
 SEXP attached_cutpoints;
@@ -66,7 +63,7 @@ SEXP attached_cutpoints;
   /* store the data in a data table that allows both discrete and continuous
    * variables, with the understanding that continuous variables are not
    * necessarily Gaussian. */
-  orig = cgdata_from_SEXP(data, 0, 0);
+  orig = tabular_from_SEXP(data, 0, 0);
   meta_copy_names(&(orig.m), 0, data);
   meta_init_flags(&(orig.m), 0, complete_nodes, R_NilValue);
 
@@ -83,7 +80,7 @@ SEXP attached_cutpoints;
 
   /* cutpoints used in the discretization should be stored to produce the
    * labels for the factor levels. */
-  double *cutpoints = Calloc1D(max_nbreaks + 1, sizeof(double));
+  cutpoints = Calloc1D(max_nbreaks + 1, sizeof(double));
 
   if ((m == INTERVAL) || (m == QUANTILE)) {
 
@@ -113,14 +110,14 @@ SEXP attached_cutpoints;
       if (m == INTERVAL) {
 
         errcode =
-          interval_discretization(orig.gcol[orig.map[j]], INTEGER(new_factor),
+          interval_discretization(orig.ccol[orig.map[j]], INTEGER(new_factor),
             nbreaks[j], cutpoints, orig.m.nobs, debugging);
 
       }/*THEN*/
       else if (m == QUANTILE) {
 
         errcode =
-          quantile_discretization(orig.gcol[orig.map[j]], INTEGER(new_factor),
+          quantile_discretization(orig.ccol[orig.map[j]], INTEGER(new_factor),
             nbreaks[j], cutpoints, orig.m.nobs, orig.m.flag[j].complete,
             debugging);
 
@@ -131,7 +128,7 @@ SEXP attached_cutpoints;
       if (errcode) {
 
         Free1D(cutpoints);
-        FreeCGDT(orig);
+        FreeTAB(orig);
         UNPROTECT(4);
 
         error("discretizing variable %s into %d levels produced zero-length intervals.",
@@ -158,13 +155,13 @@ SEXP attached_cutpoints;
 
   }/*THEN*/
 
-  Free1D(cutpoints);
-  FreeCGDT(orig);
-
   /* make sure the return value is a data frame. */
-  PROTECT(discretized = minimal_data_frame(discretized));
+  PROTECT(discretized = minimal_data_frame(discretized, orig.m.nobs));
   /* attach the cutpoints to make the discretization reproducible. */
   setAttrib(discretized, BN_CutpointsSymbol, attached_cutpoints);
+
+  Free1D(cutpoints);
+  FreeTAB(orig);
 
   UNPROTECT(5);
 
@@ -181,8 +178,8 @@ int *create_ordered = LOGICAL(ordered);
 double **all_cutpoints = NULL;
 const char *cur_node = NULL;
 bool debugging = isTRUE(debug);
-ddata workspace = { 0 };
-cgdata orig = { 0 };
+tabular workspace = { 0 };
+tabular orig = { 0 };
 discretization_e m = discretization_to_enum(CHAR(STRING_ELT(method, 0)));
 discretization_e idisc =
   discretization_to_enum(CHAR(STRING_ELT(initial_discretization, 0)));
@@ -197,7 +194,7 @@ SEXP attached_cutpoints;
   /* store the data in a data table that allows both discrete and continuous
    * variables, with the understanding that continuous variables are not
    * necessarily Gaussian. */
-  orig = cgdata_from_SEXP(data, 0, 0);
+  orig = tabular_from_SEXP(data, 0, 0);
   meta_copy_names(&(orig.m), 0, data);
   meta_init_flags(&(orig.m), 0, complete_nodes, R_NilValue);
 
@@ -216,7 +213,7 @@ SEXP attached_cutpoints;
 
     /* store the transformed data after the initial discretization, and pass
      * that to Hartemink's method to keep the whole thing modular. */
-    workspace = empty_ddata(orig.m.nobs, orig.m.ncols);
+    workspace = empty_tabular(orig.m.nobs, orig.m.ncols, 0);
     meta_copy_names(&(workspace.m), 0, data);
 
     /* cutpoints used in the discretization should be stored to produce the
@@ -233,7 +230,7 @@ SEXP attached_cutpoints;
        * levels are collapsed later on. */
       if (orig.m.flag[j].discrete) {
 
-        workspace.col[j] = orig.dcol[orig.map[j]];
+        workspace.dcol[j] = orig.dcol[orig.map[j]];
         workspace.nlvl[j] = orig.nlvl[orig.map[j]];
         workspace.m.flag[j].fixed = TRUE;
         all_SEXPs[j] = VECTOR_ELT(data, j);
@@ -248,7 +245,7 @@ SEXP attached_cutpoints;
 
       /* perform the initial discretization using intervals or quantiles. */
       PROTECT(new_factor = allocVector(INTSXP, orig.m.nobs));
-      workspace.col[j] = INTEGER(new_factor);
+      workspace.dcol[j] = INTEGER(new_factor);
 
 try_again:
 
@@ -257,14 +254,14 @@ try_again:
       if (idisc == INTERVAL) {
 
         errcode =
-          interval_discretization(orig.gcol[orig.map[j]], workspace.col[j],
+          interval_discretization(orig.ccol[orig.map[j]], workspace.dcol[j],
             ibreaks[j], all_cutpoints[j], orig.m.nobs, debugging);
 
       }/*THEN*/
       else if (idisc == QUANTILE) {
 
         errcode =
-          quantile_discretization(orig.gcol[orig.map[j]], workspace.col[j],
+          quantile_discretization(orig.ccol[orig.map[j]], workspace.dcol[j],
             ibreaks[j], all_cutpoints[j], orig.m.nobs, orig.m.flag[j].complete,
             debugging);
 
@@ -278,8 +275,8 @@ try_again:
 
           Free2D(all_cutpoints, orig.m.ncols);
           Free1D(all_SEXPs);
-          FreeDDT(workspace);
-          FreeCGDT(orig);
+          FreeTAB(workspace);
+          FreeTAB(orig);
           UNPROTECT(3);
 
           error("discretizing node %s produces zero-length intervals even with %d cutpoints.",
@@ -310,7 +307,7 @@ try_again:
     /* construct the labels of the levels and set them. */
     for (j = 0; j < workspace.m.ncols; j++) {
 
-      if (orig.m.flag[j].gaussian) {
+      if (orig.m.flag[j].continuous) {
 
         PROTECT(new_levels = cutpoints_to_levels(all_cutpoints[j], nbreaks[j]));
         setAttrib(all_SEXPs[j], R_LevelsSymbol, new_levels);
@@ -337,17 +334,17 @@ try_again:
 
   }/*ELSE*/
 
-  FreeCGDT(orig);
-  FreeDDT(workspace);
-  Free2D(all_cutpoints, orig.m.ncols);
-  Free1D(all_SEXPs);
-
   /* make sure the return value is a data frame. */
-  PROTECT(discretized = minimal_data_frame(discretized));
+  PROTECT(discretized = minimal_data_frame(discretized, orig.m.nobs));
   /* attach the cutpoints to make the discretization reproducible. */
   setAttrib(discretized, BN_CutpointsSymbol, attached_cutpoints);
 
-  UNPROTECT(5 + orig.ngcols);
+  FreeTAB(orig);
+  FreeTAB(workspace);
+  Free2D(all_cutpoints, orig.m.ncols);
+  Free1D(all_SEXPs);
+
+  UNPROTECT(5 + orig.nccols);
 
   return discretized;
 

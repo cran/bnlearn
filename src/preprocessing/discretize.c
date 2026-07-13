@@ -1,11 +1,9 @@
 #include "../include/rcore.h"
 #include "../core/allocations.h"
 #include "../core/contingency.tables.h"
+#include "../core/data.table.h"
 #include "../core/sort.h"
 #include "../include/globals.h"
-#include "../core/data.table.h"
-#include "../minimal/data.frame.h"
-#include "../minimal/strings.h"
 #include "../tests/tests.h"
 #include "preprocessing.h"
 
@@ -165,7 +163,7 @@ double h = 0, *sorted = NULL;
 
 }/*QUANTILE_DISCRETIZATION*/
 
-void hartemink_discretization(ddata work, int *nbreaks, double **cutpoints,
+void hartemink_discretization(tabular work, int *nbreaks, double **cutpoints,
     bool debugging) {
 
 int i = 0, j = 0, k = 0, max_nlvl = 0, n = work.m.nobs, index_best = 0;
@@ -213,7 +211,7 @@ counts2d *counts = NULL;
 
         /* ... size and fill the contingency tables... */
         resize_2d_table(work.nlvl[i], work.nlvl[j], &(counts[j]));
-        refill_2d_table(work.col[i], work.col[j], &(counts[j]), n);
+        refill_2d_table(work.dcol[i], work.dcol[j], &(counts[j]), n);
 
         /* ... tally up the mutual informations. */
         cumulated += mi_kernel(counts[j]) / counts[j].nobs;
@@ -265,8 +263,8 @@ counts2d *counts = NULL;
 
       /* adjust the integer coding of the factors in the data frame. */
       for (int l = 0; l < work.m.nobs; l++)
-        if (work.col[i][l] > index_best + 1)
-          work.col[i][l]--;
+        if (work.dcol[i][l] > index_best + 1)
+          work.dcol[i][l]--;
       work.nlvl[i]--;
 
     }/*FOR*/

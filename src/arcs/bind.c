@@ -1,8 +1,7 @@
 #include "../include/rcore.h"
-#include "../include/bn.h"
-#include "../minimal/strings.h"
-#include "../minimal/common.h"
 #include "../math/linear.algebra.h"
+#include "../minimal/common.h"
+#include "../minimal/strings.h"
 
 /* faster rbind() implementation for arc sets. */
 SEXP arcs_rbind (SEXP matrix1, SEXP matrix2, SEXP reverse2) {

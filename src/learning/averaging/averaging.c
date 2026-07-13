@@ -2,9 +2,9 @@
 #include "../../core/allocations.h"
 #include "../../core/sort.h"
 #include "../../include/globals.h"
-#include "../../minimal/data.frame.h"
 #include "../../include/graph.h"
 #include "../../math/linear.algebra.h"
+#include "../../minimal/data.frame.h"
 
 SEXP smart_network_averaging(SEXP arcs, SEXP nodes, SEXP weights) {
 
@@ -218,8 +218,8 @@ SEXP ref, ref_hash, mean_df, method;
   setAttrib(mean_df, R_NamesSymbol, getAttrib(ref, R_NamesSymbol));
   SET_VECTOR_ELT(mean_df, 0, VECTOR_ELT(ref, 0));
   SET_VECTOR_ELT(mean_df, 1, VECTOR_ELT(ref, 1));
-  /* make it a data frame */
-  minimal_data_frame(mean_df);
+  /* make it a data frame. */
+  minimal_data_frame(mean_df, nrow);
 
   /* compute the arc IDs to match arcs of later bn.strength objects. */
   PROTECT(ref_hash = arc_hash(ref, nodes, FALSE, FALSE));

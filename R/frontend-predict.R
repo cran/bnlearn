@@ -30,8 +30,8 @@ predict.bn.fit = function(object, node, data, cluster, method = "parents", ...,
 
   }#THEN
 
-  if (prob && !is(object, c("bn.fit.dnet", "bn.fit.onet", "bn.fit.donet")))
-    stop("prediction probabilities are only available for discrete networks.")
+  if (prob && !is(object[[node]], c("bn.fit.dnode", "bn.fit.onode")))
+    stop("prediction probabilities are only available for discrete nodes.")
 
   # check optional arguments.
   extra.args = check.prediction.extra.args(method, list(...), node = node,
@@ -86,7 +86,7 @@ predict.bn.fit = function(object, node, data, cluster, method = "parents", ...,
 
 }#PREDICT.BN.FIT
 
-# estimate the predicted values for a naive Bayes classfier.
+# estimate the predicted values for a naive Bayes classifier.
 predict.bn.naive = function(object, data, prior, ..., prob = FALSE,
     debug = FALSE) {
 
@@ -98,33 +98,27 @@ predict.bn.naive = function(object, data, prior, ..., prob = FALSE,
     check.bn.naive(object)
   else
     check.bn.tan(object)
+  check.fit(object)
 
   check.logical(debug)
   check.logical(prob)
 
-  # fit the network if needed.
-  if (is(object, "bn"))
-    fitted = bn.fit(object, data)
-  else
-    fitted = object
-
   # get the response variable.
-  training = attr(fitted, "training")
+  training = attr(object, "training")
   # check the fitted model.
-  check.fit.vs.data(fitted = fitted, data = data,
-    subset = setdiff(names(fitted), training))
+  check.fit.vs.data(object, data, subset = setdiff(names(object), training))
   # warn about unused arguments.
   check.unused.args(list(...), character(0))
 
   # check the prior distribution.
-  prior = check.classifier.prior(prior, fitted[[training]])
+  prior = check.classifier.prior(prior, object[[training]])
 
   # compute the predicted values.
-  naive.classifier(training = training, fitted = fitted, data = data,
+  naive.classifier(training = training, fitted = object, data = data,
     prior = prior, prob = prob, debug = debug)
 
 }#PREDICT.BN.NAIVE
 
-# estimate the predicted values for a TAN classfier.
+# estimate the predicted values for a TAN classifier.
 predict.bn.tan = predict.bn.naive
 

@@ -80,11 +80,11 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
   # check the arguments used for structure learning as in rsmax2().
   check.learning.algorithm(algorithm = maximize, class = "score")
 
-  critical.arguments = c("x", "heuristic", "start", "debug")
+  critical.arguments = c("data", "algorithm", "start", "debug")
   check.unused.args(intersect(critical.arguments, names(maximize.args)),
     character(0))
   maximize.args[critical.arguments] =
-    list(x = NULL, heuristic = maximize, start = NULL, debug = debug)
+    list(data = NULL, algorithm = maximize, start = NULL, debug = debug)
 
   # check the arguments used for parameter learning as in bn.cv().
   fit = check.fitting.method(method = fit, data = x)
@@ -129,7 +129,7 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
 
   }#ELSE
 
-  if (is.bn.fit.ill.defined(fitted))
+  if (!identifiable(fitted))
     stop("the 'start' network is singular or has unidentifiable parameters.")
 
   # initialize the algorithm.
@@ -164,7 +164,7 @@ structural.em = function(x, maximize = "hc", maximize.args = list(), fit,
     }#THEN
 
     # maximization step, structure learning (starting from the previous network).
-    maximize.args$x = complete
+    maximize.args$data = complete
     maximize.args$start = dag
     dag = do.call("greedy.search", maximize.args)
 

@@ -69,7 +69,7 @@ acyclic = function(x, directed = FALSE, debug = FALSE) {
   check.logical(debug)
   check.logical(directed)
 
-  # fitted bayesian networks are always acylic.
+  # fitted bayesian networks are always acyclic.
   if (is(x, "bn.fit"))
     return(TRUE)
 
@@ -298,3 +298,30 @@ subgraph = function(x, nodes) {
 
 }#SUBGRAPH
 
+# perturb a network structure by adding, removing by reversing arcs.
+perturb = function(x, nops, ops = c("set", "drop", "reverse"), maxp = Inf,
+    debug = FALSE) {
+
+  check.bn(x)
+  nops = check.max.iter(nops)
+  maxp = check.maxp(maxp, nnodes = length(x$nodes))
+  ops = check.perturb.ops(ops)
+  check.logical(debug)
+
+  if (debug)
+    cat("* performing up to", nops, "arc operations.\n")
+
+  nodes = .nodes(x)
+
+  # apply the perturbations.
+  x = perturb.backend(x, iter = nops, ops = ops, nodes = nodes,
+        amat = arcs2amat(x$arcs, nodes), whitelist = x$learning$whitelist,
+        blacklist = x$learning$blacklist, maxp = maxp, debug = debug)
+
+  # clean up and update the cached network information.
+  x$nodes = cache.structure(nodes, arcs = x$arcs)
+  x$updates = NULL
+
+  return(x)
+
+}#PERTURB
