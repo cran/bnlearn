@@ -56,7 +56,7 @@ long double fac = 0, temp = 0, series = 0;
 
     /* the increment series - temp is already a (non-negative) log-scale
      * quantity, so it is compared against TOL_1F1 directly. */
-    if (!R_FINITE(series) || (fabs(series - temp) < TOL_1F1))
+    if (!R_FINITE(series) || (fabsl(series - temp) < TOL_1F1))
       return series;
 
     temp = series;
@@ -116,7 +116,7 @@ long double logt = 0, logden = 0, lognum = R_NegInf, newden = 0;
     lognum = logspace_add(lognum, log(psi) + logt);
     newden = logspace_add(logden, logt);
 
-    if (!R_FINITE(newden) || (fabs(newden - logden) < TOL_1F1)) {
+    if (!R_FINITE(newden) || (fabsl(newden - logden) < TOL_1F1)) {
       logden = newden;
       return -exp(lognum - logden);
     }

@@ -1,5 +1,5 @@
 dc3cb507554de5d29f34511654aeb032 *Changelog
-60ec23d1eafd2a1e78e8aad2feab1ce5 *DESCRIPTION
+59d98e93e30854943a4ff42cda05e42a *DESCRIPTION
 9c4b7928d3dd1aebcb0eb8052229c012 *NAMESPACE
 50a39db78b031f83f5b6a2e84fe7884c *R/all.equal.R
 c50c71a0dac3543ae6158fc4e6700a0d *R/aracne.R
@@ -289,7 +289,7 @@ da621eb89908763206a276ccf32c8ef9 *src/inference/rinterface/rbn.c
 913a0575caa0c9ddcfa7136d702a7e28 *src/learning/score/score.delta.c
 1894b5fe1338fde1af354088ad7dadf9 *src/learning/score/tabu.c
 715e042754a87642160b9b97a30174f5 *src/math/conditional.least.squares.c
-8a26ac25c825d32a91c13d0e15c2da0c *src/math/hypergeometric.c
+30796149869fc58974dc312648f78a28 *src/math/hypergeometric.c
 1507517989bc062b239b475be105e533 *src/math/hypergeometric.h
 93f8d9145dcb9a503f1788c4317e6f08 *src/math/hyperpoisson.c
 ab8b390b01503ae0c2ac9b587669f8f2 *src/math/hyperpoisson.h
